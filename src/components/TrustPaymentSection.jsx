@@ -38,7 +38,7 @@ const TrustPaymentSection = () => {
         <div className="mt-6 pt-6 border-t border-gray-100">
             <div className="flex items-center justify-center gap-2 mb-4">
                 <Lock size={14} className="text-gray-400" />
-                <span className="text-[13px] font-black text-gray-800 uppercase tracking-tight">طرق دفع وتقسيط متاحة</span>
+                <span className="text-[13px] font-black text-gray-800 uppercase tracking-tight">{t('availableMethods')}</span>
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-2.5">
@@ -65,7 +65,7 @@ const TrustPaymentSection = () => {
 
             <div className="mt-5 flex items-center justify-center gap-2 text-orange-600 font-black text-[11px] uppercase tracking-widest bg-orange-50/50 py-2 rounded-xl border border-orange-100/50">
                 <div className="w-2 h-2 rounded-full bg-orange-600 animate-pulse"></div>
-                توصيل خلال 2-5 أيام عمل
+                {t('deliveryTime')}
             </div>
         </div>
     );

@@ -187,10 +187,10 @@ const AffiliateDashboard = () => {
                     <div>
                         <div className="flex items-center gap-2 text-orange-600 font-black uppercase tracking-[0.2em] text-xs mb-2">
                             <ShieldCheck className="h-4 w-4" />
-                            Tier {affiliate.currentTier || 1} Partner
+                            {t('partnerTier', { tier: affiliate.currentTier || 1 })}
                         </div>
                         <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tight">
-                            Welcome, {affiliate.fullName?.split(' ')[0] || 'Partner'}!
+                            {t('welcome', { name: affiliate.fullName?.split(' ')[0] || 'Partner' })}
                         </h1>
                     </div>
 
@@ -200,14 +200,14 @@ const AffiliateDashboard = () => {
                             className="flex items-center gap-2 font-black text-xs uppercase tracking-widest px-6 py-4 rounded-2xl bg-red-50 text-red-600 border border-red-100 shadow-lg hover:bg-red-100 transition-all w-full md:w-auto"
                         >
                             <LogOut className="h-4 w-4" />
-                            Sign Out
+                            {t('signOut')}
                         </button>
                         <button
                             onClick={() => setShowSettings(!showSettings)}
                             className="flex items-center gap-2 font-black text-xs uppercase tracking-widest px-6 py-4 rounded-2xl bg-white text-gray-900 border border-gray-100 shadow-xl hover:bg-gray-50 transition-all w-full md:w-auto"
                         >
                             <Settings className="h-4 w-4" />
-                            Payout Settings
+                            {t('payoutSettings')}
                         </button>
                         <div className="bg-white p-2 rounded-2xl shadow-xl flex items-center gap-4 border border-gray-100 pr-6 w-full md:w-auto">
                             <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 font-mono font-bold text-gray-800 flex-1 md:min-w-[200px] text-sm overflow-hidden truncate">
@@ -218,7 +218,7 @@ const AffiliateDashboard = () => {
                                 className={`flex items-center gap-2 font-black text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition-all ${copied ? 'bg-green-100 text-green-700' : 'bg-gray-900 text-white hover:bg-black'}`}
                             >
                                 {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                                {copied ? 'Copied' : 'Link'}
+                                {copied ? t('linkCopied') : t('copyLink')}
                             </button>
                         </div>
                     </div>
@@ -231,10 +231,7 @@ const AffiliateDashboard = () => {
                     </div>
                     <div className="flex-1 text-center md:text-left">
                         <p className="text-blue-900 font-black text-lg mb-1 leading-tight">
-                            Important: Commissions are eligible for withdrawal 14 days after the order is marked as 'Delivered' to account for the return policy.
-                        </p>
-                        <p className="text-blue-700 font-bold text-base font-arabic mt-2" dir="rtl">
-                            تنبيه هام: يتم تحويل الأرباح بعد مرور 14 يوم من استلام العميل للطلب (فترة الاسترجاع).
+                            {t('commissionPolicy')}
                         </p>
                     </div>
                 </div>
@@ -244,11 +241,11 @@ const AffiliateDashboard = () => {
                     <div className="mb-10 bg-white rounded-3xl shadow-2xl p-8 border-2 border-orange-100 animate-in fade-in slide-in-from-top-4 duration-300">
                         <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight mb-6 flex items-center gap-3">
                             <Wallet className="h-6 w-6 text-orange-600" />
-                            Update Payout Numbers
+                            {t('payoutSettings')}
                         </h3>
                         <form onSubmit={handleUpdatePayout} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">InstaPay Number (رقم انستاباي)</label>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">{t('instaPay')}</label>
                                 <input
                                     type="text"
                                     value={payoutData.instaPayNumber}
@@ -258,7 +255,7 @@ const AffiliateDashboard = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Mobile Wallet Number (رقم المحفظة)</label>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">{t('mobileWallet')}</label>
                                 <input
                                     type="text"
                                     value={payoutData.walletNumber}
@@ -280,7 +277,7 @@ const AffiliateDashboard = () => {
                                     disabled={updatingPayout}
                                     className="bg-orange-600 text-white font-black px-10 py-4 rounded-xl hover:bg-orange-700 transition-all shadow-xl hover:shadow-orange-200 disabled:opacity-50 uppercase tracking-widest text-xs"
                                 >
-                                    {updatingPayout ? 'Updating...' : 'Save Payout Info'}
+                                    {updatingPayout ? 'Updating...' : t('savePayout')}
                                 </button>
                             </div>
                         </form>
@@ -292,9 +289,9 @@ const AffiliateDashboard = () => {
                     <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 mb-12 relative overflow-hidden">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
                             <div className="flex-1">
-                                <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight mb-2">Boost Your Earnings</h3>
+                                <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight mb-2">{t('earningsBoost')}</h3>
                                 <p className="text-gray-500 font-medium">
-                                    You are <span className="text-orange-600 font-black">{tier.diff} sales</span> away from increasing your commission to <span className="text-orange-600 font-black">{tier.perc}%</span>!
+                                    {t('salesAway', { count: tier.diff, perc: tier.perc })}
                                 </p>
                             </div>
                             <div className="w-full md:w-64">
@@ -322,7 +319,7 @@ const AffiliateDashboard = () => {
                         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                             <TrendingUp className="h-20 w-20" />
                         </div>
-                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Total Sales</p>
+                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">{t('totalSales')}</p>
                         <h3 className="text-4xl font-black text-gray-900">{stats.totalSales}</h3>
                     </div>
 
@@ -330,7 +327,7 @@ const AffiliateDashboard = () => {
                         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                             <Clock className="h-20 w-20" />
                         </div>
-                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Pending Balance</p>
+                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">{t('pendingBalance')}</p>
                         <div className="flex items-end gap-1">
                             <h3 className="text-4xl font-black text-gray-400">{stats.pendingBalance.toLocaleString()}</h3>
                             <span className="text-xs font-black text-gray-400 mb-1">EGP</span>
@@ -342,7 +339,7 @@ const AffiliateDashboard = () => {
                             <Wallet className="h-20 w-20" />
                         </div>
                         <p className="text-xs font-black text-orange-600 uppercase tracking-widest mb-3 flex items-center gap-2">
-                            Withdrawable
+                            {t('withdrawable')}
                             <CheckCircle className="h-3 w-3" />
                         </p>
                         <div className="flex items-end gap-1">
@@ -355,7 +352,7 @@ const AffiliateDashboard = () => {
                         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                             <CheckCircle className="h-20 w-20" />
                         </div>
-                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Your Commission</p>
+                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">{t('yourCommission')}</p>
                         <h3 className="text-4xl font-black text-gray-900">{stats.commissionPercentage}%</h3>
                     </div>
                 </div>
@@ -363,16 +360,16 @@ const AffiliateDashboard = () => {
                 {/* History */}
                 <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
                     <div className="p-8 border-b border-gray-50 flex items-center justify-between">
-                        <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight">Recent Commissions</h3>
+                        <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight">{t('myOrders')}</h3>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="bg-gray-50">
-                                    <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest">Order ID</th>
-                                    <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest">Date</th>
-                                    <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest">Amount</th>
-                                    <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest">Commission</th>
+                                    <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest">{t('orderId')}</th>
+                                    <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest">{t('date')}</th>
+                                    <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest">{t('amount')}</th>
+                                    <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest">{t('yourCommission')}</th>
                                     <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest text-right">Status</th>
                                 </tr>
                             </thead>
@@ -402,7 +399,7 @@ const AffiliateDashboard = () => {
                                             <td className="px-8 py-6 text-right">
                                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest 
                                                     ${isWithdrawable ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
-                                                    {isWithdrawable ? 'Withdrawable' : 'Pending (Clearance)'}
+                                                    {isWithdrawable ? t('withdrawable') : t('paymentPending')}
                                                 </span>
                                             </td>
                                         </tr>
@@ -410,7 +407,7 @@ const AffiliateDashboard = () => {
                                 }) : (
                                     <tr>
                                         <td colSpan="5" className="px-8 py-20 text-center text-gray-400 font-bold uppercase tracking-widest text-xs italic">
-                                            No commissions earned yet. Start sharing your link!
+                                            {t('noCommissions')}
                                         </td>
                                     </tr>
                                 )}

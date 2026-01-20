@@ -102,13 +102,13 @@ const Navbar = () => {
                                 </span>
                             )}
                         </Link>
-                        <Link to="/my-orders" className="text-gray-600 hover:text-orange-600 transition-colors" title="My Orders">
+                        <Link to="/my-orders" className="text-gray-600 hover:text-orange-600 transition-colors" title={t('myOrders')}>
                             <Package className="h-6 w-6" />
                         </Link>
                         <Link to="/oil-advisor" className="text-gray-600 hover:text-orange-600 transition-colors" title={t('oilAdvisor')}>
                             <Droplets className="h-6 w-6" />
                         </Link>
-                        <Link to="/affiliate-dashboard" className="text-gray-600 hover:text-orange-600 transition-colors" title="Affiliate Portal">
+                        <Link to="/affiliate-dashboard" className="text-gray-600 hover:text-orange-600 transition-colors" title={t('affiliateDashboard')}>
                             <Users className="h-6 w-6" />
                         </Link>
 
@@ -120,12 +120,12 @@ const Navbar = () => {
                             >
                                 <Car className={`h-4 w-4 ${isGarageFilterActive ? 'animate-pulse' : ''}`} />
                                 <span className="text-[10px] font-black uppercase tracking-widest">
-                                    {isGarageFilterActive ? `Fitting: ${activeCar?.model}` : 'Garage'}
+                                    {isGarageFilterActive ? `${t('fitting')}: ${activeCar?.model}` : t('garage')}
                                 </span>
                             </button>
                         </div>
 
-                        <Link to="/profile" className="text-gray-600 hover:text-orange-600 transition-colors" title="My Account">
+                        <Link to="/profile" className="text-gray-600 hover:text-orange-600 transition-colors" title={t('myAccount')}>
                             <User className="h-6 w-6" />
                         </Link>
                         {auth.currentUser && (

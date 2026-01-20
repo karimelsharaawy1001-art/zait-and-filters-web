@@ -94,8 +94,8 @@ const Home = () => {
             {/* Exclusive Offers Section */}
             <div className="bg-gradient-to-b from-gray-50 to-white border-b border-gray-100/50">
                 <ProductSection
-                    title="عروض حصرية"
-                    subtitle="وفّر أكثر مع عروضنا الحصرية وخصوماتنا لفترة محدودة"
+                    title={t('hotOffers', 'عروض حصرية')}
+                    subtitle={t('hotOffersSub', 'وفّر أكثر مع عروضنا الحصرية وخصوماتنا لفترة محدودة')}
                     icon={Flame}
                     products={hotOffers}
                     color="red"
@@ -105,8 +105,8 @@ const Home = () => {
             {/* Best Sellers Section */}
             <div className="bg-white">
                 <ProductSection
-                    title="الأكثر مبيعاً"
-                    subtitle="المنتجات الأعلى طلباً والمفضلة لدى عملائنا"
+                    title={t('bestSellers', 'الأكثر مبيعاً')}
+                    subtitle={t('bestSellersSub', 'المنتجات الأعلى طلباً والمفضلة لدى عملائنا')}
                     icon={Sparkles}
                     products={bestSellers}
                     color="orange"

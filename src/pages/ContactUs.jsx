@@ -36,7 +36,7 @@ const ContactUs = () => {
 
         // Basic Validation
         if (!formData.name || !formData.email || !formData.message) {
-            toast.error(i18n.language === 'ar' ? "يرجى ملء جميع الحقول المطلوبة" : "Please fill all required fields");
+            toast.error(t('fillAll'));
             return;
         }
 
@@ -50,10 +50,9 @@ const ContactUs = () => {
             });
 
             // 2. Send via EmailJS
-            // Replace with your actual service details
             const serviceID = 'default_service';
             const templateID = 'template_contact_form';
-            const publicKey = 'YOUR_EMAILJS_PUBLIC_KEY'; // User should update this
+            const publicKey = 'YOUR_EMAILJS_PUBLIC_KEY';
 
             const templateParams = {
                 from_name: formData.name,
@@ -63,24 +62,15 @@ const ContactUs = () => {
                 to_email: 'info@zaitandfilters.com'
             };
 
-            // Note: If you haven't set up EmailJS, this might fail unless publicKey is real.
-            // I'll wrap it in a secondary try/catch so Firestore storage still succeeds.
             try {
                 if (publicKey !== 'YOUR_EMAILJS_PUBLIC_KEY') {
                     await emailjs.send(serviceID, templateID, templateParams, publicKey);
-                } else {
-                    console.log("EmailJS keys not configured. skipping email send logic but saving to database.");
                 }
             } catch (emailError) {
                 console.error("EmailJS Error:", emailError);
-                // We still proceed since it's saved in the database
             }
 
-            toast.success(
-                i18n.language === 'ar'
-                    ? "وصلت رسالتك! هنرد عليك في أقرب وقت."
-                    : "Message received! We'll get back to you as soon as possible."
-            );
+            toast.success(t('msgReceived'));
 
             // Reset Form
             setFormData({
@@ -92,7 +82,7 @@ const ContactUs = () => {
 
         } catch (error) {
             console.error("Contact Form Error:", error);
-            toast.error(i18n.language === 'ar' ? "حدث خطأ ما. يرجى المحاولة مرة أخرى." : "Something went wrong. Please try again.");
+            toast.error(t('error'));
         } finally {
             setIsSubmitting(false);
         }
@@ -104,13 +94,10 @@ const ContactUs = () => {
                 {/* Header */}
                 <div className="text-center mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-4">
-                        {i18n.language === 'ar' ? 'تواصل معنا' : 'Contact Us'}
+                        {t('contactHeader')}
                     </h1>
                     <p className="text-lg text-gray-500 font-medium max-w-2xl mx-auto">
-                        {i18n.language === 'ar'
-                            ? 'هل لديك سؤال حول منتج أو تحتاج إلى مساعدة في طلبك؟ نحن هنا للمساعدة.'
-                            : 'Have a question about a product or need help with your order? We are here to help.'
-                        }
+                        {t('contactSub')}
                     </p>
                 </div>
 
@@ -119,7 +106,7 @@ const ContactUs = () => {
                     <div className="lg:col-span-1 space-y-8 animate-in fade-in slide-in-from-left-4 duration-700 delay-200">
                         <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-100 h-full">
                             <h2 className="text-2xl font-black text-gray-900 mb-8">
-                                {i18n.language === 'ar' ? 'معلومات الاتصال' : 'Get in Touch'}
+                                {t('getInTouch')}
                             </h2>
 
                             <div className="space-y-8">
@@ -158,10 +145,7 @@ const ContactUs = () => {
                             {/* Social Links placeholder or additional text */}
                             <div className="mt-12 p-6 bg-gray-50 rounded-3xl border border-gray-100">
                                 <p className="text-sm font-bold text-gray-600 leading-relaxed text-center italic">
-                                    {i18n.language === 'ar'
-                                        ? '"رضاكم هو أولويتنا القصوى."'
-                                        : '"Your satisfaction is our top priority."'
-                                    }
+                                    "{t('satisfaction')}"
                                 </p>
                             </div>
                         </div>
@@ -173,7 +157,7 @@ const ContactUs = () => {
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{i18n.language === 'ar' ? 'الاسم بالكامل' : 'Full Name'}</label>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('fullName')}</label>
                                         <div className="relative">
                                             <input
                                                 type="text"
@@ -182,13 +166,13 @@ const ContactUs = () => {
                                                 value={formData.name}
                                                 onChange={handleChange}
                                                 className="w-full bg-gray-50 border border-gray-100 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none transition-all"
-                                                placeholder={i18n.language === 'ar' ? 'ادخل اسمك' : 'Enter your name'}
+                                                placeholder={t('enterName')}
                                             />
                                             <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{i18n.language === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}</label>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('emailAddress')}</label>
                                         <div className="relative">
                                             <input
                                                 type="email"
@@ -205,7 +189,7 @@ const ContactUs = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{i18n.language === 'ar' ? 'الموضوع' : 'Subject'}</label>
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('subject')}</label>
                                     <div className="relative">
                                         <input
                                             type="text"
@@ -213,14 +197,14 @@ const ContactUs = () => {
                                             value={formData.subject}
                                             onChange={handleChange}
                                             className="w-full bg-gray-50 border border-gray-100 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none transition-all"
-                                            placeholder={i18n.language === 'ar' ? 'بخصوص ماذا؟' : 'What is this about?'}
+                                            placeholder={t('subjectPlaceholder')}
                                         />
                                         <MessageCircle className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{i18n.language === 'ar' ? 'رسالتك' : 'Message'}</label>
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('message')}</label>
                                     <textarea
                                         name="message"
                                         required
@@ -228,7 +212,7 @@ const ContactUs = () => {
                                         value={formData.message}
                                         onChange={handleChange}
                                         className="w-full bg-gray-50 border border-gray-100 rounded-[2rem] p-6 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none transition-all resize-none"
-                                        placeholder={i18n.language === 'ar' ? 'اكتب رسالتك هنا بالتفصيل...' : 'Type your message here in detail...'}
+                                        placeholder={t('messagePlaceholder')}
                                     />
                                 </div>
 
@@ -243,7 +227,7 @@ const ContactUs = () => {
                                         <>
                                             <Send className="h-6 w-6" />
                                             <span>
-                                                {i18n.language === 'ar' ? 'إرسال الرسالة' : 'Send Message'}
+                                                {t('sendMessage')}
                                             </span>
                                         </>
                                     )}

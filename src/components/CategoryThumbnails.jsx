@@ -66,7 +66,7 @@ const CategoryThumbnails = () => {
                             {/* Content */}
                             <div className="absolute inset-0 flex items-end justify-center p-4 sm:p-6">
                                 <h3 className="text-white text-base sm:text-xl font-black text-center tracking-wide group-hover:scale-110 transition-transform duration-500 drop-shadow-lg">
-                                    {cat.name}
+                                    {i18n.language === 'ar' ? cat.name : (cat.nameEn || cat.name)}
                                 </h3>
                             </div>
                         </div>
