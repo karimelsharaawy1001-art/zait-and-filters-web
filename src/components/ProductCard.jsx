@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
 const ProductCard = ({ product }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { addToCart } = useCart();
 
     const handleAddToCart = (e) => {
