@@ -98,12 +98,22 @@ export default async function handler(req, res) {
         });
 
         const data = response.data;
-        console.log('✅ Payment URL generated:', data.url);
+        console.log('Full Response from EasyKash:', data);
+
+        // Extract the payment URL - check for multiple possible keys
+        const paymentUrl = data.url || data.checkout_url || data.payment_url;
+
+        if (!paymentUrl) {
+            console.warn('⚠️ No payment URL found in any expected field (url, checkout_url, payment_url)');
+        }
+
+        console.log('✅ Final Payment URL:', paymentUrl);
 
         return res.status(200).json({
             success: true,
-            url: data.url,
-            orderId: data.order_id || orderId
+            url: paymentUrl,
+            orderId: data.order_id || orderId,
+            raw: data // Include raw data for easier debugging on frontend
         });
 
     } catch (error) {

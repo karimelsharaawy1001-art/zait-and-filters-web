@@ -283,9 +283,11 @@ const Checkout = () => {
             });
 
             if (response.data && response.data.url) {
+                console.log("Redirecting to payment gateway:", response.data.url);
                 window.location.href = response.data.url;
             } else {
-                throw new Error("Invalid response from payment gateway");
+                console.error("Payment API response missing URL:", response.data);
+                throw new Error(t('onlinePaymentError') || "Could not generate payment link. Please try again or choose another method.");
             }
         } catch (error) {
             console.error("Payment initialization error:", error);
