@@ -69,26 +69,26 @@ export default async function handler(req, res) {
             .digest('hex');
 
         const payload = {
-            api_key: EASYKASH_API_KEY,
-            merchant_order_id: merchantOrderId,
-            amount: amountInPips,
-            currency: currency,
-            customer_name: customerName,
-            customer_email: customerEmail || 'customer@example.com',
-            customer_phone: customerPhone,
-            return_url: returnUrl || `${req.headers.origin}/order-success?id=${orderId}`
+            api_key: String(EASYKASH_API_KEY),
+            merchant_order_id: String(merchantOrderId),
+            amount: String(amountInPips),
+            currency: String(currency),
+            customer_name: String(customerName),
+            customer_email: String(customerEmail || 'customer@example.com'),
+            customer_phone: String(customerPhone),
+            return_url: String(returnUrl || `${req.headers.origin}/order-success?id=${orderId}`)
         };
 
         console.log('EasyKash Payload (sanitized):', { ...payload, api_key: '***' });
 
         // Make request to EasyKash API using Axios
-        console.log('Calling EasyKash API with axios...');
+        console.log('Calling EasyKash API: https://easykash.net/api/v1/checkout');
         const response = await axios({
             method: 'post',
-            url: 'https://easykash.net/api/v1/orders',
+            url: 'https://easykash.net/api/v1/checkout',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
+                'Accept': 'application/json', // Force JSON response
                 'Authorization': `Bearer ${EASYKASH_API_KEY}`,
                 'X-Secret-Key': EASYKASH_SECRET_KEY,
                 'X-Signature': signature
@@ -120,17 +120,23 @@ export default async function handler(req, res) {
         console.error('❌ Payment API Error:', error.message);
 
         if (error.response) {
-            // Log exact status code and raw data
             const statusCode = error.response.status;
             const errorData = error.response.data;
 
-            console.error(`EasyKash Gateway Error [Status ${statusCode}]:`, errorData);
+            // If response is HTML, log the first 200 chars for debugging
+            if (typeof errorData === 'string' && errorData.toLowerCase().includes('<!doctype html>')) {
+                console.error(`EasyKash HTML Error Snippet (Status ${statusCode}):`, errorData.substring(0, 200));
+            } else {
+                console.error(`EasyKash Gateway Error [Status ${statusCode}]:`, errorData);
+            }
 
-            // Return a clean JSON error even if the gateway returned HTML
             return res.status(statusCode).json({
                 error: 'Payment gateway error',
                 status: statusCode,
-                details: typeof errorData === 'object' ? errorData : { raw: String(errorData).substring(0, 500) }
+                details: typeof errorData === 'object' ? errorData : {
+                    message: "Gateway returned non-JSON response (likely an error page)",
+                    snippet: typeof errorData === 'string' ? errorData.substring(0, 200) : "N/A"
+                }
             });
         } else if (error.request) {
             console.error('No response from EasyKash Gateway. Request sent:', !!error.request);
