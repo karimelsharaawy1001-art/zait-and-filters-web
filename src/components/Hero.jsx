@@ -64,7 +64,7 @@ const Hero = () => {
     const currentData = slides.length > 0 ? slides[currentSlide] : null;
 
     return (
-        <div className="relative bg-gray-900 text-white min-h-[600px] md:h-[600px] flex items-center py-10 md:py-0 overflow-hidden">
+        <div className="relative bg-gray-900 text-white min-h-[600px] md:h-[600px] flex items-center py-10 md:py-0">
             {/* Slides */}
             {slides.length > 0 ? (
                 slides.map((slide, index) => (
