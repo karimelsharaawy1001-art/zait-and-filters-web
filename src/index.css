@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;700;800&family=Inter:wght@300;400;500;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+    --font-sans: var(--font-primary);
+}
+
+:root {
+    --font-primary: 'Inter', sans-serif;
+}
+
+:root[dir="rtl"] {
+    --font-primary: 'Cairo', sans-serif;
+}
+
+html,
+body,
+#root {
+    font-family: var(--font-primary) !important;
+}
+
+* {
+    font-family: inherit;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+@media screen {
+    .print-only-section {
+        display: none !important;
+    }
+}
+
+@media print {
+
+    /* Hide everything on the page */
+    body {
+        visibility: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+    }
+
+    /* Make the print section visible and center it */
+    .print-only-section {
+        visibility: visible !important;
+        display: block !important;
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+    }
+
+    /* Ensure all children of the print section are visible */
+    .print-only-section * {
+        visibility: visible !important;
+    }
+
+    /* Specifically avoid display: none on parents like #root, main, etc. */
+    #root,
+    main,
+    .min-h-screen,
+    .max-w-7xl {
+        display: block !important;
+        visibility: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+    }
+
+    @page {
+        size: A4;
+        margin: 0;
+    }
+}

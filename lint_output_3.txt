@@ -1,0 +1,82 @@
+
+> zait-and-filters@0.0.0 lint
+> eslint .
+
+
+/home/jimmy/.gemini/antigravity/scratch/zait-and-filters/src/components/CarSelector.jsx
+   3:10  error  'useFilters' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          no-unused-vars
+  27:9   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  25 |     // Reset model when make changes
+  26 |     useEffect(() => {
+> 27 |         setModel('');
+     |         ^^^^^^^^ Avoid calling setState() directly within an effect
+  28 |     }, [make]);
+  29 |
+  30 |     const handleSearch = () => {  react-hooks/set-state-in-effect
+
+/home/jimmy/.gemini/antigravity/scratch/zait-and-filters/src/components/Hero.jsx
+  62:11  error  'currentData' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/home/jimmy/.gemini/antigravity/scratch/zait-and-filters/src/components/ProductGrid.jsx
+  71:11  error  'handleAddToCart' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/home/jimmy/.gemini/antigravity/scratch/zait-and-filters/src/components/admin/BulkOperations.jsx
+  3:31  error  'addDoc' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/home/jimmy/.gemini/antigravity/scratch/zait-and-filters/src/context/CartContext.jsx
+  5:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/jimmy/.gemini/antigravity/scratch/zait-and-filters/src/context/FilterContext.jsx
+  5:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/jimmy/.gemini/antigravity/scratch/zait-and-filters/src/context/SettingsContext.jsx
+  39:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/jimmy/.gemini/antigravity/scratch/zait-and-filters/src/firebase.js
+  21:7  error  'analytics' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/home/jimmy/.gemini/antigravity/scratch/zait-and-filters/src/pages/AdminDashboard.jsx
+  10:11  error  'navigate' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/home/jimmy/.gemini/antigravity/scratch/zait-and-filters/src/pages/AdminOrders.jsx
+  47:11  error  'handleStatusChange' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  63:11  error  'handleLogout' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u        no-unused-vars
+
+/home/jimmy/.gemini/antigravity/scratch/zait-and-filters/src/pages/AffiliateDashboard.jsx
+   9:5  error    'doc' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                         no-unused-vars
+  10:5  error    'getDoc' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                      no-unused-vars
+  58:8  warning  React Hook useEffect has a missing dependency: 'fetchAffiliate'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/jimmy/.gemini/antigravity/scratch/zait-and-filters/src/pages/Checkout.jsx
+   3:22  error    'addDoc' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                            no-unused-vars
+   3:35  error    'updateDoc' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                         no-unused-vars
+  40:8   warning  React Hook useEffect has missing dependencies: 'appliedPromo' and 'checkPromoLogic'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/jimmy/.gemini/antigravity/scratch/zait-and-filters/src/pages/Home.jsx
+  16:12  error  'loading' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/home/jimmy/.gemini/antigravity/scratch/zait-and-filters/src/pages/OrderHistory.jsx
+  12:11  error  'navigate' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/home/jimmy/.gemini/antigravity/scratch/zait-and-filters/src/pages/ShopPage.jsx
+  21:8  warning  React Hook useEffect has missing dependencies: 'filters.category', 'filters.make', 'filters.model', 'filters.year', and 'updateFilter'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/jimmy/.gemini/antigravity/scratch/zait-and-filters/src/pages/admin/ManagePayments.jsx
+  3:55  error  'getDoc' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/home/jimmy/.gemini/antigravity/scratch/zait-and-filters/src/pages/admin/ManageProducts.jsx
+  59:8  warning  React Hook useEffect has a missing dependency: 'modelFilter'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/jimmy/.gemini/antigravity/scratch/zait-and-filters/src/pages/admin/ManagePromoCodes.jsx
+  19:12  error  'isEditing' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u     no-unused-vars
+  19:23  error  'setIsEditing' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+✖ 25 problems (21 errors, 4 warnings)
+

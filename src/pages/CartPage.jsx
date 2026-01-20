@@ -1,0 +1,103 @@
+import React from 'react';
+import { useCart } from '../context/CartContext';
+import { Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+const CartPage = () => {
+    const { cartItems, removeFromCart, getCartTotal } = useCart();
+
+    if (cartItems.length === 0) {
+        return (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h2>
+                <p className="text-gray-600 mb-8">Looks like you haven't added any car parts yet.</p>
+                <Link to="/" className="inline-block bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-8 rounded-md transition-colors">
+                    Start Shopping
+                </Link>
+            </div>
+        );
+    }
+
+    return (
+        <div className="bg-gray-50 min-h-screen py-10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h1 className="text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
+
+                <div className="flex flex-col lg:flex-row gap-8">
+                    {/* Cart Items List */}
+                    <div className="lg:w-2/3">
+                        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                            <ul className="divide-y divide-gray-200">
+                                {cartItems.map((item) => (
+                                    <li key={item.id} className="p-6 flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                                        <img
+                                            src={item.image}
+                                            alt={item.name}
+                                            className="w-24 h-24 object-cover rounded-md border border-gray-200"
+                                        />
+                                        <div className="flex-1 text-center sm:text-left">
+                                            <h3 className="text-lg font-bold text-gray-900 leading-tight mb-1">{item.name}</h3>
+
+                                            {/* Compact Spec List */}
+                                            <div className="space-y-0.5 mb-2">
+                                                <p className="text-xs text-gray-600 font-medium">
+                                                    <span className="font-semibold text-gray-400 uppercase text-[10px]">Car:</span> {item.make} {item.model} {item.yearRange ? `(${item.yearRange})` : ''}
+                                                </p>
+                                                <p className="text-xs text-gray-600 font-medium">
+                                                    <span className="font-semibold text-gray-400 uppercase text-[10px]">Brand:</span> {item.partBrand || item.brand} | <span className="font-semibold text-gray-400 uppercase text-[10px]">Origin:</span> {item.countryOfOrigin || item.country}
+                                                </p>
+                                                {(item.subcategory || item.subCategory) && (
+                                                    <p className="text-xs text-gray-600 font-medium">
+                                                        <span className="font-semibold text-gray-400 uppercase text-[10px]">Type:</span> {item.subcategory || item.subCategory}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <p className="font-black text-gray-900 text-sm">Quantity: {item.quantity}</p>
+                                        </div>
+                                        <div className="flex flex-col items-center sm:items-end gap-2">
+                                            <span className="text-lg font-bold text-gray-900">{item.price * item.quantity} EGP</span>
+                                            <button
+                                                onClick={() => removeFromCart(item.id)}
+                                                className="text-red-500 hover:text-red-700 text-sm flex items-center mt-2"
+                                            >
+                                                <Trash2 className="h-4 w-4 mr-1" /> Remove
+                                            </button>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+
+                    {/* Order Summary */}
+                    <div className="lg:w-1/3">
+                        <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
+                            <h2 className="text-lg font-bold text-gray-900 mb-4">Order Summary</h2>
+                            <div className="flex justify-between mb-2 text-gray-600">
+                                <span>Subtotal</span>
+                                <span>{getCartTotal()} EGP</span>
+                            </div>
+                            <div className="flex justify-between mb-4 text-gray-600">
+                                <span>Shipping</span>
+                                <span>Calculated at checkout</span>
+                            </div>
+                            <div className="border-t border-gray-200 pt-4 flex justify-between mb-6">
+                                <span className="text-xl font-bold text-gray-900">Total</span>
+                                <span className="text-xl font-bold text-orange-600">{getCartTotal()} EGP</span>
+                            </div>
+                            <Link to="/checkout" className="w-full block text-center bg-gray-900 hover:bg-gray-800 text-white font-bold py-4 rounded-md transition-colors text-lg">
+                                Checkout
+                            </Link>
+                            <Link to="/" className="w-full block mt-3 text-center text-sm text-gray-500 hover:text-gray-900">
+                                Continue Shopping
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default CartPage;
