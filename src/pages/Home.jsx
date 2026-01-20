@@ -51,9 +51,9 @@ const Home = () => {
     }, []);
 
     const ProductSection = ({ title, icon: Icon, products, subtitle, color = "orange" }) => (
-        <section className="py-12 sm:py-20 overflow-hidden">
+        <section className="py-8 sm:py-12 overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 sm:mb-12 gap-4 border-b border-gray-100 pb-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 sm:mb-8 gap-4 border-b border-gray-100 pb-6">
                     <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                             <h2 className="text-2xl sm:text-4xl font-black text-gray-900 tracking-tight leading-tight uppercase">
@@ -87,7 +87,7 @@ const Home = () => {
         <div className="flex-1 bg-white">
             <Hero />
 
-            <div className="pt-64 md:pt-16 pb-8 sm:pb-12">
+            <div className="pt-56 md:pt-12 pb-4 sm:pb-6">
                 <BrandMarquee />
             </div>
 
