@@ -84,17 +84,17 @@ const Hero = () => {
 
                         {/* Content */}
                         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center z-20">
-                            <div className="w-full md:w-1/2 text-center md:text-left pt-20 md:pt-0">
-                                <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight drop-shadow-lg">
+                            <div className={`w-full md:w-1/2 text-center pt-20 md:pt-0 ${i18n.language === 'ar' ? 'md:text-right' : 'md:text-left'}`}>
+                                <h1 className={`text-4xl md:text-6xl font-extrabold tracking-tight mb-6 drop-shadow-lg ${i18n.language === 'ar' ? 'leading-[1.3]' : 'leading-tight'}`}>
                                     {i18n.language === 'ar' ? slide.title_ar : slide.title_en}
                                 </h1>
-                                <p className="text-lg text-gray-200 mb-8 max-w-lg leading-relaxed drop-shadow-md mx-auto md:mx-0">
+                                <p className={`text-lg text-gray-200 mb-8 max-w-lg drop-shadow-md mx-auto ${i18n.language === 'ar' ? 'md:mr-0 leading-[1.6]' : 'md:ml-0 leading-relaxed'}`}>
                                     {i18n.language === 'ar' ? slide.subtitle_ar : slide.subtitle_en}
                                 </p>
-                                <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                                <div className={`flex flex-col sm:flex-row gap-4 justify-center ${i18n.language === 'ar' ? 'md:justify-start' : 'md:justify-start'}`}>
                                     <Link to="/shop" className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 px-8 rounded-lg transition-all flex items-center justify-center group shadow-lg">
                                         {t('shopNow')}
-                                        <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                                        <ChevronRight className={`h-5 w-5 transition-transform ${i18n.language === 'ar' ? 'mr-2 rotate-180 group-hover:-translate-x-1' : 'ml-2 group-hover:translate-x-1'}`} />
                                     </Link>
                                 </div>
                             </div>
@@ -107,17 +107,17 @@ const Hero = () => {
                     <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/80 to-transparent z-10"></div>
                     <img src={staticSlide.imageUrl} alt="" className="w-full h-full object-cover opacity-50" />
                     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center z-20">
-                        <div className="w-full md:w-1/2 text-center md:text-left pt-20 md:pt-0">
-                            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight drop-shadow-lg">
+                        <div className={`w-full md:w-1/2 text-center pt-20 md:pt-0 ${i18n.language === 'ar' ? 'md:text-right' : 'md:text-left'}`}>
+                            <h1 className={`text-4xl md:text-6xl font-extrabold tracking-tight mb-6 drop-shadow-lg ${i18n.language === 'ar' ? 'leading-[1.3]' : 'leading-tight'}`}>
                                 {staticSlide.title} <br />
                                 <span className="text-orange-500">{staticSlide.subtitleOne}</span> {staticSlide.subtitleTwo}
                             </h1>
-                            <p className="text-lg text-gray-200 mb-8 max-w-lg leading-relaxed drop-shadow-md mx-auto md:mx-0">
+                            <p className={`text-lg text-gray-200 mb-8 max-w-lg drop-shadow-md mx-auto ${i18n.language === 'ar' ? 'md:mr-0 leading-[1.6]' : 'md:ml-0 leading-relaxed'}`}>
                                 {staticSlide.description}
                             </p>
                             <Link to="/shop" className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 px-8 rounded-lg transition-all flex items-center justify-center group shadow-lg inline-flex">
                                 {t('shopNow')}
-                                <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                                <ChevronRight className={`h-5 w-5 transition-transform ${i18n.language === 'ar' ? 'mr-2 rotate-180 group-hover:-translate-x-1' : 'ml-2 group-hover:translate-x-1'}`} />
                             </Link>
                         </div>
                     </div>
