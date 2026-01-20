@@ -132,7 +132,7 @@ const Navbar = () => {
                             <button
                                 onClick={handleLogout}
                                 className="text-gray-600 hover:text-red-600 transition-colors"
-                                title="Sign Out"
+                                title={t('signOut')}
                             >
                                 <LogOut className="h-6 w-6" />
                             </button>
@@ -242,21 +242,21 @@ const Navbar = () => {
                                 onClick={() => setIsOpen(false)}
                                 className="block px-4 py-3 text-lg font-semibold text-orange-600 hover:bg-orange-50 rounded-xl transition-colors"
                             >
-                                {t('becomeAffiliate', 'Become an Affiliate')}
+                                {t('becomeAffiliate')}
                             </Link>
                             <Link
                                 to="/profile"
                                 onClick={() => setIsOpen(false)}
                                 className="block px-4 py-3 text-lg font-semibold text-gray-800 hover:text-orange-600 hover:bg-gray-50 rounded-xl transition-colors"
                             >
-                                {t('myAccount', 'My Account')}
+                                {t('myAccount')}
                             </Link>
                             <Link
                                 to="/my-orders"
                                 onClick={() => setIsOpen(false)}
                                 className="block px-4 py-3 text-lg font-semibold text-gray-800 hover:text-orange-600 hover:bg-gray-50 rounded-xl transition-colors"
                             >
-                                {t('myOrders', 'My Orders')}
+                                {t('myOrders')}
                             </Link>
                             {auth.currentUser && (
                                 <button
@@ -267,7 +267,7 @@ const Navbar = () => {
                                     className="w-full text-left ml-0 px-4 py-3 text-lg font-semibold text-red-600 hover:bg-red-50 rounded-xl transition-colors flex items-center gap-2"
                                 >
                                     <LogOut className="h-5 w-5" />
-                                    {t('signOut', 'Sign Out')}
+                                    {t('signOut')}
                                 </button>
                             )}
                         </div>

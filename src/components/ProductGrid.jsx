@@ -183,12 +183,12 @@ const ProductGrid = ({ showFilters = true }) => {
                                 <Car className="h-8 w-8 text-white" />
                             </div>
                             <div>
-                                <h3 className="text-xl font-black">Garage Mode Active</h3>
-                                <p className="text-white/80 font-bold">Showing results tailored for your {activeCar.year} {activeCar.make} {activeCar.model}.</p>
+                                <h3 className="text-xl font-black">{t('garageActive')}</h3>
+                                <p className="text-white/80 font-bold">{t('garageResults', { year: activeCar.year, make: activeCar.make, model: activeCar.model })}</p>
                             </div>
                         </div>
                         <div className="hidden md:block">
-                            <span className="bg-white/10 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest backdrop-blur-md">Guaranteed Fitment</span>
+                            <span className="bg-white/10 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest backdrop-blur-md">{t('guaranteedFitment')}</span>
                         </div>
                     </div>
                 )}

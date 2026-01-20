@@ -2,10 +2,12 @@ import React, { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProductGrid from '../components/ProductGrid';
 import { useFilters } from '../context/FilterContext';
+import { useTranslation } from 'react-i18next';
 
 const ShopPage = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const { filters, updateFilter } = useFilters();
+    const { t } = useTranslation();
 
     // Sync URL to State (Initial Load / Back Button)
     useEffect(() => {
@@ -38,8 +40,8 @@ const ShopPage = () => {
         <div className="pt-8">
             <div className="bg-white shadow-sm border-b border-gray-100 py-8 mb-8">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <h1 className="text-3xl font-extrabold text-gray-900">Shop All Parts</h1>
-                    <p className="mt-2 text-gray-500">Browse our complete inventory of premium auto parts.</p>
+                    <h1 className="text-3xl font-extrabold text-gray-900">{t('shopTitle')}</h1>
+                    <p className="mt-2 text-gray-500">{t('shopSubtitle')}</p>
                 </div>
             </div>
             <ProductGrid showFilters={true} />

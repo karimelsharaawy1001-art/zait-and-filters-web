@@ -42,6 +42,7 @@ const ProductDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { t, i18n } = useTranslation();
+    const isAr = i18n.language === 'ar';
     const { addToCart } = useCart();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -111,13 +112,13 @@ const ProductDetails = () => {
         e.preventDefault();
 
         if (!auth.currentUser) {
-            toast.error(t('loginToReview', 'Please login to leave a review'));
+            toast.error(t('loginToReview'));
             navigate('/login');
             return;
         }
 
         if (!comment.trim()) {
-            toast.error(t('commentRequired', 'Please add a comment'));
+            toast.error(t('commentRequired'));
             return;
         }
 
@@ -142,11 +143,7 @@ const ProductDetails = () => {
                 createdAt: serverTimestamp()
             });
 
-            toast.success(
-                i18n.language === 'ar'
-                    ? "شكراً لك! مراجعتك قيد المراجعة وسوف تظهر قيد الموافقة."
-                    : "Thank you! Your review is pending moderation and will appear once approved."
-            );
+            toast.success(t('reviewSuccess'));
 
             // Reset form
             setRating(5);
@@ -155,7 +152,7 @@ const ProductDetails = () => {
             setPhotoPreview(null);
         } catch (error) {
             console.error("Error submitting review:", error);
-            toast.error("Failed to submit review. Please try again.");
+            toast.error(t('reviewError'));
         } finally {
             setIsSubmittingReview(false);
         }
@@ -163,7 +160,7 @@ const ProductDetails = () => {
 
     const handleAddToCart = () => {
         addToCart({ ...product, quantity });
-        toast.success(t('addedToCart', 'Added to cart!'));
+        toast.success(t('addedToCart'));
     };
 
     if (loading) {
@@ -179,15 +176,15 @@ const ProductDetails = () => {
     const hasSale = product.salePrice && Number(product.salePrice) < Number(product.price);
 
     return (
-        <div className="bg-white min-h-screen">
+        <div className="bg-white min-h-screen" dir={isAr ? 'rtl' : 'ltr'}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Back Link */}
                 <button
                     onClick={() => navigate(-1)}
-                    className="flex items-center text-gray-500 hover:text-gray-900 transition-colors mb-8 group"
+                    className={`flex items-center text-gray-500 hover:text-gray-900 transition-colors mb-8 group ${isAr ? 'flex-row-reverse' : ''}`}
                 >
-                    <ArrowLeft className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-                    {t('back', 'Back')}
+                    <ArrowLeft className={`h-5 w-5 ${isAr ? 'ml-2 rotate-180' : 'mr-2'} group-hover:translate-x-${isAr ? '1' : '-1'} transition-transform`} />
+                    {t('back')}
                 </button>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">
@@ -199,26 +196,26 @@ const ProductDetails = () => {
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         />
                         {hasSale && (
-                            <span className="absolute top-6 left-6 bg-red-600 text-white text-xs font-black px-4 py-2 rounded-full shadow-xl tracking-widest animate-pulse border-2 border-white">
-                                SALE
+                            <span className={`absolute top-6 ${isAr ? 'right-6' : 'left-6'} bg-red-600 text-white text-xs font-black px-4 py-2 rounded-full shadow-xl tracking-widest animate-pulse border-2 border-white`}>
+                                {t('sale')}
                             </span>
                         )}
                     </div>
 
                     {/* Product Info */}
-                    <div className="flex flex-col">
+                    <div className={`flex flex-col ${isAr ? 'text-right' : 'text-left'}`}>
                         <div className="mb-6">
                             <p className="text-orange-600 font-bold uppercase tracking-widest text-sm mb-2">
                                 {product.category} {product.subcategory ? `> ${product.subcategory}` : ''}
                             </p>
                             <h1 className="text-4xl font-extrabold text-gray-900 leading-tight mb-4">
-                                {product.name}
+                                {isAr ? product.name : (product.nameEn || product.name)}
                             </h1>
 
-                            <div className="flex flex-wrap gap-3 mb-6">
+                            <div className={`flex flex-wrap gap-3 mb-6 ${isAr ? 'flex-row-reverse' : ''}`}>
                                 {(product.partBrand || product.brand) && (
                                     <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
-                                        Brand: {product.partBrand || product.brand}
+                                        {t('brand')}: {isAr ? (product.partBrand || product.brand) : (product.brandEn || product.partBrand || product.brand)}
                                     </span>
                                 )}
                                 {product.make && (
@@ -235,28 +232,28 @@ const ProductDetails = () => {
                         </div>
 
                         {/* Price Section */}
-                        <div className="mb-8 p-6 bg-gray-50 rounded-2xl border border-gray-100">
-                            <div className="flex items-end gap-3 mb-1">
+                        <div className="mb-8 p-6 bg-gray-50 rounded-2xl border border-gray-100 font-bold">
+                            <div className={`flex items-end gap-3 mb-1 ${isAr ? 'flex-row-reverse' : ''}`}>
                                 {hasSale ? (
                                     <>
                                         <span className="text-3xl font-black text-red-600">
-                                            {product.salePrice} <span className="text-sm font-normal">EGP</span>
+                                            {product.salePrice} <span className="text-sm font-normal">{t('currency')}</span>
                                         </span>
                                         <span className="text-lg text-gray-400 line-through mb-1">
-                                            {product.price} EGP
+                                            {product.price} {t('currency')}
                                         </span>
                                     </>
                                 ) : (
                                     <span className="text-3xl font-black text-gray-900">
-                                        {product.price} <span className="text-sm font-normal">EGP</span>
+                                        {product.price} <span className="text-sm font-normal">{t('currency')}</span>
                                     </span>
                                 )}
                             </div>
-                            <p className="text-xs text-gray-500 font-medium italic">Tax included. Shipping calculated at checkout.</p>
+                            <p className="text-xs text-gray-500 font-medium italic">{t('taxIncluded')}</p>
                         </div>
 
                         {/* Add to Cart Section */}
-                        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                        <div className={`flex flex-col sm:flex-row gap-4 mb-8 ${isAr ? 'flex-row-reverse' : ''}`}>
                             <div className="flex items-center bg-gray-100 rounded-xl px-4 py-2 border border-gray-200">
                                 <button
                                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -272,34 +269,34 @@ const ProductDetails = () => {
                                 onClick={handleAddToCart}
                                 className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 px-8 rounded-xl transition-all shadow-xl shadow-orange-100 hover:shadow-orange-200 flex items-center justify-center gap-3 active:scale-[0.98]"
                             >
-                                <ShoppingCart className="h-6 w-6" />
-                                {t('addToCart', 'Add to Cart')}
+                                <ShoppingCart className={`h-6 w-6 ${isAr ? 'ml-2' : ''}`} />
+                                {t('addToCart')}
                             </button>
                         </div>
 
                         <TrustPaymentSection />
 
                         {/* Description / Features */}
-                        <div className="mb-8 prose prose-orange max-w-none">
-                            <h3 className="text-lg font-bold text-gray-900 mb-3 border-b pb-2">Description</h3>
-                            <p className="text-gray-600 leading-relaxed">
-                                {product.description || `Premium quality ${product.name} suitable for ${product.make || 'universal'} ${product.model || 'models'}. Manufactured with precision to ensure optimal performance and durability.`}
+                        <div className="mb-8 prose prose-orange max-w-none font-bold">
+                            <h3 className={`text-lg font-bold text-gray-900 mb-3 border-b pb-2 ${isAr ? 'text-right' : 'text-left'}`}>{t('descriptionLabel')}</h3>
+                            <p className={`text-gray-600 leading-relaxed ${isAr ? 'text-right' : 'text-left'}`}>
+                                {isAr ? (product.description || product.descriptionEn) : (product.descriptionEn || product.description)}
                             </p>
                         </div>
 
                         {/* Trust Badges */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 border-t border-gray-100">
-                            <div className="flex items-center gap-3">
+                        <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 border-t border-gray-100 ${isAr ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex items-center gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>
                                 <Truck className="h-5 w-5 text-orange-600" />
-                                <span className="text-xs font-bold text-gray-700 uppercase tracking-tighter">Fast Delivery</span>
+                                <span className="text-xs font-bold text-gray-700 uppercase tracking-tighter">{t('fastDelivery')}</span>
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className={`flex items-center gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>
                                 <ShieldCheck className="h-5 w-5 text-orange-600" />
-                                <span className="text-xs font-bold text-gray-700 uppercase tracking-tighter">Genunine Part</span>
+                                <span className="text-xs font-bold text-gray-700 uppercase tracking-tighter">{t('genuinePart')}</span>
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className={`flex items-center gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>
                                 <RotateCcw className="h-5 w-5 text-orange-600" />
-                                <span className="text-xs font-bold text-gray-700 uppercase tracking-tighter">Easy Returns</span>
+                                <span className="text-xs font-bold text-gray-700 uppercase tracking-tighter">{t('easyReturns')}</span>
                             </div>
                         </div>
                     </div>
@@ -311,13 +308,13 @@ const ProductDetails = () => {
                         {/* Review Form */}
                         <div className="lg:col-span-1">
                             <div className="sticky top-24">
-                                <h3 className="text-2xl font-black text-gray-900 mb-2">{t('leaveReview', 'Write a Review')}</h3>
-                                <p className="text-gray-500 font-medium mb-8">{t('shareExperience', 'Share your experience with this part.')}</p>
+                                <h3 className={`text-2xl font-black text-gray-900 mb-2 ${isAr ? 'text-right' : 'text-left'}`}>{t('leaveReview')}</h3>
+                                <p className={`text-gray-500 font-medium mb-8 ${isAr ? 'text-right' : 'text-left'}`}>{t('shareExperience')}</p>
 
                                 <form onSubmit={handleReviewSubmit} className="space-y-6">
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('rating', 'Rating')}</label>
-                                        <div className="flex gap-2">
+                                        <label className={`block text-[10px] font-black text-gray-400 uppercase tracking-widest ${isAr ? 'text-right' : 'text-left'}`}>{t('ratingLabel')}</label>
+                                        <div className={`flex gap-2 ${isAr ? 'flex-row-reverse' : ''}`}>
                                             {[1, 2, 3, 4, 5].map((star) => (
                                                 <button
                                                     key={star}
@@ -334,19 +331,19 @@ const ProductDetails = () => {
                                     </div>
 
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('comment', 'Review Comment')}</label>
+                                        <label className={`block text-[10px] font-black text-gray-400 uppercase tracking-widest ${isAr ? 'text-right' : 'text-left'}`}>{t('commentLabel')}</label>
                                         <textarea
                                             value={comment}
                                             onChange={(e) => setComment(e.target.value)}
                                             rows={4}
-                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none transition-all placeholder:text-gray-300"
-                                            placeholder={t('commentPlaceholder', 'How did this part fit? Quality?')}
+                                            className={`w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none transition-all placeholder:text-gray-300 ${isAr ? 'text-right' : 'text-left'}`}
+                                            placeholder={t('commentPlaceholder')}
                                         />
                                     </div>
 
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('photoUpload', 'Add a Photo')}</label>
-                                        <div className="flex flex-wrap gap-4">
+                                        <label className={`block text-[10px] font-black text-gray-400 uppercase tracking-widest ${isAr ? 'text-right' : 'text-left'}`}>{t('photoUpload')}</label>
+                                        <div className={`flex flex-wrap gap-4 ${isAr ? 'flex-row-reverse' : ''}`}>
                                             {photoPreview ? (
                                                 <div className="relative h-24 w-24 rounded-2xl overflow-hidden group shadow-lg">
                                                     <img src={photoPreview} alt="Preview" className="h-full w-full object-cover" />
@@ -361,7 +358,7 @@ const ProductDetails = () => {
                                             ) : (
                                                 <label className="h-24 w-24 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:border-orange-200 hover:text-orange-400 transition-all bg-gray-50 group">
                                                     <Camera className="h-6 w-6 mb-1 group-hover:scale-110 transition-transform" />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest">Upload</span>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">{t('uploadButton')}</span>
                                                     <input type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
                                                 </label>
                                             )}
@@ -377,8 +374,8 @@ const ProductDetails = () => {
                                             <Loader2 className="h-5 w-5 animate-spin" />
                                         ) : (
                                             <>
-                                                <MessageSquare className="h-5 w-5" />
-                                                {t('submitReview', 'Publish Review')}
+                                                <MessageSquare className={`h-5 w-5 ${isAr ? 'ml-2' : ''}`} />
+                                                {t('submitReview')}
                                             </>
                                         )}
                                     </button>
@@ -388,10 +385,10 @@ const ProductDetails = () => {
 
                         {/* Reviews List */}
                         <div className="lg:col-span-2">
-                            <div className="flex items-center justify-between mb-8">
-                                <h3 className="text-2xl font-black text-gray-900">
-                                    {t('customerReviews', 'Customer Reviews')}
-                                    <span className="ml-3 text-sm font-bold text-gray-400">({reviews.length})</span>
+                            <div className={`flex items-center justify-between mb-8 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                <h3 className={`text-2xl font-black text-gray-900 ${isAr ? 'text-right' : 'text-left'}`}>
+                                    {t('customerReviews')}
+                                    <span className={`${isAr ? 'mr-3' : 'ml-3'} text-sm font-bold text-gray-400`}>({reviews.length})</span>
                                 </h3>
                             </div>
 
@@ -400,26 +397,26 @@ const ProductDetails = () => {
                                     <div className="bg-white p-6 rounded-full shadow-lg mb-6">
                                         <Star className="h-10 w-10 text-gray-200 fill-gray-200" />
                                     </div>
-                                    <h4 className="text-xl font-black text-gray-900">{t('noReviewsYet', 'Be the first to review!')}</h4>
-                                    <p className="text-gray-500 mt-2 max-w-xs mx-auto">Help other car owners by sharing your feedback on this product.</p>
+                                    <h4 className="text-xl font-black text-gray-900">{t('noReviewsYet')}</h4>
+                                    <p className="text-gray-500 mt-2 max-w-xs mx-auto">{t('beFirstDesc')}</p>
                                 </div>
                             ) : (
                                 <div className="space-y-8">
                                     {reviews.map((rev) => (
                                         <div key={rev.id} className="bg-white rounded-3xl p-8 border border-gray-50 shadow-sm hover:shadow-md transition-shadow animate-in fade-in duration-500">
-                                            <div className="flex flex-col md:flex-row gap-6">
+                                            <div className={`flex flex-col md:flex-row gap-6 ${isAr ? 'md:flex-row-reverse' : ''}`}>
                                                 <div className="flex-1">
-                                                    <div className="flex items-center gap-4 mb-4">
+                                                    <div className={`flex items-center gap-4 mb-4 ${isAr ? 'flex-row-reverse' : ''}`}>
                                                         <div className="h-12 w-12 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600">
                                                             <UserCircle2 className="h-7 w-7" />
                                                         </div>
-                                                        <div>
-                                                            <div className="flex items-center gap-2">
+                                                        <div className={isAr ? 'text-right' : 'text-left'}>
+                                                            <div className={`flex items-center gap-2 ${isAr ? 'flex-row-reverse' : ''}`}>
                                                                 <h4 className="font-black text-gray-900">{rev.userName}</h4>
                                                                 <CheckCircle2 className="h-4 w-4 text-green-500" />
                                                             </div>
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="flex">
+                                                            <div className={`flex items-center gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                                                <div className={`flex ${isAr ? 'flex-row-reverse' : ''}`}>
                                                                     {[1, 2, 3, 4, 5].map((s) => (
                                                                         <Star
                                                                             key={s}
@@ -429,12 +426,12 @@ const ProductDetails = () => {
                                                                 </div>
                                                                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
                                                                     <Clock className="h-3 w-3" />
-                                                                    {rev.createdAt?.toDate().toLocaleDateString(i18n.language === 'ar' ? 'ar-EG' : 'en-US')}
+                                                                    {rev.createdAt?.toDate().toLocaleDateString(isAr ? 'ar-EG' : 'en-US')}
                                                                 </span>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <p className="text-gray-600 font-medium leading-relaxed italic">
+                                                    <p className={`text-gray-600 font-medium leading-relaxed italic ${isAr ? 'text-right' : 'text-left'}`}>
                                                         "{rev.comment}"
                                                     </p>
                                                 </div>
@@ -462,7 +459,7 @@ const ProductDetails = () => {
                 </div>
 
                 <div className="mt-20">
-                    <h3 className="text-2xl font-black text-gray-900 mb-8">{t('relatedProducts', 'Discover More Parts')}</h3>
+                    <h3 className={`text-2xl font-black text-gray-900 mb-8 ${isAr ? 'text-right' : 'text-left'}`}>{t('relatedProducts')}</h3>
                     <RelatedProducts currentProduct={product} />
                 </div>
 
@@ -474,7 +471,7 @@ const ProductDetails = () => {
                     >
                         <div className="relative max-w-4xl w-full max-h-[90vh] flex items-center justify-center">
                             <img src={expandedImage} alt="Expanded Review" className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300" />
-                            <button className="absolute -top-12 right-0 text-white/50 hover:text-white transition-colors bg-white/10 p-2 rounded-full">
+                            <button className={`absolute -top-12 ${isAr ? 'left-0' : 'right-0'} text-white/50 hover:text-white transition-colors bg-white/10 p-2 rounded-full`}>
                                 <X className="h-8 w-8" />
                             </button>
                         </div>

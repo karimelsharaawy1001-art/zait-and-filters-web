@@ -63,14 +63,14 @@ const Home = () => {
                         {subtitle && <p className="text-gray-500 text-sm sm:text-base font-medium max-w-2xl">{subtitle}</p>}
                     </div>
                     <Link to="/shop" className="text-orange-600 hover:text-orange-700 font-black flex items-center gap-1.5 group bg-orange-50 px-4 py-2 rounded-full transition-all hover:bg-orange-100">
-                        <span className="text-xs sm:text-sm uppercase tracking-widest">{t('viewAll', 'عرض الكل')}</span>
+                        <span className="text-xs sm:text-sm uppercase tracking-widest">{t('viewAll')}</span>
                         <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
                     </Link>
                 </div>
 
                 {products.length === 0 ? (
                     <div className="text-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
-                        <p className="text-gray-400 font-medium">{t('noProductsFound', 'قريباً...')}</p>
+                        <p className="text-gray-400 font-medium">{t('noProductsFound')}</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-8">
@@ -94,8 +94,8 @@ const Home = () => {
             {/* Exclusive Offers Section */}
             <div className="bg-gradient-to-b from-gray-50 to-white border-b border-gray-100/50">
                 <ProductSection
-                    title={t('hotOffers', 'عروض حصرية')}
-                    subtitle={t('hotOffersSub', 'وفّر أكثر مع عروضنا الحصرية وخصوماتنا لفترة محدودة')}
+                    title={t('hotOffers')}
+                    subtitle={t('hotOffersSub')}
                     icon={Flame}
                     products={hotOffers}
                     color="red"
@@ -105,8 +105,8 @@ const Home = () => {
             {/* Best Sellers Section */}
             <div className="bg-white">
                 <ProductSection
-                    title={t('bestSellers', 'الأكثر مبيعاً')}
-                    subtitle={t('bestSellersSub', 'المنتجات الأعلى طلباً والمفضلة لدى عملائنا')}
+                    title={t('bestSellers')}
+                    subtitle={t('bestSellersSub')}
                     icon={Sparkles}
                     products={bestSellers}
                     color="orange"

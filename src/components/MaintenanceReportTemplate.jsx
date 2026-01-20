@@ -1,7 +1,11 @@
 import React, { forwardRef } from 'react';
 import { User, Mail, Phone, Truck, Globe } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const MaintenanceReportTemplate = forwardRef(({ user, orders, siteName, logoUrl }, ref) => {
+    const { t, i18n } = useTranslation();
+    const isAr = i18n.language === 'ar';
+
     // 1. Robust Name Resolution
     const customerName = user?.fullName ||
         user?.displayName ||
@@ -9,7 +13,7 @@ const MaintenanceReportTemplate = forwardRef(({ user, orders, siteName, logoUrl 
         (user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : null) ||
         orders[0]?.customer?.name ||
         orders[0]?.customerName ||
-        'عميل زيت اند فلترز';
+        t('customerDefault');
 
     // 2. Phone Number Formatting
     const rawPhone = user?.phoneNumber || user?.phone || orders[0]?.customer?.phone || '';
@@ -23,7 +27,7 @@ const MaintenanceReportTemplate = forwardRef(({ user, orders, siteName, logoUrl 
             formattedPhone = `+20${formattedPhone}`;
         }
     } else {
-        formattedPhone = 'غير متوفر';
+        formattedPhone = t('notAvailable');
     }
 
     return (
@@ -34,13 +38,13 @@ const MaintenanceReportTemplate = forwardRef(({ user, orders, siteName, logoUrl 
                 backgroundColor: '#f9fafb',
                 padding: '40px 20px',
                 minHeight: '100%',
-                fontFamily: "'Cairo', 'Tajawal', Arial, sans-serif",
-                direction: 'rtl',
+                fontFamily: isAr ? "'Cairo', 'Tajawal', Arial, sans-serif" : "'Inter', 'Roboto', Arial, sans-serif",
+                direction: isAr ? 'rtl' : 'ltr',
             }}
         >
             {/* Advanced Styling Block */}
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@400;500;700;900&display=swap');
+                @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@400;500;700;900&family=Inter:wght@400;500;700;900&display=swap');
                 
                 .report-paper {
                     background: white !important;
@@ -53,6 +57,7 @@ const MaintenanceReportTemplate = forwardRef(({ user, orders, siteName, logoUrl 
                     position: relative;
                     overflow: hidden;
                     box-sizing: border-box;
+                    text-align: ${isAr ? 'right' : 'left'};
                 }
 
                 @media print {
@@ -81,7 +86,7 @@ const MaintenanceReportTemplate = forwardRef(({ user, orders, siteName, logoUrl 
 
                 .brand-line {
                     height: 4px;
-                    background: linear-gradient(to left, #dc2626, #991b1b);
+                    background: linear-gradient(to ${isAr ? 'left' : 'right'}, #dc2626, #991b1b);
                     width: 100%;
                     border-radius: 2px;
                     margin: 20px 0 30px 0;
@@ -138,8 +143,8 @@ const MaintenanceReportTemplate = forwardRef(({ user, orders, siteName, logoUrl 
                     text-align: center;
                 }
 
-                .modern-table thead th:first-child { border-top-right-radius: 12px; }
-                .modern-table thead th:last-child { border-top-left-radius: 12px; }
+                .modern-table thead th:first-child { border-top-${isAr ? 'right' : 'left'}-radius: 12px; }
+                .modern-table thead th:last-child { border-top-${isAr ? 'left' : 'right'}-radius: 12px; }
 
                 .modern-table tbody td {
                     padding: 16px 12px;
@@ -186,24 +191,24 @@ const MaintenanceReportTemplate = forwardRef(({ user, orders, siteName, logoUrl 
 
             <div className="report-paper">
                 {/* 1. Header Section */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    {/* Logo (Left side) */}
-                    <div style={{ flex: 1, textAlign: 'right' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexDirection: isAr ? 'row' : 'row-reverse' }}>
+                    {/* Logo */}
+                    <div style={{ flex: 1, textAlign: isAr ? 'right' : 'left' }}>
                         {logoUrl && (
                             <img src={logoUrl} alt="Logo" style={{ height: '55px', objectFit: 'contain' }} />
                         )}
                     </div>
 
-                    {/* Title (Right side) */}
-                    <div style={{ flex: 1, textAlign: 'left' }}>
+                    {/* Title */}
+                    <div style={{ flex: 1, textAlign: isAr ? 'left' : 'right' }}>
                         <h1 style={{
                             fontSize: '24px',
                             color: '#dc2626',
                             fontWeight: '900',
                             margin: 0,
-                            fontFamily: "'Tajawal', sans-serif"
+                            fontFamily: isAr ? "'Tajawal', sans-serif" : "'Inter', sans-serif"
                         }}>
-                            سجل صيانة السيارة المعتمد
+                            {t('reportTitle')}
                         </h1>
                         <p style={{ margin: '4px 0 0 0', color: '#6b7280', fontSize: '13px', fontWeight: '600' }}>
                             Report ID: {new Date().getTime().toString().slice(-8)}
@@ -217,19 +222,19 @@ const MaintenanceReportTemplate = forwardRef(({ user, orders, siteName, logoUrl 
                 <div className="info-card">
                     <div className="info-item">
                         <span className="info-label">
-                            <User size={14} color="#9ca3af" /> اسم العميل
+                            <User size={14} color="#9ca3af" /> {t('customerNameLabel')}
                         </span>
                         <span className="info-value">{customerName}</span>
                     </div>
                     <div className="info-item">
                         <span className="info-label">
-                            <Mail size={14} color="#9ca3af" /> البريد الإلكتروني
+                            <Mail size={14} color="#9ca3af" /> {t('emailLabel')}
                         </span>
-                        <span className="info-value">{user?.email || 'غير محدد'}</span>
+                        <span className="info-value">{user?.email || t('notSpecified')}</span>
                     </div>
                     <div className="info-item">
                         <span className="info-label">
-                            <Phone size={14} color="#9ca3af" /> رقم الهاتف
+                            <Phone size={14} color="#9ca3af" /> {t('phoneLabel')}
                         </span>
                         <span className="info-value" style={{ direction: 'ltr' }}>{formattedPhone}</span>
                     </div>
@@ -239,31 +244,31 @@ const MaintenanceReportTemplate = forwardRef(({ user, orders, siteName, logoUrl 
                 <table className="modern-table">
                     <thead>
                         <tr>
-                            <th style={{ width: '15%' }}>التاريخ</th>
-                            <th style={{ width: '25%', textAlign: 'right' }}>تفاصيل السيارة</th>
-                            <th style={{ width: '15%' }}>العداد</th>
-                            <th style={{ width: '25%', textAlign: 'right' }}>القطع المركبة</th>
-                            <th style={{ width: '20%' }}>الضمان</th>
+                            <th style={{ width: '15%' }}>{t('dateLabel')}</th>
+                            <th style={{ width: '25%', textAlign: isAr ? 'right' : 'left' }}>{t('carDetailsLabel')}</th>
+                            <th style={{ width: '15%' }}>{t('mileageLabel')}</th>
+                            <th style={{ width: '25%', textAlign: isAr ? 'right' : 'left' }}>{t('installedPartsLabel')}</th>
+                            <th style={{ width: '20%' }}>{t('warrantyLabel')}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {orders.map((order, orderIdx) => {
                             const date = order.createdAt?.seconds
-                                ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' })
-                                : 'غير محدد';
-                            const mileage = order.currentMileage ? `${order.currentMileage} كم` : '-';
+                                ? new Date(order.createdAt.seconds * 1000).toLocaleDateString(isAr ? 'ar-EG' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                                : t('notSpecified');
+                            const mileage = order.currentMileage ? `${order.currentMileage} ${t('km')}` : '-';
                             const carDetails = order.selectedCar
                                 ? `${order.selectedCar.make} ${order.selectedCar.model}`
-                                : (order.carBrand && order.carModel ? `${order.carBrand} ${order.carModel}` : 'غير محدد');
+                                : (order.carBrand && order.carModel ? `${order.carBrand} ${order.carModel}` : t('notSpecified'));
 
                             if (!order.items || order.items.length === 0) {
                                 return (
                                     <tr key={orderIdx}>
                                         <td>{date}</td>
-                                        <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{carDetails}</td>
+                                        <td style={{ textAlign: isAr ? 'right' : 'left', fontWeight: 'bold' }}>{carDetails}</td>
                                         <td className="mileage-text">{mileage}</td>
-                                        <td style={{ textAlign: 'right' }}>صيانة دورية</td>
-                                        <td><span className="warranty-badge">خدمة معتمدة</span></td>
+                                        <td style={{ textAlign: isAr ? 'right' : 'left' }}>{t('periodicMaintenance')}</td>
+                                        <td><span className="warranty-badge">{t('certifiedService')}</span></td>
                                     </tr>
                                 );
                             }
@@ -271,13 +276,13 @@ const MaintenanceReportTemplate = forwardRef(({ user, orders, siteName, logoUrl 
                             return order.items.map((item, itemIdx) => (
                                 <tr key={`${orderIdx}-${itemIdx}`}>
                                     <td>{itemIdx === 0 ? date : ''}</td>
-                                    <td style={{ textAlign: 'right', fontWeight: '700' }}>{itemIdx === 0 ? carDetails : ''}</td>
+                                    <td style={{ textAlign: isAr ? 'right' : 'left', fontWeight: '700' }}>{itemIdx === 0 ? carDetails : ''}</td>
                                     <td className="mileage-text">{itemIdx === 0 ? mileage : ''}</td>
-                                    <td style={{ textAlign: 'right' }}>
-                                        <div style={{ fontWeight: '600' }}>{item?.nameEn || item?.name || 'قطعة غيار'}</div>
-                                        <div style={{ fontSize: '10px', color: '#9ca3af' }}>{item?.brandEn || item?.partBrand || item?.brand || ''}</div>
+                                    <td style={{ textAlign: isAr ? 'right' : 'left' }}>
+                                        <div style={{ fontWeight: '600' }}>{isAr ? (item?.name || t('products')) : (item?.nameEn || item?.name || t('products'))}</div>
+                                        <div style={{ fontSize: '10px', color: '#9ca3af' }}>{isAr ? (item?.brand || '') : (item?.brandEn || item?.partBrand || item?.brand || '')}</div>
                                     </td>
-                                    <td><span className="warranty-badge">أصلي وبالضمان</span></td>
+                                    <td><span className="warranty-badge">{t('genuineWithWarranty')}</span></td>
                                 </tr>
                             ));
                         })}
@@ -286,12 +291,12 @@ const MaintenanceReportTemplate = forwardRef(({ user, orders, siteName, logoUrl 
 
                 {/* 4. Professional Footer */}
                 <div style={{ marginTop: 'auto', paddingTop: '60px', textAlign: 'center' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', marginBottom: '20px', flexDirection: isAr ? 'row' : 'row' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div style={{ background: '#fef2f2', p: '8px', borderRadius: '50%' }}>
+                            <div style={{ background: '#fef2f2', padding: '8px', borderRadius: '50%' }}>
                                 <Truck size={20} color="#dc2626" />
                             </div>
-                            <span style={{ fontSize: '12px', fontWeight: '800', color: '#1f2937' }}>أسرع توصيل في مصر</span>
+                            <span style={{ fontSize: '12px', fontWeight: '800', color: '#1f2937' }}>{t('fastestDeliveryEgypt')}</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <Globe size={18} color="#dc2626" />
@@ -299,8 +304,8 @@ const MaintenanceReportTemplate = forwardRef(({ user, orders, siteName, logoUrl 
                         </div>
                     </div>
 
-                    <p className="footer-text">هذا التقرير موثق من فريق زيت اند فلترز - جميع قطع الغيار أصلية وبالضمان</p>
-                    <p className="footer-subtext">نشكركم على ثقتكم في زيت اند فلترز - نتمنى لكم رحلة آمنة دائماً</p>
+                    <p className="footer-text">{t('documentedReport')}</p>
+                    <p className="footer-subtext">{t('thanksTrust')}</p>
                 </div>
 
                 {/* Watermark Logo (Subtle) */}

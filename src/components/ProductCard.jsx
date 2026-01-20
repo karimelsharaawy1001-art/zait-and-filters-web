@@ -38,7 +38,7 @@ const ProductCard = ({ product }) => {
                 {/* Hot Sale Badge */}
                 {hasSale && (
                     <span className="absolute top-2 left-2 bg-red-600 text-white text-[9px] sm:text-[10px] uppercase font-black px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-lg tracking-widest animate-pulse z-10 border border-white">
-                        HOT SALE
+                        {t('hotSale')}
                     </span>
                 )}
             </Link>
@@ -66,16 +66,18 @@ const ProductCard = ({ product }) => {
 
                 <Link to={`/product/${product.id}`}>
                     <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 leading-tight group-hover:text-orange-600 transition-all line-clamp-2">
-                        {product.name}
+                        {i18n.language === 'en' ? (product.nameEn || product.name) : product.name}
                     </h3>
                 </Link>
 
-                {(product.partBrand || product.brand) && (
-                    <div className="flex items-center gap-1.5 mb-2 mt-auto">
-                        <span className="text-[9px] sm:text-[10px] text-gray-400 font-medium uppercase tracking-wide">Brand:</span>
-                        <span className="text-[9px] sm:text-[10px] font-bold text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded">{product.partBrand || product.brand}</span>
-                    </div>
-                )}
+                <div className="flex items-center gap-1.5 mb-2 mt-auto">
+                    <span className="text-[9px] sm:text-[10px] text-gray-400 font-medium uppercase tracking-wide">{t('brand')}:</span>
+                    <span className="text-[9px] sm:text-[10px] font-bold text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded">
+                        {i18n.language === 'en'
+                            ? (product.brandEn || product.partBrand || product.brand)
+                            : (product.partBrand || product.brand)}
+                    </span>
+                </div>
 
                 {/* Price and Cart Action */}
                 <div className="mt-2 sm:mt-4 flex items-center justify-between pt-2 sm:pt-4 border-t border-gray-50">
@@ -83,15 +85,15 @@ const ProductCard = ({ product }) => {
                         {hasSale ? (
                             <>
                                 <span className="text-[9px] sm:text-[10px] text-gray-400 line-through">
-                                    {product.price} EGP
+                                    {product.price} {t('currency')}
                                 </span>
                                 <span className="text-base sm:text-lg font-black text-red-600">
-                                    {product.salePrice} <span className="text-[9px] sm:text-[10px] font-normal italic">EGP</span>
+                                    {product.salePrice} <span className="text-[9px] sm:text-[10px] font-normal italic">{t('currency')}</span>
                                 </span>
                             </>
                         ) : (
                             <span className="text-base sm:text-lg font-bold text-gray-900">
-                                {product.price} <span className="text-[9px] sm:text-[10px] font-normal text-gray-500 italic">EGP</span>
+                                {product.price} <span className="text-[9px] sm:text-[10px] font-normal text-gray-500 italic">{t('currency')}</span>
                             </span>
                         )}
                     </div>

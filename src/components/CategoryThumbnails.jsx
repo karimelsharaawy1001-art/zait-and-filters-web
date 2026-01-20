@@ -6,7 +6,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const CategoryThumbnails = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const { updateFilter } = useFilters();
     const [categories, setCategories] = useState([]);
@@ -26,13 +26,7 @@ const CategoryThumbnails = () => {
 
     const handleCategoryClick = (categoryName) => {
         updateFilter('category', categoryName);
-        navigate('/shop'); // Note: This uses context navigation. If URL sync in ShopPage handles initial context load, this is fine.
-        // Actually, better to navigate with URL params now that ShopPage syncs that way.
-        // navigate(`/shop?category=${categoryName}`);
-        // But since context also updates, ShopPage might double sync.
-        // Let's stick to updateFilter + navigate logic which worked before, or switch to URL.
-        // Given I updated CarSelector to use URL, I should probably do same here for consistency.
-        // navigate(`/shop?category=${categoryName}`);
+        navigate('/shop');
     };
 
     if (categories.length === 0) return null;
@@ -42,7 +36,7 @@ const CategoryThumbnails = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center mb-6 sm:mb-10 border-b border-gray-100 pb-6">
                     <h2 className="text-2xl sm:text-4xl font-black text-gray-900 uppercase tracking-tight">
-                        {t('shopByCategory', 'تسوق حسب الفئة')}
+                        {t('shopByCategory')}
                     </h2>
                 </div>
 
