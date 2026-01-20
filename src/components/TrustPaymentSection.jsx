@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { Lock, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const TrustPaymentSection = () => {
+    const { t } = useTranslation();
     const [methods, setMethods] = useState([]);
     const [loading, setLoading] = useState(true);
 
