@@ -23,13 +23,19 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
+    // Explicit Presence Logging (Secure)
+    console.log('API Key present:', !!process.env.EASYKASH_API_KEY);
+    console.log('HMAC Secret present:', !!process.env.EASYKASH_HMAC_SECRET);
+
     // Strict Environment Variable Check
-    const EASYKASH_API_KEY = process.env.VITE_EASYKASH_API_KEY;
-    const EASYKASH_SECRET_KEY = process.env.VITE_EASYKASH_SECRET_KEY;
+    const EASYKASH_API_KEY = process.env.EASYKASH_API_KEY;
+    const EASYKASH_SECRET_KEY = process.env.EASYKASH_HMAC_SECRET;
 
     if (!EASYKASH_API_KEY || !EASYKASH_SECRET_KEY) {
-        console.error('❌ Missing EasyKash credentials');
-        return res.status(500).json({ error: 'Missing EasyKash Environment Variables' });
+        console.error('❌ Server configuration error: missing keys');
+        return res.status(500).json({
+            error: 'Server configuration error: missing keys'
+        });
     }
 
     try {
