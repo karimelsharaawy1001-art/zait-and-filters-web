@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import axios from 'axios';
 
 export default async function handler(req, res) {
     console.log('API Hit!');
@@ -80,27 +81,24 @@ export default async function handler(req, res) {
 
         console.log('EasyKash Payload (sanitized):', { ...payload, api_key: '***' });
 
-        const response = await fetch('https://easykash.app/api/v1/orders', {
-            method: 'POST',
+        // Make request to EasyKash API using Axios
+        console.log('Calling EasyKash API with axios...');
+        const response = await axios({
+            method: 'post',
+            url: 'https://easykash.net/api/v1/orders',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-Secret-Key': EASYKASH_SECRET_KEY,
                 'X-Signature': signature
             },
-            body: JSON.stringify(payload)
+            data: payload,
+            timeout: 10000 // 10 seconds timeout
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            console.error('EasyKash Error Details:', data);
-            return res.status(response.status).json({
-                error: 'Payment gateway error',
-                details: data
-            });
-        }
-
+        const data = response.data;
         console.log('✅ Payment URL generated:', data.url);
+
         return res.status(200).json({
             success: true,
             url: data.url,
@@ -108,10 +106,29 @@ export default async function handler(req, res) {
         });
 
     } catch (error) {
-        console.error('❌ Payment proxy error:', error);
-        return res.status(500).json({
-            error: 'Internal server error',
-            message: error.message
-        });
+        console.error('❌ Payment API Error:', error.message);
+
+        if (error.response) {
+            // The request was made and the server responded with a status code
+            // that falls out of the range of 2xx
+            console.error('EasyKash Error Details:', error.response.data);
+            return res.status(error.response.status).json({
+                error: 'Payment gateway error',
+                details: error.response.data
+            });
+        } else if (error.request) {
+            // The request was made but no response was received
+            console.error('No response from EasyKash:', error.request);
+            return res.status(504).json({
+                error: 'Payment gateway timeout/no response',
+                message: error.message
+            });
+        } else {
+            // Something happened in setting up the request that triggered an Error
+            return res.status(500).json({
+                error: 'Internal server error',
+                message: error.message
+            });
+        }
     }
 }
