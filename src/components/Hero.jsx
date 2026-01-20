@@ -64,7 +64,7 @@ const Hero = () => {
     const currentData = slides.length > 0 ? slides[currentSlide] : null;
 
     return (
-        <div className="relative bg-gray-900 text-white min-h-[700px] md:h-[600px] flex flex-col md:flex-row items-center justify-start md:justify-center pt-32 pb-10 md:pt-0 overflow-hidden">
+        <div className="relative bg-gray-900 text-white min-h-[600px] md:h-[600px] flex items-center py-10 md:py-0 overflow-hidden">
             {/* Slides */}
             {slides.length > 0 ? (
                 slides.map((slide, index) => (
@@ -84,7 +84,7 @@ const Hero = () => {
 
                         {/* Content */}
                         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center z-20">
-                            <div className={`w-full md:w-2/3 text-center pt-8 md:pt-0 ${i18n.language === 'ar' ? 'md:text-right' : 'md:text-left'}`}>
+                            <div className={`w-full md:w-2/3 text-center pt-20 md:pt-0 ${i18n.language === 'ar' ? 'md:text-right' : 'md:text-left'}`}>
                                 <h1 className={`font-extrabold tracking-tight mb-8 drop-shadow-xl ${i18n.language === 'ar' ? 'text-6xl md:text-8xl leading-[1.1] tracking-normal' : 'text-4xl md:text-6xl leading-tight'}`}>
                                     {i18n.language === 'ar' ? slide.title_ar : slide.title_en}
                                 </h1>
@@ -107,7 +107,7 @@ const Hero = () => {
                     <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/80 to-transparent z-10"></div>
                     <img src={staticSlide.imageUrl} alt="" className="w-full h-full object-cover opacity-50" />
                     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center z-20">
-                        <div className={`w-full md:w-2/3 text-center pt-10 md:pt-0 ${i18n.language === 'ar' ? 'md:text-right' : 'md:text-left'}`}>
+                        <div className={`w-full md:w-2/3 text-center pt-20 md:pt-0 ${i18n.language === 'ar' ? 'md:text-right' : 'md:text-left'}`}>
                             <h1 className={`font-extrabold tracking-tight mb-8 drop-shadow-xl ${i18n.language === 'ar' ? 'text-6xl md:text-8xl leading-[1.1] tracking-normal' : 'text-4xl md:text-6xl leading-tight'}`}>
                                 {staticSlide.title} <br />
                                 <span className="text-orange-500">{staticSlide.subtitleOne}</span> {staticSlide.subtitleTwo}
@@ -148,7 +148,7 @@ const Hero = () => {
             )}
 
             {/* Car Selector (Always visible on top on mobile, right on desktop) */}
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-40 flex items-center justify-end pointer-events-none mt-12 md:mt-0">
+            <div className={`relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-40 flex items-center justify-end pointer-events-none`}>
                 <div className="w-full md:w-[350px] lg:w-[400px] pointer-events-auto">
                     <CarSelector />
                 </div>

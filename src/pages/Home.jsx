@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Hero from '../components/Hero';
+import Navbar from '../components/Navbar';
 import BrandMarquee from '../components/BrandMarquee';
 import CategoryThumbnails from '../components/CategoryThumbnails';
 import ProductCard from '../components/ProductCard';
@@ -83,9 +84,19 @@ const Home = () => {
     );
 
     return (
-        <div className="flex-1 bg-white">
+        <div className="flex-1 bg-white relative">
             <Hero />
-            <BrandMarquee />
+
+            {/* Overlapping Navbar */}
+            <div className="relative z-50 -mt-10 sm:-mt-12 px-4 pointer-events-none">
+                <div className="pointer-events-auto">
+                    <Navbar variant="floating" />
+                </div>
+            </div>
+
+            <div className="pt-8 sm:pt-12">
+                <BrandMarquee />
+            </div>
 
             {/* Exclusive Offers Section */}
             <div className="bg-gradient-to-b from-gray-50 to-white border-b border-gray-100/50">

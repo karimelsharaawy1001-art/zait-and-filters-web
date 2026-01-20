@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import Navbar from './components/Navbar';
@@ -55,6 +55,9 @@ import { useEffect } from 'react';
 
 const PublicLayout = () => {
   const { i18n } = useTranslation();
+  const location = useLocation();
+  const isHome = location.pathname === '/';
+
   return (
     <div className={`min-h-screen bg-gray-50 flex flex-col font-sans ${i18n.language === 'ar' ? 'font-arabic rtl' : 'ltr'}`} dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
       <Toaster
@@ -83,8 +86,8 @@ const PublicLayout = () => {
           },
         }}
       />
-      <Navbar />
-      <main className="flex-1 pt-16 md:pt-20">
+      {!isHome && <Navbar />}
+      <main className={`flex-1 ${!isHome ? 'pt-16 md:pt-20' : ''}`}>
         <Outlet />
       </main>
       <Footer />
