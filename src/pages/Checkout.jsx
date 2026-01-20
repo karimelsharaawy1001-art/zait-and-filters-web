@@ -109,11 +109,14 @@ const Checkout = () => {
 
     const fetchPaymentMethods = async () => {
         try {
+            setFetchingMethods(true);
             const q = query(collection(db, 'payment_configs'), where('isActive', '==', true));
             const querySnapshot = await getDocs(q);
             const methods = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setActiveMethods(methods);
-            if (methods.length > 0) {
+
+            setActiveMethods(Array.isArray(methods) ? methods : []);
+
+            if (methods && methods.length > 0) {
                 setFormData(prev => ({ ...prev, paymentMethod: methods[0].id }));
             }
         } catch (error) {
@@ -127,7 +130,15 @@ const Checkout = () => {
         try {
             const querySnapshot = await getDocs(collection(db, 'shipping_rates'));
             const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setShippingRates(data.sort((a, b) => a.governorate.localeCompare(b.governorate)));
+
+            // Safety sort: ensure governorate exists before calling localeCompare
+            const sortedData = data.sort((a, b) => {
+                const govA = a?.governorate || '';
+                const govB = b?.governorate || '';
+                return govA.localeCompare(govB);
+            });
+
+            setShippingRates(sortedData);
         } catch (error) {
             console.error("Error fetching shipping rates:", error);
         }
@@ -138,8 +149,8 @@ const Checkout = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
 
         if (name === 'governorate') {
-            const selectedRate = shippingRates.find(r => r.governorate === value);
-            setShippingCost(selectedRate ? selectedRate.cost : 0);
+            const selectedRate = (shippingRates || []).find(r => r.governorate === value);
+            setShippingCost(selectedRate ? (Number(selectedRate.cost) || 0) : 0);
         }
     };
 
@@ -515,7 +526,7 @@ const Checkout = () => {
                                                     className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all ${isAr ? 'text-right' : 'text-left'}`}
                                                 >
                                                     <option value="">{t('selectGovernorate')}</option>
-                                                    {shippingRates.map(rate => (
+                                                    {(shippingRates || []).map(rate => (
                                                         <option key={rate.id} value={rate.governorate}>{rate.governorate}</option>
                                                     ))}
                                                 </select>
@@ -622,7 +633,7 @@ const Checkout = () => {
                                         <Loader2 className="h-4 w-4 animate-spin" />
                                         {t('loadingPayments')}
                                     </div>
-                                ) : (
+                                ) : activeMethods.length > 0 ? (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {activeMethods.map((method) => (
                                             <label
@@ -639,6 +650,10 @@ const Checkout = () => {
                                                 </div>
                                             </label>
                                         ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                                        <p className="text-gray-500 text-sm font-bold">{t('noPaymentMethods') || 'No payment methods available'}</p>
                                     </div>
                                 )}
                             </div>
