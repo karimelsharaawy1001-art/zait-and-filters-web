@@ -54,8 +54,8 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Missing required payment information' });
         }
 
-        // 1. Amount Format: Convert to pips
-        const amountInPips = Math.round(parseFloat(amount) * 100);
+        // 1. Amount Format: Convert to pips (sent as string for safety)
+        const amountInPips = Math.round(parseFloat(amount) * 100).toString();
 
         // 2. Merchant Order ID
         const merchantOrderId = `ORDER_${Date.now()}_${orderId}`;
@@ -89,6 +89,7 @@ export default async function handler(req, res) {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
+                'Authorization': `Bearer ${EASYKASH_API_KEY}`,
                 'X-Secret-Key': EASYKASH_SECRET_KEY,
                 'X-Signature': signature
             },
@@ -109,22 +110,25 @@ export default async function handler(req, res) {
         console.error('❌ Payment API Error:', error.message);
 
         if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            console.error('EasyKash Error Details:', error.response.data);
-            return res.status(error.response.status).json({
+            // Log exact status code and raw data
+            const statusCode = error.response.status;
+            const errorData = error.response.data;
+
+            console.error(`EasyKash Gateway Error [Status ${statusCode}]:`, errorData);
+
+            // Return a clean JSON error even if the gateway returned HTML
+            return res.status(statusCode).json({
                 error: 'Payment gateway error',
-                details: error.response.data
+                status: statusCode,
+                details: typeof errorData === 'object' ? errorData : { raw: String(errorData).substring(0, 500) }
             });
         } else if (error.request) {
-            // The request was made but no response was received
-            console.error('No response from EasyKash:', error.request);
+            console.error('No response from EasyKash Gateway. Request sent:', !!error.request);
             return res.status(504).json({
                 error: 'Payment gateway timeout/no response',
                 message: error.message
             });
         } else {
-            // Something happened in setting up the request that triggered an Error
             return res.status(500).json({
                 error: 'Internal server error',
                 message: error.message
