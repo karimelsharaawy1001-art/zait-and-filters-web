@@ -260,35 +260,15 @@ const Checkout = () => {
             const customerPhone = formData.phone;
             const customerEmail = formData.email || "customer@example.com";
 
-            const payload = {
-                token: methodConfig.apiKey,
-                amount: String(totalAmount),
-                currency: "EGP",
-                merchant_order_id: `ORDER_${Date.now()}_${orderId}`,
-                description: "Zait & Filters Order",
-                return_url: `${window.location.origin}/order-success?id=${orderId}`,
-                customer: {
-                    first_name: "Customer",
-                    last_name: "Name",
-                    email: customerEmail,
-                    mobile: customerPhone
-                }
-            }
-
-            if (customerName) {
-                const names = customerName.split(' ');
-                payload.customer.first_name = names[0] || "Customer";
-                payload.customer.last_name = names.slice(1).join(' ') || "Name";
-            }
-
-            // Use the actual EasyKash API endpoint
-            const apiEndpoint = 'https://easykash.app/api/v1/orders';
-
-            const response = await axios.post(apiEndpoint, payload, {
-                headers: {
-                    'X-Secret-Key': methodConfig.secretKey,
-                    'Content-Type': 'application/json'
-                }
+            // Call our Vercel serverless function instead of EasyKash directly
+            // This bypasses CORS and keeps API keys secure
+            const response = await axios.post('/api/init-payment', {
+                amount: totalAmount,
+                orderId: orderId,
+                customerName: customerName,
+                customerPhone: customerPhone,
+                customerEmail: customerEmail,
+                returnUrl: `${window.location.origin}/order-success?id=${orderId}`
             });
 
             if (response.data && response.data.url) {
