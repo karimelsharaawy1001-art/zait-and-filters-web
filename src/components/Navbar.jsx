@@ -10,13 +10,13 @@ import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { toast } from 'react-hot-toast';
 
-const Navbar = ({ variant = 'fixed' }) => {
+const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const { getCartCount } = useCart();
     const { filters, updateFilter, isGarageFilterActive, activeCar, toggleGarageFilter } = useFilters();
     const { settings } = useSettings();
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const cartCount = getCartCount();
     const navigate = useNavigate();
     const location = useLocation();
@@ -62,15 +62,8 @@ const Navbar = ({ variant = 'fixed' }) => {
         }
     };
 
-    const isFloating = variant === 'floating';
-
     return (
-        <nav className={`
-            ${isFloating
-                ? 'bg-white shadow-2xl rounded-2xl border border-gray-100 mx-4 sm:mx-6 lg:mx-auto max-w-7xl relative z-50 transform transition-all duration-300'
-                : 'bg-white/80 backdrop-blur-md border-b border-gray-200/30 shadow-sm w-full z-50 fixed top-0 left-0'}
-            transition-all duration-300
-        `}>
+        <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200/30 shadow-sm w-full z-50 fixed top-0 left-0">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16 items-center">
                     {/* Logo */}

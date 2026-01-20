@@ -55,9 +55,6 @@ import { useEffect } from 'react';
 
 const PublicLayout = () => {
   const { i18n } = useTranslation();
-  const location = useLocation();
-  const isHome = location.pathname === '/';
-
   return (
     <div className={`min-h-screen bg-gray-50 flex flex-col font-sans ${i18n.language === 'ar' ? 'font-arabic rtl' : 'ltr'}`} dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
       <Toaster
@@ -86,8 +83,8 @@ const PublicLayout = () => {
           },
         }}
       />
-      {!isHome && <Navbar />}
-      <main className={`flex-1 ${!isHome ? 'pt-16 md:pt-20' : ''}`}>
+      <Navbar />
+      <main className="flex-1 pt-16 md:pt-20">
         <Outlet />
       </main>
       <Footer />

@@ -147,10 +147,12 @@ const Hero = () => {
                 </>
             )}
 
-            {/* Car Selector (Always visible on top on mobile, right on desktop) */}
-            <div className={`relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-40 flex items-center justify-end pointer-events-none`}>
-                <div className="w-full md:w-[350px] lg:w-[400px] pointer-events-auto">
-                    <CarSelector />
+            {/* Car Selector (Overlapping Hero and section below) */}
+            <div className="absolute bottom-0 left-0 right-0 transform translate-y-1/2 z-40 pointer-events-none">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex items-center justify-end">
+                    <div className="w-full md:w-[350px] lg:w-[400px] pointer-events-auto">
+                        <CarSelector />
+                    </div>
                 </div>
             </div>
         </div>

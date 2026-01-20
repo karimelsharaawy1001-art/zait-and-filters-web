@@ -84,17 +84,10 @@ const Home = () => {
     );
 
     return (
-        <div className="flex-1 bg-white relative">
+        <div className="flex-1 bg-white">
             <Hero />
 
-            {/* Overlapping Navbar */}
-            <div className="relative z-50 -mt-10 sm:-mt-12 px-4 pointer-events-none">
-                <div className="pointer-events-auto">
-                    <Navbar variant="floating" />
-                </div>
-            </div>
-
-            <div className="pt-8 sm:pt-12">
+            <div className="pt-24 sm:pt-32 pb-8 sm:pb-12">
                 <BrandMarquee />
             </div>
 
