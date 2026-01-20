@@ -87,7 +87,7 @@ const Home = () => {
         <div className="flex-1 bg-white">
             <Hero />
 
-            <div className="pt-64 md:pt-32 pb-8 sm:pb-12">
+            <div className="pt-64 md:pt-16 pb-8 sm:pb-12">
                 <BrandMarquee />
             </div>
 
