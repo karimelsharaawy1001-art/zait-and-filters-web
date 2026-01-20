@@ -93,7 +93,7 @@ const Footer = () => {
                 </div>
                 <div className="pt-8 border-t border-gray-800 flex flex-col items-center">
                     <p className="text-xs text-center text-gray-500 mb-4 uppercase tracking-widest">
-                        © {new Date().getFullYear()} {settings.siteName}. All rights reserved.
+                        © 2024 ZAIT & FILTERS. All rights reserved.
                     </p>
                 </div>
             </div>
