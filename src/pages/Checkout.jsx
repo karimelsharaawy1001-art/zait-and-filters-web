@@ -273,7 +273,7 @@ const Checkout = () => {
                     email: customerEmail,
                     mobile: customerPhone
                 }
-            };
+            }
 
             if (customerName) {
                 const names = customerName.split(' ');
@@ -281,7 +281,10 @@ const Checkout = () => {
                 payload.customer.last_name = names.slice(1).join(' ') || "Name";
             }
 
-            const response = await axios.post('/api/easykash/api/v1/orders', payload, {
+            // Use the actual EasyKash API endpoint
+            const apiEndpoint = 'https://easykash.app/api/v1/orders';
+
+            const response = await axios.post(apiEndpoint, payload, {
                 headers: {
                     'X-Secret-Key': methodConfig.secretKey,
                     'Content-Type': 'application/json'
