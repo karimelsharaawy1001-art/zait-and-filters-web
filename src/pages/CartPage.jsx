@@ -1,11 +1,11 @@
 import React from 'react';
 import { useCart } from '../context/CartContext';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Plus, Minus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 const CartPage = () => {
-    const { cartItems, removeFromCart, getCartTotal } = useCart();
+    const { cartItems, updateQuantity, removeFromCart, getCartTotal } = useCart();
     const { t, i18n } = useTranslation();
     const isAr = i18n.language === 'ar';
 
@@ -44,7 +44,7 @@ const CartPage = () => {
                                             </h3>
 
                                             {/* Compact Spec List */}
-                                            <div className="space-y-0.5 mb-2">
+                                            <div className="space-y-0.5 mb-3">
                                                 <p className="text-xs text-gray-600 font-medium">
                                                     <span className="font-semibold text-gray-400 uppercase text-[10px]">{t('carLabel')}:</span> {item.make} {item.model} {item.yearRange ? `(${item.yearRange})` : ''}
                                                 </p>
@@ -58,7 +58,27 @@ const CartPage = () => {
                                                 )}
                                             </div>
 
-                                            <p className="font-black text-gray-900 text-sm">{t('quantityLabel')}: {item.quantity}</p>
+                                            {/* Quantity Selector */}
+                                            <div className="flex items-center justify-center sm:justify-start gap-2">
+                                                <span className="text-xs font-semibold text-gray-400 uppercase">{t('quantityLabel')}:</span>
+                                                <div className="flex items-center border-2 border-[#008a40] rounded-lg overflow-hidden">
+                                                    <button
+                                                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                        className="w-8 h-8 flex items-center justify-center bg-[#008a40] hover:bg-[#006d33] text-white transition-colors active:scale-95"
+                                                    >
+                                                        <Minus className="h-3 w-3" />
+                                                    </button>
+                                                    <span className="w-12 text-center font-bold text-sm text-gray-900">
+                                                        {item.quantity}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                        className="w-8 h-8 flex items-center justify-center bg-[#008a40] hover:bg-[#006d33] text-white transition-colors active:scale-95"
+                                                    >
+                                                        <Plus className="h-3 w-3" />
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div className={`flex flex-col items-center sm:${isAr ? 'items-start' : 'items-end'} gap-2`}>
                                             <span className="text-lg font-bold text-gray-900">{item.price * item.quantity} {t('currency')}</span>
