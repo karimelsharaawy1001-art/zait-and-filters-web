@@ -18,7 +18,7 @@ const Footer = () => {
                             {settings.siteLogo && (
                                 <img src={settings.siteLogo} alt={settings.siteName} className="h-10 w-auto object-contain" />
                             )}
-                            <span className="font-bold text-2xl text-[#00b755] tracking-wider">
+                            <span className="font-bold text-2xl text-[#008a40] tracking-wider">
                                 {settings.siteName}
                             </span>
                         </Link>

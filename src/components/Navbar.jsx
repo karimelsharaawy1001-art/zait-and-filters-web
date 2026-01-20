@@ -71,7 +71,7 @@ const Navbar = () => {
                         {settings.siteLogo && (
                             <img src={settings.siteLogo} alt={settings.siteName} className="h-10 w-auto object-contain transition-transform group-hover:scale-105" />
                         )}
-                        <span className="font-bold text-xl md:text-2xl text-[#00b755]">
+                        <span className="font-bold text-xl md:text-2xl text-[#008a40]">
                             {settings.siteName}
                         </span>
                     </Link>
