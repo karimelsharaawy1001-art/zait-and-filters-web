@@ -3,7 +3,7 @@ import { collection, getDocs, deleteDoc, doc, updateDoc, query, orderBy } from '
 import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
 import AdminHeader from '../../components/AdminHeader';
-import { Edit3, Trash2, Plus, Search, Filter, ArrowUpDown, ChevronLeft, ChevronRight, Eye, MoreVertical, CheckCircle, XCircle } from 'lucide-react';
+import { Edit3, Trash2, Plus, Search, Filter, ArrowUpDown, ChevronLeft, ChevronRight, Eye, MoreVertical, CheckCircle, XCircle, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BulkOperations from '../../components/admin/BulkOperations';
 
@@ -190,34 +190,37 @@ const ManageProducts = () => {
     }
 
     return (
-        <>
+        <div className="min-h-screen bg-matte-black pb-20 font-sans text-snow-white">
             <AdminHeader title="Product Management" />
             <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
 
                 {/* Header Section */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                     <div>
-                        <h2 className="text-2xl font-bold text-gray-900">All Products</h2>
-                        <p className="text-sm text-gray-500 mt-1">
-                            {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found
+                        <h2 className="text-3xl font-black text-snow-white uppercase tracking-tight italic">Inventory Control</h2>
+                        <p className="text-sm text-silver-grey mt-1 font-bold">
+                            Total catalog: {filteredProducts.length} high-performance items
                         </p>
                     </div>
                     <button
                         onClick={() => navigate('/admin/products/new')}
-                        className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-md"
+                        className="flex items-center gap-3 bg-racing-red hover:bg-racing-red-dark hover:scale-105 text-white px-8 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-racing-red/20"
                     >
                         <Plus className="h-5 w-5" />
-                        Add New Product
+                        Add New Entry
                     </button>
                 </div>
 
                 {/* Bulk Import/Export */}
                 <BulkOperations />
 
-                {/* Filters Section */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Filters</h3>
+                {/* Filters Section - Premium Carbon Surface */}
+                <div className="bg-carbon-grey rounded-[24px] shadow-premium-3d border border-border-dark p-8 mb-10 group/filters">
+                    <div className="flex items-center justify-between mb-8">
+                        <div className="flex items-center gap-3">
+                            <Filter className="h-4 w-4 text-racing-red" />
+                            <h3 className="text-[11px] font-black text-silver-grey uppercase tracking-widest">Master Filters</h3>
+                        </div>
                         <button
                             onClick={() => {
                                 setSearchQuery('');
@@ -229,232 +232,217 @@ const ManageProducts = () => {
                                 setCountryFilter('');
                                 setStatusFilter('All');
                             }}
-                            className="text-xs text-orange-600 hover:text-orange-700 font-medium"
+                            className="text-[11px] font-black text-racing-red hover:text-racing-red-dark uppercase tracking-widest transition-colors flex items-center gap-2 group"
                         >
-                            Reset All
+                            <span className="group-hover:rotate-180 transition-transform duration-500">↺</span>
+                            Reset All Data
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         {/* Search & Brand */}
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             <div>
-                                <label className="block text-xs font-semibold text-gray-500 mb-1">Search Products</label>
+                                <label className="block text-[10px] font-black text-dim-grey uppercase tracking-widest mb-3">Core Search</label>
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-dim-grey group-focus-within/filters:text-racing-red transition-colors" />
                                     <input
                                         type="text"
-                                        placeholder="Name or Brand..."
+                                        placeholder="Identification or Brand..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                        className="w-full pl-12 pr-4 py-4 bg-matte-black border border-border-dark rounded-xl text-sm text-snow-white placeholder-dim-grey focus:ring-2 focus:ring-racing-red focus:border-transparent outline-none transition-all shadow-inner"
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-semibold text-gray-500 mb-1">Manufacturer Brand</label>
+                                <label className="block text-[10px] font-black text-dim-grey uppercase tracking-widest mb-3">Manufacturer</label>
                                 <input
                                     type="text"
                                     placeholder="e.g. Shell, Bosch"
                                     value={brandFilter}
                                     onChange={(e) => setBrandFilter(e.target.value)}
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-500 mb-1">Country of Origin</label>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. Japan, Germany"
-                                    value={countryFilter}
-                                    onChange={(e) => setCountryFilter(e.target.value)}
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                    className="w-full px-5 py-4 bg-matte-black border border-border-dark rounded-xl text-sm text-snow-white placeholder-dim-grey focus:ring-2 focus:ring-racing-red outline-none transition-all"
                                 />
                             </div>
                         </div>
 
                         {/* Category & Status */}
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             <div>
-                                <label className="block text-xs font-semibold text-gray-500 mb-1">Main Category</label>
+                                <label className="block text-[10px] font-black text-dim-grey uppercase tracking-widest mb-3">Sub-System</label>
                                 <select
                                     value={categoryFilter}
                                     onChange={(e) => setCategoryFilter(e.target.value)}
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 transition-all cursor-pointer"
+                                    className="w-full px-5 py-4 bg-matte-black border border-border-dark rounded-xl text-sm text-snow-white focus:ring-2 focus:ring-racing-red transition-all cursor-pointer outline-none shadow-lg"
                                 >
                                     {categories.map(cat => (
-                                        <option key={cat} value={cat}>{cat}</option>
+                                        <option key={cat} value={cat} className="bg-carbon-grey">{cat}</option>
                                     ))}
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-semibold text-gray-500 mb-1">Status</label>
+                                <label className="block text-[10px] font-black text-dim-grey uppercase tracking-widest mb-3">Live Status</label>
                                 <select
                                     value={statusFilter}
                                     onChange={(e) => setStatusFilter(e.target.value)}
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 transition-all cursor-pointer"
+                                    className="w-full px-5 py-4 bg-matte-black border border-border-dark rounded-xl text-sm text-snow-white focus:ring-2 focus:ring-racing-red transition-all cursor-pointer outline-none shadow-lg"
                                 >
-                                    <option value="All">All Statuses</option>
-                                    <option value="Active">Active Only</option>
-                                    <option value="Inactive">Inactive Only</option>
+                                    <option value="All" className="bg-carbon-grey">Full Manifest</option>
+                                    <option value="Active" className="bg-carbon-grey">Online Assets</option>
+                                    <option value="Inactive" className="bg-carbon-grey">Boneyard / Local</option>
                                 </select>
                             </div>
                         </div>
 
-                        {/* Vehicle Make & Model */}
-                        <div className="space-y-4">
+                        {/* Vehicle Configuration */}
+                        <div className="space-y-6">
                             <div>
-                                <label className="block text-xs font-semibold text-gray-500 mb-1">Car Make</label>
+                                <label className="block text-[10px] font-black text-dim-grey uppercase tracking-widest mb-3">Fleet/Make</label>
                                 <select
                                     value={makeFilter}
                                     onChange={(e) => setMakeFilter(e.target.value)}
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 transition-all cursor-pointer"
+                                    className="w-full px-5 py-4 bg-matte-black border border-border-dark rounded-xl text-sm text-snow-white focus:ring-2 focus:ring-racing-red transition-all cursor-pointer outline-none shadow-lg"
                                 >
-                                    <option value="All">All Makes</option>
+                                    <option value="All" className="bg-carbon-grey">All Fleet Units</option>
                                     {carMakes.map(make => (
-                                        <option key={make} value={make}>{make}</option>
+                                        <option key={make} value={make} className="bg-carbon-grey">{make}</option>
                                     ))}
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-semibold text-gray-500 mb-1">Car Model</label>
+                                <label className="block text-[10px] font-black text-dim-grey uppercase tracking-widest mb-3">Specific Model</label>
                                 <select
                                     value={modelFilter}
                                     onChange={(e) => setModelFilter(e.target.value)}
                                     disabled={makeFilter === 'All'}
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 transition-all cursor-pointer disabled:opacity-50"
+                                    className="w-full px-5 py-4 bg-matte-black border border-border-dark rounded-xl text-sm text-snow-white focus:ring-2 focus:ring-racing-red transition-all cursor-pointer outline-none shadow-lg disabled:opacity-20 disabled:cursor-not-allowed"
                                 >
-                                    <option value="All">All Models</option>
+                                    <option value="All" className="bg-carbon-grey">All Model Lines</option>
                                     {availableModels.map(model => (
-                                        <option key={model} value={model}>{model}</option>
+                                        <option key={model} value={model} className="bg-carbon-grey">{model}</option>
                                     ))}
                                 </select>
                             </div>
                         </div>
 
-                        {/* Year & Sort */}
-                        <div className="space-y-4">
+                        {/* Advanced Logic */}
+                        <div className="space-y-6">
                             <div>
-                                <label className="block text-xs font-semibold text-gray-500 mb-1">Specific Year</label>
+                                <label className="block text-[10px] font-black text-dim-grey uppercase tracking-widest mb-3">Model Year</label>
                                 <input
                                     type="number"
-                                    placeholder="e.g. 2022"
+                                    placeholder="e.g. 2024"
                                     value={yearFilter}
                                     onChange={(e) => setYearFilter(e.target.value)}
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                    className="w-full px-5 py-4 bg-matte-black border border-border-dark rounded-xl text-sm text-snow-white placeholder-dim-grey focus:ring-2 focus:ring-racing-red outline-none transition-all"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-semibold text-gray-500 mb-1">Sort By</label>
+                                <label className="block text-[10px] font-black text-dim-grey uppercase tracking-widest mb-3">Sequencing</label>
                                 <select
                                     value={sortBy}
                                     onChange={(e) => setSortBy(e.target.value)}
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 transition-all cursor-pointer"
+                                    className="w-full px-5 py-4 bg-matte-black border border-border-dark rounded-xl text-sm text-snow-white focus:ring-2 focus:ring-racing-red transition-all cursor-pointer outline-none shadow-lg"
                                 >
-                                    <option value="name-asc">Name: A-Z</option>
-                                    <option value="name-desc">Name: Z-A</option>
-                                    <option value="price-asc">Price: Low to High</option>
-                                    <option value="price-desc">Price: High to Low</option>
+                                    <option value="name-asc" className="bg-carbon-grey">Alphanumeric: Asc</option>
+                                    <option value="name-desc" className="bg-carbon-grey">Alphanumeric: Desc</option>
+                                    <option value="price-asc" className="bg-carbon-grey">Price: Efficiency Optimized</option>
+                                    <option value="price-desc" className="bg-carbon-grey">Price: High-End First</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Products Table */}
+                {/* Main Data Manifest */}
                 {filteredProducts.length === 0 ? (
-                    <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-                        <p className="text-gray-500 text-lg">No products found matching your filters.</p>
+                    <div className="bg-carbon-grey rounded-3xl shadow-premium-3d p-20 text-center border border-border-dark">
+                        <AlertTriangle className="h-16 w-16 text-racing-red mx-auto mb-6 opacity-40 animate-pulse" />
+                        <h4 className="text-xl font-bold text-snow-white mb-2 uppercase tracking-wide">Data Matrix Empty</h4>
+                        <p className="text-silver-grey font-medium max-w-md mx-auto">None of our high-performance components match your current filter parameters. Adjust your inputs for localized results.</p>
                     </div>
                 ) : (
-                    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                        {/* Desktop Table */}
+                    <div className="bg-carbon-grey rounded-[32px] shadow-premium-3d border border-border-dark overflow-hidden transition-all group/table">
+                        {/* Desktop Data Grid */}
                         <div className="hidden md:block overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand / Name</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Car Model</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Years</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sell</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Origin</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subcategory</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="bg-matte-black/60">
+                                        <th className="px-8 py-5 text-left text-[11px] font-black text-snow-white uppercase tracking-widest border-b-2 border-racing-red/30">Visual</th>
+                                        <th className="px-8 py-5 text-left text-[11px] font-black text-snow-white uppercase tracking-widest border-b-2 border-racing-red/30">Nomenclature / Group</th>
+                                        <th className="px-8 py-5 text-left text-[11px] font-black text-snow-white uppercase tracking-widest border-b-2 border-racing-red/30">System</th>
+                                        <th className="px-8 py-5 text-left text-[11px] font-black text-snow-white uppercase tracking-widest border-b-2 border-racing-red/30">Vehicle Config</th>
+                                        <th className="px-8 py-5 text-left text-[11px] font-black text-snow-white uppercase tracking-widest border-b-2 border-racing-red/30 italic">Cost</th>
+                                        <th className="px-8 py-5 text-left text-[11px] font-black text-snow-white uppercase tracking-widest border-b-2 border-racing-red/30 font-black">Sell</th>
+                                        <th className="px-8 py-5 text-left text-[11px] font-black text-snow-white uppercase tracking-widest border-b-2 border-racing-red/30 text-center">Active</th>
+                                        <th className="px-8 py-5 text-right text-[11px] font-black text-snow-white uppercase tracking-widest border-b-2 border-racing-red/30">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                                <tbody className="divide-y divide-border-dark/50">
                                     {filteredProducts.map((product) => (
-                                        <tr key={product.id} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <img
-                                                    src={product.image}
-                                                    alt={product.name}
-                                                    className="h-10 w-10 rounded object-cover"
-                                                />
+                                        <tr key={product.id} className="hover:bg-white/[0.02] transition-colors group/row">
+                                            <td className="px-8 py-6 whitespace-nowrap">
+                                                <div className="relative h-14 w-14 rounded-2xl overflow-hidden bg-matte-black/40 border border-border-dark group-hover/row:border-racing-red/20 transition-all">
+                                                    <img
+                                                        src={product.image}
+                                                        alt={product.name}
+                                                        className="h-full w-full object-contain p-1 transition-transform group-hover/row:scale-110"
+                                                    />
+                                                </div>
                                             </td>
-                                            <td className="px-6 py-4">
-                                                <div className="text-[10px] font-bold text-orange-600 uppercase mb-0.5 tracking-tighter">
+                                            <td className="px-8 py-6">
+                                                <div className="text-[10px] font-black text-racing-red uppercase mb-1 tracking-widest opacity-80">
                                                     {product.brand || 'No Brand'}
                                                 </div>
-                                                <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                                                <div className="text-sm font-black text-snow-white line-clamp-1 max-w-[220px] group-hover/row:translate-x-1 transition-transform">
+                                                    {product.name}
+                                                </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                            <td className="px-8 py-6 whitespace-nowrap">
+                                                <span className="px-4 py-2 text-[9px] font-black uppercase tracking-[0.15em] rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20">
                                                     {product.category}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {product.make} - {product.model}
+                                            <td className="px-8 py-6 whitespace-nowrap text-sm font-bold text-silver-grey">
+                                                {product.make} <span className="text-dim-grey font-normal mx-1">|</span> {product.model}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {getYearDisplay(product)}
+                                            <td className="px-8 py-6 whitespace-nowrap text-sm font-bold text-dim-grey italic">
+                                                {product.costPrice ? `${product.costPrice} EGP` : '—'}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {product.costPrice ? `${product.costPrice} EGP` : 'N/A'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <td className="px-8 py-6 whitespace-nowrap text-sm font-black">
                                                 {product.salePrice ? (
                                                     <div className="flex flex-col">
-                                                        <span className="text-orange-600 font-bold">{product.salePrice} EGP</span>
-                                                        <span className="text-gray-400 text-xs line-through">was {product.price}</span>
+                                                        <span className="text-racing-red">{product.salePrice} EGP</span>
+                                                        <span className="text-dim-grey text-[10px] line-through decoration-racing-red/40">{product.price} EGP</span>
                                                     </div>
                                                 ) : (
-                                                    <span className="text-gray-900 font-bold">{product.price} EGP</span>
+                                                    <span className="text-snow-white">{product.price} EGP</span>
                                                 )}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 italic">
-                                                {product.country || 'N/A'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="text-xs text-gray-500">
-                                                    {product.subCategory || 'N/A'}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
+                                            <td className="px-8 py-6 whitespace-nowrap text-center">
                                                 <button
                                                     onClick={() => handleToggleActive(product.id, product.isActive)}
-                                                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${product.isActive !== false ? 'bg-orange-600' : 'bg-gray-200'}`}
+                                                    className={`relative inline-flex h-6 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-all duration-300 ease-in-out focus:outline-none ${product.isActive !== false ? 'bg-green-500 shadow-lg shadow-green-500/20' : 'bg-matte-black border-border-dark'}`}
                                                 >
-                                                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${product.isActive !== false ? 'translate-x-5' : 'translate-x-0'}`} />
+                                                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-xl transition duration-300 ease-in-out ${product.isActive !== false ? 'translate-x-6' : 'translate-x-0'}`} />
                                                 </button>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm flex items-center gap-3">
-                                                <button
-                                                    onClick={() => navigate(`/admin/edit-product/${product.id}`)}
-                                                    className="text-blue-600 hover:text-blue-900 transition-colors"
-                                                >
-                                                    <Edit3 className="h-5 w-5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(product.id, product.name)}
-                                                    className="text-red-600 hover:text-red-900 transition-colors"
-                                                >
-                                                    <Trash2 className="h-5 w-5" />
-                                                </button>
+                                            <td className="px-8 py-6 whitespace-nowrap text-right">
+                                                <div className="flex items-center justify-end gap-4">
+                                                    <button
+                                                        onClick={() => navigate(`/admin/edit-product/${product.id}`)}
+                                                        className="p-3 bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white border border-blue-500/20 rounded-xl transition-all hover:-translate-y-1 shadow-lg shadow-blue-500/5 group/btn"
+                                                    >
+                                                        <Edit3 className="h-4.5 w-4.5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(product.id, product.name)}
+                                                        className="p-3 bg-racing-red/10 text-racing-red hover:bg-racing-red hover:text-white border border-racing-red/20 rounded-xl transition-all hover:-translate-y-1 shadow-lg shadow-racing-red/5"
+                                                    >
+                                                        <Trash2 className="h-4.5 w-4.5" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -462,44 +450,46 @@ const ManageProducts = () => {
                             </table>
                         </div>
 
-                        {/* Mobile Cards */}
-                        <div className="md:hidden divide-y divide-gray-200">
+                        {/* Mobile Optimized Cards */}
+                        <div className="md:hidden divide-y divide-border-dark/30 bg-matte-black/20">
                             {filteredProducts.map((product) => (
-                                <div key={product.id} className="p-4 hover:bg-gray-50 transition-colors">
-                                    <div className="flex gap-4">
-                                        <img
-                                            src={product.image}
-                                            alt={product.name}
-                                            className="h-20 w-20 rounded object-cover flex-shrink-0"
-                                        />
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="text-sm font-medium text-gray-900 truncate">{product.name}</h3>
-                                            <p className="text-xs text-gray-500 mt-1">{product.make} - {product.model}</p>
-                                            <p className="text-xs text-gray-500">{getYearDisplay(product)}</p>
-                                            <div className="flex items-center gap-2 mt-2">
-                                                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                    {product.category}
-                                                </span>
+                                <div key={product.id} className="p-6 hover:bg-white/[0.04] transition-all">
+                                    <div className="flex gap-6">
+                                        <div className="relative h-24 w-24 rounded-2xl overflow-hidden bg-matte-black border border-border-dark flex-shrink-0">
+                                            <img
+                                                src={product.image}
+                                                alt={product.name}
+                                                className="h-full w-full object-contain p-2"
+                                            />
+                                        </div>
+                                        <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                            <div className="text-[10px] font-black text-racing-red uppercase tracking-widest mb-1.5">
+                                                {product.brand || 'NO BRAND'}
                                             </div>
-                                            <div className="flex items-center justify-between mt-2">
-                                                <div className="text-sm">
-                                                    <span className="text-gray-500">Sell: </span>
-                                                    <span className="font-semibold text-gray-900">{product.price} EGP</span>
+                                            <h3 className="text-base font-black text-snow-white truncate leading-tight mb-1">{product.name}</h3>
+                                            <p className="text-sm text-silver-grey font-bold truncate opacity-60">{product.make} | {product.model}</p>
+
+                                            <div className="flex items-center justify-between mt-4 pt-4 border-t border-border-dark/50">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] text-dim-grey font-black uppercase tracking-widest leading-none mb-1">Selling Price</span>
+                                                    <span className="text-lg font-black text-snow-white">{product.price} <span className="text-[11px] text-silver-grey opacity-40">EGP</span></span>
                                                 </div>
-                                                <div className="flex items-center gap-1">
-                                                    <TrendingUp className={`h-4 w-4 ${getProfitColor(product.price, product.costPrice)}`} />
-                                                    <span className={`text-sm font-semibold ${getProfitColor(product.price, product.costPrice)}`}>
-                                                        {getProfitMargin(product.price, product.costPrice)}
-                                                    </span>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => navigate(`/admin/edit-product/${product.id}`)}
+                                                        className="p-3 bg-blue-500/10 text-blue-500 rounded-xl border border-blue-500/20"
+                                                    >
+                                                        <Edit3 className="h-4.5 w-4.5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(product.id, product.name)}
+                                                        className="p-3 bg-racing-red/10 text-racing-red rounded-xl border border-racing-red/20"
+                                                    >
+                                                        <Trash2 className="h-4.5 w-4.5" />
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={() => handleDelete(product.id, product.name)}
-                                            className="text-red-600 hover:text-red-900 transition-colors self-start"
-                                        >
-                                            <Trash2 className="h-5 w-5" />
-                                        </button>
                                     </div>
                                 </div>
                             ))}
@@ -507,7 +497,7 @@ const ManageProducts = () => {
                     </div>
                 )}
             </div>
-        </>
+        </div>
     );
 };
 

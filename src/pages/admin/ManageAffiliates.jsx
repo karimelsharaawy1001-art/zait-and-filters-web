@@ -8,7 +8,9 @@ import {
     doc,
     query,
     orderBy,
-    deleteDoc
+    deleteDoc,
+    addDoc,
+    where
 } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -69,7 +71,84 @@ const ManageAffiliates = () => {
     const handleStatusChange = async (id, newStatus) => {
         try {
             await updateDoc(doc(db, 'affiliates', id), { status: newStatus });
+
+            // Auto-Generate Promo Code on Activation
+            if (newStatus === 'active') {
+                const affiliateDoc = affiliates.find(a => a.id === id);
+                if (affiliateDoc && !affiliateDoc.referralCode) {
+                    // Import needed only here or use existing imports
+                    // We need 'addDoc' and 'collection' which we have.
+                    // We need 'query', 'where' to check uniqueness.
+
+                    // Robust English Code Generation
+                    const rawName = affiliateDoc.fullName || affiliateDoc.userName || 'PARTNER';
+                    const englishName = rawName.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+
+                    // If name is Arabic (empty after replace) or too short, use ID
+                    let baseCode = englishName.length >= 3 ? englishName.substring(0, 8) : id.substring(0, 6).toUpperCase();
+
+                    let generatedCode = '';
+                    let isUnique = false;
+                    let attempts = 0;
+
+                    const promoRef = collection(db, 'promo_codes');
+                    const affRef = collection(db, 'affiliates');
+
+                    while (!isUnique && attempts < 10) {
+                        const suffix = attempts === 0 ? '5' : `${Math.floor(10 + Math.random() * 90)}5`;
+                        generatedCode = `ZAF_${baseCode}${suffix}`;
+
+                        const qPromo = query(promoRef, where('code', '==', generatedCode));
+                        const qAff = query(affRef, where('referralCode', '==', generatedCode));
+
+                        const [promoSnap, affSnap] = await Promise.all([getDocs(qPromo), getDocs(qAff)]);
+
+                        if (promoSnap.empty && affSnap.empty) {
+                            isUnique = true;
+                        } else {
+                            attempts++;
+                        }
+                    }
+
+                    if (!isUnique) {
+                        // Fallback
+                        generatedCode = `ZAF_${id.substring(0, 5).toUpperCase()}${Math.floor(1000 + Math.random() * 9000)}5`;
+                        isUnique = true;
+                    }
+
+                    if (isUnique) {
+                        // Create Promo Code (hardcoded 5% discount)
+                        await addDoc(promoRef, {
+                            code: generatedCode,
+                            type: 'discount',
+                            value: 5,
+                            isPercentage: true,
+                            isActive: true,
+                            affiliateId: id,
+                            usageLimit: 10000,
+                            usedCount: 0,
+                            createdAt: new Date(),
+                            createdBy: 'system_auto_approve'
+                        });
+
+                        // Link to Affiliate
+                        await updateDoc(doc(db, 'affiliates', id), {
+                            referralCode: generatedCode,
+                            linkedPromoCode: generatedCode
+                        });
+
+                        // Update local state to reflect change immediately
+                        setAffiliates(prev => prev.map(aff => aff.id === id ? { ...aff, status: newStatus, referralCode: generatedCode } : aff));
+                        toast.success(`Activated & Code Generated: ${generatedCode}`);
+                        return; // Exit as specific success handled
+                    } else {
+                        toast.error("Could not generate unique code.");
+                    }
+                }
+            }
+
             setAffiliates(prev => prev.map(aff => aff.id === id ? { ...aff, status: newStatus } : aff));
+            toast.success("Status updated successfully");
         } catch (error) {
             console.error("Error updating status:", error);
             toast.error("Failed to update status");
@@ -111,53 +190,53 @@ const ManageAffiliates = () => {
     });
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="min-h-screen bg-admin-bg font-sans pb-20 p-4 md:p-8">
             <AdminHeader title="Affiliate Management" />
 
-            <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <main className="max-w-7xl mx-auto mt-10">
                 {/* Stats Summary */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    <div className="bg-admin-card p-6 rounded-[2rem] border border-admin-border shadow-admin group hover:bg-[#ffffff05] transition-all">
+                        <div className="flex items-center gap-5">
+                            <div className="p-4 bg-admin-accent/10 text-admin-accent rounded-2xl group-hover:scale-110 transition-transform">
                                 <Users className="h-6 w-6" />
                             </div>
                             <div>
-                                <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Total Partners</p>
-                                <h3 className="text-2xl font-black text-gray-900">{summary.totalAffiliates || 0}</h3>
+                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Partners</p>
+                                <h3 className="text-2xl font-black text-white poppins">{summary.totalAffiliates || 0}</h3>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-green-50 text-green-600 rounded-xl">
+                    <div className="bg-admin-card p-6 rounded-[2rem] border border-admin-border shadow-admin group hover:bg-[#ffffff05] transition-all">
+                        <div className="flex items-center gap-5">
+                            <div className="p-4 bg-admin-green/10 text-admin-green rounded-2xl group-hover:scale-110 transition-transform">
                                 <TrendingUp className="h-6 w-6" />
                             </div>
                             <div>
-                                <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Total Sales</p>
-                                <h3 className="text-2xl font-black text-gray-900">{summary.totalSales || 0}</h3>
+                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Total Sales</p>
+                                <h3 className="text-2xl font-black text-white poppins">{summary.totalSales || 0}</h3>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-orange-50 text-orange-600 rounded-xl">
+                    <div className="bg-admin-card p-6 rounded-[2rem] border border-admin-border shadow-admin group hover:bg-[#ffffff05] transition-all">
+                        <div className="flex items-center gap-5">
+                            <div className="p-4 bg-admin-accent/10 text-admin-accent rounded-2xl group-hover:scale-110 transition-transform">
                                 <DollarSign className="h-6 w-6" />
                             </div>
                             <div>
-                                <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Total Paid</p>
-                                <h3 className="text-2xl font-black text-gray-900">{(summary.totalEarnings || 0).toLocaleString()} <span className="text-xs font-normal">EGP</span></h3>
+                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Total Paid</p>
+                                <h3 className="text-2xl font-black text-white poppins">{(summary.totalEarnings || 0).toLocaleString()} <span className="text-xs text-gray-500">EGP</span></h3>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-red-50 text-red-600 rounded-xl">
+                    <div className="bg-admin-card p-6 rounded-[2rem] border border-admin-border shadow-admin group hover:bg-[#ffffff05] transition-all">
+                        <div className="flex items-center gap-5">
+                            <div className="p-4 bg-admin-red/10 text-admin-red rounded-2xl group-hover:scale-110 transition-transform">
                                 <Ban className="h-6 w-6" />
                             </div>
                             <div>
-                                <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Active Rate</p>
-                                <h3 className="text-2xl font-black text-gray-900">
+                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Active Rate</p>
+                                <h3 className="text-2xl font-black text-white poppins">
                                     {summary.totalAffiliates > 0
                                         ? ((summary.activeAffiliates / summary.totalAffiliates) * 100).toFixed(1)
                                         : '0.0'}%
@@ -168,118 +247,121 @@ const ManageAffiliates = () => {
                 </div>
 
                 {/* Main Table */}
-                <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-                    <div className="p-8 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight">Partner List</h3>
+                <div className="bg-admin-card rounded-[2.5rem] shadow-admin border border-admin-border overflow-hidden">
+                    <div className="p-10 border-b border-[#ffffff05] flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#ffffff02]">
+                        <div>
+                            <h3 className="text-xl font-black text-white uppercase tracking-widest poppins">Partner Network</h3>
+                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Manage referral partners and commission payouts</p>
+                        </div>
                         <div className="relative max-w-sm w-full">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-600" />
                             <input
                                 type="text"
                                 placeholder="Search by code or user ID..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500 transition-all font-medium text-sm text-gray-900"
+                                className="w-full pl-11 pr-5 py-4 bg-[#ffffff05] border border-admin-border rounded-2xl focus:ring-2 focus:ring-admin-accent transition-all font-bold text-sm text-white placeholder-gray-600 outline-none"
                             />
                         </div>
                     </div>
 
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
-                            <thead>
-                                <tr className="bg-gray-50/50">
-                                    <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest">Affiliate / ID</th>
-                                    <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest">Performance</th>
-                                    <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest">Tier / Rate</th>
-                                    <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest">Payout Info</th>
-                                    <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest">Balance</th>
-                                    <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest">Status</th>
-                                    <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
+                            <thead className="bg-[#ffffff02]">
+                                <tr>
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest poppins">Identity</th>
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest poppins">Metrics</th>
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest poppins">Tiering</th>
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest poppins">Gateway</th>
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest poppins">Escrow</th>
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest poppins">Status</th>
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest poppins text-right">Ops</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan="6" className="px-8 py-20 text-center">
-                                            <div className="flex flex-col items-center gap-3">
-                                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-                                                <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Loading Partners...</p>
+                                        <td colSpan="7" className="px-10 py-24 text-center">
+                                            <div className="flex flex-col items-center gap-4">
+                                                <div className="animate-spin rounded-full h-10 w-10 border-4 border-admin-accent border-t-transparent"></div>
+                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Synchronizing partner ledger...</p>
                                             </div>
                                         </td>
                                     </tr>
                                 ) : filteredAffiliates.length > 0 ? filteredAffiliates.map((aff) => (
-                                    <tr key={aff.id} className="hover:bg-gray-50/30 transition-colors group">
-                                        <td className="px-8 py-6">
+                                    <tr key={aff.id} className="hover:bg-[#ffffff02] transition-all group border-b border-[#ffffff05]">
+                                        <td className="px-10 py-8">
                                             <div className="flex flex-col">
-                                                <span className="font-black text-gray-900 text-lg uppercase">{aff.referralCode || 'NO CODE'}</span>
-                                                <span className="text-[10px] font-mono text-gray-400 truncate max-w-[120px]">{aff.userId || 'No UID'}</span>
+                                                <span className="font-black text-white text-base poppins uppercase tracking-wide group-hover:text-admin-accent transition-colors">{aff.referralCode || 'NO CODE'}</span>
+                                                <span className="text-[9px] font-bold text-gray-600 truncate max-w-[100px] mt-1">{aff.userId || 'No UID'}</span>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
+                                        <td className="px-10 py-8">
                                             <div className="flex flex-col">
-                                                <span className="text-sm font-bold text-gray-700">{aff.referralCount || 0} Sales</span>
-                                                <span className="text-xs text-gray-400">Total: {(aff.totalEarnings || 0).toLocaleString()} EGP</span>
+                                                <span className="text-sm font-black text-white">{aff.referralCount || 0} Successful Conversions</span>
+                                                <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mt-1">Generated: {(aff.totalEarnings || 0).toLocaleString()} EGP</span>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
-                                            <div className="flex flex-col gap-1">
-                                                <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded w-fit
-                                                    ${aff.currentTier === 3 ? 'bg-purple-100 text-purple-700' :
-                                                        aff.currentTier === 2 ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}
+                                        <td className="px-10 py-8">
+                                            <div className="flex flex-col gap-2">
+                                                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg border w-fit
+                                                    ${aff.currentTier === 3 ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                                                        aff.currentTier === 2 ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-[#ffffff05] text-gray-500 border-[#ffffff1a]'}
                                                 `}>
                                                     Tier {aff.currentTier || 1}
                                                 </span>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-bold text-gray-900">{(aff.commissionPercentage || 5)}%</span>
-                                                </div>
+                                                <span className="text-xs font-black text-white">{(aff.commissionPercentage || 5)}% Take-Home</span>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
-                                            <div className="flex flex-col gap-1">
+                                        <td className="px-10 py-8">
+                                            <div className="flex flex-col gap-2">
                                                 {aff.instaPayNumber && (
-                                                    <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">IP: {aff.instaPayNumber}</span>
+                                                    <span className="text-[9px] font-black text-admin-accent bg-admin-accent/10 px-2 py-1 rounded-lg border border-admin-accent/20 uppercase tracking-widest">IP: {aff.instaPayNumber}</span>
                                                 )}
                                                 {aff.walletNumber && (
-                                                    <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded">W: {aff.walletNumber}</span>
+                                                    <span className="text-[9px] font-black text-purple-400 bg-purple-500/10 px-2 py-1 rounded-lg border border-purple-500/20 uppercase tracking-widest">W: {aff.walletNumber}</span>
                                                 )}
                                                 {!aff.instaPayNumber && !aff.walletNumber && (
-                                                    <span className="text-[10px] font-bold text-gray-400 italic">No payout info</span>
+                                                    <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest italic">Incomplete KYC</span>
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
-                                            <div className="flex items-center gap-2">
-                                                <Wallet className="h-4 w-4 text-orange-400" />
-                                                <span className="font-black text-orange-600">{(aff.pendingBalance || 0).toLocaleString()} <span className="text-[10px]">EGP</span></span>
+                                        <td className="px-10 py-8">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-admin-accent/10 rounded-xl">
+                                                    <Wallet className="h-4 w-4 text-admin-accent" />
+                                                </div>
+                                                <span className="font-black text-white text-base poppins">{(aff.pendingBalance || 0).toLocaleString()} <span className="text-[10px] text-gray-500 uppercase">EGP</span></span>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
+                                        <td className="px-10 py-8">
                                             <select
                                                 value={aff.status || 'pending'}
                                                 onChange={(e) => handleStatusChange(aff.id, e.target.value)}
-                                                className={`text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-full border-2 outline-none cursor-pointer transition-all
-                                                    ${aff.status === 'active' ? 'bg-green-50 text-green-700 border-green-100' : ''}
-                                                    ${aff.status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' : ''}
-                                                    ${aff.status === 'banned' ? 'bg-red-50 text-red-700 border-red-100' : ''}
+                                                className={`text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border-2 outline-none cursor-pointer transition-all bg-transparent
+                                                    ${aff.status === 'active' ? 'text-admin-green border-admin-green/20 hover:bg-admin-green/10' : ''}
+                                                    ${aff.status === 'pending' ? 'text-admin-accent border-admin-accent/20 hover:bg-admin-accent/10' : ''}
+                                                    ${aff.status === 'banned' ? 'text-admin-red border-admin-red/20 hover:bg-admin-red/10' : ''}
                                                 `}
                                             >
-                                                <option value="active">Active</option>
-                                                <option value="pending">Pending</option>
-                                                <option value="banned">Banned</option>
+                                                <option value="active" className="bg-admin-card">Active</option>
+                                                <option value="pending" className="bg-admin-card">Pending</option>
+                                                <option value="banned" className="bg-admin-card">Banned</option>
                                             </select>
                                         </td>
-                                        <td className="px-8 py-6 text-right">
-                                            <div className="flex justify-end gap-2">
+                                        <td className="px-10 py-8 text-right">
+                                            <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
                                                 <button
                                                     onClick={() => navigate(`/admin/affiliates/${aff.id}`)}
-                                                    className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all"
-                                                    title="View Details"
+                                                    className="p-3 bg-[#ffffff05] text-gray-500 hover:text-admin-accent hover:bg-admin-accent/10 rounded-2xl transition-all border border-admin-border hover:border-admin-accent/20 shadow-lg"
+                                                    title="View Full Intel"
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(aff.id)}
-                                                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                                    title="Delete Affiliate"
+                                                    className="p-3 bg-admin-red/5 text-gray-500 hover:text-admin-red hover:bg-admin-red/10 rounded-2xl transition-all border border-admin-border hover:border-admin-red/20 shadow-lg"
+                                                    title="Terminate Account"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>
@@ -288,8 +370,13 @@ const ManageAffiliates = () => {
                                     </tr>
                                 )) : (
                                     <tr>
-                                        <td colSpan="6" className="px-8 py-20 text-center text-gray-400 font-bold uppercase tracking-widest text-xs italic">
-                                            No partners found in the system.
+                                        <td colSpan="7" className="px-10 py-32 text-center">
+                                            <div className="flex flex-col items-center gap-4">
+                                                <div className="bg-[#ffffff05] p-10 rounded-full border border-admin-border">
+                                                    <Users className="h-16 w-16 text-gray-800" />
+                                                </div>
+                                                <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">No active partners detected in node</p>
+                                            </div>
                                         </td>
                                     </tr>
                                 )}

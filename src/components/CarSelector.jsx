@@ -13,7 +13,7 @@ const carData = {
     BMW: ['320i', '520i', 'X3', 'X5']
 };
 
-const years = Array.from({ length: 15 }, (_, i) => 2024 - i); // 2010 to 2024
+const years = Array.from({ length: 2026 - 2000 + 1 }, (_, i) => 2026 - i); // 2026 down to 2000
 
 const CarSelector = () => {
     const { t } = useTranslation();
@@ -37,28 +37,31 @@ const CarSelector = () => {
     };
 
     return (
-        <div className="bg-white/90 backdrop-blur-md p-6 rounded-xl shadow-2xl w-full border border-white/20">
-            <h3 className="text-gray-900 font-bold mb-6 flex items-center text-lg">
-                <span className="bg-orange-600 w-2 h-6 mr-3 ml-3 rounded-full"></span>
+        <div className="bg-[#111111] p-8 rounded-2xl shadow-2xl w-full border border-white/5 relative overflow-hidden group">
+            {/* Subtle Texture Overlay */}
+            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_top_right,#e31e24,transparent)]"></div>
+
+            <h3 className="text-white font-black mb-8 flex items-center text-2xl uppercase italic tracking-tighter relative z-10">
+                <span className="bg-[#e31e24] w-3 h-8 mr-4 ml-4 rounded-sm transform -skew-x-12"></span>
                 {t('selectVehicle')}
             </h3>
 
-            <div className="grid grid-cols-1 gap-5">
+            <div className="grid grid-cols-1 gap-6 relative z-10">
                 {/* Make */}
                 <div className="relative">
-                    <label className="block text-xs text-gray-500 mb-1 ml-1 mr-1 font-bold uppercase tracking-wide">{t('make')}</label>
+                    <label className="block text-[11px] text-gray-400 mb-2 ml-1 mr-1 font-black uppercase tracking-widest leading-none">{t('make')}</label>
                     <div className="relative">
                         <select
-                            className="w-full bg-gray-50/50 border border-gray-300 text-gray-800 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all appearance-none font-medium"
+                            className="w-full bg-white/5 border border-white/10 text-white py-4 px-5 pr-10 rounded-xl focus:outline-none focus:bg-white/10 focus:border-[#e31e24] focus:ring-1 focus:ring-[#e31e24] transition-all appearance-none font-bold text-sm backdrop-blur-sm"
                             value={make}
                             onChange={(e) => setMake(e.target.value)}
                         >
-                            <option value="">{t('selectMake')}</option>
+                            <option value="" className="bg-[#111111] text-white">{t('selectMake')}</option>
                             {Object.keys(carData).map(m => (
-                                <option key={m} value={m}>{m}</option>
+                                <option key={m} value={m} className="bg-[#111111] text-white">{m}</option>
                             ))}
                         </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
                             <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
                         </div>
                     </div>
@@ -66,20 +69,20 @@ const CarSelector = () => {
 
                 {/* Model */}
                 <div className="relative">
-                    <label className="block text-xs text-gray-500 mb-1 ml-1 mr-1 font-bold uppercase tracking-wide">{t('model')}</label>
+                    <label className="block text-[11px] text-gray-400 mb-2 ml-1 mr-1 font-black uppercase tracking-widest leading-none">{t('model')}</label>
                     <div className="relative">
                         <select
-                            className={`w-full bg-gray-50/50 border border-gray-300 text-gray-800 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all appearance-none font-medium ${!make ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`w-full bg-white/5 border border-white/10 text-white py-4 px-5 pr-10 rounded-xl focus:outline-none focus:bg-white/10 focus:border-[#e31e24] focus:ring-1 focus:ring-[#e31e24] transition-all appearance-none font-bold text-sm backdrop-blur-sm ${!make ? 'opacity-30 cursor-not-allowed' : ''}`}
                             value={model}
                             onChange={(e) => setModel(e.target.value)}
                             disabled={!make}
                         >
-                            <option value="">{t('selectModel')}</option>
+                            <option value="" className="bg-[#111111] text-white">{t('selectModel')}</option>
                             {make && carData[make].map(m => (
-                                <option key={m} value={m}>{m}</option>
+                                <option key={m} value={m} className="bg-[#111111] text-white">{m}</option>
                             ))}
                         </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
                             <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
                         </div>
                     </div>
@@ -87,32 +90,32 @@ const CarSelector = () => {
 
                 {/* Year */}
                 <div className="relative">
-                    <label className="block text-xs text-gray-500 mb-1 ml-1 mr-1 font-bold uppercase tracking-wide">{t('year')}</label>
+                    <label className="block text-[11px] text-gray-400 mb-2 ml-1 mr-1 font-black uppercase tracking-widest leading-none">{t('year')}</label>
                     <div className="relative">
                         <select
-                            className="w-full bg-gray-50/50 border border-gray-300 text-gray-800 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all appearance-none font-medium"
+                            className="w-full bg-white/5 border border-white/10 text-white py-4 px-5 pr-10 rounded-xl focus:outline-none focus:bg-white/10 focus:border-[#e31e24] focus:ring-1 focus:ring-[#e31e24] transition-all appearance-none font-bold text-sm backdrop-blur-sm"
                             value={year}
                             onChange={(e) => setYear(e.target.value)}
                         >
-                            <option value="">{t('allYears')}</option>
+                            <option value="" className="bg-[#111111] text-white">{t('allYears')}</option>
                             {years.map(y => (
-                                <option key={y} value={y}>{y}</option>
+                                <option key={y} value={y} className="bg-[#111111] text-white">{y}</option>
                             ))}
                         </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
                             <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
                         </div>
                     </div>
                 </div>
 
                 {/* Search Button */}
-                <div className="pt-2">
+                <div className="pt-4">
                     <button
                         onClick={handleSearch}
-                        className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 px-4 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-orange-500/30 transform hover:-translate-y-0.5"
+                        className="w-full bg-[#e31e24] hover:bg-[#b8181d] text-white font-black py-5 px-6 rounded-xl shadow-2xl shadow-red-900/40 transition-all flex items-center justify-center gap-3 transform hover:-translate-y-1 active:scale-95 uppercase italic tracking-widest"
                     >
-                        <Search className="h-5 w-5" />
-                        {t('shopNow')}
+                        <Search className="h-6 w-6 not-italic" />
+                        <span className="text-lg">{t('shopNow')}</span>
                     </button>
                 </div>
             </div>

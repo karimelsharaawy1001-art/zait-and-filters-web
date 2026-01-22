@@ -69,15 +69,18 @@ const ManageBrands = () => {
     };
 
     return (
-        <div className="p-6">
+        <div className="min-h-screen bg-admin-bg font-sans p-8">
             <AdminHeader title="Manage Brands" />
 
-            <div className="mb-8 flex justify-between items-center">
-                <p className="text-gray-600">Add logos of brands you work with for the home page marquee.</p>
+            <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                    <h2 className="text-xl font-black text-white uppercase tracking-widest poppins">Brand Partners</h2>
+                    <p className="text-gray-500 font-bold text-sm mt-1 uppercase tracking-widest text-[10px]">Logos displayed in the home page marquee.</p>
+                </div>
                 {!isAdding && (
                     <button
                         onClick={() => setIsAdding(true)}
-                        className="bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-orange-700 transition"
+                        className="bg-admin-red hover:bg-admin-red-dark text-white px-8 py-4 rounded-xl flex items-center gap-3 hover:scale-105 transition-all shadow-lg shadow-admin-red/40 font-black uppercase tracking-widest text-xs"
                     >
                         <Plus className="h-5 w-5" /> Add New Brand
                     </button>
@@ -85,24 +88,24 @@ const ManageBrands = () => {
             </div>
 
             {isAdding && (
-                <div className="bg-white p-6 rounded-xl shadow-md mb-8 border border-gray-100 max-w-2xl">
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="bg-admin-card p-8 rounded-[2rem] shadow-admin mb-12 border border-admin-border max-w-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+                    <form onSubmit={handleSubmit} className="space-y-8">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Brand Name</label>
+                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">Brand Name</label>
                             <input
                                 type="text"
                                 name="name"
                                 value={formData.name}
                                 onChange={handleChange}
-                                className="w-full border rounded-lg p-2 focus:ring-orange-500"
+                                className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg shadow-inner"
                                 placeholder="e.g. Toyota, NGK..."
                                 required
                             />
                         </div>
                         <div>
-                            <div className="flex justify-between items-end mb-2">
-                                <label className="block text-sm font-medium text-gray-700">Logo Image</label>
-                                <span className="text-[10px] text-orange-600 font-semibold italic">Recommended Size: 150x100px (PNG Transparent)</span>
+                            <div className="flex justify-between items-end mb-3 px-1">
+                                <label className="block text-[10px] font-black text-admin-text-secondary uppercase tracking-widest">Logo Image</label>
+                                <span className="text-[9px] text-admin-accent font-black uppercase tracking-widest">150x100px recommended</span>
                             </div>
                             <ImageUpload
                                 onUploadComplete={(url) => setFormData(prev => ({ ...prev, imageUrl: url }))}
@@ -111,19 +114,19 @@ const ManageBrands = () => {
                             />
                             <input type="hidden" name="imageUrl" value={formData.imageUrl} required />
                         </div>
-                        <div className="flex gap-3 pt-2">
+                        <div className="flex gap-4 pt-4">
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition flex items-center gap-2"
+                                className="flex-1 bg-admin-red hover:bg-admin-red-dark text-white py-4 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 font-black uppercase tracking-widest text-xs shadow-lg shadow-admin-red/40"
                             >
-                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                                {loading ? <Loader2 className="h-4 w-4 animate-spin text-white" /> : <Plus className="h-4 w-4" />}
                                 Add Brand
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setIsAdding(false)}
-                                className="px-6 py-2 border rounded-lg hover:bg-gray-50 transition"
+                                className="flex-1 py-4 bg-[#ffffff05] hover:bg-[#ffffff0d] text-admin-text-secondary hover:text-white rounded-xl transition-all border border-admin-border font-black uppercase tracking-widest text-xs"
                             >
                                 Cancel
                             </button>
@@ -132,23 +135,23 @@ const ManageBrands = () => {
                 </div>
             )}
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8">
                 {loading && brands.length === 0 ? (
-                    <div className="col-span-full py-12 text-center text-gray-400">
-                        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-                        Loading brands...
+                    <div className="col-span-full py-24 text-center">
+                        <Loader2 className="h-12 w-12 text-admin-accent animate-spin mx-auto mb-4" />
+                        <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">Syncing brand registry...</p>
                     </div>
                 ) : brands.map((brand) => (
-                    <div key={brand.id} className="group relative bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition">
-                        <div className="h-16 flex items-center justify-center mb-2">
-                            <img src={brand.imageUrl} alt={brand.name} className="max-h-full max-w-full object-contain" />
+                    <div key={brand.id} className="group relative bg-[#ffffff02] p-8 rounded-[2rem] border border-admin-border shadow-admin hover:bg-[#ffffff05] transition-all hover:-translate-y-1 flex flex-col items-center">
+                        <div className="h-20 w-32 flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
+                            <img src={brand.imageUrl} alt={brand.name} className="max-h-full max-w-full object-contain filter drop-shadow-lg" />
                         </div>
-                        <p className="text-center text-xs font-bold text-gray-800 truncate">{brand.name}</p>
+                        <p className="text-center text-[10px] font-black text-gray-500 group-hover:text-white uppercase tracking-widest truncate w-full transition-colors">{brand.name}</p>
                         <button
                             onClick={() => handleDelete(brand.id)}
-                            className="absolute -top-2 -right-2 bg-red-100 text-red-600 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-red-200"
+                            className="absolute -top-3 -right-3 bg-admin-red/10 text-admin-red p-3 rounded-2xl opacity-0 group-hover:opacity-100 transition-all shadow-xl hover:bg-admin-red hover:text-white border border-admin-red/20"
                         >
-                            <Trash2 className="h-3 w-3" />
+                            <Trash2 className="h-4 w-4" />
                         </button>
                     </div>
                 ))}

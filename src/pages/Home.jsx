@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import BrandMarquee from '../components/BrandMarquee';
 import CategoryThumbnails from '../components/CategoryThumbnails';
 import ProductCard from '../components/ProductCard';
+import SEO from '../components/SEO';
 import { db } from '../firebase';
 import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { useTranslation } from 'react-i18next';
@@ -50,30 +51,30 @@ const Home = () => {
         fetchHomeData();
     }, []);
 
-    const ProductSection = ({ title, icon: Icon, products, subtitle, color = "orange" }) => (
-        <section className="py-8 sm:py-12 overflow-hidden">
+    const ProductSection = ({ title, icon: Icon, products, subtitle, color = "red" }) => (
+        <section className="py-6 overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 sm:mb-8 gap-4 border-b border-gray-100 pb-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-4 border-b border-gray-100 pb-4">
                     <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                            <h2 className="text-2xl sm:text-4xl font-black text-gray-900 tracking-tight leading-tight uppercase">
+                            <h2 className="text-3xl sm:text-4xl font-black text-[#000000] tracking-tighter leading-none uppercase italic font-Cairo">
                                 {title}
                             </h2>
                         </div>
-                        {subtitle && <p className="text-gray-500 text-sm sm:text-base font-medium max-w-2xl">{subtitle}</p>}
+                        {subtitle && <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-1 font-Cairo">{subtitle}</p>}
                     </div>
-                    <Link to="/shop" className="text-orange-600 hover:text-orange-700 font-black flex items-center gap-1.5 group bg-orange-50 px-4 py-2 rounded-full transition-all hover:bg-orange-100">
-                        <span className="text-xs sm:text-sm uppercase tracking-widest">{t('viewAll')}</span>
-                        <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
+                    <Link to="/shop" className="text-[#000000] border border-[#000000] hover:text-[#e31e24] hover:border-[#e31e24] font-black flex items-center gap-1.5 group bg-white px-4 py-2 rounded shadow-sm transition-all hover:bg-gray-50 italic">
+                        <span className="text-[10px] uppercase tracking-widest font-Cairo">{t('viewAll')}</span>
+                        <ArrowRight className="h-3.5 w-3.5 transform group-hover:translate-x-1 transition-transform not-italic" />
                     </Link>
                 </div>
 
                 {products.length === 0 ? (
-                    <div className="text-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
-                        <p className="text-gray-400 font-medium">{t('noProductsFound')}</p>
+                    <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                        <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] font-Cairo">{t('noProductsFound')}</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-8">
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
                         {products.map(product => (
                             <ProductCard key={product.id} product={product} />
                         ))}
@@ -84,15 +85,23 @@ const Home = () => {
     );
 
     return (
-        <div className="flex-1 bg-white">
+        <div className="home-page flex-1 bg-white">
+            <SEO
+                title="Zait & Filters | HIGHREV - قطع الغيار بضغطة زرار"
+                description="HIGHREV: اشتري قطع غيار عربيتك الأصلية بالضمان من زيت اند فلترز. بنوصل لكل محافظات مصر وعندنا كل طرق التقسيط."
+                keywords="قطع غيار سيارات أصلية بمصر, زيوت وفلاتر بالضمان, تقسيط قطع غيار سيارات"
+            />
             <Hero />
 
-            <div className="pt-56 md:pt-12 pb-4 sm:pb-6">
+            {/* Brands Section */}
+            <div className="py-6 bg-white">
                 <BrandMarquee />
             </div>
 
+            <hr className="border-gray-50 max-w-7xl mx-auto opacity-50" />
+
             {/* Exclusive Offers Section */}
-            <div className="bg-gradient-to-b from-gray-50 to-white border-b border-gray-100/50">
+            <div className="bg-white py-4">
                 <ProductSection
                     title={t('hotOffers')}
                     subtitle={t('hotOffersSub')}
@@ -102,18 +111,25 @@ const Home = () => {
                 />
             </div>
 
+            <hr className="border-gray-50 max-w-7xl mx-auto opacity-50" />
+
             {/* Best Sellers Section */}
-            <div className="bg-white">
+            <div className="bg-white py-4">
                 <ProductSection
                     title={t('bestSellers')}
                     subtitle={t('bestSellersSub')}
                     icon={Sparkles}
                     products={bestSellers}
-                    color="orange"
+                    color="red"
                 />
             </div>
 
-            <CategoryThumbnails />
+            <hr className="border-gray-50 max-w-7xl mx-auto opacity-50" />
+
+            <div className="py-8 bg-gray-50/30">
+                <CategoryThumbnails />
+            </div>
+
         </div>
     );
 };

@@ -130,7 +130,7 @@ const ManageHero = () => {
                 <div className="bg-white p-6 rounded-xl shadow-md mb-8 border border-gray-100">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-bold">{editingSlide ? 'Edit Slide' : 'Add New Slide'}</h2>
-                        <button onClick={resetForm} className="text-gray-400 hover:text-gray-600"><X /></button>
+                        <button onClick={resetForm} className="text-admin-text-secondary hover:text-gray-600"><X /></button>
                     </div>
 
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -250,7 +250,7 @@ const ManageHero = () => {
                     <tbody className="divide-y divide-gray-100">
                         {loading && slides.length === 0 ? (
                             <tr>
-                                <td colSpan="5" className="px-6 py-12 text-center text-gray-400">
+                                <td colSpan="5" className="px-6 py-12 text-center text-admin-text-secondary">
                                     <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
                                     Loading slides...
                                 </td>

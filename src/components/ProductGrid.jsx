@@ -172,7 +172,7 @@ const ProductGrid = ({ showFilters = true }) => {
     }
 
     return (
-        <div className="bg-gray-50 py-16" id="product-grid">
+        <div className="bg-gray-50 py-8 md:py-16" id="product-grid">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
                 {/* Garage Filtering Banner */}
@@ -210,7 +210,7 @@ const ProductGrid = ({ showFilters = true }) => {
                     </div>
                 )}
 
-                <div className={`flex flex-col lg:flex-row gap-8 ${!showFilters ? '' : 'pt-12 md:pt-0'}`}>
+                <div className={`flex flex-col lg:flex-row gap-8 ${!showFilters ? '' : 'pt-2 md:pt-0'}`}>
 
                     {/* Sidebar Filters (Desktop) - Only show if showFilters is true */}
                     {showFilters && (

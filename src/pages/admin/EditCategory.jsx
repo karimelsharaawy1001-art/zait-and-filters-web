@@ -90,45 +90,53 @@ const EditCategory = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
+            <div className="min-h-screen bg-admin-bg flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-admin-accent" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen bg-admin-bg font-sans">
             <AdminHeader title="Edit Category" />
 
-            <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                <div className="px-4 py-6 sm:px-0">
-                    <div className="mb-6">
+            <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-3xl mx-auto">
+                    <div className="mb-8">
                         <button
                             onClick={() => navigate('/admin/categories')}
-                            className="flex items-center text-gray-600 hover:text-gray-900"
+                            className="flex items-center text-gray-500 hover:text-white font-bold transition-colors uppercase tracking-widest text-[10px]"
                         >
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Back to Categories
                         </button>
                     </div>
 
-                    <div className="bg-white shadow rounded-lg p-6 max-w-2xl mx-auto">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6">Edit Category: {formData.name}</h2>
-
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="bg-admin-card shadow-admin rounded-3xl p-8 border border-admin-border">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="bg-admin-red hover:bg-admin-red-dark p-3 rounded-2xl shadow-lg">
+                                <Edit2 className="h-6 w-6 text-white" />
+                            </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Category Name</label>
+                                <h2 className="text-xl font-black text-white uppercase tracking-widest poppins">Edit Category</h2>
+                                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">{formData.name}</p>
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-8">
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Category Name</label>
                                 <input
                                     type="text"
                                     required
                                     value={formData.name}
                                     onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 focus:ring-orange-500 focus:border-orange-500"
+                                    className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Category Image</label>
+                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Category Image</label>
                                 <ImageUpload
                                     onUploadComplete={(url) => setFormData(prev => ({ ...prev, imageUrl: url }))}
                                     currentImage={formData.imageUrl}
@@ -137,38 +145,38 @@ const EditCategory = () => {
                                 <input type="hidden" name="imageUrl" value={formData.imageUrl} required />
                             </div>
 
-                            <div className="border-t pt-6">
-                                <h3 className="text-lg font-medium text-gray-900 mb-4">Manage Subcategories</h3>
+                            <div className="border-t border-[#ffffff0d] pt-8">
+                                <h3 className="text-sm font-black text-white uppercase tracking-widest poppins mb-6">Manage Subcategories</h3>
 
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     {formData.subCategories.map((sub, index) => (
-                                        <div key={index} className="flex items-center gap-2">
+                                        <div key={index} className="flex items-center gap-3">
                                             {editingSubIndex === index ? (
                                                 <>
                                                     <input
                                                         type="text"
                                                         value={editingSubText}
                                                         onChange={e => setEditingSubText(e.target.value)}
-                                                        className="flex-1 rounded-md border-gray-300 border p-1 text-sm"
+                                                        className="flex-1 px-4 py-2 bg-[#ffffff05] border border-admin-accent/50 rounded-xl text-white outline-none font-bold text-sm shadow-lg"
                                                         autoFocus
                                                     />
-                                                    <button type="button" onClick={saveSubEdit} className="text-green-600 font-medium text-sm">Save</button>
-                                                    <button type="button" onClick={() => setEditingSubIndex(null)} className="text-gray-500 text-sm">Cancel</button>
+                                                    <button type="button" onClick={saveSubEdit} className="text-admin-green font-black text-[10px] uppercase tracking-widest px-3 hover:scale-105 transition-all">Save</button>
+                                                    <button type="button" onClick={() => setEditingSubIndex(null)} className="text-gray-500 font-black text-[10px] uppercase tracking-widest px-3 hover:scale-105 transition-all">Cancel</button>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <span className="flex-1 bg-gray-50 px-3 py-1.5 rounded-md border text-sm">{sub}</span>
+                                                    <span className="flex-1 bg-[#ffffff02] px-4 py-2.5 rounded-xl border border-admin-border text-sm text-white font-bold">{sub}</span>
                                                     <button
                                                         type="button"
                                                         onClick={() => startEditingSub(index, sub)}
-                                                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
+                                                        className="p-2.5 bg-[#ffffff05] hover:bg-[#ffffff0d] rounded-xl transition-all text-gray-500 hover:text-white border border-admin-border shadow-lg"
                                                     >
                                                         <Edit2 className="h-4 w-4" />
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => removeSubCategory(index)}
-                                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                                                        className="p-2.5 bg-[#ffffff05] hover:bg-admin-red/10 rounded-xl transition-all text-gray-500 hover:text-admin-red border border-admin-border shadow-lg"
                                                     >
                                                         <X className="h-4 w-4" />
                                                     </button>
@@ -178,33 +186,33 @@ const EditCategory = () => {
                                     ))}
                                 </div>
 
-                                <div className="mt-4 flex gap-2">
+                                <div className="mt-6 flex gap-3">
                                     <input
                                         type="text"
                                         placeholder="Add new subcategory"
                                         value={newSubCategory}
                                         onChange={e => setNewSubCategory(e.target.value)}
                                         onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), addSubCategory())}
-                                        className="flex-1 rounded-md border-gray-300 border p-2 text-sm focus:ring-orange-500"
+                                        className="flex-1 px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-purple-400 outline-none transition-all font-bold text-sm shadow-lg"
                                     />
                                     <button
                                         type="button"
                                         onClick={addSubCategory}
-                                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700"
+                                        className="inline-flex items-center px-6 py-3 border border-transparent text-[10px] font-black uppercase tracking-widest rounded-xl text-white bg-admin-red hover:bg-admin-red-dark shadow-lg shadow-admin-red/40 hover:scale-105 transition-all"
                                     >
-                                        <Plus className="h-4 w-4 mr-1" />
+                                        <Plus className="h-4 w-4 mr-2" />
                                         Add
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="flex justify-end pt-6">
+                            <div className="flex justify-end pt-8 border-t border-[#ffffff0d]">
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 ${saving ? 'opacity-50' : ''}`}
+                                    className="inline-flex items-center px-8 py-4 bg-admin-red hover:bg-admin-red-dark text-white font-black rounded-xl shadow-lg shadow-admin-red/40 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 uppercase tracking-widest text-xs"
                                 >
-                                    {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                                    {saving ? <Loader2 className="h-4 w-4 animate-spin mr-3 text-white" /> : <Save className="h-4 w-4 mr-3" />}
                                     Save Category
                                 </button>
                             </div>

@@ -1,15 +1,17 @@
 import React from 'react';
-import { Phone } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const PhoneInputGroup = ({
     value,
     onChange,
-    placeholder = '10XXXXXXXX',
+    placeholder = '010XXXXXXXX',
     required = false,
     name = 'phone',
     error = false,
-    label = 'Phone Number'
+    label = null
 }) => {
+    const { t } = useTranslation();
+
     const handleDigitsOnly = (e) => {
         const val = e.target.value.replace(/\D/g, ''); // Remove non-numeric
         if (val.length <= 11) {
@@ -18,15 +20,13 @@ const PhoneInputGroup = ({
     };
 
     return (
-        <div className="space-y-2">
-            {label && (
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
-                    {label}
-                </label>
-            )}
-            <div className="relative flex">
+        <div className="w-full">
+            <label className="block text-xs font-black text-black uppercase tracking-widest mb-2">
+                {label || t('auth.phone')}
+            </label>
+            <div className="relative flex w-full direction-ltr" dir="ltr">
                 {/* Fixed Prefix */}
-                <div className="flex items-center justify-center bg-gray-100 border-2 border-r-0 border-gray-100 px-4 rounded-l-xl text-gray-500 font-black text-sm select-none">
+                <div className="flex items-center justify-center bg-gray-50 border-2 border-r-0 border-gray-100 rounded-l-xl px-4 text-black font-black text-sm select-none">
                     +2
                 </div>
 
@@ -39,7 +39,7 @@ const PhoneInputGroup = ({
                         onChange={handleDigitsOnly}
                         required={required}
                         placeholder={placeholder}
-                        className={`w-full pl-4 pr-4 py-4 bg-gray-50 border-2 border-l-0 ${error ? 'border-red-500' : 'border-gray-100'} rounded-r-xl focus:border-orange-500 focus:outline-none transition-all font-bold placeholder-gray-300 text-sm`}
+                        className={`w-full pl-4 pr-4 py-4 bg-gray-50 border-2 border-l-0 ${error ? 'border-red-500' : 'border-gray-100'} rounded-r-xl focus:border-orange-500 focus:outline-none transition-all font-bold text-black placeholder-[#666666] text-sm`}
                     />
                 </div>
             </div>

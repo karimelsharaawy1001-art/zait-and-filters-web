@@ -4,6 +4,30 @@ import { initReactI18next } from 'react-i18next';
 const resources = {
     en: {
         translation: {
+            "auth": {
+                "login": "Sign In",
+                "signup": "Sign Up",
+                "email": "Email Address",
+                "password": "Password",
+                "fullName": "Full Name",
+                "confirmPassword": "Confirm Password",
+                "welcomeBack": "Welcome Back",
+                "signInDesc": "Sign in to your customer account",
+                "joinUs": "Join Us",
+                "createAccountDesc": "Create your customer account",
+                "submitLogin": "Sign In",
+                "submitSignup": "Sign Up",
+                "loggingIn": "Signing In...",
+                "creatingAccount": "Creating Account...",
+                "haveAccount": "Already have an account?",
+                "noAccount": "Don't have an account?",
+                "becomePartner": "Become a Partner? Join here",
+                "phone": "Mobile Number",
+                "loginToAccount": "Login here"
+            },
+            "nav": {
+                "marketers": "Marketers"
+            },
             "home": "Home",
             "shop": "Shop",
             "search": "Search products, brands, or car models...",
@@ -116,8 +140,8 @@ const resources = {
             "sale": "SALE",
             "taxIncluded": "Tax included. Shipping calculated at checkout.",
             "descriptionLabel": "Description",
-            "fastDelivery": "Fast Delivery",
-            "genuinePart": "Genuine Part",
+            "fastDelivery": "Fast shipping to all Egyptian governorates",
+            "genuinePart": "Original spare parts with warranty",
             "easyReturns": "Easy Returns",
             "leaveReview": "Write a Review",
             "shareExperience": "Share your experience with this part.",
@@ -251,7 +275,7 @@ const resources = {
             "periodicMaintenance": "Scheduled Service",
             "certifiedService": "Certified Check",
             "genuineWithWarranty": "Genuine Parts & Warranty",
-            "fastestDeliveryEgypt": "Egypt's Premier Parts Hub",
+            "fastestDeliveryEgypt": "Fast shipping to all Egyptian governorates",
             "documentedReport": "This certificate is officially documented by Zait & Filters - all components are guaranteed genuine.",
             "thanksTrust": "Thank you for choosing Zait & Filters for your vehicle's peak performance.",
             "km": "km"
@@ -259,6 +283,30 @@ const resources = {
     },
     ar: {
         translation: {
+            "auth": {
+                "login": "تسجيل الدخول",
+                "signup": "إنشاء حساب",
+                "email": "البريد الإلكتروني",
+                "password": "كلمة المرور",
+                "fullName": "الاسم بالكامل",
+                "confirmPassword": "تأكيد كلمة المرور",
+                "welcomeBack": "مرحباً بعودتك",
+                "signInDesc": "سجل دخولك لمتابعة طلباتك",
+                "joinUs": "انضم إلينا",
+                "createAccountDesc": "أنشئ حسابك الجديد الآن",
+                "submitLogin": "دخول",
+                "submitSignup": "إنشاء حساب",
+                "loggingIn": "جاري الدخول...",
+                "creatingAccount": "جاري الإنشاء...",
+                "haveAccount": "لديك حساب بالفعل؟",
+                "noAccount": "ليس لديك حساب؟",
+                "becomePartner": "تريد أن تكون شريكاً؟ سجل هنا",
+                "phone": "رقم الموبايل",
+                "loginToAccount": "سجل دخول من هنا"
+            },
+            "nav": {
+                "marketers": "المسوقين"
+            },
             "home": "الرئيسية",
             "shop": "المتجر",
             "search": "بحث عن منتجات، ماركات، أو موديلات...",
@@ -371,8 +419,8 @@ const resources = {
             "sale": "خصم",
             "taxIncluded": "الأسعار شاملة الضريبة. الشحن يتم حسابه عند الدفع.",
             "descriptionLabel": "الوصف",
-            "fastDelivery": "توصيل سريع",
-            "genuinePart": "قطعة غيار أصلية",
+            "fastDelivery": "شحن سريع لكل محافظات مصر",
+            "genuinePart": "قطع غيار أصلية بالضمان",
             "easyReturns": "إرجاع سهل",
             "leaveReview": "أضف تقييمك",
             "shareExperience": "شاركنا تجربتك مع هذه القطعة.",
@@ -433,7 +481,7 @@ const resources = {
             "failed": "فشل",
             "refunded": "تم الاسترجاع",
             "oilAdvisor": "مساعد الزيوت",
-            "garage": "الكراج",
+            "garage": "جراج",
             "fitting": "مطابق لـ",
             "affiliateDashboard": "بوابة المسوقين",
             "becomeAffiliate": "كن مسوقاً معنا",
@@ -507,7 +555,7 @@ const resources = {
             "periodicMaintenance": "صيانة دورية",
             "certifiedService": "خدمة معتمدة",
             "genuineWithWarranty": "أصلي وبالضمان",
-            "fastestDeliveryEgypt": "أسرع توصيل في مصر",
+            "fastestDeliveryEgypt": "شحن سريع لكل محافظات مصر",
             "documentedReport": "هذا التقرير موثق من فريق زيت اند فلترز - جميع قطع الغيار أصلية وبالضمان",
             "thanksTrust": "نشكركم على ثقتكم في زيت اند فلترز - نتمنى لكم رحلة آمنة دائماً",
             "km": "كم"

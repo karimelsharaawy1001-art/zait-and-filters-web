@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '../firebase';
 import { doc, getDoc, updateDoc, collection, getDocs, arrayUnion, arrayRemove, query, where, orderBy } from 'firebase/firestore';
+import { signOut } from 'firebase/auth';
 import { toast } from 'react-hot-toast';
 import {
     User,
@@ -17,7 +18,8 @@ import {
     Settings,
     Package,
     FileText,
-    Download
+    Download,
+    LogOut
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useFilters } from '../context/FilterContext';
@@ -236,6 +238,23 @@ const Profile = () => {
                                     <Package className="h-5 w-5" />
                                     <span className="text-sm font-bold">{t('myOrders', 'My Orders')}</span>
                                 </button>
+                                <div className="pt-2 mt-2 border-t border-gray-100">
+                                    <button
+                                        onClick={async () => {
+                                            try {
+                                                await signOut(auth);
+                                                window.location.href = '/';
+                                            } catch (error) {
+                                                console.error("Logout Error:", error);
+                                                toast.error("Failed to logout");
+                                            }
+                                        }}
+                                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-red-600 hover:bg-red-50"
+                                    >
+                                        <LogOut className="h-5 w-5" />
+                                        <span className="text-sm font-bold">{t('signOut', 'Sign Out')}</span>
+                                    </button>
+                                </div>
                             </nav>
                         </div>
                     </div>

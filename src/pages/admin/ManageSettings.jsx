@@ -61,114 +61,133 @@ const ManageSettings = () => {
 
     if (loading) {
         return (
-            <div className="p-6 flex justify-center items-center h-64">
-                <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
+            <div className="min-h-screen bg-admin-bg flex flex-col items-center justify-center gap-4">
+                <div className="h-12 w-12 border-4 border-admin-accent border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">Synchronizing node configuration...</p>
             </div>
         );
     }
 
     return (
-        <div className="p-6 max-w-5xl mx-auto">
-            <AdminHeader title="General Settings" />
+        <div className="min-h-screen bg-admin-bg font-sans pb-20 p-4 md:p-8">
+            <AdminHeader title="Global Settings" />
 
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} className="max-w-5xl mx-auto mt-10 space-y-10">
                 {/* Site Identity */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <div className="flex items-center gap-2 mb-6 text-orange-600">
-                        <Globe className="h-5 w-5" />
-                        <h2 className="text-lg font-bold text-gray-900">Site Identity</h2>
+                <div className="bg-admin-card p-10 rounded-[2.5rem] shadow-admin border border-admin-border relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <Globe className="h-32 w-32 text-white" />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="flex items-center gap-4 mb-10 relative">
+                        <div className="p-3 bg-admin-accent/10 text-admin-accent rounded-2xl">
+                            <Globe className="h-6 w-6" />
+                        </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Site Name</label>
+                            <h2 className="text-xl font-black text-white uppercase tracking-widest poppins">Site Identity</h2>
+                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Configure brand assets and core metadata</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10 relative">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Brand Name</label>
                             <input
                                 type="text"
                                 name="siteName"
                                 value={formData.siteName}
                                 onChange={handleChange}
-                                className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                                className="w-full bg-[#ffffff05] border border-admin-border rounded-2xl p-4 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-white placeholder-gray-700"
                                 placeholder="e.g. ZAIT & FILTERS"
                                 required
                             />
                         </div>
-                        <div>
-                            <div className="flex justify-between items-end mb-2">
-                                <label className="block text-sm font-medium text-gray-700">Logo Image</label>
-                                <span className="text-[10px] text-orange-600 font-semibold italic">Recommended Height: 40-50px (PNG)</span>
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center px-1">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Brand Logo</label>
+                                <span className="text-[9px] text-admin-accent font-black uppercase tracking-widest opacity-60">High-Res PNG Preferred</span>
                             </div>
-                            <ImageUpload
-                                onUploadComplete={(url) => setFormData(prev => ({ ...prev, siteLogo: url }))}
-                                currentImage={formData.siteLogo}
-                                folderPath="settings"
-                            />
+                            <div className="bg-[#ffffff03] border border-admin-border rounded-[2rem] p-4">
+                                <ImageUpload
+                                    onUploadComplete={(url) => setFormData(prev => ({ ...prev, siteLogo: url }))}
+                                    currentImage={formData.siteLogo}
+                                    folderPath="settings"
+                                />
+                            </div>
                             <input type="hidden" name="siteLogo" value={formData.siteLogo} />
                         </div>
                     </div>
                 </div>
 
                 {/* Footer & Contact */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <div className="flex items-center gap-2 mb-6 text-orange-600">
-                        <MapPin className="h-5 w-5" />
-                        <h2 className="text-lg font-bold text-gray-900">Footer & Contact Information</h2>
+                <div className="bg-admin-card p-10 rounded-[2.5rem] shadow-admin border border-admin-border relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <MapPin className="h-32 w-32 text-white" />
                     </div>
 
-                    <div className="space-y-6">
+                    <div className="flex items-center gap-4 mb-10 relative">
+                        <div className="p-3 bg-admin-accent/10 text-admin-accent rounded-2xl">
+                            <MapPin className="h-6 w-6" />
+                        </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Footer Description (About Us)</label>
+                            <h2 className="text-xl font-black text-white uppercase tracking-widest poppins">Terminal Comms</h2>
+                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Manage public contact endpoints and footer content</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-10 relative">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Brand Manifesto (Footer About)</label>
                             <textarea
                                 name="footerDescription"
                                 value={formData.footerDescription}
                                 onChange={handleChange}
-                                className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
-                                rows="3"
-                                placeholder="A short description for the footer..."
+                                className="w-full bg-[#ffffff05] border border-admin-border rounded-2xl p-5 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-white placeholder-gray-700 min-h-[120px]"
+                                placeholder="A concise mission statement for the footer..."
                             ></textarea>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="relative">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Voice Protocol (Phone)</label>
                                 <div className="relative">
-                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                    <Phone className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-700" />
                                     <input
                                         type="text"
                                         name="contactPhone"
                                         value={formData.contactPhone}
                                         onChange={handleChange}
-                                        className="w-full border rounded-xl p-3 pl-10 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-2xl p-4 pl-14 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-white"
                                         placeholder="+20 123 456 7890"
                                     />
                                 </div>
                             </div>
 
-                            <div className="relative">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Digital Relay (Email)</label>
                                 <div className="relative">
-                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                    <Mail className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-700" />
                                     <input
                                         type="email"
                                         name="contactEmail"
                                         value={formData.contactEmail}
                                         onChange={handleChange}
-                                        className="w-full border rounded-xl p-3 pl-10 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
-                                        placeholder="info@zaitandfilters.com"
+                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-2xl p-4 pl-14 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-white"
+                                        placeholder="ops@zaitandfilters.com"
                                     />
                                 </div>
                             </div>
 
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Office Address</label>
+                            <div className="md:col-span-2 space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Geographic Coordinates (Address)</label>
                                 <div className="relative">
-                                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                    <MapPin className="absolute left-5 top-5 h-4 w-4 text-gray-700" />
                                     <textarea
                                         name="contactAddress"
                                         value={formData.contactAddress}
                                         onChange={handleChange}
-                                        className="w-full border rounded-xl p-3 pl-10 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
-                                        rows="2"
-                                        placeholder="123 Street Name, City, Egypt"
+                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-2xl p-5 pl-14 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-white min-h-[80px]"
+                                        placeholder="HQ Location, District, Cairo, Egypt"
                                     ></textarea>
                                 </div>
                             </div>
@@ -177,69 +196,78 @@ const ManageSettings = () => {
                 </div>
 
                 {/* Social Media */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <div className="flex items-center gap-2 mb-6 text-orange-600">
-                        <Facebook className="h-5 w-5" />
-                        <h2 className="text-lg font-bold text-gray-900">Social Media</h2>
+                <div className="bg-admin-card p-10 rounded-[2.5rem] shadow-admin border border-admin-border relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <Facebook className="h-32 w-32 text-white" />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="relative">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Facebook URL</label>
+                    <div className="flex items-center gap-4 mb-10 relative">
+                        <div className="p-3 bg-admin-accent/10 text-admin-accent rounded-2xl">
+                            <Facebook className="h-6 w-6" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black text-white uppercase tracking-widest poppins">Social Matrix</h2>
+                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Configure external social network linkages</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Meta Entity (Facebook URL)</label>
                             <div className="relative">
-                                <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <Facebook className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-700" />
                                 <input
                                     type="text"
                                     name="facebookUrl"
                                     value={formData.facebookUrl}
                                     onChange={handleChange}
-                                    className="w-full border rounded-xl p-3 pl-10 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                                    className="w-full bg-[#ffffff05] border border-admin-border rounded-2xl p-4 pl-14 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-white placeholder-gray-700"
                                     placeholder="https://facebook.com/..."
                                 />
                             </div>
                         </div>
 
-                        <div className="relative">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Instagram URL</label>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Visual Stream (Instagram URL)</label>
                             <div className="relative">
-                                <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <Instagram className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-700" />
                                 <input
                                     type="text"
                                     name="instagramUrl"
                                     value={formData.instagramUrl}
                                     onChange={handleChange}
-                                    className="w-full border rounded-xl p-3 pl-10 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                                    className="w-full bg-[#ffffff05] border border-admin-border rounded-2xl p-4 pl-14 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-white placeholder-gray-700"
                                     placeholder="https://instagram.com/..."
                                 />
                             </div>
                         </div>
 
-                        <div className="relative">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp Number</label>
+                        <div className="relative space-y-2">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Instant Relay (WhatsApp)</label>
                             <div className="relative">
-                                <MessageCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <MessageCircle className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-700" />
                                 <input
                                     type="text"
                                     name="whatsappNumber"
                                     value={formData.whatsappNumber}
                                     onChange={handleChange}
-                                    className="w-full border rounded-xl p-3 pl-10 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                                    className="w-full bg-[#ffffff05] border border-admin-border rounded-2xl p-4 pl-14 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-white placeholder-gray-700"
                                     placeholder="e.g. 201234567890"
                                 />
                             </div>
-                            <p className="text-[10px] text-gray-500 mt-1">Format: Country code + number (no + or spaces). e.g. 201234567890</p>
+                            <p className="text-[9px] text-gray-600 font-black uppercase tracking-widest px-1 italic">Protocol: Country Code + Digit String (No symbols)</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex justify-end pt-4">
+                <div className="flex justify-end pt-10">
                     <button
                         type="submit"
                         disabled={saving}
-                        className="bg-orange-600 text-white px-10 py-4 rounded-2xl font-bold flex items-center gap-2 hover:bg-orange-700 transition-all shadow-lg shadow-orange-200 disabled:bg-orange-300"
+                        className="bg-admin-red hover:bg-admin-red-dark text-white px-12 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs flex items-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-admin-red/40 disabled:opacity-50 disabled:grayscale"
                     >
                         {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-                        Save All Settings
+                        Synchronize Node Settings
                     </button>
                 </div>
             </form>

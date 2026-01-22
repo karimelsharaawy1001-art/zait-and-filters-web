@@ -64,19 +64,36 @@ const AffiliateRegister = () => {
                 await updateProfile(activeUser, { displayName: formData.fullName });
             }
 
-            // 2. Auto-generate Referral Code
-            const firstName = formData.fullName.split(' ')[0] || 'USER';
+            // 2. Auto-generate Robust & Unique Referral Code
+            // Remove non-English characters to ensure URL safety
+            const englishName = formData.fullName.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+            let baseCode = englishName.length >= 3 ? englishName.substring(0, 8) : activeUser.uid.substring(0, 6).toUpperCase();
+
             let referralCode = '';
             let isUnique = false;
             let attempts = 0;
 
             while (!isUnique && attempts < 10) {
-                const random = Math.floor(100 + Math.random() * 900);
-                referralCode = `${firstName.toUpperCase()}${random}`;
-                const q = query(collection(db, 'affiliates'), where('referralCode', '==', referralCode));
-                const checkEmpty = await getDocs(q);
-                if (checkEmpty.empty) isUnique = true;
-                attempts++;
+                // Format: ZAF_NAME5 or ZAF_NAME1235
+                const suffix = attempts === 0 ? '5' : `${Math.floor(100 + Math.random() * 900)}5`;
+                referralCode = `ZAF_${baseCode}${suffix}`;
+
+                // Check both affiliates and promo_codes collections for collision
+                const qAff = query(collection(db, 'affiliates'), where('referralCode', '==', referralCode));
+                const qPromo = query(collection(db, 'promo_codes'), where('code', '==', referralCode));
+
+                const [affSnap, promoSnap] = await Promise.all([getDocs(qAff), getDocs(qPromo)]);
+
+                if (affSnap.empty && promoSnap.empty) {
+                    isUnique = true;
+                } else {
+                    attempts++;
+                }
+            }
+
+            if (!isUnique) {
+                // Fallback to purely random if name is super common
+                referralCode = `ZAF_${activeUser.uid.substring(0, 5).toUpperCase()}${Math.floor(1000 + Math.random() * 9000)}5`;
             }
 
             // 3. Update User Document in Firestore
@@ -143,24 +160,30 @@ const AffiliateRegister = () => {
         }
     };
 
-    if (checkingAuth) return null;
+    if (checkingAuth) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 pt-32 pb-20 px-4">
             <div className="max-w-xl mx-auto">
                 <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
-                    <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-10 text-center relative">
+                    <div className="bg-white p-10 text-center relative border-b border-gray-100">
                         {user && (
                             <div className="absolute top-4 right-4 bg-orange-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1.5 shadow-lg animate-pulse">
                                 <Sparkles className="h-3 w-3" />
                                 Account Upgrade
                             </div>
                         )}
-                        <Users className="h-12 w-12 text-orange-500 mx-auto mb-4" />
-                        <h2 className="text-3xl font-black text-white uppercase tracking-wider mb-2">
+                        <Users className="h-12 w-12 text-orange-600 mx-auto mb-4" />
+                        <h2 className="text-3xl font-black text-black uppercase tracking-wider mb-2">
                             {user ? 'Upgrade to Partner' : 'Partner Registration'}
                         </h2>
-                        <p className="text-gray-400">
+                        <p className="text-gray-600">
                             {user ? `Logged in as ${user.email}` : 'Join our tiered affiliate program and start earning'}
                         </p>
                     </div>
@@ -197,15 +220,15 @@ const AffiliateRegister = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Full Name</label>
+                                <label className="block text-xs font-black text-black uppercase tracking-widest mb-2">Full Name</label>
                                 <div className="relative">
-                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
                                     <input
                                         type="text"
                                         name="fullName"
                                         value={formData.fullName}
                                         onChange={handleChange}
-                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:outline-none transition-all font-bold placeholder-gray-300 disabled:bg-white/50"
+                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:outline-none transition-all font-bold text-black placeholder-[#666666] disabled:bg-gray-100 disabled:text-gray-500"
                                         placeholder="Ahmed Ali"
                                         required
                                         disabled={!!user}
@@ -213,15 +236,15 @@ const AffiliateRegister = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Email Address</label>
+                                <label className="block text-xs font-black text-black uppercase tracking-widest mb-2">Email Address</label>
                                 <div className="relative">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
                                     <input
                                         type="email"
                                         name="email"
                                         value={formData.email}
                                         onChange={handleChange}
-                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:outline-none transition-all font-bold placeholder-gray-300 disabled:bg-white/50"
+                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:outline-none transition-all font-bold text-black placeholder-[#666666] disabled:bg-gray-100 disabled:text-gray-500"
                                         placeholder="ahmed@example.com"
                                         required
                                         disabled={!!user}
@@ -231,15 +254,15 @@ const AffiliateRegister = () => {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Mobile Number (رقم الموبايل)</label>
+                            <label className="block text-xs font-black text-black uppercase tracking-widest mb-2">Mobile Number (رقم الموبايل)</label>
                             <div className="relative">
-                                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
                                 <input
                                     type="tel"
                                     name="phone"
                                     value={formData.phone}
                                     onChange={handleChange}
-                                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:outline-none transition-all font-bold placeholder-gray-300"
+                                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:outline-none transition-all font-bold text-black placeholder-[#666666]"
                                     placeholder="01xxxxxxxxx"
                                     required
                                 />
@@ -248,15 +271,15 @@ const AffiliateRegister = () => {
 
                         {!user && (
                             <div>
-                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Password</label>
+                                <label className="block text-xs font-black text-black uppercase tracking-widest mb-2">Password</label>
                                 <div className="relative">
-                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
                                     <input
                                         type="password"
                                         name="password"
                                         value={formData.password}
                                         onChange={handleChange}
-                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:outline-none transition-all font-bold placeholder-gray-300"
+                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:outline-none transition-all font-bold text-black placeholder-[#666666]"
                                         placeholder="••••••••"
                                         required={!user}
                                         minLength={6}
@@ -269,29 +292,29 @@ const AffiliateRegister = () => {
                             <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest mb-4">Payout Details (رقم استحقاق الأرباح)</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">InstaPay Number (رقم انستاباي)</label>
+                                    <label className="block text-[10px] font-black text-black uppercase tracking-widest mb-2">InstaPay Number (رقم انستاباي)</label>
                                     <div className="relative">
-                                        <Wallet className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                        <Wallet className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
                                         <input
                                             type="text"
                                             name="instaPayNumber"
                                             value={formData.instaPayNumber}
                                             onChange={handleChange}
-                                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:outline-none transition-all font-bold placeholder-gray-300"
+                                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:outline-none transition-all font-bold text-black placeholder-[#666666]"
                                             placeholder="username@instapay"
                                         />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Mobile Wallet Number (رقم المحفظة)</label>
+                                    <label className="block text-[10px] font-black text-black uppercase tracking-widest mb-2">Mobile Wallet Number (رقم المحفظة)</label>
                                     <div className="relative">
-                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
                                         <input
                                             type="text"
                                             name="walletNumber"
                                             value={formData.walletNumber}
                                             onChange={handleChange}
-                                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:outline-none transition-all font-bold placeholder-gray-300"
+                                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:outline-none transition-all font-bold text-black placeholder-[#666666]"
                                             placeholder="01xxxxxxxxx"
                                         />
                                     </div>
@@ -310,7 +333,7 @@ const AffiliateRegister = () => {
                         </button>
 
                         {!user && (
-                            <p className="text-center text-sm text-gray-500 font-medium">
+                            <p className="text-center text-sm text-gray-600 font-medium">
                                 Already have an account? <Link to="/login" className="text-orange-600 font-black hover:underline">Login here</Link>
                             </p>
                         )}

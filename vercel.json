@@ -8,5 +8,11 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/recover-carts",
+      "schedule": "0 * * * *"
+    }
   ]
 }

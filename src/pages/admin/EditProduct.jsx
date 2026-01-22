@@ -162,7 +162,7 @@ const EditProduct = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen bg-admin-bg font-sans">
             <AdminHeader title="Edit Product" />
 
             <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -170,16 +170,16 @@ const EditProduct = () => {
                     <div className="mb-6">
                         <button
                             onClick={() => navigate('/admin/products')}
-                            className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+                            className="flex items-center text-gray-500 hover:text-white font-bold transition-colors uppercase tracking-widest text-[10px]"
                         >
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Back to Management
                         </button>
                     </div>
 
-                    <div className="bg-white shadow rounded-lg p-6 max-w-2xl mx-auto">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-semibold text-gray-900">Edit Product: {formData.name}</h2>
+                    <div className="bg-admin-card shadow-admin rounded-3xl p-8 max-w-2xl mx-auto border border-admin-border">
+                        <div className="flex items-center justify-between mb-8">
+                            <h2 className="text-xl font-black text-white uppercase tracking-widest poppins">Edit Product</h2>
                             <div className="flex items-center">
                                 <label className="inline-flex items-center cursor-pointer">
                                     <input
@@ -189,16 +189,16 @@ const EditProduct = () => {
                                         onChange={handleChange}
                                         className="sr-only peer"
                                     />
-                                    <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
-                                    <span className="ms-3 text-sm font-medium text-gray-700">{formData.isActive ? 'Active' : 'Inactive'}</span>
+                                    <div className="relative w-11 h-6 bg-[#ffffff0d] rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-admin-green shadow-lg"></div>
+                                    <span className="ms-3 text-[10px] font-black uppercase tracking-widest text-admin-text-secondary">{formData.isActive ? 'Active' : 'Inactive'}</span>
                                 </label>
                             </div>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-6">
                                 <div className="col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700">Product Name (Arabic)</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Product Name (Arabic)</label>
                                     <input
                                         type="text"
                                         name="name"
@@ -206,202 +206,202 @@ const EditProduct = () => {
                                         value={formData.name}
                                         onChange={handleChange}
                                         placeholder="اسم المنتج بالعربي"
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm border p-2"
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
                                     />
                                 </div>
                                 <div className="col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700">Product Name (English)</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Product Name (English)</label>
                                     <input
                                         type="text"
                                         name="nameEn"
                                         value={formData.nameEn}
                                         onChange={handleChange}
-                                        placeholder="Product name in English (for PDF reports)"
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm border p-2"
+                                        placeholder="Product name in English"
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
                                     />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-6">
                                 <div className="col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700">Part Brand (Arabic)</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Part Brand (Arabic)</label>
                                     <input
                                         type="text"
                                         name="partBrand"
                                         value={formData.partBrand}
                                         onChange={handleChange}
                                         placeholder="ماركة القطعة بالعربي"
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm border p-2"
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
                                     />
                                 </div>
                                 <div className="col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700">Part Brand (English)</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Part Brand (English)</label>
                                     <input
                                         type="text"
                                         name="brandEn"
                                         value={formData.brandEn}
                                         onChange={handleChange}
-                                        placeholder="e.g. Castrol, Mobil (for PDF reports)"
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm border p-2"
+                                        placeholder="e.g. Castrol, Mobil"
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
                                     />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Sell Price (EGP)</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Sell Price</label>
                                     <input
                                         type="number"
                                         name="price"
                                         required
                                         value={formData.price}
                                         onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm border p-2"
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Sale Price (Optional)</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Sale Price</label>
                                     <input
                                         type="number"
                                         name="salePrice"
-                                        placeholder="Leave empty if not on sale"
+                                        placeholder="Sale EGP"
                                         value={formData.salePrice}
                                         onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm border p-2"
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Cost Price (Buy)</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Cost Price</label>
                                     <input
                                         type="number"
                                         name="costPrice"
-                                        placeholder="Optional"
+                                        placeholder="Buy EGP"
                                         value={formData.costPrice}
                                         onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm border p-2"
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Country of Origin (بلد الصنع)</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Origin</label>
                                     <input
                                         type="text"
                                         name="countryOfOrigin"
-                                        placeholder="e.g. Japan (Optional)"
+                                        placeholder="e.g. Japan"
                                         value={formData.countryOfOrigin}
                                         onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm border p-2"
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
                                     />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Car Make</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Car Make</label>
                                     <select
                                         name="make"
                                         value={formData.make}
                                         onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm border p-2"
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg cursor-pointer"
                                     >
-                                        <option value="">Select Make (Optional)</option>
+                                        <option value="" className="bg-admin-card">Select Make (Optional)</option>
                                         {carMakes.map(make => (
-                                            <option key={make} value={make}>{make}</option>
+                                            <option key={make} value={make} className="bg-admin-card">{make}</option>
                                         ))}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Car Model</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Car Model</label>
                                     <select
                                         name="model"
                                         disabled={!formData.make}
                                         value={formData.model}
                                         onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm border p-2 disabled:bg-gray-100 disabled:text-gray-400"
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg disabled:opacity-30 cursor-pointer"
                                     >
-                                        <option value="">Select Model (Optional)</option>
+                                        <option value="" className="bg-admin-card">Select Model (Optional)</option>
                                         {filteredModels.map(model => (
-                                            <option key={model} value={model}>{model}</option>
+                                            <option key={model} value={model} className="bg-admin-card">{model}</option>
                                         ))}
                                     </select>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-3 gap-6">
                                 <div className="col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700">Year Range (سنة الصنع)</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Year Display</label>
                                     <input
                                         type="text"
                                         name="yearRange"
-                                        placeholder="e.g. 2015-2020 (Optional)"
+                                        placeholder="e.g. 2015-2020"
                                         value={formData.yearRange}
                                         onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm border p-2"
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
                                     />
                                 </div>
                                 <div className="col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700 text-[10px]">Logical Start Year</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Start Year</label>
                                     <input
                                         type="number"
                                         name="yearStart"
-                                        placeholder="e.g. 2015"
+                                        placeholder="2015"
                                         value={formData.yearStart}
                                         onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm border p-1 opacity-60"
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
                                     />
                                 </div>
                                 <div className="col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700 text-[10px]">Logical End Year</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">End Year</label>
                                     <input
                                         type="number"
                                         name="yearEnd"
-                                        placeholder="e.g. 2020"
+                                        placeholder="2020"
                                         value={formData.yearEnd}
                                         onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm border p-1 opacity-60"
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
                                     />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Category</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Category</label>
                                     <select
                                         name="category"
                                         required
                                         value={formData.category}
                                         onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm border p-2"
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg cursor-pointer"
                                     >
-                                        <option value="">Select Category</option>
+                                        <option value="" className="bg-admin-card">Select Category</option>
                                         {categories.map(cat => (
-                                            <option key={cat.id} value={cat.name}>{cat.name}</option>
+                                            <option key={cat.id} value={cat.name} className="bg-admin-card">{cat.name}</option>
                                         ))}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Sub-Category</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Sub-Category</label>
                                     <select
                                         name="subcategory"
                                         required
                                         value={formData.subcategory}
                                         onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm border p-2"
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg cursor-pointer"
                                     >
-                                        <option value="">Select Subcategory</option>
+                                        <option value="" className="bg-admin-card">Select Subcategory</option>
                                         {subCategories.map((sub, idx) => (
-                                            <option key={idx} value={sub}>{sub}</option>
+                                            <option key={idx} value={sub} className="bg-admin-card">{sub}</option>
                                         ))}
                                     </select>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Viscosity (for Oils)</label>
+                                <div className="col-span-2">
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Viscosity (for Oils)</label>
                                     <input
                                         type="text"
                                         name="viscosity"
                                         placeholder="e.g. 5W-30"
                                         value={formData.viscosity}
                                         onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm border p-2"
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
                                     />
                                 </div>
                             </div>
@@ -416,27 +416,27 @@ const EditProduct = () => {
                                 <input type="hidden" name="image" value={formData.image} required />
                             </div>
 
-                            <div className="flex justify-end gap-3">
+                            <div className="flex justify-end gap-3 pt-6 border-t border-[#ffffff0d]">
                                 <button
                                     type="button"
                                     onClick={() => navigate('/admin/products')}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                                    className="px-6 py-3 text-[10px] font-black text-admin-text-secondary uppercase tracking-widest hover:text-white transition-all"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    className="flex items-center gap-3 bg-admin-red hover:bg-admin-red-dark text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-admin-red/40 hover:scale-105 disabled:opacity-50"
                                 >
                                     {saving ? (
                                         <>
-                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            <Loader2 className="h-4 w-4 animate-spin text-white" />
                                             Saving...
                                         </>
                                     ) : (
                                         <>
-                                            <Save className="h-4 w-4 mr-2" />
+                                            <Save className="h-4 w-4" />
                                             Save Changes
                                         </>
                                     )}

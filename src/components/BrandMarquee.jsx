@@ -46,9 +46,9 @@ const BrandMarquee = () => {
                 .brands-marquee-wrapper {
                     width: 100%;
                     overflow: hidden;
-                    background: white;
-                    padding: 40px 0;
-                    border-bottom: 1px solid #f1f5f9;
+                    background: #ffffff;
+                    padding: 30px 0;
+                    border-bottom: 2px solid #f1f5f9;
                     position: relative;
                     /* CRITICAL FIX: Force LTR to prevent RTL-based centering/jumping */
                     direction: ltr !important; 

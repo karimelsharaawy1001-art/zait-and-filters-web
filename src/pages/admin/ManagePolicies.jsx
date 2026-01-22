@@ -76,53 +76,58 @@ const ManagePolicies = () => {
             <AdminHeader title="Policy Pages Management" />
 
             {/* Tabs */}
-            <div className="flex bg-gray-100 p-1 rounded-xl mb-8 w-fit">
+            <div className="flex bg-[#111111] p-1.5 rounded-2xl mb-8 w-fit border border-admin-border shadow-2xl">
                 <button
                     onClick={() => setActiveTab('returns-policy')}
-                    className={`px-6 py-2 rounded-lg font-bold transition-all flex items-center gap-2 ${activeTab === 'returns-policy' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2.5 text-sm ${activeTab === 'returns-policy' ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                 >
                     <ClipboardList className="h-4 w-4" /> Returns Policy
                 </button>
                 <button
                     onClick={() => setActiveTab('shipping-info')}
-                    className={`px-6 py-2 rounded-lg font-bold transition-all flex items-center gap-2 ${activeTab === 'shipping-info' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2.5 text-sm ${activeTab === 'shipping-info' ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                 >
                     <Share2 className="h-4 w-4" /> Shipping Info
                 </button>
             </div>
 
             <form onSubmit={handleSave} className="space-y-8 animate-in fade-in duration-300">
-                <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 space-y-8">
+                <div className="bg-carbon-grey p-10 rounded-[2.5rem] shadow-2xl border border-admin-border space-y-10 relative overflow-hidden">
+                    {/* Background Glow */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-orange-600/5 blur-[100px] -mr-32 -mt-32 rounded-full"></div>
+
                     {/* Header Icon/Indicator */}
-                    <div className="flex items-center gap-3 text-orange-600">
-                        <FileText className="h-6 w-6" />
-                        <h2 className="text-xl font-bold text-gray-900">
+                    <div className="flex items-center gap-4 text-orange-500 relative z-10">
+                        <div className="bg-orange-600/10 p-3 rounded-2xl">
+                            <FileText className="h-7 w-7" />
+                        </div>
+                        <h2 className="text-2xl font-black text-white tracking-tight uppercase italic font-Cairo">
                             Editing: {activeTab === 'returns-policy' ? 'Returns Policy' : 'Shipping Information'}
                         </h2>
                     </div>
 
                     {/* Titles */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Page Title (English)</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10 relative z-10">
+                        <div className="group">
+                            <label className="block text-xs font-black text-admin-text-secondary mb-3 ml-1 uppercase tracking-widest leading-none">Page Title (English)</label>
                             <input
                                 type="text"
                                 name="title_en"
                                 value={currentData.title_en}
                                 onChange={handleChange}
-                                className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                                className="w-full bg-matte-black border border-admin-border text-white rounded-2xl p-4 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 outline-none transition-all placeholder:text-gray-600 font-bold"
                                 placeholder="e.g. Terms and Conditions"
                                 required
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2 text-right">عنوان الصفحة (بالعربية)</label>
+                        <div className="group">
+                            <label className="block text-xs font-black text-admin-text-secondary mb-3 mr-1 text-right uppercase tracking-widest leading-none font-Cairo">عنوان الصفحة (بالعربية)</label>
                             <input
                                 type="text"
                                 name="title_ar"
                                 value={currentData.title_ar}
                                 onChange={handleChange}
-                                className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-orange-500 outline-none transition-all text-right"
+                                className="w-full bg-matte-black border border-admin-border text-white rounded-2xl p-4 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 outline-none transition-all text-right dir-rtl font-Cairo font-bold"
                                 dir="rtl"
                                 placeholder="مثال: سياسة الاستبدال"
                                 required
@@ -131,28 +136,28 @@ const ManagePolicies = () => {
                     </div>
 
                     {/* Content Areas */}
-                    <div className="grid grid-cols-1 gap-8">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Content (English)</label>
+                    <div className="grid grid-cols-1 gap-10 relative z-10">
+                        <div className="group">
+                            <label className="block text-xs font-black text-admin-text-secondary mb-3 ml-1 uppercase tracking-widest leading-none">Content (English)</label>
                             <textarea
                                 name="content_en"
                                 value={currentData.content_en}
                                 onChange={handleChange}
                                 rows="12"
-                                className="w-full border rounded-xl p-4 focus:ring-2 focus:ring-orange-500 outline-none transition-all font-mono text-sm leading-relaxed"
+                                className="w-full bg-matte-black border border-admin-border text-white rounded-2xl p-6 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 outline-none transition-all font-mono text-sm leading-relaxed placeholder:text-gray-600"
                                 placeholder="Enter policy content in English here..."
                                 required
                             ></textarea>
-                            <p className="mt-2 text-xs text-gray-400">Line breaks will be preserved in the frontend.</p>
+                            <p className="mt-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Line breaks will be preserved in the frontend.</p>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2 text-right">المحتوى (بالعربية)</label>
+                        <div className="group">
+                            <label className="block text-xs font-black text-admin-text-secondary mb-3 mr-1 text-right uppercase tracking-widest leading-none font-Cairo">المحتوى (بالعربية)</label>
                             <textarea
                                 name="content_ar"
                                 value={currentData.content_ar}
                                 onChange={handleChange}
                                 rows="12"
-                                className="w-full border rounded-xl p-4 focus:ring-2 focus:ring-orange-500 outline-none transition-all text-right dir-rtl leading-relaxed"
+                                className="w-full bg-matte-black border border-admin-border text-white rounded-2xl p-6 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 outline-none transition-all text-right dir-rtl leading-relaxed font-Cairo placeholder:text-gray-600"
                                 dir="rtl"
                                 placeholder="أدخل محتوى السياسة باللغة العربية هنا..."
                                 required
@@ -161,13 +166,13 @@ const ManagePolicies = () => {
                     </div>
                 </div>
 
-                <div className="flex justify-end">
+                <div className="flex justify-end pb-10">
                     <button
                         type="submit"
                         disabled={saving}
-                        className="bg-orange-600 text-white px-10 py-4 rounded-2xl font-bold flex items-center gap-2 hover:bg-orange-700 transition-all shadow-lg shadow-orange-200 disabled:bg-orange-300"
+                        className="bg-orange-600 text-white px-12 py-5 rounded-[1.5rem] font-black flex items-center gap-3 hover:bg-orange-700 transition-all shadow-2xl shadow-orange-600/20 disabled:bg-gray-800 disabled:text-gray-500 uppercase tracking-widest italic transform hover:-translate-y-1 active:scale-95"
                     >
-                        {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+                        {saving ? <Loader2 className="h-6 w-6 animate-spin" /> : <Save className="h-6 w-6" />}
                         Save Changes
                     </button>
                 </div>

@@ -26,11 +26,13 @@ const LanguageSwitcher = () => {
     return (
         <button
             onClick={toggleLanguage}
-            className="flex items-center space-x-2 px-3 py-1.5 rounded-md border border-gray-200 hover:border-orange-500 hover:text-orange-600 transition-all text-sm font-medium bg-white"
+            className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-md border-[1px] border-[#000000] hover:border-[#e31e24] transition-all bg-white font-Cairo nav-link-black"
             title={i18n.language === 'ar' ? 'Switch to English' : 'تغيير للغة العربية'}
         >
-            <Languages className="h-4 w-4" />
-            <span className={i18n.language === 'ar' ? 'mr-1' : 'ml-1'}>
+            <div className="force-black">
+                <Languages className="h-4 w-4 stroke-[3px] shrink-0" />
+            </div>
+            <span className="leading-none text-[14px]">
                 {i18n.language === 'ar' ? 'English' : 'عربي'}
             </span>
         </button>

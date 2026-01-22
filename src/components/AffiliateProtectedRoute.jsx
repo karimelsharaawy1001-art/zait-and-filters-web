@@ -10,24 +10,44 @@ const AffiliateProtectedRoute = ({ children }) => {
     const [isAffiliate, setIsAffiliate] = useState(false);
 
     useEffect(() => {
+        let timeoutId;
+
+        // Safety timeout to prevent infinite loading
+        timeoutId = setTimeout(() => {
+            if (loading) {
+                console.warn("Auth check timed out, forcing render.");
+                setLoading(false);
+            }
+        }, 10000); // 10 seconds
+
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            if (currentUser) {
-                setUser(currentUser);
-                // Check Firestore for isAffiliate flag
-                const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-                if (userDoc.exists() && userDoc.data().isAffiliate === true) {
-                    setIsAffiliate(true);
+            try {
+                if (currentUser) {
+                    setUser(currentUser);
+                    // Check Firestore for isAffiliate flag
+                    const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+                    if (userDoc.exists() && userDoc.data().isAffiliate === true) {
+                        setIsAffiliate(true);
+                    } else {
+                        setIsAffiliate(false);
+                    }
                 } else {
+                    setUser(null);
                     setIsAffiliate(false);
                 }
-            } else {
-                setUser(null);
+            } catch (error) {
+                console.error("Affiliate Route Error:", error);
                 setIsAffiliate(false);
+            } finally {
+                setLoading(false);
+                clearTimeout(timeoutId);
             }
-            setLoading(false);
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribe();
+            clearTimeout(timeoutId);
+        };
     }, []);
 
     if (loading) {

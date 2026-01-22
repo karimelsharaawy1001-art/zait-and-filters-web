@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { CLOUDINARY_UPLOAD_PRESET, CLOUDINARY_UPLOAD_URL } from '../../config/cloudinary';
-import { Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { db } from '../../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 const ImageUpload = ({
     value,
@@ -31,13 +32,29 @@ const ImageUpload = ({
         setUploading(true);
         setProgress(0);
 
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-        formData.append('folder', folderPath);
-
         try {
-            const response = await axios.post(CLOUDINARY_UPLOAD_URL, formData, {
+            // Fetch Cloudinary credentials from Firestore
+            const docRef = doc(db, 'settings', 'integrations');
+            const docSnap = await getDoc(docRef);
+
+            if (!docSnap.exists() || !docSnap.data().cloudinary) {
+                throw new Error("Cloudinary is not configured. Please go to Admin > Integrations > Cloudinary to set it up.");
+            }
+
+            const { cloudName, uploadPreset } = docSnap.data().cloudinary;
+
+            if (!cloudName || !uploadPreset) {
+                throw new Error("Missing Cloudinary Cloud Name or Upload Preset. Please check your settings.");
+            }
+
+            const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', uploadPreset);
+            formData.append('folder', folderPath);
+
+            const response = await axios.post(uploadUrl, formData, {
                 onUploadProgress: (progressEvent) => {
                     if (progressEvent.total) {
                         const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -51,10 +68,8 @@ const ImageUpload = ({
             if (actualOnChange) actualOnChange(secureUrl);
         } catch (error) {
             console.error('Cloudinary Upload Error:', error);
-            if (error.response) {
-                console.error('Cloudinary Response Data:', error.response.data);
-            }
-            toast.error("Upload failed. Please check your Cloudinary configuration and console for details.");
+            const errorMsg = error.message || "Upload failed. Please check your Cloudinary configuration.";
+            toast.error(errorMsg);
         } finally {
             setUploading(false);
         }

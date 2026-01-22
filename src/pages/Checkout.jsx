@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
-import { collection, addDoc, doc, writeBatch, increment, getDoc, getDocs, query, where, limit, runTransaction } from 'firebase/firestore';
+import { collection, addDoc, doc, writeBatch, increment, getDoc, getDocs, query, where, limit, runTransaction, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -11,7 +11,7 @@ import PhoneInputGroup from '../components/PhoneInputGroup';
 import TrustPaymentSection from '../components/TrustPaymentSection';
 
 const Checkout = () => {
-    const { cartItems, getCartTotal, clearCart } = useCart();
+    const { cartItems, getCartTotal, clearCart, updateCartStage, updateCustomerInfo } = useCart();
     const navigate = useNavigate();
     const { t, i18n } = useTranslation();
     const isAr = i18n.language === 'ar';
@@ -41,12 +41,29 @@ const Checkout = () => {
     const [fetchingAddresses, setFetchingAddresses] = useState(false);
 
     useEffect(() => {
+        updateCartStage('Shipping Info');
         fetchPaymentMethods();
         fetchShippingRates();
         if (auth.currentUser) {
             fetchUserProfileAndAddresses();
         }
     }, []);
+
+    // Sync customer info to CartContext for abandoned cart tracking
+    useEffect(() => {
+        updateCustomerInfo({
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone
+        });
+    }, [formData.name, formData.email, formData.phone]);
+
+    // Track when user reaches payment selection
+    useEffect(() => {
+        if (formData.governorate && formData.address && formData.city) {
+            updateCartStage('Payment Selection');
+        }
+    }, [formData.governorate, formData.address, formData.city]);
 
     const fetchUserProfileAndAddresses = async () => {
         setFetchingAddresses(true);
@@ -367,7 +384,7 @@ const Checkout = () => {
                 currentMileage: formData.currentMileage || null,
                 promoCode: appliedPromo?.code || null,
                 promoId: appliedPromo?.id || null,
-                affiliateCode: affRef || null,
+                affiliateCode: affRef || (appliedPromo?.code) || null,
                 status: 'Pending',
                 paymentStatus: 'Pending',
                 createdAt: new Date()
@@ -406,6 +423,16 @@ const Checkout = () => {
                     });
                     return orderRef.id;
                 });
+                // Mark cart as recovered
+                const cartId = auth.currentUser ? auth.currentUser.uid : localStorage.getItem('cartSessionId');
+                if (cartId) {
+                    await setDoc(doc(db, 'abandoned_carts', cartId), {
+                        recovered: true,
+                        recoveredAt: serverTimestamp(),
+                        orderId: orderId
+                    }, { merge: true });
+                }
+
                 clearCart();
                 toast.success(t('orderPlaced'));
                 navigate(`/order-success?id=${orderId}`);

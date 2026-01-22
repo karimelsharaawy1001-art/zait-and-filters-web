@@ -1,13 +1,46 @@
 import React from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { Trash2, Plus, Minus } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { db } from '../firebase';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { toast } from 'react-hot-toast';
+import { Minus, Plus, Trash2 } from 'lucide-react';
 
 const CartPage = () => {
-    const { cartItems, updateQuantity, removeFromCart, getCartTotal } = useCart();
+    const { cartItems, setCartItems, updateQuantity, removeFromCart, getCartTotal } = useCart();
+    const [searchParams] = useSearchParams();
     const { t, i18n } = useTranslation();
     const isAr = i18n.language === 'ar';
+
+    React.useEffect(() => {
+        const recoverId = searchParams.get('recover');
+        if (recoverId) {
+            const recoverCart = async () => {
+                try {
+                    const cartSnap = await getDoc(doc(db, 'abandoned_carts', recoverId));
+                    if (cartSnap.exists()) {
+                        const data = cartSnap.data();
+                        if (data.recovered) {
+                            toast.success(isAr ? 'تم استرجاع السلة مسبقاً' : 'Cart already recovered');
+                            return;
+                        }
+
+                        setCartItems(data.items);
+                        await updateDoc(doc(db, 'abandoned_carts', recoverId), {
+                            recovered: true,
+                            recoveredAt: new Date()
+                        });
+                        toast.success(isAr ? 'تم استرجاع منتجاتك بنجاح! كمل دلوقتي' : 'Products recovered successfully! Continue now');
+                    }
+                } catch (err) {
+                    console.error("Error recovering cart:", err);
+                    toast.error(isAr ? 'فشل استرجاع السلة' : 'Failed to recover cart');
+                }
+            };
+            recoverCart();
+        }
+    }, [searchParams, setCartItems, isAr]);
 
     if (cartItems.length === 0) {
         return (

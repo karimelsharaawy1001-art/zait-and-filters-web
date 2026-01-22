@@ -128,7 +128,7 @@ const AdminDashboard = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="min-h-screen bg-admin-bg pb-20 font-sans" style={{ backgroundColor: '#191c24', color: '#ffffff', minHeight: '100vh' }}>
             <AdminHeader title="Dashboard" />
 
             <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -136,7 +136,7 @@ const AdminDashboard = () => {
                 <div className="flex justify-end mb-6">
                     <button
                         onClick={() => navigate('/admin/products/new')}
-                        className="bg-orange-600 hover:bg-orange-700 text-white font-black text-xs uppercase tracking-widest px-6 py-3 rounded-xl transition-all shadow-lg shadow-orange-100 flex items-center gap-2"
+                        className="bg-admin-red hover:bg-admin-red-dark hover:scale-105 text-white font-black text-xs uppercase tracking-widest px-6 py-3 rounded-xl transition-all shadow-lg shadow-admin-red/40 flex items-center gap-2"
                     >
                         <Plus className="h-4 w-4" />
                         Add New Product
@@ -146,70 +146,70 @@ const AdminDashboard = () => {
                 {/* 1. Stats Cards Row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     {/* Total Revenue */}
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div className="bg-admin-card rounded-2xl p-6 shadow-admin border border-admin-border hover:border-admin-red/30 transition-all group" style={{ backgroundColor: '#191c24', border: '1px solid #2c2e33' }}>
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-green-50 text-green-600 rounded-xl">
+                            <div className="p-3 bg-admin-green/10 text-admin-green rounded-xl group-hover:scale-110 transition-transform">
                                 <DollarSign className="h-6 w-6" />
                             </div>
-                            <TrendingUp className="h-5 w-5 text-green-500" />
+                            <TrendingUp className="h-5 w-5 text-admin-green" />
                         </div>
-                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Total Revenue</p>
-                        <h3 className="text-2xl font-black text-gray-900">
-                            {stats.totalRevenue.toLocaleString()} <span className="text-sm font-normal text-gray-500">EGP</span>
+                        <p className="text-[10px] font-black text-admin-text-secondary uppercase tracking-widest mb-1">Total Revenue</p>
+                        <h3 className="text-2xl font-black text-white">
+                            {stats.totalRevenue.toLocaleString()} <span className="text-sm font-normal text-admin-text-secondary">EGP</span>
                         </h3>
                     </div>
 
                     {/* Total Orders */}
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div className="bg-admin-card rounded-2xl p-6 shadow-admin border border-admin-border hover:border-admin-red/30 transition-all group" style={{ backgroundColor: '#191c24', border: '1px solid #2c2e33' }}>
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                            <div className="p-3 bg-admin-blue/10 text-admin-blue rounded-xl group-hover:scale-110 transition-transform">
                                 <ShoppingCart className="h-6 w-6" />
                             </div>
                         </div>
-                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Total Orders</p>
-                        <h3 className="text-2xl font-black text-gray-900">{stats.totalOrders}</h3>
+                        <p className="text-[10px] font-black text-admin-text-secondary uppercase tracking-widest mb-1">Total Orders</p>
+                        <h3 className="text-2xl font-black text-white">{stats.totalOrders}</h3>
                     </div>
 
                     {/* Active Customers */}
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div className="bg-admin-card rounded-2xl p-6 shadow-admin border border-admin-border hover:border-admin-red/30 transition-all group" style={{ backgroundColor: '#191c24', border: '1px solid #2c2e33' }}>
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
+                            <div className="p-3 bg-admin-red/10 text-admin-red rounded-xl group-hover:scale-110 transition-transform">
                                 <Users className="h-6 w-6" />
                             </div>
                         </div>
-                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Active Customers</p>
-                        <h3 className="text-2xl font-black text-gray-900">{stats.activeCustomers}</h3>
+                        <p className="text-[10px] font-black text-admin-text-secondary uppercase tracking-widest mb-1">Active Customers</p>
+                        <h3 className="text-2xl font-black text-white">{stats.activeCustomers}</h3>
                     </div>
 
                     {/* Products in Stock */}
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div className="bg-admin-card rounded-2xl p-6 shadow-admin border border-admin-border hover:border-admin-red/30 transition-all group" style={{ backgroundColor: '#191c24', border: '1px solid #2c2e33' }}>
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-orange-50 text-orange-600 rounded-xl">
+                            <div className="p-3 bg-admin-orange/10 text-admin-orange rounded-xl group-hover:scale-110 transition-transform">
                                 <Package className="h-6 w-6" />
                             </div>
                         </div>
-                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Products in Stock</p>
-                        <h3 className="text-2xl font-black text-gray-900">{stats.productsInStock}</h3>
+                        <p className="text-[10px] font-black text-admin-text-secondary uppercase tracking-widest mb-1">Products in Stock</p>
+                        <h3 className="text-2xl font-black text-white">{stats.productsInStock}</h3>
                     </div>
                 </div>
 
                 {/* 2. Actionable Insights Section */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     {/* Pending Orders Card */}
-                    <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-3xl p-8 shadow-sm border-2 border-yellow-100">
+                    <div className="bg-gradient-to-br from-[#1e1b4b] to-[#27293d] rounded-3xl p-8 shadow-admin border border-admin-orange/20" style={{ background: '#2a2e3a', backgroundColor: '#2a2e3a' }}>
                         <div className="flex items-center gap-4 mb-4">
-                            <div className="p-4 bg-yellow-500 text-white rounded-2xl">
+                            <div className="p-4 bg-admin-orange text-white rounded-2xl shadow-lg shadow-admin-orange/20">
                                 <Clock className="h-8 w-8" />
                             </div>
                             <div>
-                                <p className="text-xs font-black text-yellow-700 uppercase tracking-widest">Needs Attention</p>
-                                <h3 className="text-4xl font-black text-yellow-900">{stats.pendingOrders}</h3>
+                                <p className="text-[10px] font-black text-admin-orange uppercase tracking-widest">Needs Attention</p>
+                                <h3 className="text-4xl font-black text-white">{stats.pendingOrders}</h3>
                             </div>
                         </div>
-                        <p className="text-sm font-bold text-yellow-800 mb-4">Pending orders require immediate processing</p>
+                        <p className="text-sm font-bold text-gray-400 mb-4">Pending orders require immediate processing</p>
                         <button
                             onClick={() => navigate('/admin/orders')}
-                            className="bg-yellow-600 hover:bg-yellow-700 text-white font-black text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition-all flex items-center gap-2"
+                            className="bg-admin-orange hover:bg-admin-orange/90 text-white font-black text-xs uppercase tracking-widest px-6 py-3 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-admin-orange/20"
                         >
                             View Orders
                             <ArrowRight className="h-4 w-4" />
@@ -217,24 +217,24 @@ const AdminDashboard = () => {
                     </div>
 
                     {/* Low Stock Alert */}
-                    <div className="bg-gradient-to-br from-red-50 to-pink-50 rounded-3xl p-8 shadow-sm border-2 border-red-100">
+                    <div className="bg-gradient-to-br from-[#2e1065] to-[#27293d] rounded-3xl p-8 shadow-admin border border-admin-red/20" style={{ background: '#2a2e3a', backgroundColor: '#2a2e3a' }}>
                         <div className="flex items-center gap-4 mb-4">
-                            <div className="p-4 bg-red-500 text-white rounded-2xl">
+                            <div className="p-4 bg-admin-red text-white rounded-2xl shadow-lg shadow-admin-red/20">
                                 <AlertTriangle className="h-8 w-8" />
                             </div>
                             <div>
-                                <p className="text-xs font-black text-red-700 uppercase tracking-widest">Low Stock Alert</p>
-                                <h3 className="text-4xl font-black text-red-900">{lowStockProducts.length}</h3>
+                                <p className="text-[10px] font-black text-admin-red uppercase tracking-widest">Low Stock Alert</p>
+                                <h3 className="text-4xl font-black text-white">{lowStockProducts.length}</h3>
                             </div>
                         </div>
                         <div className="space-y-2 mb-4">
                             {lowStockProducts.length === 0 ? (
-                                <p className="text-sm font-bold text-red-700 italic">All products are well-stocked!</p>
+                                <p className="text-sm font-bold text-gray-400 italic">All products are well-stocked!</p>
                             ) : (
                                 lowStockProducts.map(product => (
-                                    <div key={product.id} className="flex items-center justify-between bg-white/60 rounded-lg px-3 py-2">
-                                        <span className="text-xs font-bold text-gray-900 truncate max-w-[200px]">{product.name}</span>
-                                        <span className="text-xs font-black text-red-600 bg-red-100 px-2 py-1 rounded">
+                                    <div key={product.id} className="flex items-center justify-between bg-[#ffffff05] border border-[#ffffff0d] rounded-lg px-3 py-2">
+                                        <span className="text-xs font-bold text-gray-300 truncate max-w-[200px]">{product.name}</span>
+                                        <span className="text-[10px] font-black text-admin-red bg-admin-red/10 border border-admin-red/20 px-2 py-1 rounded">
                                             {product.stockQuantity || 0} left
                                         </span>
                                     </div>
@@ -243,7 +243,7 @@ const AdminDashboard = () => {
                         </div>
                         <button
                             onClick={() => navigate('/admin/products')}
-                            className="bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition-all flex items-center gap-2"
+                            className="bg-admin-red hover:bg-admin-red/90 text-white font-black text-xs uppercase tracking-widest px-6 py-3 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-admin-red/20"
                         >
                             Manage Inventory
                             <ArrowRight className="h-4 w-4" />
@@ -252,32 +252,32 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* 3. Recent Orders Table */}
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
-                        <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">Recent Orders</h3>
+                <div className="bg-admin-card rounded-3xl shadow-admin border border-[#ffffff0d] overflow-hidden" style={{ backgroundColor: '#191c24', border: '1px solid #2c2e33' }}>
+                    <div className="px-8 py-6 border-b border-[#ffffff0d] flex items-center justify-between">
+                        <h3 className="text-lg font-black text-white uppercase tracking-tight">Recent Orders</h3>
                         <button
                             onClick={() => navigate('/admin/orders')}
-                            className="text-orange-600 hover:text-orange-700 font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-colors"
+                            className="text-admin-accent hover:text-admin-accent/80 font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-colors"
                         >
                             View All
                             <ArrowRight className="h-4 w-4" />
                         </button>
                     </div>
                     <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="bg-gray-50/50">
-                                    <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Order ID</th>
-                                    <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Customer Name</th>
-                                    <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Total</th>
-                                    <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
-                                    <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
+                        <table className="w-full" style={{ backgroundColor: '#191c24' }}>
+                            <thead style={{ backgroundColor: '#000000' }}>
+                                <tr className="bg-[#ffffff02]">
+                                    <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest" style={{ color: '#ffffff' }}>Order ID</th>
+                                    <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest" style={{ color: '#ffffff' }}>Customer Name</th>
+                                    <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest" style={{ color: '#ffffff' }}>Total</th>
+                                    <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest" style={{ color: '#ffffff' }}>Status</th>
+                                    <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest" style={{ color: '#ffffff' }}>Date</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100">
+                            <tbody className="divide-y divide-[#ffffff05]">
                                 {recentOrders.length === 0 ? (
                                     <tr>
-                                        <td colSpan="5" className="px-8 py-12 text-center text-gray-400 font-bold italic">
+                                        <td colSpan="5" className="px-8 py-12 text-center text-gray-500 font-bold italic">
                                             No orders found
                                         </td>
                                     </tr>
@@ -286,30 +286,30 @@ const AdminDashboard = () => {
                                         <tr
                                             key={order.id}
                                             onClick={() => navigate(`/admin/order/${order.id}`)}
-                                            className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                                            className="hover:bg-[#ffffff05] transition-colors cursor-pointer"
                                         >
                                             <td className="px-8 py-5">
-                                                <span className="text-sm font-black text-gray-900">#{order.id.slice(-6)}</span>
+                                                <span className="text-sm font-black text-white">#{order.id.slice(-6)}</span>
                                             </td>
                                             <td className="px-8 py-5">
-                                                <span className="text-sm font-bold text-gray-900">{order.customer?.name || 'N/A'}</span>
+                                                <span className="text-sm font-bold text-gray-300">{order.customer?.name || 'N/A'}</span>
                                             </td>
                                             <td className="px-8 py-5">
-                                                <span className="text-sm font-black text-gray-900">{order.total?.toLocaleString()} EGP</span>
+                                                <span className="text-sm font-black text-white">{order.total?.toLocaleString()} EGP</span>
                                             </td>
                                             <td className="px-8 py-5">
                                                 <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full
-                                                    ${order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : ''}
-                                                    ${order.status === 'Processing' ? 'bg-blue-100 text-blue-700' : ''}
-                                                    ${order.status === 'Shipped' ? 'bg-purple-100 text-purple-700' : ''}
-                                                    ${order.status === 'Delivered' ? 'bg-green-100 text-green-700' : ''}
-                                                    ${order.status === 'Cancelled' ? 'bg-red-100 text-red-700' : ''}
+                                                    ${order.status === 'Pending' ? 'bg-admin-orange/10 text-admin-orange border border-admin-orange/20' : ''}
+                                                    ${order.status === 'Processing' ? 'bg-admin-blue/10 text-admin-blue border border-admin-blue/20' : ''}
+                                                    ${order.status === 'Shipped' ? 'bg-admin-accent/10 text-admin-accent border border-admin-accent/20' : ''}
+                                                    ${order.status === 'Delivered' ? 'bg-admin-green/10 text-admin-green border border-admin-green/20' : ''}
+                                                    ${order.status === 'Cancelled' ? 'bg-admin-red/10 text-admin-red border border-admin-red/20' : ''}
                                                 `}>
                                                     {order.status}
                                                 </span>
                                             </td>
                                             <td className="px-8 py-5">
-                                                <span className="text-sm font-bold text-gray-600">
+                                                <span className="text-sm font-bold text-gray-500">
                                                     {order.createdAt?.seconds
                                                         ? new Date(order.createdAt.seconds * 1000).toLocaleDateString()
                                                         : 'N/A'}

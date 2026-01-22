@@ -90,119 +90,124 @@ const ManagePayments = () => {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-96">
-                <Loader2 className="h-10 w-10 animate-spin text-orange-600" />
+            <div className="min-h-screen bg-admin-bg flex flex-col items-center justify-center gap-4">
+                <div className="h-12 w-12 border-4 border-admin-accent border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">Accessing encryption layer...</p>
             </div>
         );
     }
 
     return (
-        <div className="max-w-4xl mx-auto py-8 px-4">
-            <AdminHeader title="Payment Gateway Manager" />
+        <div className="min-h-screen bg-admin-bg font-sans pb-20 p-4 md:p-8">
+            <AdminHeader title="Gateway Protocols" />
 
-            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-8 rounded-r-lg">
-                <div className="flex">
-                    <Shield className="h-5 w-5 text-blue-400 mr-3" />
-                    <div>
-                        <p className="text-sm text-blue-700 font-bold">Security Note</p>
-                        <p className="text-xs text-blue-600 mt-1">
-                            API keys and secrets are stored in Firestore.
-                            <span className="font-black"> SECURITY WARNING:</span> Ideally, Secret Keys should be used in a Cloud Function, not Frontend. This is a direct integration for MVP purposes.
+            <div className="max-w-4xl mx-auto mt-10">
+                <div className="bg-admin-accent/10 border border-admin-accent/20 p-6 mb-12 rounded-[2rem] flex items-start gap-5 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <Shield className="h-24 w-24 text-admin-accent" />
+                    </div>
+                    <div className="bg-admin-accent/20 p-3 rounded-xl text-admin-accent relative">
+                        <Shield className="h-6 w-6" />
+                    </div>
+                    <div className="relative">
+                        <p className="text-[10px] text-admin-accent font-black uppercase tracking-widest mb-1">Security Directive</p>
+                        <p className="text-xs text-white/70 font-bold leading-relaxed">
+                            API credentials are encrypted at rest. <span className="text-admin-accent">WARNING:</span> For mission-critical production environments, ensure these keys are strictly isolated within the server-side environment clusters.
                         </p>
                     </div>
                 </div>
-            </div>
 
-            <div className="space-y-8">
-                {/* Cash on Delivery (COD) */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="p-6 flex items-center justify-between border-b border-gray-50">
-                        <div className="flex items-center gap-4">
-                            <div className="bg-green-100 p-3 rounded-xl text-green-600">
-                                <Banknote className="h-6 w-6" />
+                <div className="space-y-10">
+                    {/* Cash on Delivery (COD) */}
+                    <div className="bg-admin-card rounded-[2.5rem] shadow-admin border border-admin-border overflow-hidden group hover:bg-[#ffffff05] transition-all">
+                        <div className="p-10 flex items-center justify-between">
+                            <div className="flex items-center gap-6">
+                                <div className="bg-admin-green/10 p-4 rounded-2xl text-admin-green transition-transform group-hover:scale-110">
+                                    <Banknote className="h-6 w-6" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black text-white uppercase tracking-widest poppins">{configs.cod?.name}</h3>
+                                    <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Offline Physical Settlement</p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 className="text-lg font-black text-gray-900">{configs.cod?.name}</h3>
-                                <p className="text-xs text-gray-500 font-bold uppercase tracking-tighter">Offline Payment</p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => handleToggle('cod', configs.cod.isActive)}
-                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${configs.cod.isActive ? 'bg-orange-600' : 'bg-gray-200'}`}
-                        >
-                            <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${configs.cod.isActive ? 'translate-x-5' : 'translate-x-0'}`} />
-                        </button>
-                    </div>
-                </div>
-
-                {/* EasyKash */}
-                <div className={`bg-white rounded-2xl shadow-sm border overflow-hidden transition-all ${configs.easykash.isActive ? 'border-orange-200 ring-4 ring-orange-50' : 'border-gray-100'}`}>
-                    <div className="p-6 flex items-center justify-between border-b border-gray-50">
-                        <div className="flex items-center gap-4">
-                            <div className="bg-blue-100 p-3 rounded-xl text-blue-600">
-                                <CreditCard className="h-6 w-6" />
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-black text-gray-900">{configs.easykash?.name}</h3>
-                                <p className="text-xs text-gray-500 font-bold uppercase tracking-tighter">Online Gateway (Egypt)</p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => handleToggle('easykash', configs.easykash.isActive)}
-                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${configs.easykash.isActive ? 'bg-orange-600' : 'bg-gray-200'}`}
-                        >
-                            <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${configs.easykash.isActive ? 'translate-x-5' : 'translate-x-0'}`} />
-                        </button>
-                    </div>
-
-                    <div className="p-6 bg-gray-50/50 space-y-6">
-                        <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">EasyKash API Key</label>
-                            <div className="relative">
-                                <input
-                                    type={showKeys.easykash_apiKey ? "text" : "password"}
-                                    value={configs.easykash.apiKey}
-                                    onChange={(e) => handleInputChange('easykash', 'apiKey', e.target.value)}
-                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none pr-12 font-mono"
-                                    placeholder="Enter your public API key..."
-                                />
-                                <button
-                                    onClick={() => toggleShowKey('easykash', 'apiKey')}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                >
-                                    {showKeys.easykash_apiKey ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">EasyKash Secret Key</label>
-                            <div className="relative">
-                                <input
-                                    type={showKeys.easykash_secretKey ? "text" : "password"}
-                                    value={configs.easykash.secretKey}
-                                    onChange={(e) => handleInputChange('easykash', 'secretKey', e.target.value)}
-                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none pr-12 font-mono"
-                                    placeholder="Enter your secret key..."
-                                />
-                                <button
-                                    onClick={() => toggleShowKey('easykash', 'secretKey')}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                >
-                                    {showKeys.easykash_secretKey ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end">
                             <button
-                                onClick={() => handleSaveConfig('easykash')}
-                                disabled={saving}
-                                className="flex items-center gap-2 bg-gray-900 hover:bg-black text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg active:scale-95 disabled:opacity-50"
+                                onClick={() => handleToggle('cod', configs.cod.isActive)}
+                                className={`relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-4 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${configs.cod.isActive ? 'bg-admin-green' : 'bg-[#ffffff1a]'}`}
                             >
-                                {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-                                Update Gateway Config
+                                <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-xl transition duration-300 ease-in-out ${configs.cod.isActive ? 'translate-x-[1.5rem]' : 'translate-x-0'}`} />
                             </button>
+                        </div>
+                    </div>
+
+                    {/* EasyKash */}
+                    <div className={`bg-admin-card rounded-[2.5rem] shadow-admin border transition-all duration-500 overflow-hidden ${configs.easykash.isActive ? 'border-admin-accent/40 bg-[#ffffff05]' : 'border-[#ffffff0d]'}`}>
+                        <div className="p-10 flex items-center justify-between border-b border-[#ffffff05]">
+                            <div className="flex items-center gap-6">
+                                <div className="bg-admin-accent/10 p-4 rounded-2xl text-admin-accent transition-transform group-hover:scale-110">
+                                    <CreditCard className="h-6 w-6" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black text-white uppercase tracking-widest poppins">{configs.easykash?.name}</h3>
+                                    <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Digital Gateway Cluster (L.E)</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => handleToggle('easykash', configs.easykash.isActive)}
+                                className={`relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-4 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${configs.easykash.isActive ? 'bg-admin-accent' : 'bg-[#ffffff1a]'}`}
+                            >
+                                <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-xl transition duration-300 ease-in-out ${configs.easykash.isActive ? 'translate-x-[1.5rem]' : 'translate-x-0'}`} />
+                            </button>
+                        </div>
+
+                        <div className="p-10 space-y-10 relative">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Network API Key</label>
+                                <div className="relative">
+                                    <input
+                                        type={showKeys.easykash_apiKey ? "text" : "password"}
+                                        value={configs.easykash.apiKey}
+                                        onChange={(e) => handleInputChange('easykash', 'apiKey', e.target.value)}
+                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-2xl px-6 py-4 text-sm font-bold text-white focus:ring-2 focus:ring-admin-accent outline-none pr-14 font-mono transition-all"
+                                        placeholder="EYK_PUB_XXXXXXXX"
+                                    />
+                                    <button
+                                        onClick={() => toggleShowKey('easykash', 'apiKey')}
+                                        className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-700 hover:text-white transition-colors"
+                                    >
+                                        {showKeys.easykash_apiKey ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Vault Secret Protocol</label>
+                                <div className="relative">
+                                    <input
+                                        type={showKeys.easykash_secretKey ? "text" : "password"}
+                                        value={configs.easykash.secretKey}
+                                        onChange={(e) => handleInputChange('easykash', 'secretKey', e.target.value)}
+                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-2xl px-6 py-4 text-sm font-bold text-white focus:ring-2 focus:ring-admin-accent outline-none pr-14 font-mono transition-all"
+                                        placeholder="EYK_SEC_XXXXXXXX"
+                                    />
+                                    <button
+                                        onClick={() => toggleShowKey('easykash', 'secretKey')}
+                                        className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-700 hover:text-white transition-colors"
+                                    >
+                                        {showKeys.easykash_secretKey ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end pt-4">
+                                <button
+                                    onClick={() => handleSaveConfig('easykash')}
+                                    disabled={saving}
+                                    className="flex items-center gap-3 bg-white text-black px-10 py-4 rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] hover:scale-105 active:scale-95 transition-all shadow-xl disabled:opacity-50"
+                                >
+                                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                                    Synchronize Gateway
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

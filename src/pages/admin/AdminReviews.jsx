@@ -99,96 +99,103 @@ const AdminReviews = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+            <div className="min-h-[400px] flex flex-col items-center justify-center gap-4">
+                <div className="h-12 w-12 border-4 border-admin-accent border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">Accessing moderation node...</p>
             </div>
         );
     }
 
     return (
-        <div className="p-8">
-            <div className="mb-8">
-                <h1 className="text-3xl font-black text-gray-900">Review Moderation</h1>
-                <p className="text-gray-500 font-medium">Manage and approve customer product reviews.</p>
+        <div className="p-4 md:p-8">
+            <div className="mb-12">
+                <h1 className="text-4xl font-black text-white tracking-tight uppercase poppins">Moderation Hub</h1>
+                <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest mt-1">Audit and authorize customer feedback loops</p>
             </div>
 
             {reviews.length === 0 ? (
-                <div className="bg-white rounded-3xl p-16 text-center border border-gray-100 flex flex-col items-center">
-                    <div className="bg-orange-50 p-6 rounded-full mb-6">
-                        <MessageSquare className="h-10 w-10 text-orange-600" />
+                <div className="bg-admin-card rounded-[2.5rem] p-20 text-center border border-admin-border flex flex-col items-center shadow-admin mt-10">
+                    <div className="bg-[#ffffff05] p-10 rounded-full mb-8 border border-admin-border">
+                        <MessageSquare className="h-12 w-12 text-gray-700" />
                     </div>
-                    <h2 className="text-xl font-black text-gray-900">All caught up!</h2>
-                    <p className="text-gray-500 mt-2">There are no pending reviews to moderate.</p>
+                    <h2 className="text-2xl font-black text-white uppercase tracking-tight poppins">Frequency Stabilized</h2>
+                    <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest mt-4">All pending reviews have been processed</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mt-10">
                     {reviews.map((rev) => (
-                        <div key={rev.id} className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col md:flex-row">
+                        <div key={rev.id} className="bg-admin-card rounded-[2.5rem] border border-admin-border shadow-admin overflow-hidden flex flex-col md:flex-row group transition-all duration-500 hover:scale-[1.01]">
                             {/* Photo (If exists) */}
                             {rev.photoUrl ? (
-                                <div className="md:w-48 h-48 md:h-auto flex-shrink-0 bg-gray-50">
-                                    <img src={rev.photoUrl} alt="Review" className="w-full h-full object-cover" />
+                                <div className="md:w-56 h-56 md:h-auto flex-shrink-0 bg-[#ffffff03] relative overflow-hidden">
+                                    <img src={rev.photoUrl} alt="Review" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-admin-bg/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                                 </div>
                             ) : (
-                                <div className="md:w-48 h-48 md:h-auto flex-shrink-0 bg-gray-50 flex items-center justify-center text-gray-300">
-                                    <AlertCircle className="w-10 h-10" />
+                                <div className="md:w-56 h-56 md:h-auto flex-shrink-0 bg-[#ffffff03] flex items-center justify-center text-gray-700 border-r border-[#ffffff0d]">
+                                    <AlertCircle className="w-12 h-12 opacity-20" />
                                 </div>
                             )}
 
                             {/* Content */}
-                            <div className="flex-1 p-6 flex flex-col justify-between">
+                            <div className="flex-1 p-8 flex flex-col justify-between">
                                 <div>
-                                    <div className="flex items-start justify-between mb-4">
+                                    <div className="flex items-start justify-between mb-6">
                                         <div>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <User className="w-4 h-4 text-gray-400" />
-                                                <span className="text-sm font-black text-gray-900">{rev.userName}</span>
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <div className="p-1.5 bg-admin-accent/10 rounded-lg">
+                                                    <User className="w-4 h-4 text-admin-accent" />
+                                                </div>
+                                                <span className="text-[11px] font-black text-white uppercase tracking-widest">{rev.userName}</span>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <Package className="w-4 h-4 text-gray-400" />
-                                                <Link to={`/product/${rev.productId}`} className="text-xs font-bold text-orange-600 hover:underline flex items-center gap-1">
+                                            <div className="flex items-center gap-3 bg-[#ffffff03] px-3 py-2 rounded-xl border border-admin-border">
+                                                <Package className="w-3.5 h-3.5 text-gray-500" />
+                                                <Link to={`/product/${rev.productId}`} className="text-[9px] font-black text-admin-accent hover:text-white uppercase tracking-widest flex items-center gap-2 transition-colors">
                                                     {rev.productName}
                                                     <ExternalLink className="w-3 h-3" />
                                                 </Link>
                                             </div>
                                         </div>
-                                        <div className="flex">
+                                        <div className="flex gap-0.5">
                                             {[1, 2, 3, 4, 5].map((s) => (
                                                 <Star
                                                     key={s}
-                                                    className={`h-4 w-4 ${s <= rev.rating ? 'fill-orange-400 text-orange-400' : 'text-gray-200'}`}
+                                                    className={`h-3.5 w-3.5 ${s <= rev.rating ? 'fill-admin-accent text-admin-accent' : 'text-gray-800'}`}
                                                 />
                                             ))}
                                         </div>
                                     </div>
 
-                                    <p className="text-gray-600 text-sm font-medium italic mb-4">
-                                        "{rev.comment}"
-                                    </p>
+                                    <div className="relative mb-6">
+                                        <MessageSquare className="absolute -top-2 -left-2 w-8 h-8 text-white/5" />
+                                        <p className="text-admin-text-secondary text-sm font-bold leading-relaxed italic relative">
+                                            "{rev.comment}"
+                                        </p>
+                                    </div>
 
-                                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
-                                        <Clock className="w-3 h-3" />
+                                    <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-gray-500">
+                                        <Clock className="w-3.5 h-3.5" />
                                         {rev.createdAt?.toDate().toLocaleString()}
                                     </div>
                                 </div>
 
                                 {/* Actions */}
-                                <div className="flex gap-3 mt-6">
+                                <div className="flex gap-4 mt-8">
                                     <button
                                         onClick={() => handleApprove(rev.id)}
                                         disabled={actionId === rev.id}
-                                        className="flex-1 bg-green-500 hover:bg-green-600 text-white font-black py-3 rounded-2xl flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                                        className="flex-1 bg-admin-accent/10 hover:bg-admin-accent text-admin-accent hover:text-white border border-admin-accent/20 rounded-2xl py-4 flex items-center justify-center gap-3 font-black text-[10px] uppercase tracking-widest transition-all duration-300 active:scale-95 disabled:opacity-50"
                                     >
                                         {actionId === rev.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                                        Approve
+                                        Authorize
                                     </button>
                                     <button
                                         onClick={() => handleDelete(rev)}
                                         disabled={actionId === rev.id}
-                                        className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-black py-3 rounded-2xl flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                                        className="flex-1 bg-admin-red/10 hover:bg-admin-red text-admin-red hover:text-white border border-admin-red/20 rounded-2xl py-4 flex items-center justify-center gap-3 font-black text-[10px] uppercase tracking-widest transition-all duration-300 active:scale-95 disabled:opacity-50"
                                     >
                                         {actionId === rev.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                                        Delete
+                                        Purge
                                     </button>
                                 </div>
                             </div>

@@ -15,32 +15,20 @@ const RelatedProducts = ({ currentProduct }) => {
             setLoading(true);
 
             try {
-                let q;
-                // Scenario A: Specific Car Product
-                if (currentProduct.make) {
-                    q = query(
-                        collection(db, 'products'),
-                        where('isActive', '==', true),
-                        where('make', '==', currentProduct.make),
-                        limit(6) // Fetch a few more to filter out current product
-                    );
-                }
-                // Scenario B: Universal Product
-                else {
-                    q = query(
-                        collection(db, 'products'),
-                        where('isActive', '==', true),
-                        where('category', '==', currentProduct.category),
-                        limit(6)
-                    );
-                }
+                // Build query parameters
+                const params = new URLSearchParams({
+                    productId: currentProduct.id,
+                    make: currentProduct.make || '',
+                    model: currentProduct.model || '',
+                    year: currentProduct.yearStart || '',
+                    category: currentProduct.category || '',
+                    brand: currentProduct.brand || ''
+                });
 
-                const querySnapshot = await getDocs(q);
-                const products = querySnapshot.docs
-                    .map(doc => ({ id: doc.id, ...doc.data() }))
-                    .filter(p => p.id !== currentProduct.id)
-                    .slice(0, 4);
+                const response = await fetch(`/api/related-products?${params.toString()}`);
+                if (!response.ok) throw new Error('Failed to fetch related products');
 
+                const products = await response.json();
                 setRelatedProducts(products);
             } catch (error) {
                 console.error("Error fetching related products:", error);

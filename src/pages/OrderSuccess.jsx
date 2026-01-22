@@ -66,6 +66,35 @@ const OrderSuccess = () => {
 
                     setOrderId(result.id);
                     setOrderNumber(result.number);
+
+                    // Auto-sync with Mailchimp
+                    try {
+                        const { default: axios } = await import('axios');
+                        const firstName = orderData.shippingAddress?.fullName?.split(' ')[0] || '';
+                        const lastName = orderData.shippingAddress?.fullName?.split(' ').slice(1).join(' ') || '';
+
+                        await axios.post('/api/mailchimp-subscribe', {
+                            email: orderData.customerEmail,
+                            firstName: firstName,
+                            lastName: lastName
+                        });
+                        console.log("Customer synced with Mailchimp");
+
+                        // 3. Send Transactional Email via SendGrid
+                        await axios.post('/api/send-order-email', {
+                            order: {
+                                id: result.id,
+                                total: orderData.total,
+                                items: cartItems,
+                                shippingAddress: orderData.shippingAddress,
+                                customerName: orderData.shippingAddress?.fullName || 'Customer',
+                                customerEmail: orderData.customerEmail
+                            }
+                        });
+                        console.log("Order confirmation email sent via SendGrid");
+                    } catch (mcError) {
+                        console.error("Mailchimp auto-sync failed:", mcError);
+                    }
                 } else {
                     const urlOrderId = searchParams.get('id');
                     if (urlOrderId) {

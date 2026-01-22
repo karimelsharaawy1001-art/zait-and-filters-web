@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Plus, Minus } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Check } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import { getOptimizedImage } from '../utils/cloudinaryUtils';
 
 const ProductCard = ({ product }) => {
     const { t, i18n } = useTranslation();
@@ -35,117 +36,120 @@ const ProductCard = ({ product }) => {
     const hasSale = product.salePrice && Number(product.salePrice) < Number(product.price);
 
     return (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col group relative border border-gray-100 h-full">
-            {/* Image Container */}
-            <Link to={`/product/${product.id}`} className="relative h-40 sm:h-48 bg-gray-100 overflow-hidden block">
+        <div className="product-card group relative flex flex-col !gap-0 !space-y-0 !justify-start bg-white rounded-premium shadow-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:translate-y-[-5px] w-full max-w-[320px] mx-auto h-full">
+            {/* HERO IMAGE - Fixed 250px Height */}
+            <Link
+                to={`/product/${product.id}`}
+                className="relative bg-gray-50 block w-full h-auto mb-0 p-0"
+            >
                 <img
-                    src={product.image}
+                    src={getOptimizedImage(product.image, 'f_auto,q_auto,w_800')}
                     alt={product.name}
-                    className="w-full h-full object-contain sm:object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-auto object-cover block transition-transform duration-500 group-hover:scale-105"
                 />
 
-                {/* Category Badge */}
-                {(product.subCategory || product.category) && (
-                    <span className="absolute top-2 right-2 bg-black/60 text-white text-[10px] uppercase font-bold px-2 py-1 rounded backdrop-blur-sm tracking-wider z-10">
-                        {product.subCategory || product.category}
-                    </span>
-                )}
+                {/* Status Badges - Premium Minimal */}
+                <div className="absolute top-3 right-3 z-20 flex flex-col gap-2">
+                    <div className="flex items-center justify-center min-w-[70px] px-2.5 py-1.5 rounded-md bg-[#10b981] shadow-sm">
+                        <span className="text-[10px] text-white font-black uppercase tracking-widest font-Cairo leading-none">
+                            {i18n.language === 'ar' ? 'أصلي' : 'ORIGINAL'}
+                        </span>
+                    </div>
+                </div>
 
-                {/* Hot Sale Badge */}
                 {hasSale && (
-                    <span className="absolute top-2 left-2 bg-red-600 text-white text-[9px] sm:text-[10px] uppercase font-black px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-lg tracking-widest animate-pulse z-10 border border-white">
-                        {t('hotSale')}
-                    </span>
+                    <div className="absolute top-3 left-3 z-20">
+                        <div className="bg-racing-red flex items-center justify-center px-2 py-1.5 rounded-sm shadow-md">
+                            <span className="text-[#000000] text-[10px] uppercase font-black italic font-Cairo leading-none">
+                                {t('hotSale')}
+                            </span>
+                        </div>
+                    </div>
                 )}
             </Link>
 
-            {/* Content Container */}
-            <div className="p-4 flex-1 flex flex-col">
-                {/* Vehicle Compatibility info */}
-                <div className="flex flex-wrap items-center gap-2 mb-2">
-                    {product.make && (
-                        <p className="text-[10px] text-orange-600 font-bold uppercase tracking-tight bg-orange-50 px-2 py-0.5 rounded border border-orange-100">
-                            {product.make} {product.model} {product.yearRange ? `(${product.yearRange})` : (product.yearStart && product.yearEnd ? `(${product.yearStart}-${product.yearEnd})` : '')}
-                        </p>
-                    )}
-                    {product.countryOfOrigin && (
-                        <span className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold border border-blue-100">
-                            {product.countryOfOrigin}
-                        </span>
-                    )}
-                    {product.viscosity && (
-                        <span className="text-[9px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded font-bold border border-red-100 uppercase">
-                            {product.viscosity}
-                        </span>
-                    )}
-                </div>
+            {/* CONTENT HUB - Zero Gap Typography */}
+            <div className="p-4 flex flex-col flex-1 gap-3 !mt-[-1px] !pt-0">
+                <div className="flex flex-col gap-2 text-right">
+                    {/* PRODUCT NAME */}
+                    <Link to={`/product/${product.id}`} className="block">
+                        <h3 className="text-[#000000] text-sm font-black leading-tight line-clamp-2 uppercase font-Cairo transition-colors">
+                            {i18n.language === 'en' ? (product.nameEn || product.name) : product.name}
+                        </h3>
+                    </Link>
 
-                <Link to={`/product/${product.id}`}>
-                    <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 leading-tight group-hover:text-orange-600 transition-all line-clamp-2">
-                        {i18n.language === 'en' ? (product.nameEn || product.name) : product.name}
-                    </h3>
-                </Link>
-
-                <div className="flex items-center gap-1.5 mb-2 mt-auto">
-                    <span className="text-[9px] sm:text-[10px] text-gray-400 font-medium uppercase tracking-wide">{t('brand')}:</span>
-                    <span className="text-[9px] sm:text-[10px] font-bold text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded">
-                        {i18n.language === 'en'
-                            ? (product.brandEn || product.partBrand || product.brand)
-                            : (product.partBrand || product.brand)}
-                    </span>
-                </div>
-
-                {/* Price */}
-                <div className="mt-2 flex flex-col border-t border-gray-50 pt-2">
-                    <div className="flex flex-col mb-3">
-                        {hasSale ? (
-                            <>
-                                <span className="text-[9px] sm:text-[10px] text-gray-400 line-through">
-                                    {product.price} {t('currency')}
-                                </span>
-                                <span className="text-base sm:text-lg font-black text-red-600">
-                                    {product.salePrice} <span className="text-[9px] sm:text-[10px] font-normal italic">{t('currency')}</span>
-                                </span>
-                            </>
-                        ) : (
-                            <span className="text-base sm:text-lg font-bold text-gray-900">
-                                {product.price} <span className="text-[9px] sm:text-[10px] font-normal text-gray-500 italic">{t('currency')}</span>
+                    {/* BRAND & ORIGIN ROW - Side by Side */}
+                    <div className="flex flex-row justify-between items-end w-full border-b border-gray-100 pb-2">
+                        {/* Origin - Left Side */}
+                        <div className="flex flex-col items-start">
+                            <span className="text-[8px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">
+                                {i18n.language === 'ar' ? 'المنشأ' : 'Origin'}
                             </span>
-                        )}
-                    </div>
-
-                    {/* Quantity Selector and Add to Cart */}
-                    <div className="flex items-center gap-2">
-                        {/* Quantity Selector */}
-                        <div className="flex items-center border-2 border-[#008a40] rounded-lg overflow-hidden">
-                            <button
-                                onClick={decrementQuantity}
-                                className="w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center bg-[#008a40] hover:bg-[#006d33] text-white transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled={quantity <= 1}
-                            >
-                                <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
-                            </button>
-                            <span className="w-10 sm:w-12 text-center font-bold text-sm sm:text-base text-gray-900">
-                                {quantity}
+                            <span className="text-[11px] text-[#000000] font-black italic font-Cairo">
+                                {product.origin || product.countryOfOrigin || 'Imported'}
                             </span>
-                            <button
-                                onClick={incrementQuantity}
-                                className="w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center bg-[#008a40] hover:bg-[#006d33] text-white transition-colors active:scale-95"
-                            >
-                                <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
-                            </button>
                         </div>
 
-                        {/* Add to Cart Button */}
-                        <button
-                            onClick={handleAddToCart}
-                            className="flex-1 bg-orange-600 hover:bg-orange-700 text-white py-2 sm:py-2.5 px-3 rounded-lg transition-all shadow-lg shadow-orange-100 hover:shadow-orange-200 active:scale-95 flex items-center justify-center gap-2 font-bold text-xs sm:text-sm"
-                            title={t('addToCart')}
-                        >
-                            <ShoppingCart className="h-4 w-4" />
-                            <span className="hidden sm:inline">{t('addToCart')}</span>
-                        </button>
+                        {/* Brand - Right Side */}
+                        <div className="flex flex-col items-end">
+                            <span className="text-[8px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">
+                                {i18n.language === 'ar' ? 'البراند' : 'Brand'}
+                            </span>
+                            <span className="text-[13px] text-[#000000] font-black font-Cairo">
+                                {i18n.language === 'en'
+                                    ? (product.brandEn || product.partBrand || product.brand)
+                                    : (product.partBrand || product.brand || 'No Brand')}
+                            </span>
+                        </div>
                     </div>
+
+                    {/* MODEL ROW - Full Width */}
+                    <div className="flex flex-col items-end w-full border-b border-gray-100 pb-2">
+                        <span className="text-[8px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">
+                            {i18n.language === 'ar' ? 'الموديل' : 'Model'}
+                        </span>
+                        <span className="text-[12px] text-[#000000] font-black font-Cairo w-full text-right" title={product.carModel || `${product.make} ${product.model}`}>
+                            {product.carModel || `${product.make} ${product.model}` || 'Universal'}
+                        </span>
+                    </div>
+                </div>
+
+                {/* PRICING & ACTION - Racing Red Dominance */}
+                <div className="mt-auto flex flex-col gap-3 pt-3 border-t border-gray-100">
+                    <div className="flex items-center justify-between">
+                        <div className="flex flex-col">
+                            {hasSale && (
+                                <span className="text-[10px] text-gray-400 line-through font-bold leading-none mb-1">
+                                    {product.price} {t('currency')}
+                                </span>
+                            )}
+                            <div className="flex items-baseline gap-1">
+                                <span className="text-3xl font-black text-[#e31e24] font-Cairo leading-none drop-shadow-sm">
+                                    {hasSale ? product.salePrice : product.price}
+                                </span>
+                                <span className="text-sm font-black text-[#000000] uppercase tracking-tighter">{t('currency')}</span>
+                            </div>
+                        </div>
+
+                        {/* QUANTITY SELECTOR - Solid Black Contrast */}
+                        <div className="flex items-center bg-[#000000] rounded-lg p-1 self-center shadow-lg">
+                            <button onClick={decrementQuantity} className="w-8 h-8 flex items-center justify-center text-white hover:text-racing-red transition-colors">
+                                <Minus className="h-4 w-4" />
+                            </button>
+                            <span className="w-6 text-center text-sm font-black text-white">{quantity}</span>
+                            <button onClick={incrementQuantity} className="w-8 h-8 flex items-center justify-center text-white hover:text-racing-red transition-colors">
+                                <Plus className="h-4 w-4" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={handleAddToCart}
+                        className="w-full py-4 rounded-xl bg-[#e31e24] hover:bg-[#b8181d] text-white font-black text-sm uppercase tracking-widest italic font-Cairo transition-all active:scale-[0.98] shadow-lg shadow-racing-red/20 flex items-center justify-center gap-3 group/btn"
+                    >
+                        <ShoppingCart className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+                        <span>{i18n.language === 'ar' ? 'أضف للسلة' : 'ADD TO CART'}</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -153,3 +157,7 @@ const ProductCard = ({ product }) => {
 };
 
 export default ProductCard;
+
+
+
+

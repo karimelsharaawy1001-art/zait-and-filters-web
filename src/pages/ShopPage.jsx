@@ -37,8 +37,8 @@ const ShopPage = () => {
     }, [filters, setSearchParams]);
 
     return (
-        <div className="pt-8">
-            <div className="bg-white shadow-sm border-b border-gray-100 py-8 mb-8">
+        <div className="pt-4 md:pt-8 text-right">
+            <div className="bg-white shadow-sm border-b border-gray-100 py-4 md:py-8 mb-2 md:mb-8">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <h1 className="text-3xl font-extrabold text-gray-900">{t('shopTitle')}</h1>
                     <p className="mt-2 text-gray-500">{t('shopSubtitle')}</p>

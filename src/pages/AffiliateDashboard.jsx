@@ -1,33 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
-import { doc, getDoc, setDoc, collection, query, where, getDocs, orderBy, updateDoc } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc, updateDoc, collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import {
-    DollarSign,
-    Users,
     Copy,
     CheckCircle,
     Clock,
     AlertCircle,
-    ArrowUpRight,
     TrendingUp,
     Wallet,
     Settings,
-    Phone,
     ShieldCheck,
     LogOut
 } from 'lucide-react';
-import { signOut } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
 
 const AffiliateDashboard = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
+
+    // State Declarations
     const [user, setUser] = useState(null);
     const [affiliate, setAffiliate] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showSettings, setShowSettings] = useState(false);
+    const [transactions, setTransactions] = useState([]);
+    const [copied, setCopied] = useState(false);
+    const [updatingPayout, setUpdatingPayout] = useState(false);
+
     const [stats, setStats] = useState({
         totalSales: 0,
         totalEarnings: 0,
@@ -35,30 +37,40 @@ const AffiliateDashboard = () => {
         pendingBalance: 0,
         commissionPercentage: 5
     });
-    const [transactions, setTransactions] = useState([]);
-    const [copied, setCopied] = useState(false);
+
     const [payoutData, setPayoutData] = useState({
         instaPayNumber: '',
         walletNumber: ''
     });
-    const [updatingPayout, setUpdatingPayout] = useState(false);
 
+    // Auth & Data Fetching Effect
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            setUser(currentUser);
+        let mounted = true;
+
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+            if (!mounted) return;
+
             if (currentUser) {
-                fetchAffiliate(currentUser.uid);
+                setUser(currentUser);
+                try {
+                    await fetchAffiliate(currentUser.uid);
+                } catch (error) {
+                    console.error("Fetch Affiliate Error:", error);
+                }
             } else {
                 setLoading(false);
             }
         });
-        return () => unsubscribe();
+
+        return () => {
+            mounted = false;
+            unsubscribe();
+        };
     }, []);
 
     const fetchAffiliate = async (uid) => {
         try {
             const affDoc = await getDoc(doc(db, 'affiliates', uid));
-
             if (affDoc.exists()) {
                 const data = { id: affDoc.id, ...affDoc.data() };
                 setAffiliate(data);
@@ -66,10 +78,10 @@ const AffiliateDashboard = () => {
                     instaPayNumber: data.instaPayNumber || '',
                     walletNumber: data.walletNumber || ''
                 });
-                fetchTransactions(affDoc.id, data);
+                await fetchTransactions(affDoc.id, data);
             }
         } catch (error) {
-            console.error("Error fetching affiliate:", error);
+            console.error("Error fetching affiliate data:", error);
         } finally {
             setLoading(false);
         }
@@ -85,7 +97,6 @@ const AffiliateDashboard = () => {
             const list = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setTransactions(list);
 
-            // Calculate Balances based on 14-day policy
             const now = new Date();
             const fourteenDaysAgo = new Date(now.getTime() - (14 * 24 * 60 * 60 * 1000));
 
@@ -93,8 +104,9 @@ const AffiliateDashboard = () => {
             let pending = 0;
 
             list.forEach(tx => {
-                const txDate = tx.createdAt?.toDate();
-                if (txDate && txDate < fourteenDaysAgo) {
+                let txDate = getSafeDate(tx.createdAt);
+
+                if (txDate && !isNaN(txDate.getTime()) && txDate < fourteenDaysAgo) {
                     withdrawable += tx.commission || 0;
                 } else {
                     pending += tx.commission || 0;
@@ -111,6 +123,17 @@ const AffiliateDashboard = () => {
         } catch (error) {
             console.error("Error fetching transactions:", error);
         }
+    };
+
+    const getSafeDate = (dateField) => {
+        if (dateField?.toDate && typeof dateField.toDate === 'function') {
+            return dateField.toDate();
+        } else if (dateField instanceof Date) {
+            return dateField;
+        } else if (dateField) {
+            return new Date(dateField);
+        }
+        return null;
     };
 
     const handleUpdatePayout = async (e) => {
@@ -138,6 +161,7 @@ const AffiliateDashboard = () => {
     };
 
     const copyLink = () => {
+        if (!affiliate?.referralCode) return;
         const link = `https://zaitandfilters.com/?ref=${affiliate.referralCode}`;
         navigator.clipboard.writeText(link);
         setCopied(true);
@@ -151,6 +175,14 @@ const AffiliateDashboard = () => {
         } catch (error) {
             console.error("Logout Error:", error);
         }
+    };
+
+    const getTierInfo = () => {
+        if (!affiliate) return null;
+        const sales = affiliate.referralCount || 0;
+        if (sales < 10) return { next: 10, perc: 7, diff: 10 - sales };
+        if (sales < 30) return { next: 30, perc: 10, diff: 30 - sales };
+        return null;
     };
 
     if (loading) {
@@ -170,14 +202,7 @@ const AffiliateDashboard = () => {
         </div>
     );
 
-    const nextTierInfo = () => {
-        const sales = affiliate.referralCount || 0;
-        if (sales < 10) return { next: 10, perc: 7, diff: 10 - sales };
-        if (sales < 30) return { next: 30, perc: 10, diff: 30 - sales };
-        return null;
-    };
-
-    const tier = nextTierInfo();
+    const tier = getTierInfo();
     const progress = tier ? Math.min(100, ((affiliate.referralCount || 0) / tier.next) * 100) : 100;
 
     return (
@@ -223,6 +248,54 @@ const AffiliateDashboard = () => {
                         </div>
                     </div>
                 </header>
+
+                {/* Promo Code Coupon Section */}
+                <div className="mb-10 max-w-2xl mx-auto">
+                    <div className="border-2 border-dashed border-gray-300 bg-gray-50 rounded-2xl p-6 sm:p-8 relative group hover:border-gray-400 transition-all">
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                            <div className="text-center sm:text-right flex-1">
+                                <span className="inline-block px-3 py-1 bg-green-100 text-green-700 text-[10px] font-black uppercase tracking-widest rounded-full mb-3">
+                                    كود الخصم: خصم 5% لعملائك
+                                </span>
+                                <h3 className="text-3xl sm:text-4xl font-black text-[#000000] tracking-widest uppercase font-mono mb-2">
+                                    {affiliate.referralCode || 'AFF5'}
+                                </h3>
+                                <p className="text-xs font-bold text-gray-500">
+                                    هذا الكود يمنح العميل خصم 5% على جميع المنتجات
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(affiliate.referralCode || 'AFF5');
+                                    const btn = document.getElementById('copy-coupon-btn');
+                                    if (btn) {
+                                        const originalText = btn.innerHTML;
+                                        btn.innerHTML = `<span class="flex items-center gap-2">Copied! <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></span>`;
+                                        btn.classList.remove('bg-black', 'text-white');
+                                        btn.classList.add('bg-green-600', 'text-white');
+                                        setTimeout(() => {
+                                            btn.innerHTML = originalText;
+                                            btn.classList.add('bg-black', 'text-white');
+                                            btn.classList.remove('bg-green-600');
+                                        }, 2000);
+                                    }
+                                }}
+                                id="copy-coupon-btn"
+                                className="shrink-0 bg-black text-white px-8 py-4 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-gray-800 transition-all shadow-lg flex items-center justify-center min-w-[140px]"
+                            >
+                                <span className="flex items-center gap-2">
+                                    Copy / نسخ
+                                    <Copy className="h-4 w-4" />
+                                </span>
+                            </button>
+                        </div>
+
+                        {/* Decorative Scissors/Cut Line */}
+                        <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-3 h-3 bg-gray-50 rounded-full border-r-2 border-gray-300 hidden sm:block"></div>
+                        <div className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 bg-gray-50 rounded-full border-l-2 border-gray-300 hidden sm:block"></div>
+                    </div>
+                </div>
 
                 {/* Policy Disclaimer */}
                 <div className="mb-10 bg-blue-50 border-2 border-blue-100 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center gap-6">
@@ -376,8 +449,8 @@ const AffiliateDashboard = () => {
                             <tbody className="divide-y divide-gray-100">
                                 {transactions.length > 0 ? transactions.map((tx) => {
                                     const now = new Date();
-                                    const txDate = tx.createdAt?.toDate();
-                                    const isWithdrawable = txDate && (now.getTime() - txDate.getTime()) > (14 * 24 * 60 * 60 * 1000);
+                                    const txDate = getSafeDate(tx.createdAt);
+                                    const isWithdrawable = txDate && !isNaN(txDate.getTime()) && (now.getTime() - txDate.getTime()) > (14 * 24 * 60 * 60 * 1000);
 
                                     return (
                                         <tr key={tx.id} className="hover:bg-gray-50/50 transition-colors">

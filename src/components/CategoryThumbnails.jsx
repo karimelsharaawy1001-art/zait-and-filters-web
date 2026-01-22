@@ -32,10 +32,10 @@ const CategoryThumbnails = () => {
     if (categories.length === 0) return null;
 
     return (
-        <div className="bg-white py-8 sm:py-12 border-t border-gray-100">
+        <div className="bg-white py-8 sm:py-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center mb-6 sm:mb-10 border-b border-gray-100 pb-6">
-                    <h2 className="text-2xl sm:text-4xl font-black text-gray-900 uppercase tracking-tight">
+                <div className="flex items-center mb-6 border-b border-gray-100 pb-4">
+                    <h2 className="text-3xl sm:text-4xl font-black text-[#000000] uppercase italic tracking-tighter font-Cairo">
                         {t('shopByCategory')}
                     </h2>
                 </div>
@@ -45,7 +45,7 @@ const CategoryThumbnails = () => {
                         <div
                             key={cat.id}
                             onClick={() => handleCategoryClick(cat.name)}
-                            className="group relative h-32 sm:h-48 rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1.5"
+                            className="group relative h-40 sm:h-56 rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-highrev-grey-light"
                         >
                             {/* Background Image */}
                             <img
@@ -54,12 +54,15 @@ const CategoryThumbnails = () => {
                                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                             />
 
-                            {/* Refined Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-orange-600/80 transition-colors duration-500"></div>
+                            {/* Dark Overlay for Readability */}
+                            <div
+                                className="absolute inset-0 group-hover:opacity-90 transition-all duration-500"
+                                style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', borderRadius: '12px' }}
+                            ></div>
 
-                            {/* Content */}
-                            <div className="absolute inset-0 flex items-end justify-center p-4 sm:p-6">
-                                <h3 className="text-white text-base sm:text-xl font-black text-center tracking-wide group-hover:scale-110 transition-transform duration-500 drop-shadow-lg">
+                            {/* Content - Centered */}
+                            <div className="absolute inset-0 flex items-center justify-center p-4">
+                                <h3 className="text-white text-2xl sm:text-4xl font-black text-center tracking-tighter transition-all duration-500 italic uppercase font-Cairo drop-shadow-xl">
                                     {i18n.language === 'ar' ? cat.name : (cat.nameEn || cat.name)}
                                 </h3>
                             </div>

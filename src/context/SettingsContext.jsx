@@ -8,7 +8,7 @@ export const SettingsProvider = ({ children }) => {
     const [settings, setSettings] = useState({
         siteName: 'ZAIT & FILTERS',
         siteLogo: '',
-        footerDescription: 'The trusted source for high-performance oils, filters, and maintenance essentials.',
+        footerDescription: 'Original automotive spare parts and oils with warranty. We deliver to all Egyptian governorates with various installment options.',
         contactPhone: '',
         contactEmail: '',
         contactAddress: '',

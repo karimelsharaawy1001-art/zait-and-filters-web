@@ -127,26 +127,27 @@ const AdminMessages = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+            <div className="min-h-[400px] flex flex-col items-center justify-center gap-4">
+                <div className="h-12 w-12 border-4 border-admin-accent border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">Accessing communication node...</p>
             </div>
         );
     }
 
     return (
-        <div className="p-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+        <div className="p-4 md:p-8">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-12">
                 <div>
-                    <h1 className="text-3xl font-black text-gray-900">Contact Messages</h1>
-                    <p className="text-gray-500 font-medium">Manage and respond to customer inquiries.</p>
+                    <h1 className="text-4xl font-black text-white tracking-tight uppercase poppins">Terminal Comms</h1>
+                    <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest mt-1">Intercept and manage incoming customer transmissions</p>
                 </div>
 
-                <div className="flex items-center gap-2 bg-white p-1 rounded-2xl border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-2 bg-admin-card p-1 rounded-2xl border border-admin-border shadow-admin">
                     {['All', 'Unread', 'Read', 'Replied'].map((status) => (
                         <button
                             key={status}
                             onClick={() => setFilterStatus(status)}
-                            className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${filterStatus === status ? 'bg-orange-600 text-white shadow-lg shadow-orange-100' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+                            className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filterStatus === status ? 'bg-admin-accent text-white shadow-lg shadow-admin-red/40' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                         >
                             {status}
                         </button>
@@ -155,109 +156,115 @@ const AdminMessages = () => {
             </div>
 
             {messages.length === 0 ? (
-                <div className="bg-white rounded-3xl p-16 text-center border border-gray-100 flex flex-col items-center">
-                    <div className="bg-gray-50 p-6 rounded-full mb-6">
-                        <Mail className="h-10 w-10 text-gray-300" />
+                <div className="bg-admin-card rounded-[2.5rem] p-20 text-center border border-admin-border flex flex-col items-center shadow-admin">
+                    <div className="bg-[#ffffff05] p-10 rounded-full mb-8 border border-admin-border">
+                        <Mail className="h-12 w-12 text-gray-700" />
                     </div>
-                    <h2 className="text-xl font-black text-gray-900 font-sans">No messages found</h2>
-                    <p className="text-gray-500 mt-2">When customers contact you, their messages will appear here.</p>
+                    <h2 className="text-2xl font-black text-white uppercase tracking-tight poppins">Quiet Frequency</h2>
+                    <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest mt-4">All customer signals have been cleared</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 gap-6">
+                <div className="grid grid-cols-1 gap-8">
                     {messages.map((msg) => (
                         <div
                             key={msg.id}
                             onClick={() => msg.status === 'Unread' && handleUpdateStatus(msg.id, 'Read')}
-                            className={`bg-white rounded-[2rem] border cursor-pointer transition-all duration-300 ${msg.status === 'Unread' ? 'border-orange-500 shadow-xl shadow-orange-50/50' : 'border-gray-50 shadow-sm opacity-90'}`}
+                            className={`bg-admin-card rounded-[2.5rem] border transition-all duration-500 group relative overflow-hidden ${msg.status === 'Unread' ? 'border-admin-accent/30 shadow-2xl shadow-admin-accent/5' : 'border-[#ffffff0d] shadow-admin opacity-90'}`}
                         >
-                            <div className="p-8">
-                                <div className="flex flex-col lg:flex-row gap-8">
+                            {msg.status === 'Unread' && (
+                                <div className="absolute top-0 left-0 w-1 h-full bg-admin-accent"></div>
+                            )}
+                            <div className="p-8 md:p-10">
+                                <div className="flex flex-col xl:flex-row gap-10">
                                     {/* Left: Sender Info */}
-                                    <div className="lg:w-72 flex-shrink-0 space-y-4 pt-1">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`h-12 w-12 rounded-2xl flex items-center justify-center ${msg.status === 'Unread' ? 'bg-orange-50 text-orange-600 animate-pulse' : 'bg-gray-100 text-gray-500'}`}>
-                                                <User className="h-6 w-6" />
+                                    <div className="xl:w-80 flex-shrink-0 space-y-6">
+                                        <div className="flex items-center gap-5">
+                                            <div className={`h-16 w-16 rounded-2xl flex items-center justify-center transition-all duration-500 ${msg.status === 'Unread' ? 'bg-admin-accent/10 text-admin-accent ring-2 ring-admin-accent/20' : 'bg-[#ffffff05] text-gray-500 border border-admin-border'}`}>
+                                                <User className="h-7 w-7" />
                                             </div>
                                             <div>
-                                                <h3 className="text-lg font-black text-gray-900 leading-tight">{msg.name}</h3>
-                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1 mt-1">
-                                                    <Clock className="w-3 h-3" />
+                                                <h3 className="text-lg font-black text-white leading-tight uppercase tracking-tight poppins">{msg.name}</h3>
+                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2 mt-1.5">
+                                                    <Clock className="w-3.5 h-3.5" />
                                                     {msg.createdAt?.toDate().toLocaleString()}
                                                 </p>
                                             </div>
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <div className="flex items-center gap-3 text-sm font-bold text-gray-600">
-                                                <Mail className="w-4 h-4 text-orange-400" />
+                                        <div className="space-y-3 bg-[#ffffff03] p-5 rounded-2xl border border-admin-border">
+                                            <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-admin-text-secondary break-all">
+                                                <Mail className="w-4 h-4 text-admin-accent" />
                                                 <span className="truncate">{msg.email}</span>
                                             </div>
                                             {msg.phone && (
-                                                <div className="flex items-center gap-3 text-sm font-bold text-gray-600">
-                                                    <Phone className="w-4 h-4 text-orange-400" />
+                                                <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-admin-text-secondary">
+                                                    <Phone className="w-4 h-4 text-admin-accent" />
                                                     <span>{msg.phone}</span>
                                                 </div>
                                             )}
                                         </div>
 
-                                        <div className="pt-2 flex flex-wrap gap-2">
-                                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${msg.status === 'Unread' ? 'bg-orange-600 text-white' :
-                                                    msg.status === 'Read' ? 'bg-blue-100 text-blue-600' :
-                                                        'bg-green-100 text-green-600'
+                                        <div className="pt-2 flex flex-wrap gap-3">
+                                            <span className={`px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border ${msg.status === 'Unread' ? 'bg-admin-accent/20 text-admin-accent border-admin-accent/20' :
+                                                msg.status === 'Read' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                                    'bg-admin-green/10 text-admin-green border-admin-green/20'
                                                 }`}>
                                                 {msg.status}
                                             </span>
                                             {msg.status === 'Unread' && (
-                                                <span className="px-3 py-1 bg-red-500 text-white rounded-full text-[8px] font-black animate-bounce">NEW</span>
+                                                <span className="px-4 py-2 bg-admin-accent text-white rounded-xl text-[9px] font-black animate-pulse uppercase tracking-widest">Incoming Signal</span>
                                             )}
                                         </div>
                                     </div>
 
                                     {/* Center: Message Body */}
-                                    <div className="flex-1 space-y-4">
-                                        <div className="p-6 bg-gray-50 rounded-[2rem] border border-gray-100">
-                                            <h4 className="text-base font-black text-gray-900 mb-3 flex items-center gap-2">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
-                                                {msg.subject || 'Inquiry Message'}
+                                    <div className="flex-1">
+                                        <div className="p-8 bg-[#ffffff03] rounded-[2rem] border border-admin-border h-full relative group-hover:bg-[#ffffff05] transition-all duration-500">
+                                            <div className="absolute top-6 right-8">
+                                                <MessageSquare className="w-12 h-12 text-white/5" />
+                                            </div>
+                                            <h4 className="text-sm font-black text-white uppercase tracking-widest mb-6 flex items-center gap-3">
+                                                <div className="w-2 h-2 rounded-full bg-admin-accent animate-ping"></div>
+                                                {msg.subject || 'Standard Inquiry'}
                                             </h4>
-                                            <p className="text-gray-700 font-medium leading-relaxed italic whitespace-pre-wrap">
-                                                "{msg.message}"
+                                            <p className="text-admin-text-secondary text-sm font-bold leading-relaxed whitespace-pre-wrap">
+                                                {msg.message}
                                             </p>
                                         </div>
                                     </div>
 
                                     {/* Right: Actions */}
-                                    <div className="lg:w-56 flex-shrink-0 flex flex-col gap-3 justify-center">
+                                    <div className="xl:w-64 flex-shrink-0 flex flex-col gap-4 justify-center">
                                         {msg.phone && (
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); handleWhatsAppReply(msg); }}
-                                                className="w-full bg-green-500 hover:bg-green-600 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2 transition-all text-xs shadow-lg shadow-green-100"
+                                                className="w-full bg-[#128C7E]/10 hover:bg-[#128C7E] text-[#128C7E] hover:text-white border border-[#128C7E]/30 rounded-2xl py-4 flex items-center justify-center gap-3 font-black text-[10px] uppercase tracking-widest transition-all duration-300"
                                             >
                                                 <MessageSquare className="w-4 h-4" />
-                                                Reply WhatsApp
+                                                Transmit WhatsApp
                                             </button>
                                         )}
                                         <button
                                             onClick={(e) => { e.stopPropagation(); handleEmailReply(msg); }}
-                                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2 transition-all text-xs shadow-lg shadow-blue-100"
+                                            className="w-full bg-admin-accent/10 hover:bg-admin-accent text-admin-accent hover:text-white border border-admin-accent/30 rounded-2xl py-4 flex items-center justify-center gap-3 font-black text-[10px] uppercase tracking-widest transition-all duration-300"
                                         >
                                             <Mail className="w-4 h-4" />
-                                            Reply via Email
+                                            Dispatch Email
                                         </button>
-                                        <div className="flex gap-2">
+                                        <div className="grid grid-cols-2 gap-3 mt-2">
                                             {msg.status === 'Unread' && (
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleUpdateStatus(msg.id, 'Read'); }}
-                                                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-3 rounded-xl transition-all text-[10px]"
+                                                    className="bg-[#ffffff05] hover:bg-[#ffffff0a] text-gray-500 hover:text-white border border-admin-border rounded-xl py-3 font-black text-[9px] uppercase tracking-widest transition-all"
                                                 >
-                                                    Mark Read
+                                                    Acknowledge
                                                 </button>
                                             )}
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); handleDelete(msg.id); }}
-                                                className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl transition-all text-[10px]"
+                                                className="bg-admin-red/10 hover:bg-admin-red text-admin-red hover:text-white border border-admin-red/30 rounded-xl py-3 font-black text-[9px] uppercase tracking-widest transition-all"
                                             >
-                                                Delete
+                                                Purge
                                             </button>
                                         </div>
                                     </div>

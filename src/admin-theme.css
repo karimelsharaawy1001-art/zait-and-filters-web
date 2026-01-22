@@ -1,0 +1,138 @@
+@import "./index.css";
+
+/* 
+ * Premium Unified Admin Theme
+ * Using CSS variables defined in index.css
+ */
+
+html,
+body,
+#root,
+.main-panel {
+    background-color: var(--matte-black) !important;
+}
+
+.sidebar,
+aside {
+    background-color: var(--matte-black) !important;
+    border-right: 1px solid var(--admin-border) !important;
+}
+
+.card,
+[class*="card"],
+.dashboard-card,
+.stat-card {
+    background-color: var(--carbon-grey) !important;
+    border: 1px solid var(--admin-border) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Typography Overrides */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.card-title {
+    color: var(--snow-white) !important;
+    font-weight: 700 !important;
+}
+
+p,
+span,
+div,
+label,
+td,
+th {
+    color: var(--silver-grey) !important;
+}
+
+/* Sidebar Navigation */
+.sidebar .nav-item.active,
+.sidebar a.active {
+    background-color: var(--racing-red) !important;
+    color: var(--snow-white) !important;
+}
+
+.sidebar .nav-link,
+.sidebar a {
+    color: var(--silver-grey) !important;
+}
+
+.sidebar .nav-link i,
+.sidebar .nav-link svg {
+    color: var(--racing-red) !important;
+}
+
+.sidebar .nav-item.active i,
+.sidebar .nav-item.active svg {
+    color: var(--snow-white) !important;
+}
+
+/* Massive Table Overhaul */
+table {
+    border-color: var(--admin-border) !important;
+}
+
+thead th {
+    background-color: var(--matte-black) !important;
+    color: var(--snow-white) !important;
+    font-weight: 800 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--racing-red) !important;
+}
+
+tbody tr {
+    border-bottom: 1px solid var(--admin-border) !important;
+}
+
+tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+/* Modern Form Controls */
+input,
+textarea,
+select,
+.form-control {
+    background-color: var(--matte-black) !important;
+    border: 1px solid var(--admin-border) !important;
+    color: var(--snow-white) !important;
+    border-radius: 8px !important;
+    padding: 10px 15px !important;
+}
+
+input:focus,
+textarea:focus {
+    border-color: var(--racing-red) !important;
+    box-shadow: 0 0 0 2px rgba(227, 30, 36, 0.2) !important;
+}
+
+/* Branding Buttons */
+.btn-primary,
+button[class*="primary"],
+.btn-red {
+    background-color: var(--racing-red) !important;
+    border-color: var(--racing-red) !important;
+    color: var(--snow-white) !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.btn-primary:hover {
+    background-color: var(--racing-red-dark) !important;
+}
+
+/* Scrollbar Style */
+::-webkit-scrollbar-track {
+    background: var(--matte-black) !important;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--racing-red) !important;
+    border-radius: 10px !important;
+}

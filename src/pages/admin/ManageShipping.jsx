@@ -132,54 +132,60 @@ const ManageShipping = () => {
     };
 
     return (
-        <div className="p-4 md:p-8 max-w-5xl mx-auto">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                <div className="flex items-center gap-3">
-                    <div className="bg-orange-100 p-3 rounded-2xl">
-                        <Truck className="h-6 w-6 text-orange-600" />
+        <div className="min-h-screen bg-admin-bg font-sans pb-20 p-4 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 max-w-7xl mx-auto mt-10">
+                <div className="flex items-center gap-4">
+                    <div className="bg-admin-accent/10 p-4 rounded-2xl">
+                        <Truck className="h-6 w-6 text-admin-accent" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-black text-gray-900">Shipping Rates</h1>
-                        <p className="text-sm text-gray-500 font-bold">Manage governorate-based delivery costs</p>
+                        <h1 className="text-3xl font-black text-white uppercase tracking-widest poppins">Shipping Rates</h1>
+                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Manage governorate-based delivery costs</p>
                     </div>
                 </div>
                 <button
                     onClick={handleSeed}
                     disabled={actionLoading}
-                    className="flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-sm font-black hover:bg-blue-100 transition-all border border-blue-100"
+                    className="flex items-center gap-3 bg-[#ffffff05] text-white px-8 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:bg-[#ffffff0a] transition-all border border-admin-border group active:scale-95 disabled:opacity-50"
                 >
-                    <RefreshCcw className={`h-4 w-4 ${actionLoading ? 'animate-spin' : ''}`} />
-                    Load Default Egypt Govs
+                    <RefreshCcw className={`h-4 w-4 text-admin-accent group-hover:rotate-180 transition-transform duration-500 ${actionLoading ? 'animate-spin' : ''}`} />
+                    Provision Default Egypt Matrix
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-7xl mx-auto">
                 {/* Form Side */}
                 <div className="lg:col-span-1">
-                    <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 sticky top-8">
-                        <h2 className="text-lg font-black text-gray-900 mb-6 flex items-center gap-2">
-                            <Plus className="h-5 w-5 text-orange-600" />
-                            Add New Rate
+                    <div className="bg-admin-card rounded-[2.5rem] p-10 shadow-admin border border-admin-border sticky top-8 group overflow-hidden">
+                        <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <Plus className="h-24 w-24 text-white" />
+                        </div>
+
+                        <h2 className="text-xl font-black text-white mb-8 flex items-center gap-3 relative poppins">
+                            <div className="p-2 bg-admin-accent/10 rounded-xl">
+                                <Plus className="h-5 w-5 text-admin-accent" />
+                            </div>
+                            Manual Entry
                         </h2>
-                        <form onSubmit={handleAdd} className="space-y-4">
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Governorate</label>
+                        <form onSubmit={handleAdd} className="space-y-8 relative">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Governorate Entity</label>
                                 <input
                                     type="text"
                                     value={newRate.governorate}
                                     onChange={(e) => setNewRate({ ...newRate, governorate: e.target.value })}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                                    className="w-full bg-[#ffffff05] border border-admin-border rounded-2xl px-5 py-4 text-sm font-bold text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all placeholder-gray-700"
                                     placeholder="e.g. Cairo"
                                     required
                                 />
                             </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Cost (EGP)</label>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Operational Cost (EGP)</label>
                                 <input
                                     type="number"
                                     value={newRate.cost}
                                     onChange={(e) => setNewRate({ ...newRate, cost: e.target.value })}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                                    className="w-full bg-[#ffffff05] border border-admin-border rounded-2xl px-5 py-4 text-sm font-bold text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all placeholder-gray-700"
                                     placeholder="e.g. 50"
                                     required
                                 />
@@ -187,9 +193,9 @@ const ManageShipping = () => {
                             <button
                                 type="submit"
                                 disabled={actionLoading}
-                                className="w-full bg-gray-900 text-white py-3 rounded-xl font-black text-sm hover:bg-black transition-all shadow-lg active:scale-95 disabled:opacity-50"
+                                className="w-full bg-admin-red hover:bg-admin-red-dark text-white py-5 rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] hover:scale-[1.02] transition-all shadow-xl shadow-admin-red/40 active:scale-95 disabled:opacity-50"
                             >
-                                Add Rate
+                                Commmit Rate Entity
                             </button>
                         </form>
                     </div>
@@ -197,66 +203,69 @@ const ManageShipping = () => {
 
                 {/* Table Side */}
                 <div className="lg:col-span-2">
-                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="bg-admin-card rounded-[2.5rem] shadow-admin border border-admin-border overflow-hidden">
                         {loading ? (
-                            <div className="p-12 flex flex-col items-center justify-center text-gray-400 gap-3">
-                                <Loader2 className="h-8 w-8 animate-spin" />
-                                <p className="font-bold text-sm">Loading rates...</p>
+                            <div className="p-20 flex flex-col items-center justify-center gap-4">
+                                <div className="h-10 w-10 border-4 border-admin-accent border-t-transparent rounded-full animate-spin"></div>
+                                <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Tracing Logistics Node...</p>
                             </div>
                         ) : rates.length === 0 ? (
-                            <div className="p-12 text-center text-gray-400 font-bold text-sm">
-                                No shipping rates configured.
+                            <div className="p-20 text-center">
+                                <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">No logistics matrix detected.</p>
                             </div>
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full border-collapse">
                                     <thead>
-                                        <tr className="bg-gray-50 border-b border-gray-100 text-left">
-                                            <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Governorate</th>
-                                            <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Cost</th>
-                                            <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
+                                        <tr className="bg-[#ffffff02] border-b border-[#ffffff05] text-left">
+                                            <th className="px-10 py-6 text-[10px] font-black text-gray-600 uppercase tracking-widest poppins">Geographic Entity</th>
+                                            <th className="px-10 py-6 text-[10px] font-black text-gray-600 uppercase tracking-widest text-center poppins">Operational Cost</th>
+                                            <th className="px-10 py-6 text-[10px] font-black text-gray-600 uppercase tracking-widest text-right poppins">Operations</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-50">
+                                    <tbody className="divide-y divide-[#ffffff05]">
                                         {rates.map((rate) => (
-                                            <tr key={rate.id} className="hover:bg-gray-50/50 transition-all group">
-                                                <td className="px-6 py-4">
+                                            <tr key={rate.id} className="hover:bg-[#ffffff02] transition-all group">
+                                                <td className="px-10 py-6">
                                                     {isEditing === rate.id ? (
                                                         <input
                                                             type="text"
                                                             value={editRate.governorate}
                                                             onChange={(e) => setEditRate({ ...editRate, governorate: e.target.value })}
-                                                            className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+                                                            className="w-full bg-[#ffffff05] border border-admin-accent/30 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:ring-1 focus:ring-admin-accent outline-none"
                                                         />
                                                     ) : (
-                                                        <span className="text-sm font-bold text-gray-700">{rate.governorate}</span>
+                                                        <span className="text-base font-black text-white poppins uppercase tracking-wide group-hover:text-admin-accent transition-colors">{rate.governorate}</span>
                                                     )}
                                                 </td>
-                                                <td className="px-6 py-4 text-center">
+                                                <td className="px-10 py-6 text-center">
                                                     {isEditing === rate.id ? (
                                                         <input
                                                             type="number"
                                                             value={editRate.cost}
                                                             onChange={(e) => setEditRate({ ...editRate, cost: e.target.value })}
-                                                            className="w-24 mx-auto bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+                                                            className="w-32 mx-auto bg-[#ffffff05] border border-admin-accent/30 rounded-xl px-4 py-2.5 text-sm font-bold text-white text-center focus:ring-1 focus:ring-admin-accent outline-none"
                                                         />
                                                     ) : (
-                                                        <span className="text-sm font-black text-orange-600">{rate.cost} <span className="text-[10px] font-bold">EGP</span></span>
+                                                        <span className="text-xl font-black text-admin-accent font-mono uppercase tracking-tighter">
+                                                            {rate.cost}
+                                                            <span className="text-[10px] ml-1 opacity-50">EGP</span>
+                                                        </span>
                                                     )}
                                                 </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <div className="flex items-center justify-end gap-2">
+                                                <td className="px-10 py-6 text-right">
+                                                    <div className="flex items-center justify-end gap-3">
                                                         {isEditing === rate.id ? (
                                                             <>
                                                                 <button
                                                                     onClick={() => handleUpdate(rate.id)}
-                                                                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-all"
+                                                                    className="p-3 text-admin-green hover:bg-admin-green/10 rounded-xl transition-all border border-admin-green/20"
                                                                 >
                                                                     <Save className="h-4 w-4" />
                                                                 </button>
                                                                 <button
                                                                     onClick={() => setIsEditing(null)}
-                                                                    className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-all"
+                                                                    className="p-3 text-gray-500 hover:bg-[#ffffff05] rounded-xl transition-all border border-admin-border"
                                                                 >
                                                                     <X className="h-4 w-4" />
                                                                 </button>
@@ -265,13 +274,13 @@ const ManageShipping = () => {
                                                             <>
                                                                 <button
                                                                     onClick={() => startEdit(rate)}
-                                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                                                                    className="p-3 text-admin-accent hover:bg-admin-accent/10 rounded-xl opacity-0 group-hover:opacity-100 transition-all border border-admin-accent/20"
                                                                 >
                                                                     <Edit2 className="h-4 w-4" />
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleDelete(rate.id)}
-                                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                                                                    className="p-3 text-admin-red hover:bg-admin-red/10 rounded-xl opacity-0 group-hover:opacity-100 transition-all border border-admin-red/20"
                                                                 >
                                                                     <Trash2 className="h-4 w-4" />
                                                                 </button>

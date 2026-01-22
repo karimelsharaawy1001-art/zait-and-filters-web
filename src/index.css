@@ -1,16 +1,33 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;700;800&family=Inter:wght@300;400;500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;700;800;900&family=Inter:wght@300;400;500;700;800&family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
-@theme {
-    --font-sans: var(--font-primary);
-}
-
 :root {
-    --font-primary: 'Inter', sans-serif;
+    --font-primary: 'Cairo', sans-serif;
+    --admin-font: 'Poppins', 'Roboto', sans-serif;
+
+    --matte-black: #0a0a0b;
+    --carbon-grey: #1a1c23;
+    --racing-red: #e31e24;
+    --snow-white: #ffffff;
+    --silver-grey: #cccccc;
+    --dim-grey: #666666;
+
+    --admin-bg: var(--matte-black);
+    --admin-sidebar: var(--carbon-grey);
+    --admin-card: var(--carbon-grey);
+    --admin-border: #2c2e33;
+    --admin-red: var(--racing-red);
+    --admin-text: var(--snow-white);
+    --admin-text-secondary: var(--silver-grey);
 }
 
-:root[dir="rtl"] {
-    --font-primary: 'Cairo', sans-serif;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Cairo', sans-serif !important;
 }
 
 html,
@@ -23,11 +40,94 @@ body,
     font-family: inherit;
 }
 
+.font-Cairo {
+    font-family: 'Cairo', sans-serif !important;
+}
+
 body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-color: var(--matte-black);
+    color: var(--snow-white);
 }
 
+/* Force SVG icons to inherit color from parent */
+svg {
+    color: inherit !important;
+}
+
+/* ========================================
+   GLOBAL LAYOUT 
+   ======================================== */
+
+#root {
+    min-height: 100vh;
+}
+
+/* ========================================
+   ADMIN PANEL ENFORCED DARK THEME
+   ======================================== */
+
+/* Lock dark surfaces for Admin Panel elements */
+.bg-matte-black,
+.bg-carbon-grey,
+aside.bg-carbon-grey,
+main.bg-matte-black {
+    background-color: var(--matte-black) !important;
+    color: var(--snow-white) !important;
+}
+
+.bg-carbon-grey {
+    background-color: var(--carbon-grey) !important;
+}
+
+/* Ensure admin cards and interactive elements stay visible */
+.admin-card,
+[class*='border-border-dark'] {
+    border-color: #2c2e33 !important;
+}
+
+/* Global Nav Overrides for Admin only if needed, 
+   otherwise Navbar should handle its own light/dark state */
+.nav-item.active,
+.nav-link.active {
+    background-color: var(--racing-red) !important;
+    color: var(--snow-white) !important;
+}
+
+/* Typography Consistency */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span,
+p,
+div {
+    font-family: var(--font-primary), var(--admin-font), sans-serif !important;
+}
+
+/* Strip Legacy Gradients */
+[class*='bg-gradient'],
+[class*='gradient'],
+[class*='glass'] {
+    background-image: none !important;
+    backdrop-filter: none;
+}
+
+/* Header & Nav Recovery */
+nav a {
+    color: var(--silver-grey);
+    transition: color 0.3s;
+}
+
+nav a.active,
+nav a:hover {
+    color: var(--racing-red) !important;
+}
+
+/* Print Styles */
 @media screen {
     .print-only-section {
         display: none !important;
@@ -35,8 +135,6 @@ body {
 }
 
 @media print {
-
-    /* Hide everything on the page */
     body {
         visibility: hidden !important;
         margin: 0 !important;
@@ -44,7 +142,6 @@ body {
         background: white !important;
     }
 
-    /* Make the print section visible and center it */
     .print-only-section {
         visibility: visible !important;
         display: block !important;
@@ -57,12 +154,10 @@ body {
         background: white !important;
     }
 
-    /* Ensure all children of the print section are visible */
     .print-only-section * {
         visibility: visible !important;
     }
 
-    /* Specifically avoid display: none on parents like #root, main, etc. */
     #root,
     main,
     .min-h-screen,
@@ -78,4 +173,19 @@ body {
         size: A4;
         margin: 0;
     }
+}
+
+/* ========================================
+   HEADER GLOBAL OVERRIDES (Lead Dev)
+   ======================================== */
+.force-black {
+    color: #000000 !important;
+    stroke: #000000 !important;
+    fill: transparent !important;
+    opacity: 1 !important;
+}
+
+.nav-link-black {
+    color: #000000 !important;
+    font-weight: 700 !important;
 }

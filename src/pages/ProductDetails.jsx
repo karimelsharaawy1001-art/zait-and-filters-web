@@ -37,6 +37,8 @@ import {
 import { auth, storage } from '../firebase';
 import RelatedProducts from '../components/RelatedProducts';
 import TrustPaymentSection from '../components/TrustPaymentSection';
+import InstallmentBar from '../components/InstallmentBar';
+import { getOptimizedImage } from '../utils/cloudinaryUtils';
 
 const ProductDetails = () => {
     const { id } = useParams();
@@ -191,7 +193,7 @@ const ProductDetails = () => {
                     {/* Product Image */}
                     <div className="relative rounded-3xl overflow-hidden bg-gray-50 aspect-square group">
                         <img
-                            src={product.image}
+                            src={getOptimizedImage(product.image, 'f_auto,q_auto,w_1000')}
                             alt={product.name}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         />
@@ -276,6 +278,13 @@ const ProductDetails = () => {
 
                         <TrustPaymentSection />
 
+                        <div className="mt-8">
+                            <InstallmentBar
+                                price={hasSale ? product.salePrice : product.price}
+                                showCalculator={true}
+                            />
+                        </div>
+
                         {/* Description / Features */}
                         <div className="mb-8 prose prose-orange max-w-none font-bold">
                             <h3 className={`text-lg font-bold text-gray-900 mb-3 border-b pb-2 ${isAr ? 'text-right' : 'text-left'}`}>{t('descriptionLabel')}</h3>
@@ -300,6 +309,11 @@ const ProductDetails = () => {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <div className="mt-20 border-t border-gray-100 pt-16">
+                    <h3 className={`text-2xl font-black text-gray-900 mb-8 ${isAr ? 'text-right' : 'text-left'}`}>{t('relatedProducts')}</h3>
+                    <RelatedProducts currentProduct={product} />
                 </div>
 
                 {/* Review System Section */}
@@ -458,10 +472,6 @@ const ProductDetails = () => {
                     </div>
                 </div>
 
-                <div className="mt-20">
-                    <h3 className={`text-2xl font-black text-gray-900 mb-8 ${isAr ? 'text-right' : 'text-left'}`}>{t('relatedProducts')}</h3>
-                    <RelatedProducts currentProduct={product} />
-                </div>
 
                 {/* Image Expansion Modal */}
                 {expandedImage && (

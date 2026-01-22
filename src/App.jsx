@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { Toaster } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import Navbar from './components/Navbar';
+import ScrollToTop from './components/ScrollToTop';
 import Hero from './components/Hero';
 import ProductGrid from './components/ProductGrid';
 import CartPage from './pages/CartPage';
@@ -11,6 +12,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import Checkout from './pages/Checkout';
 import AdminOrders from './pages/AdminOrders';
 import ManageCategories from './pages/admin/ManageCategories';
+import AbandonedCarts from './pages/admin/AbandonedCarts';
 import ManageCars from './pages/admin/ManageCars';
 import AdminCarSpecs from './pages/admin/AdminCarSpecs';
 import ManageProducts from './pages/admin/ManageProducts';
@@ -28,6 +30,16 @@ import ManageSettings from './pages/admin/ManageSettings';
 import ManageAffiliates from './pages/admin/ManageAffiliates';
 import AdminAffiliateDetails from './pages/admin/AdminAffiliateDetails';
 import ManagePolicies from './pages/admin/ManagePolicies';
+import Integrations from './pages/admin/Integrations';
+import GoogleSearchConsole from './pages/admin/GoogleSearchConsole';
+import FacebookPixel from './pages/admin/FacebookPixel';
+import GoogleAnalytics from './pages/admin/GoogleAnalytics';
+import Mailchimp from './pages/admin/Mailchimp';
+import GoogleMerchantCenter from './pages/admin/GoogleMerchantCenter';
+import FacebookInstagramShopping from './pages/admin/FacebookInstagramShopping';
+import InstallmentPartners from './pages/admin/InstallmentPartners';
+import CloudinarySettings from './pages/admin/CloudinarySettings';
+import SendGridSettings from './pages/admin/SendGridSettings';
 import ShopPage from './pages/ShopPage';
 import PolicyPage from './pages/PolicyPage';
 import Footer from './components/Footer';
@@ -46,12 +58,14 @@ import AffiliateDashboard from './pages/AffiliateDashboard';
 import AffiliateRegister from './pages/AffiliateRegister';
 import Profile from './pages/Profile';
 import OilAdvisor from './pages/OilAdvisor';
+import RecoverCart from './pages/RecoverCart';
 import ProtectedRoute from './components/ProtectedRoute';
 import UserProtectedRoute from './components/UserProtectedRoute';
 import AffiliateProtectedRoute from './components/AffiliateProtectedRoute';
 import { SettingsProvider } from './context/SettingsContext';
 import { Outlet, useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const PublicLayout = () => {
   const { i18n } = useTranslation();
@@ -84,7 +98,7 @@ const PublicLayout = () => {
         }}
       />
       <Navbar />
-      <main className="flex-1 pt-16 md:pt-20">
+      <main className="flex-1 pt-32 md:pt-20">
         <Outlet />
       </main>
       <Footer />
@@ -110,6 +124,7 @@ function App() {
   return (
     <Router>
       <ReferralTracker />
+      <ScrollToTop />
       <SettingsProvider>
         <Toaster
           position="top-center"
@@ -137,79 +152,93 @@ function App() {
             },
           }}
         />
-        <Routes>
-          {/* Public Routes */}
-          <Route element={<PublicLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/shop" element={<ShopPage />} />
-            <Route path="/product/:id" element={<ProductDetails />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/contact" element={<ContactUs />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/returns" element={<PolicyPage pageId="returns-policy" />} />
-            <Route path="/shipping" element={<PolicyPage pageId="shipping-info" />} />
-            <Route path="/my-orders" element={<OrderHistory />} />
-            <Route path="/oil-advisor" element={<OilAdvisor />} />
-            <Route path="/order-success" element={<OrderSuccess />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/affiliate-register" element={<AffiliateRegister />} />
-            <Route
-              path="/profile"
-              element={
-                <UserProtectedRoute>
-                  <Profile />
-                </UserProtectedRoute>
-              }
-            />
-            <Route
-              path="/affiliate-dashboard"
-              element={
-                <AffiliateProtectedRoute>
-                  <AffiliateDashboard />
-                </AffiliateProtectedRoute>
-              }
-            />
-          </Route>
+        <ErrorBoundary>
+          <Routes>
+            {/* Public Routes */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/shop" element={<ShopPage />} />
+              <Route path="/product/:id" element={<ProductDetails />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/contact" element={<ContactUs />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/returns" element={<PolicyPage pageId="returns-policy" />} />
+              <Route path="/shipping" element={<PolicyPage pageId="shipping-info" />} />
+              <Route path="/my-orders" element={<OrderHistory />} />
+              <Route path="/oil-advisor" element={<OilAdvisor />} />
+              <Route path="/order-success" element={<OrderSuccess />} />
+              <Route path="/recover-cart" element={<RecoverCart />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/affiliate-register" element={<AffiliateRegister />} />
+              <Route
+                path="/profile"
+                element={
+                  <UserProtectedRoute>
+                    <Profile />
+                  </UserProtectedRoute>
+                }
+              />
+              <Route
+                path="/affiliate-dashboard"
+                element={
+                  <AffiliateProtectedRoute>
+                    <AffiliateDashboard />
+                  </AffiliateProtectedRoute>
+                }
+              />
+            </Route>
 
-          {/* Admin Login (Standalone) */}
-          <Route path="/admin/login" element={<AdminLogin />} />
+            {/* Admin Login (Standalone) */}
+            <Route path="/admin/login" element={<AdminLogin />} />
 
-          {/* Protected Admin Routes */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>
-                <AdminLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<AdminDashboard />} />
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="orders" element={<AdminOrders />} />
-            <Route path="messages" element={<AdminMessages />} />
-            <Route path="categories" element={<ManageCategories />} />
-            <Route path="reviews" element={<AdminReviews />} />
-            <Route path="car-specs" element={<AdminCarSpecs />} />
-            <Route path="cars" element={<ManageCars />} />
-            <Route path="products" element={<ManageProducts />} />
-            <Route path="products/new" element={<AddProduct />} />
-            <Route path="edit-product/:id" element={<EditProduct />} />
-            <Route path="edit-category/:id" element={<EditCategory />} />
-            <Route path="edit-car/:id" element={<EditCar />} />
-            <Route path="order/:id" element={<OrderDetails />} />
-            <Route path="hero" element={<ManageHero />} />
-            <Route path="brands" element={<ManageBrands />} />
-            <Route path="payments" element={<ManagePayments />} />
-            <Route path="payments-manager" element={<PaymentManager />} />
-            <Route path="shipping" element={<ManageShipping />} />
-            <Route path="promo-codes" element={<ManagePromoCodes />} />
-            <Route path="affiliates" element={<ManageAffiliates />} />
-            <Route path="affiliates/:id" element={<AdminAffiliateDetails />} />
-            <Route path="settings" element={<ManageSettings />} />
-            <Route path="policies" element={<ManagePolicies />} />
-          </Route>
-        </Routes>
+            {/* Protected Admin Routes */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<AdminDashboard />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="orders" element={<AdminOrders />} />
+              <Route path="abandoned-carts" element={<AbandonedCarts />} />
+              <Route path="messages" element={<AdminMessages />} />
+              <Route path="categories" element={<ManageCategories />} />
+              <Route path="reviews" element={<AdminReviews />} />
+              <Route path="car-specs" element={<AdminCarSpecs />} />
+              <Route path="cars" element={<ManageCars />} />
+              <Route path="products" element={<ManageProducts />} />
+              <Route path="products/new" element={<AddProduct />} />
+              <Route path="edit-product/:id" element={<EditProduct />} />
+              <Route path="edit-category/:id" element={<EditCategory />} />
+              <Route path="edit-car/:id" element={<EditCar />} />
+              <Route path="order/:id" element={<OrderDetails />} />
+              <Route path="hero" element={<ManageHero />} />
+              <Route path="brands" element={<ManageBrands />} />
+              <Route path="payments" element={<ManagePayments />} />
+              <Route path="payments-manager" element={<PaymentManager />} />
+              <Route path="shipping" element={<ManageShipping />} />
+              <Route path="promo-codes" element={<ManagePromoCodes />} />
+              <Route path="affiliates" element={<ManageAffiliates />} />
+              <Route path="affiliates/:id" element={<AdminAffiliateDetails />} />
+              <Route path="integrations" element={<Integrations />} />
+              <Route path="integrations/google-search-console" element={<GoogleSearchConsole />} />
+              <Route path="integrations/facebook-pixel" element={<FacebookPixel />} />
+              <Route path="integrations/google-analytics" element={<GoogleAnalytics />} />
+              <Route path="integrations/mailchimp" element={<Mailchimp />} />
+              <Route path="integrations/google-merchant-center" element={<GoogleMerchantCenter />} />
+              <Route path="integrations/facebook-instagram-shopping" element={<FacebookInstagramShopping />} />
+              <Route path="integrations/installment-partners" element={<InstallmentPartners />} />
+              <Route path="integrations/cloudinary" element={<CloudinarySettings />} />
+              <Route path="integrations/sendgrid" element={<SendGridSettings />} />
+              <Route path="settings" element={<ManageSettings />} />
+              <Route path="policies" element={<ManagePolicies />} />
+            </Route>
+          </Routes>
+        </ErrorBoundary>
       </SettingsProvider>
     </Router>
   )

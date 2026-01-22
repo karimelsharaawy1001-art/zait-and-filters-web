@@ -3,9 +3,7 @@ import axios from 'axios';
 
 export default async function handler(req, res) {
     console.log('API Hit!');
-    console.log('=== Payment API Called ===');
-    console.log('Method:', req.method);
-    console.log('Origin:', req.headers.origin);
+    console.log('=== Payment API Called (Form-Data Mode) ===');
 
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -24,19 +22,13 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // Explicit Presence Logging (Secure)
-    console.log('API Key present:', !!process.env.EASYKASH_API_KEY);
-    console.log('HMAC Secret present:', !!process.env.EASYKASH_HMAC_SECRET);
-
     // Strict Environment Variable Check
     const EASYKASH_API_KEY = process.env.EASYKASH_API_KEY;
     const EASYKASH_SECRET_KEY = process.env.EASYKASH_HMAC_SECRET;
 
     if (!EASYKASH_API_KEY || !EASYKASH_SECRET_KEY) {
         console.error('❌ Server configuration error: missing keys');
-        return res.status(500).json({
-            error: 'Server configuration error: missing keys'
-        });
+        return res.status(500).json({ error: 'Server configuration error: missing keys' });
     }
 
     try {
@@ -49,106 +41,86 @@ export default async function handler(req, res) {
             returnUrl
         } = req.body;
 
-        // Validate required fields
-        if (!amount || !orderId || !customerName || !customerPhone) {
-            return res.status(400).json({ error: 'Missing required payment information' });
-        }
-
-        // 1. Amount Format: Convert to pips (sent as string for safety)
-        const amountInPips = Math.round(parseFloat(amount) * 100).toString();
-
-        // 2. Merchant Order ID
-        const merchantOrderId = `ORDER_${Date.now()}_${orderId}`;
-
-        // 3. HMAC Signature
+        // 1. MINIMAL TEST PAYLOAD (Hardcoded for debugging)
+        // We use 100 pips (1 EGP) to see if the gateway accepts the request
+        const testAmount = "100";
+        const testEmail = "test_customer@example.com";
+        const merchantOrderId = `TEST_ORDER_${Date.now()}`;
         const currency = 'EGP';
-        const signatureString = `${EASYKASH_API_KEY}|${amountInPips}|${currency}|${merchantOrderId}`;
+
+        // 2. HMAC Signature
+        const signatureString = `${EASYKASH_API_KEY}|${testAmount}|${currency}|${merchantOrderId}`;
         const signature = crypto
             .createHmac('sha256', EASYKASH_SECRET_KEY)
             .update(signatureString)
             .digest('hex');
 
-        const payload = {
-            api_key: String(EASYKASH_API_KEY),
-            merchant_order_id: String(merchantOrderId),
-            amount: String(amountInPips),
-            currency: String(currency),
-            customer_name: String(customerName),
-            customer_email: String(customerEmail || 'customer@example.com'),
-            customer_phone: String(customerPhone),
-            return_url: String(returnUrl || `${req.headers.origin}/order-success?id=${orderId}`)
-        };
+        // 3. FORM DATA PAYLOAD
+        const params = new URLSearchParams();
+        params.append('api_key', EASYKASH_API_KEY);
+        params.append('merchant_order_id', merchantOrderId);
+        params.append('amount', testAmount);
+        params.append('currency', currency);
+        params.append('customer_name', customerName || "Test User");
+        params.append('customer_email', testEmail);
+        params.append('customer_phone', customerPhone || "01000000000");
+        params.append('return_url', returnUrl || `${req.headers.origin}/order-success`);
 
-        console.log('EasyKash Payload (sanitized):', { ...payload, api_key: '***' });
+        console.log('EasyKash Form Payload (sanitized):', params.toString().replace(EASYKASH_API_KEY, '***'));
 
-        // Make request to EasyKash API using Axios
-        console.log('Calling EasyKash API: https://easykash.net/api/v1/checkout');
+        // 4. CALL EASYKASH WITH FORM DATA
         const response = await axios({
             method: 'post',
             url: 'https://easykash.net/api/v1/checkout',
             headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json', // Force JSON response
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': 'application/json',
                 'Authorization': `Bearer ${EASYKASH_API_KEY}`,
                 'X-Secret-Key': EASYKASH_SECRET_KEY,
                 'X-Signature': signature
             },
-            data: payload,
-            timeout: 10000 // 10 seconds timeout
+            data: params.toString(),
+            timeout: 10000
         });
 
         const data = response.data;
-        console.log('Full Response from EasyKash:', data);
+        console.log('Full JSON Response:', data);
 
-        // Extract the payment URL - check for multiple possible keys
         const paymentUrl = data.url || data.checkout_url || data.payment_url;
-
-        if (!paymentUrl) {
-            console.warn('⚠️ No payment URL found in any expected field (url, checkout_url, payment_url)');
-        }
-
-        console.log('✅ Final Payment URL:', paymentUrl);
 
         return res.status(200).json({
             success: true,
             url: paymentUrl,
-            orderId: data.order_id || orderId,
-            raw: data // Include raw data for easier debugging on frontend
+            message: "Test payment link generated",
+            raw: data
         });
 
     } catch (error) {
-        console.error('❌ Payment API Error:', error.message);
-
         if (error.response) {
             const statusCode = error.response.status;
             const errorData = error.response.data;
 
-            // If response is HTML, log the first 200 chars for debugging
+            // DUAL-MODE DEBUGGING: LOG HTML CONTENT IF PRESENT
             if (typeof errorData === 'string' && errorData.toLowerCase().includes('<!doctype html>')) {
-                console.error(`EasyKash HTML Error Snippet (Status ${statusCode}):`, errorData.substring(0, 200));
+                console.log('--- EASYKASH_HTML_DEBUG START ---');
+                console.log(errorData.substring(0, 500));
+                console.log('--- EASYKASH_HTML_DEBUG END ---');
             } else {
-                console.error(`EasyKash Gateway Error [Status ${statusCode}]:`, errorData);
+                console.error(`EasyKash JSON Error [${statusCode}]:`, errorData);
             }
 
             return res.status(statusCode).json({
-                error: 'Payment gateway error',
+                error: 'Payment gateway rejected request',
                 status: statusCode,
-                details: typeof errorData === 'object' ? errorData : {
-                    message: "Gateway returned non-JSON response (likely an error page)",
-                    snippet: typeof errorData === 'string' ? errorData.substring(0, 200) : "N/A"
-                }
-            });
-        } else if (error.request) {
-            console.error('No response from EasyKash Gateway. Request sent:', !!error.request);
-            return res.status(504).json({
-                error: 'Payment gateway timeout/no response',
-                message: error.message
-            });
-        } else {
-            return res.status(500).json({
-                error: 'Internal server error',
-                message: error.message
+                is_html: typeof errorData === 'string' && errorData.includes('<!doctype'),
+                snippet: typeof errorData === 'string' ? errorData.substring(0, 200) : "N/A"
             });
         }
+
+        console.error('❌ Connection Error:', error.message);
+        return res.status(500).json({
+            error: 'Internal server error',
+            message: error.message
+        });
     }
 }

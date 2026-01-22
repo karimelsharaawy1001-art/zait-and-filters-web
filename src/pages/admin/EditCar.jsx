@@ -62,100 +62,112 @@ const EditCar = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
+            <div className="min-h-screen bg-admin-bg flex flex-col items-center justify-center gap-4">
+                <div className="w-12 h-12 border-4 border-admin-accent border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">Fetching vehicle metadata...</p>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <AdminHeader title="Edit Car Model" />
+        <div className="min-h-screen bg-admin-bg font-sans p-4 md:p-8">
+            <div className="max-w-7xl mx-auto">
+                <AdminHeader title="Edit Car Model" />
 
-            <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                <div className="px-4 py-6 sm:px-0">
-                    <div className="mb-6">
+                <div className="mt-8">
+                    <div className="mb-10">
                         <button
                             onClick={() => navigate('/admin/cars')}
-                            className="flex items-center text-gray-600 hover:text-gray-900"
+                            className="flex items-center gap-3 text-admin-accent hover:text-white transition-all font-black uppercase tracking-widest text-[10px] group"
                         >
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            Back to Cars
+                            <div className="bg-admin-accent/10 p-2 rounded-xl group-hover:bg-admin-accent group-hover:text-white transition-all">
+                                <ArrowLeft className="h-4 w-4" />
+                            </div>
+                            Back to fleet registry
                         </button>
                     </div>
 
-                    <div className="bg-white shadow rounded-lg p-6 max-w-2xl mx-auto">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6">Edit Car: {formData.make} {formData.model}</h2>
+                    <div className="bg-admin-card p-8 md:p-12 rounded-[2rem] border border-admin-border shadow-admin max-w-3xl mx-auto animate-in fade-in slide-in-from-top-4 duration-500">
+                        <div className="mb-10 text-center">
+                            <h2 className="text-2xl font-black text-white uppercase tracking-widest poppins">{formData.make} {formData.model}</h2>
+                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-2 flex items-center justify-center gap-2">
+                                <span className="w-8 h-[1px] bg-[#ffffff0d]"></span>
+                                Management Portal
+                                <span className="w-8 h-[1px] bg-[#ffffff0d]"></span>
+                            </p>
+                        </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
+                        <form onSubmit={handleSubmit} className="space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Make</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">Make</label>
                                     <input
                                         type="text"
                                         required
                                         value={formData.make}
                                         onChange={e => setFormData({ ...formData, make: e.target.value })}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 focus:ring-orange-500 focus:border-orange-500"
+                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-xl px-4 py-3 text-sm text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold shadow-lg"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Model</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">Model</label>
                                     <input
                                         type="text"
                                         required
                                         value={formData.model}
                                         onChange={e => setFormData({ ...formData, model: e.target.value })}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 focus:ring-orange-500 focus:border-orange-500"
+                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-xl px-4 py-3 text-sm text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold shadow-lg"
                                     />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Year Start</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">Year Start</label>
                                     <input
                                         type="number"
                                         value={formData.yearStart}
                                         onChange={e => setFormData({ ...formData, yearStart: e.target.value })}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 focus:ring-orange-500 focus:border-orange-500"
+                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-xl px-4 py-3 text-sm text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold shadow-lg"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Year End</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">Year End</label>
                                     <input
                                         type="number"
                                         value={formData.yearEnd}
                                         onChange={e => setFormData({ ...formData, yearEnd: e.target.value })}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 focus:ring-orange-500 focus:border-orange-500"
+                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-xl px-4 py-3 text-sm text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold shadow-lg"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Car Image</label>
-                                <ImageUpload
-                                    onUploadComplete={(url) => setFormData(prev => ({ ...prev, imageUrl: url }))}
-                                    currentImage={formData.imageUrl}
-                                    folderPath="cars"
-                                />
+                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4 px-1">Vehicle Asset</label>
+                                <div className="bg-[#ffffff02] p-2 rounded-2xl border border-admin-border shadow-inner">
+                                    <ImageUpload
+                                        onUploadComplete={(url) => setFormData(prev => ({ ...prev, imageUrl: url }))}
+                                        currentImage={formData.imageUrl}
+                                        folderPath="cars"
+                                    />
+                                </div>
                                 <input type="hidden" name="imageUrl" value={formData.imageUrl} required />
                             </div>
 
-                            <div className="flex justify-end pt-6">
+                            <div className="flex justify-end pt-8 border-t border-[#ffffff0d]">
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 ${saving ? 'opacity-50' : ''}`}
+                                    className="px-10 py-4 bg-admin-red hover:bg-admin-red-dark text-white font-black uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-admin-red/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
                                 >
-                                    {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                                    Save Changes
+                                    {saving ? <Loader2 className="h-5 w-5 animate-spin text-white" /> : <Save className="h-5 w-5" />}
+                                    Sync Changes
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
-            </main>
+            </div>
         </div>
     );
 };

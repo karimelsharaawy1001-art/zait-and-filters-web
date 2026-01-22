@@ -60,61 +60,67 @@ const ManageCars = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <AdminHeader title="Manage Cars" />
+        <div className="min-h-screen bg-admin-bg font-sans p-4 md:p-8">
+            <div className="max-w-7xl mx-auto">
+                <AdminHeader title="Manage Cars" />
 
-            <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mt-10">
                     {/* Form Section */}
-                    <div className="bg-white p-6 rounded-lg shadow-sm h-fit">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">Add New Car Model</h2>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-admin-card p-8 rounded-[2rem] shadow-admin border border-admin-border h-fit sticky top-8">
+                        <div className="mb-8">
+                            <h2 className="text-xl font-black text-white uppercase tracking-widest poppins">Add Model</h2>
+                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Register new vehicle to database</p>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Make</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">Make</label>
                                     <input
                                         type="text"
                                         placeholder="Toyota"
                                         value={formData.make}
                                         onChange={e => setFormData({ ...formData, make: e.target.value })}
-                                        className="mt-1 block w-full rounded-md border-gray-300 border p-2 shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-xl px-4 py-3 text-sm text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold shadow-lg"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Model</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">Model</label>
                                     <input
                                         type="text"
                                         placeholder="Corolla"
                                         value={formData.model}
                                         onChange={e => setFormData({ ...formData, model: e.target.value })}
-                                        className="mt-1 block w-full rounded-md border-gray-300 border p-2 shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-xl px-4 py-3 text-sm text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold shadow-lg"
                                         required
                                     />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Year Start (Optional)</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">Year Start</label>
                                     <input
                                         type="number"
+                                        placeholder="2010"
                                         value={formData.yearStart}
                                         onChange={e => setFormData({ ...formData, yearStart: e.target.value })}
-                                        className="mt-1 block w-full rounded-md border-gray-300 border p-2 shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-xl px-4 py-3 text-sm text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold shadow-lg"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Year End (Optional)</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">Year End</label>
                                     <input
                                         type="number"
+                                        placeholder="2024"
                                         value={formData.yearEnd}
                                         onChange={e => setFormData({ ...formData, yearEnd: e.target.value })}
-                                        className="mt-1 block w-full rounded-md border-gray-300 border p-2 shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-xl px-4 py-3 text-sm text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold shadow-lg"
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Car Image</label>
+                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">Car Profile Image</label>
                                 <ImageUpload
                                     onUploadComplete={(url) => setFormData(prev => ({ ...prev, imageUrl: url }))}
                                     currentImage={formData.imageUrl}
@@ -124,7 +130,7 @@ const ManageCars = () => {
                             </div>
                             <button
                                 type="submit"
-                                className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded transition-colors"
+                                className="w-full bg-admin-red hover:bg-admin-red-dark text-white py-4 rounded-xl font-black text-xs hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-admin-red/40 uppercase tracking-widest"
                             >
                                 Add Car Model
                             </button>
@@ -132,33 +138,51 @@ const ManageCars = () => {
                     </div>
 
                     {/* List Section */}
-                    <div className="lg:col-span-2 space-y-4">
-                        <h2 className="text-xl font-bold text-gray-900">Registered Cars</h2>
+                    <div className="lg:col-span-2">
+                        <div className="mb-8 flex items-center justify-between">
+                            <div>
+                                <h2 className="text-xl font-black text-white uppercase tracking-widest poppins">Fleet Registry</h2>
+                                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Available makes and models in the system</p>
+                            </div>
+                            <div className="text-right">
+                                <span className="text-[24px] font-black text-white block leading-none">{cars.length}</span>
+                                <span className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Total Models</span>
+                            </div>
+                        </div>
+
                         {loading ? (
-                            <p>Loading...</p>
+                            <div className="flex flex-col items-center justify-center py-24 gap-4">
+                                <div className="w-12 h-12 border-4 border-admin-accent border-t-transparent rounded-full animate-spin"></div>
+                                <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">Syncing fleet data...</p>
+                            </div>
                         ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {cars.map(car => (
-                                    <div key={car.id} className="bg-white p-4 rounded-lg shadow-sm flex items-start space-x-4 border border-gray-200">
-                                        <img src={car.imageUrl} alt={`${car.make} ${car.model}`} className="w-20 h-16 object-cover rounded-md bg-gray-100" />
-                                        <div className="flex-1">
-                                            <h3 className="font-bold text-gray-900">{car.make} {car.model}</h3>
-                                            <p className="text-xs text-gray-500">
-                                                {car.yearStart && car.yearEnd ? `${car.yearStart} - ${car.yearEnd}` : 'All Years'}
-                                            </p>
+                                    <div key={car.id} className="group relative bg-admin-card p-6 rounded-[2rem] border border-admin-border shadow-admin hover:bg-[#ffffff05] transition-all flex items-center gap-6">
+                                        <div className="w-24 h-20 bg-[#ffffff05] rounded-2xl overflow-hidden shadow-inner border border-admin-border group-hover:scale-105 transition-transform shrink-0">
+                                            <img src={car.imageUrl} alt={`${car.make} ${car.model}`} className="w-full h-full object-cover filter drop-shadow-md" />
                                         </div>
-                                        <div className="flex flex-col gap-2">
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-black text-white uppercase tracking-widest text-sm poppins truncate">{car.make}</h3>
+                                            <p className="text-admin-accent font-black text-xs uppercase tracking-tight truncate">{car.model}</p>
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <span className="px-2 py-0.5 bg-[#ffffff05] border border-admin-border rounded text-[9px] font-black text-gray-500 uppercase tracking-widest">
+                                                    {car.yearStart && car.yearEnd ? `${car.yearStart} — ${car.yearEnd}` : 'Legacy Model'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col gap-2 shrink-0">
                                             <Link
                                                 to={`/admin/edit-car/${car.id}`}
-                                                className="text-blue-500 hover:text-blue-700 p-2"
+                                                className="p-3 bg-admin-accent/10 text-admin-accent hover:bg-admin-accent hover:text-white rounded-2xl transition-all shadow-lg border border-admin-accent/20"
                                             >
-                                                <Edit3 className="h-5 w-5" />
+                                                <Edit3 className="h-4 w-4" />
                                             </Link>
                                             <button
                                                 onClick={() => handleDelete(car.id)}
-                                                className="text-red-500 hover:text-red-700 p-2"
+                                                className="p-3 bg-admin-red/10 text-admin-red hover:bg-admin-red hover:text-white rounded-2xl transition-all shadow-lg border border-admin-red/20"
                                             >
-                                                <Trash2 className="h-5 w-5" />
+                                                <Trash2 className="h-4 w-4" />
                                             </button>
                                         </div>
                                     </div>
@@ -167,7 +191,7 @@ const ManageCars = () => {
                         )}
                     </div>
                 </div>
-            </main>
+            </div>
         </div>
     );
 };

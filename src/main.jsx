@@ -5,7 +5,6 @@ import './i18n'
 import App from './App.jsx'
 import { CartProvider } from './context/CartContext.jsx'
 import { FilterProvider } from './context/FilterContext.jsx'
-
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <CartProvider>

@@ -163,192 +163,230 @@ const AdminAffiliateDetails = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+            <div className="min-h-screen bg-admin-bg flex flex-col items-center justify-center gap-4">
+                <div className="h-12 w-12 border-4 border-admin-accent border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">Accessing partner intel...</p>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20">
-            <AdminHeader title="Affiliate Management" />
+        <div className="min-h-screen bg-admin-bg font-sans pb-20 p-4 md:p-8">
+            <AdminHeader title="Affiliate Profile" />
 
-            <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <main className="max-w-7xl mx-auto mt-10">
                 {/* Header & Actions */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                     <button
                         onClick={() => navigate('/admin/affiliates')}
-                        className="flex items-center text-gray-500 hover:text-gray-900 font-bold uppercase tracking-widest text-xs transition-colors"
+                        className="flex items-center text-gray-500 hover:text-white font-black uppercase tracking-widest text-[10px] transition-colors bg-[#ffffff05] px-6 py-3 rounded-xl border border-admin-border"
                     >
                         <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back to List
+                        Return to Registry
                     </button>
-                    <div className="flex items-center gap-3">
-                        <span className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest ${affiliate.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                            {affiliate.status}
+                    <div className="flex items-center gap-4">
+                        <span className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest border ${affiliate.status === 'active' ? 'bg-admin-green/10 text-admin-green border-admin-green/20' : 'bg-admin-red/10 text-admin-red border-admin-red/20'}`}>
+                            Node Status: {affiliate.status}
                         </span>
                         <button
                             onClick={() => setShowPayoutModal(true)}
                             disabled={stats.withdrawableBalance <= 0}
-                            className="bg-orange-600 hover:bg-orange-700 text-white font-black text-xs uppercase tracking-widest px-6 py-3 rounded-xl transition-all shadow-lg shadow-orange-100 disabled:opacity-50 disabled:shadow-none flex items-center gap-2"
+                            className="bg-admin-red hover:bg-admin-red-dark text-white font-black text-xs uppercase tracking-widest px-8 py-3 rounded-xl transition-all shadow-lg shadow-admin-red/40 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:grayscale flex items-center gap-3"
                         >
-                            <PlusCircle className="h-4 w-4" />
-                            Record Payout
+                            <PlusCircle className="h-5 w-5" />
+                            Provision Payout
                         </button>
                     </div>
                 </div>
 
                 {/* Profile and Info Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
                     {/* Profile Card */}
-                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 lg:col-span-1">
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="h-16 w-16 bg-gray-900 rounded-2xl flex items-center justify-center text-white">
+                    <div className="bg-admin-card rounded-[2.5rem] p-10 shadow-admin border border-admin-border lg:col-span-1 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <User className="h-32 w-32 text-white" />
+                        </div>
+                        <div className="flex items-center gap-5 mb-10 relative">
+                            <div className="h-16 w-16 bg-gradient-to-br from-admin-red to-admin-red-light rounded-2xl flex items-center justify-center text-white shadow-lg shadow-admin-red/40">
                                 <User className="h-8 w-8" />
                             </div>
                             <div>
-                                <h2 className="text-xl font-black text-gray-900 leading-tight">{affiliate.fullName}</h2>
-                                <p className="text-xs font-bold text-orange-600 uppercase tracking-widest mt-1">Tier {affiliate.currentTier} Partner</p>
+                                <h2 className="text-xl font-black text-white leading-tight poppins">{affiliate.fullName}</h2>
+                                <p className="text-[10px] font-black text-admin-accent uppercase tracking-widest mt-1">Tier {affiliate.currentTier} Accredited Partner</p>
                             </div>
                         </div>
 
-                        <div className="space-y-4">
-                            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
-                                <Mail className="h-5 w-5 text-gray-400 mt-0.5" />
+                        <div className="space-y-6 relative">
+                            <div className="flex items-start gap-4 p-5 bg-[#ffffff03] rounded-2xl border border-[#ffffff05] hover:border-admin-accent/20 transition-all">
+                                <Mail className="h-5 w-5 text-gray-600 mt-1" />
                                 <div>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Email Address</p>
-                                    <p className="text-sm font-bold text-gray-900">{affiliate.email || 'N/A'}</p>
+                                    <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Secure Channel</p>
+                                    <p className="text-sm font-bold text-white">{affiliate.email || 'N/A'}</p>
                                 </div>
                             </div>
-                            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
-                                <Phone className="h-5 w-5 text-gray-400 mt-0.5" />
+                            <div className="flex items-start gap-4 p-5 bg-[#ffffff03] rounded-2xl border border-[#ffffff05] hover:border-admin-accent/20 transition-all">
+                                <Phone className="h-5 w-5 text-gray-600 mt-1" />
                                 <div>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Phone Number</p>
-                                    <p className="text-sm font-bold text-gray-900">{affiliate.phone || 'N/A'}</p>
+                                    <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Direct Comms</p>
+                                    <p className="text-sm font-bold text-white">{affiliate.phone || 'N/A'}</p>
                                 </div>
                             </div>
-                            <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-xl border border-orange-100">
-                                <Wallet className="h-5 w-5 text-orange-400 mt-0.5" />
+                            <div className="flex items-start gap-4 p-5 bg-admin-accent/5 rounded-2xl border border-admin-accent/10 hover:border-admin-accent/30 transition-all">
+                                <Wallet className="h-5 w-5 text-admin-accent mt-1" />
                                 <div>
-                                    <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Payout Methods</p>
-                                    {affiliate.instaPayNumber && (
-                                        <p className="text-xs font-bold text-gray-900">IP: <span className="text-sm">{affiliate.instaPayNumber}</span></p>
-                                    )}
-                                    {affiliate.walletNumber && (
-                                        <p className="text-xs font-bold text-gray-900">W: <span className="text-sm">{affiliate.walletNumber}</span></p>
-                                    )}
+                                    <p className="text-[9px] font-black text-admin-accent uppercase tracking-widest mb-2">Authenticated Wallets</p>
+                                    <div className="space-y-2">
+                                        {affiliate.instaPayNumber && (
+                                            <p className="text-xs font-black text-white flex items-center gap-2">
+                                                <span className="text-[9px] bg-admin-accent/20 px-1.5 rounded">IP</span>
+                                                {affiliate.instaPayNumber}
+                                            </p>
+                                        )}
+                                        {affiliate.walletNumber && (
+                                            <p className="text-xs font-black text-white flex items-center gap-2">
+                                                <span className="text-[9px] bg-purple-500/20 text-purple-400 px-1.5 rounded">W</span>
+                                                {affiliate.walletNumber}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Financial Metrics */}
-                    <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
-                            <div className="flex items-center justify-between mb-2">
-                                <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Total Earned</p>
-                                <TrendingUp className="h-5 w-5 text-blue-500" />
+                    <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="bg-admin-card rounded-[2.5rem] p-8 shadow-admin border border-admin-border flex flex-col justify-between group hover:bg-[#ffffff05] transition-all relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-6 opacity-5">
+                                <TrendingUp className="h-16 w-16 text-white" />
                             </div>
-                            <p className="text-3xl font-black text-gray-900">{stats.totalEarned.toLocaleString()} <span className="text-sm font-bold text-gray-400">EGP</span></p>
-                            <p className="text-[10px] font-bold text-gray-400 mt-2 italic">All-time commissions generated</p>
+                            <div className="flex items-center justify-between mb-6 relative">
+                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Lifetime Yield</p>
+                                <div className="p-2 bg-blue-500/10 rounded-lg">
+                                    <TrendingUp className="h-5 w-5 text-blue-400" />
+                                </div>
+                            </div>
+                            <p className="text-3xl font-black text-white poppins relative">{stats.totalEarned.toLocaleString()} <span className="text-xs text-gray-600 tracking-widest uppercase ml-1">EGP</span></p>
+                            <p className="text-[9px] font-black text-gray-600 mt-4 uppercase tracking-widest relative">Aggregate gross commission flow</p>
                         </div>
 
-                        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
-                            <div className="flex items-center justify-between mb-2">
-                                <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Pending (Cooling)</p>
-                                <Clock className="h-5 w-5 text-orange-500" />
+                        <div className="bg-admin-card rounded-[2.5rem] p-8 shadow-admin border border-admin-border flex flex-col justify-between group hover:bg-[#ffffff05] transition-all relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-6 opacity-5">
+                                <Clock className="h-16 w-16 text-white" />
                             </div>
-                            <p className="text-3xl font-black text-orange-600">{stats.pendingBalance.toLocaleString()} <span className="text-sm font-bold text-orange-200">EGP</span></p>
-                            <p className="text-[10px] font-bold text-orange-400 mt-2 italic">Orders delivered within 14 days</p>
+                            <div className="flex items-center justify-between mb-6 relative">
+                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Cooling Period</p>
+                                <div className="p-2 bg-admin-accent/10 rounded-lg">
+                                    <Clock className="h-5 w-5 text-admin-accent" />
+                                </div>
+                            </div>
+                            <p className="text-3xl font-black text-admin-accent poppins relative">{stats.pendingBalance.toLocaleString()} <span className="text-xs text-admin-accent/40 tracking-widest uppercase ml-1">EGP</span></p>
+                            <p className="text-[9px] font-black text-gray-600 mt-4 uppercase tracking-widest relative">Assets in anti-fraud maturity</p>
                         </div>
 
-                        <div className="bg-white rounded-3xl p-6 shadow-sm border-2 border-green-100 shadow-green-50 flex flex-col justify-between relative overflow-hidden">
-                            <div className="flex items-center justify-between mb-2">
-                                <p className="text-xs font-black text-green-700 uppercase tracking-widest">Withdrawable</p>
-                                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        <div className="bg-[#00f2c30a] rounded-[2.5rem] p-8 shadow-admin border border-admin-green/20 flex flex-col justify-between group hover:bg-[#00f2c312] transition-all relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-6 opacity-5">
+                                <CheckCircle2 className="h-16 w-16 text-admin-green" />
                             </div>
-                            <p className="text-3xl font-black text-green-600">{stats.withdrawableBalance.toLocaleString()} <span className="text-sm font-bold text-green-200">EGP</span></p>
-                            <p className="text-[10px] font-bold text-green-500 mt-2 italic">Matured and ready for payout</p>
+                            <div className="flex items-center justify-between mb-6 relative">
+                                <p className="text-[10px] font-black text-admin-green uppercase tracking-widest">Liquid Assets</p>
+                                <div className="p-2 bg-admin-green/20 rounded-lg">
+                                    <CheckCircle2 className="h-5 w-5 text-admin-green" />
+                                </div>
+                            </div>
+                            <p className="text-3xl font-black text-admin-green poppins relative">{stats.withdrawableBalance.toLocaleString()} <span className="text-xs text-admin-green/40 tracking-widest uppercase ml-1">EGP</span></p>
+                            <p className="text-[9px] font-black text-admin-green/60 mt-4 uppercase tracking-widest relative">Cleared for immediate remittance</p>
                         </div>
 
-                        <div className="bg-gray-900 rounded-3xl p-6 shadow-xl flex flex-col justify-between">
-                            <div className="flex items-center justify-between mb-2">
-                                <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Already Paid</p>
-                                <FileText className="h-5 w-5 text-gray-500" />
+                        <div className="bg-admin-card rounded-[2.5rem] p-8 shadow-admin border border-admin-border flex flex-col justify-between bg-gradient-to-br from-admin-card to-[#1e2d4d22] group transition-all relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-6 opacity-10">
+                                <FileText className="h-16 w-16 text-admin-text-secondary" />
                             </div>
-                            <p className="text-3xl font-black text-white">{stats.paidOut.toLocaleString()} <span className="text-sm font-bold text-gray-600">EGP</span></p>
-                            <p className="text-[10px] font-bold text-gray-500 mt-2 italic">Total amount transferred to partner</p>
+                            <div className="flex items-center justify-between mb-6 relative">
+                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Total Remitted</p>
+                                <div className="p-2 bg-gray-800 rounded-lg">
+                                    <FileText className="h-5 w-5 text-admin-text-secondary" />
+                                </div>
+                            </div>
+                            <p className="text-3xl font-black text-white poppins relative">{stats.paidOut.toLocaleString()} <span className="text-xs text-gray-700 tracking-widest uppercase ml-1">EGP</span></p>
+                            <p className="text-[9px] font-black text-gray-600 mt-4 uppercase tracking-widest relative">Confirmed payout distribution</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Referral History */}
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
-                        <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">Referral History</h3>
-                        <div className="flex items-center gap-2">
-                            <span className="w-3 h-3 rounded-full bg-blue-400"></span>
-                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-4">Cooling</span>
-                            <span className="w-3 h-3 rounded-full bg-green-400"></span>
-                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ready</span>
+                <div className="bg-admin-card rounded-[2.5rem] shadow-admin border border-admin-border overflow-hidden">
+                    <div className="px-10 py-8 border-b border-[#ffffff05] flex items-center justify-between bg-[#ffffff02]">
+                        <h3 className="text-lg font-black text-white uppercase tracking-widest poppins">Conversion Intel</h3>
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                                <span className="w-2.5 h-2.5 rounded-full bg-admin-accent"></span>
+                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Verification</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="w-2.5 h-2.5 rounded-full bg-admin-green"></span>
+                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Synchronized</span>
+                            </div>
                         </div>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead>
-                                <tr className="bg-gray-50/50">
-                                    <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Order ID</th>
-                                    <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
-                                    <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
-                                    <th className="px-8 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Commission</th>
+                            <thead className="bg-[#ffffff01]">
+                                <tr className="text-left">
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-600 uppercase tracking-widest poppins">Trace ID</th>
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-600 uppercase tracking-widest poppins">Timestamp</th>
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-600 uppercase tracking-widest poppins">Maturity Status</th>
+                                    <th className="px-10 py-6 text-right text-[10px] font-black text-gray-600 uppercase tracking-widest poppins">Yield</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {transactions.length === 0 ? (
                                     <tr>
-                                        <td colSpan="4" className="px-8 py-12 text-center text-gray-400 font-bold italic">No referrals found for this partner</td>
+                                        <td colSpan="4" className="px-10 py-24 text-center">
+                                            <p className="text-[10px] text-gray-600 font-black uppercase tracking-widest italic">No conversion telemetry detected for this node</p>
+                                        </td>
                                     </tr>
                                 ) : (
                                     transactions.map(tx => (
-                                        <tr key={tx.id} className="hover:bg-gray-50/50 transition-colors">
-                                            <td className="px-8 py-5">
+                                        <tr key={tx.id} className="hover:bg-[#ffffff02] transition-colors border-b border-[#ffffff05] group">
+                                            <td className="px-10 py-6">
                                                 <button
                                                     onClick={() => navigate(`/admin/order/${tx.orderId}`)}
-                                                    className="flex items-center gap-1 text-sm font-black text-gray-900 hover:text-orange-600 transition-colors"
+                                                    className="flex items-center gap-2 text-sm font-black text-white hover:text-admin-accent transition-colors poppins"
                                                 >
-                                                    #{tx.orderId.slice(-6)}
-                                                    <ExternalLink className="h-3 w-3" />
+                                                    #{tx.orderId.slice(-6).toUpperCase()}
+                                                    <ExternalLink className="h-3 w-3 opacity-30 group-hover:opacity-100" />
                                                 </button>
                                             </td>
-                                            <td className="px-8 py-5">
-                                                <p className="text-sm font-bold text-gray-900">
+                                            <td className="px-10 py-6">
+                                                <p className="text-xs font-bold text-white uppercase tracking-tight">
                                                     {tx.createdAt?.toDate().toLocaleDateString() || 'N/A'}
                                                 </p>
-                                                <p className="text-[10px] text-gray-400 font-bold">{tx.createdAt?.toDate().toLocaleTimeString()}</p>
+                                                <p className="text-[9px] text-gray-600 font-black uppercase tracking-widest mt-1">{tx.createdAt?.toDate().toLocaleTimeString()}</p>
                                             </td>
-                                            <td className="px-8 py-5">
+                                            <td className="px-10 py-6">
                                                 {tx.status === 'void' ? (
-                                                    <span className="flex items-center gap-1.5 text-[10px] font-black text-red-600 bg-red-50 px-2 py-1 rounded-full uppercase tracking-widest w-fit">
+                                                    <span className="flex items-center gap-2 text-[9px] font-black text-admin-red bg-admin-red/10 px-3 py-1.5 rounded-lg uppercase tracking-widest w-fit border border-admin-red/20 shadow-lg shadow-admin-red/5">
                                                         <RotateCcw className="h-3 w-3" />
-                                                        Void / Returned
+                                                        Distribution Terminated
                                                     </span>
                                                 ) : tx.maturityStatus === 'ready' ? (
-                                                    <span className="flex items-center gap-1.5 text-[10px] font-black text-green-600 bg-green-50 px-2 py-1 rounded-full uppercase tracking-widest w-fit">
+                                                    <span className="flex items-center gap-2 text-[9px] font-black text-admin-green bg-admin-green/10 px-3 py-1.5 rounded-lg uppercase tracking-widest w-fit border border-admin-green/20 shadow-lg shadow-admin-green/5">
                                                         <CheckCircle2 className="h-3 w-3" />
-                                                        Ready / Matured
+                                                        Synced & Matured
                                                     </span>
                                                 ) : (
-                                                    <span className="flex items-center gap-1.5 text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-full uppercase tracking-widest w-fit">
+                                                    <span className="flex items-center gap-2 text-[9px] font-black text-admin-accent bg-admin-accent/10 px-3 py-1.5 rounded-lg uppercase tracking-widest w-fit border border-admin-accent/20 shadow-lg shadow-admin-accent/5">
                                                         <Clock className="h-3 w-3" />
-                                                        {tx.daysLeft}d Remaining
+                                                        Maturity: {tx.daysLeft} Cycles Remaining
                                                     </span>
                                                 )}
                                             </td>
-                                            <td className="px-8 py-5 text-right">
-                                                <p className={`text-sm font-black ${tx.status === 'void' ? 'text-gray-300 line-through' : 'text-gray-900'}`}>
-                                                    {tx.commission.toLocaleString()} EGP
+                                            <td className="px-10 py-6 text-right">
+                                                <p className={`text-base font-black poppins ${tx.status === 'void' ? 'text-gray-800 line-through' : 'text-white'}`}>
+                                                    {tx.commission.toLocaleString()} <span className="text-[9px] text-gray-600 ml-1">EGP</span>
                                                 </p>
-                                                <p className="text-[10px] text-gray-400 font-bold">{tx.commissionRate * 100}% Rate</p>
+                                                <p className="text-[9px] text-admin-accent font-black uppercase tracking-widest mt-1">{tx.commissionRate * 100}% Allocation</p>
                                             </td>
                                         </tr>
                                     ))
@@ -362,22 +400,25 @@ const AdminAffiliateDetails = () => {
             {/* Payout Modal */}
             {showPayoutModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => setShowPayoutModal(false)}></div>
-                    <div className="bg-white rounded-3xl shadow-2xl relative w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <div className="bg-orange-600 p-8 text-white">
-                            <h3 className="text-2xl font-black uppercase tracking-tight">Record Payout</h3>
-                            <p className="text-orange-200 text-sm font-bold mt-1">Send funds to {affiliate.fullName}</p>
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowPayoutModal(false)}></div>
+                    <div className="bg-admin-card rounded-[2.5rem] shadow-admin relative w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-300 border border-admin-border">
+                        <div className="bg-admin-red hover:bg-admin-red-dark p-10 text-white relative">
+                            <h3 className="text-2xl font-black uppercase tracking-tight poppins">Remittance Order</h3>
+                            <p className="text-white/70 text-[10px] font-black uppercase tracking-widest mt-2">Provisioning funds for {affiliate.fullName.split(' ')[0]}</p>
+                            <div className="absolute -bottom-6 -right-6 opacity-20">
+                                <Wallet className="h-32 w-32" />
+                            </div>
                         </div>
-                        <form onSubmit={handleRecordPayout} className="p-8 space-y-6">
-                            <div className="bg-green-50 border border-green-100 p-4 rounded-2xl">
-                                <p className="text-[10px] font-black text-green-700 uppercase tracking-widest">Max Withdrawable</p>
-                                <p className="text-2xl font-black text-green-600">{stats.withdrawableBalance.toLocaleString()} EGP</p>
+                        <form onSubmit={handleRecordPayout} className="p-10 space-y-8">
+                            <div className="bg-admin-green/5 border border-admin-green/10 p-6 rounded-2xl shadow-inner group">
+                                <p className="text-[9px] font-black text-admin-green uppercase tracking-widest mb-1">Authenticated Liquidity</p>
+                                <p className="text-3xl font-black text-admin-green poppins group-hover:scale-105 transition-transform origin-left">{stats.withdrawableBalance.toLocaleString()} <span className="text-xs uppercase">EGP</span></p>
                             </div>
 
                             <div>
-                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Amount to Payout</label>
+                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 px-1">Remittance Quantum</label>
                                 <div className="relative">
-                                    <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-gray-400">EGP</span>
+                                    <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-gray-600 text-xs">EGP</span>
                                     <input
                                         type="number"
                                         required
@@ -385,31 +426,33 @@ const AdminAffiliateDetails = () => {
                                         max={stats.withdrawableBalance}
                                         value={payoutAmount}
                                         onChange={(e) => setPayoutAmount(e.target.value)}
-                                        className="w-full pl-16 pr-6 py-5 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-orange-500 focus:outline-none transition-all font-black text-lg"
+                                        className="w-full pl-16 pr-6 py-5 bg-[#ffffff05] border border-admin-border rounded-2xl focus:ring-2 focus:ring-admin-accent focus:outline-none transition-all font-black text-xl text-white placeholder-gray-800"
                                         placeholder="0.00"
                                     />
                                 </div>
                             </div>
 
-                            <div className="space-y-3">
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic flex items-center gap-2">
-                                    <AlertCircle className="h-3 w-3" />
-                                    Verify transfer on external app first
-                                </p>
+                            <div className="space-y-4 pt-2">
+                                <div className="flex items-start gap-3 p-4 bg-[#ffffff02] rounded-xl border border-[#ffffff05]">
+                                    <AlertCircle className="h-4 w-4 text-admin-accent mt-0.5 shrink-0" />
+                                    <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-relaxed">
+                                        Verify external distribution completion before committing to node ledger. Distribution is non-reversible.
+                                    </p>
+                                </div>
                                 <button
                                     type="submit"
                                     disabled={payoutLoading || !payoutAmount}
-                                    className="w-full bg-gray-900 text-white font-black py-5 rounded-2xl hover:bg-black transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-3 uppercase tracking-widest text-sm"
+                                    className="w-full bg-admin-red hover:bg-admin-red-dark text-white font-black py-5 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-admin-red/40 disabled:opacity-50 disabled:grayscale flex items-center justify-center gap-3 uppercase tracking-widest text-xs"
                                 >
-                                    {payoutLoading ? "Recording..." : "Confirm & Record"}
+                                    {payoutLoading ? "Committing..." : "Authorize Distribution"}
                                     {!payoutLoading && <CheckCircle2 className="h-5 w-5" />}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setShowPayoutModal(false)}
-                                    className="w-full bg-white text-gray-500 font-bold py-3 text-xs uppercase tracking-widest hover:text-gray-900 transition-all"
+                                    className="w-full bg-transparent text-gray-600 font-black py-2 text-[10px] uppercase tracking-widest hover:text-white transition-all"
                                 >
-                                    Cancel
+                                    Abort Operation
                                 </button>
                             </div>
                         </form>

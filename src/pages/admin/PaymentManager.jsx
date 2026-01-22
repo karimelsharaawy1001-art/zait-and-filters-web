@@ -167,7 +167,7 @@ const PaymentManager = () => {
 
                         <form onSubmit={handleSubmit} className="space-y-8">
                             <div className="space-y-3">
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mr-1">اسم الشريك (Partner Name)</label>
+                                <label className="block text-[10px] font-black text-admin-text-secondary uppercase tracking-widest mr-1">اسم الشريك (Partner Name)</label>
                                 <input
                                     type="text"
                                     value={name}
@@ -179,7 +179,7 @@ const PaymentManager = () => {
                             </div>
 
                             <div className="space-y-4">
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mr-1">شعار الشريك (Logo)</label>
+                                <label className="block text-[10px] font-black text-admin-text-secondary uppercase tracking-widest mr-1">شعار الشريك (Logo)</label>
                                 <div className="relative group">
                                     {preview ? (
                                         <div className="relative h-44 w-full rounded-3xl overflow-hidden bg-gray-50 border-2 border-dashed border-gray-100 flex items-center justify-center p-6">
@@ -195,7 +195,7 @@ const PaymentManager = () => {
                                     ) : (
                                         <label className="h-44 w-full rounded-3xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center text-gray-300 cursor-pointer hover:border-orange-200 hover:bg-orange-50/30 transition-all bg-gray-50/50 group">
                                             <div className="bg-white p-4 rounded-full shadow-sm mb-3 group-hover:scale-110 transition-transform">
-                                                <ImageIcon className="h-8 w-8 text-gray-400" />
+                                                <ImageIcon className="h-8 w-8 text-admin-text-secondary" />
                                             </div>
                                             <span className="text-[11px] font-black uppercase tracking-widest">اختر ملف الشعار</span>
                                             <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
@@ -240,22 +240,22 @@ const PaymentManager = () => {
                     {loading ? (
                         <div className="flex flex-col items-center justify-center p-24 bg-white rounded-3xl border border-gray-100">
                             <Loader2 className="h-12 w-12 animate-spin text-orange-600 mb-4" />
-                            <p className="text-sm font-bold text-gray-400">تحميل القائمة...</p>
+                            <p className="text-sm font-bold text-admin-text-secondary">تحميل القائمة...</p>
                         </div>
                     ) : (
                         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                             <div className="px-8 py-6 border-b border-gray-50 flex items-center justify-between">
                                 <h3 className="font-black text-gray-900">الشركاء الحاليين ({methods.length})</h3>
-                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">إدارة العرض والترتيب</p>
+                                <p className="text-[10px] text-admin-text-secondary font-bold uppercase tracking-widest">إدارة العرض والترتيب</p>
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full">
                                     <thead className="bg-gray-50/50">
                                         <tr>
-                                            <th className="px-8 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">الشعار</th>
-                                            <th className="px-8 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">اسم الشريك</th>
-                                            <th className="px-8 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">الحالة</th>
-                                            <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">الإجراء</th>
+                                            <th className="px-8 py-4 text-right text-[10px] font-black text-admin-text-secondary uppercase tracking-widest">الشعار</th>
+                                            <th className="px-8 py-4 text-right text-[10px] font-black text-admin-text-secondary uppercase tracking-widest">اسم الشريك</th>
+                                            <th className="px-8 py-4 text-center text-[10px] font-black text-admin-text-secondary uppercase tracking-widest">الحالة</th>
+                                            <th className="px-8 py-4 text-left text-[10px] font-black text-admin-text-secondary uppercase tracking-widest">الإجراء</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-50">
@@ -280,7 +280,7 @@ const PaymentManager = () => {
                                                                 <span className="text-[10px] font-black uppercase">نشط</span>
                                                             </div>
                                                         ) : (
-                                                            <div className="flex items-center gap-2 text-gray-400 bg-gray-50 px-3 py-1.5 rounded-full ring-1 ring-gray-100">
+                                                            <div className="flex items-center gap-2 text-admin-text-secondary bg-gray-50 px-3 py-1.5 rounded-full ring-1 ring-gray-100">
                                                                 <ToggleLeft className="h-5 w-5" />
                                                                 <span className="text-[10px] font-black uppercase">معطل</span>
                                                             </div>
