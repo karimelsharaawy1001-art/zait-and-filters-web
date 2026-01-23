@@ -135,19 +135,19 @@ const AdminMessages = () => {
     }
 
     return (
-        <div className="p-4 md:p-8">
+        <div className="p-4 md:p-8 bg-gray-50 min-h-full">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-12">
                 <div>
-                    <h1 className="text-4xl font-black text-white tracking-tight uppercase poppins">Terminal Comms</h1>
-                    <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest mt-1">Intercept and manage incoming customer transmissions</p>
+                    <h1 className="text-4xl font-black text-black tracking-tight uppercase poppins">Terminal Comms</h1>
+                    <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mt-1">Intercept and manage incoming customer transmissions</p>
                 </div>
 
-                <div className="flex items-center gap-2 bg-admin-card p-1 rounded-2xl border border-admin-border shadow-admin">
+                <div className="flex items-center gap-2 bg-white p-1 rounded-2xl border border-gray-100 shadow-sm">
                     {['All', 'Unread', 'Read', 'Replied'].map((status) => (
                         <button
                             key={status}
                             onClick={() => setFilterStatus(status)}
-                            className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filterStatus === status ? 'bg-admin-accent text-white shadow-lg shadow-admin-red/40' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                            className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filterStatus === status ? 'bg-[#e31e24] text-white shadow-lg shadow-[#e31e24]/40' : 'text-gray-400 hover:text-black hover:bg-gray-50'}`}
                         >
                             {status}
                         </button>
@@ -156,12 +156,12 @@ const AdminMessages = () => {
             </div>
 
             {messages.length === 0 ? (
-                <div className="bg-admin-card rounded-[2.5rem] p-20 text-center border border-admin-border flex flex-col items-center shadow-admin">
-                    <div className="bg-[#ffffff05] p-10 rounded-full mb-8 border border-admin-border">
-                        <Mail className="h-12 w-12 text-gray-700" />
+                <div className="bg-white rounded-[2.5rem] p-20 text-center border border-gray-100 flex flex-col items-center shadow-sm">
+                    <div className="bg-gray-50 p-10 rounded-full mb-8 border border-gray-100">
+                        <Mail className="h-12 w-12 text-gray-300" />
                     </div>
-                    <h2 className="text-2xl font-black text-white uppercase tracking-tight poppins">Quiet Frequency</h2>
-                    <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest mt-4">All customer signals have been cleared</p>
+                    <h2 className="text-2xl font-black text-black uppercase tracking-tight poppins">Quiet Frequency</h2>
+                    <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mt-4">All customer signals have been cleared</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 gap-8">
@@ -169,65 +169,65 @@ const AdminMessages = () => {
                         <div
                             key={msg.id}
                             onClick={() => msg.status === 'Unread' && handleUpdateStatus(msg.id, 'Read')}
-                            className={`bg-admin-card rounded-[2.5rem] border transition-all duration-500 group relative overflow-hidden ${msg.status === 'Unread' ? 'border-admin-accent/30 shadow-2xl shadow-admin-accent/5' : 'border-[#ffffff0d] shadow-admin opacity-90'}`}
+                            className={`bg-white rounded-[2.5rem] border transition-all duration-500 group relative overflow-hidden ${msg.status === 'Unread' ? 'border-[#e31e24]/30 shadow-2xl shadow-[#e31e24]/5' : 'border-gray-100 shadow-sm opacity-90'}`}
                         >
                             {msg.status === 'Unread' && (
-                                <div className="absolute top-0 left-0 w-1 h-full bg-admin-accent"></div>
+                                <div className="absolute top-0 left-0 w-1.5 h-full bg-[#e31e24]"></div>
                             )}
                             <div className="p-8 md:p-10">
                                 <div className="flex flex-col xl:flex-row gap-10">
                                     {/* Left: Sender Info */}
                                     <div className="xl:w-80 flex-shrink-0 space-y-6">
                                         <div className="flex items-center gap-5">
-                                            <div className={`h-16 w-16 rounded-2xl flex items-center justify-center transition-all duration-500 ${msg.status === 'Unread' ? 'bg-admin-accent/10 text-admin-accent ring-2 ring-admin-accent/20' : 'bg-[#ffffff05] text-gray-500 border border-admin-border'}`}>
+                                            <div className={`h-16 w-16 rounded-2xl flex items-center justify-center transition-all duration-500 ${msg.status === 'Unread' ? 'bg-red-50 text-[#e31e24] ring-2 ring-red-50' : 'bg-gray-50 text-gray-400 border border-gray-100'}`}>
                                                 <User className="h-7 w-7" />
                                             </div>
                                             <div>
-                                                <h3 className="text-lg font-black text-white leading-tight uppercase tracking-tight poppins">{msg.name}</h3>
-                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2 mt-1.5">
+                                                <h3 className="text-lg font-black text-black leading-tight uppercase tracking-tight poppins">{msg.name}</h3>
+                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 mt-1.5">
                                                     <Clock className="w-3.5 h-3.5" />
                                                     {msg.createdAt?.toDate().toLocaleString()}
                                                 </p>
                                             </div>
                                         </div>
 
-                                        <div className="space-y-3 bg-[#ffffff03] p-5 rounded-2xl border border-admin-border">
-                                            <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-admin-text-secondary break-all">
-                                                <Mail className="w-4 h-4 text-admin-accent" />
+                                        <div className="space-y-3 bg-gray-50 p-5 rounded-2xl border border-gray-100">
+                                            <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-gray-600 break-all">
+                                                <Mail className="w-4 h-4 text-[#e31e24]" />
                                                 <span className="truncate">{msg.email}</span>
                                             </div>
                                             {msg.phone && (
-                                                <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-admin-text-secondary">
-                                                    <Phone className="w-4 h-4 text-admin-accent" />
+                                                <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-gray-600">
+                                                    <Phone className="w-4 h-4 text-[#e31e24]" />
                                                     <span>{msg.phone}</span>
                                                 </div>
                                             )}
                                         </div>
 
                                         <div className="pt-2 flex flex-wrap gap-3">
-                                            <span className={`px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border ${msg.status === 'Unread' ? 'bg-admin-accent/20 text-admin-accent border-admin-accent/20' :
-                                                msg.status === 'Read' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                                                    'bg-admin-green/10 text-admin-green border-admin-green/20'
+                                            <span className={`px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border ${msg.status === 'Unread' ? 'bg-red-50 text-[#e31e24] border-red-100' :
+                                                msg.status === 'Read' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                                                    'bg-green-50 text-green-600 border-green-100'
                                                 }`}>
                                                 {msg.status}
                                             </span>
                                             {msg.status === 'Unread' && (
-                                                <span className="px-4 py-2 bg-admin-accent text-white rounded-xl text-[9px] font-black animate-pulse uppercase tracking-widest">Incoming Signal</span>
+                                                <span className="px-4 py-2 bg-[#e31e24] text-white rounded-xl text-[9px] font-black animate-pulse uppercase tracking-widest">Incoming Signal</span>
                                             )}
                                         </div>
                                     </div>
 
                                     {/* Center: Message Body */}
                                     <div className="flex-1">
-                                        <div className="p-8 bg-[#ffffff03] rounded-[2rem] border border-admin-border h-full relative group-hover:bg-[#ffffff05] transition-all duration-500">
+                                        <div className="p-8 bg-gray-50 rounded-[2rem] border border-gray-100 h-full relative group-hover:bg-white group-hover:shadow-sm transition-all duration-500">
                                             <div className="absolute top-6 right-8">
-                                                <MessageSquare className="w-12 h-12 text-white/5" />
+                                                <MessageSquare className="w-12 h-12 text-black/5" />
                                             </div>
-                                            <h4 className="text-sm font-black text-white uppercase tracking-widest mb-6 flex items-center gap-3">
-                                                <div className="w-2 h-2 rounded-full bg-admin-accent animate-ping"></div>
+                                            <h4 className="text-sm font-black text-black uppercase tracking-widest mb-6 flex items-center gap-3">
+                                                <div className="w-2 h-2 rounded-full bg-[#e31e24] animate-ping"></div>
                                                 {msg.subject || 'Standard Inquiry'}
                                             </h4>
-                                            <p className="text-admin-text-secondary text-sm font-bold leading-relaxed whitespace-pre-wrap">
+                                            <p className="text-gray-600 text-sm font-bold leading-relaxed whitespace-pre-wrap">
                                                 {msg.message}
                                             </p>
                                         </div>
@@ -255,14 +255,14 @@ const AdminMessages = () => {
                                             {msg.status === 'Unread' && (
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleUpdateStatus(msg.id, 'Read'); }}
-                                                    className="bg-[#ffffff05] hover:bg-[#ffffff0a] text-gray-500 hover:text-white border border-admin-border rounded-xl py-3 font-black text-[9px] uppercase tracking-widest transition-all"
+                                                    className="bg-gray-50 hover:bg-gray-100 text-gray-400 hover:text-black border border-gray-100 rounded-xl py-3 font-black text-[9px] uppercase tracking-widest transition-all"
                                                 >
                                                     Acknowledge
                                                 </button>
                                             )}
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); handleDelete(msg.id); }}
-                                                className="bg-admin-red/10 hover:bg-admin-red text-admin-red hover:text-white border border-admin-red/30 rounded-xl py-3 font-black text-[9px] uppercase tracking-widest transition-all"
+                                                className="bg-red-50 hover:bg-[#e31e24] text-[#e31e24] hover:text-white border border-red-100 rounded-xl py-3 font-black text-[9px] uppercase tracking-widest transition-all"
                                             >
                                                 Purge
                                             </button>

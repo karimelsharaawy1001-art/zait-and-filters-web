@@ -2,119 +2,105 @@
 @import "tailwindcss";
 
 :root {
+    /* FONTS */
     --font-primary: 'Cairo', sans-serif;
-    --admin-font: 'Poppins', 'Roboto', sans-serif;
+    --font-secondary: 'Poppins', 'Inter', sans-serif;
 
+    /* BRAND COLORS (Z&F BRAND) */
+    --brand-red: #e31e24;
+    --brand-red-dark: #b8181d;
+    --brand-black: #000000;
+    --brand-white: #ffffff;
+
+    /* REFINED DARK SYSTEM */
     --matte-black: #0a0a0b;
     --carbon-grey: #1a1c23;
-    --racing-red: #e31e24;
-    --snow-white: #ffffff;
-    --silver-grey: #cccccc;
-    --dim-grey: #666666;
+    --charcoal: #2c2e33;
+    --silver: #cccccc;
+    --dim: #666666;
 
-    --admin-bg: var(--matte-black);
-    --admin-sidebar: var(--carbon-grey);
-    --admin-card: var(--carbon-grey);
-    --admin-border: #2c2e33;
-    --admin-red: var(--racing-red);
-    --admin-text: var(--snow-white);
-    --admin-text-secondary: var(--silver-grey);
+    /* DEFAULT TO DARK (Original Brand State) */
+    background-color: var(--matte-black);
+    color: var(--brand-white);
 }
 
+/* ========================================
+   GLOBAL TYPOGRAPHY
+   ======================================== */
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
-    font-family: 'Cairo', sans-serif !important;
-}
-
-html,
-body,
-#root {
     font-family: var(--font-primary) !important;
-}
-
-* {
-    font-family: inherit;
-}
-
-.font-Cairo {
-    font-family: 'Cairo', sans-serif !important;
 }
 
 body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: var(--matte-black);
-    color: var(--snow-white);
-}
-
-/* Force SVG icons to inherit color from parent */
-svg {
-    color: inherit !important;
+    margin: 0;
+    font-family: var(--font-primary) !important;
 }
 
 /* ========================================
-   GLOBAL LAYOUT 
+   ADMIN PANEL - BRAND ALIGNED LIGHT THEME
    ======================================== */
+.admin-theme-container {
+    --bg-main: #f9fafb;
+    /* gray-50 */
+    --bg-card: #ffffff;
+    --bg-sidebar: #000000;
+    --border-subtle: #f3f4f6;
+    /* gray-100 */
+    --text-primary: #000000;
+    --text-secondary: #6b7280;
+    /* gray-500 */
 
-#root {
-    min-height: 100vh;
+    background-color: var(--bg-main) !important;
+    color: var(--text-primary) !important;
+    font-family: var(--font-secondary) !important;
 }
 
-/* ========================================
-   ADMIN PANEL ENFORCED DARK THEME
-   ======================================== */
-
-/* Lock dark surfaces for Admin Panel elements */
-.bg-matte-black,
-.bg-carbon-grey,
-aside.bg-carbon-grey,
-main.bg-matte-black {
-    background-color: var(--matte-black) !important;
-    color: var(--snow-white) !important;
+.admin-theme-container h1,
+.admin-theme-container h2,
+.admin-theme-container h3,
+.admin-theme-container h4 {
+    font-family: 'Cairo', sans-serif !important;
+    color: var(--text-primary) !important;
 }
 
-.bg-carbon-grey {
-    background-color: var(--carbon-grey) !important;
+.admin-theme-container table {
+    background-color: var(--bg-card) !important;
+    color: var(--text-primary) !important;
 }
 
-/* Ensure admin cards and interactive elements stay visible */
-.admin-card,
-[class*='border-border-dark'] {
-    border-color: #2c2e33 !important;
+.admin-theme-container input,
+.admin-theme-container select,
+.admin-theme-container textarea {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #e5e7eb !important;
+    /* gray-200 */
 }
 
-/* Global Nav Overrides for Admin only if needed, 
-   otherwise Navbar should handle its own light/dark state */
-.nav-item.active,
-.nav-link.active {
-    background-color: var(--racing-red) !important;
-    color: var(--snow-white) !important;
+/* Force standard Tailwind classes to work in Admin if needed */
+.admin-theme-container .bg-white {
+    background-color: #ffffff !important;
 }
 
-/* Typography Consistency */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
-span,
-p,
-div {
-    font-family: var(--font-primary), var(--admin-font), sans-serif !important;
+.admin-theme-container .text-black {
+    color: #000000 !important;
 }
 
-/* Strip Legacy Gradients */
-[class*='bg-gradient'],
-[class*='gradient'],
-[class*='glass'] {
-    background-image: none !important;
-    backdrop-filter: none;
+.admin-theme-container .border-gray-100 {
+    border-color: #f3f4f6 !important;
 }
+
+.admin-theme-container .bg-gray-50 {
+    background-color: #f9fafb !important;
+}
+
 
 /* Header & Nav Recovery */
 nav a {
