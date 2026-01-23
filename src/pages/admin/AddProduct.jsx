@@ -74,7 +74,16 @@ const AddProduct = () => {
 
         if (name === 'category') {
             const selectedCat = categories.find(c => c.name === value);
-            setSubCategories(selectedCat ? selectedCat.subCategories || [] : []);
+            // Normalize subcategories - handle both string and object formats
+            const normalizedSubs = selectedCat ? (selectedCat.subCategories || []).map(sub => {
+                if (typeof sub === 'string') {
+                    return sub;
+                } else if (typeof sub === 'object' && sub !== null) {
+                    return sub.name || '';
+                }
+                return '';
+            }).filter(Boolean) : [];
+            setSubCategories(normalizedSubs);
             setFormData(prev => ({ ...prev, subcategory: '' }));
         }
 
@@ -346,14 +355,20 @@ const AddProduct = () => {
                                     <select
                                         name="subcategory"
                                         required
-                                        value={formData.subcategory}
+                                        value={formData.subcategory || ''}
                                         onChange={handleChange}
                                         className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg cursor-pointer"
                                     >
                                         <option value="" className="bg-admin-card">Select Subcategory</option>
-                                        {subCategories.map((sub, idx) => (
-                                            <option key={idx} value={sub} className="bg-admin-card">{sub}</option>
-                                        ))}
+                                        {subCategories.map((sub, idx) => {
+                                            // Ensure we're rendering a string, not an object
+                                            const subValue = typeof sub === 'string' ? sub : (sub?.name || '');
+                                            return (
+                                                <option key={idx} value={subValue} className="bg-admin-card">
+                                                    {subValue}
+                                                </option>
+                                            );
+                                        })}
                                     </select>
                                 </div>
                                 <div className="col-span-2">
