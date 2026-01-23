@@ -172,6 +172,7 @@ function App() {
               <Route path="/recover-cart" element={<RecoverCart />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/marketers" element={<AffiliateRegister />} />
               <Route path="/affiliate-register" element={<AffiliateRegister />} />
               <Route
                 path="/profile"

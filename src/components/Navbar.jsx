@@ -102,7 +102,7 @@ const Navbar = () => {
                                 <Link to="/shop" className="text-[14px] !text-[#000000] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#e31e24] whitespace-nowrap">
                                     {t('shop')}
                                 </Link>
-                                <Link to="/affiliate-dashboard" className="text-[14px] !text-[#000000] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#e31e24] whitespace-nowrap">
+                                <Link to="/marketers" className="text-[14px] !text-[#000000] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#e31e24] whitespace-nowrap">
                                     {t('nav.marketers')}
                                 </Link>
                             </div>
@@ -185,7 +185,7 @@ const Navbar = () => {
                             {/* Right Group: Marketers | Garage | Account | Cart */}
                             <div className="flex items-center gap-x-1.5 sm:gap-x-3">
                                 <Link
-                                    to="/affiliate-dashboard"
+                                    to="/marketers"
                                     className="text-[9px] sm:text-[11px] !text-[#000000] !font-bold uppercase font-Cairo px-1.5 py-1 whitespace-nowrap"
                                 >
                                     {t('nav.marketers')}
@@ -260,7 +260,7 @@ const Navbar = () => {
                                 {t('shop')}
                             </Link>
                             <Link
-                                to="/affiliate-dashboard"
+                                to="/marketers"
                                 onClick={() => setIsOpen(false)}
                                 className="block px-4 py-3 text-[14px] !text-[#000000] !font-bold hover:bg-red-50 rounded-xl transition-colors uppercase italic font-Cairo"
                             >

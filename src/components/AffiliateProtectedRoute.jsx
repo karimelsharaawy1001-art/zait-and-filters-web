@@ -63,7 +63,7 @@ const AffiliateProtectedRoute = ({ children }) => {
     }
 
     if (!isAffiliate) {
-        return <Navigate to="/affiliate-register" replace />;
+        return <Navigate to="/marketers" replace />;
     }
 
     return children;
