@@ -276,6 +276,10 @@ const OrderDetails = () => {
                                             src={item.image}
                                             alt={item.name}
                                             className="w-24 h-24 object-cover rounded-2xl border border-admin-border shadow-lg"
+                                            onError={(e) => {
+                                                e.target.onerror = null;
+                                                e.target.src = '/placeholder.png';
+                                            }}
                                         />
                                         <div className="flex-1">
                                             <h4 className="text-lg font-black text-white mb-2 poppins">{item.name}</h4>

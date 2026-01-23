@@ -37,15 +37,19 @@ const ProductCard = ({ product }) => {
 
     return (
         <div className="product-card group relative flex flex-col !gap-0 !space-y-0 !justify-start bg-white rounded-premium shadow-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:translate-y-[-5px] w-full max-w-[320px] mx-auto h-full">
-            {/* HERO IMAGE - Fixed 250px Height */}
+            {/* HERO IMAGE - Fixed Aspect Ratio to prevent collapse */}
             <Link
                 to={`/product/${product.id}`}
-                className="relative bg-gray-50 block w-full h-auto mb-0 p-0"
+                className="relative bg-gray-50 block w-full aspect-square min-h-[200px] mb-0 p-0 overflow-hidden"
             >
                 <img
                     src={getOptimizedImage(product.image, 'f_auto,q_auto,w_800')}
                     alt={product.name}
-                    className="w-full h-auto object-cover block transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full object-cover block transition-transform duration-500 group-hover:scale-105"
+                    onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '/placeholder.png';
+                    }}
                 />
 
                 {/* Status Badges - Premium Minimal */}

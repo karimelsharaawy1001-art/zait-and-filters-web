@@ -388,6 +388,10 @@ const ManageProducts = () => {
                                                         src={product.image}
                                                         alt={product.name}
                                                         className="h-full w-full object-contain p-1 transition-transform group-hover/row:scale-110"
+                                                        onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.src = '/placeholder.png';
+                                                        }}
                                                     />
                                                 </div>
                                             </td>
@@ -460,6 +464,10 @@ const ManageProducts = () => {
                                                 src={product.image}
                                                 alt={product.name}
                                                 className="h-full w-full object-contain p-2"
+                                                onError={(e) => {
+                                                    e.target.onerror = null;
+                                                    e.target.src = '/placeholder.png';
+                                                }}
                                             />
                                         </div>
                                         <div className="flex-1 min-w-0 flex flex-col justify-center">

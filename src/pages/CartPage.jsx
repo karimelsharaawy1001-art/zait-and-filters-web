@@ -70,6 +70,10 @@ const CartPage = () => {
                                             src={item.image}
                                             alt={item.name}
                                             className="w-24 h-24 object-cover rounded-md border border-gray-200"
+                                            onError={(e) => {
+                                                e.target.onerror = null;
+                                                e.target.src = '/placeholder.png';
+                                            }}
                                         />
                                         <div className={`flex-1 text-center sm:${isAr ? 'text-right' : 'text-left'}`}>
                                             <h3 className="text-lg font-bold text-gray-900 leading-tight mb-1">
