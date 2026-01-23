@@ -193,7 +193,7 @@ const ManageShipping = () => {
                             <button
                                 type="submit"
                                 disabled={actionLoading}
-                                className="w-full bg-admin-red hover:bg-admin-red-dark text-white py-5 rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] hover:scale-[1.02] transition-all shadow-xl shadow-admin-red/40 active:scale-95 disabled:opacity-50"
+                                className="w-full admin-primary-btn py-5 rounded-[1.5rem]"
                             >
                                 Commmit Rate Entity
                             </button>

@@ -72,7 +72,7 @@ const InstallmentPartners = () => {
 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                 <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-100">
+                    <div className="w-16 h-16 bg-admin-red rounded-2xl flex items-center justify-center shadow-lg shadow-admin-red/20">
                         <CreditCard className="w-8 h-8 text-white" />
                     </div>
                     <div>
@@ -83,7 +83,7 @@ const InstallmentPartners = () => {
                 <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="flex items-center justify-center gap-2 px-8 py-4 bg-[#008a40] hover:bg-[#007a38] text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-[#008a40]/20 disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 px-8 py-4 bg-admin-red hover:bg-admin-red-dark text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-admin-red/20 disabled:opacity-50"
                 >
                     <Save className="w-5 h-5" />
                     {saving ? 'Saving...' : 'Save Configuration'}
@@ -100,8 +100,8 @@ const InstallmentPartners = () => {
                                     key={partner.id}
                                     onClick={() => handleToggle(partner.id)}
                                     className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer ${enabledPartners[partner.id]
-                                            ? 'border-[#008a40] bg-green-50'
-                                            : 'border-gray-100 bg-gray-50'
+                                        ? 'border-admin-red bg-red-50'
+                                        : 'border-gray-100 bg-gray-50'
                                         }`}
                                 >
                                     <div className="flex items-center gap-3">
@@ -112,11 +112,11 @@ const InstallmentPartners = () => {
                                             }} />
                                             <div style={{ display: 'none' }} className="font-black text-[10px] text-admin-text-secondary uppercase">{partner.name}</div>
                                         </div>
-                                        <span className={`font-bold ${enabledPartners[partner.id] ? 'text-[#008a40]' : 'text-gray-500'}`}>
+                                        <span className={`font-bold ${enabledPartners[partner.id] ? 'text-admin-red' : 'text-gray-500'}`}>
                                             {partner.name}
                                         </span>
                                     </div>
-                                    <div className={`w-12 h-6 rounded-full p-1 transition-colors ${enabledPartners[partner.id] ? 'bg-[#008a40]' : 'bg-gray-300'}`}>
+                                    <div className={`w-12 h-6 rounded-full p-1 transition-colors ${enabledPartners[partner.id] ? 'bg-admin-red' : 'bg-gray-300'}`}>
                                         <div className={`w-4 h-4 bg-white rounded-full transition-transform ${enabledPartners[partner.id] ? 'translate-x-6' : 'translate-x-0'}`} />
                                     </div>
                                 </div>
@@ -135,7 +135,7 @@ const InstallmentPartners = () => {
                 </div>
 
                 <div className="space-y-6">
-                    <div className="bg-[#008a40] rounded-3xl p-8 text-white shadow-xl shadow-[#008a40]/20">
+                    <div className="bg-admin-red rounded-3xl p-8 text-white shadow-xl shadow-admin-red/20">
                         <h3 className="text-lg font-black uppercase tracking-tight mb-4 flex items-center gap-2">
                             Functionality
                         </h3>

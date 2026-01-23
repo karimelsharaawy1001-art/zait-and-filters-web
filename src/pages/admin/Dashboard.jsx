@@ -132,7 +132,7 @@ const Dashboard = () => {
                 <div className="flex justify-end mb-8">
                     <button
                         onClick={() => navigate('/admin/products/new')}
-                        className="bg-racing-red hover:bg-racing-red-dark hover:scale-105 text-snow-white font-black text-[11px] uppercase tracking-widest px-8 py-4 rounded-xl transition-all shadow-xl shadow-racing-red/20 flex items-center gap-2"
+                        className="admin-primary-btn px-8 py-4 rounded-xl flex items-center gap-2"
                     >
                         <Plus className="h-4.5 w-4.5" />
                         Add New Product
@@ -173,7 +173,7 @@ const Dashboard = () => {
                     {/* Active Customers */}
                     <div className="bg-carbon-grey rounded-2xl p-7 flex flex-col gap-4 border border-border-dark shadow-premium-3d hover:border-racing-red/30 transition-all group">
                         <div className="flex items-center justify-between">
-                            <div className="p-3.5 bg-racing-red/10 text-racing-red rounded-xl group-hover:scale-110 transition-transform">
+                            <div className="p-3.5 bg-admin-red/10 text-admin-red rounded-xl group-hover:scale-110 transition-transform">
                                 <Users className="h-7 w-7" />
                             </div>
                         </div>
@@ -204,18 +204,18 @@ const Dashboard = () => {
                             <Clock className="w-48 h-48" />
                         </div>
                         <div className="flex items-center gap-5">
-                            <div className="p-5 bg-orange-500 text-white rounded-2xl shadow-xl shadow-orange-500/20">
+                            <div className="p-5 bg-admin-red text-white rounded-2xl shadow-xl shadow-admin-red/20">
                                 <Clock className="h-10 w-10" />
                             </div>
                             <div className="flex flex-col gap-1">
-                                <p className="text-[11px] font-black text-orange-500 uppercase tracking-widest">Needs Attention</p>
-                                <h3 className="text-5xl font-black text-snow-white">{stats.pendingOrders}</h3>
+                                <p className="text-[11px] font-black text-admin-red uppercase tracking-widest">Needs Attention</p>
+                                <h3 className="text-5xl font-black text-white">{stats.pendingOrders}</h3>
                             </div>
                         </div>
                         <p className="text-base font-medium text-silver-grey max-w-sm">There are currently {stats.pendingOrders} pending orders awaiting your immediate processing.</p>
                         <button
                             onClick={() => navigate('/admin/orders')}
-                            className="bg-orange-500 hover:bg-orange-600 text-white font-black text-xs uppercase tracking-widest px-8 py-4 rounded-xl transition-all flex items-center gap-3 w-fit shadow-lg shadow-orange-500/20"
+                            className="bg-admin-red hover:bg-admin-red-dark text-white font-black text-xs uppercase tracking-widest px-8 py-4 rounded-xl transition-all flex items-center gap-3 w-fit shadow-lg shadow-admin-red/20"
                         >
                             Process Orders
                             <ArrowRight className="h-4.5 w-4.5" />
@@ -227,12 +227,12 @@ const Dashboard = () => {
                             <AlertTriangle className="w-48 h-48" />
                         </div>
                         <div className="flex items-center gap-5">
-                            <div className="p-5 bg-racing-red text-white rounded-2xl shadow-xl shadow-racing-red/20">
+                            <div className="p-5 bg-admin-red text-white rounded-2xl shadow-xl shadow-admin-red/20">
                                 <AlertTriangle className="h-10 w-10" />
                             </div>
                             <div className="flex flex-col gap-1">
-                                <p className="text-[11px] font-black text-racing-red uppercase tracking-widest">Stock Alert</p>
-                                <h3 className="text-5xl font-black text-snow-white">{lowStockProducts.length}</h3>
+                                <p className="text-[11px] font-black text-admin-red uppercase tracking-widest">Stock Alert</p>
+                                <h3 className="text-5xl font-black text-white">{lowStockProducts.length}</h3>
                             </div>
                         </div>
                         <div className="flex flex-col gap-2.5">
@@ -242,7 +242,7 @@ const Dashboard = () => {
                                 lowStockProducts.map(product => (
                                     <div key={product.id} className="flex items-center justify-between bg-white/[0.03] border border-border-dark rounded-xl px-4 py-3">
                                         <span className="text-sm font-bold text-snow-white truncate max-w-[240px]">{product.name}</span>
-                                        <span className="text-[10px] font-black text-racing-red bg-racing-red/10 border border-racing-red/20 px-3 py-1.5 rounded-full">
+                                        <span className="text-[10px] font-black text-admin-red bg-admin-red/10 border border-admin-red/20 px-3 py-1.5 rounded-full">
                                             {product.stockQuantity || 0} UNITS LEFT
                                         </span>
                                     </div>
@@ -251,7 +251,7 @@ const Dashboard = () => {
                         </div>
                         <button
                             onClick={() => navigate('/admin/products')}
-                            className="bg-racing-red hover:bg-racing-red-dark text-white font-black text-xs uppercase tracking-widest px-8 py-4 rounded-xl transition-all flex items-center gap-3 w-fit shadow-lg shadow-racing-red/20"
+                            className="bg-admin-red hover:bg-admin-red-dark text-white font-black text-xs uppercase tracking-widest px-8 py-4 rounded-xl transition-all flex items-center gap-3 w-fit shadow-lg shadow-admin-red/20"
                         >
                             Manage Stock
                             <ArrowRight className="h-4.5 w-4.5" />
@@ -265,7 +265,7 @@ const Dashboard = () => {
                         <h3 className="text-xl font-black text-snow-white uppercase tracking-tight">Recent Orders</h3>
                         <button
                             onClick={() => navigate('/admin/orders')}
-                            className="text-racing-red hover:text-racing-red-dark font-black text-[11px] uppercase tracking-widest flex items-center gap-2 transition-colors"
+                            className="text-admin-red hover:text-admin-red-dark font-black text-[11px] uppercase tracking-widest flex items-center gap-2 transition-colors"
                         >
                             View Order Log
                             <ArrowRight className="h-4 w-4" />
@@ -278,7 +278,7 @@ const Dashboard = () => {
                                     <th className="px-10 py-5 text-left text-[11px] font-black text-snow-white uppercase tracking-widest border-b-2 border-racing-red/30">ID</th>
                                     <th className="px-10 py-5 text-left text-[11px] font-black text-snow-white uppercase tracking-widest border-b-2 border-racing-red/30">Client</th>
                                     <th className="px-10 py-5 text-left text-[11px] font-black text-snow-white uppercase tracking-widest border-b-2 border-racing-red/30">Revenue</th>
-                                    <th className="px-10 py-5 text-left text-[11px] font-black text-snow-white uppercase tracking-widest border-b-2 border-racing-red/30">Phase</th>
+                                    <th className="px-10 py-5 text-left text-[11px] font-black text-white uppercase tracking-widest border-b-2 border-admin-red/30">Phase</th>
                                     <th className="px-10 py-5 text-left text-[11px] font-black text-snow-white uppercase tracking-widest border-b-2 border-racing-red/30">Timestamp</th>
                                 </tr>
                             </thead>
@@ -297,7 +297,7 @@ const Dashboard = () => {
                                             className="hover:bg-white/[0.02] transition-colors cursor-pointer group"
                                         >
                                             <td className="px-10 py-6">
-                                                <span className="text-sm font-black text-snow-white group-hover:text-racing-red transition-colors">#{order.id.slice(-6).toUpperCase()}</span>
+                                                <span className="text-sm font-black text-white group-hover:text-admin-red transition-colors">#{order.id.slice(-6).toUpperCase()}</span>
                                             </td>
                                             <td className="px-10 py-6">
                                                 <span className="text-sm font-bold text-silver-grey">{order.customer?.name || 'GUEST USER'}</span>
@@ -311,7 +311,7 @@ const Dashboard = () => {
                                                     ${order.status === 'Processing' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : ''}
                                                     ${order.status === 'Shipped' ? 'bg-purple-500/10 text-purple-500 border-purple-500/20' : ''}
                                                     ${order.status === 'Delivered' ? 'bg-green-500/10 text-green-500 border-green-500/20' : ''}
-                                                    ${order.status === 'Cancelled' ? 'bg-racing-red/10 text-racing-red border-racing-red/20' : ''}
+                                                    ${order.status === 'Cancelled' ? 'bg-admin-red/10 text-admin-red border-admin-red/20' : ''}
                                                 `}>
                                                     {order.status}
                                                 </span>

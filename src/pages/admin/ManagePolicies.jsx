@@ -64,7 +64,7 @@ const ManagePolicies = () => {
     if (loading) {
         return (
             <div className="p-6 flex justify-center items-center h-64">
-                <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
+                <Loader2 className="h-8 w-8 animate-spin text-admin-red" />
             </div>
         );
     }
@@ -79,13 +79,13 @@ const ManagePolicies = () => {
             <div className="flex bg-[#111111] p-1.5 rounded-2xl mb-8 w-fit border border-admin-border shadow-2xl">
                 <button
                     onClick={() => setActiveTab('returns-policy')}
-                    className={`px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2.5 text-sm ${activeTab === 'returns-policy' ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                    className={`px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2.5 text-sm ${activeTab === 'returns-policy' ? 'bg-admin-red text-white shadow-lg shadow-admin-red/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                 >
                     <ClipboardList className="h-4 w-4" /> Returns Policy
                 </button>
                 <button
                     onClick={() => setActiveTab('shipping-info')}
-                    className={`px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2.5 text-sm ${activeTab === 'shipping-info' ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                    className={`px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2.5 text-sm ${activeTab === 'shipping-info' ? 'bg-admin-red text-white shadow-lg shadow-admin-red/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                 >
                     <Share2 className="h-4 w-4" /> Shipping Info
                 </button>
@@ -97,8 +97,8 @@ const ManagePolicies = () => {
                     <div className="absolute top-0 right-0 w-64 h-64 bg-orange-600/5 blur-[100px] -mr-32 -mt-32 rounded-full"></div>
 
                     {/* Header Icon/Indicator */}
-                    <div className="flex items-center gap-4 text-orange-500 relative z-10">
-                        <div className="bg-orange-600/10 p-3 rounded-2xl">
+                    <div className="flex items-center gap-4 text-admin-red relative z-10">
+                        <div className="bg-admin-red/10 p-3 rounded-2xl">
                             <FileText className="h-7 w-7" />
                         </div>
                         <h2 className="text-2xl font-black text-white tracking-tight uppercase italic font-Cairo">
@@ -115,7 +115,7 @@ const ManagePolicies = () => {
                                 name="title_en"
                                 value={currentData.title_en}
                                 onChange={handleChange}
-                                className="w-full bg-matte-black border border-admin-border text-white rounded-2xl p-4 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 outline-none transition-all placeholder:text-gray-600 font-bold"
+                                className="w-full bg-matte-black border border-admin-border text-white rounded-2xl p-4 focus:ring-2 focus:ring-admin-red/50 focus:border-admin-red outline-none transition-all placeholder:text-gray-600 font-bold"
                                 placeholder="e.g. Terms and Conditions"
                                 required
                             />
@@ -144,7 +144,7 @@ const ManagePolicies = () => {
                                 value={currentData.content_en}
                                 onChange={handleChange}
                                 rows="12"
-                                className="w-full bg-matte-black border border-admin-border text-white rounded-2xl p-6 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 outline-none transition-all font-mono text-sm leading-relaxed placeholder:text-gray-600"
+                                className="w-full bg-matte-black border border-admin-border text-white rounded-2xl p-6 focus:ring-2 focus:ring-admin-red/50 focus:border-admin-red outline-none transition-all font-mono text-sm leading-relaxed placeholder:text-gray-600"
                                 placeholder="Enter policy content in English here..."
                                 required
                             ></textarea>
@@ -170,7 +170,7 @@ const ManagePolicies = () => {
                     <button
                         type="submit"
                         disabled={saving}
-                        className="bg-orange-600 text-white px-12 py-5 rounded-[1.5rem] font-black flex items-center gap-3 hover:bg-orange-700 transition-all shadow-2xl shadow-orange-600/20 disabled:bg-gray-800 disabled:text-gray-500 uppercase tracking-widest italic transform hover:-translate-y-1 active:scale-95"
+                        className="admin-primary-btn w-fit px-12"
                     >
                         {saving ? <Loader2 className="h-6 w-6 animate-spin" /> : <Save className="h-6 w-6" />}
                         Save Changes

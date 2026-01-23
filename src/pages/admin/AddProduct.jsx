@@ -390,7 +390,7 @@ const AddProduct = () => {
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="flex items-center gap-3 bg-admin-red hover:bg-admin-red-dark text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-admin-red/40 hover:scale-105 disabled:opacity-50"
+                                    className="admin-primary-btn"
                                 >
                                     {saving ? (
                                         <>

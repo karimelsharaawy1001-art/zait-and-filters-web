@@ -37,10 +37,21 @@ export default {
                 'dark-bg': '#0a0a0b',
                 'card-bg': '#1a1c23',
                 'primary-red': '#e31e24',
+
+                // ADMIN PANEL LIGHT THEME TOKENS
+                'admin-bg': '#f9fafb',           // gray-50
+                'admin-card': '#ffffff',         // white
+                'admin-border': '#e5e7eb',       // gray-200
+                'admin-red': '#e31e24',          // Brand Red
+                'admin-red-dark': '#b8181d',     // Brand Red Dark
+                'admin-accent': '#e31e24',       // Matching Red Accent
+                'admin-green': '#10b981',        // Success states
+                'admin-text-primary': '#000000',
+                'admin-text-secondary': '#6b7280', // gray-500
             },
             borderRadius: {
                 'premium': '12px',
-                'admin-card': '12px',
+                'admin-card': '24px',            // Rounder for modern UI
             },
             fontFamily: {
                 sans: ['Inter', 'Poppins', 'Roboto', 'Cairo', 'sans-serif'],

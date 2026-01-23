@@ -36,7 +36,7 @@ const Integrations = () => {
             name: 'Installment Partners',
             description: 'Manage installment providers (Valu, Aman, etc.) and display them on your site.',
             icon: <CreditCard className="w-6 h-6 text-white" />,
-            color: 'bg-orange-600',
+            color: 'bg-admin-red',
             path: '/admin/integrations/installment-partners',
             status: 'Operational'
         },
@@ -144,7 +144,7 @@ const Integrations = () => {
                     <h4 className="text-lg font-black text-white mb-1 uppercase tracking-widest poppins">Custom Node Integration?</h4>
                     <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Our sysops team can facilitate direct bridges to any proprietary API or service cluster.</p>
                 </div>
-                <button className="whitespace-nowrap px-10 py-4 bg-white text-black rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] hover:scale-105 transition-all shadow-xl relative active:scale-95">
+                <button className="whitespace-nowrap px-10 py-4 bg-admin-red text-white border border-admin-red rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] hover:bg-admin-red-dark hover:scale-105 transition-all shadow-xl shadow-admin-red/20 relative active:scale-95">
                     Consult SysAdmin
                 </button>
             </div>

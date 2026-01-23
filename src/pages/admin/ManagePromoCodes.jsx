@@ -130,7 +130,7 @@ const ManagePromoCodes = () => {
                 {!showAddForm && (
                     <button
                         onClick={() => setShowAddForm(true)}
-                        className="flex items-center gap-3 bg-admin-red hover:bg-admin-red-dark text-white px-8 py-4 rounded-xl font-black text-xs hover:scale-105 transition-all shadow-lg shadow-admin-red/40 uppercase tracking-widest"
+                        className="flex items-center gap-3 admin-primary-btn px-8 py-4 rounded-xl"
                     >
                         <Plus className="h-4 w-4" />
                         Create New Code
@@ -304,7 +304,7 @@ const ManagePromoCodes = () => {
                             <button
                                 type="submit"
                                 disabled={actionLoading}
-                                className="w-full bg-admin-red hover:bg-admin-red-dark text-white py-5 rounded-xl font-black text-xs hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-admin-red/40 flex items-center justify-center gap-3 uppercase tracking-widest"
+                                className="w-full admin-primary-btn py-5 rounded-xl flex items-center justify-center gap-3"
                             >
                                 {actionLoading ? <Loader2 className="h-5 w-5 animate-spin text-white" /> : <><Plus className="h-5 w-5" /> Launch Promotion</>}
                             </button>

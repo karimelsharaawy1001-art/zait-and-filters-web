@@ -119,7 +119,7 @@ const ManageHero = () => {
                 {!isAdding && (
                     <button
                         onClick={() => { setIsAdding(true); setFormData(prev => ({ ...prev, order: slides.length })); }}
-                        className="bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-orange-700 transition"
+                        className="bg-admin-red text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-admin-red-dark transition"
                     >
                         <Plus className="h-5 w-5" /> Add New Slide
                     </button>
@@ -151,7 +151,7 @@ const ManageHero = () => {
                                 name="title_en"
                                 value={formData.title_en}
                                 onChange={handleChange}
-                                className="w-full border rounded-lg p-2 focus:ring-orange-500"
+                                className="w-full border rounded-lg p-2 focus:ring-admin-red"
                                 required
                             />
                         </div>
@@ -163,7 +163,7 @@ const ManageHero = () => {
                                 name="title_ar"
                                 value={formData.title_ar}
                                 onChange={handleChange}
-                                className="w-full border rounded-lg p-2 focus:ring-orange-500"
+                                className="w-full border rounded-lg p-2 focus:ring-admin-red"
                                 required
                                 dir="rtl"
                             />
@@ -175,7 +175,7 @@ const ManageHero = () => {
                                 name="subtitle_en"
                                 value={formData.subtitle_en}
                                 onChange={handleChange}
-                                className="w-full border rounded-lg p-2 focus:ring-orange-500"
+                                className="w-full border rounded-lg p-2 focus:ring-admin-red"
                                 rows="2"
                             ></textarea>
                         </div>
@@ -186,7 +186,7 @@ const ManageHero = () => {
                                 name="subtitle_ar"
                                 value={formData.subtitle_ar}
                                 onChange={handleChange}
-                                className="w-full border rounded-lg p-2 focus:ring-orange-500"
+                                className="w-full border rounded-lg p-2 focus:ring-admin-red"
                                 rows="2"
                                 dir="rtl"
                             ></textarea>
@@ -199,7 +199,7 @@ const ManageHero = () => {
                                 name="order"
                                 value={formData.order}
                                 onChange={handleChange}
-                                className="w-full border rounded-lg p-2 focus:ring-orange-500"
+                                className="w-full border rounded-lg p-2 focus:ring-admin-red"
                             />
                         </div>
 
@@ -210,7 +210,7 @@ const ManageHero = () => {
                                 checked={formData.isActive}
                                 onChange={handleChange}
                                 id="isActive"
-                                className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+                                className="h-4 w-4 text-admin-red focus:ring-admin-red border-gray-300 rounded"
                             />
                             <label htmlFor="isActive" className="text-sm font-medium text-gray-700">Display this slide</label>
                         </div>
@@ -226,7 +226,7 @@ const ManageHero = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="bg-orange-600 text-white px-8 py-2 rounded-lg hover:bg-orange-700 transition flex items-center gap-2 disabled:bg-orange-300"
+                                className="bg-admin-red text-white px-8 py-2 rounded-lg hover:bg-admin-red-dark transition flex items-center gap-2 disabled:bg-admin-red/30"
                             >
                                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
                                 {editingSlide ? 'Update Slide' : 'Save Slide'}

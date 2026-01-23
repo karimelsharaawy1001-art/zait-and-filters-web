@@ -105,7 +105,7 @@ const ManageCategories = () => {
                             </div>
                             <button
                                 type="submit"
-                                className="w-full bg-admin-red hover:bg-admin-red-dark text-white font-black py-4 rounded-xl shadow-lg shadow-admin-red/40 hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-widest text-xs"
+                                className="admin-primary-btn"
                             >
                                 Add Category
                             </button>
