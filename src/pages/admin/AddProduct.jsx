@@ -153,7 +153,7 @@ const AddProduct = () => {
                         <div className="flex items-center justify-between mb-8">
                             <h2 className="text-xl font-black text-white uppercase tracking-widest poppins">Add New Product</h2>
                             <div className="flex items-center">
-                                <label className="inline-flex items-center cursor-pointer">
+                                <label className="inline-flex items-center cursor-pointer group">
                                     <input
                                         type="checkbox"
                                         name="isActive"
@@ -161,8 +161,12 @@ const AddProduct = () => {
                                         onChange={handleChange}
                                         className="sr-only peer"
                                     />
-                                    <div className="relative w-11 h-6 bg-[#ffffff0d] rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-admin-green shadow-lg"></div>
-                                    <span className="ms-3 text-[10px] font-black uppercase tracking-widest text-admin-text-secondary">{formData.isActive ? 'Active' : 'Inactive'}</span>
+                                    <div className="relative w-14 h-7 bg-gray-600 rounded-full peer transition-all duration-300 peer-checked:bg-[#FF0000] peer-focus:ring-4 peer-focus:ring-red-500/20 shadow-lg peer-checked:shadow-red-500/40">
+                                        <div className="absolute top-0.5 start-0.5 bg-white rounded-full h-6 w-6 transition-all duration-300 peer-checked:translate-x-7 shadow-md"></div>
+                                    </div>
+                                    <span className={`ms-3 text-xs font-black uppercase tracking-widest transition-all duration-300 ${formData.isActive ? 'text-green-400' : 'text-gray-500'}`}>
+                                        {formData.isActive ? 'Active' : 'Inactive'}
+                                    </span>
                                 </label>
                             </div>
                         </div>
