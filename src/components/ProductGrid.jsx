@@ -10,6 +10,7 @@ import { toast } from 'react-hot-toast';
 
 const ProductGrid = ({ showFilters = true }) => {
     const { t, i18n } = useTranslation();
+    const isRTL = i18n.language === 'ar';
     const { addToCart } = useCart();
     const { filters, updateFilter, resetFilters, isGarageFilterActive, activeCar } = useFilters();
     const [products, setProducts] = useState([]);
@@ -377,13 +378,16 @@ const ProductGrid = ({ showFilters = true }) => {
                                 <div className="p-6 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar">
                                     {/* Category Selection (Dropdown) */}
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">{t('category')}</label>
+                                        <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
+                                            {t('shopFilters.category')}
+                                        </label>
                                         <select
                                             value={activeFilters.categories[0] || ''}
                                             onChange={(e) => handleSelectFilter('categories', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-[right_1rem_center] bg-no-repeat"
+                                            dir={isRTL ? 'rtl' : 'ltr'}
+                                            className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
                                         >
-                                            <option value="">{t('allCategories') || 'كل الأقسام'}</option>
+                                            <option value="">{t('shopFilters.allCategories')}</option>
                                             {Object.keys(filterOptions.categories).map(cat => (
                                                 <option key={cat} value={cat}>{cat}</option>
                                             ))}
@@ -393,11 +397,13 @@ const ProductGrid = ({ showFilters = true }) => {
                                     {/* Dependent Subcategories (List) */}
                                     {activeFilters.categories.length > 0 && filterOptions.categories[activeFilters.categories[0]]?.length > 0 && (
                                         <div className="space-y-4 animate-in slide-in-from-top duration-300 pt-2 border-t border-gray-50">
-                                            <label className="text-[10px] font-black text-red-600 uppercase tracking-widest block">{t('subcategory')}</label>
+                                            <label className={`text-[10px] font-black text-red-600 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
+                                                {t('shopFilters.subcategory')}
+                                            </label>
                                             <div className="space-y-2 bg-gray-50/50 p-4 rounded-xl border border-gray-100">
                                                 {filterOptions.categories[activeFilters.categories[0]].map(sub => (
-                                                    <label key={sub} className="flex items-center cursor-pointer group">
-                                                        <div className="relative flex items-center">
+                                                    <label key={sub} className={`flex items-center gap-3 cursor-pointer group ${isRTL ? 'flex-row-reverse' : ''}`}>
+                                                        <div className="flex items-center justify-center">
                                                             <input
                                                                 type="checkbox"
                                                                 checked={activeFilters.subcategories.includes(sub)}
@@ -405,11 +411,11 @@ const ProductGrid = ({ showFilters = true }) => {
                                                                 className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500 transition-all cursor-pointer"
                                                             />
                                                         </div>
-                                                        <span className={`ml-3 text-sm transition-colors ${activeFilters.subcategories.includes(sub) ? 'font-black text-black' : 'font-medium text-gray-500 group-hover:text-black'}`}>
+                                                        <span className={`text-sm transition-colors ${activeFilters.subcategories.includes(sub) ? 'font-black text-black' : 'font-medium text-gray-500 group-hover:text-black'}`}>
                                                             {sub}
                                                         </span>
                                                         {activeFilters.subcategories.includes(sub) && (
-                                                            <div className="ml-auto w-1.5 h-1.5 rounded-full bg-red-600" />
+                                                            <div className={`${isRTL ? 'mr-auto' : 'ml-auto'} w-1.5 h-1.5 rounded-full bg-red-600`} />
                                                         )}
                                                     </label>
                                                 ))}
@@ -419,13 +425,16 @@ const ProductGrid = ({ showFilters = true }) => {
 
                                     {/* Car Make (Dropdown) */}
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">{t('carMake')}</label>
+                                        <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
+                                            {t('shopFilters.make')}
+                                        </label>
                                         <select
                                             value={activeFilters.makes[0] || ''}
                                             onChange={(e) => handleSelectFilter('makes', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-[right_1rem_center] bg-no-repeat"
+                                            dir={isRTL ? 'rtl' : 'ltr'}
+                                            className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
                                         >
-                                            <option value="">{t('allMakes') || 'كل الماركات'}</option>
+                                            <option value="">{t('shopFilters.allMakes')}</option>
                                             {Object.keys(filterOptions.makes).map(make => (
                                                 <option key={make} value={make}>{make}</option>
                                             ))}
@@ -435,13 +444,16 @@ const ProductGrid = ({ showFilters = true }) => {
                                     {/* Car Model (Dropdown - Dependent on Make) */}
                                     {activeFilters.makes.length > 0 && filterOptions.makes[activeFilters.makes[0]]?.length > 0 && (
                                         <div className="space-y-2 animate-in slide-in-from-top duration-200">
-                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">{t('carModel')}</label>
+                                            <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
+                                                {t('shopFilters.model')}
+                                            </label>
                                             <select
                                                 value={activeFilters.models[0] || ''}
                                                 onChange={(e) => handleSelectFilter('models', e.target.value)}
-                                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-[right_1rem_center] bg-no-repeat"
+                                                dir={isRTL ? 'rtl' : 'ltr'}
+                                                className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
                                             >
-                                                <option value="">{t('allModels') || 'كل الموديلات'}</option>
+                                                <option value="">{t('shopFilters.allModels')}</option>
                                                 {filterOptions.makes[activeFilters.makes[0]].map(model => (
                                                     <option key={model} value={model}>{model}</option>
                                                 ))}
@@ -451,13 +463,16 @@ const ProductGrid = ({ showFilters = true }) => {
 
                                     {/* Year (Dropdown) */}
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">{t('year')}</label>
+                                        <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
+                                            {t('shopFilters.year')}
+                                        </label>
                                         <select
                                             value={activeFilters.years[0] || ''}
                                             onChange={(e) => handleSelectFilter('years', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-[right_1rem_center] bg-no-repeat"
+                                            dir={isRTL ? 'rtl' : 'ltr'}
+                                            className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
                                         >
-                                            <option value="">{t('allYears') || 'كل السنوات'}</option>
+                                            <option value="">{t('shopFilters.allYears')}</option>
                                             {filterOptions.years.map(year => (
                                                 <option key={year} value={year}>{year}</option>
                                             ))}
@@ -466,13 +481,16 @@ const ProductGrid = ({ showFilters = true }) => {
 
                                     {/* Origin (Dropdown) */}
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">{t('origin')}</label>
+                                        <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
+                                            {t('shopFilters.origin')}
+                                        </label>
                                         <select
                                             value={activeFilters.origins[0] || ''}
                                             onChange={(e) => handleSelectFilter('origins', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-[right_1rem_center] bg-no-repeat"
+                                            dir={isRTL ? 'rtl' : 'ltr'}
+                                            className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
                                         >
-                                            <option value="">{t('allOrigins') || 'كل بلد الصنع'}</option>
+                                            <option value="">{t('shopFilters.allOrigins')}</option>
                                             {filterOptions.origins.map(origin => (
                                                 <option key={origin} value={origin}>{origin}</option>
                                             ))}
@@ -481,13 +499,16 @@ const ProductGrid = ({ showFilters = true }) => {
 
                                     {/* Brand (Dropdown) */}
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">{t('brand')}</label>
+                                        <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
+                                            {t('shopFilters.brand')}
+                                        </label>
                                         <select
                                             value={activeFilters.brands[0] || ''}
                                             onChange={(e) => handleSelectFilter('brands', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-[right_1rem_center] bg-no-repeat"
+                                            dir={isRTL ? 'rtl' : 'ltr'}
+                                            className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
                                         >
-                                            <option value="">{t('allBrands') || 'كل الماركات'}</option>
+                                            <option value="">{t('shopFilters.allBrands')}</option>
                                             {filterOptions.brands.map(brand => (
                                                 <option key={brand} value={brand}>{brand}</option>
                                             ))}
@@ -506,7 +527,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                 className="w-full flex items-center justify-center space-x-2 bg-white p-3 rounded-lg shadow border border-gray-200"
                             >
                                 <SlidersHorizontal className="h-5 w-5 text-gray-600" />
-                                <span className="font-medium text-gray-800">{t('filters')} & {t('categories')}</span>
+                                <span className="font-medium text-gray-800">{t('shopFilters.category')} & {t('filters')}</span>
                             </button>
                         </div>
                     )}

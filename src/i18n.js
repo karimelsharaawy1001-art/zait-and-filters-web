@@ -281,7 +281,23 @@ const resources = {
             "fastestDeliveryEgypt": "Fast shipping to all Egyptian governorates",
             "documentedReport": "This certificate is officially documented by Zait & Filters - all components are guaranteed genuine.",
             "thanksTrust": "Thank you for choosing Zait & Filters for your vehicle's peak performance.",
-            "km": "km"
+            "km": "km",
+            "shopFilters": {
+                "category": "Category",
+                "subcategory": "Sub-category",
+                "make": "Car Make",
+                "model": "Car Model",
+                "year": "Year",
+                "origin": "Origin",
+                "brand": "Part Brand",
+                "allCategories": "Select Category...",
+                "allSubcategories": "Select Sub-category...",
+                "allMakes": "Select Make...",
+                "allModels": "Select Model...",
+                "allYears": "Select Year...",
+                "allOrigins": "Select Origin...",
+                "allBrands": "Select Brand..."
+            }
         }
     },
     ar: {
@@ -564,7 +580,23 @@ const resources = {
             "fastestDeliveryEgypt": "شحن سريع لكل محافظات مصر",
             "documentedReport": "هذا التقرير موثق من فريق زيت اند فلترز - جميع قطع الغيار أصلية وبالضمان",
             "thanksTrust": "نشكركم على ثقتكم في زيت اند فلترز - نتمنى لكم رحلة آمنة دائماً",
-            "km": "كم"
+            "km": "كم",
+            "shopFilters": {
+                "category": "الأقسام",
+                "subcategory": "الأقسام الفرعية",
+                "make": "ماركة السيارة",
+                "model": "الموديل",
+                "year": "سنة الموديل",
+                "origin": "بلد المنشأ",
+                "brand": "ماركة القطعة",
+                "allCategories": "اختر القسم...",
+                "allSubcategories": "اختر القسم الفرعي...",
+                "allMakes": "اختر الماركة...",
+                "allModels": "اختر الموديل...",
+                "allYears": "اختر سنة الموديل...",
+                "allOrigins": "اختر بلد المنشأ...",
+                "allBrands": "اختر ماركة القطعة..."
+            }
         }
     }
 };
