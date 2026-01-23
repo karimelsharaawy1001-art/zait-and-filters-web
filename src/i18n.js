@@ -502,7 +502,7 @@ const resources = {
             "paymentPending": "قيد الانتظار",
             "failed": "فشل",
             "refunded": "تم الاسترجاع",
-            "oilAdvisor": "مساعد الزيوت",
+            "oilAdvisor": "مساعد الزيت",
             "garage": "جراج",
             "fitting": "مطابق لـ",
             "affiliateDashboard": "بوابة المسوقين",

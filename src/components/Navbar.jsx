@@ -95,6 +95,10 @@ const Navbar = () => {
                                 <Link to="/" className="text-[14px] !text-[#000000] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#e31e24] whitespace-nowrap">
                                     {t('home')}
                                 </Link>
+                                <Link to="/oil-advisor" className="text-[14px] !text-[#000000] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#e31e24] whitespace-nowrap flex items-center gap-2">
+                                    <Droplets className="h-4 w-4 text-[#e31e24]" />
+                                    {t('oilAdvisor')}
+                                </Link>
                                 <Link to="/shop" className="text-[14px] !text-[#000000] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#e31e24] whitespace-nowrap">
                                     {t('shop')}
                                 </Link>
@@ -239,6 +243,14 @@ const Navbar = () => {
                                 className="block px-4 py-3 text-[14px] !text-[#000000] !font-bold hover:bg-red-50 rounded-xl transition-colors uppercase italic font-Cairo"
                             >
                                 {t('home')}
+                            </Link>
+                            <Link
+                                to="/oil-advisor"
+                                onClick={() => setIsOpen(false)}
+                                className="block px-4 py-3 text-[14px] !text-[#000000] !font-bold hover:bg-red-50 rounded-xl transition-colors uppercase italic font-Cairo flex items-center gap-3"
+                            >
+                                <Droplets className="h-5 w-5 text-[#e31e24]" />
+                                {t('oilAdvisor')}
                             </Link>
                             <Link
                                 to="/shop"
