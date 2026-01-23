@@ -29,7 +29,16 @@ const ManageCategories = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.name || !formData.imageUrl) return;
+
+        if (!formData.name) {
+            toast.error('Please enter a category name');
+            return;
+        }
+
+        if (!formData.imageUrl) {
+            toast.error('Please upload or provide an image URL for the category');
+            return;
+        }
 
         try {
             // Parse comma-separated subcategories into array
@@ -89,7 +98,6 @@ const ManageCategories = () => {
                                     currentImage={formData.imageUrl}
                                     folderPath="categories"
                                 />
-                                <input type="hidden" name="imageUrl" value={formData.imageUrl} required />
                             </div>
                             <div>
                                 <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Subcategories</label>
