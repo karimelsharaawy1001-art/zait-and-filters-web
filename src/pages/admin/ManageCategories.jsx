@@ -105,7 +105,7 @@ const ManageCategories = () => {
                             </div>
                             <button
                                 type="submit"
-                                className="admin-primary-btn"
+                                className="w-full py-4 bg-[#FF0000] hover:bg-[#CC0000] text-white font-black rounded-xl shadow-lg shadow-red-500/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest text-xs"
                             >
                                 Add Category
                             </button>
@@ -114,7 +114,7 @@ const ManageCategories = () => {
 
                     {/* List Section */}
                     <div className="lg:col-span-2 space-y-6">
-                        <h2 className="text-xl font-black text-white uppercase tracking-widest poppins">Existing Categories</h2>
+                        <h2 className="text-xl font-black text-black uppercase tracking-widest poppins">Existing Categories</h2>
                         {loading ? (
                             <div className="flex justify-center py-20">
                                 <Loader2 className="w-12 h-12 text-admin-accent animate-spin" />
@@ -122,26 +122,31 @@ const ManageCategories = () => {
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 {categories.map(cat => (
-                                    <div key={cat.id} className="bg-admin-card p-6 rounded-3xl shadow-admin border border-admin-border group hover:bg-[#ffffff02] transition-colors">
+                                    <div key={cat.id} className="bg-white p-6 rounded-3xl shadow-admin border border-gray-100 group hover:bg-[#fcfcfc] transition-colors">
                                         <div className="flex items-start space-x-5">
-                                            <img src={cat.imageUrl} alt={cat.name} className="w-20 h-20 object-cover rounded-2xl bg-[#ffffff05] flex-shrink-0 border border-admin-border shadow-lg" />
+                                            <img src={cat.imageUrl} alt={cat.name} className="w-20 h-20 object-cover rounded-2xl bg-gray-50 flex-shrink-0 border border-gray-100 shadow-sm" />
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="font-black text-white text-lg poppins mb-1">{cat.name}</h3>
+                                                <h3 className="font-black text-black text-lg poppins mb-1 leading-tight">{cat.name}</h3>
                                                 {cat.subCategories && cat.subCategories.length > 0 && (
                                                     <div className="mt-3">
-                                                        <div className="flex items-center gap-1 text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">
+                                                        <div className="flex items-center gap-1 text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">
                                                             <Tag className="h-3 w-3" />
-                                                            <span>Subcategories:</span>
+                                                            <span>Sub-Levels:</span>
                                                         </div>
                                                         <div className="flex flex-wrap gap-1.5">
-                                                            {cat.subCategories.map((sub, idx) => (
-                                                                <span
-                                                                    key={idx}
-                                                                    className="inline-block px-2 py-0.5 text-[9px] font-black uppercase tracking-widest bg-admin-accent/10 text-admin-accent rounded border border-admin-accent/10"
-                                                                >
-                                                                    {sub}
-                                                                </span>
-                                                            ))}
+                                                            {cat.subCategories.map((sub, idx) => {
+                                                                const name = typeof sub === 'string' ? sub : sub.name;
+                                                                const hasImage = typeof sub !== 'string' && sub.imageUrl;
+                                                                return (
+                                                                    <span
+                                                                        key={idx}
+                                                                        className={`inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest rounded border transition-colors ${hasImage ? 'bg-green-500/10 text-green-600 border-green-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}
+                                                                    >
+                                                                        {hasImage && <div className="w-1.5 h-1.5 rounded-full bg-green-500" />}
+                                                                        {name}
+                                                                    </span>
+                                                                );
+                                                            })}
                                                         </div>
                                                     </div>
                                                 )}
@@ -149,13 +154,13 @@ const ManageCategories = () => {
                                             <div className="flex flex-col gap-2 flex-shrink-0 translate-x-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all">
                                                 <Link
                                                     to={`/admin/edit-category/${cat.id}`}
-                                                    className="p-2.5 bg-[#ffffff05] hover:bg-[#ffffff0d] rounded-xl transition-all text-gray-500 hover:text-white border border-admin-border shadow-lg"
+                                                    className="p-3 bg-white hover:bg-gray-50 rounded-xl transition-all text-gray-400 hover:text-black border border-gray-100 shadow-sm"
                                                 >
                                                     <Edit3 className="h-5 w-5" />
                                                 </Link>
                                                 <button
                                                     onClick={() => handleDelete(cat.id)}
-                                                    className="p-2.5 bg-[#ffffff05] hover:bg-admin-red/10 rounded-xl transition-all text-gray-500 hover:text-admin-red border border-admin-border shadow-lg"
+                                                    className="p-3 bg-white hover:bg-red-50 rounded-xl transition-all text-gray-400 hover:text-red-600 border border-gray-100 shadow-sm"
                                                 >
                                                     <Trash2 className="h-5 w-5" />
                                                 </button>

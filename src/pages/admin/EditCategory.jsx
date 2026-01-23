@@ -17,9 +17,9 @@ const EditCategory = () => {
         imageUrl: '',
         subCategories: []
     });
-    const [newSubCategory, setNewSubCategory] = useState('');
+    const [newSubCategory, setNewSubCategory] = useState({ name: '', imageUrl: '' });
     const [editingSubIndex, setEditingSubIndex] = useState(null);
-    const [editingSubText, setEditingSubText] = useState('');
+    const [editingSubData, setEditingSubData] = useState({ name: '', imageUrl: '' });
 
     useEffect(() => {
         const fetchCategory = async () => {
@@ -27,9 +27,14 @@ const EditCategory = () => {
                 const docRef = doc(db, 'categories', id);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    // Backward compatibility: Convert string subcategories to objects
+                    const normalizedSubs = (data.subCategories || []).map(sub =>
+                        typeof sub === 'string' ? { name: sub, imageUrl: '' } : sub
+                    );
                     setFormData({
-                        ...docSnap.data(),
-                        subCategories: docSnap.data().subCategories || []
+                        ...data,
+                        subCategories: normalizedSubs
                     });
                 } else {
                     toast.error('Category not found');
@@ -60,12 +65,12 @@ const EditCategory = () => {
     };
 
     const addSubCategory = () => {
-        if (!newSubCategory.trim()) return;
+        if (!newSubCategory.name.trim()) return;
         setFormData(prev => ({
             ...prev,
-            subCategories: [...prev.subCategories, newSubCategory.trim()]
+            subCategories: [...prev.subCategories, { ...newSubCategory }]
         }));
-        setNewSubCategory('');
+        setNewSubCategory({ name: '', imageUrl: '' });
     };
 
     const removeSubCategory = (index) => {
@@ -75,15 +80,15 @@ const EditCategory = () => {
         }));
     };
 
-    const startEditingSub = (index, text) => {
+    const startEditingSub = (index, sub) => {
         setEditingSubIndex(index);
-        setEditingSubText(text);
+        setEditingSubData(typeof sub === 'string' ? { name: sub, imageUrl: '' } : sub);
     };
 
     const saveSubEdit = () => {
-        if (!editingSubText.trim()) return;
+        if (!editingSubData.name.trim()) return;
         const updated = [...formData.subCategories];
-        updated[editingSubIndex] = editingSubText.trim();
+        updated[editingSubIndex] = editingSubData;
         setFormData(prev => ({ ...prev, subCategories: updated }));
         setEditingSubIndex(null);
     };
@@ -114,12 +119,12 @@ const EditCategory = () => {
 
                     <div className="bg-admin-card shadow-admin rounded-3xl p-8 border border-admin-border">
                         <div className="flex items-center gap-4 mb-8">
-                            <div className="bg-admin-red hover:bg-admin-red-dark p-3 rounded-2xl shadow-lg">
+                            <div className="bg-[#FF0000] p-3 rounded-2xl shadow-lg shadow-red-500/20">
                                 <Edit2 className="h-6 w-6 text-white" />
                             </div>
                             <div>
-                                <h2 className="text-xl font-black text-white uppercase tracking-widest poppins">Edit Category</h2>
-                                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">{formData.name}</p>
+                                <h2 className="text-xl font-black text-black uppercase tracking-widest poppins">Edit Category</h2>
+                                <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">{formData.name}</p>
                             </div>
                         </div>
 
@@ -131,7 +136,7 @@ const EditCategory = () => {
                                     required
                                     value={formData.name}
                                     onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
+                                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-black placeholder-gray-400 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-sm"
                                 />
                             </div>
 
@@ -145,78 +150,119 @@ const EditCategory = () => {
                                 <input type="hidden" name="imageUrl" value={formData.imageUrl} required />
                             </div>
 
-                            <div className="border-t border-[#ffffff0d] pt-8">
-                                <h3 className="text-sm font-black text-white uppercase tracking-widest poppins mb-6">Manage Subcategories</h3>
+                            <div className="border-t border-gray-100 pt-8">
+                                <h3 className="text-sm font-black text-black uppercase tracking-widest poppins mb-6">Manage Subcategories</h3>
 
                                 <div className="space-y-4">
-                                    {formData.subCategories.map((sub, index) => (
-                                        <div key={index} className="flex items-center gap-3">
+                                    {(formData.subCategories || []).map((sub, index) => (
+                                        <div key={index} className="flex flex-col bg-gray-50 p-4 rounded-3xl border border-gray-100 group">
                                             {editingSubIndex === index ? (
-                                                <>
+                                                <div className="space-y-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-[10px] font-black text-admin-accent uppercase tracking-widest">Editing Subcategory</span>
+                                                        <div className="flex gap-3">
+                                                            <button type="button" onClick={saveSubEdit} className="text-green-600 font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all">Save</button>
+                                                            <button type="button" onClick={() => setEditingSubIndex(null)} className="text-gray-400 font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all">Cancel</button>
+                                                        </div>
+                                                    </div>
+
                                                     <input
                                                         type="text"
-                                                        value={editingSubText}
-                                                        onChange={e => setEditingSubText(e.target.value)}
-                                                        className="flex-1 px-4 py-2 bg-[#ffffff05] border border-admin-accent/50 rounded-xl text-white outline-none font-bold text-sm shadow-lg"
+                                                        value={editingSubData.name}
+                                                        onChange={e => setEditingSubData({ ...editingSubData, name: e.target.value })}
+                                                        placeholder="Subcategory Name"
+                                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-black outline-none font-bold text-sm shadow-sm"
                                                         autoFocus
                                                     />
-                                                    <button type="button" onClick={saveSubEdit} className="text-admin-green font-black text-[10px] uppercase tracking-widest px-3 hover:scale-105 transition-all">Save</button>
-                                                    <button type="button" onClick={() => setEditingSubIndex(null)} className="text-gray-500 font-black text-[10px] uppercase tracking-widest px-3 hover:scale-105 transition-all">Cancel</button>
-                                                </>
+
+                                                    <ImageUpload
+                                                        onUploadComplete={(url) => setEditingSubData(prev => ({ ...prev, imageUrl: url }))}
+                                                        currentImage={editingSubData.imageUrl}
+                                                        folderPath={`subcategories/${formData.name.toLowerCase().replace(/\s+/g, '-')}`}
+                                                    />
+                                                </div>
                                             ) : (
-                                                <>
-                                                    <span className="flex-1 bg-[#ffffff02] px-4 py-2.5 rounded-xl border border-admin-border text-sm text-white font-bold">{sub}</span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => startEditingSub(index, sub)}
-                                                        className="p-2.5 bg-[#ffffff05] hover:bg-[#ffffff0d] rounded-xl transition-all text-gray-500 hover:text-white border border-admin-border shadow-lg"
-                                                    >
-                                                        <Edit2 className="h-4 w-4" />
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeSubCategory(index)}
-                                                        className="p-2.5 bg-[#ffffff05] hover:bg-admin-red/10 rounded-xl transition-all text-gray-500 hover:text-admin-red border border-admin-border shadow-lg"
-                                                    >
-                                                        <X className="h-4 w-4" />
-                                                    </button>
-                                                </>
+                                                <div className="flex items-center gap-4">
+                                                    <img
+                                                        src={sub.imageUrl || formData.imageUrl}
+                                                        alt={sub.name}
+                                                        className="w-16 h-16 rounded-2xl object-cover bg-gray-200 border border-gray-100 shadow-sm"
+                                                    />
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-lg text-black font-black truncate font-Cairo">{sub.name}</p>
+                                                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest truncate">{sub.imageUrl ? 'Unique Visual' : 'Parent Fallback'}</p>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => startEditingSub(index, sub)}
+                                                            className="p-3 bg-white hover:bg-gray-50 rounded-xl transition-all text-gray-400 hover:text-black border border-gray-200 shadow-sm"
+                                                        >
+                                                            <Edit2 className="h-4 w-4" />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeSubCategory(index)}
+                                                            className="p-3 bg-white hover:bg-red-50 rounded-xl transition-all text-gray-400 hover:text-red-600 border border-gray-200 shadow-sm"
+                                                        >
+                                                            <X className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             )}
                                         </div>
                                     ))}
                                 </div>
 
-                                <div className="mt-6 flex gap-3">
-                                    <input
-                                        type="text"
-                                        placeholder="Add new subcategory"
-                                        value={newSubCategory}
-                                        onChange={e => setNewSubCategory(e.target.value)}
-                                        onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), addSubCategory())}
-                                        className="flex-1 px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-purple-400 outline-none transition-all font-bold text-sm shadow-lg"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={addSubCategory}
-                                        className="inline-flex items-center px-6 py-3 border border-transparent text-[10px] font-black uppercase tracking-widest rounded-xl text-white bg-admin-red hover:bg-admin-red-dark shadow-lg shadow-admin-red/40 hover:scale-105 transition-all"
-                                    >
-                                        <Plus className="h-4 w-4 mr-2" />
-                                        Add
-                                    </button>
+                                <div className="mt-8 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100 space-y-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="bg-admin-accent/10 p-2 rounded-lg">
+                                            <Plus className="h-4 w-4 text-admin-accent" />
+                                        </div>
+                                        <h4 className="text-xs font-black text-black uppercase tracking-widest">New Subcategory Asset</h4>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <input
+                                            type="text"
+                                            placeholder="Subcategory Name (e.g. Engine Oil)"
+                                            value={newSubCategory.name}
+                                            onChange={e => setNewSubCategory({ ...newSubCategory, name: e.target.value })}
+                                            className="w-full px-4 py-4 bg-white border border-gray-200 rounded-2xl text-black placeholder-gray-400 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-sm"
+                                        />
+
+                                        <ImageUpload
+                                            onUploadComplete={(url) => setNewSubCategory(prev => ({ ...prev, imageUrl: url }))}
+                                            currentImage={newSubCategory.imageUrl}
+                                            folderPath={`subcategories/${formData.name.toLowerCase().replace(/\s+/g, '-')}`}
+                                        />
+                                    </div>
+
+                                    <div className="flex justify-end pt-2">
+                                        <button
+                                            type="button"
+                                            onClick={addSubCategory}
+                                            className="inline-flex items-center px-10 py-4 bg-[#FF0000] hover:bg-[#CC0000] text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-red-500/20 hover:scale-[1.02] active:scale-95 transition-all"
+                                        >
+                                            <Plus className="h-4 w-4 mr-2" />
+                                            Append Subcategory
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="flex justify-end pt-8 border-t border-[#ffffff0d]">
+                            <div className="flex justify-end pt-8 border-t border-gray-100">
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="inline-flex items-center px-8 py-4 bg-admin-red hover:bg-admin-red-dark text-white font-black rounded-xl shadow-lg shadow-admin-red/40 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 uppercase tracking-widest text-xs"
+                                    className="inline-flex items-center px-12 py-5 bg-[#FF0000] hover:bg-[#CC0000] text-white font-black rounded-2xl shadow-2xl shadow-red-500/30 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 uppercase tracking-[0.1em] text-xs"
                                 >
-                                    {saving ? <Loader2 className="h-4 w-4 animate-spin mr-3 text-white" /> : <Save className="h-4 w-4 mr-3" />}
-                                    Save Category
+                                    {saving ? <Loader2 className="h-5 w-5 animate-spin mr-3 text-white" /> : <Save className="h-5 w-5 mr-3" />}
+                                    Commit Changes
                                 </button>
                             </div>
                         </form>
+
                     </div>
                 </div>
             </main>

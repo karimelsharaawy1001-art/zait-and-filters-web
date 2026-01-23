@@ -112,32 +112,36 @@ const CategoryPage = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">
-                        {subcategories.map((sub, index) => (
-                            <div
-                                key={index}
-                                onClick={() => handleSubcategoryClick(sub)}
-                                className="group relative h-32 md:h-56 rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100"
-                            >
-                                {/* We use the category image for all subcategories as a base, or we could look for a specific image if we had one */}
-                                <img
-                                    src={category.imageUrl}
-                                    alt={sub}
-                                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-                                />
+                        {subcategories.map((sub, index) => {
+                            const subName = typeof sub === 'string' ? sub : sub.name;
+                            const subImage = typeof sub === 'string' ? category.imageUrl : (sub.imageUrl || category.imageUrl);
 
-                                {/* Dark Overlay */}
+                            return (
                                 <div
-                                    className="absolute inset-0 bg-black/60 group-hover:bg-black/70 transition-all duration-500"
-                                ></div>
+                                    key={index}
+                                    onClick={() => handleSubcategoryClick(subName)}
+                                    className="group relative h-32 md:h-56 rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100"
+                                >
+                                    <img
+                                        src={subImage}
+                                        alt={subName}
+                                        className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                    />
 
-                                {/* Text Content */}
-                                <div className="absolute inset-0 flex items-center justify-center p-2 text-center">
-                                    <h3 className="text-white text-sm md:text-2xl font-black italic uppercase tracking-tighter leading-tight drop-shadow-xl whitespace-normal font-Cairo">
-                                        {sub}
-                                    </h3>
+                                    {/* Heavy Dark Gradient Overlay for Readability */}
+                                    <div
+                                        className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-all duration-500"
+                                    ></div>
+
+                                    {/* Text Content */}
+                                    <div className="absolute inset-0 flex items-end justify-center pb-6 px-2 text-center">
+                                        <h3 className="text-sm md:text-3xl font-black italic uppercase tracking-tighter leading-tight drop-shadow-2xl whitespace-normal font-Cairo text-white">
+                                            {subName}
+                                        </h3>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>
