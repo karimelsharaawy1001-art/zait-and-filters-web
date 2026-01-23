@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Upload, X, Loader2 } from 'lucide-react';
+import { Upload, X, Loader2, CheckCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { db } from '../../firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -19,10 +19,21 @@ const ImageUpload = ({
     const [progress, setProgress] = useState(0);
     const [uploading, setUploading] = useState(false);
     const [preview, setPreview] = useState(actualValue || '');
+    const [urlInput, setUrlInput] = useState(actualValue && actualValue.startsWith('http') ? actualValue : '');
+
+    const isValidImageUrl = (url) => {
+        if (!url) return false;
+        return url.match(/\.(jpeg|jpg|gif|png|webp|svg|bmp)(\?.*)?$/i) !== null || url.startsWith('https://images.unsplash.com') || url.includes('cloudinary.com');
+    };
 
     // Sync preview if actualValue changes from outside
     React.useEffect(() => {
         setPreview(actualValue || '');
+        if (actualValue && actualValue.startsWith('http')) {
+            setUrlInput(actualValue);
+        } else if (!actualValue) {
+            setUrlInput('');
+        }
     }, [actualValue]);
 
     const handleFileChange = async (e) => {
@@ -31,6 +42,7 @@ const ImageUpload = ({
 
         setUploading(true);
         setProgress(0);
+        setUrlInput(''); // Clear URL input when a file is chosen
 
         try {
             // Fetch Cloudinary credentials from Firestore
@@ -75,61 +87,108 @@ const ImageUpload = ({
         }
     };
 
-    const handleRemove = () => {
+    const handleUrlChange = (e) => {
+        const url = e.target.value;
+        setUrlInput(url);
+
+        if (!url) {
+            setPreview('');
+            if (actualOnChange) actualOnChange('');
+            return;
+        }
+
+        if (isValidImageUrl(url)) {
+            setPreview(url);
+            if (actualOnChange) actualOnChange(url);
+        }
+    };
+
+    const handleRemove = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         setPreview('');
+        setUrlInput('');
         if (actualOnChange) actualOnChange('');
     };
 
     return (
-        <div className="w-full space-y-4">
-            <div className="relative group border-2 border-dashed border-gray-300 rounded-2xl p-4 flex flex-col items-center justify-center transition-all hover:border-orange-400 bg-gray-50/50">
-                {preview ? (
-                    <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-white shadow-inner">
-                        <img src={preview} alt="Preview" className="w-full h-full object-contain" />
-                        {!uploading && (
-                            <button
-                                onClick={handleRemove}
-                                className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors"
-                            >
-                                <X size={16} />
-                            </button>
+        <div className="w-full space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* URL Input Area */}
+                <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Image URL (رابط الصورة)</label>
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder="https://example.com/image.jpg"
+                            value={urlInput}
+                            onChange={handleUrlChange}
+                            className="w-full bg-white border border-gray-200 rounded-xl p-4 text-black placeholder-gray-400 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-sm"
+                        />
+                        {urlInput && isValidImageUrl(urlInput) && (
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                <CheckCircle className="h-5 w-5 text-admin-green" />
+                            </div>
                         )}
                     </div>
-                ) : (
-                    <label className="w-full h-40 flex flex-col items-center justify-center cursor-pointer">
-                        <Upload className={`h-10 w-10 mb-2 ${uploading ? 'text-gray-300' : 'text-gray-400'}`} />
-                        <span className="text-sm font-medium text-gray-500">
-                            {uploading ? 'Uploading...' : 'Click to upload image'}
-                        </span>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                            disabled={uploading}
-                            className="hidden"
-                        />
-                    </label>
-                )}
+                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest px-1">Or paste a valid direct image link</p>
+                </div>
 
-                {uploading && (
-                    <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl z-10">
-                        <Loader2 className="h-8 w-8 text-orange-500 animate-spin mb-3" />
-                        <div className="w-48 bg-gray-200 rounded-full h-2 overflow-hidden shadow-sm">
-                            <div
-                                className="bg-orange-500 h-full transition-all duration-300 flex items-center justify-end pr-2"
-                                style={{ width: `${progress}%` }}
-                            >
+                {/* Upload Area */}
+                <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Local Upload (رفع ملف)</label>
+                    <div className="relative group border-2 border-dashed border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center transition-all hover:border-admin-accent bg-gray-50">
+                        <label className="w-full h-full min-h-[50px] flex flex-col items-center justify-center cursor-pointer">
+                            <div className="flex items-center gap-3">
+                                <Upload className={`h-5 w-5 ${uploading ? 'text-gray-400 animate-bounce' : 'text-gray-400'}`} />
+                                <span className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                                    {uploading ? 'Uploading...' : 'Choose File'}
+                                </span>
                             </div>
-                        </div>
-                        <span className="mt-2 text-xs font-bold text-orange-600 uppercase tracking-tighter">{progress}%</span>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileChange}
+                                disabled={uploading}
+                                className="hidden"
+                            />
+                        </label>
+
+                        {uploading && (
+                            <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl z-10 p-4">
+                                <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden shadow-inner mb-2">
+                                    <div
+                                        className="bg-admin-accent h-full transition-all duration-300"
+                                        style={{ width: `${progress}%` }}
+                                    ></div>
+                                </div>
+                                <span className="text-[10px] font-black text-admin-accent uppercase tracking-widest">{progress}%</span>
+                            </div>
+                        )}
                     </div>
-                )}
+                </div>
             </div>
 
-            {!uploading && !preview && (
-                <p className="text-[10px] text-gray-400 text-center uppercase font-bold tracking-widest">
-                    Recommended: Square or 16:9 aspect ratio
-                </p>
+            {/* Live Preview Box */}
+            {preview && (
+                <div className="space-y-3 animate-in fade-in slide-in-from-top-4 duration-500">
+                    <div className="flex items-center justify-between px-1">
+                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Live Asset Preview</label>
+                        <button
+                            onClick={handleRemove}
+                            className="text-[9px] font-black text-admin-red hover:text-admin-red-dark uppercase tracking-widest transition-colors flex items-center gap-1"
+                        >
+                            <X size={12} strokeWidth={3} />
+                            Purge Asset
+                        </button>
+                    </div>
+                    <div className="relative w-full aspect-video rounded-3xl overflow-hidden bg-white border border-gray-200 group shadow-lg">
+                        <img src={preview} alt="Preview" className="w-full h-full object-contain" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] bg-black/60 px-4 py-2 rounded-full backdrop-blur-md">Active Selection</span>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
