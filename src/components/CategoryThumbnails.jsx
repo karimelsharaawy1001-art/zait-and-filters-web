@@ -40,12 +40,12 @@ const CategoryThumbnails = () => {
                     </h2>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-6">
                     {categories.map((cat) => (
                         <div
                             key={cat.id}
                             onClick={() => handleCategoryClick(cat.name)}
-                            className="group relative h-40 sm:h-56 rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-highrev-grey-light"
+                            className="group relative h-28 sm:h-56 rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-highrev-grey-light"
                         >
                             {/* Background Image */}
                             <img
@@ -61,8 +61,8 @@ const CategoryThumbnails = () => {
                             ></div>
 
                             {/* Content - Centered */}
-                            <div className="absolute inset-0 flex items-center justify-center p-4">
-                                <h3 className="text-white text-2xl sm:text-4xl font-black text-center tracking-tighter transition-all duration-500 italic uppercase font-Cairo drop-shadow-xl">
+                            <div className="absolute inset-0 flex items-center justify-center p-1 sm:p-4">
+                                <h3 className="text-white text-[16px] sm:text-4xl font-black text-center leading-tight tracking-tighter transition-all duration-500 italic uppercase font-Cairo drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] whitespace-normal">
                                     {i18n.language === 'ar' ? cat.name : (cat.nameEn || cat.name)}
                                 </h3>
                             </div>
