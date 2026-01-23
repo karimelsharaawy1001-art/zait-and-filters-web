@@ -40,7 +40,7 @@ const ProductCard = ({ product }) => {
             {/* HERO IMAGE - Fixed Aspect Ratio to prevent collapse */}
             <Link
                 to={`/product/${product.id}`}
-                className="relative bg-gray-50 block w-full aspect-square min-h-[200px] mb-0 p-0 overflow-hidden"
+                className="relative bg-gray-50 block w-full aspect-square overflow-hidden"
             >
                 <img
                     src={getOptimizedImage(product.image, 'f_auto,q_auto,w_800')}
@@ -76,73 +76,73 @@ const ProductCard = ({ product }) => {
             <div className="p-4 flex flex-col flex-1 gap-3 !mt-[-1px] !pt-0">
                 <div className="flex flex-col gap-2 text-right">
                     {/* PRODUCT NAME */}
-                    <Link to={`/product/${product.id}`} className="block">
-                        <h3 className="text-[#000000] text-sm font-black leading-tight line-clamp-2 uppercase font-Cairo transition-colors">
+                    <Link to={`/product/${product.id}`} className="block overflow-hidden">
+                        <h3 className="text-[#000000] text-xs md:text-sm font-black leading-tight line-clamp-2 uppercase font-Cairo transition-colors overflow-hidden text-ellipsis">
                             {i18n.language === 'en' ? (product.nameEn || product.name) : product.name}
                         </h3>
                     </Link>
 
-                    {/* BRAND & ORIGIN ROW - Side by Side */}
-                    <div className="flex flex-row justify-between items-end w-full border-b border-gray-100 pb-2">
-                        {/* Origin - Left Side */}
-                        <div className="flex flex-col items-start">
-                            <span className="text-[8px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">
+                    {/* DETAILS GRID - Brand, Origin, Model */}
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-3 border-b border-gray-100 pb-3">
+                        {/* Origin */}
+                        <div className="flex flex-col items-start overflow-hidden">
+                            <span className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5 truncate w-full">
                                 {i18n.language === 'ar' ? 'المنشأ' : 'Origin'}
                             </span>
-                            <span className="text-[11px] text-[#000000] font-black italic font-Cairo">
+                            <span className="text-sm text-[#333] font-black italic font-Cairo truncate w-full">
                                 {product.origin || product.countryOfOrigin || 'Imported'}
                             </span>
                         </div>
 
-                        {/* Brand - Right Side */}
-                        <div className="flex flex-col items-end">
-                            <span className="text-[8px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">
+                        {/* Brand */}
+                        <div className="flex flex-col items-end overflow-hidden">
+                            <span className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5 truncate w-full text-right">
                                 {i18n.language === 'ar' ? 'البراند' : 'Brand'}
                             </span>
-                            <span className="text-[13px] text-[#000000] font-black font-Cairo">
+                            <span className="text-sm text-[#000000] font-black font-Cairo truncate w-full text-right">
                                 {i18n.language === 'en'
                                     ? (product.brandEn || product.partBrand || product.brand)
                                     : (product.partBrand || product.brand || 'No Brand')}
                             </span>
                         </div>
-                    </div>
 
-                    {/* MODEL ROW - Full Width */}
-                    <div className="flex flex-col items-end w-full border-b border-gray-100 pb-2">
-                        <span className="text-[8px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">
-                            {i18n.language === 'ar' ? 'الموديل' : 'Model'}
-                        </span>
-                        <span className="text-[12px] text-[#000000] font-black font-Cairo w-full text-right" title={product.carModel || `${product.make} ${product.model}`}>
-                            {product.carModel || `${product.make} ${product.model}` || 'Universal'}
-                        </span>
+                        {/* Model */}
+                        <div className="col-span-2 flex flex-col items-end overflow-hidden">
+                            <span className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5 truncate w-full text-right">
+                                {i18n.language === 'ar' ? 'الموديل' : 'Model'}
+                            </span>
+                            <span className="text-sm text-[#000000] font-black font-Cairo w-full text-right truncate" title={product.carModel || `${product.make} ${product.model}`}>
+                                {product.carModel || `${product.make} ${product.model}` || 'Universal'}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
                 {/* PRICING & ACTION - Racing Red Dominance */}
                 <div className="mt-auto flex flex-col gap-3 pt-3 border-t border-gray-100">
-                    <div className="flex items-center justify-between">
-                        <div className="flex flex-col">
+                    <div className="flex flex-col 2xs:flex-row items-center justify-between gap-3">
+                        <div className="flex flex-col items-center 2xs:items-start">
                             {hasSale && (
                                 <span className="text-[10px] text-gray-400 line-through font-bold leading-none mb-1">
                                     {product.price} {t('currency')}
                                 </span>
                             )}
                             <div className="flex items-baseline gap-1">
-                                <span className="text-3xl font-black text-[#e31e24] font-Cairo leading-none drop-shadow-sm">
+                                <span className="text-2xl md:text-3xl font-black text-[#e31e24] font-Cairo leading-none drop-shadow-sm">
                                     {hasSale ? product.salePrice : product.price}
                                 </span>
-                                <span className="text-sm font-black text-[#000000] uppercase tracking-tighter">{t('currency')}</span>
+                                <span className="text-xs md:text-sm font-black text-[#000000] uppercase tracking-tighter">{t('currency')}</span>
                             </div>
                         </div>
 
                         {/* QUANTITY SELECTOR - Solid Black Contrast */}
-                        <div className="flex items-center bg-[#000000] rounded-lg p-1 self-center shadow-lg">
-                            <button onClick={decrementQuantity} className="w-8 h-8 flex items-center justify-center text-white hover:text-racing-red transition-colors">
-                                <Minus className="h-4 w-4" />
+                        <div className="flex items-center bg-[#000000] rounded-lg p-0.5 shadow-md">
+                            <button onClick={decrementQuantity} className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center text-white hover:text-racing-red transition-colors">
+                                <Minus className="h-3.5 w-3.5 md:h-4 md:w-4" />
                             </button>
-                            <span className="w-6 text-center text-sm font-black text-white">{quantity}</span>
-                            <button onClick={incrementQuantity} className="w-8 h-8 flex items-center justify-center text-white hover:text-racing-red transition-colors">
-                                <Plus className="h-4 w-4" />
+                            <span className="w-5 text-center text-xs md:text-sm font-black text-white">{quantity}</span>
+                            <button onClick={incrementQuantity} className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center text-white hover:text-racing-red transition-colors">
+                                <Plus className="h-3.5 w-3.5 md:h-4 md:w-4" />
                             </button>
                         </div>
                     </div>
