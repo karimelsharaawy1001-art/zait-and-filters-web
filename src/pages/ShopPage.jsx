@@ -15,12 +15,14 @@ const ShopPage = () => {
         const model = searchParams.get('model');
         const year = searchParams.get('year');
         const category = searchParams.get('category');
+        const subcategory = searchParams.get('subcategory');
         const viscosity = searchParams.get('viscosity');
 
         if (make && make !== filters.make) updateFilter('make', make);
         if (model && model !== filters.model) updateFilter('model', model);
         if (year && year !== filters.year) updateFilter('year', year);
         if (category && category !== filters.category) updateFilter('category', category);
+        if (subcategory && subcategory !== filters.subCategory) updateFilter('subCategory', subcategory);
         if (viscosity && viscosity !== filters.viscosity) updateFilter('viscosity', viscosity);
     }, [searchParams]);
 
@@ -31,6 +33,7 @@ const ShopPage = () => {
         if (filters.model) params.set('model', filters.model);
         if (filters.year) params.set('year', filters.year);
         if (filters.category && filters.category !== 'All') params.set('category', filters.category);
+        if (filters.subCategory) params.set('subcategory', filters.subCategory);
         if (filters.viscosity) params.set('viscosity', filters.viscosity);
 
         setSearchParams(params);

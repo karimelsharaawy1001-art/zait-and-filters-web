@@ -24,9 +24,8 @@ const CategoryThumbnails = () => {
         fetchCategories();
     }, []);
 
-    const handleCategoryClick = (categoryName) => {
-        updateFilter('category', categoryName);
-        navigate('/shop');
+    const handleCategoryClick = (categoryId) => {
+        navigate(`/category/${categoryId}`);
     };
 
     if (categories.length === 0) return null;
@@ -44,7 +43,7 @@ const CategoryThumbnails = () => {
                     {categories.map((cat) => (
                         <div
                             key={cat.id}
-                            onClick={() => handleCategoryClick(cat.name)}
+                            onClick={() => handleCategoryClick(cat.id)}
                             className="group relative h-28 sm:h-56 rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-highrev-grey-light"
                         >
                             {/* Background Image */}
