@@ -305,16 +305,9 @@ const ProductDetails = () => {
                             />
                         </div>
 
-                        {/* Description / Features */}
-                        <div className="mb-8 prose prose-orange max-w-none font-bold">
-                            <h3 className={`text-lg font-bold text-gray-900 mb-3 border-b pb-2 ${isAr ? 'text-right' : 'text-left'}`}>{t('descriptionLabel')}</h3>
-                            <p className={`text-gray-600 leading-relaxed ${isAr ? 'text-right' : 'text-left'}`}>
-                                {displayDescription}
-                            </p>
-                        </div>
 
                         {/* Trust Badges */}
-                        <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 border-t border-gray-100 ${isAr ? 'flex-row-reverse' : ''}`}>
+                        <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 pt-10 border-t border-gray-100 ${isAr ? 'flex-row-reverse' : ''}`}>
                             <div className={`flex items-center gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>
                                 <Truck className="h-5 w-5 text-orange-600" />
                                 <span className="text-xs font-bold text-gray-700 uppercase tracking-tighter">{t('fastDelivery')}</span>

@@ -54,7 +54,6 @@ const InstallmentBar = ({ price = 0, showCalculator = false, forceActive = null 
             )}
 
             <div className="flex flex-wrap items-center gap-4 opacity-80 hover:opacity-100 transition-opacity">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">Installment Partners:</span>
                 <div className="flex flex-wrap items-center gap-4">
                     {activePartners.map(partner => (
                         <div key={partner.id} className="h-6 w-auto flex items-center justify-center grayscale hover:grayscale-0 transition-all">
@@ -68,7 +67,6 @@ const InstallmentBar = ({ price = 0, showCalculator = false, forceActive = null 
                                     e.target.nextSibling.style.display = 'block';
                                 }}
                             />
-                            <span style={{ display: 'none' }} className="text-[10px] font-black text-gray-500 uppercase">{partner.name}</span>
                         </div>
                     ))}
                 </div>
