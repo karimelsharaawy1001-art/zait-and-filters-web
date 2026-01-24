@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import { Save, ArrowLeft, Loader2 } from 'lucide-react';
 import AdminHeader from '../../components/AdminHeader';
 import ImageUpload from '../../components/admin/ImageUpload';
+import { Sparkles } from 'lucide-react';
+import { generateProductDescription } from '../../utils/productUtils';
 
 const AddProduct = () => {
     const navigate = useNavigate();
@@ -34,6 +36,8 @@ const AddProduct = () => {
         yearStart: '',
         yearEnd: '',
         viscosity: '',
+        description: '',
+        descriptionEn: '',
         isActive: true
     });
 
@@ -384,6 +388,47 @@ const AddProduct = () => {
                                         value={formData.viscosity}
                                         onChange={handleChange}
                                         className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-4 pt-4 border-t border-[#ffffff0d]">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none">Product Description</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const autoAr = generateProductDescription(formData, 'ar');
+                                            const autoEn = generateProductDescription(formData, 'en');
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                description: autoAr,
+                                                descriptionEn: autoEn
+                                            }));
+                                            toast.success('Descriptions generated! ✨');
+                                        }}
+                                        className="flex items-center gap-2 text-[10px] font-black text-[#FF0000] hover:text-red-400 transition-colors uppercase tracking-widest bg-red-500/5 px-3 py-1.5 rounded-lg border border-red-500/20"
+                                    >
+                                        <Sparkles className="h-3 w-3" />
+                                        Magic Generate
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <textarea
+                                        name="description"
+                                        rows={4}
+                                        value={formData.description}
+                                        onChange={handleChange}
+                                        placeholder="الوصف بالعربي..."
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg resize-none"
+                                    />
+                                    <textarea
+                                        name="descriptionEn"
+                                        rows={4}
+                                        value={formData.descriptionEn}
+                                        onChange={handleChange}
+                                        placeholder="Description in English..."
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg resize-none"
                                     />
                                 </div>
                             </div>

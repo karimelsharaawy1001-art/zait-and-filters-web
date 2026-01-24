@@ -39,6 +39,8 @@ import RelatedProducts from '../components/RelatedProducts';
 import TrustPaymentSection from '../components/TrustPaymentSection';
 import InstallmentBar from '../components/InstallmentBar';
 import { getOptimizedImage } from '../utils/cloudinaryUtils';
+import { generateProductDescription } from '../utils/productUtils';
+import SEO from '../components/SEO';
 
 const ProductDetails = () => {
     const { id } = useParams();
@@ -177,8 +179,15 @@ const ProductDetails = () => {
 
     const hasSale = product.salePrice && Number(product.salePrice) < Number(product.price);
 
+    const autoDescription = generateProductDescription(product, i18n.language);
+    const displayDescription = isAr ? (product.description || product.descriptionEn || autoDescription) : (product.descriptionEn || product.description || autoDescription);
+
     return (
         <div className="bg-white min-h-screen" dir={isAr ? 'rtl' : 'ltr'}>
+            <SEO
+                title={`${isAr ? product.name : (product.nameEn || product.name)} | ZaitAndFilters`}
+                description={displayDescription}
+            />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Back Link */}
                 <button
@@ -234,6 +243,13 @@ const ProductDetails = () => {
                                         {product.countryOfOrigin}
                                     </span>
                                 )}
+                            </div>
+
+                            {/* PROMINENT AUTO-DESCRIPTION */}
+                            <div className={`mb-6 p-4 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200 ${isAr ? 'text-right' : 'text-left'}`}>
+                                <p className="text-sm font-bold text-gray-700 leading-relaxed italic font-Cairo">
+                                    {displayDescription}
+                                </p>
                             </div>
                         </div>
 
@@ -293,7 +309,7 @@ const ProductDetails = () => {
                         <div className="mb-8 prose prose-orange max-w-none font-bold">
                             <h3 className={`text-lg font-bold text-gray-900 mb-3 border-b pb-2 ${isAr ? 'text-right' : 'text-left'}`}>{t('descriptionLabel')}</h3>
                             <p className={`text-gray-600 leading-relaxed ${isAr ? 'text-right' : 'text-left'}`}>
-                                {isAr ? (product.description || product.descriptionEn) : (product.descriptionEn || product.description)}
+                                {displayDescription}
                             </p>
                         </div>
 
