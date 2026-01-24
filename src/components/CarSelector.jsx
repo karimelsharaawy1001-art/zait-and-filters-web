@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import { db } from '../firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 
 // Dictionary for smart redirects based on car selection
@@ -18,8 +18,6 @@ const oilLinks = {
     // Add more mappings here. Example:
     // "Mercedes C180": "https://zaitandfilters.com/product/mercedes-service-kit"
 };
-
-const years = Array.from({ length: 2026 - 2000 + 1 }, (_, i) => 2026 - i);
 
 const CarSelector = () => {
     const { t } = useTranslation();
@@ -34,96 +32,86 @@ const CarSelector = () => {
     const [models, setModels] = useState([]);
     const [availableYears, setAvailableYears] = useState([]);
     const [noResults, setNoResults] = useState(false);
+    const [carsData, setCarsData] = useState([]);
 
-    // Fetch Unique Makes from API
+    // Fetch ALL cars from Firestore on mount
     useEffect(() => {
-        const fetchMakes = async () => {
+        const fetchCars = async () => {
+            console.log('[CarSelector] Starting to fetch cars...');
             setLoading(true);
             try {
-                const response = await fetch('/api/products?action=getMakes');
-                const data = await response.json();
-                if (Array.isArray(data)) {
-                    setMakes(data);
-                } else {
-                    console.error("Makes API did not return an array:", data);
-                    setMakes([]);
+                const querySnapshot = await getDocs(collection(db, 'cars'));
+                console.log('[CarSelector] Query complete. Docs:', querySnapshot.docs.length);
+
+                const cars = querySnapshot.docs.map(doc => doc.data());
+                console.log('[CarSelector] Cars loaded:', cars);
+                setCarsData(cars);
+
+                // Extract unique makes
+                const uniqueMakes = [...new Set(cars.map(c => c.make))].filter(Boolean).sort();
+                console.log('[CarSelector] Unique makes:', uniqueMakes);
+                setMakes(uniqueMakes);
+
+                if (uniqueMakes.length === 0) {
+                    console.warn('[CarSelector] No makes found! Check cars collection.');
                 }
             } catch (error) {
-                console.error("Error fetching makes:", error);
+                console.error("[CarSelector] Error fetching cars:", error);
                 setMakes([]);
             } finally {
                 setLoading(false);
             }
         };
-        fetchMakes();
+        fetchCars();
     }, []);
 
-    // Fetch Unique Models for Selected Make
+    // Update models when make changes
     useEffect(() => {
-        const fetchModels = async () => {
-            if (!make) {
-                setModels([]);
-                setModel('');
-                setAvailableYears([]);
-                setYear('');
-                setNoResults(false);
-                return;
-            }
-            setLoading(true);
+        if (!make) {
+            setModels([]);
+            setModel('');
+            setAvailableYears([]);
+            setYear('');
             setNoResults(false);
-            try {
-                const response = await fetch(`/api/products?action=getModels&make=${encodeURIComponent(make)}`);
-                const data = await response.json();
-                if (Array.isArray(data)) {
-                    setModels(data);
-                    if (data.length === 0) setNoResults(true);
-                } else {
-                    console.error("Models API did not return an array:", data);
-                    setModels([]);
-                    setNoResults(true);
-                }
-                setModel('');
-                setAvailableYears([]);
-                setYear('');
-            } catch (error) {
-                console.error("Error fetching models:", error);
-                setModels([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchModels();
-    }, [make]);
+            return;
+        }
 
-    // Fetch Unique Years for Selected Model
+        // Filter models for selected make
+        const filteredCars = carsData.filter(car => car.make === make);
+        const uniqueModels = [...new Set(filteredCars.map(c => c.model))].filter(Boolean).sort();
+
+        setModels(uniqueModels);
+        setModel('');
+        setAvailableYears([]);
+        setYear('');
+        setNoResults(uniqueModels.length === 0);
+    }, [make, carsData]);
+
+    // Update years when model changes
     useEffect(() => {
-        const fetchYears = async () => {
-            if (!make || !model) {
-                setAvailableYears([]);
-                setYear('');
-                return;
+        if (!make || !model) {
+            setAvailableYears([]);
+            setYear('');
+            return;
+        }
+
+        // Find the car entry for this make/model
+        const carEntry = carsData.find(car => car.make === make && car.model === model);
+
+        if (carEntry && carEntry.yearStart && carEntry.yearEnd) {
+            // Generate year range
+            const years = [];
+            for (let y = Number(carEntry.yearStart); y <= Number(carEntry.yearEnd); y++) {
+                years.push(y);
             }
-            setLoading(true);
-            try {
-                const response = await fetch(`/api/products?action=getYears&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}`);
-                const data = await response.json();
-                if (Array.isArray(data)) {
-                    setAvailableYears(data);
-                    if (data.length === 0) setNoResults(true);
-                } else {
-                    console.error("Years API did not return an array:", data);
-                    setAvailableYears([]);
-                }
-                setYear('');
-            } catch (error) {
-                console.error("Error fetching years:", error);
-                setAvailableYears([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchYears();
-    }, [make, model]);
+            setAvailableYears(years.sort((a, b) => b - a));
+            setNoResults(years.length === 0);
+        } else {
+            setAvailableYears([]);
+            setNoResults(true);
+        }
+        setYear('');
+    }, [make, model, carsData]);
 
     const handleSearch = () => {
         if (!make && !model && !year) {
