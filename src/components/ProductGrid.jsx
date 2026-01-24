@@ -444,9 +444,13 @@ const ProductGrid = ({ showFilters = true }) => {
                                             className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
                                         >
                                             <option value="">{t('shopFilters.allCategories')}</option>
-                                            {Object.keys(filterOptions?.categories || {}).map(cat => (
-                                                <option key={cat} value={cat}>{cat}</option>
-                                            ))}
+                                            {Object.keys(filterOptions?.categories || {}).map(cat => {
+                                                // Defensive check: ensure cat is a string
+                                                const catName = typeof cat === 'string' ? cat : (cat?.name || String(cat));
+                                                return (
+                                                    <option key={catName} value={catName}>{catName}</option>
+                                                );
+                                            })}
                                         </select>
                                     </div>
 
@@ -457,24 +461,28 @@ const ProductGrid = ({ showFilters = true }) => {
                                                 {t('shopFilters.subcategory')}
                                             </label>
                                             <div className="space-y-2 bg-gray-50/50 p-4 rounded-xl border border-gray-100">
-                                                {(filterOptions?.categories?.[activeFilters.categories[0]] || []).map(sub => (
-                                                    <label key={sub} className={`flex items-center gap-3 cursor-pointer group ${isRTL ? 'flex-row-reverse' : ''}`}>
-                                                        <div className="flex items-center justify-center">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={activeFilters.subcategories.includes(sub)}
-                                                                onChange={() => toggleFilter('subcategories', sub)}
-                                                                className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500 transition-all cursor-pointer"
-                                                            />
-                                                        </div>
-                                                        <span className={`text-sm transition-colors ${activeFilters.subcategories.includes(sub) ? 'font-black text-black' : 'font-medium text-gray-500 group-hover:text-black'}`}>
-                                                            {sub}
-                                                        </span>
-                                                        {activeFilters.subcategories.includes(sub) && (
-                                                            <div className={`${isRTL ? 'mr-auto' : 'ml-auto'} w-1.5 h-1.5 rounded-full bg-red-600`} />
-                                                        )}
-                                                    </label>
-                                                ))}
+                                                {(filterOptions?.categories?.[activeFilters.categories[0]] || []).map(sub => {
+                                                    // Defensive check: ensure sub is a string
+                                                    const subName = typeof sub === 'string' ? sub : (sub?.name || String(sub));
+                                                    return (
+                                                        <label key={subName} className={`flex items-center gap-3 cursor-pointer group ${isRTL ? 'flex-row-reverse' : ''}`}>
+                                                            <div className="flex items-center justify-center">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={activeFilters.subcategories.includes(subName)}
+                                                                    onChange={() => toggleFilter('subcategories', subName)}
+                                                                    className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500 transition-all cursor-pointer"
+                                                                />
+                                                            </div>
+                                                            <span className={`text-sm transition-colors ${activeFilters.subcategories.includes(subName) ? 'font-black text-black' : 'font-medium text-gray-500 group-hover:text-black'}`}>
+                                                                {subName}
+                                                            </span>
+                                                            {activeFilters.subcategories.includes(subName) && (
+                                                                <div className={`${isRTL ? 'mr-auto' : 'ml-auto'} w-1.5 h-1.5 rounded-full bg-red-600`} />
+                                                            )}
+                                                        </label>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     )}
