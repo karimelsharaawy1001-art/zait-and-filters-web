@@ -98,7 +98,7 @@ const ProductGrid = ({ showFilters = true }) => {
 
         // Extract from products
         productsList.forEach(product => {
-            // Group Subcategories by Category
+            // Group Subcategories by Category (from products)
             if (product.category) {
                 if (!categories[product.category]) categories[product.category] = new Set();
                 if (product.subcategory) categories[product.category].add(product.subcategory);
@@ -130,6 +130,27 @@ const ProductGrid = ({ showFilters = true }) => {
             }
         });
 
+        // ALSO fetch from categories collection to ensure category/subcategory dropdowns are populated
+        try {
+            const categoriesSnapshot = await getDocs(collection(db, 'categories'));
+            categoriesSnapshot.docs.forEach(doc => {
+                const category = doc.data();
+                if (category.name) {
+                    if (!categories[category.name]) categories[category.name] = new Set();
+
+                    // Add subcategories if they exist
+                    if (Array.isArray(category.subCategories)) {
+                        category.subCategories.forEach(sub => {
+                            if (sub) categories[category.name].add(sub);
+                        });
+                    }
+                }
+            });
+            console.log('[ProductGrid] Categories from admin:', categories);
+        } catch (error) {
+            console.error('[ProductGrid] Error fetching categories:', error);
+        }
+
         // ALSO fetch from cars collection to ensure make/model dropdowns are always populated
         try {
             const carsSnapshot = await getDocs(collection(db, 'cars'));
@@ -147,6 +168,7 @@ const ProductGrid = ({ showFilters = true }) => {
                     }
                 }
             });
+            console.log('[ProductGrid] Makes from admin:', makes);
         } catch (error) {
             console.error('[ProductGrid] Error fetching cars for filters:', error);
         }
