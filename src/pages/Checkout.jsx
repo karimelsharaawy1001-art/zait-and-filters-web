@@ -460,7 +460,7 @@ const Checkout = () => {
                         <form onSubmit={handleSubmit} className="space-y-8">
                             <div className="space-y-6">
                                 <h2 className={`text-xl font-black text-gray-900 flex items-center gap-2 ${isAr ? 'flex-row-reverse' : ''}`}>
-                                    <span className="bg-orange-600 text-white h-6 w-6 rounded-full flex items-center justify-center text-xs">1</span>
+                                    <span className="bg-[#28B463] text-white h-6 w-6 rounded-full flex items-center justify-center text-xs">1</span>
                                     {t('shippingInfo')}
                                 </h2>
                                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -472,7 +472,7 @@ const Checkout = () => {
                                             required
                                             value={formData.name}
                                             onChange={handleChange}
-                                            className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all ${isAr ? 'text-right' : 'text-left'}`}
+                                            className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-black placeholder-gray-500 focus:ring-2 focus:ring-[#28B463] outline-none transition-all ${isAr ? 'text-right' : 'text-left'}`}
                                             placeholder={t('fullNamePlaceholder')}
                                         />
                                     </div>
@@ -494,7 +494,7 @@ const Checkout = () => {
                                             name="email"
                                             value={formData.email}
                                             onChange={handleChange}
-                                            className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all ${isAr ? 'text-right' : 'text-left'}`}
+                                            className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-black placeholder-gray-500 focus:ring-2 focus:ring-[#28B463] outline-none transition-all ${isAr ? 'text-right' : 'text-left'}`}
                                             placeholder={t('emailPlaceholder')}
                                         />
                                     </div>
@@ -506,7 +506,7 @@ const Checkout = () => {
                                             name="currentMileage"
                                             value={formData.currentMileage}
                                             onChange={handleChange}
-                                            className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all ${isAr ? 'text-right' : 'text-left'}`}
+                                            className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-black placeholder-gray-500 focus:ring-2 focus:ring-[#28B463] outline-none transition-all ${isAr ? 'text-right' : 'text-left'}`}
                                             placeholder={t('mileagePlaceholder')}
                                         />
                                         <p className={`mt-1.5 text-[10px] font-bold text-gray-500 leading-tight ${isAr ? 'text-right' : 'text-left'}`}>
@@ -552,7 +552,7 @@ const Checkout = () => {
                                                     required
                                                     value={formData.governorate}
                                                     onChange={handleChange}
-                                                    className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all ${isAr ? 'text-right' : 'text-left'}`}
+                                                    className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-black placeholder-gray-500 focus:ring-2 focus:ring-[#28B463] outline-none transition-all ${isAr ? 'text-right' : 'text-left'}`}
                                                 >
                                                     <option value="">{t('selectGovernorate')}</option>
                                                     {(shippingRates || []).map(rate => (
@@ -569,7 +569,7 @@ const Checkout = () => {
                                                     required
                                                     value={formData.city}
                                                     onChange={handleChange}
-                                                    className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all ${isAr ? 'text-right' : 'text-left'}`}
+                                                    className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-black placeholder-gray-500 focus:ring-2 focus:ring-[#28B463] outline-none transition-all ${isAr ? 'text-right' : 'text-left'}`}
                                                     placeholder="e.g. Maadi"
                                                 />
                                             </div>
@@ -582,7 +582,7 @@ const Checkout = () => {
                                                     required
                                                     value={formData.address}
                                                     onChange={handleChange}
-                                                    className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all ${isAr ? 'text-right' : 'text-left'}`}
+                                                    className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-black placeholder-gray-500 focus:ring-2 focus:ring-[#28B463] outline-none transition-all ${isAr ? 'text-right' : 'text-left'}`}
                                                     placeholder={t('addressPlaceholder')}
                                                 />
                                             </div>
@@ -630,13 +630,13 @@ const Checkout = () => {
                                         value={promoInput}
                                         onChange={(e) => setPromoInput(e.target.value)}
                                         placeholder={t('promoPlaceholder')}
-                                        className={`flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-purple-500 outline-none transition-all uppercase font-bold ${isAr ? 'text-right' : 'text-left'}`}
+                                        className={`flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-black placeholder-gray-500 focus:ring-2 focus:ring-[#28B463] outline-none transition-all uppercase font-bold ${isAr ? 'text-right' : 'text-left'}`}
                                     />
                                     <button
                                         type="button"
                                         onClick={applyPromoCode}
                                         disabled={promoLoading || !promoInput.trim()}
-                                        className="bg-purple-600 text-white px-6 rounded-xl font-black text-sm hover:bg-purple-700 transition-all disabled:opacity-50"
+                                        className="bg-[#28B463] text-white px-6 rounded-xl font-black text-sm hover:bg-[#219653] transition-all disabled:opacity-50"
                                     >
                                         {promoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('apply')}
                                     </button>
@@ -653,7 +653,7 @@ const Checkout = () => {
 
                             <div className="space-y-6">
                                 <h2 className={`text-xl font-black text-gray-900 flex items-center gap-2 ${isAr ? 'flex-row-reverse' : ''}`}>
-                                    <span className="bg-orange-600 text-white h-6 w-6 rounded-full flex items-center justify-center text-xs">2</span>
+                                    <span className="bg-[#28B463] text-white h-6 w-6 rounded-full flex items-center justify-center text-xs">2</span>
                                     {t('paymentMethod')}
                                 </h2>
 

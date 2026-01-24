@@ -165,7 +165,7 @@ const ContactUs = () => {
                                                 required
                                                 value={formData.name}
                                                 onChange={handleChange}
-                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold text-black placeholder-gray-500 focus:ring-2 focus:ring-[#28B463] outline-none transition-all"
                                                 placeholder={t('enterName')}
                                             />
                                             <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
@@ -180,7 +180,7 @@ const ContactUs = () => {
                                                 required
                                                 value={formData.email}
                                                 onChange={handleChange}
-                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold text-black placeholder-gray-500 focus:ring-2 focus:ring-[#28B463] outline-none transition-all"
                                                 placeholder="email@example.com"
                                             />
                                             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
@@ -196,7 +196,7 @@ const ContactUs = () => {
                                             name="subject"
                                             value={formData.subject}
                                             onChange={handleChange}
-                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold text-black placeholder-gray-500 focus:ring-2 focus:ring-[#28B463] outline-none transition-all"
                                             placeholder={t('subjectPlaceholder')}
                                         />
                                         <MessageCircle className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
@@ -211,7 +211,7 @@ const ContactUs = () => {
                                         rows={6}
                                         value={formData.message}
                                         onChange={handleChange}
-                                        className="w-full bg-gray-50 border border-gray-100 rounded-[2rem] p-6 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none transition-all resize-none"
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-[2rem] p-6 text-sm font-bold text-black placeholder-gray-500 focus:ring-2 focus:ring-[#28B463] outline-none transition-all resize-none"
                                         placeholder={t('messagePlaceholder')}
                                     />
                                 </div>
