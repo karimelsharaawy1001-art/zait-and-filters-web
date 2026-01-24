@@ -132,23 +132,23 @@ const ManageShipping = () => {
     };
 
     return (
-        <div className="min-h-screen bg-admin-bg font-sans pb-20 p-4 md:p-8">
+        <div className="min-h-screen bg-gray-50 font-sans pb-20 p-4 md:p-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 max-w-7xl mx-auto mt-10">
                 <div className="flex items-center gap-4">
-                    <div className="bg-admin-accent/10 p-4 rounded-2xl">
+                    <div className="bg-[#28B463]/10 p-4 rounded-2xl">
                         <Truck className="h-6 w-6 text-admin-accent" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-white uppercase tracking-widest poppins">Shipping Rates</h1>
+                        <h1 className="text-3xl font-black text-black uppercase tracking-widest poppins">Shipping Rates</h1>
                         <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Manage governorate-based delivery costs</p>
                     </div>
                 </div>
                 <button
                     onClick={handleSeed}
                     disabled={actionLoading}
-                    className="flex items-center gap-3 bg-[#ffffff05] text-white px-8 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:bg-[#ffffff0a] transition-all border border-admin-border group active:scale-95 disabled:opacity-50"
+                    className="flex items-center gap-3 bg-white text-black px-8 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition-all border border-gray-200 shadow-sm group active:scale-95 disabled:opacity-50"
                 >
-                    <RefreshCcw className={`h-4 w-4 text-admin-accent group-hover:rotate-180 transition-transform duration-500 ${actionLoading ? 'animate-spin' : ''}`} />
+                    <RefreshCcw className={`h-4 w-4 text-[#28B463] group-hover:rotate-180 transition-transform duration-500 ${actionLoading ? 'animate-spin' : ''}`} />
                     Provision Default Egypt Matrix
                 </button>
             </div>
@@ -156,13 +156,13 @@ const ManageShipping = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-7xl mx-auto">
                 {/* Form Side */}
                 <div className="lg:col-span-1">
-                    <div className="bg-admin-card rounded-[2.5rem] p-10 shadow-admin border border-admin-border sticky top-8 group overflow-hidden">
+                    <div className="bg-white rounded-[2.5rem] p-10 shadow-admin border border-gray-200 sticky top-8 group overflow-hidden">
                         <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <Plus className="h-24 w-24 text-white" />
+                            <Plus className="h-24 w-24 text-black" />
                         </div>
 
-                        <h2 className="text-xl font-black text-white mb-8 flex items-center gap-3 relative poppins">
-                            <div className="p-2 bg-admin-accent/10 rounded-xl">
+                        <h2 className="text-xl font-black text-black mb-8 flex items-center gap-3 relative poppins">
+                            <div className="p-2 bg-[#28B463]/10 rounded-xl">
                                 <Plus className="h-5 w-5 text-admin-accent" />
                             </div>
                             Manual Entry
@@ -174,7 +174,7 @@ const ManageShipping = () => {
                                     type="text"
                                     value={newRate.governorate}
                                     onChange={(e) => setNewRate({ ...newRate, governorate: e.target.value })}
-                                    className="w-full bg-[#ffffff05] border border-admin-border rounded-2xl px-5 py-4 text-sm font-bold text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all placeholder-gray-700"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all placeholder-gray-400"
                                     placeholder="e.g. Cairo"
                                     required
                                 />
@@ -185,7 +185,7 @@ const ManageShipping = () => {
                                     type="number"
                                     value={newRate.cost}
                                     onChange={(e) => setNewRate({ ...newRate, cost: e.target.value })}
-                                    className="w-full bg-[#ffffff05] border border-admin-border rounded-2xl px-5 py-4 text-sm font-bold text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all placeholder-gray-700"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all placeholder-gray-400"
                                     placeholder="e.g. 50"
                                     required
                                 />
@@ -193,7 +193,7 @@ const ManageShipping = () => {
                             <button
                                 type="submit"
                                 disabled={actionLoading}
-                                className="w-full admin-primary-btn py-5 rounded-[1.5rem]"
+                                className="w-full admin-primary-btn py-5 rounded-[1.5rem] text-white"
                             >
                                 Commmit Rate Entity
                             </button>
@@ -203,7 +203,7 @@ const ManageShipping = () => {
 
                 {/* Table Side */}
                 <div className="lg:col-span-2">
-                    <div className="bg-admin-card rounded-[2.5rem] shadow-admin border border-admin-border overflow-hidden">
+                    <div className="bg-white rounded-[2.5rem] shadow-admin border border-gray-200 overflow-hidden">
                         {loading ? (
                             <div className="p-20 flex flex-col items-center justify-center gap-4">
                                 <div className="h-10 w-10 border-4 border-admin-accent border-t-transparent rounded-full animate-spin"></div>
@@ -217,7 +217,7 @@ const ManageShipping = () => {
                             <div className="overflow-x-auto">
                                 <table className="w-full border-collapse">
                                     <thead>
-                                        <tr className="bg-[#ffffff02] border-b border-[#ffffff05] text-left">
+                                        <tr className="bg-gray-50 border-b border-gray-100 text-left">
                                             <th className="px-10 py-6 text-[10px] font-black text-gray-600 uppercase tracking-widest poppins">Geographic Entity</th>
                                             <th className="px-10 py-6 text-[10px] font-black text-gray-600 uppercase tracking-widest text-center poppins">Operational Cost</th>
                                             <th className="px-10 py-6 text-[10px] font-black text-gray-600 uppercase tracking-widest text-right poppins">Operations</th>
@@ -225,17 +225,17 @@ const ManageShipping = () => {
                                     </thead>
                                     <tbody className="divide-y divide-[#ffffff05]">
                                         {rates.map((rate) => (
-                                            <tr key={rate.id} className="hover:bg-[#ffffff02] transition-all group">
+                                            <tr key={rate.id} className="hover:bg-gray-50 transition-all group">
                                                 <td className="px-10 py-6">
                                                     {isEditing === rate.id ? (
                                                         <input
                                                             type="text"
                                                             value={editRate.governorate}
                                                             onChange={(e) => setEditRate({ ...editRate, governorate: e.target.value })}
-                                                            className="w-full bg-[#ffffff05] border border-admin-accent/30 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:ring-1 focus:ring-admin-accent outline-none"
+                                                            className="w-full bg-gray-50 border border-[#28B463]/30 rounded-xl px-4 py-2.5 text-sm font-bold text-black focus:ring-1 focus:ring-[#28B463] outline-none"
                                                         />
                                                     ) : (
-                                                        <span className="text-base font-black text-white poppins uppercase tracking-wide group-hover:text-admin-accent transition-colors">{rate.governorate}</span>
+                                                        <span className="text-base font-black text-black poppins uppercase tracking-wide group-hover:text-admin-accent transition-colors">{rate.governorate}</span>
                                                     )}
                                                 </td>
                                                 <td className="px-10 py-6 text-center">
@@ -244,7 +244,7 @@ const ManageShipping = () => {
                                                             type="number"
                                                             value={editRate.cost}
                                                             onChange={(e) => setEditRate({ ...editRate, cost: e.target.value })}
-                                                            className="w-32 mx-auto bg-[#ffffff05] border border-admin-accent/30 rounded-xl px-4 py-2.5 text-sm font-bold text-white text-center focus:ring-1 focus:ring-admin-accent outline-none"
+                                                            className="w-32 mx-auto bg-[#ffffff05] border border-admin-accent/30 rounded-xl px-4 py-2.5 text-sm font-bold text-black text-center focus:ring-1 focus:ring-admin-accent outline-none"
                                                         />
                                                     ) : (
                                                         <span className="text-xl font-black text-admin-accent font-mono uppercase tracking-tighter">
@@ -265,7 +265,7 @@ const ManageShipping = () => {
                                                                 </button>
                                                                 <button
                                                                     onClick={() => setIsEditing(null)}
-                                                                    className="p-3 text-gray-500 hover:bg-[#ffffff05] rounded-xl transition-all border border-admin-border"
+                                                                    className="p-3 text-gray-500 hover:bg-[#ffffff05] rounded-xl transition-all border border-gray-200"
                                                                 >
                                                                     <X className="h-4 w-4" />
                                                                 </button>
@@ -274,7 +274,7 @@ const ManageShipping = () => {
                                                             <>
                                                                 <button
                                                                     onClick={() => startEdit(rate)}
-                                                                    className="p-3 text-admin-accent hover:bg-admin-accent/10 rounded-xl opacity-0 group-hover:opacity-100 transition-all border border-admin-accent/20"
+                                                                    className="p-3 text-admin-accent hover:bg-[#28B463]/10 rounded-xl opacity-0 group-hover:opacity-100 transition-all border border-admin-accent/20"
                                                                 >
                                                                     <Edit2 className="h-4 w-4" />
                                                                 </button>

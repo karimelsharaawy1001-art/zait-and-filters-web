@@ -464,7 +464,7 @@ const ManageProducts = () => {
                                                 <div className="flex items-center justify-end gap-4">
                                                     <button
                                                         onClick={() => navigate(`/admin/edit-product/${product.id}`)}
-                                                        className="p-3 bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white border border-blue-500/20 rounded-xl transition-all hover:-translate-y-1 shadow-lg shadow-blue-500/5 group/btn"
+                                                        className="p-3 bg-[#28B463]/10 text-[#28B463] hover:bg-[#28B463] hover:text-white border border-[#28B463]/20 rounded-xl transition-all hover:-translate-y-1 shadow-lg shadow-[#28B463]/5 group/btn"
                                                     >
                                                         <Edit3 className="h-4.5 w-4.5" />
                                                     </button>
@@ -513,7 +513,7 @@ const ManageProducts = () => {
                                                 <div className="flex items-center gap-2">
                                                     <button
                                                         onClick={() => navigate(`/admin/edit-product/${product.id}`)}
-                                                        className="p-3 bg-blue-50 text-blue-600 rounded-xl border border-blue-100 hover:bg-blue-600 hover:text-white transition-all"
+                                                        className="p-3 bg-[#28B463]/10 text-[#28B463] rounded-xl border border-[#28B463]/20 hover:bg-[#28B463] hover:text-white transition-all"
                                                     >
                                                         <Edit3 className="h-4.5 w-4.5" />
                                                     </button>
