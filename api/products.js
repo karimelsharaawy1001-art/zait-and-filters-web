@@ -19,12 +19,13 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 export default async function handler(req, res) {
-    const { action, make, model } = req.query;
+    const { action, make, model, productId, category, brand } = req.query;
 
     try {
         const productsRef = db.collection('products');
-        let productsQuery = productsRef.where('isActive', '==', true);
+        let productsQuery = productsRef.where('isActive', '!=', false);
 
+        // 1. Inventory Metadata Actions
         if (action === 'getMakes') {
             const snapshot = await productsQuery.get();
             const makes = [...new Set(snapshot.docs.map(doc => doc.data().make))].filter(Boolean).sort();
@@ -50,19 +51,50 @@ export default async function handler(req, res) {
                     years.add(Number(data.yearStart));
                 }
             });
-            // Also include legacy "yearRange" if it exists as a single year
-            snapshot.docs.forEach(doc => {
-                const data = doc.data();
-                if (data.yearRange && /^\d+$/.test(data.yearRange.toString())) {
-                    years.add(Number(data.yearRange));
-                }
-            });
             return res.status(200).json(Array.from(years).sort((a, b) => b - a));
+        }
+
+        // 2. Related Products Action
+        if (action === 'getRelated' && productId) {
+            let relatedProducts = [];
+            const seenIds = new Set([productId]);
+
+            const addProducts = (snapshot) => {
+                snapshot.docs.forEach(doc => {
+                    if (!seenIds.has(doc.id)) {
+                        relatedProducts.push({ id: doc.id, ...doc.data() });
+                        seenIds.add(doc.id);
+                    }
+                });
+            };
+
+            // Priority 1: Same Make & Model
+            if (make && model && make !== 'Universal' && model !== 'Universal') {
+                const carQuery = await productsRef
+                    .where('isActive', '!=', false)
+                    .where('make', '==', make)
+                    .where('model', '==', model)
+                    .limit(10)
+                    .get();
+                addProducts(carQuery);
+            }
+
+            // Priority 2: Same Category
+            if (relatedProducts.length < 8 && category) {
+                const categoryQuery = await productsRef
+                    .where('isActive', '!=', false)
+                    .where('category', '==', category)
+                    .limit(10)
+                    .get();
+                addProducts(categoryQuery);
+            }
+
+            return res.status(200).json(relatedProducts.slice(0, 8));
         }
 
         return res.status(400).json({ error: 'Invalid action or missing parameters' });
     } catch (error) {
-        console.error('Error in inventory-metadata API:', error);
+        console.error('Error in products API:', error);
         return res.status(500).json({ error: 'Internal server error' });
     }
 }

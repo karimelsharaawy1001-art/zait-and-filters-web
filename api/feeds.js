@@ -1,4 +1,4 @@
-const admin = require('firebase-admin');
+import admin from 'firebase-admin';
 
 // Initialize Firebase Admin only once
 if (!admin.apps.length) {
@@ -9,18 +9,17 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
+    const { platform } = req.query; // 'google' or 'facebook'
+
     try {
-        // Fetch all active products
         const productsSnap = await db.collection('products').get();
         const products = productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        // Fetch site settings for URLs (base URL)
         const settingsSnap = await db.collection('settings').doc('general').get();
         const settings = settingsSnap.exists ? settingsSnap.data() : {};
         const baseUrl = process.env.SITE_URL || 'https://zait-and-filters.com';
 
-        // Generate XML
         let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">
     <channel>
@@ -30,13 +29,12 @@ module.exports = async (req, res) => {
 `;
 
         products.forEach(product => {
-            // Basic sanitization for XML
             const title = (product.nameEn || product.name || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            const description = (product.descriptionEn || product.description || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const description = (product.descriptionEn || product.description || 'Genuine auto part').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             const price = product.price || 0;
             const link = `${baseUrl}/product/${product.id}`;
             const imageLink = product.images && product.images[0] ? product.images[0] : '';
-            const availability = product.stock > 0 ? 'in_stock' : 'out_of_stock';
+            const availability = product.stock > 0 ? (platform === 'facebook' ? 'in stock' : 'in_stock') : (platform === 'facebook' ? 'out of stock' : 'out_of_stock');
             const id = product.id;
             const brand = product.brand || 'Zait &amp; Filters';
 
@@ -57,12 +55,11 @@ module.exports = async (req, res) => {
         xml += `    </channel>
 </rss>`;
 
-        // Set Headers and Send
         res.setHeader('Content-Type', 'text/xml');
         res.status(200).send(xml);
 
     } catch (error) {
-        console.error('Error generating product feed:', error);
-        res.status(500).send('Error generating product feed');
+        console.error('Error generating feed:', error);
+        res.status(500).send('Error generating feed');
     }
 };
