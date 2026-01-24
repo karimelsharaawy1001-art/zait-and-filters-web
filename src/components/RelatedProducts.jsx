@@ -25,7 +25,7 @@ const RelatedProducts = ({ currentProduct }) => {
                     brand: currentProduct.brand || ''
                 });
 
-                const response = await fetch(`/api/related-products?${params.toString()}`);
+                const response = await fetch(`/api/products?action=getRelated&${params.toString()}`);
                 if (!response.ok) throw new Error('Failed to fetch related products');
 
                 const products = await response.json();

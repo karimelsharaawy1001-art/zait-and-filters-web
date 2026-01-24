@@ -40,11 +40,17 @@ const CarSelector = () => {
         const fetchMakes = async () => {
             setLoading(true);
             try {
-                const response = await fetch('/api/inventory-metadata?action=getMakes');
+                const response = await fetch('/api/products?action=getMakes');
                 const data = await response.json();
-                setMakes(data);
+                if (Array.isArray(data)) {
+                    setMakes(data);
+                } else {
+                    console.error("Makes API did not return an array:", data);
+                    setMakes([]);
+                }
             } catch (error) {
                 console.error("Error fetching makes:", error);
+                setMakes([]);
             } finally {
                 setLoading(false);
             }
@@ -66,15 +72,22 @@ const CarSelector = () => {
             setLoading(true);
             setNoResults(false);
             try {
-                const response = await fetch(`/api/inventory-metadata?action=getModels&make=${encodeURIComponent(make)}`);
+                const response = await fetch(`/api/products?action=getModels&make=${encodeURIComponent(make)}`);
                 const data = await response.json();
-                setModels(data);
-                if (data.length === 0) setNoResults(true);
+                if (Array.isArray(data)) {
+                    setModels(data);
+                    if (data.length === 0) setNoResults(true);
+                } else {
+                    console.error("Models API did not return an array:", data);
+                    setModels([]);
+                    setNoResults(true);
+                }
                 setModel('');
                 setAvailableYears([]);
                 setYear('');
             } catch (error) {
                 console.error("Error fetching models:", error);
+                setModels([]);
             } finally {
                 setLoading(false);
             }
@@ -92,13 +105,19 @@ const CarSelector = () => {
             }
             setLoading(true);
             try {
-                const response = await fetch(`/api/inventory-metadata?action=getYears&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}`);
+                const response = await fetch(`/api/products?action=getYears&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}`);
                 const data = await response.json();
-                setAvailableYears(data);
-                if (data.length === 0) setNoResults(true);
+                if (Array.isArray(data)) {
+                    setAvailableYears(data);
+                    if (data.length === 0) setNoResults(true);
+                } else {
+                    console.error("Years API did not return an array:", data);
+                    setAvailableYears([]);
+                }
                 setYear('');
             } catch (error) {
                 console.error("Error fetching years:", error);
+                setAvailableYears([]);
             } finally {
                 setLoading(false);
             }
@@ -156,17 +175,17 @@ const CarSelector = () => {
                             className="w-full bg-white/5 border border-white/10 text-white py-4 px-5 pr-10 rounded-xl focus:outline-none focus:bg-white/10 focus:border-[#e31e24] focus:ring-1 focus:ring-[#e31e24] transition-all appearance-none font-bold text-sm backdrop-blur-sm"
                             value={make}
                             onChange={(e) => setMake(e.target.value)}
-                            disabled={loading && makes.length === 0}
+                            disabled={loading && (makes || []).length === 0}
                         >
                             <option value="" className="bg-[#111111] text-white">
-                                {loading && makes.length === 0 ? 'Loading...' : t('selectMake')}
+                                {loading && (makes || []).length === 0 ? 'Loading...' : t('selectMake')}
                             </option>
-                            {makes.map(m => (
+                            {Array.isArray(makes) && makes.map(m => (
                                 <option key={m} value={m} className="bg-[#111111] text-white">{m}</option>
                             ))}
                         </select>
                         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
-                            {loading && makes.length === 0 ? (
+                            {loading && (makes || []).length === 0 ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
                                 <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
@@ -180,20 +199,20 @@ const CarSelector = () => {
                     <label className="block text-[11px] text-gray-400 mb-2 ml-1 mr-1 font-black uppercase tracking-widest leading-none">{t('model')}</label>
                     <div className="relative">
                         <select
-                            className={`w-full bg-white/5 border border-white/10 text-white py-4 px-5 pr-10 rounded-xl focus:outline-none focus:bg-white/10 focus:border-[#e31e24] focus:ring-1 focus:ring-[#e31e24] transition-all appearance-none font-bold text-sm backdrop-blur-sm ${!make || (loading && models.length === 0) ? 'opacity-30 cursor-not-allowed' : ''}`}
+                            className={`w-full bg-white/5 border border-white/10 text-white py-4 px-5 pr-10 rounded-xl focus:outline-none focus:bg-white/10 focus:border-[#e31e24] focus:ring-1 focus:ring-[#e31e24] transition-all appearance-none font-bold text-sm backdrop-blur-sm ${!make || (loading && (models || []).length === 0) ? 'opacity-30 cursor-not-allowed' : ''}`}
                             value={model}
                             onChange={(e) => setModel(e.target.value)}
-                            disabled={!make || (loading && models.length === 0)}
+                            disabled={!make || (loading && (models || []).length === 0)}
                         >
                             <option value="" className="bg-[#111111] text-white">
-                                {loading && make && models.length === 0 ? 'Loading...' : t('selectModel')}
+                                {loading && make && (models || []).length === 0 ? 'Loading...' : t('selectModel')}
                             </option>
-                            {models.map(m => (
+                            {Array.isArray(models) && models.map(m => (
                                 <option key={m} value={m} className="bg-[#111111] text-white">{m}</option>
                             ))}
                         </select>
                         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
-                            {loading && make && models.length === 0 ? (
+                            {loading && make && (models || []).length === 0 ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
                                 <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
@@ -213,14 +232,14 @@ const CarSelector = () => {
                             disabled={!model || (loading && availableYears.length === 0)}
                         >
                             <option value="" className="bg-[#111111] text-white">
-                                {loading && model && availableYears.length === 0 ? 'Loading...' : t('allYears')}
+                                {loading && model && (availableYears || []).length === 0 ? 'Loading...' : t('allYears')}
                             </option>
-                            {availableYears.map(y => (
+                            {Array.isArray(availableYears) && availableYears.map(y => (
                                 <option key={y} value={y} className="bg-[#111111] text-white">{y}</option>
                             ))}
                         </select>
                         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
-                            {loading && model && availableYears.length === 0 ? (
+                            {loading && model && (availableYears || []).length === 0 ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
                                 <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>

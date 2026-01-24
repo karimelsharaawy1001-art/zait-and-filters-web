@@ -75,7 +75,7 @@ export default async function handler(req, res) {
 
             const token = uuidv4();
             // Use a tracking link that redirects
-            const trackingLink = `${baseUrl}/api/track-recovery?token=${token}`;
+            const trackingLink = `${baseUrl}/api/recovery?action=track&token=${token}`;
 
             // Generate HTML
             const html = abandonedCartTemplate(cart.items || [], trackingLink);

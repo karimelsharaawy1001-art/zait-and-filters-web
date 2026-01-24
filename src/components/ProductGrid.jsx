@@ -398,7 +398,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                             className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
                                         >
                                             <option value="">{t('shopFilters.allCategories')}</option>
-                                            {Object.keys(filterOptions.categories).map(cat => (
+                                            {Object.keys(filterOptions?.categories || {}).map(cat => (
                                                 <option key={cat} value={cat}>{cat}</option>
                                             ))}
                                         </select>
@@ -411,7 +411,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                                 {t('shopFilters.subcategory')}
                                             </label>
                                             <div className="space-y-2 bg-gray-50/50 p-4 rounded-xl border border-gray-100">
-                                                {filterOptions.categories[activeFilters.categories[0]].map(sub => (
+                                                {(filterOptions?.categories?.[activeFilters.categories[0]] || []).map(sub => (
                                                     <label key={sub} className={`flex items-center gap-3 cursor-pointer group ${isRTL ? 'flex-row-reverse' : ''}`}>
                                                         <div className="flex items-center justify-center">
                                                             <input
@@ -445,7 +445,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                             className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
                                         >
                                             <option value="">{t('shopFilters.allMakes')}</option>
-                                            {Object.keys(filterOptions.makes).map(make => (
+                                            {Object.keys(filterOptions?.makes || {}).map(make => (
                                                 <option key={make} value={make}>{make}</option>
                                             ))}
                                         </select>
@@ -464,7 +464,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                                 className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
                                             >
                                                 <option value="">{t('shopFilters.allModels')}</option>
-                                                {filterOptions.makes[activeFilters.makes[0]].map(model => (
+                                                {(filterOptions?.makes?.[activeFilters.makes[0]] || []).map(model => (
                                                     <option key={model} value={model}>{model}</option>
                                                 ))}
                                             </select>
@@ -483,7 +483,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                             className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
                                         >
                                             <option value="">{t('shopFilters.allYears')}</option>
-                                            {filterOptions.years.map(year => (
+                                            {Array.isArray(filterOptions?.years) && filterOptions.years.map(year => (
                                                 <option key={year} value={year}>{year}</option>
                                             ))}
                                         </select>
@@ -501,7 +501,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                             className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
                                         >
                                             <option value="">{t('shopFilters.allOrigins')}</option>
-                                            {filterOptions.origins.map(origin => (
+                                            {Array.isArray(filterOptions?.origins) && filterOptions.origins.map(origin => (
                                                 <option key={origin} value={origin}>{origin}</option>
                                             ))}
                                         </select>
@@ -519,7 +519,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                             className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
                                         >
                                             <option value="">{t('shopFilters.allBrands')}</option>
-                                            {filterOptions.brands.map(brand => (
+                                            {Array.isArray(filterOptions?.brands) && filterOptions.brands.map(brand => (
                                                 <option key={brand} value={brand}>{brand}</option>
                                             ))}
                                         </select>
@@ -546,7 +546,7 @@ const ProductGrid = ({ showFilters = true }) => {
                     {showFilters && isMobileFilterOpen && (
                         <div className="lg:hidden mb-8 bg-white p-6 rounded-2xl shadow-xl border border-gray-100 animate-in slide-in-from-top duration-300 overflow-y-auto max-h-[70vh]">
                             <div className="space-y-6">
-                                {Object.entries(filterOptions.categories).map(([cat, subs]) => (
+                                {Object.entries(filterOptions?.categories || {}).map(([cat, subs]) => (
                                     <div key={cat} className="space-y-3">
                                         <h4 className="text-xs font-black text-gray-900 uppercase tracking-widest">{cat}</h4>
                                         <div className="flex flex-wrap gap-2">
@@ -556,7 +556,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                             >
                                                 {t('all')} {cat}
                                             </button>
-                                            {subs.map(sub => (
+                                            {Array.isArray(subs) && subs.map(sub => (
                                                 <button
                                                     key={sub}
                                                     onClick={() => toggleFilter('subcategories', sub)}

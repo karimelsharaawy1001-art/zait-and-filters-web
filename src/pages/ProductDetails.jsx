@@ -435,7 +435,7 @@ const ProductDetails = () => {
                                 </div>
                             ) : (
                                 <div className="space-y-8">
-                                    {reviews.map((rev) => (
+                                    {Array.isArray(reviews) && reviews.map((rev) => (
                                         <div key={rev.id} className="bg-white rounded-3xl p-8 border border-gray-50 shadow-sm hover:shadow-md transition-shadow animate-in fade-in duration-500">
                                             <div className={`flex flex-col md:flex-row gap-6 ${isAr ? 'md:flex-row-reverse' : ''}`}>
                                                 <div className="flex-1">

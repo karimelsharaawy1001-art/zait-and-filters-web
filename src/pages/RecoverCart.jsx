@@ -21,7 +21,7 @@ const RecoverCart = () => {
             }
 
             try {
-                const response = await axios.get(`/api/get-recovery-cart?token=${token}`);
+                const response = await axios.get(`/api/recovery?action=fetch&token=${token}`);
                 const { items, customerName } = response.data;
 
                 if (items && items.length > 0) {

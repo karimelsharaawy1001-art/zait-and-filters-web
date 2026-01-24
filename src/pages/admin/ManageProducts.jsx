@@ -298,7 +298,7 @@ const ManageProducts = () => {
                                     className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#e31e24] transition-all cursor-pointer outline-none font-bold"
                                 >
                                     <option value="All">All Piece Brands</option>
-                                    {uniquePartBrands.map(brand => (
+                                    {Array.isArray(uniquePartBrands) && uniquePartBrands.map(brand => (
                                         <option key={brand} value={brand}>{brand}</option>
                                     ))}
                                 </select>
@@ -315,7 +315,7 @@ const ManageProducts = () => {
                                     className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#e31e24] transition-all cursor-pointer outline-none font-bold"
                                 >
                                     <option value="All">All Systems</option>
-                                    {allCategories.map(cat => (
+                                    {Array.isArray(allCategories) && allCategories.map(cat => (
                                         <option key={cat.id} value={cat.name}>{cat.name}</option>
                                     ))}
                                 </select>
@@ -329,7 +329,7 @@ const ManageProducts = () => {
                                     className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#e31e24] transition-all cursor-pointer outline-none font-bold disabled:opacity-30 disabled:cursor-not-allowed"
                                 >
                                     <option value="All">All Sub-Categories</option>
-                                    {availableSubcategories.map(sub => (
+                                    {Array.isArray(availableSubcategories) && availableSubcategories.map(sub => (
                                         <option key={sub} value={sub}>{sub}</option>
                                     ))}
                                 </select>
@@ -347,7 +347,7 @@ const ManageProducts = () => {
                                         className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#e31e24] transition-all cursor-pointer outline-none font-bold"
                                     >
                                         <option value="All">All Makes</option>
-                                        {carMakes.map(make => (
+                                        {Array.isArray(carMakes) && carMakes.map(make => (
                                             <option key={make} value={make}>{make}</option>
                                         ))}
                                     </select>
@@ -372,7 +372,7 @@ const ManageProducts = () => {
                                     className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#e31e24] transition-all cursor-pointer outline-none font-bold disabled:opacity-30 disabled:cursor-not-allowed"
                                 >
                                     <option value="All">All Models</option>
-                                    {availableModels.map(model => (
+                                    {Array.isArray(availableModels) && availableModels.map(model => (
                                         <option key={model} value={model}>{model}</option>
                                     ))}
                                 </select>
@@ -408,7 +408,7 @@ const ManageProducts = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
-                                    {filteredProducts.map((product) => (
+                                    {Array.isArray(filteredProducts) && filteredProducts.map((product) => (
                                         <tr key={product.id} className="hover:bg-white/[0.02] transition-colors group/row">
                                             <td className="px-8 py-6 whitespace-nowrap">
                                                 <div className="relative h-14 w-14 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 group-hover/row:border-[#e31e24]/20 transition-all">
@@ -484,7 +484,7 @@ const ManageProducts = () => {
 
                         {/* Mobile Optimized Cards */}
                         <div className="md:hidden divide-y divide-gray-100 bg-white">
-                            {filteredProducts.map((product) => (
+                            {Array.isArray(filteredProducts) && filteredProducts.map((product) => (
                                 <div key={product.id} className="p-6 hover:bg-gray-50 transition-all">
                                     <div className="flex gap-6">
                                         <div className="relative h-24 w-24 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 flex-shrink-0">

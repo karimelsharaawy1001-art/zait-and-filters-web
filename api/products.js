@@ -20,6 +20,7 @@ const db = admin.firestore();
 
 export default async function handler(req, res) {
     const { action, make, model, productId, category, brand } = req.query;
+    console.log(`[API/Products] Action: ${action}, Make: ${make}, Model: ${model}`);
 
     try {
         const productsRef = db.collection('products');
@@ -28,20 +29,33 @@ export default async function handler(req, res) {
         // 1. Inventory Metadata Actions
         if (action === 'getMakes') {
             const snapshot = await productsQuery.get();
-            const makes = [...new Set(snapshot.docs.map(doc => doc.data().make))].filter(Boolean).sort();
+            const rawData = snapshot.docs.map(doc => doc.data());
+            console.log(`[API/Products] Found ${snapshot.size} active products for makes.`);
+            const makes = [...new Set(rawData.map(d => d.make || d.car_make))].filter(Boolean).sort();
+            console.log(`[API/Products] Unique makes found: ${makes.join(', ')}`);
             return res.status(200).json(makes);
         }
 
         if (action === 'getModels' && make) {
             const snapshot = await productsQuery.where('make', '==', make).get();
-            const models = [...new Set(snapshot.docs.map(doc => doc.data().model))].filter(Boolean).sort();
+            const snapshotAlt = await productsQuery.where('car_make', '==', make).get();
+
+            const rawData = [
+                ...snapshot.docs.map(doc => doc.data()),
+                ...snapshotAlt.docs.map(doc => doc.data())
+            ];
+
+            const models = [...new Set(rawData.map(d => d.model || d.car_model))].filter(Boolean).sort();
             return res.status(200).json(models);
         }
 
         if (action === 'getYears' && make && model) {
             const snapshot = await productsQuery.where('make', '==', make).where('model', '==', model).get();
+            const snapshotAlt = await productsQuery.where('car_make', '==', make).where('car_model', '==', model).get();
+
+            const docs = [...snapshot.docs, ...snapshotAlt.docs];
             const years = new Set();
-            snapshot.docs.forEach(doc => {
+            docs.forEach(doc => {
                 const data = doc.data();
                 if (data.yearStart && data.yearEnd) {
                     for (let y = Number(data.yearStart); y <= Number(data.yearEnd); y++) {
