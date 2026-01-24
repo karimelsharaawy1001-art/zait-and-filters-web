@@ -239,7 +239,7 @@ const ManageProducts = () => {
                     </div>
                     <button
                         onClick={() => navigate('/admin/products/new')}
-                        className="flex items-center gap-3 bg-[#e31e24] hover:bg-[#b8181d] hover:scale-105 text-white px-8 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-[#e31e24]/20"
+                        className="flex items-center gap-3 bg-[#28B463] hover:bg-[#219653] hover:scale-105 text-white px-8 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-[#28B463]/20"
                     >
                         <Plus className="h-5 w-5" />
                         Add New Entry
@@ -253,7 +253,7 @@ const ManageProducts = () => {
                 <div className="bg-white rounded-[24px] shadow-sm border border-gray-200 p-8 mb-10 group/filters">
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-3">
-                            <Filter className="h-4 w-4 text-[#e31e24]" />
+                            <Filter className="h-4 w-4 text-[#28B463]" />
                             <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Master Filters</h3>
                         </div>
                         <button
@@ -267,7 +267,7 @@ const ManageProducts = () => {
                                 setBrandFilter('All');
                                 setStatusFilter('All');
                             }}
-                            className="text-[11px] font-black text-[#e31e24] hover:text-[#b8181d] uppercase tracking-widest transition-colors flex items-center gap-2 group"
+                            className="text-[11px] font-black text-[#28B463] hover:text-[#b8181d] uppercase tracking-widest transition-colors flex items-center gap-2 group"
                         >
                             <span className="group-hover:rotate-180 transition-transform duration-500">↺</span>
                             Reset All Data
@@ -280,13 +280,13 @@ const ManageProducts = () => {
                             <div>
                                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Keyword (CORE SEARCH)</label>
                                 <div className="relative">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-gray-400 group-focus-within/filters:text-[#e31e24] transition-colors" />
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-gray-400 group-focus-within/filters:text-[#28B463] transition-colors" />
                                     <input
                                         type="text"
                                         placeholder="Name, Brand, or Part #..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black placeholder-gray-300 focus:ring-2 focus:ring-[#e31e24] focus:border-transparent outline-none transition-all font-bold shadow-sm"
+                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black placeholder-gray-300 focus:ring-2 focus:ring-[#28B463] focus:border-transparent outline-none transition-all font-bold shadow-sm"
                                     />
                                 </div>
                             </div>
@@ -295,7 +295,7 @@ const ManageProducts = () => {
                                 <select
                                     value={brandFilter}
                                     onChange={(e) => setBrandFilter(e.target.value)}
-                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#e31e24] transition-all cursor-pointer outline-none font-bold"
+                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#28B463] transition-all cursor-pointer outline-none font-bold"
                                 >
                                     <option value="All">All Piece Brands</option>
                                     {Array.isArray(uniquePartBrands) && uniquePartBrands.map(brand => (
@@ -312,7 +312,7 @@ const ManageProducts = () => {
                                 <select
                                     value={categoryFilter}
                                     onChange={(e) => setCategoryFilter(e.target.value)}
-                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#e31e24] transition-all cursor-pointer outline-none font-bold"
+                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#28B463] transition-all cursor-pointer outline-none font-bold"
                                 >
                                     <option value="All">All Systems</option>
                                     {Array.isArray(allCategories) && allCategories.map(cat => (
@@ -326,7 +326,7 @@ const ManageProducts = () => {
                                     value={subcategoryFilter}
                                     onChange={(e) => setSubcategoryFilter(e.target.value)}
                                     disabled={categoryFilter === 'All'}
-                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#e31e24] transition-all cursor-pointer outline-none font-bold disabled:opacity-30 disabled:cursor-not-allowed"
+                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#28B463] transition-all cursor-pointer outline-none font-bold disabled:opacity-30 disabled:cursor-not-allowed"
                                 >
                                     <option value="All">All Sub-Categories</option>
                                     {Array.isArray(availableSubcategories) && availableSubcategories.map(sub => (
@@ -344,7 +344,7 @@ const ManageProducts = () => {
                                     <select
                                         value={makeFilter}
                                         onChange={(e) => setMakeFilter(e.target.value)}
-                                        className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#e31e24] transition-all cursor-pointer outline-none font-bold"
+                                        className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#28B463] transition-all cursor-pointer outline-none font-bold"
                                     >
                                         <option value="All">All Makes</option>
                                         {Array.isArray(carMakes) && carMakes.map(make => (
@@ -359,7 +359,7 @@ const ManageProducts = () => {
                                         placeholder="e.g. 2024"
                                         value={yearFilter}
                                         onChange={(e) => setYearFilter(e.target.value)}
-                                        className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black placeholder-gray-300 focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-bold"
+                                        className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black placeholder-gray-300 focus:ring-2 focus:ring-[#28B463] outline-none transition-all font-bold"
                                     />
                                 </div>
                             </div>
@@ -369,7 +369,7 @@ const ManageProducts = () => {
                                     value={modelFilter}
                                     onChange={(e) => setModelFilter(e.target.value)}
                                     disabled={makeFilter === 'All'}
-                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#e31e24] transition-all cursor-pointer outline-none font-bold disabled:opacity-30 disabled:cursor-not-allowed"
+                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#28B463] transition-all cursor-pointer outline-none font-bold disabled:opacity-30 disabled:cursor-not-allowed"
                                 >
                                     <option value="All">All Models</option>
                                     {Array.isArray(availableModels) && availableModels.map(model => (
@@ -386,7 +386,7 @@ const ManageProducts = () => {
                 {/* Main Data Manifest */}
                 {filteredProducts.length === 0 ? (
                     <div className="bg-white rounded-3xl shadow-sm p-20 text-center border border-gray-100">
-                        <AlertTriangle className="h-16 w-16 text-[#e31e24] mx-auto mb-6 opacity-40 animate-pulse" />
+                        <AlertTriangle className="h-16 w-16 text-[#28B463] mx-auto mb-6 opacity-40 animate-pulse" />
                         <h4 className="text-xl font-bold text-black mb-2 uppercase tracking-wide">Data Matrix Empty</h4>
                         <p className="text-gray-500 font-medium max-w-md mx-auto">None of our high-performance components match your current filter parameters.</p>
                     </div>
@@ -424,7 +424,7 @@ const ManageProducts = () => {
                                                 </div>
                                             </td>
                                             <td className="px-8 py-6">
-                                                <div className="text-[10px] font-black text-[#e31e24] uppercase mb-1 tracking-widest opacity-80">
+                                                <div className="text-[10px] font-black text-[#28B463] uppercase mb-1 tracking-widest opacity-80">
                                                     {product.brand || 'No Brand'}
                                                 </div>
                                                 <div className="text-sm font-black text-black line-clamp-1 max-w-[220px] group-hover/row:translate-x-1 transition-transform">
@@ -445,7 +445,7 @@ const ManageProducts = () => {
                                             <td className="px-8 py-6 whitespace-nowrap text-sm font-black">
                                                 {product.salePrice ? (
                                                     <div className="flex flex-col">
-                                                        <span className="text-[#e31e24]">{product.salePrice} EGP</span>
+                                                        <span className="text-[#28B463]">{product.salePrice} EGP</span>
                                                         <span className="text-gray-300 text-[10px] line-through decoration-[#e31e24]/40">{product.price} EGP</span>
                                                     </div>
                                                 ) : (
@@ -499,7 +499,7 @@ const ManageProducts = () => {
                                             />
                                         </div>
                                         <div className="flex-1 min-w-0 flex flex-col justify-center">
-                                            <div className="text-[10px] font-black text-[#e31e24] uppercase tracking-widest mb-1.5">
+                                            <div className="text-[10px] font-black text-[#28B463] uppercase tracking-widest mb-1.5">
                                                 {product.brand || 'NO BRAND'}
                                             </div>
                                             <h3 className="text-base font-black text-black truncate leading-tight mb-1 font-Cairo">{product.name}</h3>
@@ -519,7 +519,7 @@ const ManageProducts = () => {
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(product.id, product.name)}
-                                                        className="p-3 bg-red-50 text-[#e31e24] rounded-xl border border-red-100 hover:bg-[#e31e24] hover:text-white transition-all"
+                                                        className="p-3 bg-green-50 text-[#28B463] rounded-xl border border-red-100 hover:bg-[#28B463] hover:text-white transition-all"
                                                     >
                                                         <Trash2 className="h-4.5 w-4.5" />
                                                     </button>

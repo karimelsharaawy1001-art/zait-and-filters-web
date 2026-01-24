@@ -157,8 +157,8 @@ const OilAdvisor = () => {
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto">
                 <div className="text-center mb-12">
-                    <div className="inline-flex items-center justify-center p-3 bg-red-100 rounded-2xl mb-4">
-                        <Droplets className="h-8 w-8 text-red-600" />
+                    <div className="inline-flex items-center justify-center p-3 bg-[#28B463]/10 rounded-2xl mb-4">
+                        <Droplets className="h-8 w-8 text-[#28B463]" />
                     </div>
                     <h1 className="text-4xl font-black text-gray-900 mb-4">{t('oilAdvisor')}</h1>
                     <p className="text-gray-500 font-bold max-w-lg mx-auto leading-relaxed">
@@ -175,7 +175,7 @@ const OilAdvisor = () => {
                             <select
                                 value={selectedMake}
                                 onChange={(e) => handleMakeChange(e.target.value)}
-                                className="w-full bg-gray-50 border-2 border-transparent focus:border-red-600 rounded-2xl px-5 py-4 font-bold outline-none transition-all appearance-none text-gray-900"
+                                className="w-full bg-gray-50 border-2 border-transparent focus:border-[#28B463] rounded-2xl px-5 py-4 font-bold outline-none transition-all appearance-none text-gray-900"
                             >
                                 <option value="">{t('selectMake')}</option>
                                 {makes.map(make => <option key={make} value={make}>{make}</option>)}
@@ -187,7 +187,7 @@ const OilAdvisor = () => {
                                 value={selectedModel}
                                 onChange={(e) => handleModelChange(e.target.value)}
                                 disabled={!selectedMake}
-                                className="w-full bg-gray-50 border-2 border-transparent focus:border-red-600 rounded-2xl px-5 py-4 font-bold outline-none transition-all appearance-none disabled:opacity-50 text-gray-900"
+                                className="w-full bg-gray-50 border-2 border-transparent focus:border-[#28B463] rounded-2xl px-5 py-4 font-bold outline-none transition-all appearance-none disabled:opacity-50 text-gray-900"
                             >
                                 <option value="">{t('selectModel')}</option>
                                 {models.map(model => <option key={model} value={model}>{model}</option>)}
@@ -199,7 +199,7 @@ const OilAdvisor = () => {
                                 value={selectedYear}
                                 onChange={(e) => handleYearChange(e.target.value)}
                                 disabled={!selectedModel}
-                                className="w-full bg-gray-50 border-2 border-transparent focus:border-red-600 rounded-2xl px-5 py-4 font-bold outline-none transition-all appearance-none disabled:opacity-50 text-gray-900"
+                                className="w-full bg-gray-50 border-2 border-transparent focus:border-[#28B463] rounded-2xl px-5 py-4 font-bold outline-none transition-all appearance-none disabled:opacity-50 text-gray-900"
                             >
                                 <option value="">{t('allYears')}</option>
                                 {years.map(year => <option key={year} value={year}>{year}</option>)}
@@ -229,7 +229,7 @@ const OilAdvisor = () => {
                 ) : specResult ? (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
-                            <div className="bg-gradient-to-r from-red-600 to-red-800 p-8 text-white relative">
+                            <div className="bg-gradient-to-r from-[#28B463] to-[#219653] p-8 text-white relative">
                                 <div className="absolute top-0 right-0 p-8 opacity-10">
                                     <Car className="h-32 w-32" />
                                 </div>
@@ -241,7 +241,7 @@ const OilAdvisor = () => {
                                                 {i18n.language === 'ar' ? '🚚 توصيل خلال 24-48 ساعة' : '🚚 Fast Delivery (24-48h)'}
                                             </span>
                                             <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter shadow-sm border border-white/10">
-                                                {i18n.language === 'ar' ? '🛡️ قطع أصلية 100%' : '🛡️ 100% Original Parts'}
+                                                {i18n.language === 'ar' ? '🛡️ 100% Original Parts' : '🛡️ 100% Original Parts'}
                                             </span>
                                         </div>
                                     </div>
@@ -272,8 +272,8 @@ const OilAdvisor = () => {
 
                             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
                                 {/* Motor Oil */}
-                                <div className="bg-gray-50 rounded-2xl p-6 relative group overflow-hidden border border-transparent hover:border-red-100 transition-colors">
-                                    <div className="absolute top-4 right-4 text-red-100 group-hover:text-red-200 transition-colors">
+                                <div className="bg-gray-50 rounded-2xl p-6 relative group overflow-hidden border border-transparent hover:border-[#28B463]/20 transition-colors">
+                                    <div className="absolute top-4 right-4 text-[#28B463]/20 group-hover:text-[#28B463]/40 transition-colors">
                                         <Droplets className="h-12 w-12" />
                                     </div>
                                     <h3 className="text-sm font-black text-gray-500 uppercase tracking-widest mb-6 relative z-10">{t('motorOil')}</h3>
@@ -302,28 +302,28 @@ const OilAdvisor = () => {
 
                                         {/* Enhanced Smart Shopping List */}
                                         {smartSuggestion && (
-                                            <div className="mt-2 p-5 bg-white rounded-2xl border border-red-100 shadow-sm">
+                                            <div className="mt-2 p-5 bg-white rounded-2xl border border-[#28B463]/20 shadow-sm">
                                                 <div className="flex items-center gap-2 mb-3">
-                                                    <ShoppingBag className="h-4 w-4 text-red-600" />
-                                                    <p className="text-[10px] font-black text-red-600 uppercase tracking-wider">{t('smartShoppingList')}</p>
+                                                    <ShoppingBag className="h-4 w-4 text-[#28B463]" />
+                                                    <p className="text-[10px] font-black text-[#28B463] uppercase tracking-wider">{t('smartShoppingList')}</p>
                                                 </div>
                                                 <div className="space-y-3">
                                                     {smartSuggestion.jugs4l > 0 && (
                                                         <div className="flex items-center justify-between bg-gray-50 p-2 rounded-xl border border-gray-100">
                                                             <div className="flex items-center gap-3">
-                                                                <div className="w-8 h-10 bg-red-600 rounded-lg flex items-center justify-center text-white text-[10px] font-black shadow-inner">4L</div>
+                                                                <div className="w-8 h-10 bg-[#28B463] rounded-lg flex items-center justify-center text-white text-[10px] font-black shadow-inner">4L</div>
                                                                 <span className="text-xs font-black text-gray-700">{t('jug4l')}</span>
                                                             </div>
-                                                            <span className="text-lg font-black text-red-600">x{smartSuggestion.jugs4l}</span>
+                                                            <span className="text-lg font-black text-[#28B463]">x{smartSuggestion.jugs4l}</span>
                                                         </div>
                                                     )}
                                                     {smartSuggestion.bottles1l > 0 && (
                                                         <div className="flex items-center justify-between bg-gray-50 p-2 rounded-xl border border-gray-100">
                                                             <div className="flex items-center gap-3">
-                                                                <div className="w-6 h-8 bg-red-400 rounded-md flex items-center justify-center text-white text-[8px] font-black shadow-inner">1L</div>
+                                                                <div className="w-6 h-8 bg-[#28B463]/70 rounded-md flex items-center justify-center text-white text-[8px] font-black shadow-inner">1L</div>
                                                                 <span className="text-xs font-black text-gray-700">{t('bottle1l')}</span>
                                                             </div>
-                                                            <span className="text-lg font-black text-red-600">x{smartSuggestion.bottles1l}</span>
+                                                            <span className="text-lg font-black text-[#28B463]">x{smartSuggestion.bottles1l}</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -354,7 +354,7 @@ const OilAdvisor = () => {
                             <div className="p-8 pt-0">
                                 <button
                                     onClick={handleShopProducts}
-                                    className="w-full flex items-center justify-center gap-3 bg-red-600 hover:bg-red-700 text-white py-5 rounded-2xl font-black text-lg transition-all active:scale-95 shadow-[0_20px_40px_-15px_rgba(220,38,38,0.3)] group"
+                                    className="w-full flex items-center justify-center gap-3 bg-[#28B463] hover:bg-red-700 text-white py-5 rounded-2xl font-black text-lg transition-all active:scale-95 shadow-[0_20px_40px_-15px_rgba(220,38,38,0.3)] group"
                                 >
                                     <ShoppingBag className="h-6 w-6 group-hover:bounce" />
                                     {t('shopSuitable')}
@@ -395,7 +395,7 @@ const OilAdvisor = () => {
                         <p className="text-gray-400 font-bold mb-4">{t('unknownVehicle')}</p>
                         <button
                             onClick={() => window.open('https://wa.me/201234567890', '_blank')}
-                            className="text-red-600 font-black text-sm border-b-2 border-red-600 hover:text-red-700 hover:border-red-700 transition-colors"
+                            className="text-[#28B463] font-black text-sm border-b-2 border-[#28B463] hover:text-[#28B463] hover:border-red-700 transition-colors"
                         >
                             {t('contactSupport')}
                         </button>

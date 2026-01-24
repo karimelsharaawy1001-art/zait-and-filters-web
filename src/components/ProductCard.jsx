@@ -63,7 +63,7 @@ const ProductCard = ({ product }) => {
 
                 {hasSale && (
                     <div className="absolute top-3 left-3 z-20">
-                        <div className="bg-racing-red flex items-center justify-center px-2 py-1.5 rounded-sm shadow-md">
+                        <div className="bg-[#FF8C00] flex items-center justify-center px-2 py-1.5 rounded-sm shadow-md">
                             <span className="text-[#000000] text-[10px] uppercase font-black italic font-Cairo leading-none">
                                 {t('hotSale')}
                             </span>
@@ -159,7 +159,7 @@ const ProductCard = ({ product }) => {
                                 </span>
                             )}
                             <div className="flex items-baseline gap-1">
-                                <span className="text-2xl md:text-3xl font-black text-[#e31e24] font-Cairo leading-none drop-shadow-sm">
+                                <span className="text-2xl md:text-3xl font-black text-[#28B463] font-Cairo leading-none drop-shadow-sm">
                                     {hasSale ? product.salePrice : product.price}
                                 </span>
                                 <span className="text-xs md:text-sm font-black text-[#000000] uppercase tracking-tighter">{t('currency')}</span>
@@ -168,11 +168,11 @@ const ProductCard = ({ product }) => {
 
                         {/* QUANTITY SELECTOR - Solid Black Contrast */}
                         <div className="flex items-center bg-[#000000] rounded-lg p-0.5 shadow-md">
-                            <button onClick={decrementQuantity} className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center text-white hover:text-racing-red transition-colors">
+                            <button onClick={decrementQuantity} className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center text-white hover:text-brand-green transition-colors">
                                 <Minus className="h-3.5 w-3.5 md:h-4 md:w-4" />
                             </button>
                             <span className="w-5 text-center text-xs md:text-sm font-black text-white">{quantity}</span>
-                            <button onClick={incrementQuantity} className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center text-white hover:text-racing-red transition-colors">
+                            <button onClick={incrementQuantity} className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center text-white hover:text-brand-green transition-colors">
                                 <Plus className="h-3.5 w-3.5 md:h-4 md:w-4" />
                             </button>
                         </div>
@@ -180,7 +180,7 @@ const ProductCard = ({ product }) => {
 
                     <button
                         onClick={handleAddToCart}
-                        className="w-full py-4 rounded-xl bg-[#e31e24] hover:bg-[#b8181d] text-white font-black text-sm uppercase tracking-widest italic font-Cairo transition-all active:scale-[0.98] shadow-lg shadow-racing-red/20 flex items-center justify-center gap-3 group/btn"
+                        className="w-full py-4 rounded-xl bg-[#28B463] hover:bg-[#219653] text-white font-black text-sm uppercase tracking-widest italic font-Cairo transition-all active:scale-[0.98] shadow-lg shadow-[#28B463]/20 flex items-center justify-center gap-3 group/btn"
                     >
                         <ShoppingCart className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
                         <span>{i18n.language === 'ar' ? 'أضف للسلة' : 'ADD TO CART'}</span>

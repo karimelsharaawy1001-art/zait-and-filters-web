@@ -62,7 +62,7 @@ const Navbar = () => {
         }
     };
 
-    const activeClass = "text-[#e31e24]";
+    const activeClass = "text-[#28B463]";
     const inactiveClass = "text-[#000000] font-black";
     const linkBase = "text-[14px] font-black uppercase tracking-widest transition-colors font-Cairo mx-4 flex items-center h-full";
 
@@ -82,7 +82,7 @@ const Navbar = () => {
                             </Link>
                             <Link to="/" className="flex flex-col justify-center">
                                 <span className="font-black text-xl lg:text-2xl tracking-tighter uppercase italic leading-none font-Cairo">
-                                    <span style={{ color: '#e31e24' }}>ZAIT</span> <span style={{ color: '#000000' }}>& FILTERS</span>
+                                    <span style={{ color: '#28B463' }}>ZAIT</span> <span style={{ color: '#1A1A1A' }}>& FILTERS</span>
                                 </span>
                                 <p className="text-[8px] lg:text-[9px] font-black text-[#000000] mt-0.5 tracking-widest uppercase font-Cairo">قطع الغيار بضغطة زرار</p>
                             </Link>
@@ -92,17 +92,17 @@ const Navbar = () => {
                         <div className="flex flex-1 justify-center items-center gap-x-6 px-4">
                             {/* Navigation Links Group */}
                             <div className="flex items-center gap-x-4 shrink-0" style={{ display: 'flex', gap: '1rem', flexShrink: 0 }}>
-                                <Link to="/" className="text-[14px] !text-[#000000] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#e31e24] whitespace-nowrap">
+                                <Link to="/" className="text-[14px] !text-[#1A1A1A] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#28B463] whitespace-nowrap">
                                     {t('home')}
                                 </Link>
-                                <Link to="/oil-advisor" className="text-[14px] !text-[#000000] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#e31e24] whitespace-nowrap flex items-center gap-2">
-                                    <Droplets className="h-4 w-4 text-[#e31e24]" />
+                                <Link to="/oil-advisor" className="text-[14px] !text-[#1A1A1A] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#28B463] whitespace-nowrap flex items-center gap-2">
+                                    <Droplets className="h-4 w-4 text-[#28B463]" />
                                     {t('oilAdvisor')}
                                 </Link>
-                                <Link to="/shop" className="text-[14px] !text-[#000000] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#e31e24] whitespace-nowrap">
+                                <Link to="/shop" className="text-[14px] !text-[#1A1A1A] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#28B463] whitespace-nowrap">
                                     {t('shop')}
                                 </Link>
-                                <Link to="/marketers" className="text-[14px] !text-[#000000] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#e31e24] whitespace-nowrap">
+                                <Link to="/marketers" className="text-[14px] !text-[#1A1A1A] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#28B463] whitespace-nowrap">
                                     {t('nav.marketers')}
                                 </Link>
                             </div>
@@ -116,7 +116,7 @@ const Navbar = () => {
                                         value={filters.searchQuery}
                                         onChange={handleSearchChange}
                                         style={{ color: '#000000 !important' }}
-                                        className="w-full bg-white border-[1px] border-[#000000] rounded-lg py-1.5 pl-10 pr-4 focus:ring-2 focus:ring-[#e31e24] transition-all text-[14px] font-bold font-Cairo placeholder:text-[#000000]"
+                                        className="w-full bg-white border-[1px] border-[#1A1A1A] rounded-lg py-1.5 pl-10 pr-4 focus:ring-2 focus:ring-[#28B463] transition-all text-[14px] font-bold font-Cairo placeholder:text-[#1A1A1A]"
                                     />
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none force-black">
                                         <Search className="h-4 w-4 stroke-[3px]" />
@@ -130,7 +130,7 @@ const Navbar = () => {
                             <Link to="/cart" className="relative group p-1 force-black">
                                 <ShoppingCart className="h-6 w-6 stroke-[3px]" />
                                 {cartCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 bg-[#e31e24] text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center shadow-lg">
+                                    <span className="absolute -top-1 -right-1 bg-[#28B463] text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center shadow-lg">
                                         {cartCount}
                                     </span>
                                 )}
@@ -177,7 +177,7 @@ const Navbar = () => {
                                 </button>
                                 <Link to="/" className="flex flex-col justify-center">
                                     <span className="font-black text-[14px] sm:text-xl tracking-tighter uppercase italic leading-none font-Cairo whitespace-nowrap" >
-                                        <span style={{ color: '#e31e24' }}>ZAIT</span> <span style={{ color: '#000000' }}>& FILTERS</span>
+                                        <span style={{ color: '#28B463' }}>ZAIT</span> <span style={{ color: '#1A1A1A' }}>& FILTERS</span>
                                     </span>
                                 </Link>
                             </div>
@@ -206,7 +206,7 @@ const Navbar = () => {
                                 <Link to="/cart" className="p-1.5 relative force-black active:bg-gray-100 rounded-full transition-colors">
                                     <ShoppingCart className="h-6 w-6 stroke-[3px]" />
                                     {cartCount > 0 && (
-                                        <span className="absolute top-0 right-0 bg-[#e31e24] text-white text-[8px] rounded-full h-4 w-4 flex items-center justify-center font-bold">
+                                        <span className="absolute top-0 right-0 bg-[#28B463] text-white text-[8px] rounded-full h-4 w-4 flex items-center justify-center font-bold">
                                             {cartCount}
                                         </span>
                                     )}
@@ -223,7 +223,7 @@ const Navbar = () => {
                                     value={filters.searchQuery}
                                     onChange={handleSearchChange}
                                     style={{ color: '#000000 !important' }}
-                                    className="w-full bg-white border-[1px] border-[#000000] rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-[#e31e24] transition-all text-[14px] font-bold font-Cairo placeholder:text-[#000000]"
+                                    className="w-full bg-white border-[1px] border-[#1A1A1A] rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-[#28B463] transition-all text-[14px] font-bold font-Cairo placeholder:text-[#1A1A1A]"
                                 />
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none force-black">
                                     <Search className="h-4 w-4 stroke-[3px]" />
@@ -240,29 +240,29 @@ const Navbar = () => {
                             <Link
                                 to="/"
                                 onClick={() => setIsOpen(false)}
-                                className="block px-4 py-3 text-[14px] !text-[#000000] !font-bold hover:bg-red-50 rounded-xl transition-colors uppercase italic font-Cairo"
+                                className="block px-4 py-3 text-[14px] !text-[#1A1A1A] !font-bold hover:bg-green-50 rounded-xl transition-colors uppercase italic font-Cairo"
                             >
                                 {t('home')}
                             </Link>
                             <Link
                                 to="/oil-advisor"
                                 onClick={() => setIsOpen(false)}
-                                className="block px-4 py-3 text-[14px] !text-[#000000] !font-bold hover:bg-red-50 rounded-xl transition-colors uppercase italic font-Cairo flex items-center gap-3"
+                                className="block px-4 py-3 text-[14px] !text-[#1A1A1A] !font-bold hover:bg-green-50 rounded-xl transition-colors uppercase italic font-Cairo flex items-center gap-3"
                             >
-                                <Droplets className="h-5 w-5 text-[#e31e24]" />
+                                <Droplets className="h-5 w-5 text-[#28B463]" />
                                 {t('oilAdvisor')}
                             </Link>
                             <Link
                                 to="/shop"
                                 onClick={() => setIsOpen(false)}
-                                className="block px-4 py-3 text-[14px] !text-[#000000] !font-bold hover:bg-red-50 rounded-xl transition-colors uppercase italic font-Cairo"
+                                className="block px-4 py-3 text-[14px] !text-[#1A1A1A] !font-bold hover:bg-green-50 rounded-xl transition-colors uppercase italic font-Cairo"
                             >
                                 {t('shop')}
                             </Link>
                             <Link
                                 to="/marketers"
                                 onClick={() => setIsOpen(false)}
-                                className="block px-4 py-3 text-[14px] !text-[#000000] !font-bold hover:bg-red-50 rounded-xl transition-colors uppercase italic font-Cairo"
+                                className="block px-4 py-3 text-[14px] !text-[#1A1A1A] !font-bold hover:bg-green-50 rounded-xl transition-colors uppercase italic font-Cairo"
                             >
                                 {t('nav.marketers')}
                             </Link>
@@ -291,7 +291,7 @@ const Navbar = () => {
                             <Link
                                 to="/profile"
                                 onClick={() => setIsOpen(false)}
-                                className="block px-4 py-3 text-[14px] font-bold hover:text-[#e31e24] hover:bg-red-50 rounded-xl transition-colors uppercase italic font-Cairo nav-link-black"
+                                className="block px-4 py-3 text-[14px] font-bold hover:text-[#28B463] hover:bg-green-50 rounded-xl transition-colors uppercase italic font-Cairo nav-link-black"
                             >
                                 {t('myAccount')}
                             </Link>
@@ -301,7 +301,7 @@ const Navbar = () => {
                                         setIsOpen(false);
                                         handleLogout();
                                     }}
-                                    className="w-full text-left px-4 py-3 text-[14px] font-bold text-[#e31e24] hover:bg-red-50 rounded-xl transition-colors uppercase italic flex items-center gap-3 font-Cairo"
+                                    className="w-full text-left px-4 py-3 text-[14px] font-bold text-[#28B463] hover:bg-green-50 rounded-xl transition-colors uppercase italic flex items-center gap-3 font-Cairo"
                                 >
                                     <div className="force-black">
                                         <LogOut className="h-6 w-6 stroke-[3px]" />

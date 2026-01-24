@@ -211,7 +211,7 @@ const ProductDetails = () => {
                             }}
                         />
                         {hasSale && (
-                            <span className={`absolute top-6 ${isAr ? 'right-6' : 'left-6'} bg-red-600 text-white text-xs font-black px-4 py-2 rounded-full shadow-xl tracking-widest animate-pulse border-2 border-white`}>
+                            <span className={`absolute top-6 ${isAr ? 'right-6' : 'left-6'} bg-[#FF8C00] text-white text-xs font-black px-4 py-2 rounded-full shadow-xl tracking-widest animate-pulse border-2 border-white`}>
                                 {t('sale')}
                             </span>
                         )}
@@ -264,7 +264,7 @@ const ProductDetails = () => {
                             <div className={`flex items-end gap-3 mb-1 ${isAr ? 'flex-row-reverse' : ''}`}>
                                 {hasSale ? (
                                     <>
-                                        <span className="text-3xl font-black text-red-600">
+                                        <span className="text-3xl font-black text-[#28B463]">
                                             {product.salePrice} <span className="text-sm font-normal">{t('currency')}</span>
                                         </span>
                                         <span className="text-lg text-gray-400 line-through mb-1">

@@ -249,7 +249,7 @@ const Profile = () => {
                                                 toast.error("Failed to logout");
                                             }
                                         }}
-                                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-red-600 hover:bg-red-50"
+                                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-[#28B463] hover:bg-[#28B463]/10"
                                     >
                                         <LogOut className="h-5 w-5" />
                                         <span className="text-sm font-bold">{t('signOut', 'Sign Out')}</span>
@@ -271,7 +271,7 @@ const Profile = () => {
                                         </div>
                                         <button
                                             onClick={() => setIsAddModalOpen(true)}
-                                            className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-2xl font-black text-sm hover:bg-red-600 transition-all shadow-xl shadow-gray-200"
+                                            className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-2xl font-black text-sm hover:bg-[#28B463] transition-all shadow-xl shadow-gray-200"
                                         >
                                             <Plus className="h-5 w-5" />
                                             Add New Car
@@ -384,7 +384,7 @@ const Profile = () => {
                                         <button
                                             onClick={handlePrint}
                                             disabled={orders.filter(o => o.status?.toLowerCase() === 'delivered').length === 0}
-                                            className="flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-2xl font-black text-sm hover:bg-red-700 transition-all shadow-xl shadow-red-100 disabled:opacity-50 disabled:bg-gray-400 disabled:shadow-none"
+                                            className="flex items-center gap-2 bg-[#28B463] text-white px-6 py-3 rounded-2xl font-black text-sm hover:bg-[#219653] transition-all shadow-xl shadow-[#28B463]/20 disabled:opacity-50 disabled:bg-gray-400 disabled:shadow-none"
                                         >
                                             <FileText className="h-4 w-4" />
                                             {t('downloadMaintenanceReport')}

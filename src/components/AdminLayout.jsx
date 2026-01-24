@@ -92,7 +92,7 @@ const AdminLayout = () => {
             <aside className="w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 shadow-sm z-40">
                 <div className="p-6">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-[#e31e24] rounded-lg flex items-center justify-center shadow-lg shadow-[#e31e24]/20">
+                        <div className="w-10 h-10 bg-[#28B463] rounded-lg flex items-center justify-center shadow-lg shadow-[#28B463]/20">
                             <Box className="text-white w-6 h-6" />
                         </div>
                         <div>
@@ -103,7 +103,7 @@ const AdminLayout = () => {
                     <div className="mt-6 border-b border-gray-100"></div>
                 </div>
 
-                <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto pt-2 scrollbar-thin scrollbar-thumb-[#e31e24]/20">
+                <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto pt-2 scrollbar-thin scrollbar-thumb-[#28B463]/20">
                     {navItems.map((item) => (
                         <NavLink
                             key={item.path}
@@ -111,21 +111,21 @@ const AdminLayout = () => {
                             className={({ isActive }) => `
                                 flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 group
                                 ${isActive
-                                    ? 'bg-red-50 text-[#e31e24] shadow-sm transform translate-x-1'
+                                    ? 'bg-[#28B463]/10 text-[#28B463] shadow-sm transform translate-x-1'
                                     : 'text-gray-600 hover:bg-gray-50 hover:text-black'}
                             `}
                         >
                             {({ isActive }) => (
                                 <>
                                     <div className="flex items-center gap-3">
-                                        <span className={`transition-all duration-300 ${isActive ? 'text-[#e31e24] scale-110' : 'text-gray-400 group-hover:text-black group-hover:scale-110'}`}>
+                                        <span className={`transition-all duration-300 ${isActive ? 'text-[#28B463] scale-110' : 'text-gray-400 group-hover:text-black group-hover:scale-110'}`}>
                                             {item.icon}
                                         </span>
                                         <span className={`text-sm font-semibold tracking-wide transition-all ${isActive ? 'translate-x-1' : 'group-hover:translate-x-1'}`}>
                                             {item.name}
                                         </span>
                                         {item.name === 'Messages' && unreadCount > 0 && (
-                                            <span className="ml-auto bg-[#e31e24] text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse shadow-sm border border-white/20">
+                                            <span className="ml-auto bg-[#28B463] text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse shadow-sm border border-white/20">
                                                 {unreadCount}
                                             </span>
                                         )}
@@ -136,7 +136,7 @@ const AdminLayout = () => {
                                         )}
                                     </div>
                                     {isActive && (
-                                        <div className="w-1 h-5 bg-[#e31e24] rounded-full"></div>
+                                        <div className="w-1 h-5 bg-[#28B463] rounded-full"></div>
                                     )}
                                 </>
                             )}
@@ -147,14 +147,14 @@ const AdminLayout = () => {
                 <div className="p-4 border-t border-gray-100 mt-auto bg-gray-50/50">
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-[#e31e24] hover:bg-red-50 rounded-xl transition-all duration-300 font-bold text-sm group"
+                        className="w-full flex items-center gap-3 px-4 py-3 text-[#28B463] hover:bg-green-50 rounded-xl transition-all duration-300 font-bold text-sm group"
                     >
                         <LogOut className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
                         <span>Logout</span>
                     </button>
 
                     <div className="mt-4 px-4 py-3 bg-white rounded-2xl flex items-center gap-3 border border-gray-200">
-                        <div className="w-8 h-8 rounded-full bg-[#e31e24] flex items-center justify-center text-white font-black text-xs shadow-lg shadow-[#e31e24]/20">
+                        <div className="w-8 h-8 rounded-full bg-[#28B463] flex items-center justify-center text-white font-black text-xs shadow-lg shadow-[#28B463]/20">
                             AD
                         </div>
                         <div className="flex-1 min-w-0">

@@ -19,8 +19,13 @@ export default {
                 // PREMIUM DARK THEME (HIGH-END AUTOMOTIVE)
                 'matte-black': '#0a0a0b',        // Global Background
                 'carbon-grey': '#1a1c23',        // Card & Sidebar Background
-                'racing-red': '#e31e24',         // Primary Accent
-                'racing-red-dark': '#b8181d',    // Hover actions
+                'racing-red': '#28B463',         // Primary Accent (Now Green)
+                'racing-red-dark': '#219653',    // Hover actions (Darker Green)
+
+                // New Brand Keys
+                'brand-green': '#28B463',
+                'brand-orange': '#FF8C00',
+                'brand-charcoal': '#1A1A1A',
 
                 // Typography System
                 'snow-white': '#ffffff',         // Primary Headings
@@ -36,17 +41,17 @@ export default {
                 // Legacy Standardized Theme Variables (for compatibility during migration)
                 'dark-bg': '#0a0a0b',
                 'card-bg': '#1a1c23',
-                'primary-red': '#e31e24',
+                'primary-red': '#28B463', // Mapped to Green
 
                 // ADMIN PANEL LIGHT THEME TOKENS
                 'admin-bg': '#f9fafb',           // gray-50
                 'admin-card': '#ffffff',         // white
                 'admin-border': '#e5e7eb',       // gray-200
-                'admin-red': '#e31e24',          // Brand Red
-                'admin-red-dark': '#b8181d',     // Brand Red Dark
-                'admin-accent': '#e31e24',       // Matching Red Accent
-                'admin-green': '#10b981',        // Success states
-                'admin-text-primary': '#000000',
+                'admin-red': '#28B463',          // Brand Red -> Brand Green
+                'admin-red-dark': '#219653',     // Brand Red Dark -> Brand Green Dark
+                'admin-accent': '#FF8C00',       // Orange Accent
+                'admin-green': '#28B463',        // Success states
+                'admin-text-primary': '#1A1A1A', // Charcoal
                 'admin-text-secondary': '#6b7280', // gray-500
             },
             borderRadius: {

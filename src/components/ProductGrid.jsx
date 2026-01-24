@@ -380,7 +380,7 @@ const ProductGrid = ({ showFilters = true }) => {
 
                 {/* Garage Filtering Banner */}
                 {isGarageFilterActive && activeCar && (
-                    <div className="mb-8 bg-red-600 rounded-[2rem] p-6 text-white shadow-xl shadow-red-100 flex items-center justify-between animate-in slide-in-from-top duration-500">
+                    <div className="mb-8 bg-[#28B463] rounded-[2rem] p-6 text-white shadow-xl shadow-[#28B463] flex items-center justify-between animate-in slide-in-from-top duration-500">
                         <div className="flex items-center gap-4">
                             <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
                                 <Car className="h-8 w-8 text-white" />
@@ -424,7 +424,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                     {hasActiveFilters && (
                                         <button
                                             onClick={handleResetFilters}
-                                            className="text-[10px] font-black text-red-600 hover:text-red-800 uppercase tracking-widest transition-all hover:scale-105"
+                                            className="text-[10px] font-black text-[#28B463] hover:text-red-800 uppercase tracking-widest transition-all hover:scale-105"
                                         >
                                             {t('clearAll') || 'مسح الكل'}
                                         </button>
@@ -441,7 +441,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                             value={activeFilters.categories[0] || ''}
                                             onChange={(e) => handleSelectFilter('categories', e.target.value)}
                                             dir={isRTL ? 'rtl' : 'ltr'}
-                                            className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
+                                            className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
                                         >
                                             <option value="">{t('shopFilters.allCategories')}</option>
                                             {Object.keys(filterOptions?.categories || {}).map(cat => {
@@ -457,7 +457,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                     {/* Dependent Subcategories (List) */}
                                     {activeFilters.categories.length > 0 && filterOptions.categories[activeFilters.categories[0]]?.length > 0 && (
                                         <div className="space-y-4 animate-in slide-in-from-top duration-300 pt-2 border-t border-gray-50">
-                                            <label className={`text-[10px] font-black text-red-600 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
+                                            <label className={`text-[10px] font-black text-[#28B463] uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
                                                 {t('shopFilters.subcategory')}
                                             </label>
                                             <div className="space-y-2 bg-gray-50/50 p-4 rounded-xl border border-gray-100">
@@ -471,14 +471,14 @@ const ProductGrid = ({ showFilters = true }) => {
                                                                     type="checkbox"
                                                                     checked={activeFilters.subcategories.includes(subName)}
                                                                     onChange={() => toggleFilter('subcategories', subName)}
-                                                                    className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500 transition-all cursor-pointer"
+                                                                    className="w-4 h-4 rounded border-gray-300 text-[#28B463] focus:ring-[#28B463] transition-all cursor-pointer"
                                                                 />
                                                             </div>
                                                             <span className={`text-sm transition-colors ${activeFilters.subcategories.includes(subName) ? 'font-black text-black' : 'font-medium text-gray-500 group-hover:text-black'}`}>
                                                                 {subName}
                                                             </span>
                                                             {activeFilters.subcategories.includes(subName) && (
-                                                                <div className={`${isRTL ? 'mr-auto' : 'ml-auto'} w-1.5 h-1.5 rounded-full bg-red-600`} />
+                                                                <div className={`${isRTL ? 'mr-auto' : 'ml-auto'} w-1.5 h-1.5 rounded-full bg-[#28B463]`} />
                                                             )}
                                                         </label>
                                                     );
@@ -496,7 +496,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                             value={activeFilters.makes[0] || ''}
                                             onChange={(e) => handleSelectFilter('makes', e.target.value)}
                                             dir={isRTL ? 'rtl' : 'ltr'}
-                                            className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
+                                            className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
                                         >
                                             <option value="">{t('shopFilters.allMakes')}</option>
                                             {Object.keys(filterOptions?.makes || {}).map(make => (
@@ -515,7 +515,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                                 value={activeFilters.models[0] || ''}
                                                 onChange={(e) => handleSelectFilter('models', e.target.value)}
                                                 dir={isRTL ? 'rtl' : 'ltr'}
-                                                className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
+                                                className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
                                             >
                                                 <option value="">{t('shopFilters.allModels')}</option>
                                                 {(filterOptions?.makes?.[activeFilters.makes[0]] || []).map(model => (
@@ -534,7 +534,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                             value={activeFilters.years[0] || ''}
                                             onChange={(e) => handleSelectFilter('years', e.target.value)}
                                             dir={isRTL ? 'rtl' : 'ltr'}
-                                            className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
+                                            className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
                                         >
                                             <option value="">{t('shopFilters.allYears')}</option>
                                             {Array.isArray(filterOptions?.years) && filterOptions.years.map(year => (
@@ -552,7 +552,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                             value={activeFilters.origins[0] || ''}
                                             onChange={(e) => handleSelectFilter('origins', e.target.value)}
                                             dir={isRTL ? 'rtl' : 'ltr'}
-                                            className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
+                                            className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
                                         >
                                             <option value="">{t('shopFilters.allOrigins')}</option>
                                             {Array.isArray(filterOptions?.origins) && filterOptions.origins.map(origin => (
@@ -570,7 +570,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                             value={activeFilters.brands[0] || ''}
                                             onChange={(e) => handleSelectFilter('brands', e.target.value)}
                                             dir={isRTL ? 'rtl' : 'ltr'}
-                                            className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-red-500 outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
+                                            className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
                                         >
                                             <option value="">{t('shopFilters.allBrands')}</option>
                                             {Array.isArray(filterOptions?.brands) && filterOptions.brands.map(brand => (
@@ -606,7 +606,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                         <div className="flex flex-wrap gap-2">
                                             <button
                                                 onClick={() => toggleFilter('categories', cat)}
-                                                className={`text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-all border ${activeFilters.categories.includes(cat) ? 'bg-red-600 border-red-600 text-white shadow-lg shadow-red-100' : 'bg-gray-50 border-gray-100 text-gray-600'}`}
+                                                className={`text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-all border ${activeFilters.categories.includes(cat) ? 'bg-[#28B463] border-[#28B463] text-white shadow-lg shadow-[#28B463]' : 'bg-gray-50 border-gray-100 text-gray-600'}`}
                                             >
                                                 {t('all')} {cat}
                                             </button>
@@ -625,7 +625,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                 <div className="pt-6 border-t border-gray-100 flex gap-4">
                                     <button
                                         onClick={handleResetFilters}
-                                        className="flex-1 py-4 text-center text-red-600 text-[10px] font-black uppercase tracking-widest border border-red-100 rounded-xl hover:bg-red-50 transition-colors"
+                                        className="flex-1 py-4 text-center text-[#28B463] text-[10px] font-black uppercase tracking-widest border border-[#28B463] rounded-xl hover:bg-[#219653] transition-colors"
                                     >
                                         {t('resetAll')}
                                     </button>

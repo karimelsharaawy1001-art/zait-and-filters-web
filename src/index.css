@@ -7,14 +7,18 @@
     --font-secondary: 'Poppins', 'Inter', sans-serif;
 
     /* BRAND COLORS (Z&F BRAND) */
-    --brand-red: #e31e24;
-    --brand-red-dark: #b8181d;
-    --brand-black: #000000;
+    --brand-red: #28B463;
+    /* Now Green */
+    --brand-red-dark: #219653;
+    /* Now Dark Green */
+    --brand-black: #1A1A1A;
+    /* Charcoal */
     --brand-white: #ffffff;
+    --brand-orange: #FF8C00;
 
     /* THEME SYNONYMS (For Admin Compatibility) */
-    --racing-red: #e31e24;
-    --racing-red-dark: #b8181d;
+    --racing-red: #28B463;
+    --racing-red-dark: #219653;
     --snow-white: #ffffff;
     --silver-grey: #6b7280;
     --admin-border: #e5e7eb;
@@ -187,7 +191,7 @@ nav a:hover {
    ADMIN FORCED BRAND STYLING (Solid Red)
    ======================================== */
 .admin-primary-btn {
-    background-color: #FF0000 !important;
+    background-color: #28B463 !important;
     color: #FFFFFF !important;
     font-weight: 800 !important;
     text-transform: uppercase !important;
@@ -196,7 +200,7 @@ nav a:hover {
     opacity: 1 !important;
     padding: 12px 24px !important;
     border-radius: 6px !important;
-    box-shadow: 0 4px 6px -1px rgba(255, 0, 0, 0.3), 0 2px 4px -1px rgba(255, 0, 0, 0.1) !important;
+    box-shadow: 0 4px 6px -1px rgba(40, 180, 99, 0.3), 0 2px 4px -1px rgba(40, 180, 99, 0.1) !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -207,9 +211,9 @@ nav a:hover {
 }
 
 .admin-primary-btn:hover {
-    background-color: #CC0000 !important;
+    background-color: #219653 !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 10px 15px -3px rgba(255, 0, 0, 0.4) !important;
+    box-shadow: 0 10px 15px -3px rgba(40, 180, 99, 0.4) !important;
 }
 
 .admin-primary-btn:active {
