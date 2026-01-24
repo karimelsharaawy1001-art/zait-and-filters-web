@@ -24,7 +24,7 @@ export default async function handler(req, res) {
 
     try {
         const productsRef = db.collection('products');
-        let productsQuery = productsRef.where('isActive', '!=', false);
+        let productsQuery = productsRef.where('isActive', '==', true);
 
         // 1. Inventory Metadata Actions
         if (action === 'getMakes') {
@@ -85,7 +85,7 @@ export default async function handler(req, res) {
             // Priority 1: Same Make & Model
             if (make && model && make !== 'Universal' && model !== 'Universal') {
                 const carQuery = await productsRef
-                    .where('isActive', '!=', false)
+                    .where('isActive', '==', true)
                     .where('make', '==', make)
                     .where('model', '==', model)
                     .limit(10)
@@ -96,7 +96,7 @@ export default async function handler(req, res) {
             // Priority 2: Same Category
             if (relatedProducts.length < 8 && category) {
                 const categoryQuery = await productsRef
-                    .where('isActive', '!=', false)
+                    .where('isActive', '==', true)
                     .where('category', '==', category)
                     .limit(10)
                     .get();

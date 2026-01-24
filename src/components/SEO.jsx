@@ -40,8 +40,8 @@ const SEO = ({ title, description, keywords }) => {
     useEffect(() => {
         let unsubscribe = () => { };
 
-        import('../firebase').then(({ db }) => {
-            const { doc, onSnapshot } = require('firebase/firestore');
+        import('../firebase').then(async ({ db }) => {
+            const { doc, onSnapshot } = await import('firebase/firestore');
             unsubscribe = onSnapshot(doc(db, 'settings', 'integrations'), (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
