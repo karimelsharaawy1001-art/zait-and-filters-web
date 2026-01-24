@@ -6,8 +6,6 @@ import { useNavigate } from 'react-router-dom';
 import { Save, ArrowLeft, Loader2 } from 'lucide-react';
 import AdminHeader from '../../components/AdminHeader';
 import ImageUpload from '../../components/admin/ImageUpload';
-import { Sparkles } from 'lucide-react';
-import { generateProductDescription } from '../../utils/productUtils';
 
 const AddProduct = () => {
     const navigate = useNavigate();
@@ -406,26 +404,7 @@ const AddProduct = () => {
                             </div>
 
                             <div className="space-y-4 pt-4 border-t border-[#ffffff0d]">
-                                <div className="flex items-center justify-between">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none">Product Description</label>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const autoAr = generateProductDescription(formData, 'ar');
-                                            const autoEn = generateProductDescription(formData, 'en');
-                                            setFormData(prev => ({
-                                                ...prev,
-                                                description: autoAr,
-                                                descriptionEn: autoEn
-                                            }));
-                                            toast.success('Descriptions generated! ✨');
-                                        }}
-                                        className="flex items-center gap-2 text-[10px] font-black text-[#FF0000] hover:text-red-400 transition-colors uppercase tracking-widest bg-red-500/5 px-3 py-1.5 rounded-lg border border-red-500/20"
-                                    >
-                                        <Sparkles className="h-3 w-3" />
-                                        Magic Generate
-                                    </button>
-                                </div>
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none">Product Description (Optional)</label>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <textarea
                                         name="description"
