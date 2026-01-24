@@ -35,8 +35,6 @@ const EditProduct = () => {
         yearStart: '',
         yearEnd: '',
         viscosity: '',
-        description: '',
-        descriptionEn: '',
         warranty_months: '',
         isActive: true
     });
@@ -76,8 +74,6 @@ const EditProduct = () => {
                         yearRange: productData.yearRange || '',
                         yearStart: productData.yearStart?.toString() || '',
                         yearEnd: productData.yearEnd?.toString() || '',
-                        description: productData.description || '',
-                        descriptionEn: productData.descriptionEn || '',
                         warranty_months: productData.warranty_months?.toString() || '',
                         isActive: productData.isActive !== undefined ? productData.isActive : true
                     });
@@ -458,27 +454,6 @@ const EditProduct = () => {
                                     />
                                 </div>
 
-                                <div className="space-y-4 pt-4 border-t border-[#ffffff0d]">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none">Product Description (Optional)</label>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <textarea
-                                            name="description"
-                                            rows={4}
-                                            value={formData.description}
-                                            onChange={handleChange}
-                                            placeholder="الوصف بالعربي..."
-                                            className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg resize-none"
-                                        />
-                                        <textarea
-                                            name="descriptionEn"
-                                            rows={4}
-                                            value={formData.descriptionEn}
-                                            onChange={handleChange}
-                                            placeholder="Description in English..."
-                                            className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg resize-none"
-                                        />
-                                    </div>
-                                </div>
                             </div>
 
                             <div>
