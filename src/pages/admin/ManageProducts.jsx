@@ -13,23 +13,26 @@ const ManageProducts = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('All');
+    const [subcategoryFilter, setSubcategoryFilter] = useState('All');
     const [makeFilter, setMakeFilter] = useState('All');
     const [modelFilter, setModelFilter] = useState('All');
     const [yearFilter, setYearFilter] = useState('');
-    const [brandFilter, setBrandFilter] = useState('');
-    const [countryFilter, setCountryFilter] = useState('');
+    const [brandFilter, setBrandFilter] = useState('All');
     const [statusFilter, setStatusFilter] = useState('All');
     const [sortBy, setSortBy] = useState('name-asc');
 
+    const [allCategories, setAllCategories] = useState([]);
+    const [availableSubcategories, setAvailableSubcategories] = useState([]);
+    const [uniquePartBrands, setUniquePartBrands] = useState([]);
     const [cars, setCars] = useState([]);
     const [carMakes, setCarMakes] = useState([]);
     const [availableModels, setAvailableModels] = useState([]);
 
-    const categories = ['All', 'Maintenance', 'Braking', 'Engine', 'Electrical', 'Accessories'];
 
     useEffect(() => {
         fetchProducts();
         fetchCars();
+        fetchCategories();
     }, []);
 
     const fetchCars = async () => {
@@ -44,6 +47,24 @@ const ManageProducts = () => {
         }
     };
 
+    // Category -> Subcategory Sync
+    useEffect(() => {
+        if (categoryFilter === 'All') {
+            setAvailableSubcategories([]);
+            setSubcategoryFilter('All');
+        } else {
+            const selectedCat = allCategories.find(c => c.name === categoryFilter);
+            if (selectedCat) {
+                const subs = (selectedCat.subCategories || []).map(s => typeof s === 'string' ? s : s.name);
+                setAvailableSubcategories(subs);
+                if (!subs.includes(subcategoryFilter)) {
+                    setSubcategoryFilter('All');
+                }
+            }
+        }
+    }, [categoryFilter, allCategories]);
+
+    // Make -> Model Sync
     useEffect(() => {
         if (makeFilter === 'All') {
             setAvailableModels([]);
@@ -59,6 +80,16 @@ const ManageProducts = () => {
         }
     }, [makeFilter, cars]);
 
+    const fetchCategories = async () => {
+        try {
+            const querySnapshot = await getDocs(collection(db, 'categories'));
+            const list = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setAllCategories(list);
+        } catch (error) {
+            console.error("Error fetching categories:", error);
+        }
+    };
+
     const fetchProducts = async () => {
         setLoading(true);
         try {
@@ -68,6 +99,10 @@ const ManageProducts = () => {
                 ...doc.data()
             }));
             setProducts(productsList);
+
+            // Extract unique brands
+            const brands = [...new Set(productsList.map(p => p.partBrand || p.brand))].filter(Boolean).sort();
+            setUniquePartBrands(brands);
         } catch (error) {
             console.error("Error fetching products:", error);
         } finally {
@@ -126,17 +161,23 @@ const ManageProducts = () => {
     // Filter and sort products
     const filteredProducts = products
         .filter(product => {
-            // Text Search (Name or ID or Brand)
+            // Keyword Search (Name, Brand, or ID/PartNumber)
             const matchesSearch =
                 (product.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (product.brand && (product.brand || '').toLowerCase().includes(searchQuery.toLowerCase()));
+                (product.partBrand || product.brand || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (product.partNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (product.id || '').toLowerCase().includes(searchQuery.toLowerCase());
 
-            // Category
+            // Category & Subcategory
             const matchesCategory = categoryFilter === 'All' || product.category === categoryFilter;
+            const matchesSubcategory = subcategoryFilter === 'All' || product.subcategory === subcategoryFilter;
 
             // Make / Model
             const matchesMake = makeFilter === 'All' || product.make === makeFilter;
             const matchesModel = modelFilter === 'All' || product.model === modelFilter;
+
+            // Brand
+            const matchesBrand = brandFilter === 'All' || (product.partBrand || product.brand) === brandFilter;
 
             // Year Logic
             let matchesYear = true;
@@ -144,24 +185,18 @@ const ManageProducts = () => {
                 const year = Number(yearFilter);
                 const hasRange = product.yearStart != null && product.yearEnd != null;
                 if (!hasRange) {
-                    matchesYear = true; // Fits all years
+                    matchesYear = true;
                 } else {
                     matchesYear = year >= product.yearStart && year <= product.yearEnd;
                 }
             }
-
-            // Brand specifically
-            const matchesBrand = !brandFilter || (product.brand && product.brand.toLowerCase().includes(brandFilter.toLowerCase()));
-
-            // Country specifically
-            const matchesCountry = !countryFilter || (product.country && product.country.toLowerCase().includes(countryFilter.toLowerCase()));
 
             // Status Logic
             let matchesStatus = true;
             if (statusFilter === 'Active') matchesStatus = product.isActive !== false;
             else if (statusFilter === 'Inactive') matchesStatus = product.isActive === false;
 
-            return matchesSearch && matchesCategory && matchesMake && matchesModel && matchesYear && matchesBrand && matchesCountry && matchesStatus;
+            return matchesSearch && matchesCategory && matchesSubcategory && matchesMake && matchesModel && matchesYear && matchesBrand && matchesStatus;
         })
         .sort((a, b) => {
             switch (sortBy) {
@@ -225,11 +260,11 @@ const ManageProducts = () => {
                             onClick={() => {
                                 setSearchQuery('');
                                 setCategoryFilter('All');
+                                setSubcategoryFilter('All');
                                 setMakeFilter('All');
                                 setModelFilter('All');
                                 setYearFilter('');
-                                setBrandFilter('');
-                                setCountryFilter('');
+                                setBrandFilter('All');
                                 setStatusFilter('All');
                             }}
                             className="text-[11px] font-black text-[#e31e24] hover:text-[#b8181d] uppercase tracking-widest transition-colors flex items-center gap-2 group"
@@ -239,119 +274,112 @@ const ManageProducts = () => {
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {/* Search & Brand */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {/* Keyword & Brand */}
                         <div className="space-y-6">
                             <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Core Search</label>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Keyword (CORE SEARCH)</label>
                                 <div className="relative">
                                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-gray-400 group-focus-within/filters:text-[#e31e24] transition-colors" />
                                     <input
                                         type="text"
-                                        placeholder="Identification or Brand..."
+                                        placeholder="Name, Brand, or Part #..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black placeholder-gray-300 focus:ring-2 focus:ring-[#e31e24] focus:border-transparent outline-none transition-all"
+                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black placeholder-gray-300 focus:ring-2 focus:ring-[#e31e24] focus:border-transparent outline-none transition-all font-bold shadow-sm"
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Manufacturer</label>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. Shell, Bosch"
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Part Brand</label>
+                                <select
                                     value={brandFilter}
                                     onChange={(e) => setBrandFilter(e.target.value)}
-                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black placeholder-gray-300 focus:ring-2 focus:ring-[#e31e24] outline-none transition-all"
-                                />
+                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#e31e24] transition-all cursor-pointer outline-none font-bold"
+                                >
+                                    <option value="All">All Piece Brands</option>
+                                    {uniquePartBrands.map(brand => (
+                                        <option key={brand} value={brand}>{brand}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
 
-                        {/* Category & Status */}
+                        {/* Category & Subcategory */}
                         <div className="space-y-6">
                             <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Sub-System</label>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Category (System)</label>
                                 <select
                                     value={categoryFilter}
                                     onChange={(e) => setCategoryFilter(e.target.value)}
-                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#e31e24] transition-all cursor-pointer outline-none"
+                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#e31e24] transition-all cursor-pointer outline-none font-bold"
                                 >
-                                    {categories.map(cat => (
-                                        <option key={cat} value={cat} className="bg-white">{cat}</option>
+                                    <option value="All">All Systems</option>
+                                    {allCategories.map(cat => (
+                                        <option key={cat.id} value={cat.name}>{cat.name}</option>
                                     ))}
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Live Status</label>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Sub-Category</label>
                                 <select
-                                    value={statusFilter}
-                                    onChange={(e) => setStatusFilter(e.target.value)}
-                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#e31e24] transition-all cursor-pointer outline-none"
+                                    value={subcategoryFilter}
+                                    onChange={(e) => setSubcategoryFilter(e.target.value)}
+                                    disabled={categoryFilter === 'All'}
+                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#e31e24] transition-all cursor-pointer outline-none font-bold disabled:opacity-30 disabled:cursor-not-allowed"
                                 >
-                                    <option value="All" className="bg-white">Full Manifest</option>
-                                    <option value="Active" className="bg-white">Online Assets</option>
-                                    <option value="Inactive" className="bg-white">Boneyard / Local</option>
+                                    <option value="All">All Sub-Categories</option>
+                                    {availableSubcategories.map(sub => (
+                                        <option key={sub} value={sub}>{sub}</option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
 
-                        {/* Vehicle Configuration */}
+                        {/* Manufacturer & Model */}
                         <div className="space-y-6">
-                            <div>
-                                <label className="block text-[10px] font-black text-dim-grey uppercase tracking-widest mb-3">Fleet/Make</label>
-                                <select
-                                    value={makeFilter}
-                                    onChange={(e) => setMakeFilter(e.target.value)}
-                                    className="w-full px-5 py-4 bg-matte-black border border-border-dark rounded-xl text-sm text-snow-white focus:ring-2 focus:ring-racing-red transition-all cursor-pointer outline-none shadow-lg"
-                                >
-                                    <option value="All" className="bg-carbon-grey">All Fleet Units</option>
-                                    {carMakes.map(make => (
-                                        <option key={make} value={make} className="bg-carbon-grey">{make}</option>
-                                    ))}
-                                </select>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="col-span-1">
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Manufacturer</label>
+                                    <select
+                                        value={makeFilter}
+                                        onChange={(e) => setMakeFilter(e.target.value)}
+                                        className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#e31e24] transition-all cursor-pointer outline-none font-bold"
+                                    >
+                                        <option value="All">All Makes</option>
+                                        {carMakes.map(make => (
+                                            <option key={make} value={make}>{make}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="col-span-1">
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Year</label>
+                                    <input
+                                        type="number"
+                                        placeholder="e.g. 2024"
+                                        value={yearFilter}
+                                        onChange={(e) => setYearFilter(e.target.value)}
+                                        className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black placeholder-gray-300 focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-bold"
+                                    />
+                                </div>
                             </div>
                             <div>
-                                <label className="block text-[10px] font-black text-dim-grey uppercase tracking-widest mb-3">Specific Model</label>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Model</label>
                                 <select
                                     value={modelFilter}
                                     onChange={(e) => setModelFilter(e.target.value)}
                                     disabled={makeFilter === 'All'}
-                                    className="w-full px-5 py-4 bg-matte-black border border-border-dark rounded-xl text-sm text-snow-white focus:ring-2 focus:ring-racing-red transition-all cursor-pointer outline-none shadow-lg disabled:opacity-20 disabled:cursor-not-allowed"
+                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#e31e24] transition-all cursor-pointer outline-none font-bold disabled:opacity-30 disabled:cursor-not-allowed"
                                 >
-                                    <option value="All" className="bg-carbon-grey">All Model Lines</option>
+                                    <option value="All">All Models</option>
                                     {availableModels.map(model => (
-                                        <option key={model} value={model} className="bg-carbon-grey">{model}</option>
+                                        <option key={model} value={model}>{model}</option>
                                     ))}
                                 </select>
                             </div>
                         </div>
 
-                        {/* Advanced Logic */}
-                        <div className="space-y-6">
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Model Year</label>
-                                <input
-                                    type="number"
-                                    placeholder="e.g. 2024"
-                                    value={yearFilter}
-                                    onChange={(e) => setYearFilter(e.target.value)}
-                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black placeholder-gray-300 focus:ring-2 focus:ring-[#e31e24] outline-none transition-all"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Sequencing</label>
-                                <select
-                                    value={sortBy}
-                                    onChange={(e) => setSortBy(e.target.value)}
-                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-black focus:ring-2 focus:ring-[#e31e24] transition-all cursor-pointer outline-none"
-                                >
-                                    <option value="name-asc" className="bg-white">Alphanumeric: Asc</option>
-                                    <option value="name-desc" className="bg-white">Alphanumeric: Desc</option>
-                                    <option value="price-asc" className="bg-white">Price: Efficiency Optimized</option>
-                                    <option value="price-desc" className="bg-white">Price: High-End First</option>
-                                </select>
-                            </div>
-                        </div>
+                        {/* Status & Sorting (Optional additions if space permits, but user asked for specific ones) */}
                     </div>
                 </div>
 
