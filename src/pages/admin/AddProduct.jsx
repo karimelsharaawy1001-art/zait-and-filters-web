@@ -38,6 +38,7 @@ const AddProduct = () => {
         viscosity: '',
         description: '',
         descriptionEn: '',
+        warranty_months: '',
         isActive: true
     });
 
@@ -115,6 +116,7 @@ const AddProduct = () => {
                 costPrice: formData.costPrice ? Number(formData.costPrice) : null,
                 yearStart: formData.yearStart ? Number(formData.yearStart) : null,
                 yearEnd: formData.yearEnd ? Number(formData.yearEnd) : null,
+                warranty_months: formData.warranty_months ? Number(formData.warranty_months) : null,
                 createdAt: new Date(),
                 updatedAt: new Date()
             });
@@ -268,6 +270,17 @@ const AddProduct = () => {
                                         name="countryOfOrigin"
                                         placeholder="e.g. Japan"
                                         value={formData.countryOfOrigin}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Warranty (Months)</label>
+                                    <input
+                                        type="number"
+                                        name="warranty_months"
+                                        placeholder="e.g. 12"
+                                        value={formData.warranty_months}
                                         onChange={handleChange}
                                         className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
                                     />

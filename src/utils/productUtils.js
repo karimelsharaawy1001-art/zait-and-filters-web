@@ -43,3 +43,31 @@ export const generateProductDescription = (product, lang = 'ar') => {
 
     return parts.join(' ').trim();
 };
+
+/**
+ * Formats warranty duration based on months.
+ * 
+ * @param {number|string} months - Duration in months.
+ * @param {string} lang - Language code ('ar' or 'en').
+ * @returns {string} - Formatted warranty string.
+ */
+export const formatWarranty = (months, lang = 'ar') => {
+    const num = parseInt(months);
+    if (!num || isNaN(num)) return '';
+
+    const isAr = lang === 'ar';
+
+    if (num === 12) {
+        return isAr ? 'ضمان سنة' : '1 Year Warranty';
+    }
+
+    if (num === 24) {
+        return isAr ? 'ضمان سنتين' : '2 Years Warranty';
+    }
+
+    if (isAr) {
+        return `ضمان ${num} شهور`;
+    }
+
+    return `${num} Months Warranty`;
+};

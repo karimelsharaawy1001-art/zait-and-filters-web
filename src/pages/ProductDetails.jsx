@@ -39,7 +39,7 @@ import RelatedProducts from '../components/RelatedProducts';
 import TrustPaymentSection from '../components/TrustPaymentSection';
 import InstallmentBar from '../components/InstallmentBar';
 import { getOptimizedImage } from '../utils/cloudinaryUtils';
-import { generateProductDescription } from '../utils/productUtils';
+import { generateProductDescription, formatWarranty } from '../utils/productUtils';
 import SEO from '../components/SEO';
 
 const ProductDetails = () => {
@@ -231,6 +231,12 @@ const ProductDetails = () => {
                                 {(product.partBrand || product.brand) && (
                                     <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
                                         {t('brand')}: {isAr ? (product.partBrand || product.brand) : (product.brandEn || product.partBrand || product.brand)}
+                                    </span>
+                                )}
+                                {product.warranty_months && (
+                                    <span className="flex items-center gap-1 bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wide border border-green-100">
+                                        <ShieldCheck className="h-3.5 w-3.5" />
+                                        {formatWarranty(product.warranty_months, i18n.language)}
                                     </span>
                                 )}
                                 {product.make && (
