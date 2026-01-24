@@ -33,9 +33,21 @@ const ManagePayments = () => {
             }
             if (!data.easykash) {
                 const ekRef = doc(db, 'payment_configs', 'easykash');
-                const defaultEk = { name: 'Credit Card (EasyKash)', isActive: false, type: 'online', apiKey: '', secretKey: '' };
+                const defaultEk = {
+                    name: 'Pay via Card or Installments',
+                    nameAr: 'الدفع عن طريق الفيزا و شركات التقسيط',
+                    isActive: false,
+                    type: 'online',
+                    apiKey: '',
+                    secretKey: ''
+                };
                 await setDoc(ekRef, defaultEk);
                 data.easykash = defaultEk;
+            }
+
+            if (data.easykash && data.easykash.name === 'Credit Card (EasyKash)') {
+                data.easykash.name = 'Pay via Card or Installments';
+                data.easykash.nameAr = 'الدفع عن طريق الفيزا و شركات التقسيط';
             }
 
             setConfigs(data);
@@ -160,6 +172,28 @@ const ManagePayments = () => {
                         </div>
 
                         <div className="p-10 space-y-10 relative">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Display Name (English)</label>
+                                    <input
+                                        type="text"
+                                        value={configs.easykash.name}
+                                        onChange={(e) => handleInputChange('easykash', 'name', e.target.value)}
+                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-2xl px-6 py-4 text-sm font-bold text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all placeholder-gray-700"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Display Name (Arabic)</label>
+                                    <input
+                                        type="text"
+                                        value={configs.easykash.nameAr || ''}
+                                        onChange={(e) => handleInputChange('easykash', 'nameAr', e.target.value)}
+                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-2xl px-6 py-4 text-sm font-bold text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all placeholder-gray-700 text-right"
+                                        placeholder="الدفع عن طريق الفيزا و شركات التقسيط"
+                                    />
+                                </div>
+                            </div>
+
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Network API Key</label>
                                 <div className="relative">

@@ -674,7 +674,14 @@ const Checkout = () => {
                                                     {method.type === 'online' ? <CreditCard className="h-5 w-5" /> : <Banknote className="h-5 w-5" />}
                                                 </div>
                                                 <div>
-                                                    <p className={`text-sm font-bold ${formData.paymentMethod === method.id ? 'text-orange-900' : 'text-gray-700'}`}>{isAr ? (method.nameAr || method.name) : method.name}</p>
+                                                    <p className={`text-sm font-bold ${formData.paymentMethod === method.id ? 'text-orange-900' : 'text-gray-700'}`}>
+                                                        {(() => {
+                                                            if (method.id === 'easykash' && (method.name === 'Credit Card (EasyKash)' || !method.nameAr)) {
+                                                                return isAr ? 'الدفع عن طريق الفيزا و شركات التقسيط' : 'Pay via Card or Installments';
+                                                            }
+                                                            return isAr ? (method.nameAr || method.name) : method.name;
+                                                        })()}
+                                                    </p>
                                                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">{method.type}</p>
                                                 </div>
                                             </label>
