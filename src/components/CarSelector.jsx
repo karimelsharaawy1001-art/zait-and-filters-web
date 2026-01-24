@@ -145,10 +145,10 @@ const CarSelector = () => {
     return (
         <div className="bg-[#111111] p-8 rounded-2xl shadow-2xl w-full border border-white/5 relative overflow-hidden group">
             {/* Subtle Texture Overlay */}
-            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_top_right,#e31e24,transparent)]"></div>
+            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_top_right,#28B463,transparent)]"></div>
 
             <h3 className="text-white font-black mb-8 flex items-center text-2xl uppercase italic tracking-tighter relative z-10">
-                <span className="bg-[#e31e24] w-3 h-8 mr-4 ml-4 rounded-sm transform -skew-x-12"></span>
+                <span className="bg-[#28B463] w-3 h-8 mr-4 ml-4 rounded-sm transform -skew-x-12"></span>
                 {t('selectVehicle')}
             </h3>
 
@@ -249,7 +249,7 @@ const CarSelector = () => {
                 <div className="pt-2">
                     <button
                         onClick={handleSearch}
-                        className="w-full bg-[#e31e24] hover:bg-[#b8181d] text-white font-black py-5 px-6 rounded-xl shadow-2xl shadow-red-900/40 transition-all flex items-center justify-center gap-3 transform hover:-translate-y-1 active:scale-95 uppercase italic tracking-widest"
+                        className="w-full bg-[#28B463] hover:bg-[#219653] text-white font-black py-5 px-6 rounded-xl shadow-2xl shadow-[#28B463]/40 transition-all flex items-center justify-center gap-3 transform hover:-translate-y-1 active:scale-95 uppercase italic tracking-widest"
                     >
                         <Search className="h-6 w-6 not-italic" />
                         <span className="text-lg">{t('shopNow')}</span>

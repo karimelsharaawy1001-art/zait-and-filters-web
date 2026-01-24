@@ -159,7 +159,7 @@ const ProductCard = ({ product }) => {
                                 </span>
                             )}
                             <div className="flex items-baseline gap-1">
-                                <span className="text-2xl md:text-3xl font-black text-[#28B463] font-Cairo leading-none drop-shadow-sm">
+                                <span className="text-2xl md:text-3xl font-black text-[#1A1A1A] font-Cairo leading-none drop-shadow-sm">
                                     {hasSale ? product.salePrice : product.price}
                                 </span>
                                 <span className="text-xs md:text-sm font-black text-[#000000] uppercase tracking-tighter">{t('currency')}</span>

@@ -23,14 +23,14 @@ const Hero = () => {
                     {/* Left Content */}
                     <div className="w-full md:w-1/2 text-center md:text-right lg:pt-14">
                         <h1 className="text-3xl md:text-6xl font-black text-[#111111] leading-tight mb-4 md:mb-6 font-Cairo tracking-tighter uppercase italic">
-                            <span className="text-[#e31e24]">ZAIT</span> & FILTERS <br />
+                            <span className="text-[#28B463]">ZAIT</span> & FILTERS <br />
                             <span className="text-xl md:text-4xl block mt-1 md:mt-2 text-gray-700 not-italic">قطع الغيار بضغطة زرار</span>
                         </h1>
                         <p className="text-base md:text-xl text-gray-500 mb-8 md:mb-10 font-Cairo max-w-xl mx-auto md:ml-0">
                             احصل على أفضل أنواع الزيوت والفلاتر الأصلية لسيارتك بأفضل الأسعار وبضمان حقيقي.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                            <Link to="/shop" className="bg-[#e31e24] hover:bg-[#b8181d] text-white font-black py-3.5 md:py-4 px-10 md:px-12 rounded-lg shadow-xl shadow-red-500/20 transition-all flex items-center justify-center group uppercase italic tracking-widest text-base md:text-lg font-Cairo">
+                            <Link to="/shop" className="bg-[#28B463] hover:bg-[#219653] text-white font-black py-3.5 md:py-4 px-10 md:px-12 rounded-lg shadow-xl shadow-[#28B463]/20 transition-all flex items-center justify-center group uppercase italic tracking-widest text-base md:text-lg font-Cairo">
                                 {t('shopNow')}
                                 <ChevronRight className={`h-5 w-5 md:h-6 md:w-6 transition-transform not-italic ${i18n.language === 'ar' ? 'mr-2 rotate-180 group-hover:-translate-x-1' : 'ml-2 group-hover:translate-x-1'}`} />
                             </Link>

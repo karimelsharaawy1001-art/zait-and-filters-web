@@ -264,7 +264,7 @@ const ProductDetails = () => {
                             <div className={`flex items-end gap-3 mb-1 ${isAr ? 'flex-row-reverse' : ''}`}>
                                 {hasSale ? (
                                     <>
-                                        <span className="text-3xl font-black text-[#28B463]">
+                                        <span className="text-3xl font-black text-[#1A1A1A]">
                                             {product.salePrice} <span className="text-sm font-normal">{t('currency')}</span>
                                         </span>
                                         <span className="text-lg text-gray-400 line-through mb-1">

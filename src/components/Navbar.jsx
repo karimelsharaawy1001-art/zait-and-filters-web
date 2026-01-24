@@ -82,7 +82,7 @@ const Navbar = () => {
                             </Link>
                             <Link to="/" className="flex flex-col justify-center">
                                 <span className="font-black text-xl lg:text-2xl tracking-tighter uppercase italic leading-none font-Cairo">
-                                    <span style={{ color: '#28B463' }}>ZAIT</span> <span style={{ color: '#1A1A1A' }}>& FILTERS</span>
+                                    <span style={{ color: '#1A1A1A' }}>ZAIT</span> <span style={{ color: '#28B463' }}>& FILTERS</span>
                                 </span>
                                 <p className="text-[8px] lg:text-[9px] font-black text-[#000000] mt-0.5 tracking-widest uppercase font-Cairo">قطع الغيار بضغطة زرار</p>
                             </Link>

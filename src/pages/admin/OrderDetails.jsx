@@ -215,7 +215,7 @@ const OrderDetails = () => {
                     </button>
                     <button
                         onClick={handleEditOrder}
-                        className="bg-[#e31e24] hover:bg-[#b8181d] text-white font-black text-[10px] uppercase tracking-widest px-6 py-3 rounded-xl transition-all shadow-lg shadow-[#e31e24]/20 hover:scale-105 flex items-center gap-2"
+                        className="bg-[#28B463] hover:bg-[#219653] text-white font-black text-[10px] uppercase tracking-widest px-6 py-3 rounded-xl transition-all shadow-lg shadow-[#28B463]/20 hover:scale-105 flex items-center gap-2"
                     >
                         <Edit2 className="h-4 w-4" />
                         Edit Order
@@ -230,7 +230,7 @@ const OrderDetails = () => {
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-4">
                                     <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100">
-                                        <Clock className="h-6 w-6 text-[#e31e24]" />
+                                        <Clock className="h-6 w-6 text-[#28B463]" />
                                     </div>
                                     <div>
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ordered on</p>
@@ -245,12 +245,12 @@ const OrderDetails = () => {
                                         value={status}
                                         disabled={updating}
                                         onChange={(e) => handleStatusChange(e.target.value)}
-                                        className={`block w-full rounded-xl border border-gray-100 shadow-sm focus:ring-2 focus:ring-[#e31e24] outline-none sm:text-sm p-3 font-black uppercase tracking-widest cursor-pointer transition-all
+                                        className={`block w-full rounded-xl border border-gray-100 shadow-sm focus:ring-2 focus:ring-[#28B463] outline-none sm:text-sm p-3 font-black uppercase tracking-widest cursor-pointer transition-all
                                             ${status === 'Pending' ? 'text-orange-600 bg-orange-50' : ''}
                                             ${status === 'Processing' ? 'text-blue-600 bg-blue-50' : ''}
                                             ${status === 'Shipped' ? 'text-purple-600 bg-purple-50' : ''}
                                             ${status === 'Delivered' ? 'text-green-600 bg-green-50' : ''}
-                                            ${status === 'Cancelled' ? 'text-[#e31e24] bg-red-50' : ''}
+                                            ${status === 'Cancelled' ? 'text-[#28B463] bg-red-50' : ''}
                                         `}
                                     >
                                         <option value="Pending" className="bg-white">Pending</option>
@@ -266,7 +266,7 @@ const OrderDetails = () => {
                         {/* Items Section */}
                         <div className="bg-white shadow-sm rounded-3xl overflow-hidden border border-gray-100">
                             <div className="px-8 py-5 border-b border-gray-50 flex items-center bg-gray-50">
-                                <Package className="h-5 w-5 text-[#e31e24] mr-3" />
+                                <Package className="h-5 w-5 text-[#28B463] mr-3" />
                                 <h3 className="font-black text-black uppercase tracking-widest text-sm poppins">Items Purchased</h3>
                             </div>
                             <div className="divide-y divide-gray-50">
@@ -291,7 +291,7 @@ const OrderDetails = () => {
                                                 </div>
                                                 <div>
                                                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Origin</p>
-                                                    <p className="text-xs font-black text-[#e31e24] bg-red-50 px-3 py-1 rounded-lg border border-red-100 inline-block">{item.countryOfOrigin || item.origin || 'N/A'}</p>
+                                                    <p className="text-xs font-black text-[#28B463] bg-red-50 px-3 py-1 rounded-lg border border-red-100 inline-block">{item.countryOfOrigin || item.origin || 'N/A'}</p>
                                                 </div>
                                                 <div className="col-span-2">
                                                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Compatibility</p>
@@ -319,13 +319,13 @@ const OrderDetails = () => {
                                         <span>-{order.discount} EGP</span>
                                     </div>
                                 )}
-                                <div className="flex justify-between items-center text-[10px] text-[#e31e24] font-black uppercase tracking-widest">
+                                <div className="flex justify-between items-center text-[10px] text-[#28B463] font-black uppercase tracking-widest">
                                     <span>Shipping Cost</span>
                                     <span>+{order.shipping_cost || 0} EGP</span>
                                 </div>
                                 <div className="flex justify-between items-center pt-4 border-t border-gray-200">
                                     <span className="text-sm font-black text-black uppercase tracking-widest poppins">Total Amount</span>
-                                    <span className="text-2xl font-black text-[#e31e24] poppins">{total} <span className="text-[10px] font-normal text-gray-400">EGP</span></span>
+                                    <span className="text-2xl font-black text-[#1A1A1A] poppins">{total} <span className="text-[10px] font-normal text-gray-400">EGP</span></span>
                                 </div>
                             </div>
                         </div>
@@ -335,7 +335,7 @@ const OrderDetails = () => {
                     <div className="space-y-6">
                         <div className="bg-white shadow-sm rounded-3xl p-8 border border-gray-100">
                             <div className="flex items-center mb-6 text-black font-black uppercase tracking-widest text-sm poppins border-b border-gray-50 pb-4">
-                                <User className="h-5 w-5 text-[#e31e24] mr-3" />
+                                <User className="h-5 w-5 text-[#28B463] mr-3" />
                                 <h3>Customer Info</h3>
                             </div>
                             <div className="space-y-6">
@@ -345,7 +345,7 @@ const OrderDetails = () => {
                                 </div>
                                 <div>
                                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Phone</p>
-                                    <p className="font-bold text-[#e31e24] text-lg">{customer.phone}</p>
+                                    <p className="font-bold text-[#1A1A1A] text-lg">{customer.phone}</p>
                                 </div>
                                 {order.currentMileage && (
                                     <div className="pt-4 border-t border-gray-50">
@@ -358,7 +358,7 @@ const OrderDetails = () => {
 
                         <div className="bg-white shadow-sm rounded-3xl p-8 border border-gray-100">
                             <div className="flex items-center mb-6 text-black font-black uppercase tracking-widest text-sm poppins border-b border-gray-50 pb-4">
-                                <MapPin className="h-5 w-5 text-[#e31e24] mr-3" />
+                                <MapPin className="h-5 w-5 text-[#28B463] mr-3" />
                                 <h3>Shipping Address</h3>
                             </div>
                             <div className="space-y-4">
@@ -375,7 +375,7 @@ const OrderDetails = () => {
 
                         <div className="bg-white shadow-sm rounded-3xl p-8 border border-gray-100">
                             <div className="flex items-center mb-6 text-black font-black uppercase tracking-widest text-sm poppins border-b border-gray-50 pb-4">
-                                <CreditCard className="h-5 w-5 text-[#e31e24] mr-3" />
+                                <CreditCard className="h-5 w-5 text-[#28B463] mr-3" />
                                 <h3>Payment Info</h3>
                             </div>
                             <div className="flex items-center justify-between">
@@ -392,7 +392,7 @@ const OrderDetails = () => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowEditModal(false)}></div>
                     <div className="bg-white rounded-3xl shadow-2xl relative w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200 border border-gray-100">
-                        <div className="bg-[#e31e24] p-8 text-white">
+                        <div className="bg-[#28B463] p-8 text-white">
                             <h3 className="text-xl font-black uppercase tracking-widest poppins">Edit Order</h3>
                             <p className="text-white/70 text-[10px] font-black mt-1 uppercase tracking-widest">Order #{order.orderNumber || order.id.slice(-6).toUpperCase()}</p>
                         </div>
@@ -403,7 +403,7 @@ const OrderDetails = () => {
                                 <select
                                     value={editForm.paymentStatus}
                                     onChange={(e) => setEditForm({ ...editForm, paymentStatus: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-black focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-bold text-sm shadow-sm cursor-pointer"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all font-bold text-sm shadow-sm cursor-pointer"
                                 >
                                     <option value="Pending" className="bg-white">Pending</option>
                                     <option value="Paid" className="bg-white">Paid</option>
@@ -418,7 +418,7 @@ const OrderDetails = () => {
                                 <select
                                     value={editForm.paymentMethod}
                                     onChange={(e) => setEditForm({ ...editForm, paymentMethod: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-black focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-bold text-sm shadow-sm cursor-pointer"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all font-bold text-sm shadow-sm cursor-pointer"
                                 >
                                     <option value="Cash on Delivery" className="bg-white">Cash on Delivery</option>
                                     <option value="Credit Card (EasyKash)" className="bg-white">Credit Card (EasyKash)</option>
@@ -433,7 +433,7 @@ const OrderDetails = () => {
                                 <select
                                     value={editForm.status}
                                     onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-black focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-bold text-sm shadow-sm cursor-pointer"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all font-bold text-sm shadow-sm cursor-pointer"
                                 >
                                     <option value="Pending" className="bg-white">Pending</option>
                                     <option value="Processing" className="bg-white">Processing</option>
@@ -449,7 +449,7 @@ const OrderDetails = () => {
                                 <button
                                     onClick={handleSaveEdit}
                                     disabled={updating}
-                                    className="w-full bg-[#e31e24] hover:bg-[#b8181d] text-white font-black py-4 rounded-xl shadow-lg shadow-[#e31e24]/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3 uppercase tracking-widest text-xs"
+                                    className="w-full bg-[#28B463] hover:bg-[#219653] text-white font-black py-4 rounded-xl shadow-lg shadow-[#28B463]/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3 uppercase tracking-widest text-xs"
                                 >
                                     {updating ? "Saving..." : "Save Changes"}
                                     {!updating && <CheckCircle className="h-4 w-4" />}

@@ -424,7 +424,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                     {hasActiveFilters && (
                                         <button
                                             onClick={handleResetFilters}
-                                            className="text-[10px] font-black text-[#28B463] hover:text-red-800 uppercase tracking-widest transition-all hover:scale-105"
+                                            className="text-[10px] font-black text-[#1A1A1A] hover:text-red-800 uppercase tracking-widest transition-all hover:scale-105"
                                         >
                                             {t('clearAll') || 'مسح الكل'}
                                         </button>
@@ -457,7 +457,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                     {/* Dependent Subcategories (List) */}
                                     {activeFilters.categories.length > 0 && filterOptions.categories[activeFilters.categories[0]]?.length > 0 && (
                                         <div className="space-y-4 animate-in slide-in-from-top duration-300 pt-2 border-t border-gray-50">
-                                            <label className={`text-[10px] font-black text-[#28B463] uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
+                                            <label className={`text-[10px] font-black text-[#1A1A1A] uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
                                                 {t('shopFilters.subcategory')}
                                             </label>
                                             <div className="space-y-2 bg-gray-50/50 p-4 rounded-xl border border-gray-100">
@@ -471,7 +471,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                                                     type="checkbox"
                                                                     checked={activeFilters.subcategories.includes(subName)}
                                                                     onChange={() => toggleFilter('subcategories', subName)}
-                                                                    className="w-4 h-4 rounded border-gray-300 text-[#28B463] focus:ring-[#28B463] transition-all cursor-pointer"
+                                                                    className="w-4 h-4 rounded border-gray-300 text-[#1A1A1A] focus:ring-[#28B463] transition-all cursor-pointer"
                                                                 />
                                                             </div>
                                                             <span className={`text-sm transition-colors ${activeFilters.subcategories.includes(subName) ? 'font-black text-black' : 'font-medium text-gray-500 group-hover:text-black'}`}>
@@ -625,7 +625,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                 <div className="pt-6 border-t border-gray-100 flex gap-4">
                                     <button
                                         onClick={handleResetFilters}
-                                        className="flex-1 py-4 text-center text-[#28B463] text-[10px] font-black uppercase tracking-widest border border-[#28B463] rounded-xl hover:bg-[#219653] transition-colors"
+                                        className="flex-1 py-4 text-center text-[#1A1A1A] text-[10px] font-black uppercase tracking-widest border border-[#28B463] rounded-xl hover:bg-[#219653] transition-colors"
                                     >
                                         {t('resetAll')}
                                     </button>
