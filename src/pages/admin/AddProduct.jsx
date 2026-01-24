@@ -33,7 +33,6 @@ const AddProduct = () => {
         yearRange: '',
         yearStart: '',
         yearEnd: '',
-        viscosity: '',
         warranty_months: '',
         isActive: true
     });
@@ -94,6 +93,21 @@ const AddProduct = () => {
                 .map(car => car.model);
             setFilteredModels([...new Set(models)].sort());
             setFormData(prev => ({ ...prev, model: '' }));
+        }
+
+        // Auto-generate Year Display
+        if (name === 'yearStart' || name === 'yearEnd') {
+            setFormData(prev => {
+                const nextData = { ...prev, [name]: value };
+                if (nextData.yearStart && nextData.yearEnd) {
+                    nextData.yearRange = `${nextData.yearStart} - ${nextData.yearEnd}`;
+                } else if (nextData.yearStart) {
+                    nextData.yearRange = nextData.yearStart;
+                } else if (nextData.yearEnd) {
+                    nextData.yearRange = nextData.yearEnd;
+                }
+                return nextData;
+            });
         }
     };
 
@@ -321,10 +335,10 @@ const AddProduct = () => {
                                     <input
                                         type="text"
                                         name="yearRange"
-                                        placeholder="e.g. 2015-2020"
+                                        disabled
+                                        placeholder="Calculated automatically..."
                                         value={formData.yearRange}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
+                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg opacity-50 cursor-not-allowed"
                                     />
                                 </div>
                                 <div className="col-span-1">
@@ -388,19 +402,7 @@ const AddProduct = () => {
                                         })}
                                     </select>
                                 </div>
-                                <div className="col-span-2">
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Viscosity (for Oils)</label>
-                                    <input
-                                        type="text"
-                                        name="viscosity"
-                                        placeholder="e.g. 5W-30"
-                                        value={formData.viscosity}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
-                                    />
-                                </div>
                             </div>
-
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
