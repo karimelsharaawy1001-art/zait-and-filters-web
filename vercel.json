@@ -1,34 +1,8 @@
 {
-  "functions": {
-    "api/*.js": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
   "rewrites": [
     {
-      "source": "/api/related-products",
-      "destination": "/api/products.js?action=getRelated"
-    },
-    {
-      "source": "/api/inventory-metadata",
-      "destination": "/api/products.js"
-    },
-    {
-      "source": "/api/facebook-feed",
-      "destination": "/api/feeds.js?platform=facebook"
-    },
-    {
-      "source": "/api/product-feed",
-      "destination": "/api/feeds.js?platform=google"
-    },
-    {
-      "source": "/api/track-recovery",
-      "destination": "/api/recovery.js?action=track"
-    },
-    {
-      "source": "/api/get-recovery-cart",
-      "destination": "/api/recovery.js?action=fetch"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
