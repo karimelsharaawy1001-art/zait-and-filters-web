@@ -3,7 +3,7 @@ import { collection, getDocs, deleteDoc, doc, updateDoc, query, orderBy } from '
 import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
 import AdminHeader from '../../components/AdminHeader';
-import { Edit3, Trash2, Plus, Search, Filter, ArrowUpDown, ChevronLeft, ChevronRight, Eye, MoreVertical, CheckCircle, XCircle, TrendingUp } from 'lucide-react';
+import { Edit3, Trash2, Plus, Search, Filter, AlertTriangle, ArrowUpDown, ChevronLeft, ChevronRight, Eye, MoreVertical, CheckCircle, XCircle, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BulkOperations from '../../components/admin/BulkOperations';
 
