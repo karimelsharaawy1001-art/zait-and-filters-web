@@ -89,13 +89,14 @@ const ProductGrid = ({ showFilters = true }) => {
     }, [isGarageFilterActive, activeCar]);
 
     // Extract unique values for each filter type
-    const extractFilterOptions = (productsList) => {
+    const extractFilterOptions = async (productsList) => {
         const categories = {};
         const makes = {};
         const brands = new Set();
         const origins = new Set();
         const years = new Set();
 
+        // Extract from products
         productsList.forEach(product => {
             // Group Subcategories by Category
             if (product.category) {
@@ -103,10 +104,12 @@ const ProductGrid = ({ showFilters = true }) => {
                 if (product.subcategory) categories[product.category].add(product.subcategory);
             }
 
-            // Group Models by Make
-            if (product.make) {
-                if (!makes[product.make]) makes[product.make] = new Set();
-                if (product.model) makes[product.make].add(product.model);
+            // Group Models by Make (from products)
+            const productMake = product.make || product.car_make;
+            const productModel = product.model || product.car_model;
+            if (productMake) {
+                if (!makes[productMake]) makes[productMake] = new Set();
+                if (productModel) makes[productMake].add(productModel);
             }
 
             // Extract Brands
@@ -126,6 +129,27 @@ const ProductGrid = ({ showFilters = true }) => {
                 years.add(product.yearRange);
             }
         });
+
+        // ALSO fetch from cars collection to ensure make/model dropdowns are always populated
+        try {
+            const carsSnapshot = await getDocs(collection(db, 'cars'));
+            carsSnapshot.docs.forEach(doc => {
+                const car = doc.data();
+                if (car.make) {
+                    if (!makes[car.make]) makes[car.make] = new Set();
+                    if (car.model) makes[car.make].add(car.model);
+                }
+
+                // Also add year ranges from cars
+                if (car.yearStart && car.yearEnd) {
+                    for (let year = car.yearStart; year <= car.yearEnd; year++) {
+                        years.add(year.toString());
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('[ProductGrid] Error fetching cars for filters:', error);
+        }
 
         // Convert Sets to sorted Arrays
         const finalizeGroups = (obj) => {
