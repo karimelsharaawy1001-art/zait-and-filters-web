@@ -4,30 +4,100 @@ import { useFilters } from '../context/FilterContext';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-const carData = {
-    Toyota: ['Corolla', 'Yaris', 'Camry', 'Fortuner'],
-    Nissan: ['Sunny', 'Sentra', 'Qashqai', 'Patrol'],
-    Hyundai: ['Elantra', 'Tucson', 'Accent', 'Santa Fe'],
-    Kia: ['Cerato', 'Sportage', 'Picanto', 'Sorento'],
-    Mercedes: ['C180', 'E200', 'S500', 'G-Class'],
-    BMW: ['320i', '520i', 'X3', 'X5']
+import { db } from '../firebase';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { Loader2 } from 'lucide-react';
+
+// Dictionary for smart redirects based on car selection
+// Key: "Make Model", Value: Viscosity (string) or full URL (starts with http)
+const oilLinks = {
+    "Toyota Corolla": "5W-30",
+    "Nissan Sunny": "10W-40",
+    "Hyundai Tuscon": "5W-30",
+    "Mitsubishi Lancer": "10W-40",
+    // Add more mappings here. Example:
+    // "Mercedes C180": "https://zaitandfilters.com/product/mercedes-service-kit"
 };
 
-const years = Array.from({ length: 2026 - 2000 + 1 }, (_, i) => 2026 - i); // 2026 down to 2000
+const years = Array.from({ length: 2026 - 2000 + 1 }, (_, i) => 2026 - i);
 
 const CarSelector = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+
+    const [loading, setLoading] = useState(false);
     const [make, setMake] = useState('');
     const [model, setModel] = useState('');
     const [year, setYear] = useState('');
 
-    // Reset model when make changes
+    const [makes, setMakes] = useState([]);
+    const [models, setModels] = useState([]);
+
+    // Fetch Unique Makes from Active Products
     useEffect(() => {
-        setModel('');
+        const fetchMakes = async () => {
+            setLoading(true);
+            try {
+                const q = query(collection(db, 'products'), where('isActive', '==', true));
+                const querySnapshot = await getDocs(q);
+                const uniqueMakes = [...new Set(querySnapshot.docs.map(doc => doc.data().make))].filter(Boolean).sort();
+                setMakes(uniqueMakes);
+            } catch (error) {
+                console.error("Error fetching makes:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchMakes();
+    }, []);
+
+    // Fetch Unique Models for Selected Make
+    useEffect(() => {
+        const fetchModels = async () => {
+            if (!make) {
+                setModels([]);
+                setModel('');
+                return;
+            }
+            try {
+                const q = query(
+                    collection(db, 'products'),
+                    where('isActive', '==', true),
+                    where('make', '==', make)
+                );
+                const querySnapshot = await getDocs(q);
+                const uniqueModels = [...new Set(querySnapshot.docs.map(doc => doc.data().model))].filter(Boolean).sort();
+                setModels(uniqueModels);
+                setModel('');
+            } catch (error) {
+                console.error("Error fetching models:", error);
+            }
+        };
+        fetchModels();
     }, [make]);
 
     const handleSearch = () => {
+        if (!make && !model && !year) {
+            navigate('/shop');
+            return;
+        }
+
+        const vehicleKey = `${make} ${model}`;
+        const oilLink = oilLinks[vehicleKey];
+
+        // 1. Smart Redirect Logic
+        if (oilLink) {
+            if (oilLink.startsWith('http')) {
+                window.location.href = oilLink;
+                return;
+            } else {
+                // It's a viscosity value
+                navigate(`/shop?viscosity=${encodeURIComponent(oilLink)}`);
+                return;
+            }
+        }
+
+        // 2. Default Shop Redirect with Filters
         const params = new URLSearchParams();
         if (make) params.append('make', make);
         if (model) params.append('model', model);
@@ -49,20 +119,27 @@ const CarSelector = () => {
             <div className="grid grid-cols-1 gap-6 relative z-10">
                 {/* Make */}
                 <div className="relative">
-                    <label className="block text-[11px] text-gray-400 mb-2 ml-1 mr-1 font-black uppercase tracking-widest leading-none">{t('make')}</label>
+                    <label className="block text-[11px] text-gray-400 mb-2 ml-1 mr-1 font-black uppercase tracking-widest leading-none">
+                        {t('make')}
+                    </label>
                     <div className="relative">
                         <select
                             className="w-full bg-white/5 border border-white/10 text-white py-4 px-5 pr-10 rounded-xl focus:outline-none focus:bg-white/10 focus:border-[#e31e24] focus:ring-1 focus:ring-[#e31e24] transition-all appearance-none font-bold text-sm backdrop-blur-sm"
                             value={make}
                             onChange={(e) => setMake(e.target.value)}
+                            disabled={loading}
                         >
-                            <option value="" className="bg-[#111111] text-white">{t('selectMake')}</option>
-                            {Object.keys(carData).map(m => (
+                            <option value="" className="bg-[#111111] text-white">{loading ? 'Loading...' : t('selectMake')}</option>
+                            {makes.map(m => (
                                 <option key={m} value={m} className="bg-[#111111] text-white">{m}</option>
                             ))}
                         </select>
                         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
-                            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                            {loading ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -78,7 +155,7 @@ const CarSelector = () => {
                             disabled={!make}
                         >
                             <option value="" className="bg-[#111111] text-white">{t('selectModel')}</option>
-                            {make && carData[make].map(m => (
+                            {models.map(m => (
                                 <option key={m} value={m} className="bg-[#111111] text-white">{m}</option>
                             ))}
                         </select>

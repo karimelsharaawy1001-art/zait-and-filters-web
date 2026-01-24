@@ -168,6 +168,16 @@ const ProductGrid = ({ showFilters = true }) => {
         fetchCarImage();
     }, [filters.make, filters.model]);
 
+    // Sync Global Filters to Local Active Filters
+    useEffect(() => {
+        setActiveFilters(prev => ({
+            ...prev,
+            makes: filters.make ? [filters.make] : prev.makes,
+            models: filters.model ? [filters.model] : prev.models,
+            years: filters.year ? [filters.year] : prev.years
+        }));
+    }, [filters.make, filters.model, filters.year]);
+
     const handleAddToCart = (product) => {
         addToCart(product);
         toast.success(t('addedToCart'));
