@@ -32,16 +32,17 @@ const CarSelector = () => {
 
     const [makes, setMakes] = useState([]);
     const [models, setModels] = useState([]);
+    const [availableYears, setAvailableYears] = useState([]);
+    const [noResults, setNoResults] = useState(false);
 
-    // Fetch Unique Makes from Active Products
+    // Fetch Unique Makes from API
     useEffect(() => {
         const fetchMakes = async () => {
             setLoading(true);
             try {
-                const q = query(collection(db, 'products'), where('isActive', '==', true));
-                const querySnapshot = await getDocs(q);
-                const uniqueMakes = [...new Set(querySnapshot.docs.map(doc => doc.data().make))].filter(Boolean).sort();
-                setMakes(uniqueMakes);
+                const response = await fetch('/api/inventory-metadata?action=getMakes');
+                const data = await response.json();
+                setMakes(data);
             } catch (error) {
                 console.error("Error fetching makes:", error);
             } finally {
@@ -57,24 +58,53 @@ const CarSelector = () => {
             if (!make) {
                 setModels([]);
                 setModel('');
+                setAvailableYears([]);
+                setYear('');
+                setNoResults(false);
                 return;
             }
+            setLoading(true);
+            setNoResults(false);
             try {
-                const q = query(
-                    collection(db, 'products'),
-                    where('isActive', '==', true),
-                    where('make', '==', make)
-                );
-                const querySnapshot = await getDocs(q);
-                const uniqueModels = [...new Set(querySnapshot.docs.map(doc => doc.data().model))].filter(Boolean).sort();
-                setModels(uniqueModels);
+                const response = await fetch(`/api/inventory-metadata?action=getModels&make=${encodeURIComponent(make)}`);
+                const data = await response.json();
+                setModels(data);
+                if (data.length === 0) setNoResults(true);
                 setModel('');
+                setAvailableYears([]);
+                setYear('');
             } catch (error) {
                 console.error("Error fetching models:", error);
+            } finally {
+                setLoading(false);
             }
         };
         fetchModels();
     }, [make]);
+
+    // Fetch Unique Years for Selected Model
+    useEffect(() => {
+        const fetchYears = async () => {
+            if (!make || !model) {
+                setAvailableYears([]);
+                setYear('');
+                return;
+            }
+            setLoading(true);
+            try {
+                const response = await fetch(`/api/inventory-metadata?action=getYears&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}`);
+                const data = await response.json();
+                setAvailableYears(data);
+                if (data.length === 0) setNoResults(true);
+                setYear('');
+            } catch (error) {
+                console.error("Error fetching years:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchYears();
+    }, [make, model]);
 
     const handleSearch = () => {
         if (!make && !model && !year) {
@@ -85,13 +115,12 @@ const CarSelector = () => {
         const vehicleKey = `${make} ${model}`;
         const oilLink = oilLinks[vehicleKey];
 
-        // 1. Smart Redirect Logic
+        // 1. Smart Redirect Logic (Legacy/Extras)
         if (oilLink) {
             if (oilLink.startsWith('http')) {
                 window.location.href = oilLink;
                 return;
             } else {
-                // It's a viscosity value
                 navigate(`/shop?viscosity=${encodeURIComponent(oilLink)}`);
                 return;
             }
@@ -127,15 +156,17 @@ const CarSelector = () => {
                             className="w-full bg-white/5 border border-white/10 text-white py-4 px-5 pr-10 rounded-xl focus:outline-none focus:bg-white/10 focus:border-[#e31e24] focus:ring-1 focus:ring-[#e31e24] transition-all appearance-none font-bold text-sm backdrop-blur-sm"
                             value={make}
                             onChange={(e) => setMake(e.target.value)}
-                            disabled={loading}
+                            disabled={loading && makes.length === 0}
                         >
-                            <option value="" className="bg-[#111111] text-white">{loading ? 'Loading...' : t('selectMake')}</option>
+                            <option value="" className="bg-[#111111] text-white">
+                                {loading && makes.length === 0 ? 'Loading...' : t('selectMake')}
+                            </option>
                             {makes.map(m => (
                                 <option key={m} value={m} className="bg-[#111111] text-white">{m}</option>
                             ))}
                         </select>
                         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
-                            {loading ? (
+                            {loading && makes.length === 0 ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
                                 <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
@@ -149,18 +180,24 @@ const CarSelector = () => {
                     <label className="block text-[11px] text-gray-400 mb-2 ml-1 mr-1 font-black uppercase tracking-widest leading-none">{t('model')}</label>
                     <div className="relative">
                         <select
-                            className={`w-full bg-white/5 border border-white/10 text-white py-4 px-5 pr-10 rounded-xl focus:outline-none focus:bg-white/10 focus:border-[#e31e24] focus:ring-1 focus:ring-[#e31e24] transition-all appearance-none font-bold text-sm backdrop-blur-sm ${!make ? 'opacity-30 cursor-not-allowed' : ''}`}
+                            className={`w-full bg-white/5 border border-white/10 text-white py-4 px-5 pr-10 rounded-xl focus:outline-none focus:bg-white/10 focus:border-[#e31e24] focus:ring-1 focus:ring-[#e31e24] transition-all appearance-none font-bold text-sm backdrop-blur-sm ${!make || (loading && models.length === 0) ? 'opacity-30 cursor-not-allowed' : ''}`}
                             value={model}
                             onChange={(e) => setModel(e.target.value)}
-                            disabled={!make}
+                            disabled={!make || (loading && models.length === 0)}
                         >
-                            <option value="" className="bg-[#111111] text-white">{t('selectModel')}</option>
+                            <option value="" className="bg-[#111111] text-white">
+                                {loading && make && models.length === 0 ? 'Loading...' : t('selectModel')}
+                            </option>
                             {models.map(m => (
                                 <option key={m} value={m} className="bg-[#111111] text-white">{m}</option>
                             ))}
                         </select>
                         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
-                            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                            {loading && make && models.length === 0 ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -170,23 +207,39 @@ const CarSelector = () => {
                     <label className="block text-[11px] text-gray-400 mb-2 ml-1 mr-1 font-black uppercase tracking-widest leading-none">{t('year')}</label>
                     <div className="relative">
                         <select
-                            className="w-full bg-white/5 border border-white/10 text-white py-4 px-5 pr-10 rounded-xl focus:outline-none focus:bg-white/10 focus:border-[#e31e24] focus:ring-1 focus:ring-[#e31e24] transition-all appearance-none font-bold text-sm backdrop-blur-sm"
+                            className={`w-full bg-white/5 border border-white/10 text-white py-4 px-5 pr-10 rounded-xl focus:outline-none focus:bg-white/10 focus:border-[#e31e24] focus:ring-1 focus:ring-[#e31e24] transition-all appearance-none font-bold text-sm backdrop-blur-sm ${!model || (loading && availableYears.length === 0) ? 'opacity-30 cursor-not-allowed' : ''}`}
                             value={year}
                             onChange={(e) => setYear(e.target.value)}
+                            disabled={!model || (loading && availableYears.length === 0)}
                         >
-                            <option value="" className="bg-[#111111] text-white">{t('allYears')}</option>
-                            {years.map(y => (
+                            <option value="" className="bg-[#111111] text-white">
+                                {loading && model && availableYears.length === 0 ? 'Loading...' : t('allYears')}
+                            </option>
+                            {availableYears.map(y => (
                                 <option key={y} value={y} className="bg-[#111111] text-white">{y}</option>
                             ))}
                         </select>
                         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
-                            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                            {loading && model && availableYears.length === 0 ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                            )}
                         </div>
                     </div>
                 </div>
 
+                {/* No Results Message */}
+                {noResults && (
+                    <div className="animate-in fade-in slide-in-from-top-1 duration-300">
+                        <p className="text-[#e31e24] text-[12px] font-bold text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">
+                            {t('noPartsForModel')}
+                        </p>
+                    </div>
+                )}
+
                 {/* Search Button */}
-                <div className="pt-4">
+                <div className="pt-2">
                     <button
                         onClick={handleSearch}
                         className="w-full bg-[#e31e24] hover:bg-[#b8181d] text-white font-black py-5 px-6 rounded-xl shadow-2xl shadow-red-900/40 transition-all flex items-center justify-center gap-3 transform hover:-translate-y-1 active:scale-95 uppercase italic tracking-widest"
