@@ -315,7 +315,7 @@ const OrderDetails = () => {
                                 <h3 className="font-black text-black uppercase tracking-widest text-sm poppins">Items Purchased</h3>
                             </div>
                             <div className="divide-y divide-gray-50">
-                                {items.map((item, idx) => (
+                                {(enrichedItems.length > 0 ? enrichedItems : items).map((item, idx) => (
                                     <div key={idx} className="p-8 flex items-start gap-6 hover:bg-gray-50 transition-colors">
                                         <img
                                             src={item.image}
@@ -327,28 +327,43 @@ const OrderDetails = () => {
                                             }}
                                         />
                                         <div className="flex-1">
-                                            <h4 className="text-lg font-black text-black mb-2 poppins">{item.name}</h4>
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h4 className="text-lg font-black text-black mb-1 poppins">{item.name}</h4>
+                                                    <p className="text-xs font-bold text-gray-500 mb-4">{item.nameEn}</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-lg font-black text-[#28B463]">{item.price} EGP</p>
+                                                    <p className="text-[10px] font-bold text-gray-400">Qty: {item.quantity}</p>
+                                                </div>
+                                            </div>
 
-                                            <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
                                                 <div>
                                                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Part Brand</p>
-                                                    <p className="text-xs font-black text-gray-600 bg-gray-100 px-3 py-1 rounded-lg border border-gray-200 inline-block">{item.partBrand || item.brand}</p>
+                                                    <p className="text-xs font-black text-gray-800">{item.partBrand || item.brand}</p>
                                                 </div>
                                                 <div>
                                                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Origin</p>
-                                                    <p className="text-xs font-black text-[#28B463] bg-red-50 px-3 py-1 rounded-lg border border-red-100 inline-block">{item.countryOfOrigin || item.origin || 'N/A'}</p>
+                                                    <div className="flex items-center gap-1">
+                                                        <span className="w-2 h-2 rounded-full bg-[#28B463]"></span>
+                                                        <p className="text-xs font-black text-gray-800">{item.origin || item.countryOfOrigin || 'N/A'}</p>
+                                                    </div>
                                                 </div>
-                                                <div className="col-span-2">
+                                                <div>
                                                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Compatibility</p>
-                                                    <p className="text-xs font-black text-orange-600 bg-orange-50 px-3 py-1 rounded-lg border border-orange-100 inline-block">
-                                                        {item.make} {item.model} {item.yearRange ? `(${item.yearRange})` : ''}
+                                                    <p className="text-xs font-black text-gray-800">
+                                                        {item.make} {item.model}
+                                                        {item.yearRange && <span className="text-gray-400 ml-1">({item.yearRange})</span>}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">SKU / Part #</p>
+                                                    <p className="text-xs font-mono font-bold text-gray-600 bg-white px-2 py-0.5 rounded border border-gray-200 inline-block">
+                                                        {item.partNumber || item.sku || 'N/A'}
                                                     </p>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div className="text-right flex flex-col justify-center gap-2">
-                                            <p className="text-xl font-black text-black poppins">{item.price} <span className="text-[10px] text-gray-400">EGP</span></p>
-                                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest bg-gray-50 px-3 py-1 rounded-lg border border-gray-100">Qty: {item.quantity}</p>
                                         </div>
                                     </div>
                                 ))}
