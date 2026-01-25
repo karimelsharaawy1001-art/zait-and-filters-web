@@ -440,7 +440,7 @@ const ManageProducts = () => {
                             <table className="w-full">
                                 <thead>
                                     <tr className="bg-gray-50">
-                                        <th className="px-6 py-5 text-left border-b border-gray-100">
+                                        <th className="px-4 py-5 text-left border-b border-gray-100 w-12">
                                             <div className="flex items-center justify-center">
                                                 <input
                                                     type="checkbox"
@@ -450,20 +450,20 @@ const ManageProducts = () => {
                                                 />
                                             </div>
                                         </th>
-                                        <th className="px-8 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Visual</th>
-                                        <th className="px-8 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Nomenclature / Group</th>
-                                        <th className="px-8 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">System</th>
-                                        <th className="px-8 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Vehicle Config</th>
-                                        <th className="px-8 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100 italic">Cost</th>
-                                        <th className="px-8 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100 font-black">Sell</th>
-                                        <th className="px-8 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100 text-center">Active</th>
-                                        <th className="px-8 py-5 text-right text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Actions</th>
+                                        <th className="px-4 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Visual</th>
+                                        <th className="px-4 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Nomenclature / Group</th>
+                                        <th className="px-4 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">System</th>
+                                        <th className="px-4 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Vehicle Config</th>
+                                        <th className="px-4 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100 italic">Cost</th>
+                                        <th className="px-4 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100 font-black">Sell</th>
+                                        <th className="px-4 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100 text-center">Active</th>
+                                        <th className="px-4 py-5 text-right text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
                                     {Array.isArray(filteredProducts) && filteredProducts.map((product) => (
                                         <tr key={product.id} className={`hover:bg-white/[0.02] transition-colors group/row ${selectedIds.has(product.id) ? 'bg-green-50/30' : ''}`}>
-                                            <td className="px-6 py-6 whitespace-nowrap">
+                                            <td className="px-4 py-6 whitespace-nowrap">
                                                 <div className="flex items-center justify-center">
                                                     <input
                                                         type="checkbox"
@@ -473,7 +473,7 @@ const ManageProducts = () => {
                                                     />
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-6 whitespace-nowrap">
+                                            <td className="px-4 py-6 whitespace-nowrap">
                                                 <div className="relative h-14 w-14 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 group-hover/row:border-[#e31e24]/20 transition-all">
                                                     <img
                                                         src={product.image}
@@ -486,26 +486,26 @@ const ManageProducts = () => {
                                                     />
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-6">
+                                            <td className="px-4 py-6">
                                                 <div className="text-[10px] font-black text-[#28B463] uppercase mb-1 tracking-widest opacity-80">
                                                     {product.brand || 'No Brand'}
                                                 </div>
-                                                <div className="text-sm font-black text-black line-clamp-1 max-w-[220px] group-hover/row:translate-x-1 transition-transform">
+                                                <div className="text-sm font-black text-black line-clamp-1 max-w-[180px] group-hover/row:translate-x-1 transition-transform">
                                                     {product.name}
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-6 whitespace-nowrap">
+                                            <td className="px-4 py-6 whitespace-nowrap">
                                                 <span className="px-4 py-2 text-[9px] font-black uppercase tracking-[0.15em] rounded-full bg-blue-50 text-blue-600 border border-blue-100">
                                                     {product.category}
                                                 </span>
                                             </td>
-                                            <td className="px-8 py-6 whitespace-nowrap text-sm font-bold text-gray-500">
+                                            <td className="px-4 py-6 text-sm font-bold text-gray-500 min-w-[150px]">
                                                 {product.make} <span className="text-gray-300 font-normal mx-1">|</span> {product.model}
                                             </td>
-                                            <td className="px-8 py-6 whitespace-nowrap text-sm font-bold text-gray-400 italic">
+                                            <td className="px-4 py-6 whitespace-nowrap text-sm font-bold text-gray-400 italic">
                                                 {product.costPrice ? `${product.costPrice} EGP` : '—'}
                                             </td>
-                                            <td className="px-8 py-6 whitespace-nowrap text-sm font-black">
+                                            <td className="px-4 py-6 whitespace-nowrap text-sm font-black">
                                                 {product.salePrice ? (
                                                     <div className="flex flex-col">
                                                         <span className="text-[#28B463]">{product.salePrice} EGP</span>
@@ -515,7 +515,7 @@ const ManageProducts = () => {
                                                     <span className="text-black">{product.price} EGP</span>
                                                 )}
                                             </td>
-                                            <td className="px-8 py-6 whitespace-nowrap text-center">
+                                            <td className="px-4 py-6 whitespace-nowrap text-center">
                                                 <button
                                                     onClick={() => handleToggleActive(product.id, product.isActive)}
                                                     className={`relative inline-flex h-6 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-all duration-300 ease-in-out focus:outline-none ${product.isActive !== false ? 'bg-green-500' : 'bg-gray-200'}`}
@@ -523,19 +523,21 @@ const ManageProducts = () => {
                                                     <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-300 ease-in-out ${product.isActive !== false ? 'translate-x-6' : 'translate-x-0'}`} />
                                                 </button>
                                             </td>
-                                            <td className="px-8 py-6 whitespace-nowrap text-right">
-                                                <div className="flex items-center justify-end gap-4">
+                                            <td className="px-4 py-6 whitespace-nowrap text-right">
+                                                <div className="flex items-center justify-end gap-2">
                                                     <button
                                                         onClick={() => navigate(`/admin/edit-product/${product.id}`)}
-                                                        className="p-3 bg-[#28B463]/10 text-[#28B463] hover:bg-[#28B463] hover:text-white border border-[#28B463]/20 rounded-xl transition-all hover:-translate-y-1 shadow-lg shadow-[#28B463]/5 group/btn"
+                                                        className="p-2.5 bg-[#28B463]/10 text-[#28B463] hover:bg-[#28B463] hover:text-white border border-[#28B463]/20 rounded-xl transition-all hover:-translate-y-1 shadow-lg shadow-[#28B463]/5"
+                                                        title="Edit Product"
                                                     >
-                                                        <Edit3 className="h-4.5 w-4.5" />
+                                                        <Edit3 className="h-4 w-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(product.id, product.name)}
-                                                        className="p-3 bg-racing-red/10 text-racing-red hover:bg-racing-red hover:text-white border border-racing-red/20 rounded-xl transition-all hover:-translate-y-1 shadow-lg shadow-racing-red/5"
+                                                        className="p-2.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-100 rounded-xl transition-all hover:-translate-y-1 shadow-lg shadow-red-600/5"
+                                                        title="Delete Product"
                                                     >
-                                                        <Trash2 className="h-4.5 w-4.5" />
+                                                        <Trash2 className="h-4 w-4" />
                                                     </button>
                                                 </div>
                                             </td>
