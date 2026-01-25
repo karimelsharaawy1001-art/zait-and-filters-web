@@ -373,32 +373,44 @@ const Checkout = () => {
                 }
             }
 
+            // Verify Instapay Upload Status
+            if (formData.paymentMethod === 'instapay') {
+                if (uploadingReceipt) {
+                    toast.error('Please wait for the receipt to finish uploading.');
+                    return;
+                }
+                if (!receiptUrl) {
+                    toast.error('Please upload the payment receipt first');
+                    return;
+                }
+            }
+
             const orderData = {
                 userId: auth.currentUser?.uid || 'guest',
                 customer: {
-                    name: formData.name,
-                    phone: formattedPhone,
+                    name: formData.name || 'Guest',
+                    phone: formattedPhone || '',
                     email: formData.email || null,
-                    address: formData.address,
-                    governorate: formData.governorate,
-                    city: formData.city
+                    address: formData.address || '',
+                    governorate: formData.governorate || '',
+                    city: formData.city || ''
                 },
-                customerPhone: formattedPhone,
+                customerPhone: formattedPhone || '',
                 customerEmail: formData.email || null,
-                paymentMethod: selectedMethod?.name || formData.paymentMethod,
-                paymentType: selectedMethod?.type || 'offline',
+                paymentMethod: (selectedMethod?.name || formData.paymentMethod) || 'Unknown',
+                paymentType: (selectedMethod?.type || 'offline'),
                 items: finalOrderItems,
-                subtotal: subtotal,
-                discount: discount,
-                shipping_cost: shipping,
-                total: total,
+                subtotal: Number(subtotal) || 0,
+                discount: Number(discount) || 0,
+                shipping_cost: Number(shipping) || 0,
+                total: Number(total) || 0,
                 currentMileage: formData.currentMileage || null,
                 promoCode: appliedPromo?.code || null,
                 promoId: appliedPromo?.id || null,
-                affiliateCode: affRef || (appliedPromo?.code) || null,
+                affiliateCode: (affRef || appliedPromo?.code) ? (affRef || appliedPromo.code) : null,
                 status: formData.paymentMethod === 'instapay' ? 'Awaiting Payment Verification' : 'Pending',
                 paymentStatus: formData.paymentMethod === 'instapay' ? 'Awaiting Verification' : 'Pending',
-                receiptUrl: formData.paymentMethod === 'instapay' ? receiptUrl : null,
+                receiptUrl: formData.paymentMethod === 'instapay' ? (receiptUrl || null) : null,
                 createdAt: new Date()
             };
 
