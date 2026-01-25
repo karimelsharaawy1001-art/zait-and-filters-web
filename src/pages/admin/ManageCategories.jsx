@@ -38,14 +38,18 @@ const ManageCategories = () => {
                 let errorMessage = 'Export failed';
                 let errorDetails = '';
                 try {
-                    const errorData = await response.json();
-                    errorMessage = errorData.error || errorData.message || errorMessage;
-                    errorDetails = errorData.details || '';
+                    const errorText = await response.text();
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        errorMessage = errorData.error || errorData.message || errorMessage;
+                        errorDetails = errorData.details || '';
+                    } catch (e) {
+                        errorMessage = `HTTP ${response.status}: ${errorText.slice(0, 100)}`;
+                    }
                 } catch (e) {
-                    const textError = await response.text();
-                    errorMessage = textError.slice(0, 100) || errorMessage;
+                    errorMessage = `Network error or invalid response (Status: ${response.status})`;
                 }
-                throw new Error(errorDetails ? `${errorMessage}: ${errorDetails}` : errorMessage);
+                throw new Error(errorDetails ? `${errorMessage} [${errorDetails}]` : errorMessage);
             }
 
             const blob = await response.blob();

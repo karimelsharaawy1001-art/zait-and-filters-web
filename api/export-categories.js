@@ -1,25 +1,37 @@
 import admin from 'firebase-admin';
 import * as XLSX from 'xlsx';
 
-// Initialize Firebase Admin (Using the same pattern as products.js)
-if (!admin.apps.length) {
-    try {
-        if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-            const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-            admin.initializeApp({
-                credential: admin.credential.cert(serviceAccount)
-            });
-            console.log('[API/Export] Initialized with Service Account');
-        } else {
-            admin.initializeApp();
-            console.warn('[API/Export] Initialized with Default Credentials (Manual Config might be needed)');
-        }
-    } catch (error) {
-        console.error('[API/Export] Firebase Admin initialization failed:', error.message);
-    }
-}
+// Use a named app to avoid collisions with the default app in serverless runtimes
+const getFirestoreDB = () => {
+    const appName = 'category-export';
+    let app;
 
-const db = admin.firestore();
+    const existingApp = admin.apps.find(a => a?.name === appName);
+    if (existingApp) {
+        app = existingApp;
+    } else {
+        const config = {
+            projectId: process.env.VITE_FIREBASE_PROJECT_ID ||
+                process.env.FIREBASE_PROJECT_ID ||
+                'zaitandfilters'
+        };
+
+        if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+            try {
+                const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+                config.credential = admin.credential.cert(serviceAccount);
+                if (serviceAccount.project_id) config.projectId = serviceAccount.project_id;
+            } catch (e) {
+                console.error('[API/Export] Service account parse error:', e.message);
+            }
+        }
+
+        console.log(`[API/Export] Initializing named app "${appName}" for Project: ${config.projectId}`);
+        app = admin.initializeApp(config, appName);
+    }
+
+    return app.firestore();
+};
 
 export default async function handler(req, res) {
     // Only allow GET requests
@@ -30,7 +42,7 @@ export default async function handler(req, res) {
 
     try {
         const { format = 'xlsx' } = req.query;
-        console.log(`[API/ExportCategories] Format requested: ${format}`);
+        const db = getFirestoreDB();
 
         // 1. Fetch Categories
         let categories = [];
@@ -38,20 +50,20 @@ export default async function handler(req, res) {
             const categoriesSnapshot = await db.collection('categories').get();
             categories = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } catch (catError) {
-            console.error('[API/Export] Error fetching categories:', catError.message);
+            console.error('[API/Export] Database Fetch Error:', catError.message);
             return res.status(500).json({
                 error: 'Failed to fetch categories from database',
                 details: catError.message
             });
         }
 
-        // 2. Fetch Products for counting (Optional, won't block if fails)
+        // 2. Fetch Products for counting (Optional)
         let products = [];
         try {
             const productsSnapshot = await db.collection('products').get();
             products = productsSnapshot.docs.map(doc => doc.data());
         } catch (prodError) {
-            console.warn('[API/Export] Error fetching products for counts:', prodError.message);
+            console.warn('[API/Export] Product fetch failed (skipping counts):', prodError.message);
         }
 
         if (categories.length === 0) {
@@ -104,7 +116,7 @@ export default async function handler(req, res) {
         return res.status(200).send(buf);
 
     } catch (error) {
-        console.error('[API/Export] Fatal error:', error);
+        console.error('[API/Export] Fatal Error:', error);
         return res.status(500).json({
             error: 'An unexpected internal error occurred',
             details: error.message
