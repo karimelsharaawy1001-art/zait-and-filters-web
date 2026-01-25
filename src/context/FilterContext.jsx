@@ -61,11 +61,19 @@ export const FilterProvider = ({ children }) => {
     }, []);
 
     const updateFilter = (key, value) => {
-        setFilters(prev => ({
-            ...prev,
-            [key]: value,
-            page: key === 'page' ? (typeof value === 'number' ? value : prev.page) : 1
-        }));
+        setFilters(prev => {
+            let newPage = 1;
+            if (key === 'page') {
+                const parsed = parseInt(value);
+                newPage = isNaN(parsed) ? (prev.page || 1) : Math.max(1, parsed);
+            }
+
+            return {
+                ...prev,
+                [key]: value,
+                page: newPage
+            };
+        });
     };
 
     const resetFilters = () => {

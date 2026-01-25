@@ -79,11 +79,12 @@ const ProductGrid = ({ showFilters = true }) => {
             // or better, fetch all IDs if count is manageable.
             // Let's use a robust approach for 12 items.
 
+            const currentPage = Math.max(1, parseInt(filters.page) || 1);
             const limitedQuery = query(
                 collection(db, 'products'),
                 ...qConstraints,
                 orderBy('createdAt', 'desc'),
-                limit(PAGE_SIZE * (filters.page || 1))
+                limit(PAGE_SIZE * currentPage)
             );
 
             const querySnapshot = await getDocs(limitedQuery);
@@ -93,7 +94,7 @@ const ProductGrid = ({ showFilters = true }) => {
             }));
 
             // Slice for the current page
-            const startIndex = ((filters.page || 1) - 1) * PAGE_SIZE;
+            const startIndex = (currentPage - 1) * PAGE_SIZE;
             const paginatedItems = allFetched.slice(startIndex, startIndex + PAGE_SIZE);
 
             setProducts(paginatedItems);
@@ -109,6 +110,8 @@ const ProductGrid = ({ showFilters = true }) => {
             }
         } catch (error) {
             console.error("Error fetching products: ", error);
+            setProducts([]);
+            setTotalProducts(0);
         } finally {
             setLoading(false);
         }
@@ -638,16 +641,17 @@ const ProductGrid = ({ showFilters = true }) => {
                                     </button>
 
                                     <div className="flex items-center gap-1.5">
-                                        {[...Array(Math.ceil(totalProducts / PAGE_SIZE))].map((_, i) => {
+                                        {totalProducts > 0 && [...Array(Math.ceil(totalProducts / PAGE_SIZE))].map((_, i) => {
                                             const pageNum = i + 1;
+                                            const activePage = Math.max(1, parseInt(filters.page) || 1);
                                             // Simple pagination: show current, first, last, and neighbors
-                                            const isCurrentlyActive = filters.page === pageNum;
+                                            const isCurrentlyActive = activePage === pageNum;
 
                                             // Only show a limited range of page numbers
                                             if (
                                                 pageNum === 1 ||
                                                 pageNum === Math.ceil(totalProducts / PAGE_SIZE) ||
-                                                (pageNum >= filters.page - 1 && pageNum <= filters.page + 1)
+                                                (pageNum >= activePage - 1 && pageNum <= activePage + 1)
                                             ) {
                                                 return (
                                                     <button
@@ -659,8 +663,8 @@ const ProductGrid = ({ showFilters = true }) => {
                                                     </button>
                                                 );
                                             } else if (
-                                                (pageNum === filters.page - 2 && pageNum > 1) ||
-                                                (pageNum === filters.page + 2 && pageNum < Math.ceil(totalProducts / PAGE_SIZE))
+                                                (pageNum === activePage - 2 && pageNum > 1) ||
+                                                (pageNum === activePage + 2 && pageNum < Math.ceil(totalProducts / PAGE_SIZE))
                                             ) {
                                                 return <span key={pageNum} className="text-gray-300 font-bold px-1">...</span>;
                                             }
@@ -669,15 +673,15 @@ const ProductGrid = ({ showFilters = true }) => {
                                     </div>
 
                                     <button
-                                        onClick={() => updateFilter('page', Math.min(Math.ceil(totalProducts / PAGE_SIZE), filters.page + 1))}
-                                        disabled={filters.page >= Math.ceil(totalProducts / PAGE_SIZE)}
+                                        onClick={() => updateFilter('page', Math.min(Math.ceil(totalProducts / PAGE_SIZE), (parseInt(filters.page) || 1) + 1))}
+                                        disabled={(parseInt(filters.page) || 1) >= Math.ceil(totalProducts / PAGE_SIZE)}
                                         className="p-3 bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-[#28B463] hover:border-[#28B463] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                                     >
                                         <ChevronRight className={`h-5 w-5 ${isRTL ? 'rotate-180' : ''}`} />
                                     </button>
                                 </div>
                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                    {t('showing')} {((filters.page - 1) * PAGE_SIZE) + 1} - {Math.min(filters.page * PAGE_SIZE, totalProducts)} {t('of')} {totalProducts} {t('products')}
+                                    {t('showing')} {(((parseInt(filters.page) || 1) - 1) * PAGE_SIZE) + 1} - {Math.min((parseInt(filters.page) || 1) * PAGE_SIZE, totalProducts)} {t('of')} {totalProducts} {t('products')}
                                 </p>
                             </div>
                         )}
