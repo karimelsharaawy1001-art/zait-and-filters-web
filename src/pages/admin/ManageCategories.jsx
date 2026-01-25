@@ -33,7 +33,19 @@ const ManageCategories = () => {
         setExporting(true);
         try {
             const response = await fetch(`/api/export-categories?format=${format}`);
-            if (!response.ok) throw new Error('Export failed');
+
+            if (!response.ok) {
+                let errorMessage = 'Export failed';
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error || errorData.message || errorMessage;
+                } catch (e) {
+                    // Not a JSON response
+                    const textError = await response.text();
+                    errorMessage = textError.slice(0, 100) || errorMessage;
+                }
+                throw new Error(errorMessage);
+            }
 
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
@@ -48,7 +60,7 @@ const ManageCategories = () => {
             toast.success(`Categories exported as ${format.toUpperCase()} successfully`);
         } catch (error) {
             console.error("Export error:", error);
-            toast.error(`Failed to export categories as ${format.toUpperCase()}`);
+            toast.error(`Export error: ${error.message}`);
         } finally {
             setExporting(false);
         }
