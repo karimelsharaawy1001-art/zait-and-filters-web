@@ -356,10 +356,7 @@ const ManagePayments = () => {
             </div>
         </div>
     );
-                </div >
-            </div >
-        </div >
-    );
+
 };
 
 export default ManagePayments;
