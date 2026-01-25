@@ -686,9 +686,55 @@ const Checkout = () => {
 
                             <hr className="border-gray-100" />
 
+
+
+                            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 font-bold">
+                                <h3 className={`text-sm font-black text-gray-400 uppercase tracking-widest mb-4 ${isAr ? 'text-right' : 'text-left'}`}>{t('finalSummary')}</h3>
+                                <div className="space-y-3">
+                                    <div className={`flex justify-between items-center text-sm ${isAr ? 'flex-row-reverse' : ''}`}>
+                                        <span className="text-gray-600 font-bold">{t('subtotal')}</span>
+                                        <span className="font-black text-gray-900">{subtotal} {t('currency')}</span>
+                                    </div>
+
+                                    {discount > 0 && (
+                                        <div className={`flex justify-between items-center text-sm text-green-600 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                            <span className="font-bold flex items-center gap-1">
+                                                <Ticket className="h-3 w-3" />
+                                                {t('discount')} ({appliedPromo?.code})
+                                            </span>
+                                            <span className="font-black">-{discount} {t('currency')}</span>
+                                        </div>
+                                    )}
+
+                                    <div className={`flex justify-between items-center text-sm ${isAr ? 'flex-row-reverse' : ''}`}>
+                                        <span className="text-gray-600 font-bold flex items-center gap-1">
+                                            {t('shipping')}
+                                            {appliedPromo?.type === 'payment_method_shipping' && shipping === 0 && <span className="text-[10px] bg-purple-100 text-purple-600 px-1 rounded">PAYMENT RULE</span>}
+                                            {appliedPromo?.type === 'free_shipping_threshold' && shipping === 0 && <span className="text-[10px] bg-blue-100 text-blue-600 px-1 rounded">THRESHOLD RULE</span>}
+                                        </span>
+                                        <span className={`font-black ${shipping === 0 && subtotal > 0 ? 'text-green-600' : 'text-orange-600'}`}>
+                                            {shipping === 0 && subtotal > 0 ? (isAr ? 'مجاني' : 'FREE') : `+${shipping} ${t('currency')}`}
+                                        </span>
+                                    </div>
+
+                                    {appliedPromo?.type === 'product_gift' && (
+                                        <div className={`flex justify-between items-center text-[10px] text-purple-600 font-black uppercase tracking-widest border-t border-purple-100 pt-2 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                            <span>{t('bonusGift')}</span>
+                                        </div>
+                                    )}
+
+                                    <div className={`flex justify-between items-center pt-3 border-t border-gray-200 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                        <span className="text-lg font-black text-gray-900">{t('totalToPay')}</span>
+                                        <span className="text-2xl font-black text-orange-600">{total} <span className="text-xs">{t('currency')}</span></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr className="border-gray-100" />
+
                             <div className="space-y-6">
                                 <h2 className={`text-xl font-black text-gray-900 flex items-center gap-2 ${isAr ? 'flex-row-reverse' : ''}`}>
-                                    <span className="bg-[#28B463] text-white h-6 w-6 rounded-full flex items-center justify-center text-xs">2</span>
+                                    <span className="bg-[#28B463] text-white h-6 w-6 rounded-full flex items-center justify-center text-xs">3</span>
                                     {t('paymentMethod')}
                                 </h2>
 
@@ -923,50 +969,6 @@ const Checkout = () => {
                                         <p className="text-gray-500 text-sm font-bold">{t('noPaymentMethods') || 'No payment methods available'}</p>
                                     </div>
                                 )}
-                            </div>
-
-                            <hr className="border-gray-100" />
-
-                            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 font-bold">
-                                <h3 className={`text-sm font-black text-gray-400 uppercase tracking-widest mb-4 ${isAr ? 'text-right' : 'text-left'}`}>{t('finalSummary')}</h3>
-                                <div className="space-y-3">
-                                    <div className={`flex justify-between items-center text-sm ${isAr ? 'flex-row-reverse' : ''}`}>
-                                        <span className="text-gray-600 font-bold">{t('subtotal')}</span>
-                                        <span className="font-black text-gray-900">{subtotal} {t('currency')}</span>
-                                    </div>
-
-                                    {discount > 0 && (
-                                        <div className={`flex justify-between items-center text-sm text-green-600 ${isAr ? 'flex-row-reverse' : ''}`}>
-                                            <span className="font-bold flex items-center gap-1">
-                                                <Ticket className="h-3 w-3" />
-                                                {t('discount')} ({appliedPromo?.code})
-                                            </span>
-                                            <span className="font-black">-{discount} {t('currency')}</span>
-                                        </div>
-                                    )}
-
-                                    <div className={`flex justify-between items-center text-sm ${isAr ? 'flex-row-reverse' : ''}`}>
-                                        <span className="text-gray-600 font-bold flex items-center gap-1">
-                                            {t('shipping')}
-                                            {appliedPromo?.type === 'payment_method_shipping' && shipping === 0 && <span className="text-[10px] bg-purple-100 text-purple-600 px-1 rounded">PAYMENT RULE</span>}
-                                            {appliedPromo?.type === 'free_shipping_threshold' && shipping === 0 && <span className="text-[10px] bg-blue-100 text-blue-600 px-1 rounded">THRESHOLD RULE</span>}
-                                        </span>
-                                        <span className={`font-black ${shipping === 0 && subtotal > 0 ? 'text-green-600' : 'text-orange-600'}`}>
-                                            {shipping === 0 && subtotal > 0 ? (isAr ? 'مجاني' : 'FREE') : `+${shipping} ${t('currency')}`}
-                                        </span>
-                                    </div>
-
-                                    {appliedPromo?.type === 'product_gift' && (
-                                        <div className={`flex justify-between items-center text-[10px] text-purple-600 font-black uppercase tracking-widest border-t border-purple-100 pt-2 ${isAr ? 'flex-row-reverse' : ''}`}>
-                                            <span>{t('bonusGift')}</span>
-                                        </div>
-                                    )}
-
-                                    <div className={`flex justify-between items-center pt-3 border-t border-gray-200 ${isAr ? 'flex-row-reverse' : ''}`}>
-                                        <span className="text-lg font-black text-gray-900">{t('totalToPay')}</span>
-                                        <span className="text-2xl font-black text-orange-600">{total} <span className="text-xs">{t('currency')}</span></span>
-                                    </div>
-                                </div>
                             </div>
 
                             <TrustPaymentSection />
