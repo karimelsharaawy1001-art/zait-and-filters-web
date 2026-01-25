@@ -22,6 +22,7 @@ const OrderDetails = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [order, setOrder] = useState(null);
+    const [enrichedItems, setEnrichedItems] = useState([]);
     const [updating, setUpdating] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editForm, setEditForm] = useState({
@@ -49,6 +50,49 @@ const OrderDetails = () => {
         };
         fetchOrder();
     }, [id, navigate]);
+
+    // Fetch full product details when order is loaded
+    useEffect(() => {
+        const fetchProductDetails = async () => {
+            if (!order?.items) return;
+
+            try {
+                const enriched = await Promise.all(order.items.map(async (item) => {
+                    try {
+                        if (!item.id) return item;
+                        const productRef = doc(db, 'products', item.id);
+                        const productSnap = await getDoc(productRef);
+
+                        if (productSnap.exists()) {
+                            const productData = productSnap.data();
+                            return {
+                                ...item,
+                                partBrand: productData.partBrand || item.brand || 'N/A',
+                                origin: productData.origin || productData.countryOfOrigin || 'N/A',
+                                partNumber: productData.partNumber || productData.sku || 'N/A',
+                                make: productData.make || item.make || 'Universal',
+                                model: productData.model || item.model || 'Universal',
+                                yearRange: (productData.yearStart && productData.yearEnd)
+                                    ? `${productData.yearStart}-${productData.yearEnd}`
+                                    : (item.yearStart ? `${item.yearStart}-${item.yearEnd}` : '')
+                            };
+                        }
+                        return item;
+                    } catch (err) {
+                        console.error(`Error fetching product ${item.id}:`, err);
+                        return item;
+                    }
+                }));
+                setEnrichedItems(enriched);
+            } catch (error) {
+                console.error("Error enriching items:", error);
+            }
+        };
+
+        if (order) {
+            fetchProductDetails();
+        }
+    }, [order]);
 
     const handleStatusChange = async (newStatus) => {
         setUpdating(true);
