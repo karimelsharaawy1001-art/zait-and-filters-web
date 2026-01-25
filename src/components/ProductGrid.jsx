@@ -58,8 +58,11 @@ const ProductGrid = ({ showFilters = true }) => {
         try {
             let qConstraints = [where('isActive', '==', true)];
 
-            if (isGarageFilterActive && activeCar) {
-                qConstraints.push(where('make', 'in', [activeCar.make, '', null]));
+            if (isGarageFilterActive && activeCar?.make) {
+                const makeValues = [activeCar.make, '', null].filter(Boolean);
+                if (makeValues.length > 0) {
+                    qConstraints.push(where('make', 'in', makeValues));
+                }
             }
 
             if (filters.category && filters.category !== 'All') {
@@ -83,7 +86,6 @@ const ProductGrid = ({ showFilters = true }) => {
             const limitedQuery = query(
                 collection(db, 'products'),
                 ...qConstraints,
-                orderBy('createdAt', 'desc'),
                 limit(PAGE_SIZE * currentPage)
             );
 
@@ -641,35 +643,40 @@ const ProductGrid = ({ showFilters = true }) => {
                                     </button>
 
                                     <div className="flex items-center gap-1.5">
-                                        {totalProducts > 0 && [...Array(Math.ceil(totalProducts / PAGE_SIZE))].map((_, i) => {
-                                            const pageNum = i + 1;
+                                        {(() => {
+                                            const count = Math.ceil(totalProducts / PAGE_SIZE);
+                                            const safeCount = (Number.isFinite(count) && count > 0 && count < 500) ? count : 0;
                                             const activePage = Math.max(1, parseInt(filters.page) || 1);
-                                            // Simple pagination: show current, first, last, and neighbors
-                                            const isCurrentlyActive = activePage === pageNum;
 
-                                            // Only show a limited range of page numbers
-                                            if (
-                                                pageNum === 1 ||
-                                                pageNum === Math.ceil(totalProducts / PAGE_SIZE) ||
-                                                (pageNum >= activePage - 1 && pageNum <= activePage + 1)
-                                            ) {
-                                                return (
-                                                    <button
-                                                        key={pageNum}
-                                                        onClick={() => updateFilter('page', pageNum)}
-                                                        className={`w-10 h-10 rounded-xl text-sm font-black transition-all ${isCurrentlyActive ? 'bg-[#28B463] text-white shadow-lg shadow-[#28B463]/30 scale-110' : 'bg-white border border-gray-100 text-gray-400 hover:border-gray-300'}`}
-                                                    >
-                                                        {pageNum}
-                                                    </button>
-                                                );
-                                            } else if (
-                                                (pageNum === activePage - 2 && pageNum > 1) ||
-                                                (pageNum === activePage + 2 && pageNum < Math.ceil(totalProducts / PAGE_SIZE))
-                                            ) {
-                                                return <span key={pageNum} className="text-gray-300 font-bold px-1">...</span>;
-                                            }
-                                            return null;
-                                        })}
+                                            return [...Array(safeCount)].map((_, i) => {
+                                                const pageNum = i + 1;
+                                                // Simple pagination: show current, first, last, and neighbors
+                                                const isCurrentlyActive = activePage === pageNum;
+
+                                                // Only show a limited range of page numbers
+                                                if (
+                                                    pageNum === 1 ||
+                                                    pageNum === Math.ceil(totalProducts / PAGE_SIZE) ||
+                                                    (pageNum >= activePage - 1 && pageNum <= activePage + 1)
+                                                ) {
+                                                    return (
+                                                        <button
+                                                            key={pageNum}
+                                                            onClick={() => updateFilter('page', pageNum)}
+                                                            className={`w-10 h-10 rounded-xl text-sm font-black transition-all ${isCurrentlyActive ? 'bg-[#28B463] text-white shadow-lg shadow-[#28B463]/30 scale-110' : 'bg-white border border-gray-100 text-gray-400 hover:border-gray-300'}`}
+                                                        >
+                                                            {pageNum}
+                                                        </button>
+                                                    );
+                                                } else if (
+                                                    (pageNum === activePage - 2 && pageNum > 1) ||
+                                                    (pageNum === activePage + 2 && pageNum < Math.ceil(totalProducts / PAGE_SIZE))
+                                                ) {
+                                                    return <span key={pageNum} className="text-gray-300 font-bold px-1">...</span>;
+                                                }
+                                                return null;
+                                            });
+                                        })()}
                                     </div>
 
                                     <button

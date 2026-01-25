@@ -102,9 +102,9 @@ const ManageProducts = () => {
     const fetchProducts = async (isNext = false, isPrev = false) => {
         setLoading(true);
         try {
-            let qConstraints = [where('isActive', '!=', 'deleted')]; // Placeholder to allow orderBy after where
+            let qConstraints = []; // Fetching all by default to avoid complex index requirements for admin
 
-            // Apply Filters (Firestore side)
+            // Only add filters if they are not 'All'
             if (categoryFilter !== 'All') qConstraints.push(where('category', '==', categoryFilter));
             if (subcategoryFilter !== 'All') qConstraints.push(where('subcategory', '==', subcategoryFilter));
             if (makeFilter !== 'All') qConstraints.push(where('make', '==', makeFilter));
@@ -113,20 +113,25 @@ const ManageProducts = () => {
             if (statusFilter === 'Active') qConstraints.push(where('isActive', '==', true));
             if (statusFilter === 'Inactive') qConstraints.push(where('isActive', '==', false));
 
-            // Sorting
+            // Simple sorting logic - only add order if it doesn't conflict with filters
+            // To be safe and avoid missing index errors, we'll fetch and sort in memory for Admin if needed,
+            // but for now, we'll try a single orderBy on the field if no other complex filters are active.
             let sortField = 'name';
             let sortDir = 'asc';
             if (sortBy.includes('-')) {
                 [sortField, sortDir] = sortBy.split('-');
             }
-            qConstraints.push(orderBy(sortField, sortDir));
+            if (qConstraints.length === 0) {
+                qConstraints.push(orderBy(sortField, sortDir));
+            }
 
             // Search (Firestore prefix search - requires manual indexing or broad fetch)
             // Note: For complex multi-field search, client-side is often easier unless dataset is HUGE.
             // But since user asked for pagination for performance, we apply name prefix if available.
             if (searchQuery) {
-                qConstraints.push(where('name', '>=', searchQuery));
-                qConstraints.push(where('name', '<=', searchQuery + '\uf8ff'));
+                const searchLower = searchQuery.toLowerCase();
+                qConstraints.push(where('name', '>=', searchLower));
+                qConstraints.push(where('name', '<=', searchLower + '\uf8ff'));
             }
 
             // Get Total Count (Only on initial load or filter change)
