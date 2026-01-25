@@ -10,15 +10,16 @@ const BulkOperations = () => {
     const [importStatus, setImportStatus] = useState('');
 
     const headers = [
-        'name', 'category', 'subcategory', 'carMake', 'carModel',
-        'yearRange', 'partBrand', 'countryOfOrigin', 'price',
-        'salePrice', 'description', 'imageUrl'
+        'name', 'activeStatus', 'category', 'subcategory', 'carMake', 'carModel',
+        'yearRange', 'partBrand', 'countryOfOrigin', 'costPrice', 'sellPrice',
+        'salePrice', 'warranty', 'description', 'imageUrl', 'partNumber', 'compatibility'
     ];
 
     const downloadTemplate = () => {
         const sampleData = [
             {
                 name: "فلتر زيت",
+                activeStatus: "TRUE",
                 category: "Maintenance",
                 subcategory: "Filters",
                 carMake: "Toyota",
@@ -26,13 +27,18 @@ const BulkOperations = () => {
                 yearRange: "2015-2023",
                 partBrand: "Genuine",
                 countryOfOrigin: "Japan",
-                price: 350,
+                costPrice: 200,
+                sellPrice: 350,
                 salePrice: "",
+                warranty: "None",
                 description: "High quality oil filter",
-                imageUrl: "https://example.com/filter.jpg"
+                imageUrl: "https://example.com/filter.jpg",
+                partNumber: "90915-YZZE1",
+                compatibility: "1.6L Engine"
             },
             {
                 name: "تيل فرامل",
+                activeStatus: "TRUE",
                 category: "Brakes",
                 subcategory: "Front Brakes",
                 carMake: "Mitsubishi",
@@ -40,31 +46,21 @@ const BulkOperations = () => {
                 yearRange: "2006-2016",
                 partBrand: "Hi-Q",
                 countryOfOrigin: "Korea",
-                price: 900,
+                costPrice: 600,
+                sellPrice: 900,
                 salePrice: 850,
+                warranty: "6 Months",
                 description: "Premium brake pads",
-                imageUrl: "https://example.com/brakes.jpg"
-            },
-            {
-                name: "منظف دورة وقود",
-                category: "Additives",
-                subcategory: "Fuel System",
-                carMake: "Generic",
-                carModel: "All Models",
-                yearRange: "All Years",
-                partBrand: "Liqui Moly",
-                countryOfOrigin: "Germany",
-                price: 150,
-                salePrice: "",
-                description: "Fuel system cleaner",
-                imageUrl: "https://example.com/cleaner.jpg"
+                imageUrl: "https://example.com/brakes.jpg",
+                partNumber: "SP1402",
+                compatibility: "All trims"
             }
         ];
 
         const worksheet = XLSX.utils.json_to_sheet(sampleData, { header: headers });
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Products Template");
-        XLSX.writeFile(workbook, "products_template.xlsx");
+        XLSX.writeFile(workbook, "products_template_v2.xlsx");
     };
 
     const exportProducts = async () => {
@@ -75,6 +71,7 @@ const BulkOperations = () => {
                 const data = doc.data();
                 return {
                     name: data.name || '',
+                    activeStatus: data.isActive ? 'TRUE' : 'FALSE',
                     category: data.category || '',
                     subcategory: data.subcategory || data.subCategory || '',
                     carMake: data.make || '',
@@ -82,10 +79,14 @@ const BulkOperations = () => {
                     yearRange: data.yearRange || (data.yearStart && data.yearEnd ? `${data.yearStart}-${data.yearEnd}` : ''),
                     partBrand: data.partBrand || data.brand || '',
                     countryOfOrigin: data.countryOfOrigin || data.country || '',
-                    price: data.price || 0,
+                    costPrice: data.costPrice || 0,
+                    sellPrice: data.price || 0,
                     salePrice: data.salePrice || '',
+                    warranty: data.warranty || '',
                     description: data.description || '',
-                    imageUrl: data.image || ''
+                    imageUrl: data.image || '',
+                    partNumber: data.partNumber || '',
+                    compatibility: data.compatibility || ''
                 };
             });
 
@@ -100,6 +101,14 @@ const BulkOperations = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const parseBoolean = (val) => {
+        if (typeof val === 'boolean') return val;
+        if (typeof val === 'string') {
+            return val.toUpperCase() === 'TRUE' || val === '1' || val.toLowerCase() === 'yes';
+        }
+        return !!val;
     };
 
     const handleImport = async (e) => {
@@ -132,9 +141,11 @@ const BulkOperations = () => {
                     const chunk = jsonData.slice(i, i + batchSize);
 
                     chunk.forEach((row) => {
-                        if (!row.name || !row.price) return; // Basic validation
+                        if (!row.name || !row.sellPrice) return; // Basic validation (sellPrice map to price)
 
                         const docRef = doc(collection(db, 'products'));
+                        const isActive = row.activeStatus !== undefined ? parseBoolean(row.activeStatus) : true;
+
                         batch.set(docRef, {
                             name: row.name,
                             category: row.category || 'Uncategorized',
@@ -144,12 +155,21 @@ const BulkOperations = () => {
                             yearRange: row.yearRange || '',
                             partBrand: row.partBrand || '',
                             countryOfOrigin: row.countryOfOrigin || '',
-                            price: Number(row.price),
+
+                            // Pricing Logic
+                            costPrice: row.costPrice ? Number(row.costPrice) : 0,
+                            price: row.sellPrice ? Number(row.sellPrice) : 0, // Map sellPrice to price
                             salePrice: row.salePrice ? Number(row.salePrice) : null,
+
+                            warranty: row.warranty || '',
                             description: row.description || '',
                             image: row.imageUrl || '',
-                            isActive: true,
-                            createdAt: new Date()
+                            partNumber: row.partNumber || '',
+                            compatibility: row.compatibility || '',
+
+                            isActive: isActive,
+                            createdAt: new Date(),
+                            updatedAt: new Date()
                         });
                     });
 
