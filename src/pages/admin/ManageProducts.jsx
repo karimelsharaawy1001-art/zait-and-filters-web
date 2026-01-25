@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, deleteDoc, doc, updateDoc, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc, updateDoc, query, orderBy, writeBatch } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
 import AdminHeader from '../../components/AdminHeader';
-import { Edit3, Trash2, Plus, Search, Filter, AlertTriangle, ArrowUpDown, ChevronLeft, ChevronRight, Eye, MoreVertical, CheckCircle, XCircle, TrendingUp } from 'lucide-react';
+import { Edit3, Trash2, Plus, Search, Filter, AlertTriangle, ArrowUpDown, ChevronLeft, ChevronRight, Eye, MoreVertical, CheckCircle, XCircle, TrendingUp, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BulkOperations from '../../components/admin/BulkOperations';
 
@@ -20,6 +20,9 @@ const ManageProducts = () => {
     const [brandFilter, setBrandFilter] = useState('All');
     const [statusFilter, setStatusFilter] = useState('All');
     const [sortBy, setSortBy] = useState('name-asc');
+    const [selectedIds, setSelectedIds] = useState(new Set());
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const [allCategories, setAllCategories] = useState([]);
     const [availableSubcategories, setAvailableSubcategories] = useState([]);
@@ -142,6 +145,46 @@ const ManageProducts = () => {
             return `${product.yearStart}-${product.yearEnd}`;
         }
         return 'All Years';
+    };
+
+    const toggleSelectProduct = (id) => {
+        const newSelected = new Set(selectedIds);
+        if (newSelected.has(id)) {
+            newSelected.delete(id);
+        } else {
+            newSelected.add(id);
+        }
+        setSelectedIds(newSelected);
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.size === filteredProducts.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(filteredProducts.map(p => p.id)));
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedIds.size === 0) return;
+        setIsDeleting(true);
+        try {
+            const batch = writeBatch(db);
+            selectedIds.forEach(id => {
+                batch.delete(doc(db, 'products', id));
+            });
+            await batch.commit();
+
+            setProducts(products.filter(p => !selectedIds.has(p.id)));
+            setSelectedIds(new Set());
+            setShowDeleteModal(false);
+            toast.success(`${selectedIds.size} products deleted successfully!`);
+        } catch (error) {
+            console.error("Error bulk deleting products:", error);
+            toast.error('Error deleting products');
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     const getProfitMargin = (sellPrice, costPrice) => {
@@ -397,6 +440,16 @@ const ManageProducts = () => {
                             <table className="w-full">
                                 <thead>
                                     <tr className="bg-gray-50">
+                                        <th className="px-6 py-5 text-left border-b border-gray-100">
+                                            <div className="flex items-center justify-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={filteredProducts.length > 0 && selectedIds.size === filteredProducts.length}
+                                                    onChange={toggleSelectAll}
+                                                    className="w-4 h-4 rounded border-gray-300 text-[#28B463] focus:ring-[#28B463] cursor-pointer"
+                                                />
+                                            </div>
+                                        </th>
                                         <th className="px-8 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Visual</th>
                                         <th className="px-8 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Nomenclature / Group</th>
                                         <th className="px-8 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">System</th>
@@ -409,7 +462,17 @@ const ManageProducts = () => {
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
                                     {Array.isArray(filteredProducts) && filteredProducts.map((product) => (
-                                        <tr key={product.id} className="hover:bg-white/[0.02] transition-colors group/row">
+                                        <tr key={product.id} className={`hover:bg-white/[0.02] transition-colors group/row ${selectedIds.has(product.id) ? 'bg-green-50/30' : ''}`}>
+                                            <td className="px-6 py-6 whitespace-nowrap">
+                                                <div className="flex items-center justify-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedIds.has(product.id)}
+                                                        onChange={() => toggleSelectProduct(product.id)}
+                                                        className="w-4 h-4 rounded border-gray-300 text-[#28B463] focus:ring-[#28B463] cursor-pointer"
+                                                    />
+                                                </div>
+                                            </td>
                                             <td className="px-8 py-6 whitespace-nowrap">
                                                 <div className="relative h-14 w-14 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 group-hover/row:border-[#e31e24]/20 transition-all">
                                                     <img
@@ -485,8 +548,21 @@ const ManageProducts = () => {
                         {/* Mobile Optimized Cards */}
                         <div className="md:hidden divide-y divide-gray-100 bg-white">
                             {Array.isArray(filteredProducts) && filteredProducts.map((product) => (
-                                <div key={product.id} className="p-6 hover:bg-gray-50 transition-all">
-                                    <div className="flex gap-6">
+                                <div
+                                    key={product.id}
+                                    className={`p-6 hover:bg-gray-50 transition-all relative ${selectedIds.has(product.id) ? 'bg-green-50/30' : ''}`}
+                                >
+                                    {/* Mobile Checkbox */}
+                                    <div className="absolute top-6 left-6 z-10">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedIds.has(product.id)}
+                                            onChange={() => toggleSelectProduct(product.id)}
+                                            className="w-5 h-5 rounded border-gray-300 text-[#28B463] focus:ring-[#28B463] cursor-pointer shadow-sm"
+                                        />
+                                    </div>
+
+                                    <div className="flex gap-6 pl-10">
                                         <div className="relative h-24 w-24 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 flex-shrink-0">
                                             <img
                                                 src={product.image}
@@ -519,7 +595,7 @@ const ManageProducts = () => {
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(product.id, product.name)}
-                                                        className="p-3 bg-green-50 text-[#28B463] rounded-xl border border-red-100 hover:bg-[#28B463] hover:text-white transition-all"
+                                                        className="p-3 bg-red-50 text-red-600 rounded-xl border border-red-100 hover:bg-red-600 hover:text-white transition-all"
                                                     >
                                                         <Trash2 className="h-4.5 w-4.5" />
                                                     </button>
@@ -533,6 +609,86 @@ const ManageProducts = () => {
                     </div>
                 )}
             </div>
+
+            {/* Floating Action Bar */}
+            {selectedIds.size > 0 && (
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <div className="bg-black text-white px-8 py-4 rounded-[2rem] shadow-2xl flex items-center gap-8 border border-white/10 backdrop-blur-md">
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Items Selected</span>
+                            <span className="text-xl font-black font-Cairo">{selectedIds.size} <span className="text-xs text-[#28B463]">PRODUCTS</span></span>
+                        </div>
+                        <div className="h-8 w-[1px] bg-white/10" />
+                        <button
+                            onClick={() => setShowDeleteModal(true)}
+                            className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-lg shadow-red-600/20 flex items-center gap-2"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                            مسح المحدد
+                        </button>
+                        <button
+                            onClick={() => setSelectedIds(new Set())}
+                            className="text-gray-400 hover:text-white transition-colors"
+                        >
+                            <X className="h-5 w-5" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Confirmation Modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => !isDeleting && setShowDeleteModal(false)} />
+                    <div className="relative bg-white rounded-[3rem] p-10 max-w-lg w-full shadow-2xl border border-gray-100 overflow-hidden group">
+                        {/* Decorative background element */}
+                        <div className="absolute -top-24 -right-24 w-48 h-48 bg-red-50 rounded-full blur-3xl opacity-50 group-hover:scale-110 transition-transform duration-700" />
+
+                        <div className="relative">
+                            <div className="flex items-center justify-between mb-8">
+                                <div className="bg-red-50 p-3 rounded-2xl text-red-600">
+                                    <AlertTriangle className="h-8 w-8" />
+                                </div>
+                                <button
+                                    onClick={() => !isDeleting && setShowDeleteModal(false)}
+                                    className="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-400"
+                                >
+                                    <X className="h-6 w-6" />
+                                </button>
+                            </div>
+
+                            <h3 className="text-2xl font-black text-black mb-4 uppercase tracking-tight font-Cairo leading-tight">
+                                هل أنت متأكد من مسح {selectedIds.size} من المنتجات؟
+                            </h3>
+                            <p className="text-gray-500 font-bold text-sm mb-10 leading-relaxed uppercase tracking-widest italic">
+                                لا يمكن التراجع عن هذه الخطوة. سيتم حذف جميع البيانات المتعلقة بذه المنتجات المختارة نهائياً.
+                            </p>
+
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => !isDeleting && setShowDeleteModal(false)}
+                                    disabled={isDeleting}
+                                    className="flex-1 py-5 bg-gray-100 hover:bg-gray-200 text-gray-500 font-black text-xs uppercase tracking-widest rounded-2xl transition-all disabled:opacity-50"
+                                >
+                                    إلغاء
+                                </button>
+                                <button
+                                    onClick={handleBulkDelete}
+                                    disabled={isDeleting}
+                                    className="flex-1 py-5 bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-red-600/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50"
+                                >
+                                    {isDeleting ? (
+                                        <div className="h-5 w-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                    ) : (
+                                        <Trash2 className="h-5 w-5" />
+                                    )}
+                                    نعم، امسح المنتجات
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
