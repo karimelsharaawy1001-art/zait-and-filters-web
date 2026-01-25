@@ -45,7 +45,7 @@ const ProductGrid = ({ showFilters = true }) => {
     // Active filters state for multi-select
     const [activeFilters, setActiveFilters] = useState({
         categories: [],
-        subcategories: [],
+        subcategory: [],
         makes: [],
         models: [],
         years: [],
@@ -56,8 +56,11 @@ const ProductGrid = ({ showFilters = true }) => {
     const fetchProducts = async () => {
         setLoading(true);
         try {
+            // Start with a broad query to avoid complex index requirements initially
+            // We'll apply filters on Firestore if they are simple, and potentially more client-side if needed.
             let qConstraints = [where('isActive', '==', true)];
 
+            // 1. Garage Filter
             if (isGarageFilterActive && activeCar?.make) {
                 const makeValues = [activeCar.make, '', null].filter(Boolean);
                 if (makeValues.length > 0) {
@@ -65,23 +68,34 @@ const ProductGrid = ({ showFilters = true }) => {
                 }
             }
 
+            // 2. Category Filter
             if (filters.category && filters.category !== 'All') {
                 qConstraints.push(where('category', '==', filters.category));
             }
 
-            // Get total count for pagination
+            // 3. Search Query - Prefix search on name if it's the only filter
+            // Note: Mixing 'where' and prefix search often requires indexes.
+            // If we have filters above, we might skip Firestore search to avoid crashes.
+            const hasOtherFilters = qConstraints.length > 1; // isActive is always there
+            let applySearchClientSide = false;
+
+            if (filters.searchQuery) {
+                if (!hasOtherFilters) {
+                    const searchLower = filters.searchQuery.toLowerCase();
+                    qConstraints.push(where('name', '>=', searchLower));
+                    qConstraints.push(where('name', '<=', searchLower + '\uf8ff'));
+                } else {
+                    applySearchClientSide = true;
+                }
+            }
+
+            // Get count
             const countQuery = query(collection(db, 'products'), ...qConstraints);
             const countSnapshot = await getCountFromServer(countQuery);
-            setTotalProducts(countSnapshot.data().count);
+            const rawCount = countSnapshot.data().count;
+            setTotalProducts(rawCount);
 
-            // Fetch current page items
-            // For simple page-based jumping, we use a hybrid approach or just limit for first page.
-            // Since we need to support specific page numbers from URL, we'll fetch up to the offset.
-            // NOTE: In production with huge data, you'd use startAfter(lastDoc).
-            // For this project, we'll use limit(PAGE_SIZE * filters.page) and slice, 
-            // or better, fetch all IDs if count is manageable.
-            // Let's use a robust approach for 12 items.
-
+            // Fetch
             const currentPage = Math.max(1, parseInt(filters.page) || 1);
             const limitedQuery = query(
                 collection(db, 'products'),
@@ -90,28 +104,42 @@ const ProductGrid = ({ showFilters = true }) => {
             );
 
             const querySnapshot = await getDocs(limitedQuery);
-            const allFetched = querySnapshot.docs.map(doc => ({
+            let allFetched = querySnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
 
-            // Slice for the current page
+            // Client-side search if needed
+            if (applySearchClientSide && filters.searchQuery) {
+                const searchLower = filters.searchQuery.toLowerCase();
+                allFetched = allFetched.filter(p =>
+                    (p.name || '').toLowerCase().includes(searchLower) ||
+                    (p.brand || '').toLowerCase().includes(searchLower) ||
+                    (p.partNumber || '').toLowerCase().includes(searchLower)
+                );
+                // Note: This reduces the count, but it's a fallback for missing indexes
+                setTotalProducts(allFetched.length);
+            }
+
+            // Slice
             const startIndex = (currentPage - 1) * PAGE_SIZE;
             const paginatedItems = allFetched.slice(startIndex, startIndex + PAGE_SIZE);
-
             setProducts(paginatedItems);
 
-            // Extract unique filter options from products (one-time fetch or separate)
-            if (Object.keys(filterOptions.categories).length === 0) {
-                // If it's first load, we might need more data for filter dropdowns
-                // But typically filters are fetched separately or from a full initial set.
-                // Let's keep the extraction logic but maybe fetch a broader set for metadata.
-                const metaQuery = query(collection(db, 'products'), where('isActive', '==', true), limit(500));
+            // If we have 0 products but qConstraints was not empty, it might be an index/data issue
+            if (paginatedItems.length === 0 && qConstraints.length > 1 && rawCount === 0) {
+                console.warn("Potential Index or Data Issue: 0 products found with filters:", filters);
+            }
+
+            // Metadata extraction
+            if (!filterOptions.categories || Object.keys(filterOptions.categories).length === 0) {
+                const metaQuery = query(collection(db, 'products'), where('isActive', '==', true), limit(300));
                 const metaSnapshot = await getDocs(metaQuery);
                 extractFilterOptions(metaSnapshot.docs.map(doc => doc.data()));
             }
         } catch (error) {
-            console.error("Error fetching products: ", error);
+            console.error("Firestore Fetch Error:", error);
+            toast.error(`Shop Sync Error: ${error.message}`);
             setProducts([]);
             setTotalProducts(0);
         } finally {
@@ -128,7 +156,14 @@ const ProductGrid = ({ showFilters = true }) => {
                 gridElement.scrollIntoView({ behavior: 'smooth' });
             }
         }
-    }, [isGarageFilterActive, activeCar, filters.category, filters.page, activeFilters]);
+    }, [
+        isGarageFilterActive,
+        activeCar?.id,
+        filters.category,
+        filters.page,
+        filters.searchQuery,
+        JSON.stringify(activeFilters)
+    ]);
 
     // Extract unique values for each filter type
     const extractFilterOptions = async (productsList) => {

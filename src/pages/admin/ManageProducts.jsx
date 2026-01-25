@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { collection, getDocs, deleteDoc, doc, updateDoc, query, orderBy, writeBatch, limit, startAfter, getCountFromServer, where } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
@@ -177,8 +178,10 @@ const ManageProducts = () => {
             }
 
         } catch (error) {
-            console.error("Error fetching products:", error);
-            toast.error("Query failed. Check console for index requirements.");
+            console.error("Firestore Fetch Error:", error);
+            toast.error(`Shop Sync Error: ${error.message}`);
+            setProducts([]);
+            setTotalCount(0);
         } finally {
             setLoading(false);
         }
@@ -186,9 +189,9 @@ const ManageProducts = () => {
 
     const fetchBrands = async () => {
         try {
-            // Fetch all products just for brands to keep filters populated
-            // In a huge production DB, this should be a separate 'metadata' collection
-            const q = query(collection(db, 'products'), where('isActive', '!=', 'deleted'));
+            // Fetch a limited set of active products to extract brands
+            // avoid '!=' to stay safe without indexes
+            const q = query(collection(db, 'products'), where('isActive', '==', true), limit(200));
             const snapshot = await getDocs(q);
             const brands = [...new Set(snapshot.docs.map(doc => {
                 const data = doc.data();
@@ -196,7 +199,10 @@ const ManageProducts = () => {
             }))].filter(Boolean).sort();
             setUniquePartBrands(brands);
         } catch (error) {
-            console.error("Error fetching brands:", error);
+            console.error("Error fetching dashboard data:", error);
+            toast.error(`Dashboard Error: ${error.message}`);
+        } finally {
+            setLoading(false);
         }
     };
 

@@ -23,7 +23,7 @@ const ShopPage = () => {
         if (model && model !== filters.model) updateFilter('model', model);
         if (year && year !== filters.year) updateFilter('year', year);
         if (category && category !== filters.category) updateFilter('category', category);
-        if (subcategory && subcategory !== filters.subCategory) updateFilter('subCategory', subcategory);
+        if (subcategory && subcategory !== filters.subcategory) updateFilter('subcategory', subcategory);
         if (viscosity && viscosity !== filters.viscosity) updateFilter('viscosity', viscosity);
         if (page && page !== filters.page) updateFilter('page', page);
     }, [searchParams]);
@@ -35,7 +35,10 @@ const ShopPage = () => {
         if (filters.model) params.set('model', filters.model);
         if (filters.year) params.set('year', filters.year);
         if (filters.category && filters.category !== 'All') params.set('category', filters.category);
-        if (filters.subCategory) params.set('subcategory', filters.subCategory);
+        if (filters.subcategory) {
+            const subcategory = filters.subcategory || ''; // Using filters context
+            params.set('subcategory', subcategory);
+        }
         if (filters.viscosity) params.set('viscosity', filters.viscosity);
         if (filters.page && filters.page > 1) params.set('page', filters.page);
 

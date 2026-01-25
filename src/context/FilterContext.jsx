@@ -12,7 +12,7 @@ export const FilterProvider = ({ children }) => {
         model: '',
         year: '',
         category: 'All',
-        subCategory: '',
+        subcategory: '',
         searchQuery: '',
         viscosity: '',
         page: 1
@@ -82,7 +82,7 @@ export const FilterProvider = ({ children }) => {
             model: '',
             year: '',
             category: 'All',
-            subCategory: '',
+            subcategory: '',
             searchQuery: '',
             viscosity: '',
             page: 1
