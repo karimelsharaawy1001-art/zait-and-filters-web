@@ -67,7 +67,7 @@ const ProductGrid = ({ showFilters = true }) => {
                     qConstraints.push(where('category', '==', filters.category));
                 }
 
-                q = query(collection(db, 'products'), ...qConstraints);
+                const q = query(collection(db, 'products'), ...qConstraints);
 
                 const querySnapshot = await getDocs(q);
                 const productsList = querySnapshot.docs.map(doc => ({
