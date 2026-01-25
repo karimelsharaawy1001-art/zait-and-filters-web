@@ -822,6 +822,101 @@ const Checkout = () => {
                                                 </div>
                                             </div>
                                         )}
+
+                                        {/* Electronic Wallet Section */}
+                                        {formData.paymentMethod === 'wallet' && (
+                                            <div className="mt-6 bg-orange-500/5 border border-orange-500/10 rounded-2xl p-6 animate-in fade-in slide-in-from-top-4">
+                                                <div className="flex items-center gap-3 mb-4">
+                                                    <div className="bg-orange-500 p-2 rounded-lg">
+                                                        <Smartphone className="h-5 w-5 text-white" />
+                                                    </div>
+                                                    <h3 className="text-orange-600 font-black uppercase tracking-widest text-sm">Electronic Wallet Transfer</h3>
+                                                </div>
+
+                                                <div className="space-y-4">
+                                                    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
+                                                        <p className="text-sm font-bold text-gray-700 leading-relaxed text-center">
+                                                            برجاء تحويل المبلغ إلى الرقم التالي
+                                                        </p>
+                                                        <div className="flex justify-center">
+                                                            <div className="bg-orange-50 px-6 py-2 rounded-lg border border-orange-100">
+                                                                <p className="text-xl font-black text-orange-600 font-mono tracking-wider">
+                                                                    {activeMethods.find(m => m.id === 'wallet')?.number || '010XXXXXXXX'}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <p className="text-xs font-bold text-gray-400 text-center uppercase tracking-widest">(باسم: إدارة زيت اند فلترز)</p>
+                                                    </div>
+
+                                                    <div className="flex justify-center">
+                                                        <div className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                                                            Total Amount: <span className="text-orange-600 text-base">{total} EGP</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="pt-4 border-t border-orange-500/10">
+                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">
+                                                            ارفع إثبات الدفع (لقطة شاشة)
+                                                        </label>
+
+                                                        {!receiptUrl ? (
+                                                            <div className="relative">
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    onChange={async (e) => {
+                                                                        const file = e.target.files[0];
+                                                                        if (!file) return;
+
+                                                                        setUploadingReceipt(true);
+                                                                        try {
+                                                                            const { uploadToCloudinary } = await import('../utils/cloudinaryUtils');
+                                                                            const url = await uploadToCloudinary(file);
+                                                                            setReceiptUrl(url);
+                                                                            toast.success('Receipt uploaded successfully!');
+                                                                        } catch (error) {
+                                                                            console.error("Upload error:", error);
+                                                                            toast.error("Failed to upload receipt");
+                                                                        } finally {
+                                                                            setUploadingReceipt(false);
+                                                                        }
+                                                                    }}
+                                                                    className="hidden"
+                                                                    id="wallet-receipt-upload"
+                                                                />
+                                                                <label
+                                                                    htmlFor="wallet-receipt-upload"
+                                                                    className={`w-full flex items-center justify-center gap-3 py-8 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${uploadingReceipt ? 'bg-gray-50 border-gray-300' : 'bg-white border-orange-500/30 hover:bg-orange-500/5'}`}
+                                                                >
+                                                                    {uploadingReceipt ? (
+                                                                        <>
+                                                                            <Loader2 className="h-6 w-6 text-gray-400 animate-spin" />
+                                                                            <span className="text-gray-400 font-bold text-sm">Uploading...</span>
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <Plus className="h-6 w-6 text-orange-600" />
+                                                                            <span className="text-orange-600 font-black uppercase tracking-widest text-xs">Upload Receipt Image</span>
+                                                                        </>
+                                                                    )}
+                                                                </label>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="relative rounded-2xl overflow-hidden border border-gray-200">
+                                                                <img src={receiptUrl} alt="Receipt" className="w-full h-auto" />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setReceiptUrl('')}
+                                                                    className="absolute top-2 right-2 bg-white/90 p-2 rounded-full text-red-500 shadow-sm hover:bg-red-500 hover:text-white transition-all"
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </>
                                 ) : (
                                     <div className="text-center py-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
