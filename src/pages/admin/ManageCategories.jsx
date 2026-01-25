@@ -6,7 +6,7 @@ import AdminHeader from '../../components/AdminHeader';
 import ImageUpload from '../../components/admin/ImageUpload';
 import { Trash2, Tag, Edit3, Loader2, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
-// import * as XLSX from 'xlsx'; // Moved to backend API
+import * as XLSX from 'xlsx';
 
 const ManageCategories = () => {
     const [categories, setCategories] = useState([]);
@@ -32,35 +32,65 @@ const ManageCategories = () => {
     const exportCategories = async (format = 'xlsx') => {
         setExporting(true);
         try {
-            const response = await fetch(`/api/export-categories?format=${format}`);
+            // 1. Fetch Categories and Products (direct from Firestore using existing client SDK)
+            const [categoriesSnapshot, productsSnapshot] = await Promise.all([
+                getDocs(collection(db, 'categories')),
+                getDocs(collection(db, 'products'))
+            ]);
 
-            if (!response.ok) {
-                let errorMessage = 'Export failed';
-                let errorDetails = '';
-                try {
-                    const errorText = await response.text();
-                    try {
-                        const errorData = JSON.parse(errorText);
-                        errorMessage = errorData.error || errorData.message || errorMessage;
-                        errorDetails = errorData.details || '';
-                    } catch (e) {
-                        errorMessage = `HTTP ${response.status}: ${errorText.slice(0, 100)}`;
-                    }
-                } catch (e) {
-                    errorMessage = `Network error or invalid response (Status: ${response.status})`;
-                }
-                throw new Error(errorDetails ? `${errorMessage} [${errorDetails}]` : errorMessage);
+            const cats = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const prods = productsSnapshot.docs.map(doc => doc.data());
+
+            // 2. Prepare Export Data
+            const exportData = cats.map(cat => {
+                const subCatsList = cat.subCategories
+                    ? Array.isArray(cat.subCategories)
+                        ? cat.subCategories.map(sub => typeof sub === 'string' ? sub : (sub.name || 'Unnamed Sub')).join(', ')
+                        : cat.subCategories
+                    : '';
+
+                const productCount = prods.filter(p => p.category === cat.name).length;
+
+                return {
+                    'Category Name': cat.name || 'Unnamed',
+                    'Subcategories': subCatsList,
+                    'Active Status': cat.isActive !== false ? 'Active' : 'Hidden',
+                    'Product Count': productCount
+                };
+            });
+
+            if (exportData.length === 0) {
+                toast.error('No categories found to export');
+                return;
             }
 
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `categories_export_${new Date().toISOString().split('T')[0]}.${format}`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+            // 3. Generate File
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Categories");
+
+            if (format === 'csv') {
+                const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
+                const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", `categories_export_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                // Default XLSX
+                const wscols = [
+                    { wch: 30 }, // Category Name
+                    { wch: 60 }, // Subcategories
+                    { wch: 15 }, // Active Status
+                    { wch: 15 }  // Product Count
+                ];
+                worksheet['!cols'] = wscols;
+                XLSX.writeFile(workbook, `categories_export_${new Date().toISOString().split('T')[0]}.xlsx`);
+            }
 
             toast.success(`Categories exported as ${format.toUpperCase()} successfully`);
         } catch (error) {
