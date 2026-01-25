@@ -10,7 +10,7 @@ const BulkOperations = () => {
     const [importStatus, setImportStatus] = useState('');
 
     const headers = [
-        'name', 'activeStatus', 'category', 'subcategory', 'carMake', 'carModel',
+        'productID', 'name', 'activeStatus', 'category', 'subcategory', 'carMake', 'carModel',
         'yearRange', 'partBrand', 'countryOfOrigin', 'costPrice', 'sellPrice',
         'salePrice', 'warranty', 'description', 'imageUrl', 'partNumber', 'compatibility'
     ];
@@ -70,6 +70,7 @@ const BulkOperations = () => {
             const products = querySnapshot.docs.map(doc => {
                 const data = doc.data();
                 return {
+                    productID: doc.id,
                     name: data.name || '',
                     activeStatus: data.isActive ? 'TRUE' : 'FALSE',
                     category: data.category || '',
@@ -141,48 +142,79 @@ const BulkOperations = () => {
                     const chunk = jsonData.slice(i, i + batchSize);
 
                     chunk.forEach((row) => {
-                        if (!row.name || !row.sellPrice) return; // Basic validation (sellPrice map to price)
+                        // Minimal row validation: skip if no name provided for new products
+                        if (!row.productID && !row.name) return;
 
-                        const docRef = doc(collection(db, 'products'));
-                        const isActive = row.activeStatus !== undefined ? parseBoolean(row.activeStatus) : true;
+                        let docRef;
+                        let isUpdate = false;
 
-                        batch.set(docRef, {
-                            name: row.name,
-                            category: row.category || 'Uncategorized',
-                            subcategory: row.subcategory || '',
-                            make: row.carMake || '',
-                            model: row.carModel || '',
-                            yearRange: row.yearRange || '',
-                            partBrand: row.partBrand || '',
-                            countryOfOrigin: row.countryOfOrigin || '',
+                        if (row.productID) {
+                            docRef = doc(db, 'products', String(row.productID).trim());
+                            isUpdate = true;
+                        } else {
+                            docRef = doc(collection(db, 'products'));
+                        }
 
-                            // Pricing Logic
-                            costPrice: row.costPrice ? Number(row.costPrice) : 0,
-                            price: row.sellPrice ? Number(row.sellPrice) : 0, // Map sellPrice to price
-                            salePrice: row.salePrice ? Number(row.salePrice) : null,
+                        const dataToUpdate = {};
 
-                            warranty: row.warranty || '',
-                            description: row.description || '',
-                            image: row.imageUrl || '',
-                            partNumber: row.partNumber || '',
-                            compatibility: row.compatibility || '',
+                        // Mapping Excel columns to Firestore fields
+                        if (row.name) dataToUpdate.name = String(row.name).trim();
+                        if (row.category) dataToUpdate.category = String(row.category).trim();
+                        if (row.subcategory) dataToUpdate.subcategory = String(row.subcategory).trim();
+                        if (row.carMake) dataToUpdate.make = String(row.carMake).trim();
+                        if (row.carModel) dataToUpdate.model = String(row.carModel).trim();
+                        if (row.yearRange) dataToUpdate.yearRange = String(row.yearRange).trim();
+                        if (row.partBrand) dataToUpdate.partBrand = String(row.partBrand).trim();
+                        if (row.countryOfOrigin) dataToUpdate.countryOfOrigin = String(row.countryOfOrigin).trim();
 
-                            isActive: isActive,
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        });
+                        // Pricing (only update if provided)
+                        if (row.costPrice !== undefined && row.costPrice !== "") dataToUpdate.costPrice = Number(row.costPrice);
+                        if (row.sellPrice !== undefined && row.sellPrice !== "") dataToUpdate.price = Number(row.sellPrice);
+                        if (row.salePrice !== undefined && row.salePrice !== "") dataToUpdate.salePrice = Number(row.salePrice);
+                        else if (row.salePrice === "") dataToUpdate.salePrice = null; // Clear sale price if blank but present
+
+                        if (row.warranty) dataToUpdate.warranty = String(row.warranty).trim();
+                        if (row.description) dataToUpdate.description = String(row.description).trim();
+                        if (row.imageUrl) dataToUpdate.image = String(row.imageUrl).trim();
+                        if (row.partNumber) dataToUpdate.partNumber = String(row.partNumber).trim();
+                        if (row.compatibility) dataToUpdate.compatibility = String(row.compatibility).trim();
+
+                        if (row.activeStatus !== undefined && row.activeStatus !== "") {
+                            dataToUpdate.isActive = parseBoolean(row.activeStatus);
+                        }
+
+                        dataToUpdate.updatedAt = new Date();
+
+                        if (isUpdate) {
+                            // Update existing product
+                            batch.update(docRef, dataToUpdate);
+                        } else {
+                            // Create new product
+                            dataToUpdate.createdAt = new Date();
+                            // Fallback for required fields on new products
+                            if (!dataToUpdate.category) dataToUpdate.category = 'Uncategorized';
+                            if (dataToUpdate.isActive === undefined) dataToUpdate.isActive = true;
+
+                            batch.set(docRef, dataToUpdate);
+                        }
                     });
 
                     await batch.commit();
                 }
 
-                toast.success(`Successfully imported ${jsonData.length} products`);
+                toast.success(`Successfully processed ${jsonData.length} products`);
                 setImportStatus('');
-                // Refreshing the page to see changes (or trigger a local state update if passed as prop)
+                // Refreshing the page to see changes
                 window.location.reload();
             } catch (error) {
-                console.error("Import error:", error);
-                toast.error("Import failed. Check file format.");
+                console.error("Import error details:", error);
+
+                // Specific error message for missing documents during batch.update
+                if (error.code === 'not-found' || error.message?.includes('no document to update')) {
+                    toast.error("Import failed: One or more Product IDs were not found in the database.");
+                } else {
+                    toast.error("Import failed. Check file format or console for details.");
+                }
             } finally {
                 setLoading(false);
             }
