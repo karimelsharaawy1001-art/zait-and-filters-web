@@ -891,7 +891,7 @@ const Checkout = () => {
                                                                 </p>
                                                             </div>
                                                         </div>
-                                                        <p className="text-xs font-bold text-gray-400 text-center uppercase tracking-widest">(باسم: إدارة زيت اند فلترز)</p>
+                                                        <p className="text-xs font-bold text-gray-400 text-center uppercase tracking-widest">(بإسم: محمد جمال ابراهيم)</p>
                                                     </div>
 
                                                     <div className="flex justify-center">
