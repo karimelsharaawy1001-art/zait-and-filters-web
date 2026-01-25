@@ -77,7 +77,10 @@ const ProductCard = ({ product }) => {
                 <div className="flex flex-col gap-2 text-right">
                     {/* PRODUCT NAME */}
                     <Link to={`/product/${product.id}`} className="block overflow-hidden">
-                        <h3 className="text-[#000000] text-xs md:text-sm font-black leading-tight line-clamp-2 uppercase font-Cairo transition-colors overflow-hidden text-ellipsis">
+                        <h3
+                            className="text-[#000000] text-sm md:text-md font-bold leading-tight line-clamp-2 uppercase transition-colors overflow-hidden text-ellipsis"
+                            style={{ fontFamily: 'var(--font-commercial)' }}
+                        >
                             {i18n.language === 'en' ? (product.nameEn || product.name) : product.name}
                         </h3>
                     </Link>

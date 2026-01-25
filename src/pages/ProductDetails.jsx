@@ -223,7 +223,10 @@ const ProductDetails = () => {
                             <p className="text-orange-600 font-bold uppercase tracking-widest text-sm mb-2">
                                 {product.category} {product.subcategory ? `> ${product.subcategory}` : ''}
                             </p>
-                            <h1 className="text-4xl font-extrabold text-gray-900 leading-tight mb-4">
+                            <h1
+                                className="text-4xl font-bold text-gray-900 leading-tight mb-4"
+                                style={{ fontFamily: 'var(--font-commercial)' }}
+                            >
                                 {isAr ? product.name : (product.nameEn || product.name)}
                             </h1>
 
