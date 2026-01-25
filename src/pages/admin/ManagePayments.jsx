@@ -58,6 +58,19 @@ const ManagePayments = () => {
                 data.instapay = defaultIp;
             }
 
+            if (!data.wallet) {
+                const walletRef = doc(db, 'payment_configs', 'wallet');
+                const defaultWallet = {
+                    name: 'Electronic Wallets (Vodafone/Orange/Etisalat)',
+                    nameAr: 'المحافظ الإلكترونية',
+                    isActive: false,
+                    type: 'manual',
+                    number: ''
+                };
+                await setDoc(walletRef, defaultWallet);
+                data.wallet = defaultWallet;
+            }
+
             if (data.easykash && data.easykash.name === 'Credit Card (EasyKash)') {
                 data.easykash.name = 'Pay via Card or Installments';
                 data.easykash.nameAr = 'الدفع عن طريق الفيزا و شركات التقسيط';
@@ -293,9 +306,59 @@ const ManagePayments = () => {
                             </div>
                         )}
                     </div>
+
+                    {/* Electronic Wallets */}
+                    <div className={`bg-admin-card rounded-[2.5rem] shadow-admin border transition-all duration-500 overflow-hidden ${configs.wallet?.isActive ? 'border-orange-500/40 bg-[#ffffff05]' : 'border-[#ffffff0d]'}`}>
+                        <div className="p-10 flex items-center justify-between border-b border-[#ffffff05]">
+                            <div className="flex items-center gap-6">
+                                <div className="bg-orange-500/10 p-4 rounded-2xl text-orange-500 transition-transform group-hover:scale-110">
+                                    <Smartphone className="h-6 w-6" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black text-white uppercase tracking-widest poppins">{configs.wallet?.name}</h3>
+                                    <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Mobile e-Wallets (VF/Orange/Etisalat)</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => handleToggle('wallet', configs.wallet.isActive)}
+                                className={`relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-4 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${configs.wallet?.isActive ? 'bg-orange-500' : 'bg-[#ffffff1a]'}`}
+                            >
+                                <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-xl transition duration-300 ease-in-out ${configs.wallet?.isActive ? 'translate-x-[1.5rem]' : 'translate-x-0'}`} />
+                            </button>
+                        </div>
+
+                        {configs.wallet?.isActive && (
+                            <div className="p-10 relative space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Wallet Number</label>
+                                    <input
+                                        type="text"
+                                        value={configs.wallet.number}
+                                        onChange={(e) => handleInputChange('wallet', 'number', e.target.value)}
+                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-2xl px-6 py-4 text-sm font-bold text-white focus:ring-2 focus:ring-orange-500 outline-none transition-all placeholder-gray-700 font-mono"
+                                        placeholder="010XXXXXXXX"
+                                    />
+                                </div>
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={() => handleSaveConfig('wallet')}
+                                        disabled={saving}
+                                        className="flex items-center gap-3 bg-white text-black px-10 py-4 rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] hover:scale-105 active:scale-95 transition-all shadow-xl disabled:opacity-50"
+                                    >
+                                        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                                        Save Configuration
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
+    );
+                </div >
+            </div >
+        </div >
     );
 };
 

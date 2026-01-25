@@ -325,8 +325,8 @@ const Checkout = () => {
             return;
         }
 
-        // Instapay Validation
-        if (formData.paymentMethod === 'instapay' && !receiptUrl) {
+        // Instapay & Wallet Validation
+        if ((formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') && !receiptUrl) {
             toast.error('Please upload the payment receipt first');
             return;
         }
@@ -373,8 +373,8 @@ const Checkout = () => {
                 }
             }
 
-            // Verify Instapay Upload Status
-            if (formData.paymentMethod === 'instapay') {
+            // Verify Instapay/Wallet Upload Status
+            if (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') {
                 if (uploadingReceipt) {
                     toast.error('Please wait for the receipt to finish uploading.');
                     return;
@@ -408,9 +408,9 @@ const Checkout = () => {
                 promoCode: appliedPromo?.code || null,
                 promoId: appliedPromo?.id || null,
                 affiliateCode: (affRef || appliedPromo?.code) ? (affRef || appliedPromo.code) : null,
-                status: formData.paymentMethod === 'instapay' ? 'Awaiting Payment Verification' : 'Pending',
-                paymentStatus: formData.paymentMethod === 'instapay' ? 'Awaiting Verification' : 'Pending',
-                receiptUrl: formData.paymentMethod === 'instapay' ? (receiptUrl || null) : null,
+                status: (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') ? 'Awaiting Payment Verification' : 'Pending',
+                paymentStatus: (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') ? 'Awaiting Verification' : 'Pending',
+                receiptUrl: (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') ? (receiptUrl || null) : null,
                 createdAt: new Date().toISOString() // Use ISO string to be safe, though Date is supported
             };
 
@@ -465,7 +465,7 @@ const Checkout = () => {
                 }
 
                 clearCart();
-                if (formData.paymentMethod === 'instapay') {
+                if (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') {
                     toast.success('تم استلام طلبك وبانتظار مراجعة التحويل. سيتم التأكيد خلال 24 ساعة.');
                 } else {
                     toast.success(t('orderPlaced'));
