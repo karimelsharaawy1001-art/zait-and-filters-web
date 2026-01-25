@@ -86,14 +86,14 @@ const ProductCard = ({ product }) => {
                     </Link>
 
                     {/* DETAILS GRID - Brand, Origin, Category, Subcategory */}
-                    <div className="grid grid-cols-2 gap-x-2 gap-y-3 border-b border-gray-100 pb-3">
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-2 border-b border-gray-100 pb-2">
                         {/* Category */}
                         {product.category && (
-                            <div className="flex flex-col items-start overflow-hidden">
-                                <span className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5 truncate w-full">
+                            <div className="flex flex-col items-end overflow-hidden text-right">
+                                <span className="text-[10px] leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full">
                                     {i18n.language === 'ar' ? 'الفئة' : 'Category'}
                                 </span>
-                                <span className="text-sm text-[#333] font-black font-Cairo truncate w-full">
+                                <span className="text-[11px] leading-tight text-[#333] font-black font-Cairo truncate w-full">
                                     {product.category}
                                 </span>
                             </div>
@@ -101,32 +101,32 @@ const ProductCard = ({ product }) => {
 
                         {/* Subcategory */}
                         {product.subcategory && (
-                            <div className="flex flex-col items-end overflow-hidden">
-                                <span className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5 truncate w-full text-right">
+                            <div className="flex flex-col items-end overflow-hidden text-right">
+                                <span className="text-[10px] leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full">
                                     {i18n.language === 'ar' ? 'الفئة الفرعية' : 'Sub-Category'}
                                 </span>
-                                <span className="text-sm text-[#000000] font-black font-Cairo truncate w-full text-right">
+                                <span className="text-[11px] leading-tight text-[#000000] font-black font-Cairo truncate w-full">
                                     {product.subcategory}
                                 </span>
                             </div>
                         )}
 
                         {/* Origin */}
-                        <div className="flex flex-col items-start overflow-hidden">
-                            <span className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5 truncate w-full">
+                        <div className="flex flex-col items-end overflow-hidden text-right">
+                            <span className="text-[10px] leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full">
                                 {i18n.language === 'ar' ? 'المنشأ' : 'Origin'}
                             </span>
-                            <span className="text-sm text-[#333] font-black italic font-Cairo truncate w-full">
+                            <span className="text-[11px] leading-tight text-[#333] font-black italic font-Cairo truncate w-full">
                                 {product.origin || product.countryOfOrigin || 'Imported'}
                             </span>
                         </div>
 
                         {/* Brand */}
-                        <div className="flex flex-col items-end overflow-hidden">
-                            <span className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5 truncate w-full text-right">
+                        <div className="flex flex-col items-end overflow-hidden text-right">
+                            <span className="text-[10px] leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full">
                                 {i18n.language === 'ar' ? 'البراند' : 'Brand'}
                             </span>
-                            <span className="text-sm text-[#000000] font-black font-Cairo truncate w-full text-right">
+                            <span className="text-[11px] leading-tight text-[#000000] font-black font-Cairo truncate w-full">
                                 {i18n.language === 'en'
                                     ? (product.brandEn || product.partBrand || product.brand)
                                     : (product.partBrand || product.brand || 'No Brand')}
@@ -134,14 +134,14 @@ const ProductCard = ({ product }) => {
                         </div>
 
                         {/* Model with Year */}
-                        <div className="col-span-2 flex flex-col items-end overflow-hidden">
-                            <span className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5 truncate w-full text-right">
+                        <div className="col-span-2 flex flex-col items-end overflow-hidden text-right border-t border-gray-50 pt-1.5">
+                            <span className="text-[10px] leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full">
                                 {i18n.language === 'ar' ? 'الموديل' : 'Model'}
                             </span>
-                            <span className="text-sm text-[#000000] font-black font-Cairo w-full text-right truncate" title={product.carModel || `${product.make} ${product.model}`}>
+                            <span className="text-[11px] leading-tight text-[#000000] font-black font-Cairo w-full truncate" title={product.carModel || `${product.make} ${product.model}`}>
                                 {product.carModel || `${product.make} ${product.model}` || 'Universal'}
                                 {(product.yearRange || product.yearStart || product.yearEnd) && (
-                                    <span className="text-xs text-gray-500 font-bold ml-2">
+                                    <span className="text-[10px] text-gray-400 font-bold ml-2">
                                         {product.yearRange ||
                                             (product.yearStart && product.yearEnd ? `${product.yearStart}-${product.yearEnd}` :
                                                 product.yearStart || product.yearEnd || '')}
