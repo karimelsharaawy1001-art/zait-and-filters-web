@@ -55,19 +55,19 @@ const ProductGrid = ({ showFilters = true }) => {
         const fetchProducts = async () => {
             setLoading(true);
             try {
-                let q;
+                let qConstraints = [where('isActive', '==', true)];
+
+                // 1. Garage Filter Constraints
                 if (isGarageFilterActive && activeCar) {
-                    q = query(
-                        collection(db, 'products'),
-                        where('isActive', '==', true),
-                        where('make', 'in', [activeCar.make, '', null])
-                    );
-                } else {
-                    q = query(
-                        collection(db, 'products'),
-                        where('isActive', '==', true)
-                    );
+                    qConstraints.push(where('make', 'in', [activeCar.make, '', null]));
                 }
+
+                // 2. Category Filter Constraint (Firestore-side optimization)
+                if (filters.category && filters.category !== 'All') {
+                    qConstraints.push(where('category', '==', filters.category));
+                }
+
+                q = query(collection(db, 'products'), ...qConstraints);
 
                 const querySnapshot = await getDocs(q);
                 const productsList = querySnapshot.docs.map(doc => ({
@@ -86,7 +86,7 @@ const ProductGrid = ({ showFilters = true }) => {
         };
 
         fetchProducts();
-    }, [isGarageFilterActive, activeCar]);
+    }, [isGarageFilterActive, activeCar, filters.category]);
 
     // Extract unique values for each filter type
     const extractFilterOptions = async (productsList) => {
@@ -218,11 +218,13 @@ const ProductGrid = ({ showFilters = true }) => {
     useEffect(() => {
         setActiveFilters(prev => ({
             ...prev,
+            categories: filters.category && filters.category !== 'All' ? [filters.category] : [],
+            subcategories: filters.subCategory ? [filters.subCategory] : [],
             makes: filters.make ? [filters.make] : prev.makes,
             models: filters.model ? [filters.model] : prev.models,
             years: filters.year ? [filters.year] : prev.years
         }));
-    }, [filters.make, filters.model, filters.year]);
+    }, [filters.category, filters.subCategory, filters.make, filters.model, filters.year]);
 
     const handleAddToCart = (product) => {
         addToCart(product);
