@@ -17,6 +17,7 @@ const ShopPage = () => {
         const category = searchParams.get('category');
         const subcategory = searchParams.get('subcategory');
         const viscosity = searchParams.get('viscosity');
+        const page = parseInt(searchParams.get('page')) || 1;
 
         if (make && make !== filters.make) updateFilter('make', make);
         if (model && model !== filters.model) updateFilter('model', model);
@@ -24,6 +25,7 @@ const ShopPage = () => {
         if (category && category !== filters.category) updateFilter('category', category);
         if (subcategory && subcategory !== filters.subCategory) updateFilter('subCategory', subcategory);
         if (viscosity && viscosity !== filters.viscosity) updateFilter('viscosity', viscosity);
+        if (page && page !== filters.page) updateFilter('page', page);
     }, [searchParams]);
 
     // Sync State to URL (When User Filters via UI)
@@ -35,6 +37,7 @@ const ShopPage = () => {
         if (filters.category && filters.category !== 'All') params.set('category', filters.category);
         if (filters.subCategory) params.set('subcategory', filters.subCategory);
         if (filters.viscosity) params.set('viscosity', filters.viscosity);
+        if (filters.page && filters.page > 1) params.set('page', filters.page);
 
         setSearchParams(params);
     }, [filters, setSearchParams]);

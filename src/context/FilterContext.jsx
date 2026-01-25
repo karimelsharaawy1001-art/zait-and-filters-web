@@ -14,7 +14,8 @@ export const FilterProvider = ({ children }) => {
         category: 'All',
         subCategory: '',
         searchQuery: '',
-        viscosity: ''
+        viscosity: '',
+        page: 1
     });
 
     const [isGarageFilterActive, setIsGarageFilterActive] = useState(false);
@@ -60,7 +61,11 @@ export const FilterProvider = ({ children }) => {
     }, []);
 
     const updateFilter = (key, value) => {
-        setFilters(prev => ({ ...prev, [key]: value }));
+        setFilters(prev => ({
+            ...prev,
+            [key]: value,
+            page: key === 'page' ? (typeof value === 'number' ? value : prev.page) : 1
+        }));
     };
 
     const resetFilters = () => {
@@ -71,7 +76,8 @@ export const FilterProvider = ({ children }) => {
             category: 'All',
             subCategory: '',
             searchQuery: '',
-            viscosity: ''
+            viscosity: '',
+            page: 1
         });
     };
 

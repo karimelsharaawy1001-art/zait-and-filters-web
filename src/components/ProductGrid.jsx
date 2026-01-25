@@ -3,7 +3,7 @@ import { ShoppingCart, FilterX, ChevronRight, ChevronDown, SlidersHorizontal, Ca
 import { useCart } from '../context/CartContext';
 import { useFilters } from '../context/FilterContext';
 import { useTranslation } from 'react-i18next';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit, startAfter, getCountFromServer, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 import ProductCard from './ProductCard';
 import { toast } from 'react-hot-toast';
@@ -20,12 +20,14 @@ const ProductGrid = ({ showFilters = true }) => {
 
     // Dynamic filter options extracted from products
     const [filterOptions, setFilterOptions] = useState({
-        categories: {}, // { categoryName: Set(subcategories) }
-        makes: {},      // { makeName: Set(models) }
-        brands: [],     // Array of brand names
-        origins: [],    // Array of origin names
+        categories: {},
+        makes: {},
+        brands: [],
+        origins: [],
         years: []
     });
+    const [totalProducts, setTotalProducts] = useState(0);
+    const PAGE_SIZE = 12;
 
     // Accordion state - track which sections are open
     const [expandedSections, setExpandedSections] = useState({
@@ -51,42 +53,77 @@ const ProductGrid = ({ showFilters = true }) => {
         origins: []
     });
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            setLoading(true);
-            try {
-                let qConstraints = [where('isActive', '==', true)];
+    const fetchProducts = async () => {
+        setLoading(true);
+        try {
+            let qConstraints = [where('isActive', '==', true)];
 
-                // 1. Garage Filter Constraints
-                if (isGarageFilterActive && activeCar) {
-                    qConstraints.push(where('make', 'in', [activeCar.make, '', null]));
-                }
-
-                // 2. Category Filter Constraint (Firestore-side optimization)
-                if (filters.category && filters.category !== 'All') {
-                    qConstraints.push(where('category', '==', filters.category));
-                }
-
-                const q = query(collection(db, 'products'), ...qConstraints);
-
-                const querySnapshot = await getDocs(q);
-                const productsList = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                setProducts(productsList);
-
-                // Extract unique filter options from products
-                extractFilterOptions(productsList);
-            } catch (error) {
-                console.error("Error fetching products: ", error);
-            } finally {
-                setLoading(false);
+            if (isGarageFilterActive && activeCar) {
+                qConstraints.push(where('make', 'in', [activeCar.make, '', null]));
             }
-        };
 
+            if (filters.category && filters.category !== 'All') {
+                qConstraints.push(where('category', '==', filters.category));
+            }
+
+            // Get total count for pagination
+            const countQuery = query(collection(db, 'products'), ...qConstraints);
+            const countSnapshot = await getCountFromServer(countQuery);
+            setTotalProducts(countSnapshot.data().count);
+
+            // Fetch current page items
+            // For simple page-based jumping, we use a hybrid approach or just limit for first page.
+            // Since we need to support specific page numbers from URL, we'll fetch up to the offset.
+            // NOTE: In production with huge data, you'd use startAfter(lastDoc).
+            // For this project, we'll use limit(PAGE_SIZE * filters.page) and slice, 
+            // or better, fetch all IDs if count is manageable.
+            // Let's use a robust approach for 12 items.
+
+            const limitedQuery = query(
+                collection(db, 'products'),
+                ...qConstraints,
+                orderBy('createdAt', 'desc'),
+                limit(PAGE_SIZE * (filters.page || 1))
+            );
+
+            const querySnapshot = await getDocs(limitedQuery);
+            const allFetched = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+
+            // Slice for the current page
+            const startIndex = ((filters.page || 1) - 1) * PAGE_SIZE;
+            const paginatedItems = allFetched.slice(startIndex, startIndex + PAGE_SIZE);
+
+            setProducts(paginatedItems);
+
+            // Extract unique filter options from products (one-time fetch or separate)
+            if (Object.keys(filterOptions.categories).length === 0) {
+                // If it's first load, we might need more data for filter dropdowns
+                // But typically filters are fetched separately or from a full initial set.
+                // Let's keep the extraction logic but maybe fetch a broader set for metadata.
+                const metaQuery = query(collection(db, 'products'), where('isActive', '==', true), limit(500));
+                const metaSnapshot = await getDocs(metaQuery);
+                extractFilterOptions(metaSnapshot.docs.map(doc => doc.data()));
+            }
+        } catch (error) {
+            console.error("Error fetching products: ", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchProducts();
-    }, [isGarageFilterActive, activeCar, filters.category]);
+        // Scroll to grid top on page change
+        if (filters.page > 1) {
+            const gridElement = document.getElementById('product-grid');
+            if (gridElement) {
+                gridElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    }, [isGarageFilterActive, activeCar, filters.category, filters.page, activeFilters]);
 
     // Extract unique values for each filter type
     const extractFilterOptions = async (productsList) => {
@@ -279,95 +316,6 @@ const ProductGrid = ({ showFilters = true }) => {
 
     const hasActiveFilters = Object.values(activeFilters).some(arr => arr.length > 0) || filters.searchQuery || filters.viscosity || filters.make;
 
-    const filteredProducts = products.filter(product => {
-        // 1. Garage Filter Override (If active)
-        if (isGarageFilterActive && activeCar) {
-            const isUniversalModel = !product.model || product.model === '';
-            const matchesModel = isUniversalModel || product.model === activeCar.model;
-            if (!matchesModel) return false;
-
-            const carYear = Number(activeCar.year);
-            const hasRange = product.yearStart != null && product.yearEnd != null;
-            const matchesYear = !hasRange || (carYear >= product.yearStart && carYear <= product.yearEnd);
-            if (!matchesYear) return false;
-        }
-
-        // 2. Dynamic Multi-Select Filters
-        // Category filter
-        if (activeFilters.categories.length > 0) {
-            if (!activeFilters.categories.includes(product.category)) return false;
-        }
-
-        // Subcategory filter
-        if (activeFilters.subcategories.length > 0) {
-            if (!activeFilters.subcategories.includes(product.subcategory)) return false;
-        }
-
-        // Make filter
-        if (activeFilters.makes.length > 0) {
-            if (!activeFilters.makes.includes(product.make)) return false;
-        }
-
-        // Model filter
-        if (activeFilters.models.length > 0) {
-            if (!activeFilters.models.includes(product.model)) return false;
-        }
-
-        // Year filter
-        if (activeFilters.years.length > 0) {
-            let matchesYear = false;
-            for (const selectedYear of activeFilters.years) {
-                const yearNum = Number(selectedYear);
-                if (product.yearStart && product.yearEnd) {
-                    if (yearNum >= product.yearStart && yearNum <= product.yearEnd) {
-                        matchesYear = true;
-                        break;
-                    }
-                } else if (product.yearRange === selectedYear) {
-                    matchesYear = true;
-                    break;
-                }
-            }
-            if (!matchesYear) return false;
-        }
-
-        // Brand filter
-        if (activeFilters.brands.length > 0) {
-            const productBrand = product.brandEn || product.partBrand || product.brand;
-            if (!activeFilters.brands.includes(productBrand)) return false;
-        }
-
-        // Origin filter
-        if (activeFilters.origins.length > 0) {
-            const productOrigin = product.origin || product.countryOfOrigin;
-            if (!activeFilters.origins.includes(productOrigin)) return false;
-        }
-
-        // 3. Search Query (Always apply)
-        let matchesSearch = true;
-        if (filters.searchQuery) {
-            const queryTokens = filters.searchQuery.toLowerCase().trim().split(/\s+/);
-            const searchableString = `
-                ${product.name || ''} 
-                ${product.category || ''} 
-                ${product.subCategory || ''} 
-                ${product.brand || ''} 
-                ${product.make || ''} 
-                ${product.model || ''} 
-                ${product.country || ''}
-            `.toLowerCase();
-            matchesSearch = queryTokens.every(token => searchableString.includes(token));
-        }
-        if (!matchesSearch) return false;
-
-        // 4. Viscosity Filter (From Oil Advisor)
-        const matchesViscosity = !filters.viscosity ||
-            (product.viscosity && product.viscosity === filters.viscosity) ||
-            (product.name && product.name.toLowerCase().includes(filters.viscosity.toLowerCase()));
-
-        return matchesViscosity;
-    });
-
     if (loading) {
         return (
             <div className="bg-gray-50 py-16 flex justify-center items-center">
@@ -409,7 +357,7 @@ const ProductGrid = ({ showFilters = true }) => {
                                 {t('viewingPartsFor')} <span className="text-orange-600">{filters.make} {filters.model}</span>
                             </h2>
                             <p className="text-gray-500 text-lg">
-                                {t('curatedSelection', { count: filteredProducts.length })}
+                                {t('curatedSelection', { count: totalProducts })}
                             </p>
                         </div>
                     </div>
@@ -644,7 +592,7 @@ const ProductGrid = ({ showFilters = true }) => {
 
 
                     {/* Main Content */}
-                    <div className="flex-1">
+                    <div className="flex-1" id="product-grid">
                         {!carHeaderImage && (
                             <div className="flex justify-between items-center mb-6">
                                 <h2 className="text-2xl font-bold text-gray-900">
@@ -653,11 +601,11 @@ const ProductGrid = ({ showFilters = true }) => {
                                         : t('featuredProducts')
                                     }
                                 </h2>
-                                <span className="text-sm text-gray-500">{filteredProducts.length} {t('products')}</span>
+                                <span className="text-sm text-gray-500">{totalProducts} {t('products')}</span>
                             </div>
                         )}
 
-                        {filteredProducts.length === 0 ? (
+                        {products.length === 0 ? (
                             <div className="text-center py-16 bg-white rounded-lg border border-dashed border-gray-300">
                                 <FilterX className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                                 <p className="text-xl font-medium text-gray-900">{t('noProducts')}</p>
@@ -671,9 +619,66 @@ const ProductGrid = ({ showFilters = true }) => {
                             </div>
                         ) : (
                             <div className={`grid grid-cols-2 ${showFilters ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'} gap-4 sm:gap-6`}>
-                                {filteredProducts.map((product) => (
+                                {products.map((product) => (
                                     <ProductCard key={product.id} product={product} />
                                 ))}
+                            </div>
+                        )}
+
+                        {/* Pagination UI */}
+                        {totalProducts > PAGE_SIZE && (
+                            <div className="mt-12 flex flex-col items-center gap-6">
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => updateFilter('page', Math.max(1, filters.page - 1))}
+                                        disabled={filters.page === 1}
+                                        className="p-3 bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-[#28B463] hover:border-[#28B463] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        <ChevronRight className={`h-5 w-5 ${isRTL ? '' : 'rotate-180'}`} />
+                                    </button>
+
+                                    <div className="flex items-center gap-1.5">
+                                        {[...Array(Math.ceil(totalProducts / PAGE_SIZE))].map((_, i) => {
+                                            const pageNum = i + 1;
+                                            // Simple pagination: show current, first, last, and neighbors
+                                            const isCurrentlyActive = filters.page === pageNum;
+
+                                            // Only show a limited range of page numbers
+                                            if (
+                                                pageNum === 1 ||
+                                                pageNum === Math.ceil(totalProducts / PAGE_SIZE) ||
+                                                (pageNum >= filters.page - 1 && pageNum <= filters.page + 1)
+                                            ) {
+                                                return (
+                                                    <button
+                                                        key={pageNum}
+                                                        onClick={() => updateFilter('page', pageNum)}
+                                                        className={`w-10 h-10 rounded-xl text-sm font-black transition-all ${isCurrentlyActive ? 'bg-[#28B463] text-white shadow-lg shadow-[#28B463]/30 scale-110' : 'bg-white border border-gray-100 text-gray-400 hover:border-gray-300'}`}
+                                                    >
+                                                        {pageNum}
+                                                    </button>
+                                                );
+                                            } else if (
+                                                (pageNum === filters.page - 2 && pageNum > 1) ||
+                                                (pageNum === filters.page + 2 && pageNum < Math.ceil(totalProducts / PAGE_SIZE))
+                                            ) {
+                                                return <span key={pageNum} className="text-gray-300 font-bold px-1">...</span>;
+                                            }
+                                            return null;
+                                        })}
+                                    </div>
+
+                                    <button
+                                        onClick={() => updateFilter('page', Math.min(Math.ceil(totalProducts / PAGE_SIZE), filters.page + 1))}
+                                        disabled={filters.page >= Math.ceil(totalProducts / PAGE_SIZE)}
+                                        className="p-3 bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-[#28B463] hover:border-[#28B463] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        <ChevronRight className={`h-5 w-5 ${isRTL ? 'rotate-180' : ''}`} />
+                                    </button>
+                                </div>
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                    {t('showing')} {((filters.page - 1) * PAGE_SIZE) + 1} - {Math.min(filters.page * PAGE_SIZE, totalProducts)} {t('of')} {totalProducts} {t('products')}
+                                </p>
                             </div>
                         )}
                     </div>

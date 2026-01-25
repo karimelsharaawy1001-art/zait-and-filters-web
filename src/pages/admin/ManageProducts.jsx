@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { collection, getDocs, deleteDoc, doc, updateDoc, query, orderBy, writeBatch } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc, updateDoc, query, orderBy, writeBatch, limit, startAfter, getCountFromServer, where } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
 import AdminHeader from '../../components/AdminHeader';
@@ -30,6 +29,13 @@ const ManageProducts = () => {
     const [cars, setCars] = useState([]);
     const [carMakes, setCarMakes] = useState([]);
     const [availableModels, setAvailableModels] = useState([]);
+
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize] = useState(20);
+    const [totalCount, setTotalCount] = useState(0);
+    const [lastVisible, setLastVisible] = useState(null);
+    const [pageStack, setPageStack] = useState([]); // To track previous pages' start docs
 
 
     useEffect(() => {
@@ -93,25 +99,110 @@ const ManageProducts = () => {
         }
     };
 
-    const fetchProducts = async () => {
+    const fetchProducts = async (isNext = false, isPrev = false) => {
         setLoading(true);
         try {
-            const querySnapshot = await getDocs(collection(db, 'products'));
+            let qConstraints = [where('isActive', '!=', 'deleted')]; // Placeholder to allow orderBy after where
+
+            // Apply Filters (Firestore side)
+            if (categoryFilter !== 'All') qConstraints.push(where('category', '==', categoryFilter));
+            if (subcategoryFilter !== 'All') qConstraints.push(where('subcategory', '==', subcategoryFilter));
+            if (makeFilter !== 'All') qConstraints.push(where('make', '==', makeFilter));
+            if (modelFilter !== 'All') qConstraints.push(where('model', '==', modelFilter));
+            if (brandFilter !== 'All') qConstraints.push(where('partBrand', '==', brandFilter));
+            if (statusFilter === 'Active') qConstraints.push(where('isActive', '==', true));
+            if (statusFilter === 'Inactive') qConstraints.push(where('isActive', '==', false));
+
+            // Sorting
+            let sortField = 'name';
+            let sortDir = 'asc';
+            if (sortBy.includes('-')) {
+                [sortField, sortDir] = sortBy.split('-');
+            }
+            qConstraints.push(orderBy(sortField, sortDir));
+
+            // Search (Firestore prefix search - requires manual indexing or broad fetch)
+            // Note: For complex multi-field search, client-side is often easier unless dataset is HUGE.
+            // But since user asked for pagination for performance, we apply name prefix if available.
+            if (searchQuery) {
+                qConstraints.push(where('name', '>=', searchQuery));
+                qConstraints.push(where('name', '<=', searchQuery + '\uf8ff'));
+            }
+
+            // Get Total Count (Only on initial load or filter change)
+            if (!isNext && !isPrev) {
+                const countQuery = query(collection(db, 'products'), ...qConstraints);
+                const countSnapshot = await getCountFromServer(countQuery);
+                setTotalCount(countSnapshot.data().count);
+                setPageStack([]);
+                setLastVisible(null);
+                setCurrentPage(1);
+            }
+
+            // Apply Pagination
+            let pagedConstraints = [...qConstraints, limit(pageSize)];
+            if (isNext && lastVisible) {
+                pagedConstraints.push(startAfter(lastVisible));
+            } else if (isPrev && pageStack.length > 1) {
+                const newStack = [...pageStack];
+                newStack.pop(); // Remove current page start
+                const prevPageStart = newStack[newStack.length - 1];
+                if (prevPageStart) pagedConstraints.push(startAfter(prevPageStart));
+                setPageStack(newStack);
+            }
+
+            const q = query(collection(db, 'products'), ...pagedConstraints);
+            const querySnapshot = await getDocs(q);
+
             const productsList = querySnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
+
             setProducts(productsList);
 
-            // Extract unique brands
-            const brands = [...new Set(productsList.map(p => p.partBrand || p.brand))].filter(Boolean).sort();
-            setUniquePartBrands(brands);
+            if (querySnapshot.docs.length > 0) {
+                const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+                setLastVisible(lastDoc);
+                if (isNext) {
+                    setPageStack(prev => [...prev, lastVisible]);
+                } else if (!isPrev) {
+                    setPageStack([null]); // Initialize with null for Page 1
+                }
+            }
+
         } catch (error) {
             console.error("Error fetching products:", error);
+            toast.error("Query failed. Check console for index requirements.");
         } finally {
             setLoading(false);
         }
     };
+
+    const fetchBrands = async () => {
+        try {
+            // Fetch all products just for brands to keep filters populated
+            // In a huge production DB, this should be a separate 'metadata' collection
+            const q = query(collection(db, 'products'), where('isActive', '!=', 'deleted'));
+            const snapshot = await getDocs(q);
+            const brands = [...new Set(snapshot.docs.map(doc => {
+                const data = doc.data();
+                return data.partBrand || data.brand;
+            }))].filter(Boolean).sort();
+            setUniquePartBrands(brands);
+        } catch (error) {
+            console.error("Error fetching brands:", error);
+        }
+    };
+
+    // Re-fetch on filter changes
+    useEffect(() => {
+        fetchProducts();
+    }, [categoryFilter, subcategoryFilter, makeFilter, modelFilter, brandFilter, statusFilter, sortBy, searchQuery]);
+
+    useEffect(() => {
+        fetchBrands();
+    }, []);
 
     const handleToggleActive = async (productId, currentStatus) => {
         try {
@@ -201,60 +292,6 @@ const ManageProducts = () => {
         return 'text-red-600';
     };
 
-    // Filter and sort products
-    const filteredProducts = products
-        .filter(product => {
-            // Keyword Search (Name, Brand, or ID/PartNumber)
-            const matchesSearch =
-                (product.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (product.partBrand || product.brand || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (product.partNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (product.id || '').toLowerCase().includes(searchQuery.toLowerCase());
-
-            // Category & Subcategory
-            const matchesCategory = categoryFilter === 'All' || product.category === categoryFilter;
-            const matchesSubcategory = subcategoryFilter === 'All' || product.subcategory === subcategoryFilter;
-
-            // Make / Model
-            const matchesMake = makeFilter === 'All' || product.make === makeFilter;
-            const matchesModel = modelFilter === 'All' || product.model === modelFilter;
-
-            // Brand
-            const matchesBrand = brandFilter === 'All' || (product.partBrand || product.brand) === brandFilter;
-
-            // Year Logic
-            let matchesYear = true;
-            if (yearFilter) {
-                const year = Number(yearFilter);
-                const hasRange = product.yearStart != null && product.yearEnd != null;
-                if (!hasRange) {
-                    matchesYear = true;
-                } else {
-                    matchesYear = year >= product.yearStart && year <= product.yearEnd;
-                }
-            }
-
-            // Status Logic
-            let matchesStatus = true;
-            if (statusFilter === 'Active') matchesStatus = product.isActive !== false;
-            else if (statusFilter === 'Inactive') matchesStatus = product.isActive === false;
-
-            return matchesSearch && matchesCategory && matchesSubcategory && matchesMake && matchesModel && matchesYear && matchesBrand && matchesStatus;
-        })
-        .sort((a, b) => {
-            switch (sortBy) {
-                case 'price-asc':
-                    return a.price - b.price;
-                case 'price-desc':
-                    return b.price - a.price;
-                case 'name-asc':
-                    return a.name.localeCompare(b.name);
-                case 'name-desc':
-                    return b.name.localeCompare(a.name);
-                default:
-                    return 0;
-            }
-        });
 
     if (loading) {
         return (
@@ -277,7 +314,7 @@ const ManageProducts = () => {
                     <div>
                         <h2 className="text-3xl font-black text-black uppercase tracking-tight italic font-Cairo">Inventory Control</h2>
                         <p className="text-sm text-gray-500 mt-1 font-bold">
-                            Total catalog: {filteredProducts.length} high-performance items
+                            Total catalog: {totalCount} high-performance items
                         </p>
                     </div>
                     <button
@@ -427,7 +464,7 @@ const ManageProducts = () => {
                 </div>
 
                 {/* Main Data Manifest */}
-                {filteredProducts.length === 0 ? (
+                {products.length === 0 ? (
                     <div className="bg-white rounded-3xl shadow-sm p-20 text-center border border-gray-100">
                         <AlertTriangle className="h-16 w-16 text-[#28B463] mx-auto mb-6 opacity-40 animate-pulse" />
                         <h4 className="text-xl font-bold text-black mb-2 uppercase tracking-wide">Data Matrix Empty</h4>
@@ -444,8 +481,14 @@ const ManageProducts = () => {
                                             <div className="flex items-center justify-center">
                                                 <input
                                                     type="checkbox"
-                                                    checked={filteredProducts.length > 0 && selectedIds.size === filteredProducts.length}
-                                                    onChange={toggleSelectAll}
+                                                    checked={products.length > 0 && selectedIds.size === products.length}
+                                                    onChange={() => {
+                                                        if (selectedIds.size === products.length) {
+                                                            setSelectedIds(new Set());
+                                                        } else {
+                                                            setSelectedIds(new Set(products.map(p => p.id)));
+                                                        }
+                                                    }}
                                                     className="w-4 h-4 rounded border-gray-300 text-[#28B463] focus:ring-[#28B463] cursor-pointer"
                                                 />
                                             </div>
@@ -461,7 +504,7 @@ const ManageProducts = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
-                                    {Array.isArray(filteredProducts) && filteredProducts.map((product) => (
+                                    {Array.isArray(products) && products.map((product) => (
                                         <tr key={product.id} className={`hover:bg-white/[0.02] transition-colors group/row ${selectedIds.has(product.id) ? 'bg-green-50/30' : ''}`}>
                                             <td className="px-4 py-6 whitespace-nowrap">
                                                 <div className="flex items-center justify-center">
@@ -549,7 +592,7 @@ const ManageProducts = () => {
 
                         {/* Mobile Optimized Cards */}
                         <div className="md:hidden divide-y divide-gray-100 bg-white">
-                            {Array.isArray(filteredProducts) && filteredProducts.map((product) => (
+                            {Array.isArray(products) && products.map((product) => (
                                 <div
                                     key={product.id}
                                     className={`p-6 hover:bg-gray-50 transition-all relative ${selectedIds.has(product.id) ? 'bg-green-50/30' : ''}`}
@@ -607,6 +650,49 @@ const ManageProducts = () => {
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Pagination Bar */}
+                {totalCount > 0 && (
+                    <div className="mt-10 mb-8 flex flex-col sm:flex-row items-center justify-between gap-6 px-4">
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest italic">
+                            Showing <span className="text-black">{((currentPage - 1) * pageSize) + 1}</span> to <span className="text-black">{Math.min(currentPage * pageSize, totalCount)}</span> of <span className="text-black">{totalCount}</span> items
+                        </p>
+
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => {
+                                    setCurrentPage(prev => prev - 1);
+                                    fetchProducts(false, true);
+                                }}
+                                disabled={currentPage === 1 || loading}
+                                className="p-4 bg-white border border-gray-200 rounded-2xl text-gray-600 hover:text-[#28B463] hover:border-[#28B463] transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-sm group"
+                            >
+                                <ChevronLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+                            </button>
+
+                            <div className="flex items-center gap-2">
+                                <span className="px-6 py-3 bg-[#28B463] text-white rounded-2xl font-black text-sm font-Cairo shadow-lg shadow-[#28B463]/20">
+                                    {currentPage}
+                                </span>
+                                <span className="text-gray-300 font-bold mx-2 italic">OF</span>
+                                <span className="px-6 py-3 bg-white border border-gray-200 text-black rounded-2xl font-black text-sm font-Cairo">
+                                    {Math.ceil(totalCount / pageSize)}
+                                </span>
+                            </div>
+
+                            <button
+                                onClick={() => {
+                                    setCurrentPage(prev => prev + 1);
+                                    fetchProducts(true, false);
+                                }}
+                                disabled={currentPage * pageSize >= totalCount || loading}
+                                className="p-4 bg-white border border-gray-200 rounded-2xl text-gray-600 hover:text-[#28B463] hover:border-[#28B463] transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-sm group"
+                            >
+                                <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                            </button>
                         </div>
                     </div>
                 )}
