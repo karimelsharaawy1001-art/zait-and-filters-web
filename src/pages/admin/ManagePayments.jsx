@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../../firebase';
 import { collection, getDocs, doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
-import { Shield, Eye, EyeOff, Save, Loader2, CreditCard, Banknote } from 'lucide-react';
+import { Shield, Eye, EyeOff, Save, Loader2, CreditCard, Banknote, Smartphone } from 'lucide-react';
 import AdminHeader from '../../components/AdminHeader';
 
 const ManagePayments = () => {
@@ -43,6 +43,19 @@ const ManagePayments = () => {
                 };
                 await setDoc(ekRef, defaultEk);
                 data.easykash = defaultEk;
+            }
+
+            if (!data.instapay) {
+                const ipRef = doc(db, 'payment_configs', 'instapay');
+                const defaultIp = {
+                    name: 'Instapay',
+                    nameAr: 'انستاباي',
+                    isActive: false,
+                    type: 'manual',
+                    number: ''
+                };
+                await setDoc(ipRef, defaultIp);
+                data.instapay = defaultIp;
             }
 
             if (data.easykash && data.easykash.name === 'Credit Card (EasyKash)') {
@@ -243,6 +256,42 @@ const ManagePayments = () => {
                                 </button>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Instapay */}
+                    <div className={`bg-admin-card rounded-[2.5rem] shadow-admin border transition-all duration-500 overflow-hidden ${configs.instapay?.isActive ? 'border-[#663299]/40 bg-[#ffffff05]' : 'border-[#ffffff0d]'}`}>
+                        <div className="p-10 flex items-center justify-between border-b border-[#ffffff05]">
+                            <div className="flex items-center gap-6">
+                                <div className="bg-[#663299]/10 p-4 rounded-2xl text-[#663299] transition-transform group-hover:scale-110">
+                                    <Smartphone className="h-6 w-6" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black text-white uppercase tracking-widest poppins">{configs.instapay?.name}</h3>
+                                    <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Instant Payment Network (QR/Link)</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => handleToggle('instapay', configs.instapay.isActive)}
+                                className={`relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-4 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${configs.instapay?.isActive ? 'bg-[#663299]' : 'bg-[#ffffff1a]'}`}
+                            >
+                                <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-xl transition duration-300 ease-in-out ${configs.instapay?.isActive ? 'translate-x-[1.5rem]' : 'translate-x-0'}`} />
+                            </button>
+                        </div>
+
+                        {configs.instapay?.isActive && (
+                            <div className="p-10 relative">
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={() => handleSaveConfig('instapay')}
+                                        disabled={saving}
+                                        className="flex items-center gap-3 bg-white text-black px-10 py-4 rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] hover:scale-105 active:scale-95 transition-all shadow-xl disabled:opacity-50"
+                                    >
+                                        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                                        Save Configuration
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

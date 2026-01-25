@@ -251,6 +251,7 @@ const OrderDetails = () => {
                                             ${status === 'Shipped' ? 'text-purple-600 bg-purple-50' : ''}
                                             ${status === 'Delivered' ? 'text-green-600 bg-green-50' : ''}
                                             ${status === 'Cancelled' ? 'text-[#28B463] bg-red-50' : ''}
+                                            ${status === 'Awaiting Payment Verification' ? 'text-[#663299] bg-[#663299]/10' : ''}
                                         `}
                                     >
                                         <option value="Pending" className="bg-white">Pending</option>
@@ -382,6 +383,23 @@ const OrderDetails = () => {
                                 <span className="text-sm font-bold text-black uppercase tracking-widest">{paymentMethod}</span>
                                 <span className="px-3 py-1 text-[10px] font-black bg-green-50 text-green-600 rounded-lg border border-green-100 uppercase tracking-widest">Confirmed</span>
                             </div>
+                            {order.receiptUrl && (
+                                <div className="mt-6 pt-6 border-t border-gray-50 animate-in fade-in slide-in-from-top-4">
+                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-3">Payment Receipt</p>
+                                    <div className="relative group">
+                                        <a href={order.receiptUrl} target="_blank" rel="noopener noreferrer">
+                                            <img
+                                                src={order.receiptUrl}
+                                                alt="Payment Receipt"
+                                                className="w-full h-auto rounded-2xl border border-gray-200 shadow-sm group-hover:shadow-md transition-all"
+                                            />
+                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all rounded-2xl flex items-center justify-center">
+                                                <p className="text-white font-black opacity-0 group-hover:opacity-100 uppercase tracking-widest text-xs bg-black/50 px-3 py-2 rounded-lg backdrop-blur-sm">View Full Size</p>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -424,6 +442,7 @@ const OrderDetails = () => {
                                     <option value="Credit Card (EasyKash)" className="bg-white">Credit Card (EasyKash)</option>
                                     <option value="InstaPay" className="bg-white">InstaPay</option>
                                     <option value="Wallet" className="bg-white">Wallet</option>
+                                    <option value="Instapay" className="bg-white">Instapay</option>
                                 </select>
                             </div>
 
