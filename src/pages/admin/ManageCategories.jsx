@@ -4,12 +4,14 @@ import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
 import AdminHeader from '../../components/AdminHeader';
 import ImageUpload from '../../components/admin/ImageUpload';
-import { Trash2, Tag, Edit3, Loader2 } from 'lucide-react';
+import { Trash2, Tag, Edit3, Loader2, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
+// import * as XLSX from 'xlsx'; // Moved to backend API
 
 const ManageCategories = () => {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [exporting, setExporting] = useState(false);
     const [formData, setFormData] = useState({ name: '', imageUrl: '', subCategories: '' });
 
     const fetchCategories = async () => {
@@ -26,6 +28,31 @@ const ManageCategories = () => {
     useEffect(() => {
         fetchCategories();
     }, []);
+
+    const exportCategories = async (format = 'xlsx') => {
+        setExporting(true);
+        try {
+            const response = await fetch(`/api/export-categories?format=${format}`);
+            if (!response.ok) throw new Error('Export failed');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `categories_export_${new Date().toISOString().split('T')[0]}.${format}`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            toast.success(`Categories exported as ${format.toUpperCase()} successfully`);
+        } catch (error) {
+            console.error("Export error:", error);
+            toast.error(`Failed to export categories as ${format.toUpperCase()}`);
+        } finally {
+            setExporting(false);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -122,7 +149,28 @@ const ManageCategories = () => {
 
                     {/* List Section */}
                     <div className="lg:col-span-2 space-y-6">
-                        <h2 className="text-xl font-black text-black uppercase tracking-widest poppins">Existing Categories</h2>
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-xl font-black text-black uppercase tracking-widest poppins">Existing Categories</h2>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => exportCategories('xlsx')}
+                                    disabled={exporting || loading}
+                                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-md disabled:opacity-50"
+                                >
+                                    {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                                    Excel
+                                </button>
+                                <button
+                                    onClick={() => exportCategories('csv')}
+                                    disabled={exporting || loading}
+                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-md disabled:opacity-50"
+                                >
+                                    {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                                    CSV
+                                </button>
+                            </div>
+                        </div>
+
                         {loading ? (
                             <div className="flex justify-center py-20">
                                 <Loader2 className="w-12 h-12 text-admin-accent animate-spin" />
