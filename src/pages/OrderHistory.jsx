@@ -31,7 +31,7 @@ const OrderHistory = () => {
             const q = query(
                 collection(db, 'orders'),
                 where('userId', '==', userId),
-                orderBy('createdAt', 'desc')
+                orderBy('orderNumber', 'desc')
             );
             const querySnapshot = await getDocs(q);
             const ordersList = querySnapshot.docs.map(doc => ({
@@ -50,7 +50,7 @@ const OrderHistory = () => {
                 const ordersList = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
-                })).sort((a, b) => b.createdAt - a.createdAt);
+                })).sort((a, b) => (b.orderNumber || 0) - (a.orderNumber || 0));
                 setOrders(ordersList);
             }
         } finally {
