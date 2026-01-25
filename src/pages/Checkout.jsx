@@ -345,16 +345,16 @@ const Checkout = () => {
 
         try {
             const finalOrderItems = cartItems.map(item => ({
-                id: item.id,
-                name: item.name,
+                id: item.id || 'unknown',
+                name: item.name || 'Unknown Product',
                 nameEn: item.nameEn || null,
-                price: item.price,
-                quantity: item.quantity,
-                image: item.image,
-                brand: item.brand,
+                price: Number(item.price) || 0,
+                quantity: Number(item.quantity) || 1,
+                image: item.image || null,
+                brand: item.brand || null,
                 brandEn: item.brandEn || null,
-                make: item.make,
-                model: item.model,
+                make: item.make || null,
+                model: item.model || null,
                 yearStart: item.yearStart || null,
                 yearEnd: item.yearEnd || null
             }));
@@ -385,7 +385,7 @@ const Checkout = () => {
                 }
             }
 
-            const orderData = {
+            const rawOrderData = {
                 userId: auth.currentUser?.uid || 'guest',
                 customer: {
                     name: formData.name || 'Guest',
@@ -411,8 +411,15 @@ const Checkout = () => {
                 status: formData.paymentMethod === 'instapay' ? 'Awaiting Payment Verification' : 'Pending',
                 paymentStatus: formData.paymentMethod === 'instapay' ? 'Awaiting Verification' : 'Pending',
                 receiptUrl: formData.paymentMethod === 'instapay' ? (receiptUrl || null) : null,
-                createdAt: new Date()
+                createdAt: new Date().toISOString() // Use ISO string to be safe, though Date is supported
             };
+
+            // Deep clean to remove any undefined values that might slip through
+            const orderData = JSON.parse(JSON.stringify(rawOrderData));
+            // Restore Date object if needed, but ISO string is safer for JSON serialization. 
+            // Actually Firestore supports Date objects. Let's re-add it manually or trust ISO string.
+            // JSON.stringify turns Date to string. Firestore runs better with Timestamps or Dates.
+            orderData.createdAt = new Date();
 
             if (selectedMethod?.type === 'online') {
                 localStorage.setItem('pending_order', JSON.stringify(orderData));
@@ -428,7 +435,7 @@ const Checkout = () => {
                         nextNumber = (counterSnap.data().lastOrderNumber || 3500) + 1;
                     }
                     const orderRef = doc(collection(db, 'orders'));
-                    transaction.set(orderRef, { ...orderData, orderNumber: nextNumber, updatedAt: new Date() });
+                    transaction.set(orderRef, { ...orderData, orderNumber: nextNumber });
                     transaction.set(counterRef, { lastOrderNumber: nextNumber }, { merge: true });
                     if (appliedPromo) {
                         transaction.update(doc(db, 'promo_codes', appliedPromo.id), { usedCount: increment(1) });
