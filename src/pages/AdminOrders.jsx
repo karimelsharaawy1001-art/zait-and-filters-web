@@ -18,7 +18,7 @@ const AdminOrders = () => {
 
     const fetchOrders = async () => {
         try {
-            const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+            const q = query(collection(db, 'orders'), orderBy('orderNumber', 'desc'));
             const querySnapshot = await getDocs(q);
             const ordersList = querySnapshot.docs.map(doc => ({
                 id: doc.id,
