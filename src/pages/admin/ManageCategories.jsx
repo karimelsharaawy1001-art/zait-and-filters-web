@@ -36,15 +36,16 @@ const ManageCategories = () => {
 
             if (!response.ok) {
                 let errorMessage = 'Export failed';
+                let errorDetails = '';
                 try {
                     const errorData = await response.json();
                     errorMessage = errorData.error || errorData.message || errorMessage;
+                    errorDetails = errorData.details || '';
                 } catch (e) {
-                    // Not a JSON response
                     const textError = await response.text();
                     errorMessage = textError.slice(0, 100) || errorMessage;
                 }
-                throw new Error(errorMessage);
+                throw new Error(errorDetails ? `${errorMessage}: ${errorDetails}` : errorMessage);
             }
 
             const blob = await response.blob();
