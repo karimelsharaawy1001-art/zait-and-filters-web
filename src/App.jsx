@@ -60,6 +60,8 @@ import Profile from './pages/Profile';
 import OilAdvisor from './pages/OilAdvisor';
 import RecoverCart from './pages/RecoverCart';
 import CategoryPage from './pages/CategoryPage';
+import BrandPage from './pages/BrandPage';
+import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import UserProtectedRoute from './components/UserProtectedRoute';
 import AffiliateProtectedRoute from './components/AffiliateProtectedRoute';
@@ -160,6 +162,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/shop" element={<ShopPage />} />
               <Route path="/category/:id" element={<CategoryPage />} />
+              <Route path="/brand/:brandName" element={<BrandPage />} />
               <Route path="/product/:id" element={<ProductDetails />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/contact" element={<ContactUs />} />
@@ -240,6 +243,9 @@ function App() {
               <Route path="settings" element={<ManageSettings />} />
               <Route path="policies" element={<ManagePolicies />} />
             </Route>
+
+            {/* Catch-all 404 Route */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </ErrorBoundary>
       </SettingsProvider>

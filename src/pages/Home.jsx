@@ -85,6 +85,33 @@ const Home = () => {
         </section>
     );
 
+    const faqSchema = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": i18n.language === 'ar' ? "أين يمكنني شراء قطع غيار أصلية في مصر؟" : "Where can I buy original car parts in Egypt?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": i18n.language === 'ar'
+                        ? "زيت اند فلترز هو مصدرك الأول لقطع الغيار الأصلية مع ضمان حقيقي وتوصيل لكل المحافظات."
+                        : "Zait & Filters is your primary source for original car parts with genuine warranty and shipping across all Egyptian governorates."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": i18n.language === 'ar' ? "هل يوجد تقسيط على قطع الغيار؟" : "Do you offer installments for car parts?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": i18n.language === 'ar'
+                        ? "نعم، بنوفر أنظمة تقسيط متنوعة من خلال (فوري، أمان، فاليو) لتسهيل شراء احتياجات عربيتك."
+                        : "Yes, we provide various installment systems through (Fawry, Aman, ValU) to make it easier for you to purchase your car needs."
+                }
+            }
+        ]
+    };
+
     return (
         <div className="home-page flex-1 bg-white">
             <SEO
@@ -92,6 +119,7 @@ const Home = () => {
                 description="HIGHREV: اشتري قطع غيار عربيتك الأصلية بالضمان من زيت اند فلترز. بنوصل لكل محافظات مصر وعندنا كل طرق التقسيط."
                 keywords="قطع غيار سيارات أصلية بمصر, زيوت وفلاتر بالضمان, تقسيط قطع غيار سيارات"
                 url={window.location.origin + window.location.pathname}
+                schema={faqSchema}
             />
             <Hero />
 
