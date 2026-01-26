@@ -185,8 +185,12 @@ const ProductDetails = () => {
     return (
         <div className="bg-white min-h-screen" dir={isAr ? 'rtl' : 'ltr'}>
             <SEO
-                title={`${isAr ? product.name : (product.nameEn || product.name)} | ZaitAndFilters`}
+                title={`${isAr ? product.name : (product.nameEn || product.name)} | Zait & Filters`}
                 description={displayDescription}
+                keywords={`${product.category}, ${product.make || ''}, ${product.model || ''}, ${product.partBrand || ''}, قطع غيار سيارات`}
+                image={product.imageUrl || product.images?.[0] || 'https://zait-and-filters-web.vercel.app/logo.png'}
+                url={window.location.href}
+                type="product"
             />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Back Link */}

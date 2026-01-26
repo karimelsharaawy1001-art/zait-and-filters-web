@@ -3,14 +3,18 @@ import { db } from '../firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 
 /**
- * SEO Component to manage page-level metadata
+ * SEO Component to manage page-level metadata including Open Graph tags
  * @param {Object} props
  * @param {string} props.title - Page title
  * @param {string} props.description - Meta description
  * @param {string} props.keywords - Meta keywords
+ * @param {string} props.image - OG image URL
+ * @param {string} props.url - Canonical URL
+ * @param {string} props.type - OG type (website, product, article, etc.)
  */
-const SEO = ({ title, description, keywords }) => {
+const SEO = ({ title, description, keywords, image, url, type = 'website' }) => {
     useEffect(() => {
+        // Update Page Title
         if (title) {
             document.title = title;
         }
@@ -36,7 +40,61 @@ const SEO = ({ title, description, keywords }) => {
             }
             metaKeywords.setAttribute('content', keywords);
         }
-    }, [title, description, keywords]);
+
+        // Open Graph Tags
+        const ogTags = {
+            'og:title': title,
+            'og:description': description,
+            'og:image': image || 'https://zait-and-filters-web.vercel.app/logo.png',
+            'og:url': url || window.location.href,
+            'og:type': type,
+            'og:site_name': 'Zait & Filters'
+        };
+
+        Object.entries(ogTags).forEach(([property, content]) => {
+            if (content) {
+                let metaTag = document.querySelector(`meta[property="${property}"]`);
+                if (!metaTag) {
+                    metaTag = document.createElement('meta');
+                    metaTag.setAttribute('property', property);
+                    document.head.appendChild(metaTag);
+                }
+                metaTag.setAttribute('content', content);
+            }
+        });
+
+        // Twitter Card Tags
+        const twitterTags = {
+            'twitter:card': 'summary_large_image',
+            'twitter:title': title,
+            'twitter:description': description,
+            'twitter:image': image || 'https://zait-and-filters-web.vercel.app/logo.png'
+        };
+
+        Object.entries(twitterTags).forEach(([name, content]) => {
+            if (content) {
+                let metaTag = document.querySelector(`meta[name="${name}"]`);
+                if (!metaTag) {
+                    metaTag = document.createElement('meta');
+                    metaTag.setAttribute('name', name);
+                    document.head.appendChild(metaTag);
+                }
+                metaTag.setAttribute('content', content);
+            }
+        });
+
+        // Canonical URL
+        if (url) {
+            let linkCanonical = document.querySelector('link[rel="canonical"]');
+            if (!linkCanonical) {
+                linkCanonical = document.createElement('link');
+                linkCanonical.setAttribute('rel', 'canonical');
+                document.head.appendChild(linkCanonical);
+            }
+            linkCanonical.setAttribute('href', url);
+        }
+
+    }, [title, description, keywords, image, url, type]);
 
     // Dynamic Integrations Head Logic (Search Console, etc)
     useEffect(() => {
