@@ -83,7 +83,7 @@ const BulkOperations = () => {
                     costPrice: data.costPrice || 0,
                     sellPrice: data.price || 0,
                     salePrice: data.salePrice || '',
-                    warranty: data.warranty || '',
+                    warranty: data.warranty || (data.warranty_months ? `${data.warranty_months} Months` : ''),
                     description: data.description || '',
                     imageUrl: data.image || '',
                     partNumber: data.partNumber || '',
@@ -173,7 +173,25 @@ const BulkOperations = () => {
                         if (row.salePrice !== undefined && row.salePrice !== "") dataToUpdate.salePrice = Number(row.salePrice);
                         else if (row.salePrice === "") dataToUpdate.salePrice = null; // Clear sale price if blank but present
 
-                        if (row.warranty) dataToUpdate.warranty = String(row.warranty).trim();
+                        const parseWarranty = (val) => {
+                            if (!val) return null;
+                            const str = String(val).toLowerCase();
+                            const num = parseInt(str.replace(/[^0-9]/g, ''));
+                            if (isNaN(num)) return null;
+
+                            if (str.includes('year') || str.includes('سنة') || str.includes('عام')) {
+                                return num * 12;
+                            }
+                            return num;
+                        };
+
+                        if (row.warranty) {
+                            const months = parseWarranty(row.warranty);
+                            if (months) {
+                                dataToUpdate.warranty_months = months;
+                                dataToUpdate.warranty = String(row.warranty).trim(); // Keep string version for reference
+                            }
+                        }
                         if (row.description) dataToUpdate.description = String(row.description).trim();
                         if (row.imageUrl) dataToUpdate.image = String(row.imageUrl).trim();
                         if (row.partNumber) dataToUpdate.partNumber = String(row.partNumber).trim();
