@@ -51,23 +51,27 @@ export const generateProductDescription = (product, lang = 'ar') => {
  * @param {string} lang - Language code ('ar' or 'en').
  * @returns {string} - Formatted warranty string.
  */
-export const formatWarranty = (months, lang = 'ar') => {
+export const formatWarranty = (months, lang = 'ar', includePrefix = true) => {
     const num = parseInt(months);
-    if (!num || isNaN(num)) return '';
+    if (!num || isNaN(num)) return months || ''; // Return original if not a number
 
     const isAr = lang === 'ar';
 
     if (num === 12) {
+        if (!includePrefix) return isAr ? 'سنة واحدة' : '1 Year';
         return isAr ? 'ضمان سنة' : '1 Year Warranty';
     }
 
     if (num === 24) {
+        if (!includePrefix) return isAr ? 'سنتين' : '2 Years';
         return isAr ? 'ضمان سنتين' : '2 Years Warranty';
     }
 
     if (isAr) {
-        return `ضمان ${num} شهور`;
+        const suffix = 'شهور';
+        return includePrefix ? `ضمان ${num} ${suffix}` : `${num} ${suffix}`;
     }
 
-    return `${num} Months Warranty`;
+    const suffix = num === 1 ? 'Month' : 'Months';
+    return includePrefix ? `${num} ${suffix} Warranty` : `${num} ${suffix}`;
 };

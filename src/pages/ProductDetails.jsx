@@ -305,7 +305,7 @@ const ProductDetails = () => {
                                 {(product.warranty_months || product.warranty) && (
                                     <span className="flex items-center gap-1 bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wide border border-green-100">
                                         <ShieldCheck className="h-3.5 w-3.5" />
-                                        {product.warranty_months ? formatWarranty(product.warranty_months, i18n.language) : product.warranty}
+                                        {formatWarranty(product.warranty_months || product.warranty, i18n.language)}
                                     </span>
                                 )}
                                 {product.make && (
@@ -357,7 +357,7 @@ const ProductDetails = () => {
                                 { label: isAr ? 'الفئة' : 'Category', value: product.category, icon: <Tag className="h-4 w-4 text-orange-600" /> },
                                 { label: isAr ? 'التوافق' : 'Compatibility', value: product.make ? `${product.make} ${product.model || ''}` : null, icon: <Car className="h-4 w-4 text-orange-600" /> },
                                 { label: isAr ? 'بلد المنشأ' : 'Origin', value: product.countryOfOrigin, icon: <Globe className="h-4 w-4 text-orange-600" /> },
-                                { label: isAr ? 'مدة الضمان' : 'Warranty', value: product.warranty_months ? formatWarranty(product.warranty_months, i18n.language) : (product.warranty || null), icon: <ShieldCheck className="h-4 w-4 text-orange-600" /> },
+                                { label: isAr ? 'مدة الضمان' : 'Warranty', value: (product.warranty_months || product.warranty) ? formatWarranty(product.warranty_months || product.warranty, i18n.language, false) : null, icon: <ShieldCheck className="h-4 w-4 text-orange-600" /> },
                             ].filter(spec => spec.value).map((spec, index) => (
                                 <div key={index} className={`flex items-center gap-3 text-sm border-b border-gray-50 pb-2 last:border-0 ${isAr ? 'flex-row-reverse' : ''}`}>
                                     <div className="bg-gray-50 p-2 rounded-lg">
