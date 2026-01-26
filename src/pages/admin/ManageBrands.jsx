@@ -80,7 +80,7 @@ const ManageBrands = () => {
                 {!isAdding && (
                     <button
                         onClick={() => setIsAdding(true)}
-                        className="bg-admin-red hover:bg-admin-red-dark text-white px-8 py-4 rounded-xl flex items-center gap-3 hover:scale-105 transition-all shadow-lg shadow-admin-red/40 font-black uppercase tracking-widest text-xs"
+                        className="admin-primary-btn !w-fit !px-8"
                     >
                         <Plus className="h-5 w-5" /> Add New Brand
                     </button>
@@ -118,7 +118,7 @@ const ManageBrands = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="flex-1 bg-admin-red hover:bg-admin-red-dark text-white py-4 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 font-black uppercase tracking-widest text-xs shadow-lg shadow-admin-red/40"
+                                className="admin-primary-btn flex-1"
                             >
                                 {loading ? <Loader2 className="h-4 w-4 animate-spin text-white" /> : <Plus className="h-4 w-4" />}
                                 Add Brand
