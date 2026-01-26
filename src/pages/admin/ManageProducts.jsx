@@ -330,7 +330,7 @@ const ManageProducts = () => {
                     </div>
                     <button
                         onClick={() => navigate('/admin/products/new')}
-                        className="flex items-center gap-3 bg-[#28B463] hover:bg-[#219653] hover:scale-105 text-white px-8 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-[#28B463]/20"
+                        className="admin-primary-btn !w-fit !px-8"
                     >
                         <Plus className="h-5 w-5" />
                         Add New Entry

@@ -187,7 +187,7 @@ const ManageCategories = () => {
                             </div>
                             <button
                                 type="submit"
-                                className="w-full py-4 bg-[#FF0000] hover:bg-[#CC0000] text-white font-black rounded-xl shadow-lg shadow-red-500/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest text-xs"
+                                className="admin-primary-btn"
                             >
                                 Add Category
                             </button>

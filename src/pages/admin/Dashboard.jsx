@@ -215,7 +215,7 @@ const Dashboard = () => {
                         <p className="text-base font-medium text-silver-grey max-w-sm">There are currently {stats.pendingOrders} pending orders awaiting your immediate processing.</p>
                         <button
                             onClick={() => navigate('/admin/orders')}
-                            className="bg-admin-red hover:bg-admin-red-dark text-white font-black text-xs uppercase tracking-widest px-8 py-4 rounded-xl transition-all flex items-center gap-3 w-fit shadow-lg shadow-admin-red/20"
+                            className="admin-primary-btn !w-fit !px-8"
                         >
                             Process Orders
                             <ArrowRight className="h-4.5 w-4.5" />
@@ -251,7 +251,7 @@ const Dashboard = () => {
                         </div>
                         <button
                             onClick={() => navigate('/admin/products')}
-                            className="bg-admin-red hover:bg-admin-red-dark text-white font-black text-xs uppercase tracking-widest px-8 py-4 rounded-xl transition-all flex items-center gap-3 w-fit shadow-lg shadow-admin-red/20"
+                            className="admin-primary-btn !w-fit !px-8"
                         >
                             Manage Stock
                             <ArrowRight className="h-4.5 w-4.5" />

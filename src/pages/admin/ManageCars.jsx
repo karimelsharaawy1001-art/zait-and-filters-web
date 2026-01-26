@@ -145,7 +145,7 @@ const ManageCars = () => {
                             </div>
                             <button
                                 type="submit"
-                                className="w-full bg-admin-red hover:bg-admin-red-dark text-white py-4 rounded-xl font-black text-xs hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-admin-red/40 uppercase tracking-widest"
+                                className="admin-primary-btn"
                             >
                                 Add Car Model
                             </button>

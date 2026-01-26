@@ -425,7 +425,7 @@ const AddProduct = () => {
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="admin-primary-btn"
+                                    className="admin-primary-btn !w-fit !px-12"
                                 >
                                     {saving ? (
                                         <>
