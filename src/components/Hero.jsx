@@ -87,7 +87,7 @@ const Hero = () => {
                         className="w-full h-full object-cover object-center"
                     />
                     {/* Dark Overlay for Text Contrast */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/40"></div>
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/75 to-black/70"></div>
                 </div>
 
                 {/* Content Container */}
