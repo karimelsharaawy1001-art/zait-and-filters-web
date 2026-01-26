@@ -53,10 +53,12 @@ export const generateProductDescription = (product, lang = 'ar') => {
  */
 export const formatWarranty = (months, lang = 'ar', includePrefix = true) => {
     const num = parseInt(months);
-    if (!num || isNaN(num)) return months || ''; // Return original if not a number
+    if (!num || isNaN(num)) return months || '';
 
-    const isAr = lang === 'ar';
+    // Robust language check for Arabic
+    const isAr = lang && lang.toLowerCase().startsWith('ar');
 
+    // Special cases: 1 Year / 2 Years
     if (num === 12) {
         if (!includePrefix) return isAr ? 'سنة واحدة' : '1 Year';
         return isAr ? 'ضمان سنة' : '1 Year Warranty';
@@ -67,11 +69,14 @@ export const formatWarranty = (months, lang = 'ar', includePrefix = true) => {
         return isAr ? 'ضمان سنتين' : '2 Years Warranty';
     }
 
+    // Default case with units
     if (isAr) {
-        const suffix = 'شهور';
+        // Arabic pluralization: 3-10 are 'شهور', 11+ or 1-2 are 'شهر'
+        const suffix = (num >= 3 && num <= 10) ? 'شهور' : 'شهر';
         return includePrefix ? `ضمان ${num} ${suffix}` : `${num} ${suffix}`;
     }
 
+    // English pluralization
     const suffix = num === 1 ? 'Month' : 'Months';
     return includePrefix ? `${num} ${suffix} Warranty` : `${num} ${suffix}`;
 };

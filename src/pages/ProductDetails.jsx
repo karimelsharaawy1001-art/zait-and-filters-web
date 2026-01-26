@@ -50,7 +50,7 @@ const ProductDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { t, i18n } = useTranslation();
-    const isAr = i18n.language === 'ar';
+    const isAr = i18n.language && i18n.language.startsWith('ar');
     const { addToCart } = useCart();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
