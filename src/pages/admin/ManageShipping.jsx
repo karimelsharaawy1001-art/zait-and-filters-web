@@ -193,9 +193,10 @@ const ManageShipping = () => {
                             <button
                                 type="submit"
                                 disabled={actionLoading}
-                                className="w-full admin-primary-btn py-5 rounded-[1.5rem] text-white"
+                                className="admin-primary-btn"
                             >
-                                Commmit Rate Entity
+                                {actionLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+                                Commit Rate Entity
                             </button>
                         </form>
                     </div>
