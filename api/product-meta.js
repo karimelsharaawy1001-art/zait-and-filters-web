@@ -1,22 +1,5 @@
-import admin from 'firebase-admin';
-
-// Initialize Firebase Admin
-if (!admin.apps.length) {
-    try {
-        if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-            const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-            admin.initializeApp({
-                credential: admin.credential.cert(serviceAccount)
-            });
-        } else {
-            admin.initializeApp();
-        }
-    } catch (error) {
-        console.error('Firebase Admin initialization failed:', error);
-    }
-}
-
-const db = admin.firestore();
+// Serverless function for product meta tags using Firestore REST API
+// This version doesn't require Firebase Admin SDK or service account
 
 // Detect if the request is from a crawler/bot
 function isCrawler(userAgent) {
@@ -72,12 +55,63 @@ function ensureAbsoluteUrl(url, baseUrl = 'https://zait-and-filters-web.vercel.a
     return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 
+// Escape special characters for HTML
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+// Fetch product from Firestore using REST API
+async function fetchProduct(productId, apiKey, projectId) {
+    const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/products/${productId}?key=${apiKey}`;
+
+    try {
+        const response = await fetch(firestoreUrl);
+
+        if (!response.ok) {
+            console.log(`[Product Meta] Firestore API error: ${response.status} ${response.statusText}`);
+            return null;
+        }
+
+        const data = await response.json();
+
+        if (!data.fields) {
+            console.log('[Product Meta] No fields in Firestore response');
+            return null;
+        }
+
+        // Convert Firestore document format to regular object
+        const product = {};
+        for (const [key, value] of Object.entries(data.fields)) {
+            // Handle different Firestore value types
+            if (value.stringValue !== undefined) {
+                product[key] = value.stringValue;
+            } else if (value.integerValue !== undefined) {
+                product[key] = parseInt(value.integerValue);
+            } else if (value.doubleValue !== undefined) {
+                product[key] = parseFloat(value.doubleValue);
+            } else if (value.booleanValue !== undefined) {
+                product[key] = value.booleanValue;
+            } else if (value.arrayValue && value.arrayValue.values) {
+                product[key] = value.arrayValue.values.map(v => v.stringValue || v);
+            }
+        }
+
+        return product;
+    } catch (error) {
+        console.error('[Product Meta] Error fetching from Firestore:', error);
+        return null;
+    }
+}
+
 // Generate HTML with meta tags
 function generateHTML(product, productId, baseUrl = 'https://zait-and-filters-web.vercel.app') {
     const productUrl = `${baseUrl}/product/${productId}`;
-
-    // Determine language (default to Arabic)
-    const lang = 'ar';
 
     // Product details
     const title = product.nameEn || product.name || 'Product';
@@ -89,12 +123,10 @@ function generateHTML(product, productId, baseUrl = 'https://zait-and-filters-we
     const fullDescription = `${description} | ${descriptionAr}`;
 
     // Get product image - ensure absolute URL
-    let productImage = product.image || product.imageUrl || product.images?.[0] || '';
+    let productImage = product.image || product.imageUrl || (product.images && product.images[0]) || '';
 
-    // Log the raw image value for debugging
     console.log(`[Product Meta] Raw image value: ${productImage}`);
 
-    // Ensure absolute URL
     productImage = ensureAbsoluteUrl(productImage, baseUrl);
 
     console.log(`[Product Meta] Final absolute image URL: ${productImage}`);
@@ -115,17 +147,6 @@ function generateHTML(product, productId, baseUrl = 'https://zait-and-filters-we
     // Price information
     const price = product.salePrice || product.price || '0';
     const currency = 'EGP';
-
-    // Escape special characters for HTML
-    const escapeHtml = (str) => {
-        if (!str) return '';
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    };
 
     return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -276,6 +297,18 @@ export default async function handler(req, res) {
 
     console.log('[Product Meta] Crawler detected, generating meta tags');
 
+    // Get Firebase credentials from environment
+    const apiKey = process.env.VITE_FIREBASE_API_KEY;
+    const projectId = process.env.VITE_FIREBASE_PROJECT_ID || 'zaitandfilters';
+
+    if (!apiKey) {
+        console.error('[Product Meta] ERROR: VITE_FIREBASE_API_KEY not found');
+        return res
+            .status(200)
+            .setHeader('Content-Type', 'text/html; charset=utf-8')
+            .send(generateFallbackHTML(baseUrl));
+    }
+
     // Fetch product from Firestore
     try {
         if (!id) {
@@ -286,10 +319,10 @@ export default async function handler(req, res) {
                 .send(generateFallbackHTML(baseUrl));
         }
 
-        console.log(`[Product Meta] Fetching product from Firestore: ${id}`);
-        const productDoc = await db.collection('products').doc(id).get();
+        console.log(`[Product Meta] Fetching product from Firestore using REST API`);
+        const product = await fetchProduct(id, apiKey, projectId);
 
-        if (!productDoc.exists) {
+        if (!product) {
             console.log(`[Product Meta] ERROR: Product not found: ${id}`);
             return res
                 .status(200)
@@ -297,10 +330,9 @@ export default async function handler(req, res) {
                 .send(generateFallbackHTML(baseUrl));
         }
 
-        const product = productDoc.data();
         console.log(`[Product Meta] SUCCESS: Product found`);
         console.log(`[Product Meta] Product Name: ${product.name || product.nameEn}`);
-        console.log(`[Product Meta] Product Image Field: ${product.image || product.imageUrl || product.images?.[0] || 'NONE'}`);
+        console.log(`[Product Meta] Product Image Field: ${product.image || product.imageUrl || (product.images && product.images[0]) || 'NONE'}`);
 
         const html = generateHTML(product, id, baseUrl);
 
