@@ -23,16 +23,33 @@ function isCrawler(userAgent) {
     return crawlerPatterns.some(pattern => lowerUA.includes(pattern));
 }
 
-// Generate product description
+// Generate product description with car make, model, and year
 function generateProductDescription(product, lang = 'ar') {
     const isAr = lang === 'ar';
 
+    // Build car compatibility info
+    let carInfo = '';
+    if (product.make && product.model) {
+        const yearInfo = product.yearStart && product.yearEnd
+            ? ` (${product.yearStart}-${product.yearEnd})`
+            : product.yearStart
+                ? ` (${product.yearStart})`
+                : '';
+        carInfo = isAr
+            ? ` - متوافق مع ${product.make} ${product.model}${yearInfo}`
+            : ` - Compatible with ${product.make} ${product.model}${yearInfo}`;
+    }
+
+    // Build brand info
+    const brandInfo = product.partBrand || product.brand || '';
+    const brandText = brandInfo ? (isAr ? ` - ${brandInfo}` : ` - ${brandInfo}`) : '';
+
     if (isAr) {
         return product.description || product.descriptionEn ||
-            `${product.name} - ${product.partBrand || product.brand || ''} - قطع غيار أصلية مع ضمان`;
+            `${product.name}${brandText}${carInfo} - قطع غيار أصلية مع ضمان`;
     } else {
         return product.descriptionEn || product.description ||
-            `${product.nameEn || product.name} - ${product.brandEn || product.partBrand || product.brand || ''} - Original spare parts with warranty`;
+            `${product.nameEn || product.name}${brandText}${carInfo} - Original spare parts with warranty`;
     }
 }
 
