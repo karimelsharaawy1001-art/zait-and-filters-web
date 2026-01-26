@@ -182,6 +182,29 @@ const ProductDetails = () => {
     const autoDescription = generateProductDescription(product, i18n.language);
     const displayDescription = isAr ? (product.description || product.descriptionEn || autoDescription) : (product.descriptionEn || product.description || autoDescription);
 
+    const productSchema = {
+        '@context': 'https://schema.org/',
+        '@type': 'Product',
+        'name': isAr ? product.name : (product.nameEn || product.name),
+        'image': product.imageUrl || product.images?.[0] || 'https://zait-and-filters-web.vercel.app/logo.png',
+        'description': displayDescription,
+        'brand': {
+            '@type': 'Brand',
+            'name': isAr ? (product.partBrand || product.brand || 'زيت اند فلترز') : (product.brandEn || product.partBrand || product.brand || 'Zait & Filters')
+        },
+        'offers': {
+            '@type': 'Offer',
+            'url': window.location.href,
+            'priceCurrency': 'EGP',
+            'price': product.salePrice || product.price || '0',
+            'availability': product.isActive ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+            'seller': {
+                '@type': 'Organization',
+                'name': 'Zait & Filters'
+            }
+        }
+    };
+
     return (
         <div className="bg-white min-h-screen" dir={isAr ? 'rtl' : 'ltr'}>
             <SEO
@@ -191,6 +214,7 @@ const ProductDetails = () => {
                 image={product.imageUrl || product.images?.[0] || 'https://zait-and-filters-web.vercel.app/logo.png'}
                 url={window.location.href}
                 type="product"
+                schema={productSchema}
             />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Back Link */}

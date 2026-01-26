@@ -11,9 +11,11 @@ import { doc, onSnapshot } from 'firebase/firestore';
  * @param {string} props.image - OG image URL
  * @param {string} props.url - Canonical URL
  * @param {string} props.type - OG type (website, product, article, etc.)
+ * @param {Object} props.schema - JSON-LD Schema object
  */
-const SEO = ({ title, description, keywords, image, url, type = 'website' }) => {
+const SEO = ({ title, description, keywords, image, url, type = 'website', schema }) => {
     useEffect(() => {
+        // ... previous metadata logic ...
         // Update Page Title
         if (title) {
             document.title = title;
@@ -95,6 +97,28 @@ const SEO = ({ title, description, keywords, image, url, type = 'website' }) => 
         }
 
     }, [title, description, keywords, image, url, type]);
+
+    // JSON-LD Schema Structured Data
+    useEffect(() => {
+        if (!schema) return;
+
+        let script = document.getElementById('json-ld-schema');
+        if (!script) {
+            script = document.createElement('script');
+            script.id = 'json-ld-schema';
+            script.type = 'application/ld+json';
+            document.head.appendChild(script);
+        }
+
+        script.innerHTML = JSON.stringify(schema);
+
+        return () => {
+            const existingScript = document.getElementById('json-ld-schema');
+            if (existingScript) {
+                existingScript.remove();
+            }
+        };
+    }, [schema]);
 
     // Dynamic Integrations Head Logic (Search Console, etc)
     useEffect(() => {
