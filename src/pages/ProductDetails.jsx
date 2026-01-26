@@ -15,7 +15,11 @@ import {
     MessageSquare,
     CheckCircle2,
     Clock,
-    UserCircle2
+    UserCircle2,
+    Tag,
+    Globe,
+    Box,
+    Car
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useTranslation } from 'react-i18next';
@@ -343,6 +347,28 @@ const ProductDetails = () => {
                                 )}
                             </div>
                             <p className="text-xs text-gray-500 font-medium italic">{t('taxIncluded')}</p>
+                        </div>
+
+                        {/* Product Specifications List */}
+                        <div className={`mb-8 space-y-3 ${isAr ? 'text-right' : 'text-left'}`}>
+                            {[
+                                { label: isAr ? 'اسم المنتج' : 'Product Name', value: isAr ? product.name : (product.nameEn || product.name), icon: <Box className="h-4 w-4 text-orange-600" /> },
+                                { label: isAr ? 'البراند' : 'Brand', value: isAr ? (product.partBrand || product.brand) : (product.brandEn || product.partBrand || product.brand), icon: <Tag className="h-4 w-4 text-orange-600" /> },
+                                { label: isAr ? 'الفئة' : 'Category', value: product.category, icon: <Tag className="h-4 w-4 text-orange-600" /> },
+                                { label: isAr ? 'التوافق' : 'Compatibility', value: product.make ? `${product.make} ${product.model || ''}` : null, icon: <Car className="h-4 w-4 text-orange-600" /> },
+                                { label: isAr ? 'بلد المنشأ' : 'Origin', value: product.countryOfOrigin, icon: <Globe className="h-4 w-4 text-orange-600" /> },
+                                { label: isAr ? 'مدة الضمان' : 'Warranty', value: product.warranty_months ? formatWarranty(product.warranty_months, i18n.language) : null, icon: <ShieldCheck className="h-4 w-4 text-orange-600" /> },
+                            ].filter(spec => spec.value).map((spec, index) => (
+                                <div key={index} className={`flex items-center gap-3 text-sm border-b border-gray-50 pb-2 last:border-0 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                    <div className="bg-gray-50 p-2 rounded-lg">
+                                        {spec.icon}
+                                    </div>
+                                    <div className={`flex gap-1 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                        <span className="font-bold text-gray-900 whitespace-nowrap">{spec.label}:</span>
+                                        <span className="text-gray-600 font-medium">{spec.value}</span>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
 
                         {/* Add to Cart Section */}
