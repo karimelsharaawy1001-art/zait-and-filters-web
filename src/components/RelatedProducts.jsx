@@ -10,9 +10,9 @@ const RelatedProducts = ({ currentProduct }) => {
     const [loading, setLoading] = useState(true);
 
     const SkeletonLoader = () => (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 animate-pulse">
+        <div className="flex gap-4 overflow-hidden pb-4">
             {[...Array(4)].map((_, i) => (
-                <div key={i} className="bg-gray-100 rounded-premium h-[400px] w-full"></div>
+                <div key={i} className="min-w-[45%] sm:min-w-[22%] bg-gray-100 rounded-premium h-[380px]"></div>
             ))}
         </div>
     );
@@ -107,12 +107,20 @@ const RelatedProducts = ({ currentProduct }) => {
                 <h2 className={`text-2xl font-black text-gray-900 mb-8 ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
                     {t('relatedProducts')}
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
                     {relatedProducts.map(product => (
-                        <ProductCard key={product.id} product={product} />
+                        <div key={product.id} className="min-w-[75%] 2xs:min-w-[46%] md:min-w-[30%] lg:min-w-[23.5%] snap-start flex-shrink-0">
+                            <ProductCard product={product} />
+                        </div>
                     ))}
                 </div>
             </div>
+
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                .scrollbar-hide::-webkit-scrollbar { display: none; }
+                .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+            `}} />
         </section>
     );
 };
