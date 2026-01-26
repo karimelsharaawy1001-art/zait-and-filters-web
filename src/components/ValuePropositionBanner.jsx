@@ -16,7 +16,7 @@ const ValuePropositionBanner = () => {
         {
             icon: <Truck className="h-8 w-8 text-[#28B463]" />,
             title: isRTL ? 'توصيل سريع وموثوق' : 'Fast & Reliable Delivery',
-            subtitle: isRTL ? 'شحن لجميع المحافظات خلال 48 ساعة' : 'Shipping to all governorates within 48 hours',
+            subtitle: isRTL ? 'شحن لجميع المحافظات' : 'Shipping to all governorates',
         },
         {
             icon: <Headset className="h-8 w-8 text-[#28B463]" />,
@@ -26,7 +26,7 @@ const ValuePropositionBanner = () => {
         {
             icon: <CreditCard className="h-8 w-8 text-[#28B463]" />,
             title: isRTL ? 'خيارات دفع متعددة' : 'Multiple Payment Options',
-            subtitle: isRTL ? 'كاش، فيزا، أو تقسيط بجميع الأنظمة' : 'Cash, Credit, or Easy Installments',
+            subtitle: isRTL ? 'انستاباي، محافظ الكترونية، فيزا، أو تقسيط بجميع الأنظمة' : 'Instapay, Wallets, Credit, or Easy Installments',
         }
     ];
 
