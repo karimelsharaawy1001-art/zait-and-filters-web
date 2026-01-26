@@ -15,6 +15,8 @@ export const FilterProvider = ({ children }) => {
         subcategory: '',
         searchQuery: '',
         viscosity: '',
+        brand: '',
+        origin: '',
         page: 1
     });
 
@@ -85,6 +87,8 @@ export const FilterProvider = ({ children }) => {
             subcategory: '',
             searchQuery: '',
             viscosity: '',
+            brand: '',
+            origin: '',
             page: 1
         });
     };

@@ -11,21 +11,25 @@ const ShopPage = () => {
 
     // Sync URL to State (Initial Load / Back Button)
     useEffect(() => {
-        const make = searchParams.get('make');
-        const model = searchParams.get('model');
-        const year = searchParams.get('year');
-        const category = searchParams.get('category');
-        const subcategory = searchParams.get('subcategory');
-        const viscosity = searchParams.get('viscosity');
+        const make = searchParams.get('make') || '';
+        const model = searchParams.get('model') || '';
+        const year = searchParams.get('year') || '';
+        const category = searchParams.get('category') || 'All';
+        const subcategory = searchParams.get('subcategory') || '';
+        const viscosity = searchParams.get('viscosity') || '';
         const page = parseInt(searchParams.get('page')) || 1;
+        const brand = searchParams.get('brand') || '';
+        const origin = searchParams.get('origin') || '';
 
-        if (make && make !== filters.make) updateFilter('make', make);
-        if (model && model !== filters.model) updateFilter('model', model);
-        if (year && year !== filters.year) updateFilter('year', year);
-        if (category && category !== filters.category) updateFilter('category', category);
-        if (subcategory && subcategory !== filters.subcategory) updateFilter('subcategory', subcategory);
-        if (viscosity && viscosity !== filters.viscosity) updateFilter('viscosity', viscosity);
-        if (page && page !== filters.page) updateFilter('page', page);
+        if (make !== filters.make) updateFilter('make', make);
+        if (model !== filters.model) updateFilter('model', model);
+        if (year !== filters.year) updateFilter('year', year);
+        if (category !== filters.category) updateFilter('category', category);
+        if (subcategory !== filters.subcategory) updateFilter('subcategory', subcategory);
+        if (viscosity !== filters.viscosity) updateFilter('viscosity', viscosity);
+        if (brand !== filters.brand) updateFilter('brand', brand);
+        if (origin !== filters.origin) updateFilter('origin', origin);
+        if (page !== filters.page) updateFilter('page', page);
     }, [searchParams]);
 
     // Sync State to URL (When User Filters via UI)
@@ -40,6 +44,8 @@ const ShopPage = () => {
             params.set('subcategory', subcategory);
         }
         if (filters.viscosity) params.set('viscosity', filters.viscosity);
+        if (filters.brand) params.set('brand', filters.brand);
+        if (filters.origin) params.set('origin', filters.origin);
         if (filters.page && filters.page > 1) params.set('page', filters.page);
 
         setSearchParams(params);

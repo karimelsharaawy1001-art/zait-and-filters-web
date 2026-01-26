@@ -57,26 +57,47 @@ const ProductGrid = ({ showFilters = true }) => {
         setLoading(true);
         try {
             // Start with a broad query to avoid complex index requirements initially
-            // We'll apply filters on Firestore if they are simple, and potentially more client-side if needed.
             let qConstraints = [where('isActive', '==', true)];
 
-            // 1. Garage Filter
+            // 1. Garage Filter (Active Car)
             if (isGarageFilterActive && activeCar?.make) {
-                const makeValues = [activeCar.make, '', null].filter(Boolean);
+                const makeValues = [activeCar.make].filter(Boolean);
                 if (makeValues.length > 0) {
                     qConstraints.push(where('make', 'in', makeValues));
                 }
+                // If garage is active, we also filter by model and year if possible
+                if (activeCar.model) qConstraints.push(where('model', '==', activeCar.model));
+            } else {
+                // 2. Manual Car Filters (only if garage NOT active)
+                if (filters.make) qConstraints.push(where('make', '==', filters.make));
+                if (filters.model) qConstraints.push(where('model', '==', filters.model));
+                if (filters.year) {
+                    const yearNum = parseInt(filters.year);
+                    if (!isNaN(yearNum)) {
+                        qConstraints.push(where('yearStart', '<=', yearNum));
+                        qConstraints.push(where('yearEnd', '>=', yearNum));
+                    }
+                }
             }
 
-            // 2. Category Filter
+            // 3. Category & Subcategory
             if (filters.category && filters.category !== 'All') {
                 qConstraints.push(where('category', '==', filters.category));
             }
+            if (filters.subcategory) {
+                qConstraints.push(where('subcategory', '==', filters.subcategory));
+            }
 
-            // 3. Search Query - Prefix search on name if it's the only filter
-            // Note: Mixing 'where' and prefix search often requires indexes.
-            // If we have filters above, we might skip Firestore search to avoid crashes.
-            const hasOtherFilters = qConstraints.length > 1; // isActive is always there
+            // 4. Other Metadata
+            if (filters.brand) {
+                qConstraints.push(where('partBrand', '==', filters.brand));
+            }
+            if (filters.origin) {
+                qConstraints.push(where('countryOfOrigin', '==', filters.origin));
+            }
+
+            // 5. Search Query - Prefix search on name if it's the only filter
+            const hasOtherFilters = qConstraints.length > 1;
             let applySearchClientSide = false;
 
             if (filters.searchQuery) {
@@ -114,32 +135,31 @@ const ProductGrid = ({ showFilters = true }) => {
                 const searchLower = filters.searchQuery.toLowerCase();
                 allFetched = allFetched.filter(p =>
                     (p.name || '').toLowerCase().includes(searchLower) ||
-                    (p.brand || '').toLowerCase().includes(searchLower) ||
-                    (p.partNumber || '').toLowerCase().includes(searchLower)
+                    (p.nameEn || '').toLowerCase().includes(searchLower) ||
+                    (p.partNumber || '').toLowerCase().includes(searchLower) ||
+                    (p.partBrand || '').toLowerCase().includes(searchLower)
                 );
-                // Note: This reduces the count, but it's a fallback for missing indexes
                 setTotalProducts(allFetched.length);
             }
 
-            // Slice
+            // Slice for local pagination
             const startIndex = (currentPage - 1) * PAGE_SIZE;
             const paginatedItems = allFetched.slice(startIndex, startIndex + PAGE_SIZE);
             setProducts(paginatedItems);
 
-            // If we have 0 products but qConstraints was not empty, it might be an index/data issue
-            if (paginatedItems.length === 0 && qConstraints.length > 1 && rawCount === 0) {
-                console.warn("Potential Index or Data Issue: 0 products found with filters:", filters);
-            }
-
-            // Metadata extraction
+            // Metadata extraction (only once or when empty)
             if (!filterOptions.categories || Object.keys(filterOptions.categories).length === 0) {
-                const metaQuery = query(collection(db, 'products'), where('isActive', '==', true), limit(300));
-                const metaSnapshot = await getDocs(metaQuery);
+                const metaSnapshot = await getDocs(query(collection(db, 'products'), where('isActive', '==', true), limit(300)));
                 extractFilterOptions(metaSnapshot.docs.map(doc => doc.data()));
             }
         } catch (error) {
             console.error("Firestore Fetch Error:", error);
-            toast.error(`Shop Sync Error: ${error.message}`);
+            // If we get an index error, we'll try to fallback to a simpler query or just show the error
+            if (error.code === 'failed-precondition') {
+                toast.error("Query requires composite index. Check console for setup link.");
+            } else {
+                toast.error(`Shop Sync Error: ${error.message}`);
+            }
             setProducts([]);
             setTotalProducts(0);
         } finally {
@@ -148,7 +168,9 @@ const ProductGrid = ({ showFilters = true }) => {
     };
 
     useEffect(() => {
+        console.log('[ProductGrid] Triggering fetch with filters:', filters);
         fetchProducts();
+
         // Scroll to grid top on page change
         if (filters.page > 1) {
             const gridElement = document.getElementById('product-grid');
@@ -160,9 +182,15 @@ const ProductGrid = ({ showFilters = true }) => {
         isGarageFilterActive,
         activeCar?.id,
         filters.category,
-        filters.page,
+        filters.subcategory,
+        filters.make,
+        filters.model,
+        filters.year,
+        filters.brand,
+        filters.origin,
         filters.searchQuery,
-        JSON.stringify(activeFilters)
+        filters.page,
+        filters.viscosity
     ]);
 
     // Extract unique values for each filter type
@@ -301,47 +329,58 @@ const ProductGrid = ({ showFilters = true }) => {
             ...prev,
             categories: filters.category && filters.category !== 'All' ? [filters.category] : [],
             subcategory: filters.subcategory ? [filters.subcategory] : [],
-            makes: filters.make ? [filters.make] : prev.makes,
-            models: filters.model ? [filters.model] : prev.models,
-            years: filters.year ? [filters.year] : prev.years
+            makes: filters.make ? [filters.make] : [],
+            models: filters.model ? [filters.model] : [],
+            years: filters.year ? [filters.year] : [],
+            brands: filters.brand ? [filters.brand] : [],
+            origins: filters.origin ? [filters.origin] : []
         }));
-    }, [filters.category, filters.subcategory, filters.make, filters.model, filters.year]);
+    }, [filters.category, filters.subcategory, filters.make, filters.model, filters.year, filters.brand, filters.origin]);
 
     const handleAddToCart = (product) => {
         addToCart(product);
         toast.success(t('addedToCart'));
     };
 
-    // Toggle filter selection (multi-select)
+    // Toggle filter selection
     const toggleFilter = (filterType, value) => {
-        setActiveFilters(prev => {
-            const currentValues = prev[filterType];
-            const newValues = currentValues.includes(value)
-                ? currentValues.filter(v => v !== value)
-                : [...currentValues, value];
-            return { ...prev, [filterType]: newValues };
-        });
+        const typeMap = {
+            categories: 'category',
+            subcategory: 'subcategory',
+            makes: 'make',
+            models: 'model',
+            years: 'year',
+            brands: 'brand',
+            origins: 'origin'
+        };
+
+        const contextKey = typeMap[filterType];
+        if (contextKey) {
+            // Check if currently active
+            const isActive = filters[contextKey] === value;
+            updateFilter(contextKey, isActive ? '' : value);
+        }
     };
 
     const handleSelectFilter = (type, value) => {
-        setActiveFilters(prev => {
-            const newState = {
-                ...prev,
-                [type]: value ? [value] : []
-            };
+        const typeMap = {
+            categories: 'category',
+            subcategory: 'subcategory',
+            makes: 'make',
+            models: 'model',
+            years: 'year',
+            brands: 'brand',
+            origins: 'origin'
+        };
 
-            // Reset subcategory when category changes
-            if (type === 'categories') {
-                newState.subcategory = [];
-            }
+        const contextKey = typeMap[type];
+        if (contextKey) {
+            updateFilter(contextKey, value);
 
-            // Reset model when make changes
-            if (type === 'makes') {
-                newState.models = [];
-            }
-
-            return newState;
-        });
+            // Auto-clear dependent filters when parent changes
+            if (type === 'categories') updateFilter('subcategory', '');
+            if (type === 'makes') updateFilter('model', '');
+        }
     };
 
     // Reset all filters
