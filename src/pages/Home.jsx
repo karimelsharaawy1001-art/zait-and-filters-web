@@ -9,9 +9,17 @@ import SEO from '../components/SEO';
 import { db } from '../firebase';
 import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { useTranslation } from 'react-i18next';
-import { Sparkles, Flame, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useFilters } from '../context/FilterContext';
+
+const RecommendationSkeleton = () => (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 animate-pulse">
+        {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-gray-100 rounded-premium h-[400px] w-full"></div>
+        ))}
+    </div>
+);
 
 const Home = () => {
     const { t, i18n } = useTranslation();
@@ -75,6 +83,11 @@ const Home = () => {
                             });
                             iteration++;
                         }
+                        // Fill remaining with best sellers if < 8
+                        if (diverseList.length < 8) {
+                            const filler = sortedBest.filter(p => !diverseList.find(d => d.id === p.id));
+                            diverseList.push(...filler.slice(0, 8 - diverseList.length));
+                        }
                         setRecommendations(diverseList);
                     } else {
                         setRecommendations(sortedBest.slice(0, 8));
@@ -91,7 +104,7 @@ const Home = () => {
         };
 
         fetchHomeData();
-    }, [targetVehicle?.make, targetVehicle?.model]);
+    }, [targetVehicle?.make, targetVehicle?.model, bestSellers.length]);
 
     const ProductSection = ({ title, icon: Icon, products, subtitle, color = "red" }) => (
         <section className="py-3 overflow-hidden">
@@ -111,13 +124,15 @@ const Home = () => {
                     </Link>
                 </div>
 
-                {products.length === 0 ? (
+                {loading ? (
+                    <RecommendationSkeleton />
+                ) : products.length === 0 ? (
                     <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
                         <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] font-Cairo">{t('noProductsFound')}</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-                        {products.map(product => (
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 sm:gap-6">
+                        {products.slice(0, 8).map(product => (
                             <ProductCard key={product.id} product={product} />
                         ))}
                     </div>
