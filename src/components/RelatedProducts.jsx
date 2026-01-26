@@ -3,19 +3,33 @@ import { db } from '../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import ProductCard from './ProductCard';
 import { useTranslation } from 'react-i18next';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useRef } from 'react';
 
 const RelatedProducts = ({ currentProduct }) => {
     const { t, i18n } = useTranslation();
     const [relatedProducts, setRelatedProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const scrollContainerRef = useRef(null);
 
     const SkeletonLoader = () => (
         <div className="flex gap-4 overflow-hidden pb-4">
-            {[...Array(4)].map((_, i) => (
-                <div key={i} className="min-w-[45%] sm:min-w-[22%] bg-gray-100 rounded-premium h-[380px]"></div>
+            {[...Array(6)].map((_, i) => (
+                <div key={i} className="min-w-[46%] md:min-w-[30%] lg:min-w-[15.5%] bg-gray-100 rounded-premium h-[350px]"></div>
             ))}
         </div>
     );
+
+    const scroll = (direction) => {
+        if (scrollContainerRef.current) {
+            const { current } = scrollContainerRef;
+            const scrollAmount = current.clientWidth * 0.8;
+            current.scrollBy({
+                left: direction === 'left' ? -scrollAmount : scrollAmount,
+                behavior: 'smooth'
+            });
+        }
+    };
 
     useEffect(() => {
         const fetchRelatedViaFirestore = async () => {
@@ -104,12 +118,34 @@ const RelatedProducts = ({ currentProduct }) => {
     return (
         <section className="py-12 border-t border-gray-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 className={`text-2xl font-black text-gray-900 mb-8 ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
-                    {t('relatedProducts')}
-                </h2>
-                <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+                <div className="flex items-center justify-between mb-8">
+                    <h2 className={`text-2xl font-black text-gray-900 ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
+                        {t('relatedProducts')}
+                    </h2>
+
+                    {/* Navigation Arrows - Desktop Only */}
+                    <div className="hidden md:flex items-center gap-2">
+                        <button
+                            onClick={() => scroll('left')}
+                            className="p-2 rounded-full bg-white/80 backdrop-blur-md border border-gray-100 shadow-sm hover:bg-gray-50 transition-colors"
+                        >
+                            <ChevronLeft className="h-5 w-5 text-gray-900" />
+                        </button>
+                        <button
+                            onClick={() => scroll('right')}
+                            className="p-2 rounded-full bg-white/80 backdrop-blur-md border border-gray-100 shadow-sm hover:bg-gray-50 transition-colors"
+                        >
+                            <ChevronRight className="h-5 w-5 text-gray-900" />
+                        </button>
+                    </div>
+                </div>
+
+                <div
+                    ref={scrollContainerRef}
+                    className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth"
+                >
                     {relatedProducts.map(product => (
-                        <div key={product.id} className="min-w-[75%] 2xs:min-w-[46%] md:min-w-[30%] lg:min-w-[23.5%] snap-start flex-shrink-0">
+                        <div key={product.id} className="min-w-[70%] 2xs:min-w-[48%] md:min-w-[24%] lg:min-w-[15.7%] snap-start flex-shrink-0">
                             <ProductCard product={product} />
                         </div>
                     ))}
