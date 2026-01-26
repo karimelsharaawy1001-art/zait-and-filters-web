@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, ChevronLeft, Circle } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Circle, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import CarSelector from './CarSelector';
 import { useTranslation } from 'react-i18next';
