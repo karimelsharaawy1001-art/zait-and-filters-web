@@ -66,7 +66,7 @@ const Hero = () => {
     // Default slide if none found
     const displaySlides = slides.length > 0 ? slides : [{
         id: 'default',
-        imageUrl: 'https://images.unsplash.com/photo-1620836521741-6156e07759b6?auto=format&fit=crop&q=80&w=1200',
+        imageUrl: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?auto=format&fit=crop&q=80&w=1920',
         title_ar: 'زيت اند فلترز',
         title_en: 'Zait & Filters',
         subtitle_ar: 'قطع الغيار بضغطة زرار',
@@ -76,46 +76,60 @@ const Hero = () => {
     const currentSlide = displaySlides[currentIndex];
 
     return (
-        <div className="relative bg-[#f9f9f9] min-h-[500px] md:h-[600px] flex flex-col items-center overflow-hidden">
-            {/* Slide Content */}
-            <div className="relative w-full h-full flex items-center transition-all duration-700 ease-in-out">
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-10 py-12 md:py-0">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-12">
+        <div className="relative w-full h-[500px] md:h-[600px] overflow-hidden">
+            {/* Background Image with Overlay */}
+            <div className="absolute inset-0 transition-all duration-700 ease-in-out">
+                <img
+                    src={currentSlide.imageUrl}
+                    alt=""
+                    className="w-full h-full object-cover"
+                />
+                {/* Dark Overlay for Text Contrast */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30"></div>
+            </div>
 
-                        {/* Text Content */}
-                        <div className="w-full md:w-1/2 text-center md:text-right animate-in fade-in slide-in-from-bottom duration-700">
-                            <h1 className="text-3xl md:text-6xl font-black text-[#111111] leading-tight mb-4 md:mb-6 font-Cairo tracking-tighter uppercase italic">
-                                <span className="text-[#28B463]">
-                                    {i18n.language === 'ar' ? currentSlide.title_ar : currentSlide.title_en}
-                                </span>
-                                <br />
-                                <span className="text-xl md:text-4xl block mt-1 md:mt-2 text-gray-700 not-italic">
-                                    {i18n.language === 'ar' ? currentSlide.subtitle_ar : currentSlide.subtitle_en}
-                                </span>
-                            </h1>
-                            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                                <Link
-                                    to="/shop"
-                                    className="bg-[#28B463] hover:bg-[#219653] text-white font-black py-3.5 md:py-4 px-10 md:px-12 rounded-lg shadow-xl shadow-[#28B463]/20 transition-all flex items-center justify-center group uppercase italic tracking-widest text-base md:text-lg font-Cairo"
-                                >
-                                    {t('shopNow')}
-                                    <ChevronRight className={`h-5 w-5 md:h-6 md:w-6 transition-transform not-italic ${i18n.language === 'ar' ? 'mr-2 rotate-180 group-hover:-translate-x-1' : 'ml-2 group-hover:translate-x-1'}`} />
-                                </Link>
+            {/* Content Overlay */}
+            <div className="relative h-full flex items-center z-10">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                    <div className="max-w-2xl">
+                        {/* Title */}
+                        <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white leading-tight mb-4 md:mb-6 font-Cairo tracking-tighter uppercase italic drop-shadow-2xl">
+                            <span className="text-[#28B463]">
+                                {i18n.language === 'ar' ? currentSlide.title_ar : currentSlide.title_en}
+                            </span>
+                        </h1>
+
+                        {/* Subtitle */}
+                        <p className="text-xl md:text-3xl text-white/95 mb-6 md:mb-8 font-Cairo font-bold drop-shadow-lg">
+                            {i18n.language === 'ar' ? currentSlide.subtitle_ar : currentSlide.subtitle_en}
+                        </p>
+
+                        {/* Promo Code Badge (if available) */}
+                        {settings?.promoCode && (
+                            <div className="mb-6 inline-block">
+                                <div className="bg-[#28B463] text-white px-6 py-3 rounded-lg shadow-xl font-black text-lg uppercase tracking-widest">
+                                    {settings.promoCode}
+                                </div>
                             </div>
+                        )}
+
+                        {/* CTA Button */}
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <Link
+                                to="/shop"
+                                className="bg-[#28B463] hover:bg-[#219653] text-white font-black py-4 md:py-5 px-10 md:px-14 rounded-lg shadow-2xl shadow-[#28B463]/40 transition-all flex items-center justify-center group uppercase italic tracking-widest text-base md:text-xl font-Cairo transform hover:scale-105"
+                            >
+                                {t('shopNow')}
+                                <ChevronRight className={`h-6 w-6 md:h-7 md:w-7 transition-transform not-italic ${i18n.language === 'ar' ? 'mr-2 rotate-180 group-hover:-translate-x-1' : 'ml-2 group-hover:translate-x-1'}`} />
+                            </Link>
                         </div>
 
-                        {/* Image Content */}
-                        <div className="w-full md:w-1/2 flex justify-center animate-in fade-in zoom-in duration-1000">
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-[#28B463]/5 rounded-full scale-110 opacity-50 blur-2xl"></div>
-                                <img
-                                    src={currentSlide.imageUrl}
-                                    alt=""
-                                    className="relative z-10 w-full max-w-[500px] h-auto object-contain drop-shadow-2xl transform hover:scale-105 transition-transform duration-500 rounded-2xl"
-                                />
-                            </div>
-                        </div>
-
+                        {/* Delivery Message (if available) */}
+                        {settings?.deliveryMessage && (
+                            <p className="mt-6 text-white/90 text-sm md:text-base font-Cairo font-bold drop-shadow-md">
+                                {i18n.language === 'ar' ? settings.deliveryMessage_ar : settings.deliveryMessage}
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>
@@ -125,34 +139,37 @@ const Hero = () => {
                 <>
                     <button
                         onClick={prevSlide}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/80 hover:bg-white rounded-full shadow-lg transition-all text-gray-800"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-3 bg-white/90 hover:bg-white rounded-full shadow-xl transition-all text-gray-800 hover:scale-110"
+                        aria-label="Previous slide"
                     >
                         <ChevronLeft className="h-6 w-6" />
                     </button>
                     <button
                         onClick={nextSlide}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/80 hover:bg-white rounded-full shadow-lg transition-all text-gray-800"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-3 bg-white/90 hover:bg-white rounded-full shadow-xl transition-all text-gray-800 hover:scale-110"
+                        aria-label="Next slide"
                     >
                         <ChevronRight className="h-6 w-6" />
                     </button>
 
-                    {/* Dots */}
-                    <div className="absolute bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+                    {/* Pagination Dots */}
+                    <div className="absolute bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-30 flex gap-2">
                         {displaySlides.map((_, index) => (
                             <button
                                 key={index}
                                 onClick={() => setCurrentIndex(index)}
-                                className={`transition-all duration-300 ${currentIndex === index ? 'w-8 bg-[#28B463]' : 'w-2 bg-gray-300'} h-2 rounded-full`}
+                                className={`transition-all duration-300 ${currentIndex === index ? 'w-8 bg-[#28B463]' : 'w-2 bg-white/60'} h-2 rounded-full hover:bg-[#28B463]`}
+                                aria-label={`Go to slide ${index + 1}`}
                             />
                         ))}
                     </div>
                 </>
             )}
 
-            {/* Car Selector (Floating Overlay) */}
-            <div className="relative md:absolute bottom-auto md:bottom-8 left-0 right-0 z-40 w-full mt-8 md:mt-0">
+            {/* Car Selector Widget (Floating on Top) */}
+            <div className="absolute bottom-4 md:bottom-8 left-0 right-0 z-50 w-full">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex items-center justify-center md:justify-end">
-                    <div className="w-[92%] md:w-[350px] lg:w-[380px] mx-auto md:mx-0">
+                    <div className="w-[92%] md:w-[350px] lg:w-[380px]">
                         <CarSelector />
                     </div>
                 </div>
