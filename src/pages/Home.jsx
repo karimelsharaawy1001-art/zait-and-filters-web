@@ -91,6 +91,7 @@ const Home = () => {
                 title="Zait & Filters | HIGHREV - قطع الغيار بضغطة زرار"
                 description="HIGHREV: اشتري قطع غيار عربيتك الأصلية بالضمان من زيت اند فلترز. بنوصل لكل محافظات مصر وعندنا كل طرق التقسيط."
                 keywords="قطع غيار سيارات أصلية بمصر, زيوت وفلاتر بالضمان, تقسيط قطع غيار سيارات"
+                url={window.location.origin + window.location.pathname}
             />
             <Hero />
 

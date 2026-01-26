@@ -14,6 +14,7 @@ import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import emailjs from '@emailjs/browser';
 import { useSettings } from '../context/SettingsContext';
+import SEO from '../components/SEO';
 
 const ContactUs = () => {
     const { t, i18n } = useTranslation();
@@ -90,6 +91,11 @@ const ContactUs = () => {
 
     return (
         <div className="min-h-screen pt-24 pb-16 bg-gray-50">
+            <SEO
+                title={`${t('contactHeader')} | Zait & Filters`}
+                description={t('contactSub')}
+                url={window.location.origin + window.location.pathname}
+            />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="text-center mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700">

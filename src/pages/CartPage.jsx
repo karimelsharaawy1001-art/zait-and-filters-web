@@ -7,6 +7,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { getOptimizedImage } from '../utils/cloudinaryUtils';
+import SEO from '../components/SEO';
 
 const CartPage = () => {
     const { cartItems, setCartItems, updateQuantity, removeFromCart, getCartTotal } = useCart();
@@ -57,6 +58,11 @@ const CartPage = () => {
 
     return (
         <div className="bg-gray-50 min-h-screen py-10">
+            <SEO
+                title={`${t('cartTitle')} | Zait & Filters`}
+                description={t('cartTitle')}
+                url={window.location.origin + window.location.pathname}
+            />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('cartTitle')}</h1>
 

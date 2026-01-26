@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import ProductGrid from '../components/ProductGrid';
 import { useFilters } from '../context/FilterContext';
 import { useTranslation } from 'react-i18next';
+import SEO from '../components/SEO';
 
 const ShopPage = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -53,6 +54,11 @@ const ShopPage = () => {
 
     return (
         <div className="pt-4 md:pt-8 text-right">
+            <SEO
+                title={`${t('shopTitle')} | Zait & Filters`}
+                description={t('shopSubtitle')}
+                url={window.location.origin + window.location.pathname}
+            />
             <div className="bg-white shadow-sm border-b border-gray-100 py-4 md:py-8 mb-2 md:mb-8">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <h1 className="text-3xl font-extrabold text-gray-900">{t('shopTitle')}</h1>

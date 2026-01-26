@@ -66,6 +66,7 @@ const CategoryPage = () => {
             <SEO
                 title={`${categoryName} | Zait & Filters`}
                 description={`Shop ${categoryName} and subcategories at Zait & Filters.`}
+                url={window.location.origin + window.location.pathname}
             />
 
             {/* Breadcrumbs */}

@@ -4,6 +4,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { useTranslation } from 'react-i18next';
 import { Loader2, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import SEO from '../components/SEO';
 
 const PolicyPage = ({ pageId }) => {
     const [pageData, setPageData] = useState(null);
@@ -54,6 +55,11 @@ const PolicyPage = ({ pageId }) => {
 
     return (
         <div className="flex-1 bg-white">
+            <SEO
+                title={`${title} | Zait & Filters`}
+                description={content.slice(0, 160)}
+                url={window.location.origin + window.location.pathname}
+            />
             {/* Page Header */}
             <div className="bg-gray-50 border-b border-gray-100 py-12 md:py-16">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

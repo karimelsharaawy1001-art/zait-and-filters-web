@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useFilters } from '../context/FilterContext';
 import { useNavigate } from 'react-router-dom';
 import { Droplets, Settings, Info, ShoppingBag, Car, ChevronRight, Fuel } from 'lucide-react';
+import SEO from '../components/SEO';
 
 const OilAdvisor = () => {
     const { t, i18n } = useTranslation();
@@ -155,6 +156,11 @@ const OilAdvisor = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+            <SEO
+                title={`${t('oilAdvisor')} | Zait & Filters`}
+                description={t('selectVehicleDesc')}
+                url={window.location.origin + window.location.pathname}
+            />
             <div className="max-w-4xl mx-auto">
                 <div className="text-center mb-12">
                     <div className="inline-flex items-center justify-center p-3 bg-[#28B463]/10 rounded-2xl mb-4">
