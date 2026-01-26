@@ -9,7 +9,7 @@ import SEO from '../components/SEO';
 import { db } from '../firebase';
 import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Flame, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useFilters } from '../context/FilterContext';
 
