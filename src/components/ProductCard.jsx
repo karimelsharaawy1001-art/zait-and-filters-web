@@ -133,7 +133,7 @@ const ProductCard = ({ product, isCompact = false }) => {
                                     {product.carModel || `${product.make} ${product.model}` || 'Universal'}
                                 </span>
                                 {(product.yearRange || product.yearStart || product.yearEnd) && (
-                                    <span className={`${isCompact ? 'text-[10px]' : 'text-xs'} leading-tight text-gray-400 font-bold font-Cairo mt-0.5 truncate w-full`}>
+                                    <span className={`${isCompact ? 'text-[10px]' : 'text-xs'} leading-tight text-[#000000] font-bold font-Cairo mt-0.5 truncate w-full`}>
                                         {product.yearRange ||
                                             (product.yearStart && product.yearEnd ? `${product.yearStart}-${product.yearEnd}` :
                                                 product.yearStart || product.yearEnd || '')}
