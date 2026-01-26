@@ -49,7 +49,7 @@ const ProductCard = ({ product }) => {
             >
                 <img
                     src={getOptimizedImage(product.image, 'f_auto,q_auto,w_800')}
-                    alt={product.name}
+                    alt={`${i18n.language === 'en' ? (product.nameEn || product.name) : product.name} - ${i18n.language === 'en' ? (product.brandEn || product.partBrand || product.brand || 'Original') : (product.partBrand || product.brand || 'أصلي')}`}
                     className="w-full h-full object-cover block transition-transform duration-500 group-hover:scale-105"
                     onError={(e) => {
                         e.target.onerror = null;

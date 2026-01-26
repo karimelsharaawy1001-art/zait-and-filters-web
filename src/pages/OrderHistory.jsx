@@ -5,6 +5,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { Package, Clock, ChevronRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { getOptimizedImage } from '../utils/cloudinaryUtils';
 
 const OrderHistory = () => {
     const [orders, setOrders] = useState([]);
@@ -170,7 +171,11 @@ const OrderHistory = () => {
                                 <div className="divide-y divide-gray-50">
                                     {order.items?.map((item, idx) => (
                                         <div key={idx} className={`py-4 first:pt-0 last:pb-0 flex items-center gap-4 ${isAr ? 'flex-row-reverse' : ''}`}>
-                                            <img src={item.image} alt={isAr ? item.name : (item.nameEn || item.name)} className="w-16 h-16 object-cover rounded-lg border border-gray-100" />
+                                            <img
+                                                src={getOptimizedImage(item.image, 'f_auto,q_auto,w_200')}
+                                                alt={`${isAr ? item.name : (item.nameEn || item.name)} - ${isAr ? (item.brand || item.partBrand || '') : (item.brandEn || item.brand || item.partBrand || '')}`}
+                                                className="w-16 h-16 object-cover rounded-lg border border-gray-100"
+                                            />
                                             <div className={`flex-1 ${isAr ? 'text-right' : 'text-left'}`}>
                                                 <h4 className="text-sm font-bold text-gray-900 mb-1">
                                                     {isAr ? item.name : (item.nameEn || item.name)}

@@ -6,6 +6,7 @@ import { db } from '../firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
 import { Minus, Plus, Trash2 } from 'lucide-react';
+import { getOptimizedImage } from '../utils/cloudinaryUtils';
 
 const CartPage = () => {
     const { cartItems, setCartItems, updateQuantity, removeFromCart, getCartTotal } = useCart();
@@ -67,8 +68,8 @@ const CartPage = () => {
                                 {cartItems.map((item) => (
                                     <li key={item.id} className="p-6 flex flex-col sm:flex-row items-center sm:items-start gap-4">
                                         <img
-                                            src={item.image}
-                                            alt={item.name}
+                                            src={getOptimizedImage(item.image, 'f_auto,q_auto,w_200')}
+                                            alt={`${isAr ? item.name : (item.nameEn || item.name)} - ${isAr ? (item.partBrand || item.brand || '') : (item.brandEn || item.partBrand || item.brand || '')}`}
                                             className="w-24 h-24 object-cover rounded-md border border-gray-200"
                                             onError={(e) => {
                                                 e.target.onerror = null;

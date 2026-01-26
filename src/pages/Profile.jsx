@@ -25,6 +25,7 @@ import { useTranslation } from 'react-i18next';
 import { useFilters } from '../context/FilterContext';
 import { useSettings } from '../context/SettingsContext';
 import MaintenanceReportTemplate from '../components/MaintenanceReportTemplate';
+import { getOptimizedImage } from '../utils/cloudinaryUtils';
 
 // IMPORTANT: We use native window.print() to avoid library-related crashes
 // The print-only-section class is defined in index.css
@@ -305,7 +306,7 @@ const Profile = () => {
                                                         <div className="flex items-center gap-4">
                                                             <div className={`w-24 h-16 rounded-2xl overflow-hidden flex-shrink-0 ${car.isActive ? 'bg-orange-100' : 'bg-gray-100'} transition-all`}>
                                                                 {car.imageUrl ? (
-                                                                    <img src={car.imageUrl} alt={`${car.make} ${car.model}`} className="w-full h-full object-cover" />
+                                                                    <img src={getOptimizedImage(car.imageUrl, 'f_auto,q_auto,w_300')} alt={`${car.make} ${car.model}`} className="w-full h-full object-cover" />
                                                                 ) : (
                                                                     <div className="w-full h-full flex items-center justify-center text-gray-400">
                                                                         <CarIcon className="h-8 w-8" />
@@ -460,7 +461,7 @@ const Profile = () => {
                                                         <div className="divide-y divide-gray-50">
                                                             {order.items?.map((item, idx) => (
                                                                 <div key={idx} className="py-4 first:pt-0 last:pb-0 flex items-center gap-4">
-                                                                    <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded-lg border border-gray-100" />
+                                                                    <img src={getOptimizedImage(item.image, 'f_auto,q_auto,w_200')} alt={`${item.name} - ${item.partBrand || item.brand || ''}`} className="w-12 h-12 object-cover rounded-lg border border-gray-100" />
                                                                     <div className="flex-1">
                                                                         <h4 className="text-sm font-bold text-gray-900 mb-1">{item.name}</h4>
                                                                         <p className="text-[10px] text-gray-500 font-medium">
@@ -537,8 +538,8 @@ const Profile = () => {
                                         <div className="w-full h-40 bg-gray-50 rounded-[2rem] border border-gray-100 overflow-hidden relative">
                                             {carsData.find(c => c.make === newCar.make && c.model === newCar.model)?.imageUrl ? (
                                                 <img
-                                                    src={carsData.find(c => c.make === newCar.make && c.model === newCar.model).imageUrl}
-                                                    alt="Car Preview"
+                                                    src={getOptimizedImage(carsData.find(c => c.make === newCar.make && c.model === newCar.model).imageUrl, 'f_auto,q_auto,w_600')}
+                                                    alt={`${newCar.make} ${newCar.model} preview`}
                                                     className="w-full h-full object-contain"
                                                 />
                                             ) : (

@@ -231,7 +231,7 @@ const ProductDetails = () => {
                     <div className="relative rounded-3xl overflow-hidden bg-gray-50 aspect-square group border border-gray-100 shadow-sm">
                         <img
                             src={getOptimizedImage(product.image, 'f_auto,q_auto,w_1000')}
-                            alt={product.name}
+                            alt={`${isAr ? product.name : (product.nameEn || product.name)} - ${isAr ? (product.partBrand || product.brand || 'زيت اند فلترز') : (product.brandEn || product.partBrand || product.brand || 'Zait & Filters')}`}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                             onError={(e) => {
                                 e.target.onerror = null;
@@ -506,7 +506,11 @@ const ProductDetails = () => {
                                                         onClick={() => setExpandedImage(rev.photoUrl)}
                                                     >
                                                         <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-xl shadow-gray-200 ring-4 ring-white transition-transform duration-300 group-hover:scale-[1.02]">
-                                                            <img src={rev.photoUrl} alt="Review" className="w-full h-full object-cover" />
+                                                            <img
+                                                                src={getOptimizedImage(rev.photoUrl, 'f_auto,q_auto,w_500')}
+                                                                alt={`${t('review')} ${index + 1}`}
+                                                                className="w-full h-full object-cover"
+                                                            />
                                                             <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                                 <Camera className="h-6 w-6 text-white" />
                                                             </div>
@@ -530,7 +534,11 @@ const ProductDetails = () => {
                         onClick={() => setExpandedImage(null)}
                     >
                         <div className="relative max-w-4xl w-full max-h-[90vh] flex items-center justify-center">
-                            <img src={expandedImage} alt="Expanded Review" className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300" />
+                            <img
+                                src={getOptimizedImage(expandedImage, 'f_auto,q_auto,w_1200')}
+                                alt={isAr ? "مراجعة مكبرة" : "Expanded Review"}
+                                className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300"
+                            />
                             <button className={`absolute -top-12 ${isAr ? 'left-0' : 'right-0'} text-white/50 hover:text-white transition-colors bg-white/10 p-2 rounded-full`}>
                                 <X className="h-8 w-8" />
                             </button>
