@@ -102,7 +102,7 @@ const ProductCard = ({ product, isCompact = false }) => {
                         }}
                     >
                         <h3
-                            className={`text-[#000000] font-bold leading-tight line-clamp-2 uppercase transition-colors overflow-hidden text-ellipsis ${isCompact ? 'text-[13px]' : 'text-lg'}`}
+                            className={`text-[#000000] font-bold leading-tight line-clamp-2 uppercase transition-colors overflow-hidden text-ellipsis ${isCompact ? 'text-[15px]' : 'text-xl'}`}
                             style={{ fontFamily: 'var(--font-commercial)' }}
                         >
                             {i18n.language === 'en' ? (product.nameEn || product.name) : product.name}
@@ -113,10 +113,10 @@ const ProductCard = ({ product, isCompact = false }) => {
                     <div className={`grid grid-cols-2 gap-x-1 gap-y-1.5 border-b border-gray-100 ${isCompact ? 'pb-1.5' : 'pb-2'}`}>
                         {/* Always show Brand */}
                         <div className="flex flex-col items-end overflow-hidden text-right">
-                            <span className={`${isCompact ? 'text-[8px]' : 'text-[10px]'} leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full`}>
+                            <span className={`${isCompact ? 'text-[10px]' : 'text-xs'} leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full`}>
                                 {i18n.language === 'ar' ? 'البراند' : 'Brand'}
                             </span>
-                            <span className={`${isCompact ? 'text-[9px]' : 'text-[11px]'} leading-tight text-[#000000] font-black font-Cairo truncate w-full`}>
+                            <span className={`${isCompact ? 'text-xs' : 'text-sm'} leading-tight text-[#000000] font-black font-Cairo truncate w-full`}>
                                 {i18n.language === 'en'
                                     ? (product.brandEn || product.partBrand || product.brand)
                                     : (product.partBrand || product.brand || 'No Brand')}
@@ -125,15 +125,15 @@ const ProductCard = ({ product, isCompact = false }) => {
 
                         {/* Always show Model & Year */}
                         <div className="flex flex-col items-end overflow-hidden text-right">
-                            <span className={`${isCompact ? 'text-[8px]' : 'text-[10px]'} leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full`}>
+                            <span className={`${isCompact ? 'text-[10px]' : 'text-xs'} leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full`}>
                                 {i18n.language === 'ar' ? 'الموديل' : 'Model'}
                             </span>
                             <div className="flex flex-col items-end w-full">
-                                <span className={`${isCompact ? 'text-[9px]' : 'text-[11px]'} leading-tight text-[#000000] font-black font-Cairo w-full truncate`} title={product.carModel || `${product.make} ${product.model}`}>
+                                <span className={`${isCompact ? 'text-xs' : 'text-sm'} leading-tight text-[#000000] font-black font-Cairo w-full truncate`} title={product.carModel || `${product.make} ${product.model}`}>
                                     {product.carModel || `${product.make} ${product.model}` || 'Universal'}
                                 </span>
                                 {(product.yearRange || product.yearStart || product.yearEnd) && (
-                                    <span className={`${isCompact ? 'text-[8px]' : 'text-[10px]'} leading-tight text-gray-400 font-bold font-Cairo mt-0.5 truncate w-full`}>
+                                    <span className={`${isCompact ? 'text-[10px]' : 'text-xs'} leading-tight text-gray-400 font-bold font-Cairo mt-0.5 truncate w-full`}>
                                         {product.yearRange ||
                                             (product.yearStart && product.yearEnd ? `${product.yearStart}-${product.yearEnd}` :
                                                 product.yearStart || product.yearEnd || '')}
@@ -144,10 +144,10 @@ const ProductCard = ({ product, isCompact = false }) => {
 
                         {/* Origin */}
                         <div className="flex flex-col items-end overflow-hidden text-right">
-                            <span className={`${isCompact ? 'text-[8px]' : 'text-[10px]'} leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full`}>
+                            <span className={`${isCompact ? 'text-[10px]' : 'text-xs'} leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full`}>
                                 {i18n.language === 'ar' ? 'المنشأ' : 'Origin'}
                             </span>
-                            <span className={`${isCompact ? 'text-[9px]' : 'text-[11px]'} leading-tight text-[#333] font-black italic font-Cairo truncate w-full`}>
+                            <span className={`${isCompact ? 'text-xs' : 'text-sm'} leading-tight text-[#333] font-black italic font-Cairo truncate w-full`}>
                                 {product.origin || product.countryOfOrigin || 'Imported'}
                             </span>
                         </div>
@@ -155,10 +155,10 @@ const ProductCard = ({ product, isCompact = false }) => {
                         {/* Category */}
                         {product.category && (
                             <div className="flex flex-col items-end overflow-hidden text-right">
-                                <span className={`${isCompact ? 'text-[8px]' : 'text-[10px]'} leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full`}>
+                                <span className={`${isCompact ? 'text-[10px]' : 'text-xs'} leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full`}>
                                     {i18n.language === 'ar' ? 'الفئة' : 'Category'}
                                 </span>
-                                <span className={`${isCompact ? 'text-[9px]' : 'text-[11px]'} leading-tight text-[#333] font-black font-Cairo truncate w-full`}>
+                                <span className={`${isCompact ? 'text-xs' : 'text-sm'} leading-tight text-[#333] font-black font-Cairo truncate w-full`}>
                                     {product.category}
                                 </span>
                             </div>
@@ -171,35 +171,35 @@ const ProductCard = ({ product, isCompact = false }) => {
                     <div className={`flex items-center justify-between ${isCompact ? 'flex-row' : 'flex-col 2xs:flex-row'} gap-2`}>
                         <div className={`flex flex-col ${isCompact ? 'items-start' : 'items-center 2xs:items-start'}`}>
                             {hasSale && (
-                                <span className={`${isCompact ? 'text-[8px]' : 'text-[10px]'} text-gray-400 line-through font-bold leading-none mb-0.5`}>
+                                <span className={`${isCompact ? 'text-[10px]' : 'text-xs'} text-gray-400 line-through font-bold leading-none mb-0.5`}>
                                     {product.price} {t('currency')}
                                 </span>
                             )}
                             <div className="flex items-baseline gap-1">
-                                <span className={`${isCompact ? 'text-lg' : 'text-2xl md:text-3xl'} font-black text-[#1A1A1A] font-Cairo leading-none drop-shadow-sm`}>
+                                <span className={`${isCompact ? 'text-xl' : 'text-2xl md:text-3xl'} font-black text-[#1A1A1A] font-Cairo leading-none drop-shadow-sm`}>
                                     {hasSale ? product.salePrice : product.price}
                                 </span>
-                                <span className={`${isCompact ? 'text-[9px]' : 'text-xs md:text-sm'} font-black text-[#000000] uppercase tracking-tighter`}>{t('currency')}</span>
+                                <span className={`${isCompact ? 'text-xs' : 'text-xs md:text-sm'} font-black text-[#000000] uppercase tracking-tighter`}>{t('currency')}</span>
                             </div>
                         </div>
 
                         {/* QUANTITY SELECTOR - Smaller in compact */}
-                        <div className={`flex items-center bg-[#000000] rounded-lg p-0.5 shadow-md ${isCompact ? 'scale-90' : ''}`}>
+                        <div className={`flex items-center bg-[#000000] rounded-lg p-0.5 shadow-md ${isCompact ? 'scale-95' : ''}`}>
                             <button onClick={decrementQuantity} className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center text-white hover:text-brand-green transition-colors">
-                                <Minus className="h-3 w-3 md:h-4 md:w-4" />
+                                <Minus className="h-3.5 w-3.5 md:h-4 md:w-4" />
                             </button>
-                            <span className="w-4 text-center text-[10px] md:text-sm font-black text-white">{quantity}</span>
+                            <span className="w-5 text-center text-xs md:text-sm font-black text-white">{quantity}</span>
                             <button onClick={incrementQuantity} className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center text-white hover:text-brand-green transition-colors">
-                                <Plus className="h-3 w-3 md:h-4 md:w-4" />
+                                <Plus className="h-3.5 w-3.5 md:h-4 md:w-4" />
                             </button>
                         </div>
                     </div>
 
                     <button
                         onClick={handleAddToCart}
-                        className={`w-full ${isCompact ? 'py-2' : 'py-4'} rounded-xl bg-[#28B463] hover:bg-[#219653] text-white font-black uppercase tracking-widest italic font-Cairo transition-all active:scale-[0.98] shadow-lg shadow-[#28B463]/20 flex items-center justify-center gap-2 group/btn ${isCompact ? 'text-[10px]' : 'text-sm'}`}
+                        className={`w-full ${isCompact ? 'py-2.5' : 'py-4'} rounded-xl bg-[#28B463] hover:bg-[#219653] text-white font-black uppercase tracking-widest italic font-Cairo transition-all active:scale-[0.98] shadow-lg shadow-[#28B463]/20 flex items-center justify-center gap-2 group/btn ${isCompact ? 'text-[11px]' : 'text-sm'}`}
                     >
-                        <ShoppingCart className={`${isCompact ? 'h-3 w-3' : 'h-4 w-4'} transition-transform group-hover/btn:translate-x-1`} />
+                        <ShoppingCart className={`${isCompact ? 'h-3.5 w-3.5' : 'h-4 w-4'} transition-transform group-hover/btn:translate-x-1`} />
                         <span>{i18n.language === 'ar' ? 'أضف' : (isCompact ? 'ADD' : 'ADD TO CART')}</span>
                     </button>
                 </div>
