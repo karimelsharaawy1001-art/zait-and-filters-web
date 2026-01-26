@@ -53,7 +53,7 @@ const Home = () => {
     }, []);
 
     const ProductSection = ({ title, icon: Icon, products, subtitle, color = "red" }) => (
-        <section className="py-6 overflow-hidden">
+        <section className="py-3 overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-4 border-b border-gray-100 pb-4">
                     <div className="flex-1">
@@ -124,12 +124,12 @@ const Home = () => {
             <Hero />
 
             {/* Brands Section */}
-            <section className="py-6 bg-white border-b border-gray-50">
+            <section className="py-3 bg-white border-b border-gray-50">
                 <BrandMarquee />
             </section>
 
             {/* Exclusive Offers Section */}
-            <div className="bg-white py-4">
+            <div className="bg-white py-2">
                 <ProductSection
                     title={t('hotOffers')}
                     subtitle={t('hotOffersSub')}
@@ -142,7 +142,7 @@ const Home = () => {
             <hr className="border-gray-50 max-w-7xl mx-auto opacity-50" />
 
             {/* Best Sellers Section */}
-            <div className="bg-white py-4">
+            <div className="bg-white py-2">
                 <ProductSection
                     title={t('bestSellers')}
                     subtitle={t('bestSellersSub')}
@@ -152,11 +152,11 @@ const Home = () => {
                 />
             </div>
 
-            <section className="mt-8 pt-4 border-t border-gray-50">
+            <section className="mt-4 pt-2 border-t border-gray-50">
                 <ValuePropositionBanner />
             </section>
 
-            <section className="py-12 bg-gray-50/30">
+            <section className="py-6 bg-gray-50/30">
                 <CategoryThumbnails />
             </section>
 

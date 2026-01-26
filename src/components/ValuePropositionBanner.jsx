@@ -31,7 +31,7 @@ const ValuePropositionBanner = () => {
     ];
 
     return (
-        <section className="relative overflow-hidden bg-white pt-6 pb-12 border-y border-gray-50">
+        <section className="relative overflow-hidden bg-white pt-3 pb-6 border-y border-gray-50">
             {/* Subtle Gradient Background Effect */}
             <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-[#28B463]/5 to-transparent pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-1/4 h-full bg-gradient-to-r from-[#28B463]/3 to-transparent pointer-events-none" />
@@ -59,7 +59,7 @@ const ValuePropositionBanner = () => {
                 </div>
 
                 {/* Shop Now Integration */}
-                <div className="mt-12 flex justify-center">
+                <div className="mt-6 flex justify-center">
                     <Link
                         to="/shop"
                         className="group relative inline-flex items-center justify-center px-10 py-4 bg-[#28B463] text-white rounded-full font-black text-sm uppercase tracking-widest overflow-hidden transition-all shadow-xl shadow-[#28B463]/30 hover:shadow-[#28B463]/50 transform hover:-translate-y-1"

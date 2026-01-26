@@ -47,7 +47,7 @@ const BrandMarquee = () => {
                     width: 100%;
                     overflow: hidden;
                     background: #ffffff;
-                    padding: 30px 0;
+                    padding: 15px 0;
                     border-bottom: 2px solid #f1f5f9;
                     position: relative;
                     /* CRITICAL FIX: Force LTR to prevent RTL-based centering/jumping */

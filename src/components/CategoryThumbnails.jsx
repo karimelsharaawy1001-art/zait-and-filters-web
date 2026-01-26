@@ -31,9 +31,9 @@ const CategoryThumbnails = () => {
     if (categories.length === 0) return null;
 
     return (
-        <div className="bg-white py-8 sm:py-10">
+        <div className="bg-white py-4 sm:py-5">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center mb-6 border-b border-gray-100 pb-4">
+                <div className="flex items-center mb-3 border-b border-gray-100 pb-4">
                     <h2 className="text-3xl sm:text-4xl font-black text-[#000000] uppercase italic tracking-tighter font-Cairo">
                         {t('shopByCategory')}
                     </h2>
