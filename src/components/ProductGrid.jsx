@@ -592,43 +592,160 @@ const ProductGrid = ({ showFilters = true }) => {
 
                     {/* Mobile Sidebar (Collapsible) */}
                     {showFilters && isMobileFilterOpen && (
-                        <div className="lg:hidden mb-8 bg-white p-6 rounded-2xl shadow-xl border border-gray-100 animate-in slide-in-from-top duration-300 overflow-y-auto max-h-[70vh]">
+                        <div className="lg:hidden mb-8 bg-white p-6 rounded-2xl shadow-xl border border-gray-100 animate-in slide-in-from-top duration-300 overflow-y-auto max-h-[85vh]">
                             <div className="space-y-6">
-                                {Object.entries(filterOptions?.categories || {}).map(([cat, subs]) => (
-                                    <div key={cat} className="space-y-3">
-                                        <h4 className="text-xs font-black text-gray-900 uppercase tracking-widest">{cat}</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            <button
-                                                onClick={() => toggleFilter('categories', cat)}
-                                                className={`text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-all border ${activeFilters.categories.includes(cat) ? 'bg-[#28B463] border-[#28B463] text-white shadow-lg shadow-[#28B463]' : 'bg-gray-50 border-gray-100 text-gray-600'}`}
-                                            >
-                                                {t('all')} {cat}
-                                            </button>
-                                            {Array.isArray(subs) && subs.map(sub => {
-                                                const subName = typeof sub === 'string' ? sub : (sub?.name || 'Unnamed');
-                                                return (
-                                                    <button
-                                                        key={subName}
-                                                        onClick={() => toggleFilter('subcategory', subName)}
-                                                        className={`text-[10px] font-bold px-4 py-2 rounded-xl transition-all border ${activeFilters.subcategory.includes(subName) ? 'bg-black border-black text-white shadow-lg shadow-gray-200' : 'bg-white border-gray-200 text-gray-700'}`}
-                                                    >
-                                                        {subName}
-                                                    </button>
-                                                );
+                                <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+                                    <h3 className="font-black text-black text-lg uppercase tracking-tight">{t('filters')}</h3>
+                                    <button
+                                        onClick={() => setIsMobileFilterOpen(false)}
+                                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                    >
+                                        <ChevronDown className="h-6 w-6 text-gray-400" />
+                                    </button>
+                                </div>
+
+                                {/* Mobile Category Selection */}
+                                <div className="space-y-2">
+                                    <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
+                                        {t('shopFilters.category')}
+                                    </label>
+                                    <select
+                                        value={activeFilters.categories[0] || ''}
+                                        onChange={(e) => handleSelectFilter('categories', e.target.value)}
+                                        dir={isRTL ? 'rtl' : 'ltr'}
+                                        className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
+                                    >
+                                        <option value="">{t('shopFilters.allCategories')}</option>
+                                        {Object.keys(filterOptions?.categories || {}).map(cat => {
+                                            const catName = typeof cat === 'string' ? cat : (cat?.name || String(cat));
+                                            return <option key={catName} value={catName}>{catName}</option>;
+                                        })}
+                                    </select>
+                                </div>
+
+                                {/* Mobile Subcategory Selection */}
+                                {activeFilters.categories.length > 0 && filterOptions.categories[activeFilters.categories[0]]?.length > 0 && (
+                                    <div className="space-y-2 animate-in slide-in-from-top duration-300">
+                                        <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
+                                            {t('shopFilters.subcategory')}
+                                        </label>
+                                        <select
+                                            value={activeFilters.subcategory[0] || ''}
+                                            onChange={(e) => handleSelectFilter('subcategory', e.target.value)}
+                                            dir={isRTL ? 'rtl' : 'ltr'}
+                                            className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
+                                        >
+                                            <option value="">{t('shopFilters.allSubcategories') || 'كل الفئات الفرعية'}</option>
+                                            {(filterOptions?.categories?.[activeFilters.categories[0]] || []).map(sub => {
+                                                const subName = typeof sub === 'string' ? sub : (sub?.name || String(sub));
+                                                return <option key={subName} value={subName}>{subName}</option>;
                                             })}
-                                        </div>
+                                        </select>
                                     </div>
-                                ))}
+                                )}
+
+                                {/* Mobile Make Selection */}
+                                <div className="space-y-2">
+                                    <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
+                                        {t('shopFilters.make')}
+                                    </label>
+                                    <select
+                                        value={activeFilters.makes[0] || ''}
+                                        onChange={(e) => handleSelectFilter('makes', e.target.value)}
+                                        dir={isRTL ? 'rtl' : 'ltr'}
+                                        className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
+                                    >
+                                        <option value="">{t('shopFilters.allMakes')}</option>
+                                        {Object.keys(filterOptions?.makes || {}).map(make => (
+                                            <option key={make} value={make}>{make}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Mobile Model Selection */}
+                                {activeFilters.makes.length > 0 && (filterOptions?.makes?.[activeFilters.makes[0]] || []).length > 0 && (
+                                    <div className="space-y-2 animate-in slide-in-from-top duration-300">
+                                        <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
+                                            {t('shopFilters.model')}
+                                        </label>
+                                        <select
+                                            value={activeFilters.models[0] || ''}
+                                            onChange={(e) => handleSelectFilter('models', e.target.value)}
+                                            dir={isRTL ? 'rtl' : 'ltr'}
+                                            className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
+                                        >
+                                            <option value="">{t('shopFilters.allModels')}</option>
+                                            {(filterOptions?.makes?.[activeFilters.makes[0]] || []).map(model => (
+                                                <option key={model} value={model}>{model}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+
+                                {/* Mobile Year Selection */}
+                                <div className="space-y-2">
+                                    <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
+                                        {t('shopFilters.year')}
+                                    </label>
+                                    <select
+                                        value={activeFilters.years[0] || ''}
+                                        onChange={(e) => handleSelectFilter('years', e.target.value)}
+                                        dir={isRTL ? 'rtl' : 'ltr'}
+                                        className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
+                                    >
+                                        <option value="">{t('shopFilters.allYears')}</option>
+                                        {Array.isArray(filterOptions?.years) && filterOptions.years.map(year => (
+                                            <option key={year} value={year}>{year}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Mobile Origin Selection */}
+                                <div className="space-y-2">
+                                    <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
+                                        {t('shopFilters.origin')}
+                                    </label>
+                                    <select
+                                        value={activeFilters.origins[0] || ''}
+                                        onChange={(e) => handleSelectFilter('origins', e.target.value)}
+                                        dir={isRTL ? 'rtl' : 'ltr'}
+                                        className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
+                                    >
+                                        <option value="">{t('shopFilters.allOrigins')}</option>
+                                        {Array.isArray(filterOptions?.origins) && filterOptions.origins.map(origin => (
+                                            <option key={origin} value={origin}>{origin}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Mobile Brand Selection */}
+                                <div className="space-y-2">
+                                    <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
+                                        {t('shopFilters.brand')}
+                                    </label>
+                                    <select
+                                        value={activeFilters.brands[0] || ''}
+                                        onChange={(e) => handleSelectFilter('brands', e.target.value)}
+                                        dir={isRTL ? 'rtl' : 'ltr'}
+                                        className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
+                                    >
+                                        <option value="">{t('shopFilters.allBrands')}</option>
+                                        {Array.isArray(filterOptions?.brands) && filterOptions.brands.map(brand => (
+                                            <option key={brand} value={brand}>{brand}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
                                 <div className="pt-6 border-t border-gray-100 flex gap-4">
                                     <button
                                         onClick={handleResetFilters}
-                                        className="flex-1 py-4 text-center text-[#1A1A1A] text-[10px] font-black uppercase tracking-widest border border-[#28B463] rounded-xl hover:bg-[#219653] transition-colors"
+                                        className="flex-1 py-4 text-center text-[#1A1A1A] text-[10px] font-black uppercase tracking-widest border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
                                     >
                                         {t('resetAll')}
                                     </button>
                                     <button
                                         onClick={() => setIsMobileFilterOpen(false)}
-                                        className="flex-1 py-4 text-center bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg"
+                                        className="flex-1 py-4 text-center bg-[#28B463] text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-[#28B463]/20"
                                     >
                                         {t('applyFilters')}
                                     </button>
