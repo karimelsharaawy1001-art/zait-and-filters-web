@@ -120,14 +120,21 @@ export default async function handler(req, res) {
                     addProducts(categoryQuery);
                 }
 
-                // Priority 3: Global Best Sellers (Fallback)
+                // Priority 3: Global Popularity (Fallback - No OrderBy to avoid index issues)
                 if (relatedProducts.length < 8) {
                     const popularQuery = await productsRef
                         .where('isActive', '==', true)
-                        .orderBy('soldCount', 'desc')
                         .limit(10)
                         .get();
                     addProducts(popularQuery);
+                }
+
+                // Priority 4: Absolute Fallback (Total backup)
+                if (relatedProducts.length < 4) {
+                    const backupQuery = await productsRef
+                        .limit(10)
+                        .get();
+                    addProducts(backupQuery);
                 }
 
                 return res.status(200).json(relatedProducts.slice(0, 8));
