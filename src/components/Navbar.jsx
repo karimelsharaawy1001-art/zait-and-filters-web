@@ -69,7 +69,7 @@ const Navbar = () => {
     return (
         <header className="fixed top-0 left-0 right-0 z-[100] transition-all duration-300">
             {/* Main Navbar */}
-            <nav className="w-full bg-[#ffffff] border-b-2 border-[#000000] shadow-sm py-4">
+            <nav className="w-full bg-white/80 backdrop-blur-xl border-b border-gray-100/50 shadow-sm py-4">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Desktop Layout (Hidden on Mobile) */}
                     <div className="hidden md:flex justify-between items-center w-full h-16 relative">
@@ -235,7 +235,7 @@ const Navbar = () => {
 
                 {/* Mobile Menu Dropdown */}
                 {isOpen && (
-                    <div className="md:hidden bg-white border-t-[1px] border-[#000000] shadow-xl overflow-hidden animate-in slide-in-from-top duration-200">
+                    <div className="md:hidden bg-white/95 backdrop-blur-lg border-t border-gray-100 shadow-xl overflow-hidden animate-in slide-in-from-top duration-200">
                         <div className="px-4 py-6 space-y-2">
                             <Link
                                 to="/"
