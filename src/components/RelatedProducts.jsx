@@ -122,33 +122,34 @@ const RelatedProducts = ({ currentProduct }) => {
                     <h2 className={`text-2xl font-black text-gray-900 ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
                         {t('relatedProducts')}
                     </h2>
-
-                    {/* Navigation Arrows - Desktop Only */}
-                    <div className="hidden md:flex items-center gap-2">
-                        <button
-                            onClick={() => scroll('left')}
-                            className="p-2 rounded-full bg-white/80 backdrop-blur-md border border-gray-100 shadow-sm hover:bg-gray-50 transition-colors"
-                        >
-                            <ChevronLeft className="h-5 w-5 text-gray-900" />
-                        </button>
-                        <button
-                            onClick={() => scroll('right')}
-                            className="p-2 rounded-full bg-white/80 backdrop-blur-md border border-gray-100 shadow-sm hover:bg-gray-50 transition-colors"
-                        >
-                            <ChevronRight className="h-5 w-5 text-gray-900" />
-                        </button>
-                    </div>
                 </div>
 
-                <div
-                    ref={scrollContainerRef}
-                    className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth"
-                >
-                    {relatedProducts.map(product => (
-                        <div key={product.id} className="basis-[48.5%] md:basis-[24%] lg:basis-[15.8%] snap-start flex-shrink-0">
-                            <ProductCard product={product} isCompact={true} />
-                        </div>
-                    ))}
+                <div className="relative group/carousel">
+                    {/* Side-Positioned Arrows */}
+                    <button
+                        onClick={() => scroll('left')}
+                        className="absolute -left-2 sm:-left-4 top-1/2 -translate-y-1/2 z-30 p-2.5 rounded-full bg-white/95 shadow-xl border border-gray-100 hover:bg-gray-50 transition-all active:scale-90 opacity-0 group-hover/carousel:opacity-100 hidden md:block"
+                    >
+                        <ChevronLeft className="h-6 w-6 text-gray-900" />
+                    </button>
+
+                    <button
+                        onClick={() => scroll('right')}
+                        className="absolute -right-2 sm:-right-4 top-1/2 -translate-y-1/2 z-30 p-2.5 rounded-full bg-white/95 shadow-xl border border-gray-100 hover:bg-gray-50 transition-all active:scale-90 opacity-0 group-hover/carousel:opacity-100 hidden md:block"
+                    >
+                        <ChevronRight className="h-6 w-6 text-gray-900" />
+                    </button>
+
+                    <div
+                        ref={scrollContainerRef}
+                        className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth"
+                    >
+                        {relatedProducts.map(product => (
+                            <div key={product.id} className="basis-[65%] 2xs:basis-[48.5%] md:basis-[24%] lg:basis-[15.8%] snap-start flex-shrink-0">
+                                <ProductCard product={product} isCompact={true} />
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
 
