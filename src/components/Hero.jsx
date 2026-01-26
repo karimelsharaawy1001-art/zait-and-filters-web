@@ -83,8 +83,10 @@ const Hero = () => {
                 <div className="absolute inset-0 transition-all duration-700 ease-in-out">
                     <img
                         src={currentSlide.imageUrl}
-                        alt=""
+                        alt={i18n.language === 'ar' ? currentSlide.title_ar : currentSlide.title_en}
                         className="w-full h-full object-cover object-center"
+                        fetchpriority={currentIndex === 0 ? "high" : "auto"}
+                        loading={currentIndex === 0 ? "eager" : "lazy"}
                     />
                     {/* Dark Overlay for Text Contrast */}
                     <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/75 to-black/70"></div>

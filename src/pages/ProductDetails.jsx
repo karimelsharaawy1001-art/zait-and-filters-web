@@ -212,6 +212,33 @@ const ProductDetails = () => {
         }
     };
 
+    const breadcrumbSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+            {
+                '@type': 'ListItem',
+                'position': 1,
+                'name': t('home'),
+                'item': window.location.origin
+            },
+            {
+                '@type': 'ListItem',
+                'position': 2,
+                'name': product.category,
+                'item': `${window.location.origin}/shop?category=${encodeURIComponent(product.category)}`
+            },
+            {
+                '@type': 'ListItem',
+                'position': 3,
+                'name': isAr ? product.name : (product.nameEn || product.name),
+                'item': window.location.href
+            }
+        ]
+    };
+
+    const combinedSchema = [productSchema, breadcrumbSchema];
+
     return (
         <div className="bg-white min-h-screen" dir={isAr ? 'rtl' : 'ltr'}>
             <SEO
@@ -221,9 +248,9 @@ const ProductDetails = () => {
                 image={product.imageUrl || product.images?.[0] || 'https://zait-and-filters-web.vercel.app/logo.png'}
                 url={window.location.href}
                 type="product"
-                schema={productSchema}
+                schema={combinedSchema}
             />
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Back Link */}
                 <button
                     onClick={() => navigate(-1)}
@@ -552,7 +579,7 @@ const ProductDetails = () => {
                         </div>
                     </div>
                 )}
-            </div>
+            </article>
         </div>
     );
 };

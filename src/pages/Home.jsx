@@ -96,9 +96,9 @@ const Home = () => {
             <Hero />
 
             {/* Brands Section */}
-            <div className="py-6 bg-white border-b border-gray-50">
+            <section className="py-6 bg-white border-b border-gray-50">
                 <BrandMarquee />
-            </div>
+            </section>
 
             {/* Exclusive Offers Section */}
             <div className="bg-white py-4">
@@ -124,13 +124,13 @@ const Home = () => {
                 />
             </div>
 
-            <div className="mt-8 pt-4 border-t border-gray-50">
+            <section className="mt-8 pt-4 border-t border-gray-50">
                 <ValuePropositionBanner />
-            </div>
+            </section>
 
-            <div className="py-12 bg-gray-50/30">
+            <section className="py-12 bg-gray-50/30">
                 <CategoryThumbnails />
-            </div>
+            </section>
 
         </div>
     );
