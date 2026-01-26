@@ -13,7 +13,7 @@ import { Sparkles, Flame, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [bestSellers, setBestSellers] = useState([]);
     const [hotOffers, setHotOffers] = useState([]);
     const [loading, setLoading] = useState(true);
