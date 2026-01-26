@@ -242,7 +242,7 @@ const EditCategory = () => {
                                         <button
                                             type="button"
                                             onClick={addSubCategory}
-                                            className="inline-flex items-center px-10 py-4 bg-[#FF0000] hover:bg-[#CC0000] text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-red-500/20 hover:scale-[1.02] active:scale-95 transition-all"
+                                            className="admin-primary-btn !w-fit !px-10"
                                         >
                                             <Plus className="h-4 w-4 mr-2" />
                                             Append Subcategory
@@ -255,9 +255,9 @@ const EditCategory = () => {
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="inline-flex items-center px-12 py-5 bg-[#FF0000] hover:bg-[#CC0000] text-white font-black rounded-2xl shadow-2xl shadow-red-500/30 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 uppercase tracking-[0.1em] text-xs"
+                                    className="admin-primary-btn !w-fit !px-12 !py-5"
                                 >
-                                    {saving ? <Loader2 className="h-5 w-5 animate-spin mr-3 text-white" /> : <Save className="h-5 w-5 mr-3" />}
+                                    {saving ? <Loader2 className="h-5 w-5 animate-spin text-white" /> : <Save className="h-5 w-5" />}
                                     Commit Changes
                                 </button>
                             </div>

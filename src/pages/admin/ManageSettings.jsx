@@ -264,7 +264,7 @@ const ManageSettings = () => {
                     <button
                         type="submit"
                         disabled={saving}
-                        className="bg-[#e31e24] hover:bg-[#b8181d] text-white px-12 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs flex items-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-[#e31e24]/40 disabled:opacity-50 disabled:grayscale"
+                        className="admin-primary-btn !w-fit !px-12 !py-5"
                     >
                         {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
                         Synchronize Node Settings
