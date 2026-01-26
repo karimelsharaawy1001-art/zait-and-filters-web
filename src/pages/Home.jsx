@@ -9,14 +9,15 @@ import SEO from '../components/SEO';
 import { db } from '../firebase';
 import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, Flame, Sparkles } from 'lucide-react';
+import { ArrowRight, Flame, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useFilters } from '../context/FilterContext';
+import { useRef } from 'react';
 
 const RecommendationSkeleton = () => (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 animate-pulse">
-        {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-gray-100 rounded-premium h-[400px] w-full"></div>
+    <div className="flex gap-4 overflow-hidden pb-4 opacity-50">
+        {[...Array(6)].map((_, i) => (
+            <div key={i} className="min-w-[46%] md:min-w-[30%] lg:min-w-[15.5%] bg-gray-100 rounded-premium h-[350px] animate-pulse"></div>
         ))}
     </div>
 );
@@ -106,40 +107,82 @@ const Home = () => {
         fetchHomeData();
     }, [targetVehicle?.make, targetVehicle?.model, bestSellers.length]);
 
-    const ProductSection = ({ title, icon: Icon, products, subtitle, color = "red" }) => (
-        <section className="py-3 overflow-hidden">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-4 border-b border-gray-100 pb-4">
-                    <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                            <h2 className="text-3xl sm:text-4xl font-black text-[#000000] tracking-tighter leading-none uppercase italic font-Cairo">
-                                {title}
-                            </h2>
-                        </div>
-                        {subtitle && <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-1 font-Cairo">{subtitle}</p>}
-                    </div>
-                    <Link to="/shop" className="text-[#000000] border border-[#000000] hover:text-[#e31e24] hover:border-[#e31e24] font-black flex items-center gap-1.5 group bg-white px-4 py-2 rounded shadow-sm transition-all hover:bg-gray-50 italic">
-                        <span className="text-[10px] uppercase tracking-widest font-Cairo">{t('viewAll')}</span>
-                        <ArrowRight className="h-3.5 w-3.5 transform group-hover:translate-x-1 transition-transform not-italic" />
-                    </Link>
-                </div>
+    const ProductSection = ({ title, icon: Icon, products, subtitle, color = "red" }) => {
+        const scrollRef = useRef(null);
 
-                {loading ? (
-                    <RecommendationSkeleton />
-                ) : products.length === 0 ? (
-                    <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                        <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] font-Cairo">{t('noProductsFound')}</p>
+        const scroll = (direction) => {
+            if (scrollRef.current) {
+                const { current } = scrollRef;
+                const scrollAmount = current.clientWidth * 0.8;
+                current.scrollBy({
+                    left: direction === 'left' ? -scrollAmount : scrollAmount,
+                    behavior: 'smooth'
+                });
+            }
+        };
+
+        return (
+            <section className="py-3 overflow-hidden">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-4 border-b border-gray-100 pb-4">
+                        <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                                <h2 className="text-3xl sm:text-4xl font-black text-[#000000] tracking-tighter leading-none uppercase italic font-Cairo">
+                                    {title}
+                                </h2>
+                            </div>
+                            {subtitle && <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-1 font-Cairo">{subtitle}</p>}
+                        </div>
+                        <div className="flex items-center gap-4">
+                            {/* Navigation Arrows */}
+                            <div className="hidden md:flex items-center gap-2">
+                                <button
+                                    onClick={() => scroll('left')}
+                                    className="p-2 rounded-full bg-white/80 backdrop-blur-md border border-gray-100 shadow-sm hover:bg-gray-50 transition-colors"
+                                >
+                                    <ChevronLeft className="h-4 w-4 text-gray-900" />
+                                </button>
+                                <button
+                                    onClick={() => scroll('right')}
+                                    className="p-2 rounded-full bg-white/80 backdrop-blur-md border border-gray-100 shadow-sm hover:bg-gray-50 transition-colors"
+                                >
+                                    <ChevronRight className="h-4 w-4 text-gray-900" />
+                                </button>
+                            </div>
+                            <Link to="/shop" className="text-[#000000] border border-[#000000] hover:text-[#e31e24] hover:border-[#e31e24] font-black flex items-center gap-1.5 group bg-white px-4 py-2 rounded shadow-sm transition-all hover:bg-gray-50 italic text-[10px] uppercase tracking-widest font-Cairo">
+                                <span>{t('viewAll')}</span>
+                                <ArrowRight className="h-3.5 w-3.5 transform group-hover:translate-x-1 transition-transform not-italic" />
+                            </Link>
+                        </div>
                     </div>
-                ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 sm:gap-6">
-                        {products.slice(0, 8).map(product => (
-                            <ProductCard key={product.id} product={product} />
-                        ))}
-                    </div>
-                )}
-            </div>
-        </section>
-    );
+
+                    {loading ? (
+                        <RecommendationSkeleton />
+                    ) : products.length === 0 ? (
+                        <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                            <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] font-Cairo">{t('noProductsFound')}</p>
+                        </div>
+                    ) : (
+                        <div
+                            ref={scrollRef}
+                            className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth"
+                        >
+                            {products.slice(0, 12).map(product => (
+                                <div key={product.id} className="min-w-[70%] 2xs:min-w-[48%] md:min-w-[24%] lg:min-w-[15.7%] snap-start flex-shrink-0">
+                                    <ProductCard product={product} />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <style dangerouslySetInnerHTML={{
+                    __html: `
+                    .scrollbar-hide::-webkit-scrollbar { display: none; }
+                    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+                `}} />
+            </section>
+        );
+    };
 
     const faqSchema = {
         "@context": "https://schema.org",

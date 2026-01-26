@@ -36,7 +36,7 @@ const ProductCard = ({ product }) => {
     const hasSale = product.salePrice && Number(product.salePrice) < Number(product.price);
 
     return (
-        <article className="product-card group relative flex flex-col !gap-0 !space-y-0 !justify-start bg-white rounded-premium shadow-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:translate-y-[-5px] w-full max-w-[320px] mx-auto h-full">
+        <article className="product-card group relative flex flex-col !gap-0 !space-y-0 !justify-start bg-white rounded-premium shadow-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:translate-y-[-5px] w-full max-w-full md:max-w-[320px] mx-auto h-full px-0.5">
             {/* HERO IMAGE - Fixed Aspect Ratio to prevent collapse */}
             <Link
                 to={`/product/${product.id}`}
