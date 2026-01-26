@@ -67,7 +67,7 @@ const Navbar = () => {
     const linkBase = "text-[14px] font-black uppercase tracking-widest transition-colors font-Cairo mx-4 flex items-center h-full";
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+        <header className="fixed top-0 left-0 right-0 z-[100] transition-all duration-300">
             {/* Main Navbar */}
             <nav className="w-full bg-[#ffffff] border-b-2 border-[#000000] shadow-sm py-4">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

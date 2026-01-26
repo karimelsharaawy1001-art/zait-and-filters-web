@@ -159,7 +159,7 @@ const Hero = () => {
             </div>
 
             {/* Mobile Car Selector (Below Hero with Overlap) */}
-            <div className="md:hidden relative -mt-16 z-50 px-4 pb-4">
+            <div className="md:hidden relative -mt-16 z-40 px-4 pb-4">
                 <div className="w-full max-w-[92%] mx-auto">
                     <CarSelector />
                 </div>
