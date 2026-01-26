@@ -66,7 +66,7 @@ const Hero = () => {
     // Default slide if none found
     const displaySlides = slides.length > 0 ? slides : [{
         id: 'default',
-        imageUrl: 'https://images.unsplash.com/photo-1620836521741-6156e07759b6?auto=format&fit=crop&q=80&w=800',
+        imageUrl: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?auto=format&fit=crop&q=80&w=1920',
         title_ar: 'زيت اند فلترز',
         title_en: 'Zait & Filters',
         subtitle_ar: 'قطع الغيار بضغطة زرار',
@@ -76,48 +76,55 @@ const Hero = () => {
     const currentSlide = displaySlides[currentIndex];
 
     return (
-        <div className="relative bg-[#f9f9f9] h-auto md:h-[600px] flex flex-col items-center overflow-visible md:overflow-hidden pt-12 md:pt-0 pb-12 md:pb-0">
-            {/* Background Decorative Element */}
-            <div className="absolute top-0 right-0 w-1/2 h-full bg-white transform skew-x-12 translate-x-1/4 z-0 hidden md:block"></div>
+        <div className="hero-section-wrapper relative w-full h-[500px] md:h-[600px] overflow-hidden">
+            {/* Background Image */}
+            <div className="absolute inset-0 transition-all duration-700 ease-in-out">
+                <img
+                    src={currentSlide.imageUrl}
+                    alt=""
+                    className="w-full h-full object-cover object-center"
+                />
+                {/* Subtle Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20"></div>
+            </div>
 
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-10">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-12">
+            {/* Content Container */}
+            <div className="relative h-full flex items-center z-10">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                    <div className="flex flex-col md:flex-row items-center md:items-stretch justify-between gap-8">
 
-                    {/* Left Content */}
-                    <div className="w-full md:w-1/2 text-center md:text-right lg:pt-14">
-                        <h1 className="text-3xl md:text-6xl font-black text-[#111111] leading-tight mb-4 md:mb-6 font-Cairo tracking-tighter uppercase italic">
-                            <span className="text-[#28B463]">
+                        {/* LEFT: Car Selector Widget (Desktop) */}
+                        <div className="hidden md:flex md:w-[380px] lg:w-[420px] flex-shrink-0">
+                            <div className="w-full">
+                                <CarSelector />
+                            </div>
+                        </div>
+
+                        {/* RIGHT: Text Content & CTA */}
+                        <div className="flex-1 flex flex-col items-center md:items-end justify-center text-center md:text-right">
+                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-[#28B463] leading-tight mb-3 md:mb-4 font-Cairo tracking-tighter uppercase italic drop-shadow-2xl">
                                 {i18n.language === 'ar' ? currentSlide.title_ar : currentSlide.title_en}
-                            </span>
-                            <br />
-                            <span className="text-xl md:text-4xl block mt-1 md:mt-2 text-gray-700 not-italic">
+                            </h1>
+                            <p className="text-2xl md:text-3xl lg:text-4xl text-gray-800 font-black mb-6 md:mb-8 font-Cairo drop-shadow-lg">
                                 {i18n.language === 'ar' ? currentSlide.subtitle_ar : currentSlide.subtitle_en}
-                            </span>
-                        </h1>
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                            </p>
                             <Link
                                 to="/shop"
-                                className="bg-[#28B463] hover:bg-[#219653] text-white font-black py-3.5 md:py-4 px-10 md:px-12 rounded-lg shadow-xl shadow-[#28B463]/20 transition-all flex items-center justify-center group uppercase italic tracking-widest text-base md:text-lg font-Cairo"
+                                className="bg-[#28B463] hover:bg-[#219653] text-white font-black py-4 md:py-5 px-12 md:px-16 rounded-lg shadow-2xl shadow-[#28B463]/40 transition-all flex items-center justify-center group uppercase italic tracking-widest text-lg md:text-xl font-Cairo transform hover:scale-105"
                             >
                                 {t('shopNow')}
-                                <ChevronRight className={`h-5 w-5 md:h-6 md:w-6 transition-transform not-italic ${i18n.language === 'ar' ? 'mr-2 rotate-180 group-hover:-translate-x-1' : 'ml-2 group-hover:translate-x-1'}`} />
+                                <ChevronRight className={`h-6 w-6 md:h-7 md:w-7 transition-transform not-italic ${i18n.language === 'ar' ? 'mr-2 rotate-180 group-hover:-translate-x-1' : 'ml-2 group-hover:translate-x-1'}`} />
                             </Link>
                         </div>
-                    </div>
 
-                    {/* Right Image (Hidden on Mobile) */}
-                    <div className="hidden md:flex md:w-1/2 justify-center">
-                        <div className="relative">
-                            {/* Decorative Circle Background */}
-                            <div className="absolute inset-0 bg-red-100 rounded-full scale-110 opacity-50 blur-2xl"></div>
-                            <img
-                                src={currentSlide.imageUrl}
-                                alt=""
-                                className="relative z-10 w-full max-w-[500px] h-auto object-contain drop-shadow-2xl transform hover:scale-105 transition-transform duration-500"
-                            />
-                        </div>
                     </div>
+                </div>
+            </div>
 
+            {/* Mobile Car Selector (Bottom, Centered) */}
+            <div className="md:hidden absolute bottom-6 left-0 right-0 z-50 w-full px-4">
+                <div className="w-full max-w-[92%] mx-auto">
+                    <CarSelector />
                 </div>
             </div>
 
@@ -126,41 +133,32 @@ const Hero = () => {
                 <>
                     <button
                         onClick={prevSlide}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/80 hover:bg-white rounded-full shadow-lg transition-all text-gray-800"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-3 bg-white/90 hover:bg-white rounded-full shadow-xl transition-all text-gray-800 hover:scale-110"
                         aria-label="Previous slide"
                     >
                         <ChevronLeft className="h-6 w-6" />
                     </button>
                     <button
                         onClick={nextSlide}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/80 hover:bg-white rounded-full shadow-lg transition-all text-gray-800"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-3 bg-white/90 hover:bg-white rounded-full shadow-xl transition-all text-gray-800 hover:scale-110"
                         aria-label="Next slide"
                     >
                         <ChevronRight className="h-6 w-6" />
                     </button>
 
                     {/* Pagination Dots */}
-                    <div className="absolute bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+                    <div className="absolute bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-2">
                         {displaySlides.map((_, index) => (
                             <button
                                 key={index}
                                 onClick={() => setCurrentIndex(index)}
-                                className={`transition-all duration-300 ${currentIndex === index ? 'w-8 bg-[#28B463]' : 'w-2 bg-gray-300'} h-2 rounded-full`}
+                                className={`transition-all duration-300 ${currentIndex === index ? 'w-8 bg-[#28B463]' : 'w-2 bg-white/80'} h-2 rounded-full hover:bg-[#28B463] shadow-lg`}
                                 aria-label={`Go to slide ${index + 1}`}
                             />
                         ))}
                     </div>
                 </>
             )}
-
-            {/* Car Selector (Floating Right/Bottom on Desktop, Natural Stack on Mobile) */}
-            <div className="relative md:absolute bottom-auto md:bottom-8 left-0 right-0 z-40 w-full mt-8 md:mt-0">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex items-center justify-center md:justify-end">
-                    <div className="w-[92%] md:w-[350px] lg:w-[380px] mx-auto md:mx-0">
-                        <CarSelector />
-                    </div>
-                </div>
-            </div>
         </div>
     );
 };
