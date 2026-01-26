@@ -218,7 +218,11 @@ const ProductGrid = ({ showFilters = true }) => {
                     // Add subcategories if they exist
                     if (Array.isArray(category.subCategories)) {
                         category.subCategories.forEach(sub => {
-                            if (sub) categories[category.name].add(sub);
+                            if (sub) {
+                                // Extract name if subcategory is an object {imageUrl, name}
+                                const subName = typeof sub === 'string' ? sub : sub.name;
+                                if (subName) categories[category.name].add(subName);
+                            }
                         });
                     }
                 }
@@ -296,12 +300,12 @@ const ProductGrid = ({ showFilters = true }) => {
         setActiveFilters(prev => ({
             ...prev,
             categories: filters.category && filters.category !== 'All' ? [filters.category] : [],
-            subcategories: filters.subCategory ? [filters.subCategory] : [],
+            subcategory: filters.subcategory ? [filters.subcategory] : [],
             makes: filters.make ? [filters.make] : prev.makes,
             models: filters.model ? [filters.model] : prev.models,
             years: filters.year ? [filters.year] : prev.years
         }));
-    }, [filters.category, filters.subCategory, filters.make, filters.model, filters.year]);
+    }, [filters.category, filters.subcategory, filters.make, filters.model, filters.year]);
 
     const handleAddToCart = (product) => {
         addToCart(product);
@@ -326,9 +330,9 @@ const ProductGrid = ({ showFilters = true }) => {
                 [type]: value ? [value] : []
             };
 
-            // Reset subcategories when category changes
+            // Reset subcategory when category changes
             if (type === 'categories') {
-                newState.subcategories = [];
+                newState.subcategory = [];
             }
 
             // Reset model when make changes
@@ -344,7 +348,7 @@ const ProductGrid = ({ showFilters = true }) => {
     const handleResetFilters = () => {
         setActiveFilters({
             categories: [],
-            subcategories: [],
+            subcategory: [],
             makes: [],
             models: [],
             years: [],
@@ -459,15 +463,15 @@ const ProductGrid = ({ showFilters = true }) => {
                                                             <div className="flex items-center justify-center">
                                                                 <input
                                                                     type="checkbox"
-                                                                    checked={activeFilters.subcategories.includes(subName)}
-                                                                    onChange={() => toggleFilter('subcategories', subName)}
+                                                                    checked={activeFilters.subcategory.includes(subName)}
+                                                                    onChange={() => toggleFilter('subcategory', subName)}
                                                                     className="w-4 h-4 rounded border-gray-300 text-[#1A1A1A] focus:ring-[#28B463] transition-all cursor-pointer"
                                                                 />
                                                             </div>
-                                                            <span className={`text-sm transition-colors ${activeFilters.subcategories.includes(subName) ? 'font-black text-black' : 'font-medium text-gray-500 group-hover:text-black'}`}>
+                                                            <span className={`text-sm transition-colors ${activeFilters.subcategory.includes(subName) ? 'font-black text-black' : 'font-medium text-gray-500 group-hover:text-black'}`}>
                                                                 {subName}
                                                             </span>
-                                                            {activeFilters.subcategories.includes(subName) && (
+                                                            {activeFilters.subcategory.includes(subName) && (
                                                                 <div className={`${isRTL ? 'mr-auto' : 'ml-auto'} w-1.5 h-1.5 rounded-full bg-[#28B463]`} />
                                                             )}
                                                         </label>
@@ -600,15 +604,18 @@ const ProductGrid = ({ showFilters = true }) => {
                                             >
                                                 {t('all')} {cat}
                                             </button>
-                                            {Array.isArray(subs) && subs.map(sub => (
-                                                <button
-                                                    key={sub}
-                                                    onClick={() => toggleFilter('subcategories', sub)}
-                                                    className={`text-[10px] font-bold px-4 py-2 rounded-xl transition-all border ${activeFilters.subcategories.includes(sub) ? 'bg-black border-black text-white shadow-lg shadow-gray-200' : 'bg-white border-gray-200 text-gray-700'}`}
-                                                >
-                                                    {sub}
-                                                </button>
-                                            ))}
+                                            {Array.isArray(subs) && subs.map(sub => {
+                                                const subName = typeof sub === 'string' ? sub : (sub?.name || 'Unnamed');
+                                                return (
+                                                    <button
+                                                        key={subName}
+                                                        onClick={() => toggleFilter('subcategory', subName)}
+                                                        className={`text-[10px] font-bold px-4 py-2 rounded-xl transition-all border ${activeFilters.subcategory.includes(subName) ? 'bg-black border-black text-white shadow-lg shadow-gray-200' : 'bg-white border-gray-200 text-gray-700'}`}
+                                                    >
+                                                        {subName}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 ))}
