@@ -94,16 +94,8 @@ const Home = () => {
             />
             <Hero />
 
-            <div className="mb-8">
-                <ValuePropositionBanner />
-            </div>
-
-            <div className="py-8 bg-gray-50/30">
-                <CategoryThumbnails />
-            </div>
-
             {/* Brands Section */}
-            <div className="py-6 bg-white border-y border-gray-50">
+            <div className="py-6 bg-white border-b border-gray-50">
                 <BrandMarquee />
             </div>
 
@@ -129,6 +121,14 @@ const Home = () => {
                     products={bestSellers}
                     color="red"
                 />
+            </div>
+
+            <div className="mt-16 pt-8 border-t border-gray-50">
+                <ValuePropositionBanner />
+            </div>
+
+            <div className="py-12 bg-gray-50/30">
+                <CategoryThumbnails />
             </div>
 
         </div>
