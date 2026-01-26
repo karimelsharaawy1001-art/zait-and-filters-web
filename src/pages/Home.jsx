@@ -168,8 +168,8 @@ const Home = () => {
                             className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth"
                         >
                             {products.slice(0, 12).map(product => (
-                                <div key={product.id} className="min-w-[70%] 2xs:min-w-[48%] md:min-w-[24%] lg:min-w-[15.7%] snap-start flex-shrink-0">
-                                    <ProductCard product={product} />
+                                <div key={product.id} className="min-w-[48.5%] md:min-w-[24%] lg:min-w-[15.8%] snap-start flex-shrink-0">
+                                    <ProductCard product={product} isCompact={true} />
                                 </div>
                             ))}
                         </div>
