@@ -133,30 +133,26 @@ const ProductCard = ({ product, isCompact = false }) => {
                             </span>
                         </div>
 
-                        {!isCompact && (
-                            <>
-                                {/* Origin (Hidden in Compact) */}
-                                <div className="flex flex-col items-end overflow-hidden text-right">
-                                    <span className="text-[10px] leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full">
-                                        {i18n.language === 'ar' ? 'المنشأ' : 'Origin'}
-                                    </span>
-                                    <span className="text-[11px] leading-tight text-[#333] font-black italic font-Cairo truncate w-full">
-                                        {product.origin || product.countryOfOrigin || 'Imported'}
-                                    </span>
-                                </div>
+                        {/* Origin */}
+                        <div className="flex flex-col items-end overflow-hidden text-right">
+                            <span className={`${isCompact ? 'text-[8px]' : 'text-[10px]'} leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full`}>
+                                {i18n.language === 'ar' ? 'المنشأ' : 'Origin'}
+                            </span>
+                            <span className={`${isCompact ? 'text-[9px]' : 'text-[11px]'} leading-tight text-[#333] font-black italic font-Cairo truncate w-full`}>
+                                {product.origin || product.countryOfOrigin || 'Imported'}
+                            </span>
+                        </div>
 
-                                {/* Category (Hidden in Compact) */}
-                                {product.category && (
-                                    <div className="flex flex-col items-end overflow-hidden text-right">
-                                        <span className="text-[10px] leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full">
-                                            {i18n.language === 'ar' ? 'الفئة' : 'Category'}
-                                        </span>
-                                        <span className="text-[11px] leading-tight text-[#333] font-black font-Cairo truncate w-full">
-                                            {product.category}
-                                        </span>
-                                    </div>
-                                )}
-                            </>
+                        {/* Category */}
+                        {product.category && (
+                            <div className="flex flex-col items-end overflow-hidden text-right">
+                                <span className={`${isCompact ? 'text-[8px]' : 'text-[10px]'} leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full`}>
+                                    {i18n.language === 'ar' ? 'الفئة' : 'Category'}
+                                </span>
+                                <span className={`${isCompact ? 'text-[9px]' : 'text-[11px]'} leading-tight text-[#333] font-black font-Cairo truncate w-full`}>
+                                    {product.category}
+                                </span>
+                            </div>
                         )}
                     </div>
                 </div>

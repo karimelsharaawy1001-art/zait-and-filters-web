@@ -134,21 +134,6 @@ const Home = () => {
                             {subtitle && <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-1 font-Cairo">{subtitle}</p>}
                         </div>
                         <div className="flex items-center gap-4">
-                            {/* Navigation Arrows */}
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => scroll('left')}
-                                    className="p-2.5 rounded-full bg-white/90 shadow-md border border-gray-100 hover:bg-gray-50 transition-all active:scale-90"
-                                >
-                                    <ChevronLeft className="h-5 w-5 text-gray-900" />
-                                </button>
-                                <button
-                                    onClick={() => scroll('right')}
-                                    className="p-2.5 rounded-full bg-white/90 shadow-md border border-gray-100 hover:bg-gray-50 transition-all active:scale-90"
-                                >
-                                    <ChevronRight className="h-5 w-5 text-gray-900" />
-                                </button>
-                            </div>
                             <Link to="/shop" className="text-[#000000] border border-[#000000] hover:text-[#e31e24] hover:border-[#e31e24] font-black flex items-center gap-1.5 group bg-white px-4 py-2 rounded shadow-sm transition-all hover:bg-gray-50 italic text-[10px] uppercase tracking-widest font-Cairo">
                                 <span>{t('viewAll')}</span>
                                 <ArrowRight className="h-3.5 w-3.5 transform group-hover:translate-x-1 transition-transform not-italic" />
@@ -163,15 +148,32 @@ const Home = () => {
                             <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] font-Cairo">{t('noProductsFound')}</p>
                         </div>
                     ) : (
-                        <div
-                            ref={scrollRef}
-                            className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth"
-                        >
-                            {products.slice(0, 12).map(product => (
-                                <div key={product.id} className="basis-[48.5%] md:basis-[24%] lg:basis-[15.8%] snap-start flex-shrink-0">
-                                    <ProductCard product={product} isCompact={true} />
-                                </div>
-                            ))}
+                        <div className="relative group/carousel">
+                            {/* Side-Positioned Arrows */}
+                            <button
+                                onClick={() => scroll('left')}
+                                className="absolute -left-2 sm:-left-4 top-1/2 -translate-y-1/2 z-30 p-2.5 rounded-full bg-white/95 shadow-xl border border-gray-100 hover:bg-gray-50 transition-all active:scale-90 opacity-0 group-hover/carousel:opacity-100 hidden md:block"
+                            >
+                                <ChevronLeft className="h-6 w-6 text-gray-900" />
+                            </button>
+
+                            <button
+                                onClick={() => scroll('right')}
+                                className="absolute -right-2 sm:-right-4 top-1/2 -translate-y-1/2 z-30 p-2.5 rounded-full bg-white/95 shadow-xl border border-gray-100 hover:bg-gray-50 transition-all active:scale-90 opacity-0 group-hover/carousel:opacity-100 hidden md:block"
+                            >
+                                <ChevronRight className="h-6 w-6 text-gray-900" />
+                            </button>
+
+                            <div
+                                ref={scrollRef}
+                                className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth"
+                            >
+                                {products.slice(0, 12).map(product => (
+                                    <div key={product.id} className="basis-[65%] 2xs:basis-[48.5%] md:basis-[24%] lg:basis-[15.8%] snap-start flex-shrink-0">
+                                        <ProductCard product={product} isCompact={true} />
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
