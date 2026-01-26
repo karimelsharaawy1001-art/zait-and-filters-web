@@ -86,8 +86,8 @@ const Hero = () => {
                         alt=""
                         className="w-full h-full object-cover object-center"
                     />
-                    {/* Subtle Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20"></div>
+                    {/* Dark Overlay for Text Contrast */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/40"></div>
                 </div>
 
                 {/* Content Container */}
@@ -104,10 +104,10 @@ const Hero = () => {
 
                             {/* RIGHT: Text Content & CTA */}
                             <div className="flex-1 flex flex-col items-center md:items-end justify-center text-center md:text-right">
-                                <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-[#28B463] leading-tight mb-3 md:mb-4 font-Cairo tracking-tighter uppercase italic drop-shadow-2xl">
+                                <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-[#28B463] leading-tight mb-3 md:mb-4 font-Cairo tracking-tighter uppercase italic drop-shadow-2xl" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5), 0 0 20px rgba(40,180,99,0.3)' }}>
                                     {i18n.language === 'ar' ? currentSlide.title_ar : currentSlide.title_en}
                                 </h1>
-                                <p className="text-2xl md:text-3xl lg:text-4xl text-gray-800 font-black mb-6 md:mb-8 font-Cairo drop-shadow-lg">
+                                <p className="text-2xl md:text-3xl lg:text-4xl text-white font-black mb-6 md:mb-8 font-Cairo drop-shadow-2xl">
                                     {i18n.language === 'ar' ? currentSlide.subtitle_ar : currentSlide.subtitle_en}
                                 </p>
                                 <Link
