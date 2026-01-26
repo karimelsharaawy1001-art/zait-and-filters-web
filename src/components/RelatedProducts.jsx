@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, query, where, limit, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import ProductCard from './ProductCard';
 import { useTranslation } from 'react-i18next';
 
@@ -18,36 +18,75 @@ const RelatedProducts = ({ currentProduct }) => {
     );
 
     useEffect(() => {
-        const fetchRelatedProducts = async () => {
+        const fetchRelatedViaFirestore = async () => {
             if (!currentProduct) return;
             setLoading(true);
+            console.log(`[RelatedProducts] Starting direct Firestore fetch for product: ${currentProduct.id}`);
 
             try {
-                // Build query parameters
-                const params = new URLSearchParams({
-                    productId: currentProduct.id,
-                    make: currentProduct.make || '',
-                    model: currentProduct.model || '',
-                    year: currentProduct.yearStart || '',
-                    category: currentProduct.category || '',
-                    brand: currentProduct.brand || ''
-                });
+                // Fetch All Active Products for in-memory multi-tier filtering
+                // This is the most reliable way to handle fallbacks 
+                const q = query(
+                    collection(db, 'products'),
+                    where('isActive', '==', true)
+                );
+                const querySnapshot = await getDocs(q);
+                const allActive = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                const response = await fetch(`/api/products?action=getRelated&${params.toString()}`);
-                if (!response.ok) throw new Error('Failed to fetch related products');
+                const seenIds = new Set([currentProduct.id]);
+                let results = [];
 
-                const products = await response.json();
-                console.log(`[RelatedProducts] Fetched ${products.length} items`);
-                setRelatedProducts(Array.isArray(products) ? products : []);
+                // Helper to add unique products
+                const addItems = (items, isSmart = false) => {
+                    items.forEach(item => {
+                        if (!seenIds.has(item.id) && results.length < 8) {
+                            results.push(isSmart ? { ...item, isSmartMatch: true } : item);
+                            seenIds.add(item.id);
+                        }
+                    });
+                };
+
+                // Tier 1: Exact Car Match (Make & Model)
+                const tier1 = allActive.filter(p =>
+                    (p.make === currentProduct.make && p.model === currentProduct.model) ||
+                    (p.car_make === currentProduct.make && p.car_model === currentProduct.model)
+                );
+                addItems(tier1, true);
+
+                // Tier 2: Specific Car Search (if product attributes match)
+                if (results.length < 8 && (currentProduct.car_make || currentProduct.car_model)) {
+                    const tier2 = allActive.filter(p =>
+                        (p.make === currentProduct.car_make && p.model === currentProduct.car_model) ||
+                        (p.car_make === currentProduct.car_make && p.car_model === currentProduct.car_model)
+                    );
+                    addItems(tier2, true);
+                }
+
+                // Tier 3: Same Category Match
+                if (results.length < 8 && currentProduct.category) {
+                    const tier3 = allActive.filter(p => p.category === currentProduct.category);
+                    addItems(tier3);
+                }
+
+                // Tier 4: Global Best Sellers (Fallback)
+                if (results.length < 8) {
+                    const sortedBest = [...allActive]
+                        .sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0));
+                    addItems(sortedBest.slice(0, 10));
+                }
+
+                console.log(`[RelatedProducts] Successfully populated ${results.length} items`);
+                setRelatedProducts(results);
             } catch (error) {
-                console.error("Error fetching related products:", error);
+                console.error("[RelatedProducts] Error during Firestore fetch:", error);
+                setRelatedProducts([]);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchRelatedProducts();
-    }, [currentProduct]);
+        fetchRelatedViaFirestore();
+    }, [currentProduct?.id]);
 
     if (loading) {
         return (
