@@ -76,7 +76,7 @@ const Hero = () => {
     const currentSlide = displaySlides[currentIndex];
 
     return (
-        <div className="hero-section-wrapper relative w-full h-[500px] md:h-[600px] overflow-hidden">
+        <div className="hero-section-wrapper relative w-full h-[400px] md:h-[600px] overflow-visible">
             {/* Background Image */}
             <div className="absolute inset-0 transition-all duration-700 ease-in-out">
                 <img
@@ -121,8 +121,8 @@ const Hero = () => {
                 </div>
             </div>
 
-            {/* Mobile Car Selector (Bottom, Centered) */}
-            <div className="md:hidden absolute bottom-6 left-0 right-0 z-50 w-full px-4">
+            {/* Mobile Car Selector (Partial Overlap at Bottom) */}
+            <div className="md:hidden absolute -bottom-32 left-0 right-0 z-50 w-full px-4">
                 <div className="w-full max-w-[92%] mx-auto">
                     <CarSelector />
                 </div>
@@ -147,7 +147,7 @@ const Hero = () => {
                     </button>
 
                     {/* Pagination Dots */}
-                    <div className="absolute bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-2">
+                    <div className="absolute bottom-2 md:bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-2">
                         {displaySlides.map((_, index) => (
                             <button
                                 key={index}
