@@ -22,11 +22,12 @@ const oilLinks = {
 const CarSelector = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const { updateFilter, filters } = useFilters();
 
     const [loading, setLoading] = useState(false);
-    const [make, setMake] = useState('');
-    const [model, setModel] = useState('');
-    const [year, setYear] = useState('');
+    const [make, setMake] = useState(filters.make || '');
+    const [model, setModel] = useState(filters.model || '');
+    const [year, setYear] = useState(filters.year || '');
 
     const [makes, setMakes] = useState([]);
     const [models, setModels] = useState([]);
@@ -112,6 +113,31 @@ const CarSelector = () => {
         }
         setYear('');
     }, [make, model, carsData]);
+
+    // Sync to Global State
+    useEffect(() => {
+        if (filters.make !== make) setMake(filters.make || '');
+    }, [filters.make]);
+
+    useEffect(() => {
+        if (filters.model !== model) setModel(filters.model || '');
+    }, [filters.model]);
+
+    useEffect(() => {
+        if (filters.year !== year) setYear(filters.year || '');
+    }, [filters.year]);
+
+    useEffect(() => {
+        updateFilter('make', make);
+    }, [make]);
+
+    useEffect(() => {
+        updateFilter('model', model);
+    }, [model]);
+
+    useEffect(() => {
+        updateFilter('year', year);
+    }, [year]);
 
     const handleSearch = () => {
         if (!make && !model && !year) {

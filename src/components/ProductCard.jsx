@@ -75,6 +75,17 @@ const ProductCard = ({ product }) => {
                         </div>
                     </div>
                 )}
+
+                {product.isSmartMatch && (
+                    <div className="absolute bottom-3 left-3 z-20">
+                        <div className="bg-[#28B463] flex items-center justify-center px-2 py-1.5 rounded-full shadow-md animate-pulse">
+                            <Check className="h-3 w-3 text-white mr-1 ml-1" />
+                            <span className="text-white text-[9px] uppercase font-black font-Cairo leading-none">
+                                {t('compatibleWithYourCar')}
+                            </span>
+                        </div>
+                    </div>
+                )}
             </Link>
 
             {/* CONTENT HUB - Zero Gap Typography */}

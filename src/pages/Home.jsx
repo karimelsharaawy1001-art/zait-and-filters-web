@@ -11,12 +11,17 @@ import { collection, query, where, orderBy, limit, getDocs } from 'firebase/fire
 import { useTranslation } from 'react-i18next';
 import { Sparkles, Flame, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useFilters } from '../context/FilterContext';
 
 const Home = () => {
     const { t, i18n } = useTranslation();
+    const { filters, activeCar } = useFilters();
     const [bestSellers, setBestSellers] = useState([]);
     const [hotOffers, setHotOffers] = useState([]);
+    const [recommendations, setRecommendations] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const targetVehicle = (filters.make && filters.model) ? filters : activeCar;
 
     useEffect(() => {
         const fetchHomeData = async () => {
@@ -42,6 +47,42 @@ const Home = () => {
                     .slice(0, 8);
                 setHotOffers(offers);
 
+                // 3. Smart Recommendations
+                if (targetVehicle && targetVehicle.make && targetVehicle.model) {
+                    const filtered = allActive.filter(p =>
+                        (p.make === targetVehicle.make && p.model === targetVehicle.model) ||
+                        (p.car_make === targetVehicle.make && p.car_model === targetVehicle.model)
+                    );
+
+                    if (filtered.length > 0) {
+                        // Variety Logic: Pick 2 from each category
+                        const byCategory = filtered.reduce((acc, p) => {
+                            const cat = p.category || 'Other';
+                            if (!acc[cat]) acc[cat] = [];
+                            acc[cat].push(p);
+                            return acc;
+                        }, {});
+
+                        let diverseList = [];
+                        const categories = Object.keys(byCategory);
+                        let iteration = 0;
+
+                        while (diverseList.length < 8 && iteration < 4) {
+                            categories.forEach(cat => {
+                                if (byCategory[cat][iteration] && diverseList.length < 8) {
+                                    diverseList.push({ ...byCategory[cat][iteration], isSmartMatch: true });
+                                }
+                            });
+                            iteration++;
+                        }
+                        setRecommendations(diverseList);
+                    } else {
+                        setRecommendations(sortedBest.slice(0, 8));
+                    }
+                } else {
+                    setRecommendations(sortedBest.slice(0, 8));
+                }
+
             } catch (error) {
                 console.error("Error fetching home data:", error);
             } finally {
@@ -50,7 +91,7 @@ const Home = () => {
         };
 
         fetchHomeData();
-    }, []);
+    }, [targetVehicle?.make, targetVehicle?.model]);
 
     const ProductSection = ({ title, icon: Icon, products, subtitle, color = "red" }) => (
         <section className="py-3 overflow-hidden">
@@ -155,6 +196,16 @@ const Home = () => {
             <section className="mt-4 pt-2 border-t border-gray-50">
                 <ValuePropositionBanner />
             </section>
+
+            {/* Smart Discover More Section */}
+            <div className="bg-white py-2">
+                <ProductSection
+                    title={t('relatedProducts')}
+                    subtitle={targetVehicle && targetVehicle.make ? `${t('partsFor')} ${targetVehicle.make} ${targetVehicle.model}` : t('bestSellersSub')}
+                    products={recommendations}
+                    color="green"
+                />
+            </div>
 
             <section className="py-6 bg-gray-50/30">
                 <CategoryThumbnails />
