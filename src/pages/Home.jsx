@@ -94,14 +94,18 @@ const Home = () => {
             />
             <Hero />
 
-            {/* Brands Section */}
-            <div className="py-6 bg-white">
-                <BrandMarquee />
+            <div className="mb-8">
+                <ValuePropositionBanner />
             </div>
 
-            <ValuePropositionBanner />
+            <div className="py-8 bg-gray-50/30">
+                <CategoryThumbnails />
+            </div>
 
-            <hr className="border-gray-50 max-w-7xl mx-auto opacity-50" />
+            {/* Brands Section */}
+            <div className="py-6 bg-white border-y border-gray-50">
+                <BrandMarquee />
+            </div>
 
             {/* Exclusive Offers Section */}
             <div className="bg-white py-4">
@@ -125,12 +129,6 @@ const Home = () => {
                     products={bestSellers}
                     color="red"
                 />
-            </div>
-
-            <hr className="border-gray-50 max-w-7xl mx-auto opacity-50" />
-
-            <div className="py-8 bg-gray-50/30">
-                <CategoryThumbnails />
             </div>
 
         </div>
