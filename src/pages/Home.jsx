@@ -135,18 +135,18 @@ const Home = () => {
                         </div>
                         <div className="flex items-center gap-4">
                             {/* Navigation Arrows */}
-                            <div className="hidden md:flex items-center gap-2">
+                            <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => scroll('left')}
-                                    className="p-2 rounded-full bg-white/80 backdrop-blur-md border border-gray-100 shadow-sm hover:bg-gray-50 transition-colors"
+                                    className="p-2.5 rounded-full bg-white/90 shadow-md border border-gray-100 hover:bg-gray-50 transition-all active:scale-90"
                                 >
-                                    <ChevronLeft className="h-4 w-4 text-gray-900" />
+                                    <ChevronLeft className="h-5 w-5 text-gray-900" />
                                 </button>
                                 <button
                                     onClick={() => scroll('right')}
-                                    className="p-2 rounded-full bg-white/80 backdrop-blur-md border border-gray-100 shadow-sm hover:bg-gray-50 transition-colors"
+                                    className="p-2.5 rounded-full bg-white/90 shadow-md border border-gray-100 hover:bg-gray-50 transition-all active:scale-90"
                                 >
-                                    <ChevronRight className="h-4 w-4 text-gray-900" />
+                                    <ChevronRight className="h-5 w-5 text-gray-900" />
                                 </button>
                             </div>
                             <Link to="/shop" className="text-[#000000] border border-[#000000] hover:text-[#e31e24] hover:border-[#e31e24] font-black flex items-center gap-1.5 group bg-white px-4 py-2 rounded shadow-sm transition-all hover:bg-gray-50 italic text-[10px] uppercase tracking-widest font-Cairo">
@@ -254,16 +254,6 @@ const Home = () => {
             <section className="mt-4 pt-2 border-t border-gray-50">
                 <ValuePropositionBanner />
             </section>
-
-            {/* Smart Discover More Section */}
-            <div className="bg-white py-2">
-                <ProductSection
-                    title={t('relatedProducts')}
-                    subtitle={targetVehicle && targetVehicle.make ? `${t('partsFor')} ${targetVehicle.make} ${targetVehicle.model}` : t('bestSellersSub')}
-                    products={recommendations}
-                    color="green"
-                />
-            </div>
 
             <section className="py-6 bg-gray-50/30">
                 <CategoryThumbnails />
