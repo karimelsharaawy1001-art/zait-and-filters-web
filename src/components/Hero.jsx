@@ -76,7 +76,7 @@ const Hero = () => {
     const currentSlide = displaySlides[currentIndex];
 
     return (
-        <div className="hero-section-wrapper relative w-full h-[400px] md:h-[600px] overflow-visible">
+        <div className="hero-section-wrapper relative w-full h-[400px] md:h-[600px] overflow-visible mb-40 md:mb-0">
             {/* Background Image */}
             <div className="absolute inset-0 transition-all duration-700 ease-in-out">
                 <img
@@ -122,7 +122,7 @@ const Hero = () => {
             </div>
 
             {/* Mobile Car Selector (Partial Overlap at Bottom) */}
-            <div className="md:hidden absolute -bottom-32 left-0 right-0 z-50 w-full px-4">
+            <div className="md:hidden absolute -bottom-48 left-0 right-0 z-50 w-full px-4">
                 <div className="w-full max-w-[92%] mx-auto">
                     <CarSelector />
                 </div>
