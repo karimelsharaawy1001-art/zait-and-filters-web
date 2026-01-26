@@ -123,7 +123,7 @@ const Home = () => {
                 />
             </div>
 
-            <div className="mt-16 pt-8 border-t border-gray-50">
+            <div className="mt-8 pt-4 border-t border-gray-50">
                 <ValuePropositionBanner />
             </div>
 
