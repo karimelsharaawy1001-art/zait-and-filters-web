@@ -180,7 +180,14 @@ const ProductDetails = () => {
     const hasSale = product.salePrice && Number(product.salePrice) < Number(product.price);
 
     const autoDescription = generateProductDescription(product, i18n.language);
-    const displayDescription = isAr ? (product.description || product.descriptionEn || autoDescription) : (product.descriptionEn || product.description || autoDescription);
+
+    // Expert SEO Meta Description Templates
+    const arMetaTemplate = `اشتري ${product.name} الأصلي لموديل ${product.model || ''} بضمان زيت اند فلترز. توصيل سريع لكل محافظات مصر.`;
+    const enMetaTemplate = `Buy original ${product.nameEn || product.name} for ${product.make || ''} ${product.model || ''} from Zait & Filters. Fast delivery across Egypt.`;
+
+    const displayDescription = isAr
+        ? (arMetaTemplate)
+        : (enMetaTemplate);
 
     const productSchema = {
         '@context': 'https://schema.org/',

@@ -135,9 +135,11 @@ function generateHTML(product, productId, baseUrl = 'https://zait-and-filters-we
     const titleAr = product.name || product.nameEn || 'منتج';
     const fullTitle = `${title} | ${titleAr} | Zait & Filters`;
 
-    const description = generateProductDescription(product, 'en');
-    const descriptionAr = generateProductDescription(product, 'ar');
-    const fullDescription = `${description} | ${descriptionAr}`;
+    // Expert SEO Meta Description Templates
+    const arMetaTemplate = `اشتري ${product.name || product.nameEn} الأصلي لموديل ${product.model || ''} بضمان زيت اند فلترز. توصيل سريع لكل محافظات مصر.`;
+    const enMetaTemplate = `Buy original ${product.nameEn || product.name} for ${product.make || ''} ${product.model || ''} from Zait & Filters. Fast delivery across Egypt.`;
+
+    const fullDescription = `${enMetaTemplate} | ${arMetaTemplate}`;
 
     // Get product image - ensure absolute URL
     let productImage = product.image || product.imageUrl || (product.images && product.images[0]) || '';
