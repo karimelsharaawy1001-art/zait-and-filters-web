@@ -7,6 +7,7 @@ import { collection, getDocs, query, where, limit, startAfter, getCountFromServe
 import { db } from '../firebase';
 import ProductCard from './ProductCard';
 import { toast } from 'react-hot-toast';
+import useScrollRestoration from '../hooks/useScrollRestoration';
 
 const ProductGrid = ({ showFilters = true }) => {
     const { t, i18n } = useTranslation();
@@ -17,6 +18,9 @@ const ProductGrid = ({ showFilters = true }) => {
     const [loading, setLoading] = useState(true);
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
     const [carHeaderImage, setCarHeaderImage] = useState('');
+
+    // Initialize Scroll Restoration
+    const { hasSavedPosition } = useScrollRestoration(loading);
 
     // Dynamic filter options extracted from products
     const [filterOptions, setFilterOptions] = useState({
@@ -171,8 +175,8 @@ const ProductGrid = ({ showFilters = true }) => {
         console.log('[ProductGrid] Triggering fetch with filters:', filters);
         fetchProducts();
 
-        // Scroll to grid top on page change
-        if (filters.page > 1) {
+        // Scroll to grid top on page change - ONLY if not restoring position
+        if (filters.page > 1 && !hasSavedPosition()) {
             const gridElement = document.getElementById('product-grid');
             if (gridElement) {
                 gridElement.scrollIntoView({ behavior: 'smooth' });
