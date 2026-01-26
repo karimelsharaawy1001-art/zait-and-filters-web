@@ -120,6 +120,16 @@ export default async function handler(req, res) {
                     addProducts(categoryQuery);
                 }
 
+                // Priority 3: Global Best Sellers (Fallback)
+                if (relatedProducts.length < 8) {
+                    const popularQuery = await productsRef
+                        .where('isActive', '==', true)
+                        .orderBy('soldCount', 'desc')
+                        .limit(10)
+                        .get();
+                    addProducts(popularQuery);
+                }
+
                 return res.status(200).json(relatedProducts.slice(0, 8));
             } catch (err) {
                 console.error("[API/Products] getRelated error:", err);

@@ -9,6 +9,14 @@ const RelatedProducts = ({ currentProduct }) => {
     const [relatedProducts, setRelatedProducts] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const SkeletonLoader = () => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 animate-pulse">
+            {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-gray-100 rounded-premium h-[400px] w-full"></div>
+            ))}
+        </div>
+    );
+
     useEffect(() => {
         const fetchRelatedProducts = async () => {
             if (!currentProduct) return;
@@ -42,9 +50,12 @@ const RelatedProducts = ({ currentProduct }) => {
 
     if (loading) {
         return (
-            <div className="py-12 flex justify-center items-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-            </div>
+            <section className="py-12 border-t border-gray-100">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="h-8 w-48 bg-gray-100 rounded mb-8 animate-pulse"></div>
+                    <SkeletonLoader />
+                </div>
+            </section>
         );
     }
 
@@ -53,8 +64,8 @@ const RelatedProducts = ({ currentProduct }) => {
     return (
         <section className="py-12 border-t border-gray-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-8 tracking-tight">
-                    {t('relatedProducts', 'You Might Also Like')}
+                <h2 className={`text-2xl font-black text-gray-900 mb-8 ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
+                    {t('relatedProducts')}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                     {relatedProducts.map(product => (

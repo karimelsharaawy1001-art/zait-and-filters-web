@@ -395,8 +395,7 @@ const ProductDetails = () => {
                     </div>
                 </div>
 
-                <div className="mt-20 border-t border-gray-100 pt-16">
-                    <h3 className={`text-2xl font-black text-gray-900 mb-8 ${isAr ? 'text-right' : 'text-left'}`}>{t('relatedProducts')}</h3>
+                <div className="mt-20">
                     <RelatedProducts currentProduct={product} />
                 </div>
 
