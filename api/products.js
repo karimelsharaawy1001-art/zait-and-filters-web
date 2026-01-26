@@ -108,6 +108,16 @@ export default async function handler(req, res) {
                         .limit(10)
                         .get();
                     addProducts(carQuery);
+
+                    if (relatedProducts.length < 5) {
+                        const carQueryAlt = await productsRef
+                            .where('isActive', '==', true)
+                            .where('car_make', '==', make)
+                            .where('car_model', '==', model)
+                            .limit(10)
+                            .get();
+                        addProducts(carQueryAlt);
+                    }
                 }
 
                 // Priority 2: Same Category

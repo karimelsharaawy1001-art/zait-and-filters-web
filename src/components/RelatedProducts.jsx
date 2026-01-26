@@ -5,7 +5,7 @@ import ProductCard from './ProductCard';
 import { useTranslation } from 'react-i18next';
 
 const RelatedProducts = ({ currentProduct }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [relatedProducts, setRelatedProducts] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -37,7 +37,8 @@ const RelatedProducts = ({ currentProduct }) => {
                 if (!response.ok) throw new Error('Failed to fetch related products');
 
                 const products = await response.json();
-                setRelatedProducts(products);
+                console.log(`[RelatedProducts] Fetched ${products.length} items`);
+                setRelatedProducts(Array.isArray(products) ? products : []);
             } catch (error) {
                 console.error("Error fetching related products:", error);
             } finally {
