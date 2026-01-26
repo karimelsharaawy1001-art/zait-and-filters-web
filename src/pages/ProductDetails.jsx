@@ -250,17 +250,17 @@ const ProductDetails = () => {
                 type="product"
                 schema={combinedSchema}
             />
-            <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 md:pt-4 pb-8">
                 {/* Back Link */}
                 <button
                     onClick={() => navigate(-1)}
-                    className={`flex items-center text-gray-500 hover:text-gray-900 transition-colors mb-8 group ${isAr ? 'flex-row-reverse' : ''}`}
+                    className={`flex items-center text-gray-500 hover:text-gray-900 transition-colors mb-4 md:mb-6 group ${isAr ? 'flex-row-reverse' : ''}`}
                 >
                     <ArrowLeft className={`h-5 w-5 ${isAr ? 'ml-2 rotate-180' : 'mr-2'} group-hover:translate-x-${isAr ? '1' : '-1'} transition-transform`} />
                     {t('back')}
                 </button>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-10 md:mb-16">
                     {/* Product Image */}
                     <div className="relative rounded-3xl overflow-hidden bg-gray-50 aspect-square group border border-gray-100 shadow-sm">
                         <img
@@ -346,7 +346,7 @@ const ProductDetails = () => {
                         </div>
 
                         {/* Add to Cart Section */}
-                        <div className={`flex flex-col sm:flex-row gap-4 mb-8 ${isAr ? 'flex-row-reverse' : ''}`}>
+                        <div className={`flex flex-col sm:flex-row gap-4 mb-4 md:mb-6 ${isAr ? 'flex-row-reverse' : ''}`}>
                             <div className="flex items-center bg-gray-100 rounded-xl px-4 py-2 border border-gray-200">
                                 <button
                                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -369,7 +369,7 @@ const ProductDetails = () => {
 
                         <TrustPaymentSection />
 
-                        <div className="mt-8">
+                        <div className="mt-4 md:mt-6">
                             <InstallmentBar
                                 price={hasSale ? product.salePrice : product.price}
                                 showCalculator={true}
@@ -378,7 +378,7 @@ const ProductDetails = () => {
 
 
                         {/* Trust Badges */}
-                        <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 pt-10 border-t border-gray-100 ${isAr ? 'flex-row-reverse' : ''}`}>
+                        <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 md:pt-8 border-t border-gray-100 ${isAr ? 'flex-row-reverse' : ''}`}>
                             <div className={`flex items-center gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>
                                 <Truck className="h-5 w-5 text-orange-600" />
                                 <span className="text-xs font-bold text-gray-700 uppercase tracking-tighter">{t('fastDelivery')}</span>
@@ -395,12 +395,12 @@ const ProductDetails = () => {
                     </div>
                 </div>
 
-                <div className="mt-20">
+                <div className="mt-10 md:mt-12">
                     <RelatedProducts currentProduct={product} />
                 </div>
 
                 {/* Review System Section */}
-                <div className="mt-24 border-t border-gray-100 pt-16">
+                <div className="mt-10 md:mt-12 border-t border-gray-100 pt-10 md:pt-12">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
                         {/* Review Form */}
                         <div className="lg:col-span-1">

@@ -116,7 +116,7 @@ const RelatedProducts = ({ currentProduct }) => {
     if (relatedProducts.length === 0) return null;
 
     return (
-        <section className="py-12 border-t border-gray-100">
+        <section className="py-8 md:py-10 border-t border-gray-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between mb-8">
                     <h2 className={`text-2xl font-black text-gray-900 ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
