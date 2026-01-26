@@ -3,6 +3,7 @@ import Hero from '../components/Hero';
 import Navbar from '../components/Navbar';
 import BrandMarquee from '../components/BrandMarquee';
 import CategoryThumbnails from '../components/CategoryThumbnails';
+import ValuePropositionBanner from '../components/ValuePropositionBanner';
 import ProductCard from '../components/ProductCard';
 import SEO from '../components/SEO';
 import { db } from '../firebase';
@@ -97,6 +98,8 @@ const Home = () => {
             <div className="py-6 bg-white">
                 <BrandMarquee />
             </div>
+
+            <ValuePropositionBanner />
 
             <hr className="border-gray-50 max-w-7xl mx-auto opacity-50" />
 
