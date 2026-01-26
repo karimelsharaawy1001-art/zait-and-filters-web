@@ -14,8 +14,8 @@ const RelatedProducts = ({ currentProduct }) => {
 
     const SkeletonLoader = () => (
         <div className="flex gap-4 overflow-hidden pb-4">
-            {[...Array(6)].map((_, i) => (
-                <div key={i} className="min-w-[46%] md:min-w-[30%] lg:min-w-[15.5%] bg-gray-100 rounded-premium h-[350px]"></div>
+            {[...Array(4)].map((_, i) => (
+                <div key={i} className="basis-[48.5%] md:basis-[24.2%] lg:basis-[24.2%] bg-gray-100 rounded-premium h-[350px] flex-shrink-0"></div>
             ))}
         </div>
     );
@@ -145,7 +145,7 @@ const RelatedProducts = ({ currentProduct }) => {
                         className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth"
                     >
                         {relatedProducts.map(product => (
-                            <div key={product.id} className="basis-[65%] 2xs:basis-[48.5%] md:basis-[24%] lg:basis-[15.8%] snap-start flex-shrink-0">
+                            <div key={product.id} className="basis-[48.5%] md:basis-[31%] lg:basis-[24.2%] snap-start flex-shrink-0">
                                 <ProductCard product={product} isCompact={true} />
                             </div>
                         ))}
