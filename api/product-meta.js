@@ -89,10 +89,15 @@ function generateHTML(product, productId, baseUrl = 'https://zait-and-filters-we
     const fullDescription = `${description} | ${descriptionAr}`;
 
     // Get product image - ensure absolute URL
-    const productImage = ensureAbsoluteUrl(
-        product.image || product.imageUrl || product.images?.[0],
-        baseUrl
-    );
+    let productImage = product.image || product.imageUrl || product.images?.[0] || '';
+
+    // Log the raw image value for debugging
+    console.log(`[Product Meta] Raw image value: ${productImage}`);
+
+    // Ensure absolute URL
+    productImage = ensureAbsoluteUrl(productImage, baseUrl);
+
+    console.log(`[Product Meta] Final absolute image URL: ${productImage}`);
 
     // Build keywords
     const keywords = [
@@ -111,6 +116,17 @@ function generateHTML(product, productId, baseUrl = 'https://zait-and-filters-we
     const price = product.salePrice || product.price || '0';
     const currency = 'EGP';
 
+    // Escape special characters for HTML
+    const escapeHtml = (str) => {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    };
+
     return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -118,38 +134,39 @@ function generateHTML(product, productId, baseUrl = 'https://zait-and-filters-we
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Basic Meta Tags -->
-    <title>${fullTitle}</title>
-    <meta name="description" content="${fullDescription}">
-    <meta name="keywords" content="${keywords}">
+    <title>${escapeHtml(fullTitle)}</title>
+    <meta name="description" content="${escapeHtml(fullDescription)}">
+    <meta name="keywords" content="${escapeHtml(keywords)}">
     
     <!-- Open Graph Meta Tags (Facebook, WhatsApp, LinkedIn) -->
     <meta property="og:type" content="product">
-    <meta property="og:title" content="${fullTitle}">
-    <meta property="og:description" content="${fullDescription}">
+    <meta property="og:title" content="${escapeHtml(fullTitle)}">
+    <meta property="og:description" content="${escapeHtml(fullDescription)}">
     <meta property="og:image" content="${productImage}">
     <meta property="og:image:secure_url" content="${productImage}">
+    <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="${title}">
+    <meta property="og:image:alt" content="${escapeHtml(title)}">
     <meta property="og:url" content="${productUrl}">
-    <meta property="og:site_name" content="Zait & Filters">
+    <meta property="og:site_name" content="Zait &amp; Filters">
     <meta property="og:locale" content="ar_AR">
     <meta property="og:locale:alternate" content="en_US">
     
     <!-- Product-specific OG tags -->
     <meta property="product:price:amount" content="${price}">
     <meta property="product:price:currency" content="${currency}">
-    ${product.partBrand || product.brand ? `<meta property="product:brand" content="${product.partBrand || product.brand}">` : ''}
-    ${product.category ? `<meta property="product:category" content="${product.category}">` : ''}
+    ${product.partBrand || product.brand ? `<meta property="product:brand" content="${escapeHtml(product.partBrand || product.brand)}">` : ''}
+    ${product.category ? `<meta property="product:category" content="${escapeHtml(product.category)}">` : ''}
     ${product.isActive ? '<meta property="product:availability" content="in stock">' : '<meta property="product:availability" content="out of stock">'}
     ${product.warranty_months ? `<meta property="product:condition" content="new">` : ''}
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="${fullTitle}">
-    <meta name="twitter:description" content="${fullDescription}">
+    <meta name="twitter:title" content="${escapeHtml(fullTitle)}">
+    <meta name="twitter:description" content="${escapeHtml(fullDescription)}">
     <meta name="twitter:image" content="${productImage}">
-    <meta name="twitter:image:alt" content="${title}">
+    <meta name="twitter:image:alt" content="${escapeHtml(title)}">
     <meta name="twitter:site" content="@zaitandfilters">
     
     <!-- Additional Meta Tags -->
@@ -162,12 +179,12 @@ function generateHTML(product, productId, baseUrl = 'https://zait-and-filters-we
     {
         "@context": "https://schema.org/",
         "@type": "Product",
-        "name": "${title}",
+        "name": "${escapeHtml(title)}",
         "image": "${productImage}",
-        "description": "${description}",
+        "description": "${escapeHtml(description)}",
         "brand": {
             "@type": "Brand",
-            "name": "${product.partBrand || product.brand || 'Zait & Filters'}"
+            "name": "${escapeHtml(product.partBrand || product.brand || 'Zait & Filters')}"
         },
         "offers": {
             "@type": "Offer",
@@ -180,29 +197,22 @@ function generateHTML(product, productId, baseUrl = 'https://zait-and-filters-we
                 "name": "Zait & Filters"
             }
         }
-        ${product.warranty_months ? `,"warranty": "${formatWarranty(product.warranty_months, 'en')}"` : ''}
+        ${product.warranty_months ? `,"warranty": "${escapeHtml(formatWarranty(product.warranty_months, 'en'))}"` : ''}
     }
-    </script>
-    
-    <!-- Redirect to SPA for actual browsing -->
-    <meta http-equiv="refresh" content="0; url=${productUrl}">
-    <script>
-        // Immediate redirect for browsers (crawlers won't execute this)
-        window.location.href = '${productUrl}';
     </script>
 </head>
 <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f5f5f5;">
     <div style="max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-        <img src="${productImage}" alt="${title}" style="max-width: 100%; height: auto; border-radius: 8px; margin-bottom: 20px;">
-        <h1 style="color: #333; margin-bottom: 10px;">${title}</h1>
-        <h2 style="color: #666; font-size: 1.2em; margin-bottom: 20px;">${titleAr}</h2>
-        <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">${description}</p>
+        <img src="${productImage}" alt="${escapeHtml(title)}" style="max-width: 100%; height: auto; border-radius: 8px; margin-bottom: 20px;" onerror="this.src='${baseUrl}/logo.png'">
+        <h1 style="color: #333; margin-bottom: 10px;">${escapeHtml(title)}</h1>
+        <h2 style="color: #666; font-size: 1.2em; margin-bottom: 20px;">${escapeHtml(titleAr)}</h2>
+        <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">${escapeHtml(description)}</p>
         <div style="background: #f8f8f8; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
             <p style="font-size: 2em; color: #e31e24; font-weight: bold; margin: 0;">${price} ${currency}</p>
-            ${product.warranty_months ? `<p style="color: #22c55e; margin-top: 10px; font-weight: bold;">${formatWarranty(product.warranty_months, 'en')}</p>` : ''}
+            ${product.warranty_months ? `<p style="color: #22c55e; margin-top: 10px; font-weight: bold;">${escapeHtml(formatWarranty(product.warranty_months, 'en'))}</p>` : ''}
         </div>
-        <p style="color: #999; font-size: 0.9em;">Redirecting to product page...</p>
         <a href="${productUrl}" style="display: inline-block; background: #e31e24; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin-top: 20px; font-weight: bold;">View Product</a>
+        <p style="color: #999; font-size: 0.9em; margin-top: 20px;">Click the button above to view this product</p>
     </div>
 </body>
 </html>`;
@@ -252,7 +262,11 @@ export default async function handler(req, res) {
     const host = req.headers['x-forwarded-host'] || req.headers.host || 'zait-and-filters-web.vercel.app';
     const baseUrl = `${protocol}://${host}`;
 
-    console.log(`[Product Meta] Request for product: ${id}, User-Agent: ${userAgent.substring(0, 50)}...`);
+    console.log(`[Product Meta] ========== NEW REQUEST ==========`);
+    console.log(`[Product Meta] Product ID: ${id}`);
+    console.log(`[Product Meta] User-Agent: ${userAgent}`);
+    console.log(`[Product Meta] Base URL: ${baseUrl}`);
+    console.log(`[Product Meta] Is Crawler: ${isCrawler(userAgent)}`);
 
     // If not a crawler, redirect to SPA immediately
     if (!isCrawler(userAgent)) {
@@ -265,30 +279,46 @@ export default async function handler(req, res) {
     // Fetch product from Firestore
     try {
         if (!id) {
-            console.log('[Product Meta] No product ID provided');
-            return res.status(200).setHeader('Content-Type', 'text/html').send(generateFallbackHTML(baseUrl));
+            console.log('[Product Meta] ERROR: No product ID provided');
+            return res
+                .status(200)
+                .setHeader('Content-Type', 'text/html; charset=utf-8')
+                .send(generateFallbackHTML(baseUrl));
         }
 
+        console.log(`[Product Meta] Fetching product from Firestore: ${id}`);
         const productDoc = await db.collection('products').doc(id).get();
 
         if (!productDoc.exists) {
-            console.log(`[Product Meta] Product not found: ${id}`);
-            return res.status(200).setHeader('Content-Type', 'text/html').send(generateFallbackHTML(baseUrl));
+            console.log(`[Product Meta] ERROR: Product not found: ${id}`);
+            return res
+                .status(200)
+                .setHeader('Content-Type', 'text/html; charset=utf-8')
+                .send(generateFallbackHTML(baseUrl));
         }
 
         const product = productDoc.data();
-        console.log(`[Product Meta] Product found: ${product.name || product.nameEn}`);
+        console.log(`[Product Meta] SUCCESS: Product found`);
+        console.log(`[Product Meta] Product Name: ${product.name || product.nameEn}`);
+        console.log(`[Product Meta] Product Image Field: ${product.image || product.imageUrl || product.images?.[0] || 'NONE'}`);
 
         const html = generateHTML(product, id, baseUrl);
 
+        console.log(`[Product Meta] Generated HTML length: ${html.length} characters`);
+        console.log(`[Product Meta] Sending response to crawler`);
+
         return res
             .status(200)
-            .setHeader('Content-Type', 'text/html')
-            .setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            .setHeader('Content-Type', 'text/html; charset=utf-8')
+            .setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400')
             .send(html);
 
     } catch (error) {
-        console.error('[Product Meta] Error fetching product:', error);
-        return res.status(200).setHeader('Content-Type', 'text/html').send(generateFallbackHTML(baseUrl));
+        console.error('[Product Meta] FATAL ERROR:', error);
+        console.error('[Product Meta] Error stack:', error.stack);
+        return res
+            .status(200)
+            .setHeader('Content-Type', 'text/html; charset=utf-8')
+            .send(generateFallbackHTML(baseUrl));
     }
 }
