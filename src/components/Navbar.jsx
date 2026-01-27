@@ -81,10 +81,10 @@ const Navbar = () => {
                                 )}
                             </Link>
                             <Link to="/" className="flex flex-col justify-center">
-                                <span className="font-black text-xl lg:text-2xl tracking-tighter uppercase italic leading-none font-Cairo">
+                                <span className="font-black text-2xl lg:text-4xl tracking-tighter uppercase italic leading-none font-Cairo group-hover:scale-105 transition-transform duration-300">
                                     <span style={{ color: '#1A1A1A' }}>ZAIT</span> <span style={{ color: '#28B463' }}>& FILTERS</span>
                                 </span>
-                                <p className="text-[8px] lg:text-[9px] font-black text-[#000000] mt-0.5 tracking-widest uppercase font-Cairo">قطع الغيار بضغطة زرار</p>
+                                <p className="text-[10px] lg:text-[12px] font-black text-[#000000] mt-1 tracking-widest uppercase font-Cairo">قطع الغيار بضغطة زرار</p>
                             </Link>
                         </div>
 
@@ -176,9 +176,10 @@ const Navbar = () => {
                                     {isOpen ? <X className="h-6 w-6 stroke-[3px]" /> : <Menu className="h-6 w-6 stroke-[3px]" />}
                                 </button>
                                 <Link to="/" className="flex flex-col justify-center">
-                                    <span className="font-black text-[14px] sm:text-xl tracking-tighter uppercase italic leading-none font-Cairo whitespace-nowrap" >
-                                        <span style={{ color: '#28B463' }}>ZAIT</span> <span style={{ color: '#1A1A1A' }}>& FILTERS</span>
+                                    <span className="font-black text-[24px] sm:text-3xl tracking-tighter uppercase italic leading-none font-Cairo whitespace-nowrap" >
+                                        <span style={{ color: '#1A1A1A' }}>ZAIT</span> <span style={{ color: '#28B463' }}>& FILTERS</span>
                                     </span>
+                                    <p className="text-[7px] font-black text-[#000000] mt-0.5 tracking-widest uppercase font-Cairo">بضغطة زرار</p>
                                 </Link>
                             </div>
 

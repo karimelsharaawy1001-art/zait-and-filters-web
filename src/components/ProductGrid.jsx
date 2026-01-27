@@ -7,6 +7,7 @@ import { collection, getDocs, query, where, limit, startAfter, getCountFromServe
 import { db } from '../firebase';
 import ProductCard from './ProductCard';
 import { toast } from 'react-hot-toast';
+import { parseYearRange } from '../utils/productUtils';
 import useScrollRestoration from '../hooks/useScrollRestoration';
 
 const ProductGrid = ({ showFilters = true }) => {
@@ -229,13 +230,20 @@ const ProductGrid = ({ showFilters = true }) => {
             const origin = product.origin || product.countryOfOrigin;
             if (origin) origins.add(origin);
 
-            // Extract years
-            if (product.yearStart && product.yearEnd) {
-                for (let year = product.yearStart; year <= product.yearEnd; year++) {
-                    years.add(year.toString());
+            // Extract years - use yearStart/yearEnd if available, otherwise parse yearRange
+            const { yearStart: start, yearEnd: end } = product.yearStart && product.yearEnd
+                ? { yearStart: Number(product.yearStart), yearEnd: Number(product.yearEnd) }
+                : (product.yearRange ? parseYearRange(product.yearRange) : { yearStart: null, yearEnd: null });
+
+            if (start && end) {
+                for (let y = start; y <= end; y++) {
+                    years.add(y.toString());
                 }
+            } else if (start) {
+                years.add(start.toString());
             } else if (product.yearRange) {
-                years.add(product.yearRange);
+                // Last resort: if parse failed but string exists, don't add it to keep dropdown numeric
+                // years.add(product.yearRange); 
             }
         });
 

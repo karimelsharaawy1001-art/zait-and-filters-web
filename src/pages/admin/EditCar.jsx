@@ -158,7 +158,7 @@ const EditCar = () => {
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="px-10 py-4 bg-admin-red hover:bg-admin-red-dark text-white font-black uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-admin-red/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                                    className="admin-primary-btn !w-fit !ml-auto !px-12"
                                 >
                                     {saving ? <Loader2 className="h-5 w-5 animate-spin text-white" /> : <Save className="h-5 w-5" />}
                                     Sync Changes

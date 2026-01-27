@@ -4,6 +4,7 @@ import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Save, ArrowLeft, Loader2 } from 'lucide-react';
+import { parseYearRange } from '../../utils/productUtils';
 import AdminHeader from '../../components/AdminHeader';
 import ImageUpload from '../../components/admin/ImageUpload';
 
@@ -150,10 +151,18 @@ const EditProduct = () => {
             setFormData(prev => ({ ...prev, model: '' }));
         }
 
-        // Auto-generate Year Display
+        // Auto-generate Year Display and Parse Range if entered in yearStart
         if (name === 'yearStart' || name === 'yearEnd') {
             setFormData(prev => {
                 const nextData = { ...prev, [name]: value };
+
+                // If it looks like a range (e.g. 2004-2013), parse it
+                if (String(value).includes('-') || String(value).includes('/')) {
+                    const { yearStart, yearEnd } = parseYearRange(value);
+                    if (yearStart) nextData.yearStart = yearStart.toString();
+                    if (yearEnd) nextData.yearEnd = yearEnd.toString();
+                }
+
                 if (nextData.yearStart && nextData.yearEnd) {
                     nextData.yearRange = `${nextData.yearStart} - ${nextData.yearEnd}`;
                 } else if (nextData.yearStart) {
@@ -479,7 +488,7 @@ const EditProduct = () => {
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="admin-primary-btn"
+                                    className="admin-primary-btn !w-fit !px-12"
                                 >
                                     {saving ? (
                                         <>

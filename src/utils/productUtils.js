@@ -80,3 +80,39 @@ export const formatWarranty = (months, lang = 'ar', includePrefix = true) => {
     const suffix = num === 1 ? 'Month' : 'Months';
     return includePrefix ? `${num} ${suffix} Warranty` : `${num} ${suffix}`;
 };
+
+/**
+ * Parses a year range string into numeric start and end years.
+ * Examples: "2004-2013" -> { yearStart: 2004, yearEnd: 2013 }
+ *           "2010" -> { yearStart: 2010, yearEnd: 2010 }
+ * 
+ * @param {string|number} range - The year range string or number.
+ * @returns {Object} - { yearStart: number|null, yearEnd: number|null }
+ */
+export const parseYearRange = (range) => {
+    if (!range) return { yearStart: null, yearEnd: null };
+
+    const str = String(range).trim();
+    if (!str) return { yearStart: null, yearEnd: null };
+
+    // Handle range with separator (-, /, to, etc)
+    const parts = str.split(/[-/]| to /i).map(p => parseInt(p.trim()));
+
+    if (parts.length === 2) {
+        const [start, end] = parts;
+        return {
+            yearStart: isNaN(start) ? null : start,
+            yearEnd: isNaN(end) ? null : end
+        };
+    }
+
+    if (parts.length === 1) {
+        const year = parseInt(parts[0]);
+        return {
+            yearStart: isNaN(year) ? null : year,
+            yearEnd: isNaN(year) ? null : year
+        };
+    }
+
+    return { yearStart: null, yearEnd: null };
+};

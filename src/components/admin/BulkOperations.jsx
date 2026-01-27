@@ -3,7 +3,8 @@ import * as XLSX from 'xlsx';
 import { collection, getDocs, addDoc, writeBatch, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
-import { Download, Upload, FileSpreadsheet, Loader2 } from 'lucide-react';
+import { Download, Upload, FileSpreadsheet, Loader2, TrendingUp } from 'lucide-react';
+import { parseYearRange } from '../../utils/productUtils';
 
 const BulkOperations = () => {
     const [loading, setLoading] = useState(false);
@@ -163,7 +164,12 @@ const BulkOperations = () => {
                         if (row.subcategory) dataToUpdate.subcategory = String(row.subcategory).trim();
                         if (row.carMake) dataToUpdate.make = String(row.carMake).trim();
                         if (row.carModel) dataToUpdate.model = String(row.carModel).trim();
-                        if (row.yearRange) dataToUpdate.yearRange = String(row.yearRange).trim();
+                        if (row.yearRange) {
+                            dataToUpdate.yearRange = String(row.yearRange).trim();
+                            const { yearStart, yearEnd } = parseYearRange(row.yearRange);
+                            if (yearStart) dataToUpdate.yearStart = yearStart;
+                            if (yearEnd) dataToUpdate.yearEnd = yearEnd;
+                        }
                         if (row.partBrand) dataToUpdate.partBrand = String(row.partBrand).trim();
                         if (row.countryOfOrigin) dataToUpdate.countryOfOrigin = String(row.countryOfOrigin).trim();
 
@@ -288,6 +294,53 @@ const BulkOperations = () => {
                         {importStatus}
                     </span>
                 )}
+
+                <button
+                    onClick={async () => {
+                        if (window.confirm('This will update ALL existing products to ensure they have numeric year ranges for the new filter. Proceed?')) {
+                            setLoading(true);
+                            setImportStatus('Syncing years...');
+                            try {
+                                const snapshot = await getDocs(collection(db, 'products'));
+                                const batch = writeBatch(db);
+                                let count = 0;
+
+                                snapshot.docs.forEach(doc => {
+                                    const data = doc.data();
+                                    if (data.yearRange && (!data.yearStart || !data.yearEnd)) {
+                                        const { yearStart, yearEnd } = parseYearRange(data.yearRange);
+                                        if (yearStart || yearEnd) {
+                                            batch.update(doc.ref, {
+                                                yearStart: yearStart || null,
+                                                yearEnd: yearEnd || null,
+                                                updatedAt: new Date()
+                                            });
+                                            count++;
+                                        }
+                                    }
+                                });
+
+                                if (count > 0) {
+                                    await batch.commit();
+                                    toast.success(`Successfully synced ${count} products`);
+                                } else {
+                                    toast.success('All products are already synced');
+                                }
+                            } catch (err) {
+                                console.error(err);
+                                toast.error('Sync failed');
+                            } finally {
+                                setLoading(false);
+                                setImportStatus('');
+                            }
+                        }
+                    }}
+                    disabled={loading}
+                    className="flex items-center gap-2 px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
+                >
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <TrendingUp className="h-4 w-4" />}
+                    Sync Year Data
+                </button>
             </div>
             <p className="mt-2 text-[10px] text-gray-400 uppercase tracking-widest font-bold">
                 Supported formats: .xlsx, .xls | Max 500 rows per batch
