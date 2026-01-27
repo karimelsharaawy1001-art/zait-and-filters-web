@@ -374,7 +374,7 @@ const resources = {
             "viewAllProducts": "عرض كل المنتجات",
             "shopTitle": "كل المنتجات",
             "shopSubtitle": "تصفح مجموعتنا الكاملة من قطع الغيار الممتازة.",
-            "garageActive": "وضع الكراج نشط",
+            "garageActive": "وضع الجراج نشط",
             "garageResults": "عرض النتائج المخصصة لسيارتك {{year}} {{make}} {{model}}.",
             "guaranteedFitment": "توافق مضمون",
             "hotSale": "عرض ساخن!",
