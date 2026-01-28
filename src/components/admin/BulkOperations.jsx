@@ -268,7 +268,42 @@ const BulkOperations = () => {
                     className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
                 >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                    Export Current
+                    Export Excel
+                </button>
+
+                <button
+                    onClick={async () => {
+                        const confirmBackup = window.confirm('Generate full local backup JSON? This is free and saves your current view for offline use.');
+                        if (!confirmBackup) return;
+
+                        setLoading(true);
+                        try {
+                            const q = collection(db, 'products');
+                            const snapshot = await getDocs(q);
+                            const backupData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `products-backup-${new Date().toISOString().split('T')[0]}.json`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                            toast.success('Local backup saved!');
+                        } catch (err) {
+                            console.error('Backup failed:', err);
+                            toast.error('Backup failed: ' + err.message);
+                        } finally {
+                            setLoading(false);
+                        }
+                    }}
+                    disabled={loading}
+                    className="flex items-center gap-2 px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
+                >
+                    <Download className="h-4 w-4" />
+                    Backup JSON
                 </button>
 
                 <div className="relative">

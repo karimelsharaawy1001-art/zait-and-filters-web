@@ -105,13 +105,16 @@ const ManageProducts = () => {
         const cacheKey = `admin_products_${categoryFilter}_${subcategoryFilter}_${makeFilter}_${modelFilter}_${brandFilter}_${statusFilter}_${sortBy}_${searchQuery}_${currentPage}`;
 
         if (!skipCache && !isNext && !isPrev) {
-            const cachedData = sessionStorage.getItem(cacheKey);
+            const cachedData = localStorage.getItem(cacheKey);
             if (cachedData) {
                 const parsed = JSON.parse(cachedData);
-                setProducts(parsed.products);
-                setTotalCount(parsed.totalCount);
-                setLoading(false);
-                return;
+                // Check freshness (1 hour)
+                if ((Date.now() - parsed.timestamp) < 3600000) {
+                    setProducts(parsed.products);
+                    setTotalCount(parsed.totalCount);
+                    setLoading(false);
+                    return;
+                }
             }
         }
 
@@ -195,11 +198,17 @@ const ManageProducts = () => {
         } catch (error) {
             console.error("Firestore Fetch Error:", error);
             if (error.code === 'resource-exhausted') {
-                toast.error('Firebase Daily Quota Exceeded. Data might be stale.');
+                toast.error('🔥 Firebase Quota Hit! Switching to Offline Mode.');
+                const cachedData = localStorage.getItem(cacheKey);
+                if (cachedData) {
+                    const parsed = JSON.parse(cachedData);
+                    setProducts(parsed.products);
+                    setTotalCount(parsed.totalCount);
+                }
             } else {
                 toast.error(`Sync Error: ${error.message}`);
+                setProducts([]);
             }
-            setProducts([]);
         } finally {
             setLoading(false);
         }
