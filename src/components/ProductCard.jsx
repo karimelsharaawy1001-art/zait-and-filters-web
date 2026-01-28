@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import OptimizedImage from './OptimizedImage';
 import { getOptimizedImage } from '../utils/cloudinaryUtils';
 
 const ProductCard = ({ product, isCompact = false }) => {
@@ -47,14 +48,11 @@ const ProductCard = ({ product, isCompact = false }) => {
                     sessionStorage.setItem('productListScrollPosition', currentPosition.toString());
                 }}
             >
-                <img
-                    src={getOptimizedImage(product.image, 'f_auto,q_auto,w_800')}
+                <OptimizedImage
+                    src={product.image}
                     alt={`${i18n.language === 'en' ? (product.nameEn || product.name) : product.name} - ${i18n.language === 'en' ? (product.brandEn || product.partBrand || product.brand || 'Original') : (product.partBrand || product.brand || 'أصلي')}`}
                     className="w-full h-full object-cover block transition-transform duration-500 group-hover:scale-105"
-                    onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = '/placeholder.png';
-                    }}
+                    width={400}
                 />
 
                 {/* Status Badges - Premium Minimal */}

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/sync-static-db.js && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -17,6 +17,7 @@
     "autoprefixer": "^10.4.23",
     "axios": "^1.13.2",
     "canvas-confetti": "^1.9.4",
+    "dotenv": "^17.2.3",
     "firebase": "^12.8.0",
     "firebase-admin": "^13.6.0",
     "i18next": "^25.7.4",

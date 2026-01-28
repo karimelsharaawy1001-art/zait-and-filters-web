@@ -14,171 +14,123 @@ const ProductGrid = ({ showFilters = true }) => {
     const { t, i18n } = useTranslation();
     const isRTL = i18n.language === 'ar';
     const { addToCart } = useCart();
-    const { filters, updateFilter, resetFilters, isGarageFilterActive, activeCar } = useFilters();
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-    const [carHeaderImage, setCarHeaderImage] = useState('');
-
-    // Initialize Scroll Restoration
-    const { hasSavedPosition } = useScrollRestoration(loading);
-
-    // Dynamic filter options extracted from products
-    const [filterOptions, setFilterOptions] = useState({
-        categories: {},
-        makes: {},
-        brands: [],
-        origins: [],
-        years: []
-    });
-    const [totalProducts, setTotalProducts] = useState(0);
-    const PAGE_SIZE = 12;
-
-    // Accordion state - track which sections are open
-    const [expandedSections, setExpandedSections] = useState({
-        categories: true,
-        makes: true,
-        years: false,
-        brands: false,
-        origins: false
-    });
-
-    const toggleSection = (section) => {
-        setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
-    };
-
-    // Active filters state for multi-select
-    const [activeFilters, setActiveFilters] = useState({
-        categories: [],
-        subcategory: [],
-        makes: [],
-        models: [],
-        years: [],
-        brands: [],
-        origins: []
-    });
+    const { staticProducts, isStaticLoaded, isQuotaExceeded, withFallback } = useStaticData();
 
     const fetchProducts = async () => {
         setLoading(true);
         try {
-            // Start with a broad query to avoid complex index requirements initially
-            let qConstraints = [where('isActive', '==', true)];
+            // HIGH TRAFFIC STRATEGY: 
+            // If we have static data loaded, we perform ALL filtering and searching client-side.
+            // This achieves $0 cost and maximum speed.
+            if (isStaticLoaded && !isQuotaExceeded) {
+                console.log('⚡ Using High-Performance Static Search Engine');
+                let results = [...staticProducts];
 
-            // 1. Garage Filter (Active Car)
-            if (isGarageFilterActive && activeCar?.make) {
-                const makeValues = [activeCar.make].filter(Boolean);
-                if (makeValues.length > 0) {
-                    qConstraints.push(where('make', 'in', makeValues));
-                }
-                // If garage is active, we also filter by model and year if possible
-                if (activeCar.model) qConstraints.push(where('model', '==', activeCar.model));
-            } else {
-                // 2. Manual Car Filters (only if garage NOT active)
-                if (filters.make) qConstraints.push(where('make', '==', filters.make));
-                if (filters.model) qConstraints.push(where('model', '==', filters.model));
-                if (filters.year) {
-                    const yearNum = parseInt(filters.year);
-                    if (!isNaN(yearNum)) {
-                        qConstraints.push(where('yearStart', '<=', yearNum));
-                        qConstraints.push(where('yearEnd', '>=', yearNum));
+                // 1. Garage Filter
+                if (isGarageFilterActive && activeCar?.make) {
+                    results = results.filter(p =>
+                        p.make === activeCar.make &&
+                        (!activeCar.model || p.model === activeCar.model)
+                    );
+
+                    if (activeCar.year) {
+                        const yearNum = parseInt(activeCar.year);
+                        results = results.filter(p => p.yearStart <= yearNum && p.yearEnd >= yearNum);
+                    }
+                } else {
+                    // 2. Manual Car Filters
+                    if (filters.make) results = results.filter(p => p.make === filters.make);
+                    if (filters.model) results = results.filter(p => p.model === filters.model);
+                    if (filters.year) {
+                        const yearNum = parseInt(filters.year);
+                        results = results.filter(p => p.yearStart <= yearNum && p.yearEnd >= yearNum);
                     }
                 }
+
+                // 3. Category & Subcategory
+                if (filters.category && filters.category !== 'All') {
+                    results = results.filter(p => p.category === filters.category);
+                }
+                if (filters.subcategory) {
+                    results = results.filter(p => p.subcategory === filters.subcategory);
+                }
+
+                // 4. Other Metadata
+                if (filters.brand) results = results.filter(p => p.partBrand === filters.brand);
+                if (filters.origin) results = results.filter(p => p.countryOfOrigin === filters.origin);
+
+                // 5. Search Query
+                if (filters.searchQuery && filters.searchQuery.trim().length > 0) {
+                    const searchKeywords = filters.searchQuery.trim().split(/\s+/).filter(Boolean).map(k => normalizeArabic(k));
+                    results = results.filter(p => {
+                        const searchTarget = normalizeArabic(getSearchableText(p));
+                        return searchKeywords.every(keyword => searchTarget.includes(keyword));
+                    });
+                }
+
+                setTotalProducts(results.length);
+
+                // Sorting (Standard: Name ASC)
+                results.sort((a, b) => a.name.localeCompare(b.name));
+
+                // Pagination
+                const currentPage = Math.max(1, parseInt(filters.page) || 1);
+                const startIndex = (currentPage - 1) * PAGE_SIZE;
+                setProducts(results.slice(startIndex, startIndex + PAGE_SIZE));
+
+                // Extraction (Lazy)
+                if (!filterOptions.categories || Object.keys(filterOptions.categories).length === 0) {
+                    extractFilterOptions(staticProducts);
+                }
+                return;
             }
 
-            // 3. Category & Subcategory
-            if (filters.category && filters.category !== 'All') {
-                qConstraints.push(where('category', '==', filters.category));
-            }
-            if (filters.subcategory) {
-                qConstraints.push(where('subcategory', '==', filters.subcategory));
-            }
+            // FALLBACK: Traditional Firestore Query (for real-time or if static is missing)
+            await withFallback(async () => {
+                let qConstraints = [where('isActive', '==', true)];
 
-            // 4. Other Metadata
-            if (filters.brand) {
-                qConstraints.push(where('partBrand', '==', filters.brand));
-            }
-            if (filters.origin) {
-                qConstraints.push(where('countryOfOrigin', '==', filters.origin));
-            }
+                if (isGarageFilterActive && activeCar?.make) {
+                    qConstraints.push(where('make', '==', activeCar.make));
+                    if (activeCar.model) qConstraints.push(where('model', '==', activeCar.model));
+                } else {
+                    if (filters.make) qConstraints.push(where('make', '==', filters.make));
+                    if (filters.model) qConstraints.push(where('model', '==', filters.model));
+                    if (filters.year) {
+                        const yearNum = parseInt(filters.year);
+                        qConstraints.push(where('yearStart', '<=', yearNum), where('yearEnd', '>=', yearNum));
+                    }
+                }
 
-            // 5. Search Query - Always use client-side for multi-keyword support
-            const hasSearch = filters.searchQuery && filters.searchQuery.trim().length > 0;
-            let applySearchClientSide = false;
+                if (filters.category && filters.category !== 'All') qConstraints.push(where('category', '==', filters.category));
+                if (filters.subcategory) qConstraints.push(where('subcategory', '==', filters.subcategory));
+                if (filters.brand) qConstraints.push(where('partBrand', '==', filters.brand));
+                if (filters.origin) qConstraints.push(where('countryOfOrigin', '==', filters.origin));
 
-            if (hasSearch) {
-                applySearchClientSide = true;
-            }
+                const countQuery = query(collection(db, 'products'), ...qConstraints);
+                const countSnapshot = await getCountFromServer(countQuery);
+                setTotalProducts(countSnapshot.data().count);
 
-            // Get count
-            const countQuery = query(collection(db, 'products'), ...qConstraints);
-            const countSnapshot = await getCountFromServer(countQuery);
-            const rawCount = countSnapshot.data().count;
-            setTotalProducts(rawCount);
+                const currentPage = Math.max(1, parseInt(filters.page) || 1);
+                const q = query(collection(db, 'products'), ...qConstraints, limit(PAGE_SIZE * currentPage));
+                const querySnapshot = await getDocs(q);
 
-            // Fetch
-            const currentPage = Math.max(1, parseInt(filters.page) || 1);
-            // Drastically increased limit for search to capture results in large databases
-            // We use 5000 as a ceiling for small/medium shop catalogs
-            const fetchLimit = hasSearch ? 5000 : (PAGE_SIZE * currentPage);
+                let fetched = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-            // Try to order by name if searching to provide a more predictable subset
-            let limitedQuery;
-            try {
-                limitedQuery = query(
-                    collection(db, 'products'),
-                    ...qConstraints,
-                    orderBy('name', 'asc'),
-                    limit(fetchLimit)
-                );
-            } catch (e) {
-                // Fallback if index for isActive + name doesn't exist
-                limitedQuery = query(
-                    collection(db, 'products'),
-                    ...qConstraints,
-                    limit(fetchLimit)
-                );
-            }
+                if (filters.searchQuery) {
+                    const keywords = filters.searchQuery.toLowerCase().split(' ');
+                    fetched = fetched.filter(p => keywords.every(k => getSearchableText(p).toLowerCase().includes(k)));
+                    setTotalProducts(fetched.length);
+                }
 
-            const querySnapshot = await getDocs(limitedQuery);
-            let allFetched = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+                setProducts(fetched.slice((currentPage - 1) * PAGE_SIZE));
 
-            // Client-side search with Multi-lingual Normalization
-            if (applySearchClientSide && filters.searchQuery) {
-                const searchKeywords = filters.searchQuery.trim().split(/\s+/).filter(Boolean).map(k => normalizeArabic(k));
-
-                allFetched = allFetched.filter(p => {
-                    // Use the robust utility that handles Arabic/English mapping
-                    const searchTarget = normalizeArabic(getSearchableText(p));
-
-                    // Every keyword must be found in the target
-                    return searchKeywords.every(keyword => searchTarget.includes(keyword));
-                });
-                setTotalProducts(allFetched.length);
-            }
-
-            // Slice for local pagination
-            const startIndex = (currentPage - 1) * PAGE_SIZE;
-            const paginatedItems = allFetched.slice(startIndex, startIndex + PAGE_SIZE);
-            setProducts(paginatedItems);
-
-            // Metadata extraction (only once or when empty)
-            if (!filterOptions.categories || Object.keys(filterOptions.categories).length === 0) {
-                const metaSnapshot = await getDocs(query(collection(db, 'products'), where('isActive', '==', true), limit(300)));
-                extractFilterOptions(metaSnapshot.docs.map(doc => doc.data()));
-            }
+                if (Object.keys(filterOptions.categories).length === 0) {
+                    extractFilterOptions(fetched);
+                }
+            });
         } catch (error) {
-            console.error("Firestore Fetch Error:", error);
-            // If we get an index error, we'll try to fallback to a simpler query or just show the error
-            if (error.code === 'failed-precondition') {
-                toast.error("Query requires composite index. Check console for setup link.");
-            } else {
-                toast.error(`Shop Sync Error: ${error.message}`);
-            }
-            setProducts([]);
-            setTotalProducts(0);
+            console.error("Fetch Failure:", error);
+            toast.error("Shopping data sync error. Trying backup...");
         } finally {
             setLoading(false);
         }

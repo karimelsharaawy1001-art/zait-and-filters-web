@@ -42,10 +42,12 @@ import { auth, storage } from '../firebase';
 import RelatedProducts from '../components/RelatedProducts';
 import TrustPaymentSection from '../components/TrustPaymentSection';
 import InstallmentBar from '../components/InstallmentBar';
+import OptimizedImage from '../components/OptimizedImage';
 import { getOptimizedImage } from '../utils/cloudinaryUtils';
 import { generateProductDescription, formatWarranty } from '../utils/productUtils';
 import SEO from '../components/SEO';
 import Breadcrumbs from '../components/Breadcrumbs';
+import { useStaticData } from '../context/StaticDataContext';
 
 const ProductDetails = () => {
     const { id } = useParams();
@@ -56,6 +58,7 @@ const ProductDetails = () => {
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
+    const { staticProducts, isStaticLoaded, withFallback } = useStaticData();
 
     // Review States
     const [reviews, setReviews] = useState([]);
@@ -71,23 +74,37 @@ const ProductDetails = () => {
         const fetchProduct = async () => {
             setLoading(true);
             try {
-                const docRef = doc(db, 'products', id);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    setProduct({ id: docSnap.id, ...docSnap.data() });
-                } else {
-                    console.error("No such product!");
-                    navigate('/shop');
+                // Check static data first if available (Zero-Cost strategy)
+                if (isStaticLoaded) {
+                    const staticMatch = staticProducts.find(p => p.id === id);
+                    if (staticMatch) {
+                        setProduct(staticMatch);
+                        setLoading(false);
+                        return;
+                    }
                 }
+
+                // Fallback to Firestore with quota monitoring
+                await withFallback(async () => {
+                    const docRef = doc(db, 'products', id);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        setProduct({ id: docSnap.id, ...docSnap.data() });
+                    } else {
+                        toast.error('Product not found in our catalog.');
+                        navigate('/shop');
+                    }
+                });
             } catch (error) {
-                console.error("Error fetching product:", error);
+                console.error("Fetch error:", error);
+                toast.error('Sync error. Try again later.');
             } finally {
                 setLoading(false);
             }
         };
 
         fetchProduct();
-    }, [id, navigate]);
+    }, [id, navigate, isStaticLoaded, staticProducts]);
 
     // Fetch Approved Reviews
     useEffect(() => {
@@ -246,14 +263,11 @@ const ProductDetails = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-10 md:mb-16">
                     {/* Product Image */}
                     <div className="relative rounded-3xl overflow-hidden bg-gray-50 aspect-square group border border-gray-100 shadow-sm">
-                        <img
-                            src={getOptimizedImage(product.image, 'f_auto,q_auto,w_1000')}
+                        <OptimizedImage
+                            src={product.image}
                             alt={`${isAr ? product.name : (product.nameEn || product.name)} - ${isAr ? (product.partBrand || product.brand || 'زيت اند فلترز') : (product.brandEn || product.partBrand || product.brand || 'Zait & Filters')}`}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                            onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src = '/placeholder.png';
-                            }}
+                            width={1000}
                         />
                         {hasSale && (
                             <span className={`absolute top-6 ${isAr ? 'right-6' : 'left-6'} bg-[#FF8C00] text-white text-xs font-black px-4 py-2 rounded-full shadow-xl tracking-widest animate-pulse border-2 border-white`}>
