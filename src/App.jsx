@@ -28,6 +28,7 @@ import ManagePromoCodes from './pages/admin/ManagePromoCodes';
 import PaymentManager from './pages/admin/PaymentManager';
 import ManageSettings from './pages/admin/ManageSettings';
 import ManageAffiliates from './pages/admin/ManageAffiliates';
+import AdminManagement from './pages/admin/AdminManagement';
 import AdminAffiliateDetails from './pages/admin/AdminAffiliateDetails';
 import ManagePolicies from './pages/admin/ManagePolicies';
 import Integrations from './pages/admin/Integrations';
@@ -229,6 +230,7 @@ function App() {
               <Route path="shipping" element={<ManageShipping />} />
               <Route path="promo-codes" element={<ManagePromoCodes />} />
               <Route path="affiliates" element={<ManageAffiliates />} />
+              <Route path="management" element={<AdminManagement />} />
               <Route path="affiliates/:id" element={<AdminAffiliateDetails />} />
               <Route path="integrations" element={<Integrations />} />
               <Route path="integrations/google-search-console" element={<GoogleSearchConsole />} />

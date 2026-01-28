@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user has admin role
+    function isAdmin() {
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin'];
+    }
+
+    // Helper function to check if user is Super Admin
+    function isSuperAdmin() {
+      let superAdminUID = "REPLACE_WITH_YOUR_ACTUAL_UID"; // Super Admin UID placeholder
+      return request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super_admin' || request.auth.uid == superAdminUID);
+    }
+
+    // Users Collection Rules
+    match /users/{userId} {
+      // Users can read/write their own non-role data
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      
+      // Only Super Admin can modify 'role' field or create/delete admin users
+      allow create, update: if request.auth != null && (
+        (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])) ||
+        isSuperAdmin()
+      );
+      
+      allow delete: if isSuperAdmin();
+    }
+
+    // Products, Categories, etc.
+    match /{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
