@@ -100,7 +100,73 @@ const ManageProducts = () => {
         }
     };
 
+    const [isLiveMode, setIsLiveMode] = useState(false);
+    const [localData, setLocalData] = useState([]);
+
+    useEffect(() => {
+        // Initial load: Fetch static JSON
+        fetch('/data/products-db.json')
+            .then(res => res.json())
+            .then(data => {
+                setLocalData(data);
+                if (!isLiveMode) {
+                    processLocalData(data);
+                }
+            })
+            .catch(err => {
+                console.error("Static data missing", err);
+                toast('Static data missing. Switching to Live Mode.', { icon: '⚠️' });
+                setIsLiveMode(true);
+            });
+    }, []);
+
+    // Client-Side Processing for Static Mode
+    const processLocalData = (data = localData) => {
+        setLoading(true);
+        let result = [...data];
+
+        // 1. Filtering
+        if (categoryFilter !== 'All') result = result.filter(p => p.category === categoryFilter);
+        if (subcategoryFilter !== 'All') result = result.filter(p => p.subcategory === subcategoryFilter);
+        if (makeFilter !== 'All') result = result.filter(p => p.make === makeFilter);
+        if (modelFilter !== 'All') result = result.filter(p => p.model === modelFilter);
+        if (brandFilter !== 'All') result = result.filter(p => (p.partBrand || p.brand) === brandFilter);
+        if (statusFilter === 'Active') result = result.filter(p => p.isActive);
+        if (statusFilter === 'Inactive') result = result.filter(p => !p.isActive);
+        if (yearFilter) result = result.filter(p => p.yearStart && p.yearEnd && parseInt(yearFilter) >= p.yearStart && parseInt(yearFilter) <= p.yearEnd);
+
+        if (searchQuery) {
+            const lower = searchQuery.toLowerCase();
+            result = result.filter(p =>
+                (p.name && p.name.toLowerCase().includes(lower)) ||
+                (p.partBrand && p.partBrand.toLowerCase().includes(lower)) ||
+                (p.partNumber && p.partNumber.toLowerCase().includes(lower))
+            );
+        }
+
+        // 2. Sorting
+        const [field, dir] = sortBy.split('-');
+        result.sort((a, b) => {
+            const valA = a[field] || '';
+            const valB = b[field] || '';
+            if (dir === 'asc') return valA > valB ? 1 : -1;
+            return valA < valB ? 1 : -1;
+        });
+
+        // 3. Pagination
+        setTotalCount(result.length);
+        const start = (currentPage - 1) * pageSize;
+        setProducts(result.slice(start, start + pageSize));
+        setLoading(false);
+    };
+
     const fetchProducts = async (isNext = false, isPrev = false, skipCache = false) => {
+        // If not in Live Mode, use Client-Side Logic
+        if (!isLiveMode) {
+            processLocalData();
+            return;
+        }
+
         setLoading(true);
         const cacheKey = `admin_products_${categoryFilter}_${subcategoryFilter}_${makeFilter}_${modelFilter}_${brandFilter}_${statusFilter}_${sortBy}_${searchQuery}_${currentPage}`;
 
@@ -108,7 +174,6 @@ const ManageProducts = () => {
             const cachedData = localStorage.getItem(cacheKey);
             if (cachedData) {
                 const parsed = JSON.parse(cachedData);
-                // Check freshness (1 hour)
                 if ((Date.now() - parsed.timestamp) < 3600000) {
                     setProducts(parsed.products);
                     setTotalCount(parsed.totalCount);
@@ -186,9 +251,8 @@ const ManageProducts = () => {
                 }
             }
 
-            // Cache the results
             if (!isNext && !isPrev) {
-                sessionStorage.setItem(cacheKey, JSON.stringify({
+                localStorage.setItem(cacheKey, JSON.stringify({
                     products: productsList,
                     totalCount: currentTotal,
                     timestamp: Date.now()
@@ -198,13 +262,9 @@ const ManageProducts = () => {
         } catch (error) {
             console.error("Firestore Fetch Error:", error);
             if (error.code === 'resource-exhausted') {
-                toast.error('🔥 Firebase Quota Hit! Switching to Offline Mode.');
-                const cachedData = localStorage.getItem(cacheKey);
-                if (cachedData) {
-                    const parsed = JSON.parse(cachedData);
-                    setProducts(parsed.products);
-                    setTotalCount(parsed.totalCount);
-                }
+                toast.error('🔥 Quota Exceeded! Switching to Static Mode.');
+                setIsLiveMode(false); // Auto-switch to Static Mode
+                processLocalData();
             } else {
                 toast.error(`Sync Error: ${error.message}`);
                 setProducts([]);
@@ -250,9 +310,20 @@ const ManageProducts = () => {
             await updateDoc(doc(db, 'products', productId), {
                 isActive: !currentStatus
             });
-            setProducts(products.map(p =>
+
+            const updatedProducts = products.map(p =>
                 p.id === productId ? { ...p, isActive: !currentStatus } : p
-            ));
+            );
+            setProducts(updatedProducts);
+
+            // Update local cache mirror if in static mode
+            if (!isLiveMode) {
+                const updatedLocal = localData.map(p =>
+                    p.id === productId ? { ...p, isActive: !currentStatus } : p
+                );
+                setLocalData(updatedLocal);
+            }
+            toast.success("Status updated (Local + Cloud)");
         } catch (error) {
             console.error("Error toggling status:", error);
             toast.error("Failed to update status");
@@ -263,8 +334,17 @@ const ManageProducts = () => {
         if (window.confirm(`Are you sure you want to delete "${productName}"?`)) {
             try {
                 await deleteDoc(doc(db, 'products', productId));
-                setProducts(products.filter(p => p.id !== productId));
-                toast.success('Product deleted successfully!');
+
+                const updatedProducts = products.filter(p => p.id !== productId);
+                setProducts(updatedProducts);
+
+                // Update local cache mirror
+                if (!isLiveMode) {
+                    const updatedLocal = localData.filter(p => p.id !== productId);
+                    setLocalData(updatedLocal);
+                }
+
+                toast.success('Product deleted (Local + Cloud)');
             } catch (error) {
                 console.error("Error deleting product:", error);
                 toast.error('Error deleting product');
@@ -356,8 +436,35 @@ const ManageProducts = () => {
                         <h2 className="text-3xl font-black text-black uppercase tracking-tight italic font-Cairo">Inventory Control</h2>
                         <p className="text-sm text-gray-500 mt-1 font-bold">
                             Total catalog: {totalCount} high-performance items
+                            {isLiveMode ? (
+                                <span className="ml-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
+                                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                                    LIVE MODE
+                                </span>
+                            ) : (
+                                <span className="ml-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800">
+                                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                                    STATIC MODE
+                                </span>
+                            )}
                         </p>
                     </div>
+
+                    <button
+                        onClick={() => {
+                            setIsLiveMode(!isLiveMode);
+                            if (!isLiveMode) {
+                                toast.success('Switched to LIVE mode', { icon: '🟢' });
+                            } else {
+                                toast.success('Switched to STATIC mode', { icon: '🟡' });
+                                processLocalData();
+                            }
+                        }}
+                        className={`mr-4 px-6 py-3 rounded-full font-bold text-xs uppercase tracking-widest transition-all ${isLiveMode ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100'}`}
+                    >
+                        {isLiveMode ? 'Disconnect Live Sync' : 'Connect Live Sync'}
+                    </button>
+
                     <button
                         onClick={() => navigate('/admin/products/new')}
                         className="admin-primary-btn !w-fit !px-8"
