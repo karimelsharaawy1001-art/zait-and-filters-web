@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -20,15 +20,24 @@ const AdminLogin = () => {
 
         try {
             // 1. Authenticate with Firebase Auth
-            const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
+            const normalizedEmail = email.trim().toLowerCase();
+            const userCredential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
             const user = userCredential.user;
 
             // 2. Fetch User Role from Firestore
-            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            const userDocRef = doc(db, 'users', user.uid);
+            const userDoc = await getDoc(userDocRef);
 
             if (userDoc.exists()) {
                 const userData = userDoc.data();
-                const role = userData.role;
+                let role = userData.role;
+
+                // BOOTSTRAP LOGIC: Grant super_admin to the owner if they don't have a role yet
+                if (!role && normalizedEmail === 'gee.dwaik@gmail.com') {
+                    role = 'super_admin';
+                    await updateDoc(userDocRef, { role: 'super_admin' });
+                    toast.success('Bootstrap: You have been promoted to Super Admin');
+                }
 
                 if (role === 'admin' || role === 'super_admin') {
                     // Success!
@@ -42,9 +51,21 @@ const AdminLogin = () => {
                 }
             } else {
                 // User document not found
-                await signOut(auth);
-                setError('User data not found. Please contact the super admin.');
-                toast.error('Profile Not Found');
+                // If this is the owner, we create the document
+                if (normalizedEmail === 'gee.dwaik@gmail.com') {
+                    await setDoc(userDocRef, {
+                        email: normalizedEmail,
+                        role: 'super_admin',
+                        createdAt: new Date(),
+                        fullName: 'Super Admin'
+                    });
+                    toast.success('Bootstrap: Admin profile created');
+                    navigate('/admin/dashboard');
+                } else {
+                    await signOut(auth);
+                    setError('User data not found. Please contact the super admin.');
+                    toast.error('Profile Not Found');
+                }
             }
         } catch (err) {
             console.error("Login error:", err);
