@@ -100,12 +100,24 @@ const ManageProducts = () => {
         }
     };
 
-    const fetchProducts = async (isNext = false, isPrev = false) => {
+    const fetchProducts = async (isNext = false, isPrev = false, skipCache = false) => {
         setLoading(true);
-        try {
-            let qConstraints = []; // Fetching all by default to avoid complex index requirements for admin
+        const cacheKey = `admin_products_${categoryFilter}_${subcategoryFilter}_${makeFilter}_${modelFilter}_${brandFilter}_${statusFilter}_${sortBy}_${searchQuery}_${currentPage}`;
 
-            // Only add filters if they are not 'All'
+        if (!skipCache && !isNext && !isPrev) {
+            const cachedData = sessionStorage.getItem(cacheKey);
+            if (cachedData) {
+                const parsed = JSON.parse(cachedData);
+                setProducts(parsed.products);
+                setTotalCount(parsed.totalCount);
+                setLoading(false);
+                return;
+            }
+        }
+
+        try {
+            let qConstraints = [];
+
             if (categoryFilter !== 'All') qConstraints.push(where('category', '==', categoryFilter));
             if (subcategoryFilter !== 'All') qConstraints.push(where('subcategory', '==', subcategoryFilter));
             if (makeFilter !== 'All') qConstraints.push(where('make', '==', makeFilter));
@@ -114,9 +126,6 @@ const ManageProducts = () => {
             if (statusFilter === 'Active') qConstraints.push(where('isActive', '==', true));
             if (statusFilter === 'Inactive') qConstraints.push(where('isActive', '==', false));
 
-            // Simple sorting logic - only add order if it doesn't conflict with filters
-            // To be safe and avoid missing index errors, we'll fetch and sort in memory for Admin if needed,
-            // but for now, we'll try a single orderBy on the field if no other complex filters are active.
             let sortField = 'name';
             let sortDir = 'asc';
             if (sortBy.includes('-')) {
@@ -126,32 +135,29 @@ const ManageProducts = () => {
                 qConstraints.push(orderBy(sortField, sortDir));
             }
 
-            // Search (Firestore prefix search - requires manual indexing or broad fetch)
-            // Note: For complex multi-field search, client-side is often easier unless dataset is HUGE.
-            // But since user asked for pagination for performance, we apply name prefix if available.
             if (searchQuery) {
                 const searchLower = searchQuery.toLowerCase();
                 qConstraints.push(where('name', '>=', searchLower));
                 qConstraints.push(where('name', '<=', searchLower + '\uf8ff'));
             }
 
-            // Get Total Count (Only on initial load or filter change)
+            let currentTotal = totalCount;
             if (!isNext && !isPrev) {
                 const countQuery = query(collection(db, 'products'), ...qConstraints);
                 const countSnapshot = await getCountFromServer(countQuery);
-                setTotalCount(countSnapshot.data().count);
+                currentTotal = countSnapshot.data().count;
+                setTotalCount(currentTotal);
                 setPageStack([]);
                 setLastVisible(null);
                 setCurrentPage(1);
             }
 
-            // Apply Pagination
             let pagedConstraints = [...qConstraints, limit(pageSize)];
             if (isNext && lastVisible) {
                 pagedConstraints.push(startAfter(lastVisible));
             } else if (isPrev && pageStack.length > 1) {
                 const newStack = [...pageStack];
-                newStack.pop(); // Remove current page start
+                newStack.pop();
                 const prevPageStart = newStack[newStack.length - 1];
                 if (prevPageStart) pagedConstraints.push(startAfter(prevPageStart));
                 setPageStack(newStack);
@@ -173,36 +179,51 @@ const ManageProducts = () => {
                 if (isNext) {
                     setPageStack(prev => [...prev, lastVisible]);
                 } else if (!isPrev) {
-                    setPageStack([null]); // Initialize with null for Page 1
+                    setPageStack([null]);
                 }
+            }
+
+            // Cache the results
+            if (!isNext && !isPrev) {
+                sessionStorage.setItem(cacheKey, JSON.stringify({
+                    products: productsList,
+                    totalCount: currentTotal,
+                    timestamp: Date.now()
+                }));
             }
 
         } catch (error) {
             console.error("Firestore Fetch Error:", error);
-            toast.error(`Shop Sync Error: ${error.message}`);
+            if (error.code === 'resource-exhausted') {
+                toast.error('Firebase Daily Quota Exceeded. Data might be stale.');
+            } else {
+                toast.error(`Sync Error: ${error.message}`);
+            }
             setProducts([]);
-            setTotalCount(0);
         } finally {
             setLoading(false);
         }
     };
 
     const fetchBrands = async () => {
+        const cachedBrands = sessionStorage.getItem('admin_unique_brands');
+        if (cachedBrands) {
+            setUniquePartBrands(JSON.parse(cachedBrands));
+            return;
+        }
+
         try {
-            // Fetch a limited set of active products to extract brands
-            // avoid '!=' to stay safe without indexes
-            const q = query(collection(db, 'products'), where('isActive', '==', true), limit(200));
+            const q = query(collection(db, 'products'), where('isActive', '==', true), limit(300));
             const snapshot = await getDocs(q);
             const brands = [...new Set(snapshot.docs.map(doc => {
                 const data = doc.data();
                 return data.partBrand || data.brand;
             }))].filter(Boolean).sort();
+
             setUniquePartBrands(brands);
+            sessionStorage.setItem('admin_unique_brands', JSON.stringify(brands));
         } catch (error) {
-            console.error("Error fetching dashboard data:", error);
-            toast.error(`Dashboard Error: ${error.message}`);
-        } finally {
-            setLoading(false);
+            console.error("Error fetching brands:", error);
         }
     };
 
@@ -362,6 +383,18 @@ const ManageProducts = () => {
                         >
                             <span className="group-hover:rotate-180 transition-transform duration-500">↺</span>
                             Reset All Data
+                        </button>
+                        <button
+                            onClick={() => {
+                                sessionStorage.removeItem('admin_unique_brands');
+                                fetchProducts(false, false, true);
+                                fetchBrands();
+                                toast.success('Data synced with cloud');
+                            }}
+                            className="text-[11px] font-black text-blue-600 hover:text-blue-800 uppercase tracking-widest transition-colors flex items-center gap-2 group ml-4"
+                        >
+                            <span className="group-hover:rotate-180 transition-transform duration-500">↻</span>
+                            Master Sync
                         </button>
                     </div>
 

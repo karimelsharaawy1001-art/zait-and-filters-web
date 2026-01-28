@@ -302,33 +302,51 @@ const BulkOperations = () => {
                             setImportStatus('Syncing years...');
                             try {
                                 const snapshot = await getDocs(collection(db, 'products'));
-                                const batch = writeBatch(db);
-                                let count = 0;
+                                const docs = snapshot.docs;
+                                const batchSize = 500;
+                                let processedCount = 0;
 
-                                snapshot.docs.forEach(doc => {
-                                    const data = doc.data();
-                                    if (data.yearRange && (!data.yearStart || !data.yearEnd)) {
-                                        const { yearStart, yearEnd } = parseYearRange(data.yearRange);
-                                        if (yearStart || yearEnd) {
-                                            batch.update(doc.ref, {
-                                                yearStart: yearStart || null,
-                                                yearEnd: yearEnd || null,
-                                                updatedAt: new Date()
-                                            });
-                                            count++;
+                                for (let i = 0; i < docs.length; i += batchSize) {
+                                    const batch = writeBatch(db);
+                                    const chunk = docs.slice(i, i + batchSize);
+                                    let chunkUpdateCount = 0;
+
+                                    chunk.forEach(docSnap => {
+                                        const data = docSnap.data();
+                                        if (data.yearRange && (!data.yearStart || !data.yearEnd)) {
+                                            const { yearStart, yearEnd } = parseYearRange(data.yearRange);
+                                            if (yearStart || yearEnd) {
+                                                batch.update(docSnap.ref, {
+                                                    yearStart: yearStart || null,
+                                                    yearEnd: yearEnd || null,
+                                                    updatedAt: new Date()
+                                                });
+                                                chunkUpdateCount++;
+                                            }
                                         }
-                                    }
-                                });
+                                    });
 
-                                if (count > 0) {
-                                    await batch.commit();
-                                    toast.success(`Successfully synced ${count} products`);
+                                    if (chunkUpdateCount > 0) {
+                                        await batch.commit();
+                                        processedCount += chunkUpdateCount;
+                                    }
+                                    setImportStatus(`Syncing: ${Math.min(i + batchSize, docs.length)} / ${docs.length}`);
+                                }
+
+                                if (processedCount > 0) {
+                                    toast.success(`Successfully synced ${processedCount} products`);
                                 } else {
                                     toast.success('All products are already synced');
                                 }
                             } catch (err) {
-                                console.error(err);
-                                toast.error('Sync failed');
+                                console.error("Sync error:", err);
+                                if (err.code === 'resource-exhausted') {
+                                    toast.error('Daily Firebase quota exceeded. Sync will resume tomorrow.');
+                                } else if (err.code === 'permission-denied') {
+                                    toast.error('Admin permission required for bulk sync.');
+                                } else {
+                                    toast.error(`Sync failed: ${err.message}`);
+                                }
                             } finally {
                                 setLoading(false);
                                 setImportStatus('');
