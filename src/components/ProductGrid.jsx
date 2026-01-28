@@ -137,13 +137,24 @@ const ProductGrid = ({ showFilters = true }) => {
 
             // Client-side search if needed
             if (applySearchClientSide && filters.searchQuery) {
-                const searchLower = filters.searchQuery.toLowerCase();
-                allFetched = allFetched.filter(p =>
-                    (p.name || '').toLowerCase().includes(searchLower) ||
-                    (p.nameEn || '').toLowerCase().includes(searchLower) ||
-                    (p.partNumber || '').toLowerCase().includes(searchLower) ||
-                    (p.partBrand || '').toLowerCase().includes(searchLower)
-                );
+                const searchKeywords = filters.searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
+
+                allFetched = allFetched.filter(p => {
+                    const searchTarget = `
+                        ${p.name || ''} 
+                        ${p.nameEn || ''} 
+                        ${p.partNumber || ''} 
+                        ${p.partBrand || ''} 
+                        ${p.brand || ''}
+                        ${p.make || ''}
+                        ${p.model || ''}
+                        ${p.category || ''}
+                        ${p.subcategory || ''}
+                    `.toLowerCase();
+
+                    // Ensure EVERY keyword is present in the target string
+                    return searchKeywords.every(keyword => searchTarget.includes(keyword));
+                });
                 setTotalProducts(allFetched.length);
             }
 

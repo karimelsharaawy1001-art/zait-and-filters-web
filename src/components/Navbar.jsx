@@ -6,8 +6,9 @@ import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
 import { signOut } from 'firebase/auth';
+import { collection, query, where, getDocs, limit as firestoreLimit } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
 
 const Navbar = () => {
@@ -21,14 +22,49 @@ const Navbar = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
+    const [suggestions, setSuggestions] = useState([]);
+    const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
+
     const handleSearchChange = (e) => {
-        const query = e.target.value;
-        updateFilter('searchQuery', query);
+        const queryVal = e.target.value;
+        updateFilter('searchQuery', queryVal);
+
+        // Fetch suggestions as user types
+        if (queryVal.length > 2) {
+            fetchSuggestions(queryVal);
+        } else {
+            setSuggestions([]);
+        }
 
         // If user is not on the shop page and starts typing, take them to the shop
-        if (location.pathname !== '/shop' && query.length > 0) {
+        if (location.pathname !== '/shop' && queryVal.length > 0) {
             navigate('/shop');
         }
+    };
+
+    const fetchSuggestions = async (searchTerm) => {
+        setIsSuggestionsLoading(true);
+        try {
+            const q = query(
+                collection(db, 'products'),
+                where('isActive', '==', true),
+                where('name', '>=', searchTerm),
+                where('name', '<=', searchTerm + '\uf8ff'),
+                firestoreLimit(5)
+            );
+            const snapshot = await getDocs(q);
+            const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setSuggestions(items);
+        } catch (error) {
+            console.error("Error fetching suggestions:", error);
+        } finally {
+            setIsSuggestionsLoading(false);
+        }
+    };
+
+    const handleSuggestionClick = (product) => {
+        setSuggestions([]);
+        navigate(`/product/${product.id}`);
     };
 
     const handleLogout = async () => {
@@ -108,19 +144,41 @@ const Navbar = () => {
                             </div>
 
                             {/* Search Bar */}
-                            <div className="w-full max-w-[400px] hidden lg:block">
+                            <div className="w-full max-w-[400px] hidden lg:block relative">
                                 <div className="relative w-full">
                                     <input
                                         type="text"
                                         placeholder={t('search')}
                                         value={filters.searchQuery}
                                         onChange={handleSearchChange}
+                                        onBlur={() => setTimeout(() => setSuggestions([]), 200)}
                                         className="w-full bg-white border-[1px] border-[#1A1A1A] rounded-lg py-1.5 pl-10 pr-4 focus:ring-2 focus:ring-[#28B463] transition-all text-[14px] font-bold font-Cairo text-black placeholder:text-gray-500"
                                     />
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none force-black">
                                         <Search className="h-4 w-4 stroke-[3px]" />
                                     </div>
                                 </div>
+
+                                {/* Desktop Suggestions Dropdown */}
+                                {suggestions.length > 0 && (
+                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-[110] animate-in slide-in-from-top-2 duration-200">
+                                        {suggestions.map((p) => (
+                                            <button
+                                                key={p.id}
+                                                onClick={() => handleSuggestionClick(p)}
+                                                className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 border-b border-gray-50 last:border-0 text-left transition-colors"
+                                            >
+                                                <div className="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
+                                                    {p.imageUrl && <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-black text-black truncate">{p.name}</p>
+                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{p.partBrand} | {p.salePrice || p.price} EGP</p>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -215,19 +273,41 @@ const Navbar = () => {
                         </div>
 
                         {/* Search Bar Row (Mobile Full Input) */}
-                        <div className="w-full">
+                        <div className="w-full relative">
                             <div className="relative w-full">
                                 <input
                                     type="text"
                                     placeholder={t('search')}
                                     value={filters.searchQuery}
                                     onChange={handleSearchChange}
+                                    onBlur={() => setTimeout(() => setSuggestions([]), 200)}
                                     className="w-full bg-white border-[1px] border-[#1A1A1A] rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-[#28B463] transition-all text-[14px] font-bold font-Cairo text-black placeholder:text-gray-500"
                                 />
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none force-black">
                                     <Search className="h-4 w-4 stroke-[3px]" />
                                 </div>
                             </div>
+
+                            {/* Mobile Suggestions Dropdown */}
+                            {suggestions.length > 0 && (
+                                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-[110] animate-in slide-in-from-top-2 duration-200">
+                                    {suggestions.map((p) => (
+                                        <button
+                                            key={p.id}
+                                            onClick={() => handleSuggestionClick(p)}
+                                            className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 border-b border-gray-50 last:border-0 text-left transition-colors"
+                                        >
+                                            <div className="w-12 h-12 bg-gray-100 rounded-xl flex-shrink-0 overflow-hidden">
+                                                {p.imageUrl && <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-black text-black truncate">{p.name}</p>
+                                                <p className="text-[10px] text-gray-500 font-bold">{p.partBrand} • {p.salePrice || p.price} EGP</p>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
