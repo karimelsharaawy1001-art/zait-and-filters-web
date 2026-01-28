@@ -62,6 +62,10 @@ import OilAdvisor from './pages/OilAdvisor';
 import RecoverCart from './pages/RecoverCart';
 import CategoryPage from './pages/CategoryPage';
 import BrandPage from './pages/BrandPage';
+import BlogListPage from './pages/BlogListPage';
+import BlogPostPage from './pages/BlogPostPage';
+import ManageBlog from './pages/admin/ManageBlog';
+import AddEditBlog from './pages/admin/AddEditBlog';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import UserProtectedRoute from './components/UserProtectedRoute';
@@ -174,6 +178,8 @@ function App() {
               <Route path="/oil-advisor" element={<OilAdvisor />} />
               <Route path="/order-success" element={<OrderSuccess />} />
               <Route path="/recover-cart" element={<RecoverCart />} />
+              <Route path="/blog" element={<BlogListPage />} />
+              <Route path="/blog/:id" element={<BlogPostPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/marketers" element={<AffiliateRegister />} />
@@ -242,6 +248,9 @@ function App() {
               <Route path="integrations/installment-partners" element={<InstallmentPartners />} />
               <Route path="integrations/cloudinary" element={<CloudinarySettings />} />
               <Route path="integrations/sendgrid" element={<SendGridSettings />} />
+              <Route path="/admin/blog" element={<ManageBlog />} />
+              <Route path="/admin/blog/new" element={<AddEditBlog />} />
+              <Route path="/admin/blog/edit/:id" element={<AddEditBlog />} />
               <Route path="settings" element={<ManageSettings />} />
               <Route path="policies" element={<ManagePolicies />} />
             </Route>

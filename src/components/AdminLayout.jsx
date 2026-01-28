@@ -82,6 +82,7 @@ const AdminLayout = () => {
         { name: 'Shipping Rates', icon: <Truck className="w-5 h-5" />, path: '/admin/shipping' },
         { name: 'Promo Codes', icon: <Ticket className="w-5 h-5" />, path: '/admin/promo-codes' },
         { name: 'Affiliates', icon: <Users className="w-5 h-5" />, path: '/admin/affiliates' },
+        { name: 'Blog', icon: <FileText className="w-5 h-5" />, path: '/admin/blog' },
         { name: 'Admin Management', icon: <Users className="w-5 h-5" />, path: '/admin/management' },
         { name: 'Integrations', icon: <Settings className="w-5 h-5" />, path: '/admin/integrations' },
         { name: 'Policy Pages', icon: <FileText className="w-5 h-5" />, path: '/admin/policies' },

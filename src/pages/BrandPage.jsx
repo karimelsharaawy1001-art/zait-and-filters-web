@@ -4,6 +4,7 @@ import ProductGrid from '../components/ProductGrid';
 import { useFilters } from '../context/FilterContext';
 import { useTranslation } from 'react-i18next';
 import SEO from '../components/SEO';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 const BrandPage = () => {
     const { brandName } = useParams();
@@ -29,6 +30,10 @@ const BrandPage = () => {
                     : `Buy original ${brandName} parts at best prices in Egypt. Quality oils and filters with warranty.`}
                 url={window.location.origin + window.location.pathname}
             />
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+                <Breadcrumbs />
+            </div>
 
             <div className="bg-gray-50 border-b border-gray-100 py-12 mb-8">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

@@ -45,6 +45,7 @@ import InstallmentBar from '../components/InstallmentBar';
 import { getOptimizedImage } from '../utils/cloudinaryUtils';
 import { generateProductDescription, formatWarranty } from '../utils/productUtils';
 import SEO from '../components/SEO';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 const ProductDetails = () => {
     const { id } = useParams();
@@ -216,32 +217,7 @@ const ProductDetails = () => {
         }
     };
 
-    const breadcrumbSchema = {
-        '@context': 'https://schema.org',
-        '@type': 'BreadcrumbList',
-        'itemListElement': [
-            {
-                '@type': 'ListItem',
-                'position': 1,
-                'name': t('home'),
-                'item': window.location.origin
-            },
-            {
-                '@type': 'ListItem',
-                'position': 2,
-                'name': product.category,
-                'item': `${window.location.origin}/shop?category=${encodeURIComponent(product.category)}`
-            },
-            {
-                '@type': 'ListItem',
-                'position': 3,
-                'name': isAr ? product.name : (product.nameEn || product.name),
-                'item': window.location.href
-            }
-        ]
-    };
-
-    const combinedSchema = [productSchema, breadcrumbSchema];
+    const combinedSchema = [productSchema];
 
     return (
         <div className="bg-white min-h-screen" dir={isAr ? 'rtl' : 'ltr'}>
@@ -255,6 +231,9 @@ const ProductDetails = () => {
                 schema={combinedSchema}
             />
             <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 md:pt-4 pb-8">
+                {/* Breadcrumbs */}
+                <Breadcrumbs />
+
                 {/* Back Link */}
                 <button
                     onClick={() => navigate(-1)}
@@ -567,7 +546,7 @@ const ProductDetails = () => {
                                                         <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-xl shadow-gray-200 ring-4 ring-white transition-transform duration-300 group-hover:scale-[1.02]">
                                                             <img
                                                                 src={getOptimizedImage(rev.photoUrl, 'f_auto,q_auto,w_500')}
-                                                                alt={`${t('review')} ${index + 1}`}
+                                                                alt={isAr ? "صورة التقييم" : "Review Photo"}
                                                                 className="w-full h-full object-cover"
                                                             />
                                                             <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">

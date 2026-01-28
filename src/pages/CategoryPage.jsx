@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useTranslation } from 'react-i18next';
-import { ChevronRight, ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import SEO from '../components/SEO';
 import { useFilters } from '../context/FilterContext';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 const CategoryPage = () => {
     const { id } = useParams();
@@ -69,16 +70,9 @@ const CategoryPage = () => {
                 url={window.location.origin + window.location.pathname}
             />
 
-            {/* Breadcrumbs */}
-            <div className="bg-gray-50 border-b border-gray-100 py-4 mb-8">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <nav className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-400">
-                        <Link to="/" className="hover:text-black transition-colors">{t('home')}</Link>
-                        <ChevronRight className="w-3 h-3" />
-                        <span className="text-black">{categoryName}</span>
-                    </nav>
-                </div>
-            </div>
+            <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+                <Breadcrumbs />
+            </article>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}

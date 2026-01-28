@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ShoppingCart, User, Menu, X, Package, Users, Car, Settings, LogOut, Droplets } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, X, Package, Users, Car, Settings, LogOut, Droplets, BookOpen } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useFilters } from '../context/FilterContext';
 import { useTranslation } from 'react-i18next';
@@ -159,6 +159,10 @@ const Navbar = () => {
                                 </Link>
                                 <Link to="/shop" className="text-[14px] !text-[#1A1A1A] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#28B463] whitespace-nowrap">
                                     {t('shop')}
+                                </Link>
+                                <Link to="/blog" className="text-[14px] !text-[#1A1A1A] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#28B463] whitespace-nowrap flex items-center gap-2">
+                                    <BookOpen className="h-4 w-4 text-[#28B463]" />
+                                    {t('blog')}
                                 </Link>
                                 <Link to="/marketers" className="text-[14px] !text-[#1A1A1A] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#28B463] whitespace-nowrap">
                                     {t('nav.marketers')}
@@ -359,6 +363,14 @@ const Navbar = () => {
                                 className="block px-4 py-3 text-[14px] !text-[#1A1A1A] !font-bold hover:bg-green-50 rounded-xl transition-colors uppercase italic font-Cairo"
                             >
                                 {t('shop')}
+                            </Link>
+                            <Link
+                                to="/blog"
+                                onClick={() => setIsOpen(false)}
+                                className="block px-4 py-3 text-[14px] !text-[#1A1A1A] !font-bold hover:bg-green-50 rounded-xl transition-colors uppercase italic font-Cairo flex items-center gap-3"
+                            >
+                                <BookOpen className="h-5 w-5 text-[#28B463]" />
+                                {t('blog')}
                             </Link>
                             <Link
                                 to="/marketers"
