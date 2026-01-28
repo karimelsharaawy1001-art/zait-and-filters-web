@@ -7,7 +7,7 @@ import { collection, getDocs, query, where, limit, startAfter, getCountFromServe
 import { db } from '../firebase';
 import ProductCard from './ProductCard';
 import { toast } from 'react-hot-toast';
-import { parseYearRange } from '../utils/productUtils';
+import { parseYearRange, normalizeArabic } from '../utils/productUtils';
 import useScrollRestoration from '../hooks/useScrollRestoration';
 
 const ProductGrid = ({ showFilters = true }) => {
@@ -107,7 +107,6 @@ const ProductGrid = ({ showFilters = true }) => {
 
             if (hasSearch) {
                 applySearchClientSide = true;
-                // No prefix constraints added to qConstraints here
             }
 
             // Get count
@@ -118,7 +117,8 @@ const ProductGrid = ({ showFilters = true }) => {
 
             // Fetch
             const currentPage = Math.max(1, parseInt(filters.page) || 1);
-            const fetchLimit = hasSearch ? 500 : (PAGE_SIZE * currentPage);
+            // Increased limit significantly for search to ensure we find matches in larger collections
+            const fetchLimit = hasSearch ? 1000 : (PAGE_SIZE * currentPage);
             const limitedQuery = query(
                 collection(db, 'products'),
                 ...qConstraints,
@@ -131,24 +131,25 @@ const ProductGrid = ({ showFilters = true }) => {
                 ...doc.data()
             }));
 
-            // Client-side search if needed
+            // Client-side search with Arabic Normalization
             if (applySearchClientSide && filters.searchQuery) {
-                const searchKeywords = filters.searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
+                const searchKeywords = filters.searchQuery.trim().split(/\s+/).filter(Boolean).map(k => normalizeArabic(k));
 
                 allFetched = allFetched.filter(p => {
-                    const searchTarget = `
+                    const searchTarget = normalizeArabic(`
                         ${p.name || ''} 
                         ${p.nameEn || ''} 
                         ${p.partNumber || ''} 
-                        ${p.partBrand || ''} 
-                        ${p.brand || ''}
+                        ${p.partBrand || p.brand || ''} 
+                        ${p.brandEn || ''}
                         ${p.make || ''}
-                        ${p.model || ''}
+                        ${p.model || p.car_model || ''}
+                        ${p.carModel || ''}
                         ${p.category || ''}
                         ${p.subcategory || ''}
-                    `.toLowerCase();
+                    `);
 
-                    // Ensure EVERY keyword is present in the target string
+                    // Ensure EVERY keyword is present in the normalized target string
                     return searchKeywords.every(keyword => searchTarget.includes(keyword));
                 });
                 setTotalProducts(allFetched.length);

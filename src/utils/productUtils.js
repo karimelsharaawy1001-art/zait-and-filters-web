@@ -116,3 +116,21 @@ export const parseYearRange = (range) => {
 
     return { yearStart: null, yearEnd: null };
 };
+
+/**
+ * Normalizes Arabic text for consistent searching.
+ * Replaces variations of Alef, Yae, and Teh Marbuta.
+ * 
+ * @param {string} text - The string to normalize.
+ * @returns {string} - Normalized string.
+ */
+export const normalizeArabic = (text) => {
+    if (!text) return '';
+    return String(text)
+        .replace(/[أإآ]/g, 'ا')
+        .replace(/ة/g, 'ه')
+        .replace(/ى/g, 'ي')
+        .replace(/[\u064B-\u0652]/g, '') // Remove Harakat (vowels)
+        .toLowerCase()
+        .trim();
+};

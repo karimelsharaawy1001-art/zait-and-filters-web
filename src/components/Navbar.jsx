@@ -10,6 +10,7 @@ import { auth, db } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { collection, query, where, getDocs, limit as firestoreLimit } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
+import { normalizeArabic } from '../utils/productUtils';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -47,20 +48,29 @@ const Navbar = () => {
         try {
             // Firestore prefix search is too limited. 
             // We fetch a larger batch and filter client-side for better results.
-            const queryVal = searchTerm.toLowerCase().trim();
+            const queryVal = normalizeArabic(searchTerm);
             const searchKeywords = queryVal.split(/\s+/).filter(Boolean);
 
             const q = query(
                 collection(db, 'products'),
                 where('isActive', '==', true),
-                firestoreLimit(100) // Increased limit to find more potential matches
+                firestoreLimit(500) // Increased limit to find more potential matches in large collections
             );
 
             const snapshot = await getDocs(q);
             const allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
             const filtered = allItems.filter(p => {
-                const searchTarget = `${p.name || ''} ${p.nameEn || ''} ${p.partBrand || ''} ${p.partNumber || ''}`.toLowerCase();
+                const searchTarget = normalizeArabic(`
+                    ${p.name || ''} 
+                    ${p.nameEn || ''} 
+                    ${p.partBrand || p.brand || ''} 
+                    ${p.brandEn || ''}
+                    ${p.partNumber || ''}
+                    ${p.make || ''}
+                    ${p.model || p.car_model || ''}
+                    ${p.carModel || ''}
+                `);
                 return searchKeywords.every(keyword => searchTarget.includes(keyword));
             });
 
