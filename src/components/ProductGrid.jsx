@@ -101,18 +101,13 @@ const ProductGrid = ({ showFilters = true }) => {
                 qConstraints.push(where('countryOfOrigin', '==', filters.origin));
             }
 
-            // 5. Search Query - Prefix search on name if it's the only filter
-            const hasOtherFilters = qConstraints.length > 1;
+            // 5. Search Query - Always use client-side for multi-keyword support
+            const hasSearch = filters.searchQuery && filters.searchQuery.trim().length > 0;
             let applySearchClientSide = false;
 
-            if (filters.searchQuery) {
-                if (!hasOtherFilters) {
-                    const searchLower = filters.searchQuery.toLowerCase();
-                    qConstraints.push(where('name', '>=', searchLower));
-                    qConstraints.push(where('name', '<=', searchLower + '\uf8ff'));
-                } else {
-                    applySearchClientSide = true;
-                }
+            if (hasSearch) {
+                applySearchClientSide = true;
+                // No prefix constraints added to qConstraints here
             }
 
             // Get count
@@ -123,10 +118,11 @@ const ProductGrid = ({ showFilters = true }) => {
 
             // Fetch
             const currentPage = Math.max(1, parseInt(filters.page) || 1);
+            const fetchLimit = hasSearch ? 500 : (PAGE_SIZE * currentPage);
             const limitedQuery = query(
                 collection(db, 'products'),
                 ...qConstraints,
-                limit(PAGE_SIZE * currentPage)
+                limit(fetchLimit)
             );
 
             const querySnapshot = await getDocs(limitedQuery);

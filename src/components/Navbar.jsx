@@ -45,16 +45,26 @@ const Navbar = () => {
     const fetchSuggestions = async (searchTerm) => {
         setIsSuggestionsLoading(true);
         try {
+            // Firestore prefix search is too limited. 
+            // We fetch a larger batch and filter client-side for better results.
+            const queryVal = searchTerm.toLowerCase().trim();
+            const searchKeywords = queryVal.split(/\s+/).filter(Boolean);
+
             const q = query(
                 collection(db, 'products'),
                 where('isActive', '==', true),
-                where('name', '>=', searchTerm),
-                where('name', '<=', searchTerm + '\uf8ff'),
-                firestoreLimit(5)
+                firestoreLimit(100) // Increased limit to find more potential matches
             );
+
             const snapshot = await getDocs(q);
-            const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setSuggestions(items);
+            const allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            const filtered = allItems.filter(p => {
+                const searchTarget = `${p.name || ''} ${p.nameEn || ''} ${p.partBrand || ''} ${p.partNumber || ''}`.toLowerCase();
+                return searchKeywords.every(keyword => searchTarget.includes(keyword));
+            });
+
+            setSuggestions(filtered.slice(0, 5)); // Still only show top 5
         } catch (error) {
             console.error("Error fetching suggestions:", error);
         } finally {
