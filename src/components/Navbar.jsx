@@ -115,8 +115,7 @@ const Navbar = () => {
                                         placeholder={t('search')}
                                         value={filters.searchQuery}
                                         onChange={handleSearchChange}
-                                        style={{ color: '#000000 !important' }}
-                                        className="w-full bg-white border-[1px] border-[#1A1A1A] rounded-lg py-1.5 pl-10 pr-4 focus:ring-2 focus:ring-[#28B463] transition-all text-[14px] font-bold font-Cairo placeholder:text-[#1A1A1A]"
+                                        className="w-full bg-white border-[1px] border-[#1A1A1A] rounded-lg py-1.5 pl-10 pr-4 focus:ring-2 focus:ring-[#28B463] transition-all text-[14px] font-bold font-Cairo text-black placeholder:text-gray-500"
                                     />
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none force-black">
                                         <Search className="h-4 w-4 stroke-[3px]" />
@@ -223,8 +222,7 @@ const Navbar = () => {
                                     placeholder={t('search')}
                                     value={filters.searchQuery}
                                     onChange={handleSearchChange}
-                                    style={{ color: '#000000 !important' }}
-                                    className="w-full bg-white border-[1px] border-[#1A1A1A] rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-[#28B463] transition-all text-[14px] font-bold font-Cairo placeholder:text-[#1A1A1A]"
+                                    className="w-full bg-white border-[1px] border-[#1A1A1A] rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-[#28B463] transition-all text-[14px] font-bold font-Cairo text-black placeholder:text-gray-500"
                                 />
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none force-black">
                                     <Search className="h-4 w-4 stroke-[3px]" />
