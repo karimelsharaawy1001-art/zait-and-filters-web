@@ -1,22 +1,62 @@
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+import { Loader2, ShieldCheck, Mail, Lock } from 'lucide-react';
 
 const AdminLogin = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        setLoading(true);
+        setError('');
+
         try {
-            await signInWithEmailAndPassword(auth, email, password);
-            navigate('/admin/dashboard');
+            // 1. Authenticate with Firebase Auth
+            const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
+            const user = userCredential.user;
+
+            // 2. Fetch User Role from Firestore
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                const role = userData.role;
+
+                if (role === 'admin' || role === 'super_admin') {
+                    // Success!
+                    toast.success(`Welcome back, ${userData.fullName || 'Admin'}`);
+                    navigate('/admin/dashboard');
+                } else {
+                    // Logged in but not an admin
+                    await signOut(auth);
+                    setError('Unauthorized: You do not have permission to access the admin portal.');
+                    toast.error('Unauthorized Access');
+                }
+            } else {
+                // User document not found
+                await signOut(auth);
+                setError('User data not found. Please contact the super admin.');
+                toast.error('Profile Not Found');
+            }
         } catch (err) {
-            setError('Failed to login. Please check your credentials.');
-            console.error(err);
+            console.error("Login error:", err);
+            let message = 'Failed to login. Please check your credentials.';
+
+            if (err.code === 'auth/wrong-password') message = 'Incorrect password.';
+            if (err.code === 'auth/user-not-found') message = 'No account found with this email.';
+            if (err.code === 'auth/too-many-requests') message = 'Too many failed attempts. Try again later.';
+
+            setError(message);
+            toast.error(message);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -73,9 +113,11 @@ const AdminLogin = () => {
 
                     <button
                         type="submit"
-                        className="w-full bg-[#FF0000] hover:bg-red-700 text-white font-black py-4 rounded-xl transition-all shadow-xl shadow-red-200 uppercase tracking-widest text-sm flex items-center justify-center gap-2"
+                        disabled={loading}
+                        className="w-full bg-[#FF0000] hover:bg-red-700 text-white font-black py-4 rounded-xl transition-all shadow-xl shadow-red-200 uppercase tracking-widest text-sm flex items-center justify-center gap-2 disabled:opacity-50"
                     >
-                        Sign In
+                        {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ShieldCheck className="h-5 w-5" />}
+                        {loading ? 'Authenticating...' : 'Sign In to Dashboard'}
                     </button>
                 </form>
             </div>
