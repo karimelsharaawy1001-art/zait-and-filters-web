@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ShoppingCart, User, Menu, X, Package, Users, Car, Settings, LogOut, Droplets, BookOpen } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, X, Package, Users, Car, Settings, LogOut, Droplets, BookOpen, Home, ShoppingBag, UserCircle2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useFilters } from '../context/FilterContext';
 import { useTranslation } from 'react-i18next';
@@ -123,6 +123,17 @@ const Navbar = () => {
     const activeClass = "text-[#28B463]";
     const inactiveClass = "text-[#000000] font-black";
     const linkBase = "text-[14px] font-black uppercase tracking-widest transition-colors font-Cairo mx-4 flex items-center h-full";
+
+    const isActive = (path) => location.pathname === path;
+
+    const mobileNavLinkClass = (path) => `
+        flex items-center gap-4 px-4 py-3 text-[14px] font-bold rounded-xl transition-all duration-300 uppercase italic font-Cairo
+        ${isActive(path)
+            ? 'bg-[#28B463]/10 text-[#28B463] shadow-sm'
+            : 'text-[#1A1A1A] hover:bg-green-50'}
+    `;
+
+    const mobileIconClass = (path) => isActive(path) ? 'text-[#28B463]' : 'text-gray-400';
 
     return (
         <header className="fixed top-0 left-0 right-0 z-[100] transition-all duration-300">
@@ -345,80 +356,82 @@ const Navbar = () => {
                             <Link
                                 to="/"
                                 onClick={() => setIsOpen(false)}
-                                className="block px-4 py-3 text-[14px] !text-[#1A1A1A] !font-bold hover:bg-green-50 rounded-xl transition-colors uppercase italic font-Cairo"
+                                className={mobileNavLinkClass('/')}
                             >
+                                <Home className={`h-5 w-5 ${mobileIconClass('/')}`} />
                                 {t('home')}
                             </Link>
-                            <Link
-                                to="/oil-advisor"
-                                onClick={() => setIsOpen(false)}
-                                className="block px-4 py-3 text-[14px] !text-[#1A1A1A] !font-bold hover:bg-green-50 rounded-xl transition-colors uppercase italic font-Cairo flex items-center gap-3"
-                            >
-                                <Droplets className="h-5 w-5 text-[#28B463]" />
-                                {t('oilAdvisor')}
-                            </Link>
+
                             <Link
                                 to="/shop"
                                 onClick={() => setIsOpen(false)}
-                                className="block px-4 py-3 text-[14px] !text-[#1A1A1A] !font-bold hover:bg-green-50 rounded-xl transition-colors uppercase italic font-Cairo"
+                                className={mobileNavLinkClass('/shop')}
                             >
+                                <ShoppingBag className={`h-5 w-5 ${mobileIconClass('/shop')}`} />
                                 {t('shop')}
                             </Link>
+
                             <Link
                                 to="/blog"
                                 onClick={() => setIsOpen(false)}
-                                className="block px-4 py-3 text-[14px] !text-[#1A1A1A] !font-bold hover:bg-green-50 rounded-xl transition-colors uppercase italic font-Cairo flex items-center gap-3"
+                                className={mobileNavLinkClass('/blog')}
                             >
-                                <BookOpen className="h-5 w-5 text-[#28B463]" />
+                                <BookOpen className={`h-5 w-5 ${mobileIconClass('/blog')}`} />
                                 {t('blog')}
                             </Link>
+
+                            <Link
+                                to="/oil-advisor"
+                                onClick={() => setIsOpen(false)}
+                                className={mobileNavLinkClass('/oil-advisor')}
+                            >
+                                <Droplets className={`h-5 w-5 ${mobileIconClass('/oil-advisor')}`} />
+                                {t('oilAdvisor')}
+                            </Link>
+
                             <Link
                                 to="/marketers"
                                 onClick={() => setIsOpen(false)}
-                                className="block px-4 py-3 text-[14px] !text-[#1A1A1A] !font-bold hover:bg-green-50 rounded-xl transition-colors uppercase italic font-Cairo"
+                                className={mobileNavLinkClass('/marketers')}
                             >
+                                <Users className={`h-5 w-5 ${mobileIconClass('/marketers')}`} />
                                 {t('nav.marketers')}
                             </Link>
+
                             <button
                                 onClick={() => {
                                     setIsOpen(false);
                                     handleGarageToggle();
                                 }}
-                                className={`w-full text-left px-4 py-3 text-[14px] font-bold rounded-xl transition-all duration-300 uppercase italic flex items-center gap-3 font-Cairo ${isGarageFilterActive
+                                className={`w-full text-left px-4 py-3 text-[14px] font-bold rounded-xl transition-all duration-300 uppercase italic flex items-center gap-4 font-Cairo ${isGarageFilterActive
                                     ? 'bg-[#22c55e] text-white shadow-lg'
                                     : 'text-[#000000] hover:bg-gray-50'
                                     }`}
                             >
-                                <div className={`w-10 h-10 flex items-center justify-center rounded-lg ${isGarageFilterActive ? 'bg-white/20' : 'bg-gray-100'}`}>
-                                    <Car
-                                        className={`h-6 w-6 stroke-[3px] transition-all hover:scale-110 active:scale-90 ${isGarageFilterActive ? 'text-white' : 'text-[#000000]'}`}
-                                        style={{
-                                            transform: 'translateZ(0)',
-                                            willChange: 'transform',
-                                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important'
-                                        }}
-                                    />
-                                </div>
-                                <span className={isGarageFilterActive ? 'text-white' : 'text-[#000000]'}>{t('garage')}</span>
+                                <Car
+                                    className={`h-5 w-5 stroke-[3px] transition-all hover:scale-110 active:scale-90 ${isGarageFilterActive ? 'text-white' : 'text-gray-400'}`}
+                                />
+                                {t('garage')}
                             </button>
+
                             <Link
                                 to="/profile"
                                 onClick={() => setIsOpen(false)}
-                                className="block px-4 py-3 text-[14px] font-bold hover:text-[#28B463] hover:bg-green-50 rounded-xl transition-colors uppercase italic font-Cairo nav-link-black"
+                                className={mobileNavLinkClass('/profile')}
                             >
+                                <UserCircle2 className={`h-5 w-5 ${mobileIconClass('/profile')}`} />
                                 {t('myAccount')}
                             </Link>
+
                             {auth.currentUser && (
                                 <button
                                     onClick={() => {
                                         setIsOpen(false);
                                         handleLogout();
                                     }}
-                                    className="w-full text-left px-4 py-3 text-[14px] font-bold text-[#28B463] hover:bg-green-50 rounded-xl transition-colors uppercase italic flex items-center gap-3 font-Cairo"
+                                    className="w-full text-left px-4 py-3 text-[14px] font-bold text-[#28B463] hover:bg-green-50 rounded-xl transition-colors uppercase italic flex items-center gap-4 font-Cairo"
                                 >
-                                    <div className="force-black">
-                                        <LogOut className="h-6 w-6 stroke-[3px]" />
-                                    </div>
+                                    <LogOut className="h-5 w-5 text-[#28B463]" />
                                     {t('signOut')}
                                 </button>
                             )}
