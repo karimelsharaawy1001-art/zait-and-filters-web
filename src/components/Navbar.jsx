@@ -8,9 +8,9 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
 import { auth, db } from '../firebase';
 import { signOut } from 'firebase/auth';
-import { collection, query, where, getDocs, limit as firestoreLimit } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit as firestoreLimit, orderBy } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
-import { normalizeArabic } from '../utils/productUtils';
+import { normalizeArabic, getSearchableText } from '../utils/productUtils';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -51,26 +51,28 @@ const Navbar = () => {
             const queryVal = normalizeArabic(searchTerm);
             const searchKeywords = queryVal.split(/\s+/).filter(Boolean);
 
-            const q = query(
-                collection(db, 'products'),
-                where('isActive', '==', true),
-                firestoreLimit(500) // Increased limit to find more potential matches in large collections
-            );
+            // Attempt to fetch ordered by name for a better subset, with fallback
+            let q;
+            try {
+                q = query(
+                    collection(db, 'products'),
+                    where('isActive', '==', true),
+                    orderBy('name', 'asc'),
+                    firestoreLimit(2000) // High limit to ensure matching in large collections
+                );
+            } catch (e) {
+                q = query(
+                    collection(db, 'products'),
+                    where('isActive', '==', true),
+                    firestoreLimit(2000)
+                );
+            }
 
             const snapshot = await getDocs(q);
             const allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
             const filtered = allItems.filter(p => {
-                const searchTarget = normalizeArabic(`
-                    ${p.name || ''} 
-                    ${p.nameEn || ''} 
-                    ${p.partBrand || p.brand || ''} 
-                    ${p.brandEn || ''}
-                    ${p.partNumber || ''}
-                    ${p.make || ''}
-                    ${p.model || p.car_model || ''}
-                    ${p.carModel || ''}
-                `);
+                const searchTarget = normalizeArabic(getSearchableText(p));
                 return searchKeywords.every(keyword => searchTarget.includes(keyword));
             });
 

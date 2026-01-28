@@ -7,7 +7,7 @@ import { collection, getDocs, query, where, limit, startAfter, getCountFromServe
 import { db } from '../firebase';
 import ProductCard from './ProductCard';
 import { toast } from 'react-hot-toast';
-import { parseYearRange, normalizeArabic } from '../utils/productUtils';
+import { parseYearRange, normalizeArabic, getSearchableText } from '../utils/productUtils';
 import useScrollRestoration from '../hooks/useScrollRestoration';
 
 const ProductGrid = ({ showFilters = true }) => {
@@ -117,13 +117,27 @@ const ProductGrid = ({ showFilters = true }) => {
 
             // Fetch
             const currentPage = Math.max(1, parseInt(filters.page) || 1);
-            // Increased limit significantly for search to ensure we find matches in larger collections
-            const fetchLimit = hasSearch ? 1000 : (PAGE_SIZE * currentPage);
-            const limitedQuery = query(
-                collection(db, 'products'),
-                ...qConstraints,
-                limit(fetchLimit)
-            );
+            // Drastically increased limit for search to capture results in large databases
+            // We use 5000 as a ceiling for small/medium shop catalogs
+            const fetchLimit = hasSearch ? 5000 : (PAGE_SIZE * currentPage);
+
+            // Try to order by name if searching to provide a more predictable subset
+            let limitedQuery;
+            try {
+                limitedQuery = query(
+                    collection(db, 'products'),
+                    ...qConstraints,
+                    orderBy('name', 'asc'),
+                    limit(fetchLimit)
+                );
+            } catch (e) {
+                // Fallback if index for isActive + name doesn't exist
+                limitedQuery = query(
+                    collection(db, 'products'),
+                    ...qConstraints,
+                    limit(fetchLimit)
+                );
+            }
 
             const querySnapshot = await getDocs(limitedQuery);
             let allFetched = querySnapshot.docs.map(doc => ({
@@ -131,25 +145,15 @@ const ProductGrid = ({ showFilters = true }) => {
                 ...doc.data()
             }));
 
-            // Client-side search with Arabic Normalization
+            // Client-side search with Multi-lingual Normalization
             if (applySearchClientSide && filters.searchQuery) {
                 const searchKeywords = filters.searchQuery.trim().split(/\s+/).filter(Boolean).map(k => normalizeArabic(k));
 
                 allFetched = allFetched.filter(p => {
-                    const searchTarget = normalizeArabic(`
-                        ${p.name || ''} 
-                        ${p.nameEn || ''} 
-                        ${p.partNumber || ''} 
-                        ${p.partBrand || p.brand || ''} 
-                        ${p.brandEn || ''}
-                        ${p.make || ''}
-                        ${p.model || p.car_model || ''}
-                        ${p.carModel || ''}
-                        ${p.category || ''}
-                        ${p.subcategory || ''}
-                    `);
+                    // Use the robust utility that handles Arabic/English mapping
+                    const searchTarget = normalizeArabic(getSearchableText(p));
 
-                    // Ensure EVERY keyword is present in the normalized target string
+                    // Every keyword must be found in the target
                     return searchKeywords.every(keyword => searchTarget.includes(keyword));
                 });
                 setTotalProducts(allFetched.length);

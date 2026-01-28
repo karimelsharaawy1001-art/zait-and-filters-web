@@ -119,10 +119,6 @@ export const parseYearRange = (range) => {
 
 /**
  * Normalizes Arabic text for consistent searching.
- * Replaces variations of Alef, Yae, and Teh Marbuta.
- * 
- * @param {string} text - The string to normalize.
- * @returns {string} - Normalized string.
  */
 export const normalizeArabic = (text) => {
     if (!text) return '';
@@ -130,7 +126,92 @@ export const normalizeArabic = (text) => {
         .replace(/[أإآ]/g, 'ا')
         .replace(/ة/g, 'ه')
         .replace(/ى/g, 'ي')
-        .replace(/[\u064B-\u0652]/g, '') // Remove Harakat (vowels)
+        .replace(/ؤ/g, 'و')
+        .replace(/ئ/g, 'ي')
+        .replace(/\u0640/g, '') // Remove Kashida (Tatweel)
+        .replace(/[\u064B-\u0652]/g, '') // Remove Harakat
         .toLowerCase()
         .trim();
+};
+
+/**
+ * Common car makes and models mapping for search enrichment.
+ */
+const CAR_NAME_MAPPINGS = {
+    'lancer': ['لانسر', 'لانسر بوما', 'لانسر شارك', 'لانسر كريستاله'],
+    'mitsubishi': ['ميتسوبيشي', 'ميتسوبيشى'],
+    'toyota': ['تويوتا'],
+    'corolla': ['كورولا', 'كرولا'],
+    'yaris': ['ياريس', 'ياريس'],
+    'hyundai': ['هيونداي', 'هيونداى'],
+    'elantra': ['النترا'],
+    'verna': ['فيرنا'],
+    'accent': ['اكسنت'],
+    'kia': ['كيا'],
+    'cerato': ['سيراتو'],
+    'rio': ['ريو'],
+    'sportage': ['سبورتاج'],
+    'nissan': ['نيسان'],
+    'sunny': ['صني'],
+    'qashqai': ['قشقاي', 'قشكاى'],
+    'chevrolet': ['شيفروليه', 'شيفورليه', 'شيفورلية'],
+    'optra': ['اوبترا'],
+    'aveo': ['افيو'],
+    'cruze': ['كروز'],
+    'renault': ['رينو'],
+    'logan': ['لوجان', 'لوجن'],
+    'megane': ['ميجان'],
+    'duster': ['داستر'],
+    'fiat': ['فيات'],
+    'tipos': ['تيبو'],
+    'opel': ['اوبل'],
+    'astra': ['استرا'],
+    'insignia': ['انسجنيا'],
+    'bmw': ['بي ام', 'بي ام دبليو'],
+    'mercedes': ['مرسيدس'],
+    'skoda': ['سكودا'],
+    'octavia': ['اوكتافيا'],
+    'volkswagen': ['فولكس', 'فولكس فاجن'],
+    'golf': ['جولف'],
+    'passat': ['باسات'],
+    'peugeot': ['بيجو'],
+    'suzuki': ['سوزوكي', 'سوزوكى'],
+    'honda': ['هوندا'],
+    'civic': ['سيفيك'],
+    'mazda': ['مازدا'],
+    'ford': ['فورد'],
+    'mg': ['ام جي'],
+};
+
+/**
+ * Gets all relevant searchable text for a product.
+ */
+export const getSearchableText = (p) => {
+    if (!p) return '';
+
+    // Basic fields
+    const texts = [
+        p.name || '',
+        p.nameEn || '',
+        p.partNumber || '',
+        p.partBrand || p.brand || '',
+        p.brandEn || '',
+        p.make || p.car_make || '',
+        p.model || p.car_model || p.carModel || '',
+        p.category || '',
+        p.subcategory || ''
+    ];
+
+    // Enrich with Arabic versions of car make/model
+    const make = String(p.make || p.car_make || '').toLowerCase();
+    const model = String(p.model || p.car_model || p.carModel || '').toLowerCase();
+
+    if (CAR_NAME_MAPPINGS[make]) {
+        texts.push(...CAR_NAME_MAPPINGS[make]);
+    }
+    if (CAR_NAME_MAPPINGS[model]) {
+        texts.push(...CAR_NAME_MAPPINGS[model]);
+    }
+
+    return texts.join(' ').toLowerCase();
 };
