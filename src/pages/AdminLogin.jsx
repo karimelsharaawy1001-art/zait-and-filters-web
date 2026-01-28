@@ -9,6 +9,7 @@ import { Loader2, ShieldCheck, Mail, Lock } from 'lucide-react';
 const AdminLogin = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
