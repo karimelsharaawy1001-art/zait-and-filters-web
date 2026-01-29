@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { safeStorage } from './utils/storage';
 import { Toaster } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import Navbar from './components/Navbar';
@@ -121,7 +122,7 @@ const ReferralTracker = () => {
     const ref = searchParams.get('ref');
     if (ref) {
       console.log("Referral Code Detected:", ref);
-      localStorage.setItem('affiliate_ref', ref);
+      safeStorage.setItem('affiliate_ref', ref);
     }
   }, [searchParams]);
 

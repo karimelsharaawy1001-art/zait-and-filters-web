@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { db, auth } from '../firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { safeStorage } from '../utils/storage';
 
 const CartContext = createContext();
 
@@ -9,22 +10,22 @@ export const useCart = () => useContext(CartContext);
 export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState(() => {
         try {
-            const storedCart = localStorage.getItem('cartItems');
+            const storedCart = safeStorage.getItem('cartItems');
             return storedCart ? JSON.parse(storedCart) : [];
         } catch (error) {
-            console.error("Failed to load cart from local storage", error);
+            console.error("Failed to load cart from safe storage", error);
             return [];
         }
     });
 
     const [sessionId] = useState(() => {
-        let id = localStorage.getItem('cartSessionId');
+        let id = safeStorage.getItem('cartSessionId');
         if (!id) {
             // Safer way to access randomUUID in browser
             id = (typeof crypto !== 'undefined' && crypto.randomUUID)
                 ? crypto.randomUUID()
                 : Math.random().toString(36).substring(2) + Date.now().toString(36);
-            localStorage.setItem('cartSessionId', id);
+            safeStorage.setItem('cartSessionId', id);
         }
         return id;
     });
@@ -40,7 +41,7 @@ export const CartProvider = ({ children }) => {
     // Synchronize with Local Storage and Firestore (for abandoned cart recovery)
     useEffect(() => {
         try {
-            localStorage.setItem('cartItems', JSON.stringify(cartItems));
+            safeStorage.setItem('cartItems', JSON.stringify(cartItems));
 
             if (cartItems.length > 0) {
                 const syncCart = async () => {

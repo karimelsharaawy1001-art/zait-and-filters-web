@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { safeStorage } from '../utils/storage';
 import { Loader2, ShieldCheck, Banknote, CreditCard, Ticket, CheckCircle2, AlertCircle, MapPin, Plus, User, Mail, Smartphone, Trash2 } from 'lucide-react';
 import PhoneInputGroup from '../components/PhoneInputGroup';
 import TrustPaymentSection from '../components/TrustPaymentSection';
@@ -333,7 +334,7 @@ const Checkout = () => {
 
         setLoading(true);
         const formattedPhone = `+2${formData.phone}`;
-        const affRef = localStorage.getItem('affiliate_ref');
+        const affRef = safeStorage.getItem('affiliate_ref');
 
         if (cartItems.length === 0) {
             toast.error(t('cartEmpty'));
@@ -422,8 +423,8 @@ const Checkout = () => {
             orderData.createdAt = new Date();
 
             if (selectedMethod?.type === 'online') {
-                localStorage.setItem('pending_order', JSON.stringify(orderData));
-                localStorage.setItem('pending_cart_items', JSON.stringify(cartItems));
+                safeStorage.setItem('pending_order', JSON.stringify(orderData));
+                safeStorage.setItem('pending_cart_items', JSON.stringify(cartItems));
                 const tempOrderId = `temp_${Date.now()}`;
                 await handleOnlinePayment(tempOrderId, selectedMethod);
             } else {
@@ -455,7 +456,7 @@ const Checkout = () => {
                     return orderRef.id;
                 });
                 // Mark cart as recovered
-                const cartId = auth.currentUser ? auth.currentUser.uid : localStorage.getItem('cartSessionId');
+                const cartId = auth.currentUser ? auth.currentUser.uid : safeStorage.getItem('cartSessionId');
                 if (cartId) {
                     await setDoc(doc(db, 'abandoned_carts', cartId), {
                         recovered: true,

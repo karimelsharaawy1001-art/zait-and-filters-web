@@ -7,6 +7,7 @@ import { db, auth } from '../firebase';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 import { useCart } from '../context/CartContext';
+import { safeStorage } from '../utils/storage';
 
 const OrderSuccess = () => {
     const [searchParams] = useSearchParams();
@@ -25,8 +26,8 @@ const OrderSuccess = () => {
     useEffect(() => {
         const createPendingOrder = async () => {
             try {
-                const pendingOrderData = localStorage.getItem('pending_order');
-                const pendingCartItems = localStorage.getItem('pending_cart_items');
+                const pendingOrderData = safeStorage.getItem('pending_order');
+                const pendingCartItems = safeStorage.getItem('pending_cart_items');
 
                 if (pendingOrderData) {
                     const orderData = JSON.parse(pendingOrderData);
@@ -60,8 +61,8 @@ const OrderSuccess = () => {
                         return { id: orderRef.id, number: nextNumber };
                     });
 
-                    localStorage.removeItem('pending_order');
-                    localStorage.removeItem('pending_cart_items');
+                    safeStorage.removeItem('pending_order');
+                    safeStorage.removeItem('pending_cart_items');
                     clearCart();
 
                     setOrderId(result.id);
