@@ -39,11 +39,14 @@ const ProductCard = ({ product, isCompact = false }) => {
     const hasSale = product.salePrice && Number(product.salePrice) < Number(product.price);
 
     return (
-        <article className={`product-card group relative flex flex-col !gap-0 !space-y-0 !justify-start bg-white rounded-premium shadow-lg border overflow-hidden transition-all duration-300 hover:translate-y-[-5px] w-full max-w-[320px] mx-auto h-full ${isCompact ? 'px-0' : 'px-0.5'} ${isRecommended ? 'border-[#28B463] ring-1 ring-[#28B463]/30 shadow-[0_0_15px_-3px_rgba(40,180,99,0.3)]' : 'border-gray-100'}`}>
-            {/* For You Badge */}
+        <article className={`product-card group relative flex flex-col !gap-0 !space-y-0 !justify-start rounded-premium shadow-lg border overflow-hidden transition-all duration-500 hover:translate-y-[-8px] hover:shadow-2xl w-full max-w-[320px] mx-auto h-full ${isCompact ? 'px-0' : 'px-0.5'} ${isRecommended ? 'bg-[#F0FFF4] border-[#D1FAE5] shadow-[0_10px_30px_-15px_rgba(40,180,99,0.2)] hover:shadow-[0_20px_40px_-15px_rgba(40,180,99,0.35)]' : 'bg-white border-gray-100'}`}>
+            {/* Premium Compatibility Badge - Only for Garage Matches */}
             {isRecommended && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 z-30 bg-[#28B463] text-white px-3 py-1 rounded-b-xl text-[9px] font-black uppercase tracking-[0.2em] shadow-md animate-in slide-in-from-top-full duration-500">
-                    {t('forYou') || 'خصيصاً لك'}
+                <div className="absolute top-3 left-3 z-30 bg-gradient-to-r from-[#059669] to-[#10b981] text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider shadow-lg flex items-center gap-1.5 animate-in slide-in-from-left-2 duration-500">
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="font-Cairo leading-none">متوافق مع سيارتك</span>
                 </div>
             )}
             {/* HERO IMAGE - Fixed Aspect Ratio to prevent collapse */}
@@ -99,7 +102,7 @@ const ProductCard = ({ product, isCompact = false }) => {
                         }}
                     >
                         <h3
-                            className={`text-[#000000] font-bold leading-tight line-clamp-2 uppercase transition-colors overflow-hidden text-ellipsis ${isCompact ? 'text-[15px]' : 'text-xl'}`}
+                            className={`text-[#1A1A1A] font-extrabold leading-tight line-clamp-2 uppercase transition-colors overflow-hidden text-ellipsis ${isCompact ? 'text-[15px]' : 'text-xl'}`}
                             style={{ fontFamily: 'var(--font-commercial)' }}
                         >
                             {i18n.language === 'en' ? (product.nameEn || product.name) : product.name}
@@ -163,7 +166,6 @@ const ProductCard = ({ product, isCompact = false }) => {
                     </div>
                 </div>
 
-                {/* PRICING & ACTION - Streamlined in compact mode */}
                 <div className={`mt-auto flex flex-col ${isCompact ? 'gap-2 pt-2' : 'gap-3 pt-3'} border-t border-gray-100`}>
                     <div className={`flex items-center justify-between ${isCompact ? 'flex-row' : 'flex-col 2xs:flex-row'} gap-2`}>
                         <div className={`flex flex-col ${isCompact ? 'items-start' : 'items-center 2xs:items-start'}`}>
@@ -173,10 +175,10 @@ const ProductCard = ({ product, isCompact = false }) => {
                                 </span>
                             )}
                             <div className="flex items-baseline gap-1">
-                                <span className={`${isCompact ? 'text-xl' : 'text-2xl md:text-3xl'} font-black text-[#1A1A1A] font-Cairo leading-none drop-shadow-sm`}>
+                                <span className={`${isCompact ? 'text-xl' : 'text-2xl md:text-3xl'} font-black text-[#059669] font-Cairo leading-none drop-shadow-sm`}>
                                     {hasSale ? product.salePrice : product.price}
                                 </span>
-                                <span className={`${isCompact ? 'text-xs' : 'text-xs md:text-sm'} font-black text-[#000000] uppercase tracking-tighter`}>{t('currency')}</span>
+                                <span className={`${isCompact ? 'text-xs' : 'text-xs md:text-sm'} font-black text-[#1A1A1A] uppercase tracking-tighter`}>{t('currency')}</span>
                             </div>
                         </div>
 
