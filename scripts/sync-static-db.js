@@ -22,11 +22,10 @@ const firebaseConfig = {
     appId: process.env.VITE_FIREBASE_APP_ID
 };
 
-async function syncProducts() {
-    console.log('🚀 Starting Static Database Sync (SDK Mode)...');
+async function syncAllData() {
+    console.log('🚀 Starting Robust Static Database Sync...');
 
     const DATA_DIR = path.join(__dirname, '../public/data');
-    const OUTPUT_FILE = path.join(DATA_DIR, 'products-db.json');
 
     try {
         if (!fs.existsSync(DATA_DIR)) {
@@ -36,28 +35,35 @@ async function syncProducts() {
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const q = query(collection(db, 'products'), where('isActive', '==', true));
-        const snapshot = await getDocs(q);
+        const syncCollection = async (collectionName, fileName, queryConstraints = []) => {
+            console.log(`📡 Syncing ${collectionName}...`);
+            const q = query(collection(db, collectionName), ...queryConstraints);
+            const snapshot = await getDocs(q);
+            const data = snapshot.docs.map(doc => {
+                const docData = doc.data();
+                return {
+                    id: doc.id,
+                    ...docData,
+                    createdAt: docData.createdAt?.toDate?.() || docData.createdAt,
+                    updatedAt: docData.updatedAt?.toDate?.() || docData.updatedAt
+                };
+            });
+            fs.writeFileSync(path.join(DATA_DIR, fileName), JSON.stringify(data, null, 2));
+            console.log(`✅ ${collectionName} synced (${data.length} records).`);
+            return data;
+        };
 
-        const products = snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-                id: doc.id,
-                ...data,
-                // Ensure dates are stringified
-                createdAt: data.createdAt?.toDate?.() || data.createdAt,
-                updatedAt: data.updatedAt?.toDate?.() || data.updatedAt
-            };
-        });
+        // Sync all core entities
+        await syncCollection('products', 'products-db.json', [where('isActive', '==', true)]);
+        await syncCollection('categories', 'categories-db.json');
+        await syncCollection('cars', 'cars-db.json');
+        await syncCollection('brand_logos', 'brands-db.json');
 
-        fs.writeFileSync(OUTPUT_FILE, JSON.stringify(products, null, 2));
-        console.log(`✅ Successfully synced ${products.length} products to static database.`);
+        console.log('✨ Global Static Data Sync Complete.');
 
     } catch (error) {
         console.error('❌ Sync failed:', error);
-        // We don't exit(1) to prevent breaking the build if Firebase is temporarily down,
-        // but it's a critical failure for zero-cost scaling.
     }
 }
 
-syncProducts();
+syncAllData();

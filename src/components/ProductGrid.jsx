@@ -15,7 +15,14 @@ const ProductGrid = ({ showFilters = true }) => {
     const { t, i18n } = useTranslation();
     const isRTL = i18n.language === 'ar';
     const { addToCart } = useCart();
-    const { staticProducts, isStaticLoaded, isQuotaExceeded, withFallback } = useStaticData();
+    const {
+        staticProducts,
+        categories: staticCategories,
+        cars: staticCars,
+        isStaticLoaded,
+        isQuotaExceeded,
+        withFallback
+    } = useStaticData();
     const { filters, updateFilter, resetFilters, isGarageFilterActive, activeCar } = useFilters();
     const { hasSavedPosition } = useScrollRestoration();
 
@@ -45,10 +52,10 @@ const ProductGrid = ({ showFilters = true }) => {
     const fetchProducts = async () => {
         setLoading(true);
         try {
-            // HIGH TRAFFIC STRATEGY: 
+            // Master Static Logic: Primary source of truth for high-concurrency scaling
             // If we have static data loaded, we perform ALL filtering and searching client-side.
             // This achieves $0 cost and maximum speed.
-            if (isStaticLoaded && !isQuotaExceeded) {
+            if (isStaticLoaded && (isQuotaExceeded || true)) { // Favoring static for performance
                 console.log('⚡ Using High-Performance Static Search Engine');
                 let results = [...staticProducts];
 
@@ -111,6 +118,7 @@ const ProductGrid = ({ showFilters = true }) => {
                 return;
             }
 
+            // Fallback Firestore logic (Shielded)
             // FALLBACK: Traditional Firestore Query (for real-time or if static is missing)
             await withFallback(async () => {
                 let qConstraints = [where('isActive', '==', true)];
@@ -237,51 +245,33 @@ const ProductGrid = ({ showFilters = true }) => {
             }
         });
 
-        // ALSO fetch from categories collection to ensure category/subcategory dropdowns are populated
-        try {
-            const categoriesSnapshot = await getDocs(collection(db, 'categories'));
-            categoriesSnapshot.docs.forEach(doc => {
-                const category = doc.data();
+        // ALSO use static categories and cars to ensure dropdowns are populated without Firestore
+        if (staticCategories && staticCategories.length > 0) {
+            staticCategories.forEach(category => {
                 if (category.name) {
                     if (!categories[category.name]) categories[category.name] = new Set();
-
-                    // Add subcategories if they exist
                     if (Array.isArray(category.subCategories)) {
                         category.subCategories.forEach(sub => {
-                            if (sub) {
-                                // Extract name if subcategory is an object {imageUrl, name}
-                                const subName = typeof sub === 'string' ? sub : sub.name;
-                                if (subName) categories[category.name].add(subName);
-                            }
+                            const subName = typeof sub === 'string' ? sub : sub.name;
+                            if (subName) categories[category.name].add(subName);
                         });
                     }
                 }
             });
-            console.log('[ProductGrid] Categories from admin:', categories);
-        } catch (error) {
-            console.error('[ProductGrid] Error fetching categories:', error);
         }
 
-        // ALSO fetch from cars collection to ensure make/model dropdowns are always populated
-        try {
-            const carsSnapshot = await getDocs(collection(db, 'cars'));
-            carsSnapshot.docs.forEach(doc => {
-                const car = doc.data();
+        if (staticCars && staticCars.length > 0) {
+            staticCars.forEach(car => {
                 if (car.make) {
                     if (!makes[car.make]) makes[car.make] = new Set();
                     if (car.model) makes[car.make].add(car.model);
                 }
-
-                // Also add year ranges from cars
                 if (car.yearStart && car.yearEnd) {
                     for (let year = car.yearStart; year <= car.yearEnd; year++) {
                         years.add(year.toString());
                     }
                 }
             });
-            console.log('[ProductGrid] Makes from admin:', makes);
-        } catch (error) {
-            console.error('[ProductGrid] Error fetching cars for filters:', error);
         }
 
         // Convert Sets to sorted Arrays
@@ -302,19 +292,14 @@ const ProductGrid = ({ showFilters = true }) => {
         });
     };
 
-    // Fetch car header image when make/model changes
+    // Fetch car header image using static data fallback
     useEffect(() => {
         const fetchCarImage = async () => {
             if (filters.make && filters.model) {
-                try {
-                    const carsSnapshot = await getDocs(collection(db, 'cars'));
-                    const car = carsSnapshot.docs.find(doc => {
-                        const data = doc.data();
-                        return data.make === filters.make && data.model === filters.model;
-                    });
-                    setCarHeaderImage(car ? car.data().imageUrl : '');
-                } catch (error) {
-                    console.error("Error fetching car image: ", error);
+                const car = staticCars?.find(c => c.make === filters.make && c.model === filters.model);
+                if (car) {
+                    setCarHeaderImage(car.imageUrl || '');
+                } else {
                     setCarHeaderImage('');
                 }
             } else {
@@ -323,7 +308,7 @@ const ProductGrid = ({ showFilters = true }) => {
         };
 
         fetchCarImage();
-    }, [filters.make, filters.model]);
+    }, [filters.make, filters.model, staticCars]);
 
     // Sync Global Filters to Local Active Filters
     useEffect(() => {

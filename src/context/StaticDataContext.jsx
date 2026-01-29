@@ -12,49 +12,71 @@ export const useStaticData = () => {
 };
 
 export const StaticDataProvider = ({ children }) => {
-    const [staticProducts, setStaticProducts] = useState([]);
-    const [isStaticLoaded, setIsStaticLoaded] = useState(false);
+    const [staticData, setStaticData] = useState({
+        products: [],
+        categories: [],
+        cars: [],
+        brands: [],
+        isLoaded: false
+    });
     const [isQuotaExceeded, setIsQuotaExceeded] = useState(false);
 
     useEffect(() => {
-        const loadStaticData = async () => {
+        const loadAllStaticData = async () => {
             try {
-                const response = await fetch('/data/products-db.json');
-                if (response.ok) {
-                    const data = await response.json();
-                    setStaticProducts(data);
-                    setIsStaticLoaded(true);
-                    console.log(`🧊 Static Database Loaded: ${data.length} products ready for zero-cost scaling.`);
-                }
+                const load = async (file) => {
+                    const r = await fetch(`/data/${file}`);
+                    return r.ok ? await r.json() : [];
+                };
+
+                const [products, categories, cars, brands] = await Promise.all([
+                    load('products-db.json'),
+                    load('categories-db.json'),
+                    load('cars-db.json'),
+                    load('brands-db.json')
+                ]);
+
+                setStaticData({
+                    products,
+                    categories,
+                    cars,
+                    brands,
+                    isLoaded: true
+                });
+                console.log(`🧊 Multi-Source Static DB Loaded (${products.length} Products, ${cars.length} Cars)`);
             } catch (error) {
-                console.warn('⚠️ Static database fallback not available:', error);
+                console.warn('⚠️ Static architecture degraded:', error);
             }
         };
 
-        loadStaticData();
+        loadAllStaticData();
     }, []);
 
     /**
-     * Helper to wrap Firestore calls and automatically trigger fallback
-     * @param {Function} firestoreFn - The function to execute
-     * @param {Array} staticFallbackData - Optional manual fallback data
+     * Quota Shield: Global handler to silently divert traffic to static data on Firebase 429s.
      */
-    const withFallback = async (firestoreFn, staticFallbackData = null) => {
+    const withFallback = async (firestoreFn, collectionName = 'products') => {
+        // If already in quota-exceeded mode, don't even try Firebase
+        if (isQuotaExceeded) return staticData[collectionName] || [];
+
         try {
             return await firestoreFn();
         } catch (error) {
-            if (error.code === 'resource-exhausted') {
+            const isQuotaError = error.code === 'resource-exhausted' || error.message?.includes('429');
+            if (isQuotaError) {
                 setIsQuotaExceeded(true);
-                toast.error('Site capacity reached. Switching to high-speed static fallback.', { icon: '🚀' });
-                return staticFallbackData || staticProducts;
+                // Silent Failover: Site remains functional without error popups
+                // but we clear any stuck loading states in the consumer if needed.
+                return staticData[collectionName] || [];
             }
-            throw error;
+            throw error; // Let other errors bubble up
         }
     };
 
     const value = {
-        staticProducts,
-        isStaticLoaded,
+        ...staticData,
+        staticProducts: staticData.products, // Legacy aliasing
+        isStaticLoaded: staticData.isLoaded,
         isQuotaExceeded,
         withFallback,
         setIsQuotaExceeded

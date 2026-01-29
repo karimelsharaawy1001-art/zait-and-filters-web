@@ -1,0 +1,588 @@
+[
+  {
+    "id": "35Zzoj3ye1Wxn8fnjkna",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769185680/categories/u9qbz7nnvl5eymp1uaj4.jpg",
+    "subCategories": [],
+    "name": "أجزاء داخلية متنوعة"
+  },
+  {
+    "id": "8kybGfjSewElxRl3xvG6",
+    "name": "الفرامل",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769185186/categories/fxro0zxepohxkwcale0s.jpg",
+    "subCategories": [
+      {
+        "imageUrl": "",
+        "name": "تيل فرامل"
+      },
+      {
+        "imageUrl": "",
+        "name": "حساسات فرامل"
+      },
+      {
+        "imageUrl": "",
+        "name": "طنابير"
+      },
+      {
+        "name": "فرامل يد",
+        "imageUrl": ""
+      },
+      {
+        "name": "ماستر فرامل",
+        "imageUrl": ""
+      }
+    ]
+  },
+  {
+    "id": "AF8IMiSvAh8SQB5UdT8u",
+    "subCategories": [
+      {
+        "name": "ازرار",
+        "imageUrl": ""
+      },
+      {
+        "name": "ايرباج",
+        "imageUrl": ""
+      },
+      {
+        "name": "حساسات",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "دينامو"
+      },
+      {
+        "name": "ذراع اشارات و مساحات",
+        "imageUrl": ""
+      },
+      {
+        "name": "فيوزات",
+        "imageUrl": ""
+      },
+      {
+        "name": "كونتاكت",
+        "imageUrl": ""
+      },
+      {
+        "name": "كونترول مراوح",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "مارش"
+      },
+      {
+        "name": "قطع كهربائية أخرى",
+        "imageUrl": ""
+      }
+    ],
+    "name": "حساسات و قطع كهربائية",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769184699/categories/c1s1krpylcbu1gknsrsu.jpg"
+  },
+  {
+    "id": "DF84Uv9h68CPwRGTdPqb",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769183423/categories/icek8wovxonwpoduup2n.jpg",
+    "subCategories": [
+      {
+        "imageUrl": "",
+        "name": "بارات"
+      },
+      {
+        "name": "باور",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "بطاحات و بلي بطاحات"
+      },
+      {
+        "imageUrl": "",
+        "name": "بلية عجل"
+      },
+      {
+        "name": "جلب و بيض مقصات",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "صامولة و مسامير عجل"
+      },
+      {
+        "name": "صرة عجل",
+        "imageUrl": ""
+      },
+      {
+        "name": "قواعد و شدادات",
+        "imageUrl": ""
+      },
+      {
+        "name": "كبالن و كاوتش كوبلن",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "مساعدين و صدادات"
+      },
+      {
+        "imageUrl": "",
+        "name": "تيش ميزان و مسامير ميزان"
+      },
+      {
+        "imageUrl": "",
+        "name": "مقصات كاملة"
+      }
+    ],
+    "name": "عفشة"
+  },
+  {
+    "id": "DHIEZ0cjhaKVlePTEmfA",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769185079/categories/wxe0umam4hssjoq1twon.jpg",
+    "subCategories": [
+      {
+        "name": "بلوف",
+        "imageUrl": ""
+      },
+      {
+        "name": "طقم بستم",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "طقم شنبر"
+      },
+      {
+        "imageUrl": "",
+        "name": "طقم شواكيش"
+      },
+      {
+        "imageUrl": "",
+        "name": "طقم صباب"
+      },
+      {
+        "name": "طقم كوستبان",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "طلمبة زيت"
+      },
+      {
+        "imageUrl": "",
+        "name": "عامود كامة"
+      },
+      {
+        "name": "كاوتش صباب",
+        "imageUrl": ""
+      }
+    ],
+    "name": "مستلزمات عمرة موتور"
+  },
+  {
+    "id": "DYglxmDP7k801PYm770n",
+    "name": "دورة البنزين",
+    "subCategories": [
+      {
+        "name": "رشاشات",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "سلك بنزين"
+      },
+      {
+        "name": "طلمبات بنزين و ملحقاتها",
+        "imageUrl": ""
+      },
+      {
+        "name": "غطاء تانك",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "قطع متنوعة لدورة البنزين"
+      }
+    ],
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769184928/categories/h6syzdmvtfs188yd56bp.jpg"
+  },
+  {
+    "id": "Ig4gSB2F5yYHP8dJUXqB",
+    "name": "دبرياج و قطع فتيس",
+    "subCategories": [
+      {
+        "name": "أسطوانة و ديسك و بلية",
+        "imageUrl": ""
+      },
+      {
+        "name": "كارتيرة زيت فتيس",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "ماستر دبرياج"
+      },
+      {
+        "imageUrl": "",
+        "name": "قطع فتيس أخرى"
+      }
+    ],
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769185362/categories/f0dhnp2ucfdpkdby4phr.jpg"
+  },
+  {
+    "id": "OuvjAeMSl1vEcBvHQvrT",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769185247/categories/hpnvfvksewp1bwixgeyn.jpg",
+    "name": "جوانات و أويل سيل",
+    "subCategories": []
+  },
+  {
+    "id": "QxgQ6Ni07qZowYUivbqO",
+    "subCategories": [
+      {
+        "imageUrl": "",
+        "name": "بوجيهات"
+      },
+      {
+        "name": "سلوك بوجيهات",
+        "imageUrl": ""
+      },
+      {
+        "name": "موبينة",
+        "imageUrl": ""
+      }
+    ],
+    "name": "بوجيهات و سلوك بوجيهات و موبينة",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769185628/categories/h45co7xzjhgmift32uhr.jpg"
+  },
+  {
+    "id": "U9DMwSU8iZBqjMc0K7C7",
+    "subCategories": [],
+    "name": "مساحات",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769185701/categories/eogjzqal3qwmg4ob2cro.jpg"
+  },
+  {
+    "id": "WXk1J9oC53dGS4eOe82P",
+    "subCategories": [],
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769184161/categories/fnvhlsxzeu3aobvxdawz.jpg",
+    "name": " إضافات للموتور و البنزين"
+  },
+  {
+    "id": "aMeVFXHBez739ubZW3lT",
+    "subCategories": [
+      {
+        "name": "بلف كاتينة",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "بلي و شدادات"
+      },
+      {
+        "imageUrl": "",
+        "name": "سيور"
+      },
+      {
+        "name": "طقم كاتينة كامل",
+        "imageUrl": ""
+      }
+    ],
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769185728/categories/lnolvskp3s9lulrxwenh.jpg",
+    "name": "سيور و بلي"
+  },
+  {
+    "id": "hXKPNjev4ZVJYZlQFOA1",
+    "name": "زيوت فتيس و دبرياج و باور",
+    "subCategories": [
+      {
+        "imageUrl": "",
+        "name": "75w90"
+      },
+      {
+        "name": "80w90",
+        "imageUrl": ""
+      },
+      {
+        "name": "ATF",
+        "imageUrl": ""
+      },
+      {
+        "name": "CENTRAL HYDRAULIC",
+        "imageUrl": ""
+      },
+      {
+        "name": "CVT",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "DCT"
+      },
+      {
+        "name": "DEXRON 2",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "DECRON 3"
+      },
+      {
+        "name": "DEXRON 6",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "DSG"
+      },
+      {
+        "imageUrl": "",
+        "name": "MTF"
+      },
+      {
+        "imageUrl": "",
+        "name": "SAE70W"
+      },
+      {
+        "imageUrl": "",
+        "name": "SP3"
+      },
+      {
+        "imageUrl": "",
+        "name": "SP4"
+      }
+    ],
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769184454/categories/uraqsum8zqstga7andj8.jpg"
+  },
+  {
+    "id": "kd1BObdw2Z6uPZncH8p6",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769185559/categories/ch8qgcdetkqjix17qw99.jpg",
+    "subCategories": [
+      {
+        "imageUrl": "",
+        "name": "فلتر زيت"
+      },
+      {
+        "name": "فلتر هواء",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "فتر بنزين"
+      },
+      {
+        "imageUrl": "",
+        "name": "فلتر تكييف"
+      },
+      {
+        "imageUrl": "",
+        "name": "فلاتر أخرى"
+      }
+    ],
+    "name": "فلاتر"
+  },
+  {
+    "id": "nvEV4GGBTPh8XgmyBLIK",
+    "subCategories": [
+      {
+        "name": "بلاور",
+        "imageUrl": ""
+      },
+      {
+        "name": "ثلاجة تكييف",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "خراطيم و مواسير تبريد"
+      },
+      {
+        "imageUrl": "",
+        "name": "ردياتير"
+      },
+      {
+        "imageUrl": "",
+        "name": "سربنتينة تكييف"
+      },
+      {
+        "imageUrl": "",
+        "name": "شجرة مياه"
+      },
+      {
+        "name": "طلمبات مياه",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "قربة مياه – غطاء قربة مياه"
+      },
+      {
+        "name": "كوعة و ثرموستات",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "كومبريسور"
+      },
+      {
+        "imageUrl": "",
+        "name": "كونترول مراوح"
+      },
+      {
+        "imageUrl": "",
+        "name": "مبرد زيت"
+      },
+      {
+        "imageUrl": "",
+        "name": "مراوح"
+      },
+      {
+        "imageUrl": "",
+        "name": "مشتركات"
+      },
+      {
+        "imageUrl": "",
+        "name": "مقاومة تكييف"
+      },
+      {
+        "name": "قطع تبريد و تكييف متنوعة",
+        "imageUrl": ""
+      }
+    ],
+    "name": "دورة تبريد و تكييف",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769183241/categories/kph0ved98k3nsjkmng6d.jpg"
+  },
+  {
+    "id": "pvM3jwSv6QyUqySrrQhU",
+    "subCategories": [],
+    "name": "زيوت فرامل",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769184568/categories/koskrz6npmgivsnopzj2.jpg"
+  },
+  {
+    "id": "qOobxmCr9N7LHNo5B0xX",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769185286/categories/momfsujhfdezvzfrlgr4.jpg",
+    "subCategories": [
+      {
+        "name": "فوانيس و باغات",
+        "imageUrl": ""
+      },
+      {
+        "name": "لمبات",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "شبكة"
+      },
+      {
+        "imageUrl": "",
+        "name": "كارتيرة عجل"
+      },
+      {
+        "name": "مرايات",
+        "imageUrl": ""
+      }
+    ],
+    "name": "أجزاء خارجية"
+  },
+  {
+    "id": "qafHzAW1q79dm1wHPtDN",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769184992/categories/znibxtdh0ce8jgjviv1t.jpg",
+    "subCategories": [
+      {
+        "imageUrl": "",
+        "name": "بلف تبخير"
+      },
+      {
+        "name": "خراطيم للموتور",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "تيربو"
+      },
+      {
+        "imageUrl": "",
+        "name": "خراطيم للموتور"
+      },
+      {
+        "imageUrl": "",
+        "name": "خزنة زيت"
+      },
+      {
+        "name": "طبة زيت",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "غطاء تاكيهات"
+      },
+      {
+        "name": "غطاء زيت موتور",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "كارتيرة زيت"
+      },
+      {
+        "name": "مقاس الزيت",
+        "imageUrl": ""
+      }
+    ],
+    "name": "قطع الموتور و ملحقاته"
+  },
+  {
+    "id": "tnlbcFLQ0wqHxyp3Cxwv",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769184412/categories/rty2dplvy3zmkg1bdnpm.jpg",
+    "name": "سوائل تبريد",
+    "subCategories": []
+  },
+  {
+    "id": "zINLHKH2fdBmDGnSQN3j",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769184814/categories/vfpysttcdv8jouhqywku.jpg",
+    "subCategories": [
+      {
+        "name": "0W20",
+        "imageUrl": ""
+      },
+      {
+        "imageUrl": "",
+        "name": "0W30"
+      },
+      {
+        "imageUrl": "",
+        "name": "10W40"
+      },
+      {
+        "imageUrl": "",
+        "name": "10W60"
+      },
+      {
+        "imageUrl": "",
+        "name": "15W40"
+      },
+      {
+        "imageUrl": "",
+        "name": "15W50"
+      },
+      {
+        "imageUrl": "",
+        "name": "20W50"
+      },
+      {
+        "imageUrl": "",
+        "name": "5W20"
+      },
+      {
+        "imageUrl": "",
+        "name": "5W30"
+      },
+      {
+        "name": "5W40",
+        "imageUrl": ""
+      },
+      {
+        "name": "5W50",
+        "imageUrl": ""
+      }
+    ],
+    "name": "زيوت موتور"
+  }
+]

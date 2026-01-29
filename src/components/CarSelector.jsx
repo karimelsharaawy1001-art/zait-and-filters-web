@@ -1,28 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
-import { useFilters } from '../context/FilterContext';
-import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-
-import { db } from '../firebase';
-import { collection, getDocs } from 'firebase/firestore';
-import { Loader2 } from 'lucide-react';
-
-// Dictionary for smart redirects based on car selection
-// Key: "Make Model", Value: Viscosity (string) or full URL (starts with http)
-const oilLinks = {
-    "Toyota Corolla": "5W-30",
-    "Nissan Sunny": "10W-40",
-    "Hyundai Tuscon": "5W-30",
-    "Mitsubishi Lancer": "10W-40",
-    // Add more mappings here. Example:
-    // "Mercedes C180": "https://zaitandfilters.com/product/mercedes-service-kit"
-};
+import { useStaticData } from '../context/StaticDataContext';
 
 const CarSelector = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { updateFilter, filters } = useFilters();
+    const { cars, withFallback, isStaticLoaded } = useStaticData();
 
     const [loading, setLoading] = useState(false);
     const [make, setMake] = useState(filters.make || '');
@@ -35,36 +19,27 @@ const CarSelector = () => {
     const [noResults, setNoResults] = useState(false);
     const [carsData, setCarsData] = useState([]);
 
-    // Fetch ALL cars from Firestore on mount
+    // Fetch cars using Quota Shield
     useEffect(() => {
         const fetchCars = async () => {
-            console.log('[CarSelector] Starting to fetch cars...');
             setLoading(true);
             try {
-                const querySnapshot = await getDocs(collection(db, 'cars'));
-                console.log('[CarSelector] Query complete. Docs:', querySnapshot.docs.length);
+                const data = await withFallback(async () => {
+                    const querySnapshot = await getDocs(collection(db, 'cars'));
+                    return querySnapshot.docs.map(doc => doc.data());
+                }, 'cars');
 
-                const cars = querySnapshot.docs.map(doc => doc.data());
-                console.log('[CarSelector] Cars loaded:', cars);
-                setCarsData(cars);
-
-                // Extract unique makes
-                const uniqueMakes = [...new Set(cars.map(c => c.make))].filter(Boolean).sort();
-                console.log('[CarSelector] Unique makes:', uniqueMakes);
+                setCarsData(data);
+                const uniqueMakes = [...new Set(data.map(c => c.make))].filter(Boolean).sort();
                 setMakes(uniqueMakes);
-
-                if (uniqueMakes.length === 0) {
-                    console.warn('[CarSelector] No makes found! Check cars collection.');
-                }
             } catch (error) {
                 console.error("[CarSelector] Error fetching cars:", error);
-                setMakes([]);
             } finally {
                 setLoading(false);
             }
         };
         fetchCars();
-    }, []);
+    }, [isStaticLoaded]);
 
     // Update models when make changes
     useEffect(() => {
