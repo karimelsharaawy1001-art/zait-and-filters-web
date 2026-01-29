@@ -108,7 +108,7 @@ const PublicLayout = () => {
       />
       <Navbar />
       <GarageActiveIndicator />
-      <main className="flex-1 pt-32 md:pt-20">
+      <main className="flex-1 pt-40 md:pt-28">
         <Outlet />
       </main>
       <Footer />
