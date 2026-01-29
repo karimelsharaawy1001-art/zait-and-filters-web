@@ -301,7 +301,9 @@ const resources = {
                 "allModels": "Select Model...",
                 "allYears": "Select Year...",
                 "allOrigins": "Select Origin...",
-                "allBrands": "Select Brand..."
+                "allBrands": "Select Brand...",
+                "forYou": "Personalized for You",
+                "garageOffersTitle": "Tailored for Your Vehicle"
             }
         }
     },
@@ -605,7 +607,9 @@ const resources = {
                 "allModels": "اختر الموديل...",
                 "allYears": "اختر سنة الموديل...",
                 "allOrigins": "اختر بلد المنشأ...",
-                "allBrands": "اختر ماركة القطعة..."
+                "allBrands": "اختر ماركة القطعة...",
+                "forYou": "خصيصاً لك",
+                "garageOffersTitle": "عروض مخصصة لسيارتك"
             }
         }
     }

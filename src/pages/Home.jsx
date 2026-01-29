@@ -9,10 +9,11 @@ import SEO from '../components/SEO';
 import { db } from '../firebase';
 import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, Flame, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, Flame, Sparkles, ChevronLeft, ChevronRight, Car } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useFilters } from '../context/FilterContext';
 import { useRef } from 'react';
+import inventoryData from '../data/inventory.json';
 
 const RecommendationSkeleton = () => (
     <div className="flex gap-4 overflow-hidden pb-4 opacity-50">
@@ -22,90 +23,120 @@ const RecommendationSkeleton = () => (
     </div>
 );
 
+const GarageModeBanner = ({ car }) => {
+    const { t } = useTranslation();
+    if (!car || !car.make) return null;
+
+    return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+            <div className="relative overflow-hidden bg-gradient-to-r from-[#28B463] to-[#219653] rounded-2xl p-4 shadow-lg shadow-[#28B463]/20 animate-in fade-in slide-in-from-top-2 duration-500">
+                {/* Pulse Indicator */}
+                <div className="absolute top-4 right-4 flex items-center gap-2">
+                    <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                    </span>
+                    <span className="text-white text-[10px] font-black uppercase tracking-widest leading-none opacity-80">GARAGE ACTIVE</span>
+                </div>
+
+                <div className="flex items-center gap-4">
+                    <div className="bg-white/20 p-3 rounded-xl backdrop-blur-md">
+                        <Car className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                        <h4 className="text-white font-black text-lg uppercase italic tracking-tighter leading-none font-Cairo">
+                            {t('garageOffersTitle') || 'عروض مخصصة لسيارتك'}
+                        </h4>
+                        <p className="text-white/90 font-bold text-sm mt-1 uppercase font-Cairo">
+                            {car.make} {car.model} {car.year}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const Home = () => {
     const { t, i18n } = useTranslation();
-    const { filters, activeCar } = useFilters();
+    const { activeCar } = useFilters();
     const [bestSellers, setBestSellers] = useState([]);
     const [hotOffers, setHotOffers] = useState([]);
-    const [recommendations, setRecommendations] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const targetVehicle = (filters.make && filters.model) ? filters : activeCar;
-
     useEffect(() => {
-        const fetchHomeData = async () => {
+        const processHomeData = () => {
             setLoading(true);
             try {
-                // Fetch All Active Products once to avoid multiple narrow queries
-                const q = query(
-                    collection(db, 'products'),
-                    where('isActive', '==', true)
-                );
-                const querySnapshot = await getDocs(q);
-                const allActive = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                // Use Master Cache for zero-latency, zero-cost scaling
+                const allActive = (inventoryData || []).filter(p => p.isActive !== false);
 
-                // 1. Best Sellers: Sort by soldCount and take top 8
-                const sortedBest = [...allActive]
-                    .sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0))
-                    .slice(0, 8);
-                setBestSellers(sortedBest);
+                // Helper to check if a product matches the active car
+                const matchesGarage = (p) => {
+                    if (!activeCar || !activeCar.make) return false;
 
-                // 2. Hot Offers: Filter for salePrice > 0 and take top 8
-                const offers = allActive
-                    .filter(p => p.salePrice && Number(p.salePrice) > 0 && Number(p.salePrice) < Number(p.price))
-                    .slice(0, 8);
+                    const pMake = (p.make || p.car_make || '').toUpperCase();
+                    const pModel = (p.model || p.car_model || '').toUpperCase();
+                    const cMake = activeCar.make.toUpperCase();
+                    const cModel = (activeCar.model || '').toUpperCase();
+
+                    // Specific match
+                    const isCarMatch = pMake === cMake && (!cModel || pModel === cModel);
+
+                    // Year match if applicable
+                    let isYearMatch = true;
+                    if (isCarMatch && activeCar.year) {
+                        const y = parseInt(activeCar.year);
+                        isYearMatch = (!p.yearStart || y >= p.yearStart) && (!p.yearEnd || y <= p.yearEnd);
+                    }
+
+                    return isCarMatch && isYearMatch;
+                };
+
+                // Helper to check if product is 'Universal'
+                const isUniversal = (p) => {
+                    const pMake = (p.make || p.car_make || '').toUpperCase();
+                    return !pMake || pMake === 'UNIVERSAL' || pMake === 'GENERAL' || p.category === 'إكسسوارات وعناية';
+                };
+
+                // 1. Best Sellers Logic
+                let best = [...allActive].sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0));
+
+                if (activeCar?.make) {
+                    const garageMatches = best.filter(p => matchesGarage(p)).map(p => ({ ...p, isRecommended: true }));
+                    const universalMatches = best.filter(p => isUniversal(p) && !matchesGarage(p));
+                    const others = best.filter(p => !matchesGarage(p) && !isUniversal(p));
+
+                    // Prioritize Garage -> Universal -> Rest
+                    best = [...garageMatches, ...universalMatches, ...others].slice(0, 12);
+                } else {
+                    best = best.slice(0, 12);
+                }
+                setBestSellers(best);
+
+                // 2. Hot Offers Logic
+                let offers = allActive.filter(p => p.salePrice && Number(p.salePrice) > 0 && Number(p.salePrice) < Number(p.price));
+
+                if (activeCar?.make) {
+                    const garageOffers = offers.filter(p => matchesGarage(p)).map(p => ({ ...p, isRecommended: true }));
+                    const universalOffers = offers.filter(p => isUniversal(p) && !matchesGarage(p));
+                    const others = offers.filter(p => !matchesGarage(p) && !isUniversal(p));
+
+                    offers = [...garageOffers, ...universalOffers, ...others].slice(0, 12);
+                } else {
+                    offers = offers.slice(0, 12);
+                }
                 setHotOffers(offers);
 
-                // 3. Smart Recommendations
-                if (targetVehicle && targetVehicle.make && targetVehicle.model) {
-                    const filtered = allActive.filter(p =>
-                        (p.make === targetVehicle.make && p.model === targetVehicle.model) ||
-                        (p.car_make === targetVehicle.make && p.car_model === targetVehicle.model)
-                    );
-
-                    if (filtered.length > 0) {
-                        // Variety Logic: Pick 2 from each category
-                        const byCategory = filtered.reduce((acc, p) => {
-                            const cat = p.category || 'Other';
-                            if (!acc[cat]) acc[cat] = [];
-                            acc[cat].push(p);
-                            return acc;
-                        }, {});
-
-                        let diverseList = [];
-                        const categories = Object.keys(byCategory);
-                        let iteration = 0;
-
-                        while (diverseList.length < 8 && iteration < 4) {
-                            categories.forEach(cat => {
-                                if (byCategory[cat][iteration] && diverseList.length < 8) {
-                                    diverseList.push({ ...byCategory[cat][iteration], isSmartMatch: true });
-                                }
-                            });
-                            iteration++;
-                        }
-                        // Fill remaining with best sellers if < 8
-                        if (diverseList.length < 8) {
-                            const filler = sortedBest.filter(p => !diverseList.find(d => d.id === p.id));
-                            diverseList.push(...filler.slice(0, 8 - diverseList.length));
-                        }
-                        setRecommendations(diverseList);
-                    } else {
-                        setRecommendations(sortedBest.slice(0, 8));
-                    }
-                } else {
-                    setRecommendations(sortedBest.slice(0, 8));
-                }
-
             } catch (error) {
-                console.error("Error fetching home data:", error);
+                console.error("Error processing home data:", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchHomeData();
-    }, [targetVehicle?.make, targetVehicle?.model, bestSellers.length]);
+        processHomeData();
+    }, [activeCar?.make, activeCar?.model, activeCar?.year]);
 
     const ProductSection = ({ title, icon: Icon, products, subtitle, color = "red" }) => {
         const scrollRef = useRef(null);
@@ -223,6 +254,7 @@ const Home = () => {
                 schema={faqSchema}
             />
             <Hero />
+            <GarageModeBanner car={activeCar} />
 
             {/* Brands Section */}
             <section className="py-3 bg-white border-b border-gray-50">

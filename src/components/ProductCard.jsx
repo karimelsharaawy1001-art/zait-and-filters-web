@@ -12,6 +12,8 @@ const ProductCard = ({ product, isCompact = false }) => {
     const { addToCart } = useCart();
     const [quantity, setQuantity] = useState(1);
 
+    const isRecommended = product.isRecommended;
+
     const handleAddToCart = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -37,7 +39,13 @@ const ProductCard = ({ product, isCompact = false }) => {
     const hasSale = product.salePrice && Number(product.salePrice) < Number(product.price);
 
     return (
-        <article className={`product-card group relative flex flex-col !gap-0 !space-y-0 !justify-start bg-white rounded-premium shadow-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:translate-y-[-5px] w-full max-w-[320px] mx-auto h-full ${isCompact ? 'px-0' : 'px-0.5'}`}>
+        <article className={`product-card group relative flex flex-col !gap-0 !space-y-0 !justify-start bg-white rounded-premium shadow-lg border overflow-hidden transition-all duration-300 hover:translate-y-[-5px] w-full max-w-[320px] mx-auto h-full ${isCompact ? 'px-0' : 'px-0.5'} ${isRecommended ? 'border-[#28B463] ring-1 ring-[#28B463]/30 shadow-[0_0_15px_-3px_rgba(40,180,99,0.3)]' : 'border-gray-100'}`}>
+            {/* For You Badge */}
+            {isRecommended && (
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 z-30 bg-[#28B463] text-white px-3 py-1 rounded-b-xl text-[9px] font-black uppercase tracking-[0.2em] shadow-md animate-in slide-in-from-top-full duration-500">
+                    {t('forYou') || 'خصيصاً لك'}
+                </div>
+            )}
             {/* HERO IMAGE - Fixed Aspect Ratio to prevent collapse */}
             <Link
                 to={`/product/${product.id}`}
