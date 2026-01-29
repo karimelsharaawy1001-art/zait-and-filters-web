@@ -492,8 +492,8 @@ const Profile = () => {
                     <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
                         <div className="p-8 pb-0 flex justify-between items-center">
                             <div>
-                                <h3 className="text-2xl font-black text-gray-900">Add to Garage</h3>
-                                <p className="text-gray-500 text-sm font-medium">Select your vehicle details</p>
+                                <h3 className="text-2xl font-black text-[#1A1A1A]">Add to Garage</h3>
+                                <p className="text-gray-600 text-sm font-medium">Select your vehicle details</p>
                             </div>
                             <button onClick={() => setIsAddModalOpen(false)} className="bg-gray-100 p-2 rounded-xl border border-gray-200 hover:bg-gray-200 transition-colors">
                                 <Plus className="h-6 w-6 rotate-45" />
@@ -503,12 +503,12 @@ const Profile = () => {
                         <form onSubmit={handleAddCar} className="p-8 space-y-6">
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Car Make</label>
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Car Make</label>
                                     <select
                                         required
                                         value={newCar.make}
                                         onChange={(e) => handleMakeChange(e.target.value)}
-                                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-4 text-sm font-bold focus:ring-2 focus:ring-orange-600 outline-none transition-all"
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-4 text-sm font-bold text-[#1A1A1A] focus:ring-2 focus:ring-orange-600 outline-none transition-all"
                                     >
                                         <option value="">Select Make</option>
                                         {carMakes.map(make => (
@@ -518,13 +518,13 @@ const Profile = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Car Model</label>
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Car Model</label>
                                     <select
                                         required
                                         disabled={!newCar.make}
                                         value={newCar.model}
                                         onChange={(e) => setNewCar(prev => ({ ...prev, model: e.target.value }))}
-                                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-4 text-sm font-bold focus:ring-2 focus:ring-orange-600 outline-none transition-all disabled:opacity-50"
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-4 text-sm font-bold text-[#1A1A1A] focus:ring-2 focus:ring-orange-600 outline-none transition-all disabled:opacity-50"
                                     >
                                         <option value="">Select Model</option>
                                         {filteredModels.map(model => (
@@ -553,14 +553,14 @@ const Profile = () => {
                                 )}
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Manufacture Year</label>
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Manufacture Year</label>
                                     <input
                                         type="number"
                                         required
                                         placeholder="e.g. 2022"
                                         value={newCar.year}
                                         onChange={(e) => setNewCar(prev => ({ ...prev, year: e.target.value }))}
-                                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-4 text-sm font-bold focus:ring-2 focus:ring-orange-600 outline-none transition-all"
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-4 text-sm font-bold text-[#1A1A1A] placeholder:text-gray-400 focus:ring-2 focus:ring-orange-600 outline-none transition-all"
                                     />
                                 </div>
                             </div>
@@ -568,7 +568,7 @@ const Profile = () => {
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="w-full bg-orange-600 text-white py-5 rounded-2xl font-black text-lg hover:bg-orange-700 transition-all shadow-xl shadow-orange-100 flex items-center justify-center gap-3 disabled:opacity-50"
+                                className="w-full bg-orange-600 text-white py-5 rounded-2xl font-black text-lg hover:bg-orange-700 active:scale-[0.98] transition-all shadow-xl shadow-orange-100 flex items-center justify-center gap-3 disabled:opacity-50"
                             >
                                 {saving ? (
                                     <Loader2 className="h-6 w-6 animate-spin" />
