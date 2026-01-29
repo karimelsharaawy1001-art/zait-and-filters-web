@@ -303,7 +303,8 @@ const resources = {
                 "allOrigins": "Select Origin...",
                 "allBrands": "Select Brand...",
                 "forYou": "Personalized for You",
-                "garageOffersTitle": "Tailored for Your Vehicle"
+                "garageOffersTitle": "Tailored for Your Vehicle",
+                "garageMatchBadge": "Matches Your Car"
             }
         }
     },
@@ -609,7 +610,8 @@ const resources = {
                 "allOrigins": "اختر بلد المنشأ...",
                 "allBrands": "اختر ماركة القطعة...",
                 "forYou": "خصيصاً لك",
-                "garageOffersTitle": "عروض مخصصة لسيارتك"
+                "garageOffersTitle": "عروض مخصصة لسيارتك",
+                "garageMatchBadge": "متوافق مع سيارتك"
             }
         }
     }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Plus, Minus, Check } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Check, Sparkles } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -39,11 +39,12 @@ const ProductCard = ({ product, isCompact = false }) => {
     const hasSale = product.salePrice && Number(product.salePrice) < Number(product.price);
 
     return (
-        <article className={`product-card group relative flex flex-col !gap-0 !space-y-0 !justify-start bg-white rounded-premium shadow-lg border overflow-hidden transition-all duration-300 hover:translate-y-[-5px] w-full max-w-[320px] mx-auto h-full ${isCompact ? 'px-0' : 'px-0.5'} ${isRecommended ? 'border-[#28B463] ring-1 ring-[#28B463]/30 shadow-[0_0_15px_-3px_rgba(40,180,99,0.3)]' : 'border-gray-100'}`}>
-            {/* For You Badge */}
+        <article className={`product-card group relative flex flex-col !gap-0 !space-y-0 !justify-start rounded-premium shadow-lg border border-gray-100 overflow-hidden transition-all duration-500 hover:translate-y-[-8px] hover:shadow-2xl w-full max-w-[320px] mx-auto h-full ${isCompact ? 'px-0' : 'px-0.5'} ${isRecommended ? 'bg-[#F0FFF4] shadow-[0_10px_30px_-15px_rgba(40,180,99,0.2)]' : 'bg-white'}`}>
+            {/* Smart Garage Match Badge */}
             {isRecommended && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 z-30 bg-[#28B463] text-white px-3 py-1 rounded-b-xl text-[9px] font-black uppercase tracking-[0.2em] shadow-md animate-in slide-in-from-top-full duration-500">
-                    {t('forYou') || 'خصيصاً لك'}
+                <div className="absolute top-0 left-0 z-30 bg-[#065f46] text-white px-3 py-1.5 rounded-br-2xl text-[10px] font-black uppercase tracking-tight shadow-lg flex items-center gap-1.5 animate-in slide-in-from-left duration-700">
+                    <Sparkles className="h-3 w-3 text-yellow-400" />
+                    <span className="font-Cairo">{t('garageMatchBadge') || 'متوافق مع سيارتك'}</span>
                 </div>
             )}
             {/* HERO IMAGE - Fixed Aspect Ratio to prevent collapse */}
