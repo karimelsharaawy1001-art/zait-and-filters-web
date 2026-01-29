@@ -342,7 +342,7 @@ const resources = {
             "checkout": "الدفع",
             "login": "دخول",
             "products": "منتجات",
-            "addToCart": "أضف للسلة",
+            "addToCart": "أضف للعربة",
             "about": "عن الموقع",
             "premiumParts": "قطع غيار ممتازة",
             "professional": "خدمة",

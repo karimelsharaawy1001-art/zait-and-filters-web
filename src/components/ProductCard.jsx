@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Plus, Minus, Check, Sparkles } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Check } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -40,13 +40,6 @@ const ProductCard = ({ product, isCompact = false }) => {
 
     return (
         <article className={`product-card group relative flex flex-col !gap-0 !space-y-0 !justify-start rounded-premium shadow-lg border border-gray-100 overflow-hidden transition-all duration-500 hover:translate-y-[-8px] hover:shadow-2xl w-full max-w-[320px] mx-auto h-full ${isCompact ? 'px-0' : 'px-0.5'} ${isRecommended ? 'bg-[#F0FFF4] shadow-[0_10px_30px_-15px_rgba(40,180,99,0.2)]' : 'bg-white'}`}>
-            {/* Smart Garage Match Badge */}
-            {isRecommended && (
-                <div className="absolute top-0 left-0 z-30 bg-[#065f46] text-white px-3 py-1.5 rounded-br-2xl text-[10px] font-black uppercase tracking-tight shadow-lg flex items-center gap-1.5 animate-in slide-in-from-left duration-700">
-                    <Sparkles className="h-3 w-3 text-yellow-400" />
-                    <span className="font-Cairo">{t('garageMatchBadge') || 'متوافق مع سيارتك'}</span>
-                </div>
-            )}
             {/* HERO IMAGE - Fixed Aspect Ratio to prevent collapse */}
             <Link
                 to={`/product/${product.id}`}
@@ -204,10 +197,10 @@ const ProductCard = ({ product, isCompact = false }) => {
 
                     <button
                         onClick={handleAddToCart}
-                        className={`w-full ${isCompact ? 'py-2.5' : 'py-4'} rounded-xl bg-[#28B463] hover:bg-[#219653] text-white font-black uppercase tracking-widest italic font-Cairo transition-all active:scale-[0.98] shadow-lg shadow-[#28B463]/20 flex items-center justify-center gap-2 group/btn ${isCompact ? 'text-[11px]' : 'text-sm'}`}
+                        className={`w-full ${isCompact ? 'py-3' : 'py-5'} rounded-xl bg-[#28B463] hover:bg-[#1a7a42] text-white font-black uppercase tracking-tight transition-all active:scale-[0.98] shadow-lg shadow-[#28B463]/20 flex items-center justify-center gap-3 group/btn ${isCompact ? 'text-base' : 'text-lg'}`}
                     >
-                        <ShoppingCart className={`${isCompact ? 'h-3.5 w-3.5' : 'h-4 w-4'} transition-transform group-hover/btn:translate-x-1`} />
-                        <span>{i18n.language === 'ar' ? 'أضف' : (isCompact ? 'ADD' : 'ADD TO CART')}</span>
+                        <ShoppingCart className={`${isCompact ? 'h-5 w-5' : 'h-6 w-6'} transition-transform group-hover/btn:translate-x-1`} />
+                        <span className="font-Cairo">{t('addToCart')}</span>
                     </button>
                 </div>
             </div>
