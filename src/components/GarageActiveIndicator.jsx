@@ -15,7 +15,7 @@ const GarageActiveIndicator = () => {
     };
 
     return (
-        <div className="sticky top-[72px] md:top-[80px] z-40 w-full animate-in slide-in-from-top-2 duration-500">
+        <div className="sticky top-[88px] md:top-[96px] z-40 w-full animate-in slide-in-from-top-2 duration-500">
             <div className="relative overflow-hidden">
                 {/* Background with gradient and subtle pattern */}
                 <div className="absolute inset-0 bg-gradient-to-r from-[#047857] via-[#059669] to-[#10b981] opacity-95"></div>
