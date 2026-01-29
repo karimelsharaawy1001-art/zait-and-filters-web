@@ -16,6 +16,31 @@ const ProductGrid = ({ showFilters = true }) => {
     const isRTL = i18n.language === 'ar';
     const { addToCart } = useCart();
     const { staticProducts, isStaticLoaded, isQuotaExceeded, withFallback } = useStaticData();
+    const { filters, updateFilter, resetFilters, isGarageFilterActive, activeCar } = useFilters();
+    const { hasSavedPosition } = useScrollRestoration();
+
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [totalProducts, setTotalProducts] = useState(0);
+    const [filterOptions, setFilterOptions] = useState({
+        categories: {},
+        makes: {},
+        brands: [],
+        origins: [],
+        years: []
+    });
+    const [activeFilters, setActiveFilters] = useState({
+        categories: [],
+        subcategory: [],
+        makes: [],
+        models: [],
+        years: [],
+        brands: [],
+        origins: []
+    });
+    const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+    const [carHeaderImage, setCarHeaderImage] = useState('');
+    const PAGE_SIZE = 20;
 
     const fetchProducts = async () => {
         setLoading(true);
