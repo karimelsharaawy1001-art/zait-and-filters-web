@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { Toaster } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import Navbar from './components/Navbar';
+import GarageActiveIndicator from './components/GarageActiveIndicator';
 import ScrollToTop from './components/ScrollToTop';
 import Hero from './components/Hero';
 import ProductGrid from './components/ProductGrid';
@@ -106,6 +107,7 @@ const PublicLayout = () => {
         }}
       />
       <Navbar />
+      <GarageActiveIndicator />
       <main className="flex-1 pt-32 md:pt-20">
         <Outlet />
       </main>
