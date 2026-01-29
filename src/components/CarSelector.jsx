@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
+import { useFilters } from '../context/FilterContext';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useStaticData } from '../context/StaticDataContext';
+import { db } from '../firebase';
+import { collection, getDocs } from 'firebase/firestore';
+
+// Dictionary for smart redirects based on car selection
+const oilLinks = {
+    "Toyota Corolla": "5W-30",
+    "Nissan Sunny": "10W-40",
+    "Hyundai Tuscon": "5W-30",
+    "Mitsubishi Lancer": "10W-40",
+};
 
 const CarSelector = () => {
     const { t } = useTranslation();

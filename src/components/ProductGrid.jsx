@@ -10,6 +10,7 @@ import ProductCard from './ProductCard';
 import { toast } from 'react-hot-toast';
 import { parseYearRange, normalizeArabic, getSearchableText } from '../utils/productUtils';
 import useScrollRestoration from '../hooks/useScrollRestoration';
+import inventoryData from '../data/inventory.json';
 
 const ProductGrid = ({ showFilters = true }) => {
     const { t, i18n } = useTranslation();
@@ -55,9 +56,9 @@ const ProductGrid = ({ showFilters = true }) => {
             // Master Static Logic: Primary source of truth for high-concurrency scaling
             // If we have static data loaded, we perform ALL filtering and searching client-side.
             // This achieves $0 cost and maximum speed.
-            if (isStaticLoaded && (isQuotaExceeded || true)) { // Favoring static for performance
+            if (isStaticLoaded || inventoryData.length > 0) {
                 console.log('⚡ Using High-Performance Static Search Engine');
-                let results = [...staticProducts];
+                let results = inventoryData.length > 0 ? [...inventoryData] : [...staticProducts];
 
                 // 1. Garage Filter
                 if (isGarageFilterActive && activeCar?.make) {

@@ -54,10 +54,16 @@ async function syncAllData() {
         };
 
         // Sync all core entities
-        await syncCollection('products', 'products-db.json', [where('isActive', '==', true)]);
+        const products = await syncCollection('products', 'products-db.json', [where('isActive', '==', true)]);
         await syncCollection('categories', 'categories-db.json');
         await syncCollection('cars', 'cars-db.json');
         await syncCollection('brand_logos', 'brands-db.json');
+
+        // EXTRA: Write to src/data/inventory.json for direct imports (Build-Time requirement)
+        const SRC_DATA_DIR = path.join(__dirname, '../src/data');
+        if (!fs.existsSync(SRC_DATA_DIR)) fs.mkdirSync(SRC_DATA_DIR, { recursive: true });
+        fs.writeFileSync(path.join(SRC_DATA_DIR, 'inventory.json'), JSON.stringify(products, null, 2));
+        console.log(`📦 Syncing src/data/inventory.json (${products.length} products)...`);
 
         console.log('✨ Global Static Data Sync Complete.');
 
