@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShoppingCart, FilterX, ChevronRight, ChevronDown, SlidersHorizontal, Car } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useFilters } from '../context/FilterContext';
+import { useStaticData } from '../context/StaticDataContext';
 import { useTranslation } from 'react-i18next';
 import { collection, getDocs, query, where, limit, startAfter, getCountFromServer, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
