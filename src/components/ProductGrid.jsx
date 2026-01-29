@@ -60,17 +60,33 @@ const ProductGrid = ({ showFilters = true }) => {
                 console.log('⚡ Using High-Performance Static Search Engine');
                 let results = inventoryData.length > 0 ? [...inventoryData] : [...staticProducts];
 
-                // 1. Garage Filter
+                // 1. Garage Filter (NARROW MATCH)
                 if (isGarageFilterActive && activeCar?.make) {
-                    results = results.filter(p =>
-                        p.make === activeCar.make &&
-                        (!activeCar.model || p.model === activeCar.model)
-                    );
+                    const cMake = activeCar.make.toUpperCase();
+                    const cModel = (activeCar.model || '').toUpperCase();
 
-                    if (activeCar.year) {
-                        const yearNum = parseInt(activeCar.year);
-                        results = results.filter(p => p.yearStart <= yearNum && p.yearEnd >= yearNum);
-                    }
+                    results = results.filter(p => {
+                        const pMake = (p.make || p.car_make || '').toUpperCase();
+                        const pModel = (p.model || p.car_model || '').toUpperCase();
+
+                        // Check if Universal
+                        const isUniversal = !pMake || pMake === 'UNIVERSAL' || pMake === 'GENERAL' ||
+                            p.category === 'إكسسوارات وعناية' || p.category === 'إضافة للموتور و البنزين';
+
+                        if (isUniversal) return true;
+
+                        // Specific car match
+                        const isCarMatch = pMake === cMake && (!cModel || pModel === cModel);
+
+                        // Year match if applicable
+                        let isYearMatch = true;
+                        if (isCarMatch && activeCar.year) {
+                            const y = parseInt(activeCar.year);
+                            isYearMatch = (!p.yearStart || y >= p.yearStart) && (!p.yearEnd || y <= p.yearEnd);
+                        }
+
+                        return isCarMatch && isYearMatch;
+                    });
                 } else {
                     // 2. Manual Car Filters
                     if (filters.make) results = results.filter(p => p.make === filters.make);

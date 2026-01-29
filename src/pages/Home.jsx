@@ -29,27 +29,28 @@ const GarageModeBanner = ({ car }) => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
-            <div className="relative overflow-hidden bg-gradient-to-r from-[#28B463] to-[#219653] rounded-2xl p-4 shadow-lg shadow-[#28B463]/20 animate-in fade-in slide-in-from-top-2 duration-500">
-                {/* Pulse Indicator */}
-                <div className="absolute top-4 right-4 flex items-center gap-2">
-                    <span className="relative flex h-3 w-3">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-                    </span>
-                    <span className="text-white text-[10px] font-black uppercase tracking-widest leading-none opacity-80">GARAGE ACTIVE</span>
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <div className="bg-white/20 p-3 rounded-xl backdrop-blur-md">
-                        <Car className="h-6 w-6 text-white" />
+            <div className="relative overflow-hidden bg-gradient-to-r from-[#28B463] to-[#1a7a42] rounded-xl p-3 shadow-md border border-[#28B463]/20 animate-in fade-in slide-in-from-top-2 duration-500">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-white/10 p-2 rounded-lg backdrop-blur-md">
+                            <Car className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                            <h4 className="text-white font-black text-sm uppercase italic tracking-tighter leading-none font-Cairo">
+                                {t('garageOffersTitle') || 'عروض مخصصة لسيارتك'}
+                            </h4>
+                            <p className="text-white/80 font-bold text-[11px] mt-0.5 uppercase font-Cairo">
+                                {car.make} {car.model} {car.year}
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <h4 className="text-white font-black text-lg uppercase italic tracking-tighter leading-none font-Cairo">
-                            {t('garageOffersTitle') || 'عروض مخصصة لسيارتك'}
-                        </h4>
-                        <p className="text-white/90 font-bold text-sm mt-1 uppercase font-Cairo">
-                            {car.make} {car.model} {car.year}
-                        </p>
+                    {/* Pulse Indicator */}
+                    <div className="flex items-center gap-2 pr-2">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                        </span>
+                        <span className="text-white text-[9px] font-black uppercase tracking-widest leading-none opacity-90 italic">GARAGE ACTIVE</span>
                     </div>
                 </div>
             </div>
@@ -96,37 +97,29 @@ const Home = () => {
                 // Helper to check if product is 'Universal'
                 const isUniversal = (p) => {
                     const pMake = (p.make || p.car_make || '').toUpperCase();
-                    return !pMake || pMake === 'UNIVERSAL' || pMake === 'GENERAL' || p.category === 'إكسسوارات وعناية';
+                    // Products with no make or explicitly Universal/General are universal
+                    const categoryCheck = p.category === 'إكسسوارات وعناية' || p.category === 'إضافة للموتور و البنزين';
+                    return !pMake || pMake === 'UNIVERSAL' || pMake === 'GENERAL' || categoryCheck;
                 };
 
-                // 1. Best Sellers Logic
-                let best = [...allActive].sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0));
+                // Filter logic for Garage mode
+                const getFiltered = (items) => {
+                    if (!activeCar?.make) return items.slice(0, 12);
 
-                if (activeCar?.make) {
-                    const garageMatches = best.filter(p => matchesGarage(p)).map(p => ({ ...p, isRecommended: true }));
-                    const universalMatches = best.filter(p => isUniversal(p) && !matchesGarage(p));
-                    const others = best.filter(p => !matchesGarage(p) && !isUniversal(p));
+                    const garageMatches = items.filter(p => matchesGarage(p)).map(p => ({ ...p, isRecommended: true }));
+                    const universalMatches = items.filter(p => isUniversal(p) && !matchesGarage(p)).map(p => ({ ...p, isRecommended: false }));
 
-                    // Prioritize Garage -> Universal -> Rest
-                    best = [...garageMatches, ...universalMatches, ...others].slice(0, 12);
-                } else {
-                    best = best.slice(0, 12);
-                }
-                setBestSellers(best);
+                    // NARROW FILTER: Show ONLY Garage Matches + Universal
+                    return [...garageMatches, ...universalMatches].slice(0, 12);
+                };
 
-                // 2. Hot Offers Logic
-                let offers = allActive.filter(p => p.salePrice && Number(p.salePrice) > 0 && Number(p.salePrice) < Number(p.price));
+                // 1. Best Sellers: Filtered and Sorted
+                const sortedBest = [...allActive].sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0));
+                setBestSellers(getFiltered(sortedBest));
 
-                if (activeCar?.make) {
-                    const garageOffers = offers.filter(p => matchesGarage(p)).map(p => ({ ...p, isRecommended: true }));
-                    const universalOffers = offers.filter(p => isUniversal(p) && !matchesGarage(p));
-                    const others = offers.filter(p => !matchesGarage(p) && !isUniversal(p));
-
-                    offers = [...garageOffers, ...universalOffers, ...others].slice(0, 12);
-                } else {
-                    offers = offers.slice(0, 12);
-                }
-                setHotOffers(offers);
+                // 2. Hot Offers: Filtered and Selected
+                const offers = allActive.filter(p => p.salePrice && Number(p.salePrice) > 0 && Number(p.salePrice) < Number(p.price));
+                setHotOffers(getFiltered(offers));
 
             } catch (error) {
                 console.error("Error processing home data:", error);
@@ -136,7 +129,7 @@ const Home = () => {
         };
 
         processHomeData();
-    }, [activeCar?.make, activeCar?.model, activeCar?.year]);
+    }, [activeCar?.make, activeCar?.model, activeCar?.year, inventoryData?.length]);
 
     const ProductSection = ({ title, icon: Icon, products, subtitle, color = "red" }) => {
         const scrollRef = useRef(null);
