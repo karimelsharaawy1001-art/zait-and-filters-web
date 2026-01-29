@@ -12,13 +12,52 @@ import { collection, query, where, getDocs, limit as firestoreLimit, orderBy } f
 import { toast } from 'react-hot-toast';
 import { normalizeArabic, getSearchableText } from '../utils/productUtils';
 
+const GarageActiveBar = ({ activeCar, onDeactivate, isRTL }) => {
+    if (!activeCar) return null;
+
+    return (
+        <div className="w-full bg-[#1b4332] border-b border-yellow-500/30 text-white py-2 px-4 shadow-[0_0_20px_rgba(40,180,99,0.2)] relative z-[101] animate-pulse-subtle">
+            <div className="max-w-7xl mx-auto flex items-center justify-between">
+                <div className="flex items-center gap-2 overflow-hidden">
+                    <div className="flex h-2 w-2 relative shrink-0">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+                    </div>
+                    <p className={`text-[12px] md:text-sm font-bold truncate ${isRTL ? 'font-Cairo' : ''}`}>
+                        ✨ {isRTL ? `وضع الجراج نشط: عرض المنتجات المتوافقة مع ${activeCar.make} ${activeCar.model}` : `Garage Active: Showing parts for ${activeCar.make} ${activeCar.model}`}
+                    </p>
+                </div>
+
+                <button
+                    onClick={onDeactivate}
+                    className={`shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all text-[11px] font-black uppercase tracking-tighter ${isRTL ? 'font-Cairo' : ''}`}
+                >
+                    <X className="h-3 w-3" />
+                    <span>{isRTL ? 'إيقاف' : 'Stop'}</span>
+                </button>
+            </div>
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                @keyframes pulse-subtle {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.92; }
+                }
+                .animate-pulse-subtle {
+                    animation: pulse-subtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+                }
+            `}} />
+        </div>
+    );
+};
+
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const { getCartCount } = useCart();
     const { filters, updateFilter, isGarageFilterActive, activeCar, toggleGarageFilter } = useFilters();
     const { settings } = useSettings();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const isRTL = i18n.language === 'ar';
     const cartCount = getCartCount();
     const navigate = useNavigate();
     const location = useLocation();
@@ -113,9 +152,7 @@ const Navbar = () => {
             navigate('/profile');
         } else {
             if (!isGarageFilterActive) {
-                toast.success(`Garage mode ON: Fitting for ${activeCar.make} ${activeCar.model}`);
-            } else {
-                toast.success("Garage mode OFF: Showing all parts");
+                toast.success(isRTL ? `تم تفعيل وضع الجراج لسيارتك` : `Garage mode ON: Fitting for ${activeCar.make}`);
             }
         }
     };
@@ -137,6 +174,15 @@ const Navbar = () => {
 
     return (
         <header className="fixed top-0 left-0 right-0 z-[100] transition-all duration-300">
+            {/* Global Garage Active Bar */}
+            {isGarageFilterActive && (
+                <GarageActiveBar
+                    activeCar={activeCar}
+                    onDeactivate={toggleGarageFilter}
+                    isRTL={isRTL}
+                />
+            )}
+
             {/* Main Navbar */}
             <nav className="w-full bg-white/80 backdrop-blur-xl border-b border-gray-100/50 shadow-sm py-4">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -23,41 +23,6 @@ const RecommendationSkeleton = () => (
     </div>
 );
 
-const GarageModeBanner = ({ car }) => {
-    const { t } = useTranslation();
-    if (!car || !car.make) return null;
-
-    return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
-            <div className="relative overflow-hidden bg-gradient-to-r from-[#28B463] to-[#1a7a42] rounded-xl p-3 shadow-md border border-[#28B463]/20 animate-in fade-in slide-in-from-top-2 duration-500">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-white/10 p-2 rounded-lg backdrop-blur-md">
-                            <Car className="h-5 w-5 text-white" />
-                        </div>
-                        <div>
-                            <h4 className="text-white font-black text-sm uppercase italic tracking-tighter leading-none font-Cairo">
-                                {t('garageOffersTitle') || 'عروض مخصصة لسيارتك'}
-                            </h4>
-                            <p className="text-white/80 font-bold text-[11px] mt-0.5 uppercase font-Cairo">
-                                {car.make} {car.model} {car.year}
-                            </p>
-                        </div>
-                    </div>
-                    {/* Pulse Indicator */}
-                    <div className="flex items-center gap-2 pr-2">
-                        <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                        </span>
-                        <span className="text-white text-[9px] font-black uppercase tracking-widest leading-none opacity-90 italic">GARAGE ACTIVE</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
 const Home = () => {
     const { t, i18n } = useTranslation();
     const { activeCar } = useFilters();
@@ -247,7 +212,6 @@ const Home = () => {
                 schema={faqSchema}
             />
             <Hero />
-            <GarageModeBanner car={activeCar} />
 
             {/* Brands Section */}
             <section className="py-3 bg-white border-b border-gray-50">
