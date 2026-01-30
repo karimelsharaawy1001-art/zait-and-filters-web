@@ -162,8 +162,8 @@ const ProductCard = ({ product, isCompact = false }) => {
                 </div>
 
                 <div className={`mt-auto flex flex-col ${isCompact ? 'gap-2 pt-2' : 'gap-3 pt-3'} border-t border-gray-100`}>
-                    <div className={`flex items-center justify-between ${isCompact ? 'flex-row' : 'flex-col 2xs:flex-row'} gap-2`}>
-                        <div className={`flex flex-col ${isCompact ? 'items-start' : 'items-center 2xs:items-start'}`}>
+                    <div className={`flex items-center justify-between ${isCompact ? 'flex-row' : 'flex-col sm:flex-row'} gap-3`}>
+                        <div className={`flex flex-col ${isCompact ? 'items-start' : 'items-center sm:items-start'}`}>
                             {hasSale && (
                                 <span className={`${isCompact ? 'text-[10px]' : 'text-xs'} text-gray-400 line-through font-bold leading-none mb-0.5`}>
                                     {product.price} {t('currency')}
@@ -177,24 +177,33 @@ const ProductCard = ({ product, isCompact = false }) => {
                             </div>
                         </div>
 
-                        {/* QUANTITY SELECTOR - Smaller in compact */}
-                        <div className={`flex items-center bg-[#000000] rounded-lg p-0.5 shadow-md ${isCompact ? 'scale-95' : ''}`}>
-                            <button onClick={decrementQuantity} className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center text-white hover:text-brand-green transition-colors">
-                                <Minus className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                        {/* PREMIUM QUANTITY SELECTOR */}
+                        <div className={`flex items-center bg-gray-50 border border-gray-200 rounded-full p-1 shadow-inner h-[36px] sm:h-[42px] ${isCompact ? 'scale-90 origin-right' : ''}`}>
+                            <button
+                                onClick={decrementQuantity}
+                                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full bg-white text-gray-600 hover:text-emerald-600 hover:shadow-sm border border-transparent hover:border-emerald-100 transition-all active:scale-90"
+                            >
+                                <Minus className="h-3.5 w-3.5 sm:h-4 w-4" />
                             </button>
-                            <span className="w-5 text-center text-xs md:text-sm font-black text-white">{quantity}</span>
-                            <button onClick={incrementQuantity} className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center text-white hover:text-brand-green transition-colors">
-                                <Plus className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                            <span className="min-w-[24px] sm:min-w-[32px] text-center text-xs sm:text-sm font-black text-gray-900 font-Cairo">{quantity}</span>
+                            <button
+                                onClick={incrementQuantity}
+                                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full bg-white text-gray-600 hover:text-emerald-600 hover:shadow-sm border border-transparent hover:border-emerald-100 transition-all active:scale-90"
+                            >
+                                <Plus className="h-3.5 w-3.5 sm:h-4 w-4" />
                             </button>
                         </div>
                     </div>
 
                     <button
                         onClick={handleAddToCart}
-                        className={`w-full ${isCompact ? 'py-2.5' : 'py-4'} rounded-xl bg-[#28B463] hover:bg-[#219653] text-white font-black uppercase tracking-widest italic font-Cairo transition-all active:scale-[0.98] shadow-lg shadow-[#28B463]/20 flex items-center justify-center gap-2 group/btn ${isCompact ? 'text-[11px]' : 'text-sm'}`}
+                        className={`w-full ${isCompact ? 'py-3' : 'py-4'} rounded-full bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-medium uppercase tracking-wide font-Cairo transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-emerald-900/20 active:scale-[0.98] flex items-center justify-center gap-3 group/btn overflow-hidden relative ${isCompact ? 'text-[12px]' : 'text-[15px]'}`}
                     >
-                        <ShoppingCart className={`${isCompact ? 'h-3.5 w-3.5' : 'h-4 w-4'} transition-transform group-hover/btn:translate-x-1`} />
-                        <span>{i18n.language === 'ar' ? 'أضف' : (isCompact ? 'ADD' : 'ADD TO CART')}</span>
+                        <div className="absolute inset-0 bg-white/10 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300" />
+                        <ShoppingCart className={`${isCompact ? 'h-4 w-4' : 'h-5 w-5'} relative z-10 transition-all group-hover/btn:scale-110 group-hover/btn:-rotate-6`} />
+                        <span className="relative z-10 font-black">
+                            {i18n.language === 'ar' ? 'أضف للسلة' : (isCompact ? 'ADD TO CART' : 'ADD TO SHOPPING CART')}
+                        </span>
                     </button>
                 </div>
             </div>
