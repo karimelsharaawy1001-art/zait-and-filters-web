@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard,
     Box,
@@ -25,6 +25,7 @@ import { useState, useEffect } from 'react';
 
 const AdminLayout = () => {
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [unreadCount, setUnreadCount] = useState(0);
     const [pendingReviewsCount, setPendingReviewsCount] = useState(0);
@@ -168,7 +169,7 @@ const AdminLayout = () => {
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 overflow-y-auto relative">
+            <main key={location.pathname} className="flex-1 overflow-y-auto relative">
                 <div className="min-h-full">
                     <Outlet />
                 </div>

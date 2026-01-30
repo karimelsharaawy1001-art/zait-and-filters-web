@@ -1,5 +1,5 @@
 import React from 'react';
-import { MemoryRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { safeLocalStorage } from './utils/safeStorage';
 import { Toaster } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -94,6 +94,7 @@ const SafeModeUI = ({ error }) => (
 
 const PublicLayout = () => {
   const { i18n } = useTranslation();
+  const location = useLocation();
 
   try {
     return (
@@ -128,7 +129,7 @@ const PublicLayout = () => {
           <Navbar />
           <GarageActiveIndicator />
         </div>
-        <main className="flex-1">
+        <main key={location.pathname} className="flex-1">
           <Outlet />
         </main>
         <Footer />
