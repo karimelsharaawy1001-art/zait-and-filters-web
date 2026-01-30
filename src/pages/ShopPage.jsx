@@ -1,5 +1,10 @@
+import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useFilters } from '../context/FilterContext';
 import { useSafeNavigation } from '../utils/safeNavigation';
+import SEO from '../components/SEO';
+import Breadcrumbs from '../components/Breadcrumbs';
+import ProductGrid from '../components/ProductGrid';
 
 const ShopPage = () => {
     const { searchParams, setSearchParams } = useSafeNavigation();
