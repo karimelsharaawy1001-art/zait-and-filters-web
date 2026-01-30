@@ -8,7 +8,7 @@ const AdminHeader = ({ title }) => {
     const handleSync = async () => {
         setIsSyncing(true);
         try {
-            const response = await fetch('/api/sync', {
+            const response = await fetch('/api/products?action=sync', {
                 method: 'POST',
             });
 
@@ -34,8 +34,8 @@ const AdminHeader = ({ title }) => {
                     onClick={handleSync}
                     disabled={isSyncing}
                     className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-500/20 ${isSyncing
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-emerald-500 hover:bg-emerald-600 text-white'
                         }`}
                 >
                     <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />

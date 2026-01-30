@@ -154,6 +154,72 @@ export default async function handler(req, res) {
             }
         }
 
+        // 3. Sync Action (Consolidated to save Serverless Function slots)
+        if (action === 'sync') {
+            if (req.method !== 'POST') {
+                return res.status(405).json({ error: 'Method Not Allowed' });
+            }
+
+            const deployHook = process.env.VERCEL_DEPLOY_HOOK || process.env.VITE_VERCEL_DEPLOY_HOOK;
+
+            if (!deployHook) {
+                return res.status(500).json({ error: 'Deploy hook not configured' });
+            }
+
+            const response = await fetch(deployHook, { method: 'POST' });
+            if (!response.ok) throw new Error(`Vercel responded with ${response.status}`);
+
+            return res.status(200).json({ message: 'Sync triggered successfully' });
+        }
+
+        // 4. Feed Generation (Consolidated)
+        if (action === 'generateFeed') {
+            const productsSnap = await productsRef.where('isActive', '==', true).get();
+            const products = productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            const settingsSnap = await db.collection('settings').doc('general').get();
+            const settings = settingsSnap.exists ? settingsSnap.data() : {};
+            const baseUrl = process.env.SITE_URL || 'https://zait-and-filters-web.vercel.app';
+            const platform = req.query.platform; // 'google' or 'facebook'
+
+            let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">
+    <channel>
+        <title>${settings.siteName || 'Zait &amp; Filters'}</title>
+        <link>${baseUrl}</link>
+        <description>${settings.siteDescription || 'Genuine Spirits &amp; Auto Filters'}</description>
+`;
+
+            products.forEach(product => {
+                const title = (product.nameEn || product.name || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const description = (product.descriptionEn || product.description || 'Genuine auto part').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const price = product.price || 0;
+                const link = `${baseUrl}/product/${product.id}`;
+                const imageLink = product.imageUrl || '';
+                const availability = product.stock > 0 ? (platform === 'facebook' ? 'in stock' : 'in_stock') : (platform === 'facebook' ? 'out of stock' : 'out_of_stock');
+                const brand = product.partBrand || 'Zait &amp; Filters';
+
+                xml += `        <item>
+            <g:id>${product.id}</g:id>
+            <g:title>${title}</g:title>
+            <g:description>${description}</g:description>
+            <g:link>${link}</g:link>
+            <g:image_link>${imageLink}</g:image_link>
+            <g:condition>new</g:condition>
+            <g:availability>${availability}</g:availability>
+            <g:price>${price} EGP</g:price>
+            <g:brand>${brand}</g:brand>
+        </item>
+`;
+            });
+
+            xml += `    </channel>
+</rss>`;
+
+            res.setHeader('Content-Type', 'text/xml');
+            return res.status(200).send(xml);
+        }
+
         return res.status(400).json({ error: 'Invalid action or missing parameters' });
     } catch (error) {
         console.error('Fatal error in products API:', error);
