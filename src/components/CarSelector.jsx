@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { useFilters } from '../context/FilterContext';
-import { useNavigate } from 'react-router-dom';
+import { useSafeNavigation } from '../utils/safeNavigation';
 import { useTranslation } from 'react-i18next';
 import { useStaticData } from '../context/StaticDataContext';
 import { db } from '../firebase';
@@ -17,7 +17,7 @@ const oilLinks = {
 
 const CarSelector = () => {
     const { t } = useTranslation();
-    const navigate = useNavigate();
+    const { navigate } = useSafeNavigation();
     const { updateFilter, filters } = useFilters();
     const { cars, withFallback, isStaticLoaded } = useStaticData();
 

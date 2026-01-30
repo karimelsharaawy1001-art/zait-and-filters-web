@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
+import { safeLocalStorage } from '../utils/safeStorage';
 import { collection, addDoc, doc, writeBatch, increment, getDoc, getDocs, query, where, limit, runTransaction, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { useSafeNavigation } from '../utils/safeNavigation';
+import { safeLocalStorage } from '../utils/safeStorage';
 import axios from 'axios';
 import { Loader2, ShieldCheck, Banknote, CreditCard, Ticket, CheckCircle2, AlertCircle, MapPin, Plus, User, Mail, Smartphone, Trash2 } from 'lucide-react';
 import PhoneInputGroup from '../components/PhoneInputGroup';
@@ -12,7 +15,7 @@ import TrustPaymentSection from '../components/TrustPaymentSection';
 
 const Checkout = () => {
     const { cartItems, getCartTotal, clearCart, updateCartStage, updateCustomerInfo } = useCart();
-    const navigate = useNavigate();
+    const { navigate } = useSafeNavigation();
     const { t, i18n } = useTranslation();
     const isAr = i18n.language === 'ar';
     const [loading, setLoading] = useState(false);
@@ -333,7 +336,7 @@ const Checkout = () => {
 
         setLoading(true);
         const formattedPhone = `+2${formData.phone}`;
-        const affRef = localStorage.getItem('affiliate_ref');
+        const affRef = safeLocalStorage.getItem('affiliate_ref');
 
         if (cartItems.length === 0) {
             toast.error(t('cartEmpty'));
@@ -422,8 +425,8 @@ const Checkout = () => {
             orderData.createdAt = new Date();
 
             if (selectedMethod?.type === 'online') {
-                localStorage.setItem('pending_order', JSON.stringify(orderData));
-                localStorage.setItem('pending_cart_items', JSON.stringify(cartItems));
+                safeLocalStorage.setItem('pending_order', JSON.stringify(orderData));
+                safeLocalStorage.setItem('pending_cart_items', JSON.stringify(cartItems));
                 const tempOrderId = `temp_${Date.now()}`;
                 await handleOnlinePayment(tempOrderId, selectedMethod);
             } else {
@@ -455,7 +458,7 @@ const Checkout = () => {
                     return orderRef.id;
                 });
                 // Mark cart as recovered
-                const cartId = auth.currentUser ? auth.currentUser.uid : localStorage.getItem('cartSessionId');
+                const cartId = auth.currentUser ? auth.currentUser.uid : safeLocalStorage.getItem('cartSessionId');
                 if (cartId) {
                     await setDoc(doc(db, 'abandoned_carts', cartId), {
                         recovered: true,

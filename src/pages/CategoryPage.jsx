@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useSafeNavigation } from '../utils/safeNavigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +11,7 @@ import Breadcrumbs from '../components/Breadcrumbs';
 
 const CategoryPage = () => {
     const { id } = useParams();
-    const navigate = useNavigate();
+    const { navigate } = useSafeNavigation();
     const { t, i18n } = useTranslation();
     const { updateFilter } = useFilters();
 

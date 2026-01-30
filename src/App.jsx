@@ -168,6 +168,26 @@ const ReferralTracker = () => {
 
 import { StaticDataProvider } from './context/StaticDataContext';
 
+// Initialize Global Safety Flag
+if (typeof window !== 'undefined') {
+  window.isPureStateMode = false;
+
+  // Global Listener for SecurityErrors (The Final Shield)
+  window.addEventListener('error', (event) => {
+    if (event.error?.name === 'SecurityError' || event.message?.includes('SecurityError')) {
+      console.warn('⚠️ PROACTIVE SECURITY SHIELD: High-restriction environment detected. Activating Pure State Mode.');
+      window.isPureStateMode = true;
+    }
+  });
+
+  window.addEventListener('unhandledrejection', (event) => {
+    if (event.reason?.name === 'SecurityError' || event.reason?.message?.includes('SecurityError')) {
+      console.warn('⚠️ PROACTIVE SECURITY SHIELD: Async Security Error detected. Activating Pure State Mode.');
+      window.isPureStateMode = true;
+    }
+  });
+}
+
 function App() {
   return (
     <Router>

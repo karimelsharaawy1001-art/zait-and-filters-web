@@ -4,7 +4,8 @@ import { useCart } from '../context/CartContext';
 import { useFilters } from '../context/FilterContext';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useSafeNavigation } from '../utils/safeNavigation';
 import { useSettings } from '../context/SettingsContext';
 import { auth, db } from '../firebase';
 import { signOut } from 'firebase/auth';
@@ -20,7 +21,7 @@ const Navbar = () => {
     const { settings } = useSettings();
     const { t } = useTranslation();
     const cartCount = getCartCount();
-    const navigate = useNavigate();
+    const { navigate } = useSafeNavigation();
     const location = useLocation();
 
     const [suggestions, setSuggestions] = useState([]);

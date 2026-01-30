@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, getDocs, deleteDoc, doc, updateDoc, query, orderBy, writeBatch, limit, startAfter, getCountFromServer, where } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
+import { safeLocalStorage, safeSessionStorage } from '../../utils/safeStorage';
 import AdminHeader from '../../components/AdminHeader';
 import { Edit3, Trash2, Plus, Search, Filter, AlertTriangle, ArrowUpDown, ChevronLeft, ChevronRight, Eye, MoreVertical, CheckCircle, XCircle, TrendingUp, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -171,7 +172,7 @@ const ManageProducts = () => {
         const cacheKey = `admin_products_${categoryFilter}_${subcategoryFilter}_${makeFilter}_${modelFilter}_${brandFilter}_${statusFilter}_${sortBy}_${searchQuery}_${currentPage}`;
 
         if (!skipCache && !isNext && !isPrev) {
-            const cachedData = localStorage.getItem(cacheKey);
+            const cachedData = safeLocalStorage.getItem(cacheKey);
             if (cachedData) {
                 const parsed = JSON.parse(cachedData);
                 if ((Date.now() - parsed.timestamp) < 3600000) {
@@ -252,7 +253,7 @@ const ManageProducts = () => {
             }
 
             if (!isNext && !isPrev) {
-                localStorage.setItem(cacheKey, JSON.stringify({
+                safeLocalStorage.setItem(cacheKey, JSON.stringify({
                     products: productsList,
                     totalCount: currentTotal,
                     timestamp: Date.now()
@@ -275,7 +276,7 @@ const ManageProducts = () => {
     };
 
     const fetchBrands = async () => {
-        const cachedBrands = sessionStorage.getItem('admin_unique_brands');
+        const cachedBrands = safeSessionStorage.getItem('admin_unique_brands');
         if (cachedBrands) {
             setUniquePartBrands(JSON.parse(cachedBrands));
             return;
@@ -290,7 +291,7 @@ const ManageProducts = () => {
             }))].filter(Boolean).sort();
 
             setUniquePartBrands(brands);
-            sessionStorage.setItem('admin_unique_brands', JSON.stringify(brands));
+            safeSessionStorage.setItem('admin_unique_brands', JSON.stringify(brands));
         } catch (error) {
             console.error("Error fetching brands:", error);
         }
@@ -535,7 +536,7 @@ const ManageProducts = () => {
                         </button>
                         <button
                             onClick={() => {
-                                sessionStorage.removeItem('admin_unique_brands');
+                                safeSessionStorage.removeItem('admin_unique_brands');
                                 fetchProducts(false, false, true);
                                 fetchBrands();
                                 toast.success('Data synced with cloud');

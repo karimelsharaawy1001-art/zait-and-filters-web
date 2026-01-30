@@ -1,5 +1,6 @@
 import React from 'react';
-import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { useSafeNavigation } from '../utils/safeNavigation';
 import {
     LayoutDashboard,
     Box,
@@ -24,7 +25,7 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
 
 const AdminLayout = () => {
-    const navigate = useNavigate();
+    const { navigate } = useSafeNavigation();
     const location = useLocation();
 
     const [unreadCount, setUnreadCount] = useState(0);

@@ -40,37 +40,45 @@ export const CartProvider = ({ children }) => {
 
     // Synchronize with Local Storage and Firestore (for abandoned cart recovery)
     useEffect(() => {
-        try {
-            safeLocalStorage.setItem('cartItems', JSON.stringify(cartItems));
+        // Debounce storage writes to avoid security triggers on every microscopic state change
+        const handler = setTimeout(() => {
+            try {
+                const currentCartStr = JSON.stringify(cartItems);
+                if (safeLocalStorage.getItem('cartItems') !== currentCartStr) {
+                    safeLocalStorage.setItem('cartItems', currentCartStr);
+                }
 
-            if (cartItems.length > 0) {
-                const syncCart = async () => {
-                    try {
-                        const cartId = auth.currentUser ? auth.currentUser.uid : sessionId;
-                        const cartData = {
-                            sessionId: sessionId,
-                            uid: auth.currentUser?.uid || null,
-                            email: customerDetails.email || auth.currentUser?.email || null,
-                            customerName: customerDetails.name || auth.currentUser?.displayName || 'Guest',
-                            customerPhone: customerDetails.phone || null,
-                            items: cartItems,
-                            total: cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-                            lastModified: serverTimestamp(),
-                            recovered: false,
-                            emailSent: false,
-                            lastStepReached: currentStage
-                        };
+                if (cartItems.length > 0) {
+                    const syncCart = async () => {
+                        try {
+                            const cartId = auth.currentUser ? auth.currentUser.uid : sessionId;
+                            const cartData = {
+                                sessionId: sessionId,
+                                uid: auth.currentUser?.uid || null,
+                                email: customerDetails.email || auth.currentUser?.email || null,
+                                customerName: customerDetails.name || auth.currentUser?.displayName || 'Guest',
+                                customerPhone: customerDetails.phone || null,
+                                items: cartItems,
+                                total: cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                                lastModified: serverTimestamp(),
+                                recovered: false,
+                                emailSent: false,
+                                lastStepReached: currentStage
+                            };
 
-                        await setDoc(doc(db, 'abandoned_carts', cartId), cartData, { merge: true });
-                    } catch (err) {
-                        console.error("Error syncing abandoned cart:", err);
-                    }
-                };
-                syncCart();
+                            await setDoc(doc(db, 'abandoned_carts', cartId), cartData, { merge: true });
+                        } catch (err) {
+                            console.error("Error syncing abandoned cart:", err);
+                        }
+                    };
+                    syncCart();
+                }
+            } catch (error) {
+                console.error("Failed to handle cart persistence:", error);
             }
-        } catch (error) {
-            console.error("Failed to handle cart persistence", error);
-        }
+        }, 1000); // 1-second debounce for storage writes
+
+        return () => clearTimeout(handler);
     }, [cartItems, currentStage, customerDetails, auth.currentUser, sessionId]);
 
     const updateCartStage = (stage) => {

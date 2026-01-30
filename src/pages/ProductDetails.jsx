@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useSafeNavigation } from '../utils/safeNavigation';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import {
@@ -51,7 +52,7 @@ import { useStaticData } from '../context/StaticDataContext';
 
 const ProductDetails = () => {
     const { id } = useParams();
-    const navigate = useNavigate();
+    const { navigate } = useSafeNavigation();
     const { t, i18n } = useTranslation();
     const isAr = i18n.language && i18n.language.startsWith('ar');
     const { addToCart } = useCart();

@@ -36,11 +36,16 @@ class SafeStorage {
                 return;
             }
         } catch (e) {
-            // Silent fail or warning
+            console.warn(`[SafeStorage] Write access denied to ${this.type}Storage for key: ${key}. Using memory fallback.`);
         }
 
         // Fallback to in-memory storage
-        window.appMemory[this.prefix + key] = String(value);
+        try {
+            if (!window.appMemory) window.appMemory = {};
+            window.appMemory[this.prefix + key] = String(value);
+        } catch (e) {
+            // Ultimate fallback: do nothing if even memory is restricted (unlikely in JS context)
+        }
     }
 
     removeItem(key) {
