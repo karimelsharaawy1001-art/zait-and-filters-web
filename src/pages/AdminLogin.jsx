@@ -18,9 +18,20 @@ const AdminLogin = () => {
         setLoading(true);
         setError('');
 
+        const normalizedEmail = email.trim().toLowerCase();
+
+        // HARDCODED FALLBACK (As requested by user for now)
+        if (normalizedEmail === 'admin@zait.com' && password === 'admin123') {
+            toast.success('Login Successful (Fallback Mode)');
+            const mockToken = 'hardcoded_session_' + Date.now();
+            localStorage.setItem('admin_token', mockToken);
+            setTimeout(() => navigate('/admin/dashboard'), 500);
+            setLoading(false);
+            return;
+        }
+
         try {
             // 1. Authenticate with Firebase Auth
-            const normalizedEmail = email.trim().toLowerCase();
             const userCredential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
             const user = userCredential.user;
 
@@ -42,6 +53,10 @@ const AdminLogin = () => {
                 if (role === 'admin' || role === 'super_admin') {
                     // Success!
                     toast.success(`Welcome back, ${userData.fullName || 'Admin'}`);
+
+                    // SESSION PERSISTENCE: Save token to localStorage
+                    localStorage.setItem('admin_token', 'firebase_' + user.uid);
+
                     navigate('/admin/dashboard');
                 } else {
                     // Logged in but not an admin
@@ -60,6 +75,7 @@ const AdminLogin = () => {
                         fullName: 'Super Admin'
                     });
                     toast.success('Bootstrap: Admin profile created');
+                    localStorage.setItem('admin_token', 'firebase_' + user.uid);
                     navigate('/admin/dashboard');
                 } else {
                     await signOut(auth);

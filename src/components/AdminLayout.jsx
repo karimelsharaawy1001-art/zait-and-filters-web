@@ -60,6 +60,7 @@ const AdminLayout = () => {
     const handleLogout = async () => {
         try {
             await signOut(auth);
+            localStorage.removeItem('admin_token');
             navigate('/admin/login');
         } catch (error) {
             console.error("Error signing out: ", error);
