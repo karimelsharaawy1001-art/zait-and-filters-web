@@ -66,7 +66,9 @@ const AddEditBlog = () => {
                 const data = docSnap.data();
                 setFormData({
                     ...data,
-                    tags: data.tags || []
+                    tags: data.tags || [],
+                    suggestedCategoryId: data.suggestedCategoryId || '',
+                    manualProductIds: data.manualProductIds || []
                 });
             } else {
                 toast.error("Post not found");
@@ -436,10 +438,11 @@ const AddEditBlog = () => {
                                                                 key={p.id}
                                                                 type="button"
                                                                 onClick={() => {
-                                                                    if (!formData.manualProductIds.includes(p.id)) {
+                                                                    const currentIds = formData.manualProductIds || [];
+                                                                    if (!currentIds.includes(p.id)) {
                                                                         setFormData(prev => ({
                                                                             ...prev,
-                                                                            manualProductIds: [...prev.manualProductIds, p.id].slice(-4)
+                                                                            manualProductIds: [...(prev.manualProductIds || []), p.id].slice(-4)
                                                                         }));
                                                                     }
                                                                     setProductSearch('');
@@ -459,7 +462,7 @@ const AddEditBlog = () => {
 
                                         {/* Selected Products List */}
                                         <div className="flex flex-wrap gap-2 pt-2">
-                                            {formData.manualProductIds.map(pid => {
+                                            {(formData.manualProductIds || []).map(pid => {
                                                 const product = allProducts.find(p => p.id === pid);
                                                 return (
                                                     <div key={pid} className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-lg">
