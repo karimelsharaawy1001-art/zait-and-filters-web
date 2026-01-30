@@ -106,9 +106,11 @@ const PublicLayout = () => {
           },
         }}
       />
-      <Navbar />
-      <GarageActiveIndicator />
-      <main className="flex-1 pt-40 md:pt-28">
+      <div className="sticky top-0 z-[100] bg-white">
+        <Navbar />
+        <GarageActiveIndicator />
+      </div>
+      <main className="flex-1">
         <Outlet />
       </main>
       <Footer />
