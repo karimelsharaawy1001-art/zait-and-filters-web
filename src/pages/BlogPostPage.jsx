@@ -213,13 +213,11 @@ const BlogPostPage = () => {
                     </footer>
                 </article>
 
-                {/* Related Products Funnel */}
-                <section className="mt-20 not-italic">
-                    <h2 className={`text-3xl font-black text-gray-900 mb-10 font-Cairo tracking-tighter italic ${isAr ? 'text-right' : 'text-left'}`}>
-                        {isAr ? 'منتجات مقترحة صيانة' : 'Recommended for You'}
-                    </h2>
-                    <RelatedProducts />
-                </section>
+                {/* Suggested Products Section */}
+                <RelatedProducts
+                    suggestedCategory={post.suggestedCategoryId}
+                    manualIds={post.manualProductIds}
+                />
             </div>
         </div>
     );

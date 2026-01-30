@@ -6,8 +6,9 @@ import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRef } from 'react';
 
-const RelatedProducts = ({ currentProduct }) => {
+const RelatedProducts = ({ currentProduct, suggestedCategory, manualIds }) => {
     const { t, i18n } = useTranslation();
+    const isAr = i18n.language === 'ar';
     const [relatedProducts, setRelatedProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const scrollContainerRef = useRef(null);
@@ -119,8 +120,8 @@ const RelatedProducts = ({ currentProduct }) => {
         <section className="py-8 md:py-10 border-t border-gray-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between mb-8">
-                    <h2 className={`text-2xl font-black text-gray-900 ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
-                        {t('relatedProducts')}
+                    <h2 className={`text-2xl font-black text-gray-900 ${isAr ? 'text-right' : 'text-left'}`}>
+                        {currentProduct ? t('relatedProducts') : (isAr ? 'المنتجات المقترحة' : 'Suggested Products')}
                     </h2>
                 </div>
 

@@ -27,16 +27,36 @@ const AddEditBlog = () => {
         isActive: true,
         status: 'published',
         slug: '',
-        tags: []
+        tags: [],
+        suggestedCategoryId: '',
+        manualProductIds: []
     });
 
     const [tagInput, setTagInput] = useState('');
+    const [categories, setCategories] = useState([]);
+    const [allProducts, setAllProducts] = useState([]);
+    const [productSearch, setProductSearch] = useState('');
 
     useEffect(() => {
         if (isEdit) {
             fetchPost();
         }
+        fetchMetadata();
     }, [id]);
+
+    const fetchMetadata = async () => {
+        try {
+            // Fetch Categories
+            const catSnap = await getDocs(collection(db, 'categories'));
+            setCategories(catSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+
+            // Fetch Products (limited to active ones for selection)
+            const prodSnap = await getDocs(query(collection(db, 'products'), where('isActive', '==', true)));
+            setAllProducts(prodSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        } catch (error) {
+            console.error("Error fetching metadata:", error);
+        }
+    };
 
     const fetchPost = async () => {
         try {
@@ -367,6 +387,100 @@ const AddEditBlog = () => {
                                         <option value="Company News">Company News</option>
                                     </select>
                                 </div>
+
+                                {/* Dynamic Product Suggestions */}
+                                <div className="space-y-4 pt-4">
+                                    <div className="flex items-center gap-2">
+                                        <Loader2 className="h-4 w-4 text-orange-600" />
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                            Linked Products (المنتجات المقترحة)
+                                        </label>
+                                    </div>
+
+                                    {/* Category-based Suggestions */}
+                                    <div className="space-y-3">
+                                        <label className="block text-[10px] font-medium text-gray-400">Option 1: Suggest products from Category</label>
+                                        <select
+                                            name="suggestedCategoryId"
+                                            value={formData.suggestedCategoryId}
+                                            onChange={handleChange}
+                                            className="w-full px-6 py-4 bg-gray-50 border border-transparent rounded-2xl text-sm font-black text-gray-900 focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none transition-all cursor-pointer"
+                                        >
+                                            <option value="">-- No Category Selection --</option>
+                                            {categories.map(cat => (
+                                                <option key={cat.id} value={cat.id}>{cat.nameEn || cat.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* Manual Product Selection */}
+                                    <div className="space-y-3 pt-4">
+                                        <label className="block text-[10px] font-medium text-gray-400">Option 2: Manually pick products (Max 4)</label>
+
+                                        {/* Search Input */}
+                                        <div className="relative group">
+                                            <input
+                                                type="text"
+                                                placeholder="Search products to add..."
+                                                value={productSearch}
+                                                onChange={(e) => setProductSearch(e.target.value)}
+                                                className="w-full px-6 py-4 bg-gray-50 border border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                                            />
+                                            {productSearch && (
+                                                <div className="absolute z-50 left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 max-h-64 overflow-y-auto">
+                                                    {allProducts
+                                                        .filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+                                                            (p.nameEn && p.nameEn.toLowerCase().includes(productSearch.toLowerCase())))
+                                                        .map(p => (
+                                                            <button
+                                                                key={p.id}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    if (!formData.manualProductIds.includes(p.id)) {
+                                                                        setFormData(prev => ({
+                                                                            ...prev,
+                                                                            manualProductIds: [...prev.manualProductIds, p.id].slice(-4)
+                                                                        }));
+                                                                    }
+                                                                    setProductSearch('');
+                                                                }}
+                                                                className="w-full px-6 py-4 text-left hover:bg-orange-50 flex items-center justify-between group transition-colors"
+                                                            >
+                                                                <div>
+                                                                    <p className="text-sm font-black text-gray-900">{p.nameEn || p.name}</p>
+                                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{p.category}</p>
+                                                                </div>
+                                                                <span className="text-orange-500 opacity-0 group-hover:opacity-100 text-xs font-black">+ ADD</span>
+                                                            </button>
+                                                        ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Selected Products List */}
+                                        <div className="flex flex-wrap gap-2 pt-2">
+                                            {formData.manualProductIds.map(pid => {
+                                                const product = allProducts.find(p => p.id === pid);
+                                                return (
+                                                    <div key={pid} className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-lg">
+                                                        {product ? (product.nameEn || product.name) : pid}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setFormData(prev => ({
+                                                                ...prev,
+                                                                manualProductIds: prev.manualProductIds.filter(id => id !== pid)
+                                                            }))}
+                                                            className="text-gray-400 hover:text-red-500 transition-colors"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div className="space-y-3">
                                     <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Author Name</label>
                                     <input
