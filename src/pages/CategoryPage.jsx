@@ -45,7 +45,7 @@ const CategoryPage = () => {
         if (category) {
             updateFilter('category', category.name);
             updateFilter('subCategory', subcategoryName);
-            navigate(`/shop?category=${encodeURIComponent(category.name)}&subcategory=${encodeURIComponent(subcategoryName)}`);
+            navigate(`/shop?category=${encodeURIComponent(category.name)}&subcategory=${encodeURIComponent(subcategoryName)}`, { replace: true });
         }
     };
 
@@ -98,7 +98,7 @@ const CategoryPage = () => {
                         <button
                             onClick={() => {
                                 updateFilter('category', category.name);
-                                navigate(`/shop?category=${encodeURIComponent(category.name)}`);
+                                navigate(`/shop?category=${encodeURIComponent(category.name)}`, { replace: true });
                             }}
                             className="admin-primary-btn w-fit px-8"
                         >

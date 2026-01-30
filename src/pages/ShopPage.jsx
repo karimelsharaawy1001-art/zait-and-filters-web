@@ -36,22 +36,32 @@ const ShopPage = () => {
 
     // Sync State to URL (When User Filters via UI)
     useEffect(() => {
-        const params = new URLSearchParams();
-        if (filters.make) params.set('make', filters.make);
-        if (filters.model) params.set('model', filters.model);
-        if (filters.year) params.set('year', filters.year);
-        if (filters.category && filters.category !== 'All') params.set('category', filters.category);
-        if (filters.subcategory) {
-            const subcategory = filters.subcategory || ''; // Using filters context
-            params.set('subcategory', subcategory);
-        }
-        if (filters.viscosity) params.set('viscosity', filters.viscosity);
-        if (filters.brand) params.set('brand', filters.brand);
-        if (filters.origin) params.set('origin', filters.origin);
-        if (filters.page && filters.page > 1) params.set('page', filters.page);
+        try {
+            const params = new URLSearchParams();
+            if (filters.make) params.set('make', filters.make);
+            if (filters.model) params.set('model', filters.model);
+            if (filters.year) params.set('year', filters.year);
+            if (filters.category && filters.category !== 'All') params.set('category', filters.category);
+            if (filters.subcategory) {
+                params.set('subcategory', filters.subcategory);
+            }
+            if (filters.viscosity) params.set('viscosity', filters.viscosity);
+            if (filters.brand) params.set('brand', filters.brand);
+            if (filters.origin) params.set('origin', filters.origin);
+            if (filters.page && filters.page > 1) params.set('page', filters.page);
 
-        setSearchParams(params);
-    }, [filters, setSearchParams]);
+            const newSearchString = params.toString();
+            const currentSearchString = searchParams.toString();
+
+            // Only update if the URL actually needs to change
+            if (newSearchString !== currentSearchString) {
+                console.log('[ShopPage] Updating URL params (Replace mode)');
+                setSearchParams(params, { replace: true });
+            }
+        } catch (error) {
+            console.error("[ShopPage] URL sync failed:", error);
+        }
+    }, [filters, searchParams, setSearchParams]);
 
     return (
         <div className="pt-4 md:pt-8 text-right">
