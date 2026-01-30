@@ -40,7 +40,10 @@ const ProductCard = ({ product, isCompact = false }) => {
     const hasSale = product.salePrice && Number(product.salePrice) < Number(product.price);
 
     return (
-        <article className={`product-card group relative flex flex-col !gap-0 !space-y-0 !justify-start rounded-premium shadow-lg border overflow-hidden transition-all duration-500 hover:translate-y-[-8px] hover:shadow-2xl w-full max-w-[320px] mx-auto h-full ${isCompact ? 'px-0' : 'px-0.5'} ${isRecommended ? 'bg-[#F0FFF4] border-[#D1FAE5] shadow-[0_10px_30px_-15px_rgba(40,180,99,0.2)] hover:shadow-[0_20px_40px_-15px_rgba(40,180,99,0.35)]' : 'bg-white border-gray-100'}`}>
+        <article
+            className={`product-card group relative flex flex-col !gap-0 !space-y-0 !justify-start rounded-premium shadow-lg border overflow-hidden transition-all duration-500 hover:translate-y-[-8px] hover:shadow-2xl w-full max-w-[320px] mx-auto h-full ${isCompact ? 'px-0' : 'px-0.5'} ${isRecommended ? 'bg-[#F0FFF4] border-[#D1FAE5] shadow-[0_10px_30px_-15px_rgba(40,180,99,0.2)] hover:shadow-[0_20px_40px_-15px_rgba(40,180,99,0.35)]' : 'bg-white border-gray-100'}`}
+            style={{ willChange: 'transform' }}
+        >
             {/* Premium Compatibility Badge - Only for Garage Matches */}
             {isRecommended && (
                 <div className="absolute top-3 left-3 z-30 bg-gradient-to-r from-[#059669] to-[#10b981] text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider shadow-lg flex items-center gap-1.5 animate-in slide-in-from-left-2 duration-500">

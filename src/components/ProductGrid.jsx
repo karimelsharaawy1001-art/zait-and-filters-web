@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ShoppingCart, FilterX, ChevronRight, ChevronDown, SlidersHorizontal, Car } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useFilters } from '../context/FilterContext';
@@ -52,88 +52,92 @@ const ProductGrid = ({ showFilters = true }) => {
     const [isFiltering, setIsFiltering] = useState(false);
     const PAGE_SIZE = 20;
 
+    // ⚡ High-Performance Memoized Static Search Engine
+    const filteredStaticProducts = useMemo(() => {
+        if (!isStaticLoaded && inventoryData.length === 0) return { results: [], total: 0 };
+
+        console.log('⚡ Calculating Memoized Static Search');
+        let results = inventoryData.length > 0 ? [...inventoryData] : [...staticProducts];
+
+        // 1. Garage Filter
+        if (isGarageFilterActive && activeCar?.make) {
+            const cMake = activeCar.make.toUpperCase();
+            const cModel = (activeCar.model || '').toUpperCase();
+            results = results.filter(p => {
+                const pMake = (p.make || p.car_make || '').toUpperCase();
+                const pModel = (p.model || p.car_model || '').toUpperCase();
+                const isUniversal = !pMake || pMake === 'UNIVERSAL' || pMake === 'GENERAL' ||
+                    p.category === 'إكسسوارات وعناية' || p.category === 'إضافة للموتور و البنزين';
+                if (isUniversal) return true;
+                const isCarMatch = pMake === cMake && (!cModel || pModel === cModel);
+                let isYearMatch = true;
+                if (isCarMatch && activeCar.year) {
+                    const y = parseInt(activeCar.year);
+                    isYearMatch = (!p.yearStart || y >= p.yearStart) && (!p.yearEnd || y <= p.yearEnd);
+                }
+                return isCarMatch && isYearMatch;
+            });
+        } else {
+            if (filters.make) results = results.filter(p => p.make === filters.make);
+            if (filters.model) results = results.filter(p => p.model === filters.model);
+            if (filters.year) {
+                const yearNum = parseInt(filters.year);
+                results = results.filter(p => p.yearStart <= yearNum && p.yearEnd >= yearNum);
+            }
+        }
+
+        // 2. Category & Subcategory
+        if (filters.category && filters.category !== 'All') results = results.filter(p => p.category === filters.category);
+        if (filters.subcategory) results = results.filter(p => p.subcategory === filters.subcategory);
+
+        // 3. Other Metadata
+        if (filters.brand) results = results.filter(p => p.partBrand === filters.brand);
+        if (filters.origin) results = results.filter(p => p.countryOfOrigin === filters.origin);
+        if (filters.viscosity) results = results.filter(p => p.viscosity === filters.viscosity);
+
+        // 4. Search Query
+        if (filters.searchQuery && filters.searchQuery.trim().length > 0) {
+            const searchKeywords = filters.searchQuery.trim().split(/\s+/).filter(Boolean).map(k => normalizeArabic(k));
+            results = results.filter(p => {
+                const searchTarget = normalizeArabic(getSearchableText(p));
+                return searchKeywords.every(keyword => searchTarget.includes(keyword));
+            });
+        }
+
+        const total = results.length;
+        results.sort((a, b) => a.name.localeCompare(b.name));
+
+        return { results, total };
+    }, [
+        isStaticLoaded,
+        isGarageFilterActive,
+        activeCar?.id,
+        filters.category,
+        filters.subcategory,
+        filters.make,
+        filters.model,
+        filters.year,
+        filters.brand,
+        filters.origin,
+        filters.searchQuery,
+        filters.viscosity,
+        staticProducts
+    ]);
+
     const fetchProducts = async (isDebounced = false) => {
         if (!isDebounced) setLoading(true);
         setIsFiltering(true);
         try {
-            // Master Static Logic: Primary source of truth for high-concurrency scaling
-            // If we have static data loaded, we perform ALL filtering and searching client-side.
-            // This achieves $0 cost and maximum speed.
             if (isStaticLoaded || inventoryData.length > 0) {
-                console.log('⚡ Using High-Performance Static Search Engine');
-                let results = inventoryData.length > 0 ? [...inventoryData] : [...staticProducts];
+                const { results, total } = filteredStaticProducts;
+                setTotalProducts(total);
 
-                // 1. Garage Filter (NARROW MATCH)
-                if (isGarageFilterActive && activeCar?.make) {
-                    const cMake = activeCar.make.toUpperCase();
-                    const cModel = (activeCar.model || '').toUpperCase();
-
-                    results = results.filter(p => {
-                        const pMake = (p.make || p.car_make || '').toUpperCase();
-                        const pModel = (p.model || p.car_model || '').toUpperCase();
-
-                        // Check if Universal
-                        const isUniversal = !pMake || pMake === 'UNIVERSAL' || pMake === 'GENERAL' ||
-                            p.category === 'إكسسوارات وعناية' || p.category === 'إضافة للموتور و البنزين';
-
-                        if (isUniversal) return true;
-
-                        // Specific car match
-                        const isCarMatch = pMake === cMake && (!cModel || pModel === cModel);
-
-                        // Year match if applicable
-                        let isYearMatch = true;
-                        if (isCarMatch && activeCar.year) {
-                            const y = parseInt(activeCar.year);
-                            isYearMatch = (!p.yearStart || y >= p.yearStart) && (!p.yearEnd || y <= p.yearEnd);
-                        }
-
-                        return isCarMatch && isYearMatch;
-                    });
-                } else {
-                    // 2. Manual Car Filters
-                    if (filters.make) results = results.filter(p => p.make === filters.make);
-                    if (filters.model) results = results.filter(p => p.model === filters.model);
-                    if (filters.year) {
-                        const yearNum = parseInt(filters.year);
-                        results = results.filter(p => p.yearStart <= yearNum && p.yearEnd >= yearNum);
-                    }
-                }
-
-                // 3. Category & Subcategory
-                if (filters.category && filters.category !== 'All') {
-                    results = results.filter(p => p.category === filters.category);
-                }
-                if (filters.subcategory) {
-                    results = results.filter(p => p.subcategory === filters.subcategory);
-                }
-
-                // 4. Other Metadata
-                if (filters.brand) results = results.filter(p => p.partBrand === filters.brand);
-                if (filters.origin) results = results.filter(p => p.countryOfOrigin === filters.origin);
-
-                // 5. Search Query
-                if (filters.searchQuery && filters.searchQuery.trim().length > 0) {
-                    const searchKeywords = filters.searchQuery.trim().split(/\s+/).filter(Boolean).map(k => normalizeArabic(k));
-                    results = results.filter(p => {
-                        const searchTarget = normalizeArabic(getSearchableText(p));
-                        return searchKeywords.every(keyword => searchTarget.includes(keyword));
-                    });
-                }
-
-                setTotalProducts(results.length);
-
-                // Sorting (Standard: Name ASC)
-                results.sort((a, b) => a.name.localeCompare(b.name));
-
-                // Pagination
                 const currentPage = Math.max(1, parseInt(filters.page) || 1);
                 const startIndex = (currentPage - 1) * PAGE_SIZE;
                 setProducts(results.slice(startIndex, startIndex + PAGE_SIZE));
 
-                // Extraction (Lazy)
                 if (!filterOptions.categories || Object.keys(filterOptions.categories).length === 0) {
-                    extractFilterOptions(staticProducts);
+                    extractFilterOptions(staticProducts.length > 0 ? staticProducts : inventoryData);
                 }
                 return;
             }
