@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, getDoc, updateDoc, serverTimestamp, query, where } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -65,7 +65,18 @@ const AddEditBlog = () => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 setFormData({
-                    ...data,
+                    title: data.title || '',
+                    titleEn: data.titleEn || '',
+                    content: data.content || '',
+                    contentEn: data.contentEn || '',
+                    excerpt: data.excerpt || '',
+                    excerptEn: data.excerptEn || '',
+                    image: data.image || '',
+                    category: data.category || 'Maintenance Tips',
+                    author: data.author || 'Zait & Filters Team',
+                    isActive: data.isActive !== false,
+                    status: data.status || 'published',
+                    slug: data.slug || '',
                     tags: data.tags || [],
                     suggestedCategoryId: data.suggestedCategoryId || '',
                     manualProductIds: data.manualProductIds || []
