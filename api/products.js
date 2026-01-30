@@ -154,23 +154,7 @@ export default async function handler(req, res) {
             }
         }
 
-        // 3. Sync Action (Consolidated to save Serverless Function slots)
-        if (action === 'sync') {
-            if (req.method !== 'POST') {
-                return res.status(405).json({ error: 'Method Not Allowed' });
-            }
-
-            const deployHook = process.env.VERCEL_DEPLOY_HOOK || process.env.VITE_VERCEL_DEPLOY_HOOK;
-
-            if (!deployHook) {
-                return res.status(500).json({ error: 'Deploy hook not configured' });
-            }
-
-            const response = await fetch(deployHook, { method: 'POST' });
-            if (!response.ok) throw new Error(`Vercel responded with ${response.status}`);
-
-            return res.status(200).json({ message: 'Sync triggered successfully' });
-        }
+        // 3. Removed: Sync Action moved to articles.js
 
         // 4. Feed Generation (Consolidated)
         if (action === 'generateFeed') {

@@ -8,7 +8,7 @@ const AdminHeader = ({ title }) => {
     const handleSync = async () => {
         setIsSyncing(true);
         try {
-            const response = await fetch('/api/products?action=sync', {
+            const response = await fetch('/api/articles?action=sync', {
                 method: 'POST',
             });
 
