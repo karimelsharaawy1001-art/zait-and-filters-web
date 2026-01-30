@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, useLocation, Outlet, useSearchParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Outlet, useSearchParams } from 'react-router-dom';
 import { safeLocalStorage } from './utils/safeStorage';
 import { Toaster } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -222,10 +222,8 @@ function App() {
           <ErrorBoundary>
             <React.Suspense fallback={<PageLoader />}>
               <Routes>
-                {/* 1. Admin Login (Standalone - High Priority) */}
+                {/* 1. Admin Logic (Highest Priority) */}
                 <Route path="/admin/login" element={<AdminLogin />} />
-
-                {/* 2. Protected Admin Routes (Catch these before public routes) */}
                 <Route
                   path="/admin"
                   element={
@@ -322,7 +320,7 @@ function App() {
           </ErrorBoundary>
         </SettingsProvider>
       </StaticDataProvider>
-    </Router>
+    </Router >
   )
 }
 
