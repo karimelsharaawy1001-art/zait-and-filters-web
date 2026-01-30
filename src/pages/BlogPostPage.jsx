@@ -22,30 +22,43 @@ const BlogPostPage = () => {
         const fetchPost = async () => {
             setLoading(true);
             try {
-                // 1. Try fetching by slug
-                const q = query(collection(db, 'blog_posts'), where('slug', '==', slugOrId), limit(1));
-                const querySnapshot = await getDocs(q);
+                // Determine if slugOrId is an ID or a Slug (simple heuristic or try both via API)
+                const response = await fetch(`/api/articles?${slugOrId.length > 15 ? `id=${slugOrId}` : `slug=${slugOrId}`}`);
 
-                if (!querySnapshot.empty) {
-                    setPost({ id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() });
+                if (!response.ok) {
+                    // One more try if the first heuristic failed
+                    const retryResponse = await fetch(`/api/articles?${slugOrId.length > 15 ? `slug=${slugOrId}` : `id=${slugOrId}`}`);
+                    if (!retryResponse.ok) throw new Error('Post not found');
+                    const data = await retryResponse.json();
+                    setPost(normalizePost(data));
                 } else {
-                    // 2. Fallback to fetching by ID
-                    const docRef = doc(db, 'blog_posts', slugOrId);
-                    const docSnap = await getDoc(docRef);
-                    if (docSnap.exists()) {
-                        setPost({ id: docSnap.id, ...docSnap.data() });
-                    } else {
-                        toast.error("Article not found");
-                        navigate('/blog');
-                    }
+                    const data = await response.json();
+                    setPost(normalizePost(data));
                 }
             } catch (error) {
                 console.error("Error fetching blog post:", error);
+                toast.error("Article not found");
                 navigate('/blog');
             } finally {
                 setLoading(false);
             }
         };
+
+        const normalizePost = (data) => ({
+            ...data,
+            createdAt: data.createdAt ? {
+                toDate: () => {
+                    if (data.createdAt._seconds) return new Date(data.createdAt._seconds * 1000);
+                    return new Date(data.createdAt);
+                }
+            } : null,
+            updatedAt: data.updatedAt ? {
+                toDate: () => {
+                    if (data.updatedAt._seconds) return new Date(data.updatedAt._seconds * 1000);
+                    return new Date(data.updatedAt);
+                }
+            } : null
+        });
 
         fetchPost();
         window.scrollTo(0, 0);

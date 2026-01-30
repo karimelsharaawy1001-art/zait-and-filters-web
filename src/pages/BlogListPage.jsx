@@ -17,17 +17,23 @@ const BlogListPage = () => {
     useEffect(() => {
         const fetchPosts = async () => {
             try {
-                const q = query(
-                    collection(db, 'blog_posts'),
-                    where('isActive', '==', true),
-                    orderBy('createdAt', 'desc')
-                );
-                const querySnapshot = await getDocs(q);
-                const list = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
+                const response = await fetch('/api/articles');
+                if (!response.ok) throw new Error('Failed to fetch articles');
+                const list = await response.json();
+
+                // Firestore Timestamps via API come back as objects { _seconds, _nanoseconds } or ISO strings
+                // We normalize them here to ensure .toDate() or equivalent works
+                const normalizedList = list.map(post => ({
+                    ...post,
+                    createdAt: post.createdAt ? {
+                        toDate: () => {
+                            if (post.createdAt._seconds) return new Date(post.createdAt._seconds * 1000);
+                            return new Date(post.createdAt);
+                        }
+                    } : null
                 }));
-                setPosts(list);
+
+                setPosts(normalizedList);
             } catch (error) {
                 console.error("Error fetching blog posts:", error);
             } finally {
