@@ -3,6 +3,7 @@ import { HashRouter as Router, Routes, Route, useLocation, Outlet, useSearchPara
 import { safeLocalStorage } from './utils/safeStorage';
 import { Toaster } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+// Header components (Non-lazy)
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import GarageActiveIndicator from './components/GarageActiveIndicator';
@@ -14,7 +15,9 @@ import PageLoader from './components/PageLoader';
 import ProtectedRoute from './components/ProtectedRoute';
 import UserProtectedRoute from './components/UserProtectedRoute';
 import AffiliateProtectedRoute from './components/AffiliateProtectedRoute';
-import AdminLayout from './components/AdminLayout';
+
+// Lazy Load Layouts
+const AdminLayout = React.lazy(() => import('./components/AdminLayout'));
 
 // Lazy Load Public Pages
 const Home = React.lazy(() => import('./pages/Home'));
@@ -219,50 +222,10 @@ function App() {
           <ErrorBoundary>
             <React.Suspense fallback={<PageLoader />}>
               <Routes>
-                {/* Public Routes */}
-                <Route element={<PublicLayout />}>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/shop" element={<ShopPage />} />
-                  <Route path="/category/:id" element={<CategoryPage />} />
-                  <Route path="/brand/:brandName" element={<BrandPage />} />
-                  <Route path="/product/:id" element={<ProductDetails />} />
-                  <Route path="/cart" element={<CartPage />} />
-                  <Route path="/contact" element={<ContactUs />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/returns" element={<PolicyPage pageId="returns-policy" />} />
-                  <Route path="/shipping" element={<PolicyPage pageId="shipping-info" />} />
-                  <Route path="/my-orders" element={<OrderHistory />} />
-                  <Route path="/oil-advisor" element={<OilAdvisor />} />
-                  <Route path="/order-success" element={<OrderSuccess />} />
-                  <Route path="/recover-cart" element={<RecoverCart />} />
-                  <Route path="/blog" element={<BlogListPage />} />
-                  <Route path="/blog/:id" element={<BlogPostPage />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<Signup />} />
-                  <Route path="/marketers" element={<AffiliateRegister />} />
-                  <Route path="/affiliate-register" element={<AffiliateRegister />} />
-                  <Route
-                    path="/profile"
-                    element={
-                      <UserProtectedRoute>
-                        <Profile />
-                      </UserProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/affiliate-dashboard"
-                    element={
-                      <AffiliateProtectedRoute>
-                        <AffiliateDashboard />
-                      </AffiliateProtectedRoute>
-                    }
-                  />
-                </Route>
-
-                {/* Admin Login (Standalone) */}
+                {/* 1. Admin Login (Standalone - High Priority) */}
                 <Route path="/admin/login" element={<AdminLogin />} />
 
-                {/* Protected Admin Routes */}
+                {/* 2. Protected Admin Routes (Catch these before public routes) */}
                 <Route
                   path="/admin"
                   element={
@@ -305,14 +268,54 @@ function App() {
                   <Route path="integrations/installment-partners" element={<InstallmentPartners />} />
                   <Route path="integrations/cloudinary" element={<CloudinarySettings />} />
                   <Route path="integrations/sendgrid" element={<SendGridSettings />} />
-                  <Route path="/admin/blog" element={<ManageBlog />} />
-                  <Route path="/admin/blog/new" element={<AddEditBlog />} />
-                  <Route path="/admin/blog/edit/:id" element={<AddEditBlog />} />
+                  <Route path="blog" element={<ManageBlog />} />
+                  <Route path="blog/new" element={<AddEditBlog />} />
+                  <Route path="blog/edit/:id" element={<AddEditBlog />} />
                   <Route path="settings" element={<ManageSettings />} />
                   <Route path="policies" element={<ManagePolicies />} />
                 </Route>
 
-                {/* Catch-all 404 Route */}
+                {/* 3. Public Routes */}
+                <Route element={<PublicLayout />}>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/shop" element={<ShopPage />} />
+                  <Route path="/category/:id" element={<CategoryPage />} />
+                  <Route path="/brand/:brandName" element={<BrandPage />} />
+                  <Route path="/product/:id" element={<ProductDetails />} />
+                  <Route path="/cart" element={<CartPage />} />
+                  <Route path="/contact" element={<ContactUs />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/returns" element={<PolicyPage pageId="returns-policy" />} />
+                  <Route path="/shipping" element={<PolicyPage pageId="shipping-info" />} />
+                  <Route path="/my-orders" element={<OrderHistory />} />
+                  <Route path="/oil-advisor" element={<OilAdvisor />} />
+                  <Route path="/order-success" element={<OrderSuccess />} />
+                  <Route path="/recover-cart" element={<RecoverCart />} />
+                  <Route path="/blog" element={<BlogListPage />} />
+                  <Route path="/blog/:id" element={<BlogPostPage />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route path="/marketers" element={<AffiliateRegister />} />
+                  <Route path="/affiliate-register" element={<AffiliateRegister />} />
+                  <Route
+                    path="/profile"
+                    element={
+                      <UserProtectedRoute>
+                        <Profile />
+                      </UserProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/affiliate-dashboard"
+                    element={
+                      <AffiliateProtectedRoute>
+                        <AffiliateDashboard />
+                      </AffiliateProtectedRoute>
+                    }
+                  />
+                </Route>
+
+                {/* 4. Catch-all 404 Route */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </React.Suspense>
