@@ -17,23 +17,23 @@ const BlogListPage = () => {
     useEffect(() => {
         const fetchPosts = async () => {
             try {
-                const response = await fetch('/api/articles');
-                if (!response.ok) throw new Error('Failed to fetch articles');
-                const list = await response.json();
+                // We fetch all and filter in-memory to avoid requiring a composite index 
+                // for (where('isActive') + orderBy('createdAt')).
+                // This is also the most reliable "sync" method with the Admin Dashboard.
+                const q = query(collection(db, 'blog_posts'), orderBy('createdAt', 'desc'));
+                const querySnapshot = await getDocs(q);
 
-                // Firestore Timestamps via API come back as objects { _seconds, _nanoseconds } or ISO strings
-                // We normalize them here to ensure .toDate() or equivalent works
-                const normalizedList = list.map(post => ({
-                    ...post,
-                    createdAt: post.createdAt ? {
-                        toDate: () => {
-                            if (post.createdAt._seconds) return new Date(post.createdAt._seconds * 1000);
-                            return new Date(post.createdAt);
-                        }
-                    } : null
+                const list = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
                 }));
 
-                setPosts(normalizedList);
+                // Filter for published posts only
+                const publishedPosts = list.filter(post =>
+                    post.isActive !== false || post.status === 'published'
+                );
+
+                setPosts(publishedPosts);
             } catch (error) {
                 console.error("Error fetching blog posts:", error);
             } finally {

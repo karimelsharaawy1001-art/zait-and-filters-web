@@ -51,7 +51,7 @@ export default async function handler(req, res) {
         const snapshot = await blogRef.get();
         const posts = snapshot.docs
             .map(doc => ({ id: doc.id, ...doc.data() }))
-            .filter(post => post.isActive !== false) // Matches isActive: true or undefined (legacy)
+            .filter(post => post.isActive !== false || post.status === 'published')
             .sort((a, b) => {
                 const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt || 0);
                 const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt || 0);

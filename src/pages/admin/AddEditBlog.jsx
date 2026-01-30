@@ -25,6 +25,7 @@ const AddEditBlog = () => {
         category: 'Maintenance Tips',
         author: 'Zait & Filters Team',
         isActive: true,
+        status: 'published',
         slug: '',
         tags: []
     });
@@ -81,6 +82,11 @@ const AddEditBlog = () => {
 
         setFormData(prev => {
             const newData = { ...prev, [name]: val };
+
+            // Sync status with isActive
+            if (name === 'isActive') {
+                newData.status = val ? 'published' : 'draft';
+            }
 
             // AUTO-SLUG LOGIC: Only auto-generate if we are not editing an existing post or if slug is empty
             if (name === 'titleEn' && (!isEdit || !prev.slug)) {
