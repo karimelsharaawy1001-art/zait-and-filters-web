@@ -1,15 +1,20 @@
-import React from 'react';
-import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { HashRouter as Router, Routes, Route, useLocation, Outlet, useSearchParams } from 'react-router-dom';
 import { safeLocalStorage } from './utils/safeStorage';
 import { Toaster } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import GarageActiveIndicator from './components/GarageActiveIndicator';
 import ScrollToTop from './components/ScrollToTop';
 import { StaticDataProvider } from './context/StaticDataContext';
 import { SettingsProvider } from './context/SettingsContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import PageLoader from './components/PageLoader';
+import ProtectedRoute from './components/ProtectedRoute';
+import UserProtectedRoute from './components/UserProtectedRoute';
+import AffiliateProtectedRoute from './components/AffiliateProtectedRoute';
+import AdminLayout from './components/AdminLayout';
 
 // Lazy Load Public Pages
 const Home = React.lazy(() => import('./pages/Home'));
@@ -75,14 +80,6 @@ const FacebookInstagramShopping = React.lazy(() => import('./pages/admin/Faceboo
 const InstallmentPartners = React.lazy(() => import('./pages/admin/InstallmentPartners'));
 const CloudinarySettings = React.lazy(() => import('./pages/admin/CloudinarySettings'));
 const SendGridSettings = React.lazy(() => import('./pages/admin/SendGridSettings'));
-
-import ProtectedRoute from './components/ProtectedRoute';
-import UserProtectedRoute from './components/UserProtectedRoute';
-import AffiliateProtectedRoute from './components/AffiliateProtectedRoute';
-import { SettingsProvider } from './context/SettingsContext';
-import { Outlet, useSearchParams } from 'react-router-dom';
-import { useEffect } from 'react';
-import ErrorBoundary from './components/ErrorBoundary';
 
 const SafeModeUI = ({ error }) => (
   <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4 text-center">
@@ -165,8 +162,6 @@ const ReferralTracker = () => {
 
   return null;
 };
-
-import { StaticDataProvider } from './context/StaticDataContext';
 
 // Initialize Global Safety Flag
 if (typeof window !== 'undefined') {
