@@ -12,6 +12,7 @@ const ProductCard = ({ product, isCompact = false }) => {
     const { t, i18n } = useTranslation();
     const { addToCart } = useCart();
     const [quantity, setQuantity] = useState(1);
+    const [isAdded, setIsAdded] = useState(false);
 
     const isRecommended = product.isRecommended;
 
@@ -21,6 +22,10 @@ const ProductCard = ({ product, isCompact = false }) => {
         addToCart(product, quantity);
         toast.success(t('addedToCart'));
         setQuantity(1); // Reset to 1 after adding
+
+        // Trigger success animation
+        setIsAdded(true);
+        setTimeout(() => setIsAdded(false), 2000);
     };
 
     const incrementQuantity = (e) => {
@@ -197,12 +202,18 @@ const ProductCard = ({ product, isCompact = false }) => {
 
                     <button
                         onClick={handleAddToCart}
-                        className={`w-full ${isCompact ? 'py-3' : 'py-4'} rounded-full bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-medium uppercase tracking-wide font-Cairo transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-emerald-900/20 active:scale-[0.98] flex items-center justify-center gap-3 group/btn overflow-hidden relative ${isCompact ? 'text-[12px]' : 'text-[15px]'}`}
+                        className={`w-full ${isCompact ? 'py-3' : 'py-4'} rounded-full transition-all duration-300 active:scale-95 flex items-center justify-center gap-3 group/btn overflow-hidden relative ${isCompact ? 'text-[12px]' : 'text-[15px]'} ${isAdded ? 'bg-green-500 shadow-xl shadow-green-900/30 scale-105' : 'bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 hover:scale-[1.02] hover:shadow-xl hover:shadow-emerald-900/20'} text-white font-medium uppercase tracking-wide font-Cairo`}
                     >
-                        <div className="absolute inset-0 bg-white/10 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300" />
-                        <ShoppingCart className={`${isCompact ? 'h-4 w-4' : 'h-5 w-5'} relative z-10 transition-all group-hover/btn:scale-110 group-hover/btn:-rotate-6`} />
+                        <div className={`absolute inset-0 bg-white/10 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300 ${isAdded ? 'hidden' : ''}`} />
+                        {isAdded ? (
+                            <Check className={`${isCompact ? 'h-5 w-5' : 'h-6 w-6'} relative z-10 animate-in zoom-in duration-300`} />
+                        ) : (
+                            <ShoppingCart className={`${isCompact ? 'h-4 w-4' : 'h-5 w-5'} relative z-10 transition-all group-hover/btn:scale-110 group-hover/btn:-rotate-6`} />
+                        )}
                         <span className="relative z-10 font-black">
-                            {i18n.language === 'ar' ? 'أضف للسلة' : (isCompact ? 'ADD TO CART' : 'ADD TO SHOPPING CART')}
+                            {isAdded
+                                ? (i18n.language === 'ar' ? 'تمت الإضافة' : 'ADDED')
+                                : (i18n.language === 'ar' ? 'أضف للسلة' : (isCompact ? 'ADD TO CART' : 'ADD TO SHOPPING CART'))}
                         </span>
                     </button>
                 </div>
