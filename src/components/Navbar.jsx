@@ -147,7 +147,13 @@ const Navbar = () => {
                         <div className="flex items-center gap-4 shrink-0">
                             <Link to="/" className="shrink-0">
                                 {settings.siteLogo && (
-                                    <img src={settings.siteLogo} alt={settings.siteName} className="h-10 w-auto object-contain" />
+                                    <img
+                                        src={settings.siteLogo}
+                                        alt={settings.siteName}
+                                        className="h-10 w-auto object-contain"
+                                        loading="eager"
+                                        fetchpriority="high"
+                                    />
                                 )}
                             </Link>
                             <Link to="/" className="flex flex-col justify-center">

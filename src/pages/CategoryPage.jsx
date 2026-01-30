@@ -122,6 +122,7 @@ const CategoryPage = () => {
                                         src={subImage}
                                         alt={subName}
                                         className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                        loading="lazy"
                                     />
 
                                     {/* Heavy Dark Gradient Overlay for Readability */}

@@ -21,8 +21,8 @@
   },
   {
     "id": "DitVs8RBqhCyB4tWDapB",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861457/brands/f6g2rmiz9pigmyqxexq4.jpg",
-    "name": "Gaets"
+    "name": "Gaets",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861457/brands/f6g2rmiz9pigmyqxexq4.jpg"
   },
   {
     "id": "FruSEUDbkot8urgZOgxG",
@@ -41,8 +41,8 @@
   },
   {
     "id": "JVDaPhUdnNlKSgf4CtWC",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861700/brands/khxjvbegeclcwmvmuzra.jpg",
-    "name": "SACHS"
+    "name": "SACHS",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861700/brands/khxjvbegeclcwmvmuzra.jpg"
   },
   {
     "id": "MAnO3uXu0qQ24Aweh0q1",
@@ -51,13 +51,13 @@
   },
   {
     "id": "MRjEDz7tm4JRTUjWEXef",
-    "name": "BOSCH",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861379/brands/qhuwye7yyx80kufl4c76.jpg"
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861379/brands/qhuwye7yyx80kufl4c76.jpg",
+    "name": "BOSCH"
   },
   {
     "id": "SohzvIILeT5n4rCYFtsy",
-    "name": "Hi-Q",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861483/brands/rd91vdfsaao6xyseubjj.jpg"
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861483/brands/rd91vdfsaao6xyseubjj.jpg",
+    "name": "Hi-Q"
   },
   {
     "id": "WL62Ryes6iul1EUTt4eh",
@@ -71,18 +71,18 @@
   },
   {
     "id": "WpPezy8BCc7m9k2jes1h",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861444/brands/x2iywbfboeycbkk1wy3a.jpg",
-    "name": "DAYCO"
+    "name": "DAYCO",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861444/brands/x2iywbfboeycbkk1wy3a.jpg"
   },
   {
     "id": "XyWIyBTg7EDZv3LD5655",
-    "name": "Shell",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861718/brands/mjkurzebdzmfbrvpuzdr.jpg"
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861718/brands/mjkurzebdzmfbrvpuzdr.jpg",
+    "name": "Shell"
   },
   {
     "id": "bwMbWKuAtICPJfc0MsiO",
-    "name": "Valeo",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861287/brands/omwas4k8qfykadnk3eas.jpg"
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861287/brands/omwas4k8qfykadnk3eas.jpg",
+    "name": "Valeo"
   },
   {
     "id": "fTy1MiAoofULiOWUTRip",
@@ -91,23 +91,23 @@
   },
   {
     "id": "fva7eqXul6lZJymHyKte",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861470/brands/xobblp16sxiz7yl5ss9y.jpg",
-    "name": "GSP"
+    "name": "GSP",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861470/brands/xobblp16sxiz7yl5ss9y.jpg"
   },
   {
     "id": "hPViAsYITXeDNHdkbgvY",
-    "name": "AC Delco",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861324/brands/q1d6jnns7e1tecpigdzt.jpg"
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861324/brands/q1d6jnns7e1tecpigdzt.jpg",
+    "name": "AC Delco"
   },
   {
     "id": "m7nJpcFpTVAwSKoK7UKn",
-    "name": "Castrol",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861412/brands/wk6p45vlmzyosnkuz9le.jpg"
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861412/brands/wk6p45vlmzyosnkuz9le.jpg",
+    "name": "Castrol"
   },
   {
     "id": "qfswBIuOC792chj4QdhW",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861398/brands/ea5kfyfm5rrhuxyc3oqy.jpg",
-    "name": "Caeser"
+    "name": "Caeser",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861398/brands/ea5kfyfm5rrhuxyc3oqy.jpg"
   },
   {
     "id": "tLr2wSkRUS2pzMoJtTGr",
@@ -116,7 +116,7 @@
   },
   {
     "id": "z2JS3TMVA0AZSy3bQ2dI",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861496/brands/n19tnzzwszchai6ggemr.jpg",
-    "name": "KYB"
+    "name": "KYB",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861496/brands/n19tnzzwszchai6ggemr.jpg"
   }
 ]

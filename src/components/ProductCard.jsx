@@ -47,7 +47,12 @@ const ProductCard = ({ product, isCompact = false }) => {
     return (
         <article
             className={`product-card group relative flex flex-col !gap-0 !space-y-0 !justify-start rounded-premium shadow-lg border overflow-hidden transition-all duration-500 hover:translate-y-[-8px] hover:shadow-2xl w-full max-w-[320px] mx-auto h-full ${isCompact ? 'px-0' : 'px-0.5'} bg-white border-gray-100`}
-            style={{ willChange: 'transform' }}
+            style={{
+                willChange: 'transform',
+                transform: 'translateZ(0)',
+                backfaceVisibility: 'hidden',
+                contain: 'content'
+            }}
         >
             {/* HERO IMAGE - Fixed Aspect Ratio to prevent collapse */}
             <Link

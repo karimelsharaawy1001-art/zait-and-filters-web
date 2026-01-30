@@ -36,6 +36,7 @@ const BrandMarquee = () => {
                             src={brand.imageUrl}
                             alt={brand.name}
                             className="brands-marquee-img"
+                            loading="lazy"
                         />
                     </div>
                 ))}
