@@ -250,7 +250,20 @@ const ProductDetails = () => {
             />
             <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 md:pt-4 pb-8">
                 {/* Breadcrumbs */}
-                <Breadcrumbs />
+                <Breadcrumbs extraSteps={[
+                    {
+                        name: product.category,
+                        path: `/shop?category=${encodeURIComponent(product.category)}`
+                    },
+                    ...(product.subcategory ? [{
+                        name: product.subcategory,
+                        path: `/shop?category=${encodeURIComponent(product.category)}&subcategory=${encodeURIComponent(product.subcategory)}`
+                    }] : []),
+                    {
+                        name: isAr ? product.name : (product.nameEn || product.name),
+                        path: `/product/${product.id}`
+                    }
+                ]} />
 
                 {/* Back Link */}
                 <button
