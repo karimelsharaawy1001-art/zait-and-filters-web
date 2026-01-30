@@ -1,5 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { MemoryRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { safeLocalStorage } from './utils/safeStorage';
 import { Toaster } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import Navbar from './components/Navbar';
@@ -76,56 +77,81 @@ import { Outlet, useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 
+const SafeModeUI = ({ error }) => (
+  <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4 text-center">
+    <h1 className="text-2xl font-black text-red-600 mb-4">SAFE MODE ACTIVE</h1>
+    <p className="text-gray-600 mb-6 max-w-md">
+      We've detected a browser security restriction. The app is running in restricted mode to protect your data.
+    </p>
+    <button
+      onClick={() => window.location.reload()}
+      className="bg-[#28B463] text-white px-8 py-3 rounded-lg font-bold"
+    >
+      Retry Connection
+    </button>
+  </div>
+);
+
 const PublicLayout = () => {
   const { i18n } = useTranslation();
-  return (
-    <div className={`min-h-screen bg-gray-50 flex flex-col font-sans ${i18n.language === 'ar' ? 'font-arabic rtl' : 'ltr'}`} dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#fff',
-            color: '#000',
-            fontWeight: '600',
-            borderRadius: '16px',
-            padding: '12px 24px',
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-          },
-          success: {
-            iconTheme: {
-              primary: '#10B981',
-              secondary: '#fff',
+
+  try {
+    return (
+      <div className={`min-h-screen bg-gray-50 flex flex-col font-sans ${i18n.language === 'ar' ? 'font-arabic rtl' : 'ltr'}`} dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: '#fff',
+              color: '#000',
+              fontWeight: '600',
+              borderRadius: '16px',
+              padding: '12px 24px',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
             },
-          },
-          error: {
-            iconTheme: {
-              primary: '#EF4444',
-              secondary: '#fff',
+            success: {
+              iconTheme: {
+                primary: '#10B981',
+                secondary: '#fff',
+              },
             },
-          },
-        }}
-      />
-      <div className="sticky top-0 z-[100] bg-white">
-        <Navbar />
-        <GarageActiveIndicator />
+            error: {
+              iconTheme: {
+                primary: '#EF4444',
+                secondary: '#fff',
+              },
+            },
+          }}
+        />
+        <div className="sticky top-0 z-[100] bg-white">
+          <Navbar />
+          <GarageActiveIndicator />
+        </div>
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        <Footer />
       </div>
-      <main className="flex-1">
-        <Outlet />
-      </main>
-      <Footer />
-    </div>
-  );
+    );
+  } catch (error) {
+    console.error("Critical Render Error:", error);
+    return <SafeModeUI error={error} />;
+  }
 };
 
 const ReferralTracker = () => {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    const ref = searchParams.get('ref');
-    if (ref) {
-      console.log("Referral Code Detected:", ref);
-      localStorage.setItem('affiliate_ref', ref);
+    try {
+      const ref = searchParams.get('ref');
+      if (ref) {
+        console.log("Referral Code Detected:", ref);
+        safeLocalStorage.setItem('affiliate_ref', ref);
+      }
+    } catch (e) {
+      console.warn("Referral tracking failed in restricted environment");
     }
   }, [searchParams]);
 
