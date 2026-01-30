@@ -11,6 +11,7 @@ import { toast } from 'react-hot-toast';
 import { parseYearRange, normalizeArabic, getSearchableText } from '../utils/productUtils';
 import useScrollRestoration from '../hooks/useScrollRestoration';
 import inventoryData from '../data/inventory.json';
+import SkeletonProductCard from './SkeletonProductCard';
 
 const ProductGrid = ({ showFilters = true }) => {
     const { t, i18n } = useTranslation();
@@ -48,10 +49,12 @@ const ProductGrid = ({ showFilters = true }) => {
     });
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
     const [carHeaderImage, setCarHeaderImage] = useState('');
+    const [isFiltering, setIsFiltering] = useState(false);
     const PAGE_SIZE = 20;
 
-    const fetchProducts = async () => {
-        setLoading(true);
+    const fetchProducts = async (isDebounced = false) => {
+        if (!isDebounced) setLoading(true);
+        setIsFiltering(true);
         try {
             // Master Static Logic: Primary source of truth for high-concurrency scaling
             // If we have static data loaded, we perform ALL filtering and searching client-side.
@@ -184,20 +187,21 @@ const ProductGrid = ({ showFilters = true }) => {
             toast.error("Shopping data sync error. Trying backup...");
         } finally {
             setLoading(false);
+            setIsFiltering(false);
         }
     };
 
     useEffect(() => {
-        console.log('[ProductGrid] Triggering fetch with filters:', filters);
-        fetchProducts();
+        console.log('[ProductGrid] Scheduling debounced fetch...');
 
-        // Scroll to grid top on page change - ONLY if not restoring position
-        if (filters.page > 1 && !hasSavedPosition()) {
-            const gridElement = document.getElementById('product-grid');
-            if (gridElement) {
-                gridElement.scrollIntoView({ behavior: 'smooth' });
-            }
-        }
+        // Show skeletons immediately for immediate feedback
+        setIsFiltering(true);
+
+        const handler = setTimeout(() => {
+            fetchProducts(true);
+        }, 300);
+
+        return () => clearTimeout(handler);
     }, [
         isGarageFilterActive,
         activeCar?.id,
@@ -212,6 +216,16 @@ const ProductGrid = ({ showFilters = true }) => {
         filters.page,
         filters.viscosity
     ]);
+
+    // Scroll to grid top on page change - ONLY if not restoring position
+    useEffect(() => {
+        if (filters.page > 1 && !hasSavedPosition()) {
+            const gridElement = document.getElementById('product-grid');
+            if (gridElement) {
+                gridElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    }, [filters.page, hasSavedPosition]);
 
     // Extract unique values for each filter type
     const extractFilterOptions = async (productsList) => {
@@ -812,7 +826,13 @@ const ProductGrid = ({ showFilters = true }) => {
                             </div>
                         )}
 
-                        {products.length === 0 ? (
+                        {isFiltering ? (
+                            <div className={`grid grid-cols-2 ${showFilters ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'} gap-4 sm:gap-6`}>
+                                {[...Array(PAGE_SIZE)].map((_, i) => (
+                                    <SkeletonProductCard key={i} isCompact={!showFilters} />
+                                ))}
+                            </div>
+                        ) : products.length === 0 ? (
                             <div className="text-center py-16 bg-white rounded-lg border border-dashed border-gray-300">
                                 <FilterX className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                                 <p className="text-xl font-medium text-gray-900">{t('noProducts')}</p>
@@ -827,7 +847,7 @@ const ProductGrid = ({ showFilters = true }) => {
                         ) : (
                             <div className={`grid grid-cols-2 ${showFilters ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'} gap-4 sm:gap-6`}>
                                 {products.map((product) => (
-                                    <ProductCard key={product.id} product={product} />
+                                    <ProductCard key={product.id} product={product} isCompact={!showFilters} />
                                 ))}
                             </div>
                         )}

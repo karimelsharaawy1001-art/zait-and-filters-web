@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { ShoppingCart, Plus, Minus, Check } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useTranslation } from 'react-i18next';
@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import OptimizedImage from './OptimizedImage';
 import { getOptimizedImage } from '../utils/cloudinaryUtils';
+import { safeSessionStorage } from '../utils/safeStorage';
 
 const ProductCard = ({ product, isCompact = false }) => {
     const { t, i18n } = useTranslation();
@@ -56,7 +57,7 @@ const ProductCard = ({ product, isCompact = false }) => {
                 onClick={() => {
                     // Save scroll position before navigating
                     const currentPosition = window.scrollY;
-                    sessionStorage.setItem('productListScrollPosition', currentPosition.toString());
+                    safeSessionStorage.setItem('productListScrollPosition', currentPosition.toString());
                 }}
             >
                 <OptimizedImage
@@ -98,7 +99,7 @@ const ProductCard = ({ product, isCompact = false }) => {
                         onClick={() => {
                             // Save scroll position before navigating
                             const currentPosition = window.scrollY;
-                            sessionStorage.setItem('productListScrollPosition', currentPosition.toString());
+                            safeSessionStorage.setItem('productListScrollPosition', currentPosition.toString());
                         }}
                     >
                         <h3
@@ -207,4 +208,4 @@ const ProductCard = ({ product, isCompact = false }) => {
     );
 };
 
-export default ProductCard;
+export default memo(ProductCard);
