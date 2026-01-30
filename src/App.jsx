@@ -136,7 +136,7 @@ const PublicLayout = () => {
           <Navbar />
           <GarageActiveIndicator />
         </div>
-        <main key={location.pathname} className="flex-1">
+        <main key={location.pathname} className="flex-1 w-full overflow-x-hidden">
           <Outlet />
         </main>
         <Footer />

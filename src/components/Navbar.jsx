@@ -276,11 +276,11 @@ const Navbar = () => {
                                 >
                                     {isOpen ? <X className="h-6 w-6 stroke-[3px]" /> : <Menu className="h-6 w-6 stroke-[3px]" />}
                                 </button>
-                                <Link to="/" className="flex flex-col justify-center">
-                                    <span className="font-black text-[24px] sm:text-3xl tracking-tighter uppercase italic leading-none font-Cairo whitespace-nowrap" >
+                                <Link to="/" className="flex flex-col justify-center max-w-[160px] xs:max-w-none">
+                                    <span className="font-black text-[18px] xs:text-[22px] sm:text-3xl tracking-tighter uppercase italic leading-none font-Cairo" >
                                         <span style={{ color: '#1A1A1A' }}>ZAIT</span> <span style={{ color: '#28B463' }}>& FILTERS</span>
                                     </span>
-                                    <p className="text-[7px] font-black text-[#000000] mt-0.5 tracking-widest uppercase font-Cairo">بضغطة زرار</p>
+                                    <p className="text-[6px] xs:text-[7px] font-black text-[#000000] mt-0.5 tracking-widest uppercase font-Cairo">بضغطة زرار</p>
                                 </Link>
                             </div>
 
@@ -288,7 +288,7 @@ const Navbar = () => {
                             <div className="flex items-center gap-x-1.5 sm:gap-x-3">
                                 <Link
                                     to="/marketers"
-                                    className="text-[9px] sm:text-[11px] !text-[#000000] !font-bold uppercase font-Cairo px-1.5 py-1 whitespace-nowrap"
+                                    className="text-[8px] xs:text-[9px] sm:text-[11px] !text-[#000000] !font-bold uppercase font-Cairo px-1 xs:px-1.5 py-1 whitespace-nowrap"
                                 >
                                     {t('nav.marketers')}
                                 </Link>
