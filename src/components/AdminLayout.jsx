@@ -80,7 +80,7 @@ const AdminLayout = () => {
         { name: 'Hero Slider', icon: <LayoutDashboard className="w-5 h-5" />, path: '/admin/hero' },
         { name: 'Brands', icon: <Award className="w-5 h-5" />, path: '/admin/brands' },
         { name: 'Payment Partners', icon: <CreditCard className="w-5 h-5" />, path: '/admin/payments-manager' },
-        { name: 'Payment Methods', icon: <CreditCard className="w-5 h-5" />, path: '/admin/payments' },
+        { name: 'Payment Methods', icon: <CreditCard className="w-5 h-5" />, path: '/admin/payment-methods' },
         { name: 'General Settings', icon: <Settings className="w-5 h-5" />, path: '/admin/settings' },
         { name: 'Shipping Rates', icon: <Truck className="w-5 h-5" />, path: '/admin/shipping' },
         { name: 'Promo Codes', icon: <Ticket className="w-5 h-5" />, path: '/admin/promo-codes' },

@@ -58,7 +58,7 @@ const EditCar = React.lazy(() => import('./pages/admin/EditCar'));
 const OrderDetails = React.lazy(() => import('./pages/admin/OrderDetails'));
 const ManageHero = React.lazy(() => import('./pages/admin/ManageHero'));
 const ManageBrands = React.lazy(() => import('./pages/admin/ManageBrands'));
-const ManagePayments = React.lazy(() => import('./pages/admin/ManagePayments'));
+const PaymentMethods = React.lazy(() => import('./pages/admin/PaymentMethods'));
 const ManageShipping = React.lazy(() => import('./pages/admin/ManageShipping'));
 const ManagePromoCodes = React.lazy(() => import('./pages/admin/ManagePromoCodes'));
 const PaymentManager = React.lazy(() => import('./pages/admin/PaymentManager'));
@@ -249,7 +249,7 @@ function App() {
                   <Route path="order/:id" element={<OrderDetails />} />
                   <Route path="hero" element={<ManageHero />} />
                   <Route path="brands" element={<ManageBrands />} />
-                  <Route path="payments" element={<ManagePayments />} />
+                  <Route path="payment-methods" element={<PaymentMethods />} />
                   <Route path="payments-manager" element={<PaymentManager />} />
                   <Route path="shipping" element={<ManageShipping />} />
                   <Route path="promo-codes" element={<ManagePromoCodes />} />
