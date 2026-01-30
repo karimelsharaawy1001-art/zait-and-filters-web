@@ -71,24 +71,24 @@ const ProductCard = ({ product, isCompact = false }) => {
                     width={400}
                 />
 
-                {/* Status Badges - Premium & Prominent */}
-                <div className={`absolute z-20 flex flex-col gap-2 ${isCompact ? 'top-2 right-2' : 'top-4 right-4'}`}>
-                    <div className="flex items-center justify-center min-w-[90px] px-4 py-2.5 rounded-xl bg-[#10b981] shadow-xl shadow-green-900/20 border-2 border-white/20 backdrop-blur-sm">
-                        <span className="text-[11px] sm:text-sm text-white font-black uppercase tracking-widest font-Cairo leading-none whitespace-nowrap">
+                {/* Status Badges - Optimized for Mobile Overlay */}
+                <div className={`absolute z-20 flex flex-col gap-1.5 ${isCompact ? 'top-1.5 right-1.5' : 'top-3 right-3'}`}>
+                    {/* Original Badge */}
+                    <div className="flex items-center justify-center px-2 py-1.5 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl bg-[#10b981] shadow-xl shadow-green-900/20 border-2 border-white/20 backdrop-blur-sm">
+                        <span className="text-[9px] sm:text-xs text-white font-black uppercase tracking-widest font-Cairo leading-none whitespace-nowrap">
                             {i18n.language === 'ar' ? 'منتج أصلي' : 'ORIGINAL'}
                         </span>
                     </div>
-                </div>
 
-                {hasSale && (
-                    <div className={`absolute z-20 ${isCompact ? 'top-2 left-2' : 'top-4 left-4'}`}>
-                        <div className="bg-gradient-to-r from-[#FF8C00] to-[#FF4500] flex items-center justify-center px-4 py-2.5 rounded-xl shadow-xl shadow-orange-900/20 border-2 border-white/20">
-                            <span className="text-[#000000] text-[11px] sm:text-sm uppercase font-black italic font-Cairo leading-none whitespace-nowrap">
+                    {/* Sale Badge - Stacking below Original on the same side */}
+                    {hasSale && (
+                        <div className="bg-gradient-to-r from-[#FF8C00] to-[#FF4500] flex items-center justify-center px-2 py-1.5 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl shadow-xl shadow-orange-900/20 border-2 border-white/20">
+                            <span className="text-[#000000] text-[9px] sm:text-xs uppercase font-black italic font-Cairo leading-none whitespace-nowrap">
                                 {t('hotSale')}
                             </span>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
 
 
             </Link>
