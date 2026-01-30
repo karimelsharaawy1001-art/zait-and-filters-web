@@ -667,8 +667,8 @@ const ManageProducts = () => {
                 ) : (
                     <div className="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden transition-all group/table">
                         {/* Desktop Data Grid */}
-                        <div className="hidden md:block overflow-x-auto">
-                            <table className="w-full">
+                        <div className="hidden md:block overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200">
+                            <table className="w-full min-w-[1000px] lg:min-w-0">
                                 <thead>
                                     <tr className="bg-gray-50">
                                         <th className="px-4 py-5 text-left border-b border-gray-100 w-12">
@@ -755,26 +755,26 @@ const ManageProducts = () => {
                                             <td className="px-4 py-6 whitespace-nowrap text-center">
                                                 <button
                                                     onClick={() => handleToggleActive(product.id, product.isActive)}
-                                                    className={`relative inline-flex h-6 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-all duration-300 ease-in-out focus:outline-none ${product.isActive !== false ? 'bg-green-500' : 'bg-gray-200'}`}
+                                                    className={`relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-all duration-300 ease-in-out focus:outline-none ${product.isActive !== false ? 'bg-green-500' : 'bg-gray-200'}`}
                                                 >
-                                                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-300 ease-in-out ${product.isActive !== false ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                    <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow transition duration-300 ease-in-out ${product.isActive !== false ? 'translate-x-7' : 'translate-x-0'}`} />
                                                 </button>
                                             </td>
                                             <td className="px-4 py-6 whitespace-nowrap text-right">
-                                                <div className="flex items-center justify-end gap-2">
+                                                <div className="flex items-center justify-end gap-3">
                                                     <button
                                                         onClick={() => navigate(`/admin/edit-product/${product.id}`)}
-                                                        className="p-2.5 bg-[#28B463]/10 text-[#28B463] hover:bg-[#28B463] hover:text-white border border-[#28B463]/20 rounded-xl transition-all hover:-translate-y-1 shadow-lg shadow-[#28B463]/5"
+                                                        className="min-h-[44px] min-w-[44px] flex items-center justify-center bg-[#28B463]/10 text-[#28B463] hover:bg-[#28B463] hover:text-white border border-[#28B463]/20 rounded-xl transition-all active:scale-95 shadow-lg shadow-[#28B463]/5"
                                                         title="Edit Product"
                                                     >
-                                                        <Edit3 className="h-4 w-4" />
+                                                        <Edit3 className="h-5 w-5" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(product.id, product.name)}
-                                                        className="p-2.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-100 rounded-xl transition-all hover:-translate-y-1 shadow-lg shadow-red-600/5"
+                                                        className="min-h-[44px] min-w-[44px] flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-100 rounded-xl transition-all active:scale-95 shadow-lg shadow-red-600/5"
                                                         title="Delete Product"
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
+                                                        <Trash2 className="h-5 w-5" />
                                                     </button>
                                                 </div>
                                             </td>

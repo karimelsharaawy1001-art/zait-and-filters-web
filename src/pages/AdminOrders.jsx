@@ -234,9 +234,9 @@ const AdminOrders = () => {
                             <p className="text-gray-400 text-lg font-black uppercase tracking-wide opacity-40 italic">System Idle. No Transaction Data Found.</p>
                         </div>
                     ) : (
-                        <div className="bg-white shadow-sm rounded-[32px] overflow-hidden border border-gray-100">
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
+                        <div className="bg-white shadow-sm rounded-[32px] overflow-hidden border border-gray-100 mb-8">
+                            <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200">
+                                <table className="w-full min-w-[1000px] lg:min-w-0">
                                     <thead>
                                         <tr className="bg-gray-50">
                                             <th scope="col" className="px-8 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Registry</th>
@@ -295,29 +295,29 @@ const AdminOrders = () => {
                                                         {order.paymentStatus !== 'Paid' && (
                                                             <button
                                                                 onClick={() => handleMarkPaid(order.id)}
-                                                                className="p-3 bg-green-50 text-green-600 hover:bg-green-600 hover:text-white border border-green-100 rounded-xl transition-all hover:-translate-y-1"
+                                                                className="min-h-[44px] min-w-[44px] flex items-center justify-center bg-green-50 text-green-600 hover:bg-green-600 hover:text-white border border-green-100 rounded-xl transition-all active:scale-90"
                                                                 title="Execute Payment"
                                                             >
-                                                                <DollarSign className="h-4.5 w-4.5" />
+                                                                <DollarSign className="h-5 w-5" />
                                                             </button>
                                                         )}
 
                                                         {/* Edit Details Button */}
                                                         <button
                                                             onClick={() => setEditingOrder(order)}
-                                                            className="p-3 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-blue-100 rounded-xl transition-all hover:-translate-y-1"
+                                                            className="min-h-[44px] min-w-[44px] flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-blue-100 rounded-xl transition-all active:scale-90"
                                                             title="Adjustment Layer"
                                                         >
-                                                            <Edit2 className="h-4.5 w-4.5" />
+                                                            <Edit2 className="h-5 w-5" />
                                                         </button>
 
                                                         {/* View Details Link */}
                                                         <Link
                                                             to={`/admin/order/${order.id}`}
-                                                            className="p-3 bg-red-50 text-[#e31e24] hover:bg-[#e31e24] hover:text-white border border-red-100 rounded-xl transition-all hover:-translate-y-1"
+                                                            className="min-h-[44px] min-w-[44px] flex items-center justify-center bg-red-50 text-[#e31e24] hover:bg-[#e31e24] hover:text-white border border-red-100 rounded-xl transition-all active:scale-90"
                                                             title="Full Visual Log"
                                                         >
-                                                            <Eye className="h-4.5 w-4.5" />
+                                                            <Eye className="h-5 w-5" />
                                                         </Link>
                                                     </div>
                                                 </td>
