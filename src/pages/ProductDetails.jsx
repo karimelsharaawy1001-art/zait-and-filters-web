@@ -268,7 +268,7 @@ const ProductDetails = () => {
                 {/* Back Link */}
                 <button
                     onClick={() => navigate(-1)}
-                    className={`flex items-center text-gray-500 hover:text-gray-900 transition-colors mb-4 md:mb-6 group ${isAr ? 'flex-row-reverse' : ''}`}
+                    className="flex items-center text-gray-500 hover:text-gray-900 transition-colors mb-4 md:mb-6 group"
                 >
                     <ArrowLeft className={`h-5 w-5 ${isAr ? 'ml-2 rotate-180' : 'mr-2'} group-hover:translate-x-${isAr ? '1' : '-1'} transition-transform`} />
                     {t('back')}
@@ -303,7 +303,7 @@ const ProductDetails = () => {
                                 {isAr ? product.name : (product.nameEn || product.name)}
                             </h1>
 
-                            <div className={`flex flex-wrap gap-3 mb-6 ${isAr ? 'flex-row-reverse' : ''}`}>
+                            <div className="flex flex-wrap gap-3 mb-6">
                                 {(product.partBrand || product.brand) && (
                                     <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
                                         {t('brand')}: {isAr ? (product.partBrand || product.brand) : (product.brandEn || product.partBrand || product.brand)}
@@ -328,7 +328,7 @@ const ProductDetails = () => {
                             </div>
 
                             {/* PROMINENT AUTO-DESCRIPTION */}
-                            <div className={`mb-6 p-4 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200 ${isAr ? 'text-right' : 'text-left'}`}>
+                            <div className="mb-6 p-4 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
                                 <p className="text-sm font-bold text-gray-700 leading-relaxed italic font-Cairo">
                                     {displayDescription}
                                 </p>
@@ -337,7 +337,7 @@ const ProductDetails = () => {
 
                         {/* Price Section */}
                         <div className="mb-8 p-6 bg-gray-50 rounded-2xl border border-gray-100 font-bold">
-                            <div className={`flex items-end gap-3 mb-1 ${isAr ? 'flex-row-reverse' : ''}`}>
+                            <div className="flex items-end gap-3 mb-1">
                                 {hasSale ? (
                                     <>
                                         <span className="text-3xl font-black text-[#1A1A1A]">
@@ -357,7 +357,7 @@ const ProductDetails = () => {
                         </div>
 
                         {/* Product Specifications List */}
-                        <div className={`mb-8 space-y-3 ${isAr ? 'text-right' : 'text-left'}`}>
+                        <div className="mb-8 space-y-3">
                             {[
                                 { label: isAr ? 'اسم المنتج' : 'Product Name', value: isAr ? product.name : (product.nameEn || product.name), icon: <Box className="h-4 w-4 text-orange-600" /> },
                                 { label: isAr ? 'البراند' : 'Brand', value: isAr ? (product.partBrand || product.brand) : (product.brandEn || product.partBrand || product.brand), icon: <Tag className="h-4 w-4 text-orange-600" /> },
@@ -366,11 +366,11 @@ const ProductDetails = () => {
                                 { label: isAr ? 'بلد المنشأ' : 'Origin', value: product.countryOfOrigin, icon: <Globe className="h-4 w-4 text-orange-600" /> },
                                 { label: isAr ? 'مدة الضمان' : 'Warranty', value: (product.warranty_months || product.warranty) ? formatWarranty(product.warranty_months || product.warranty, i18n.language, false) : null, icon: <ShieldCheck className="h-4 w-4 text-orange-600" /> },
                             ].filter(spec => spec.value).map((spec, index) => (
-                                <div key={index} className={`flex items-center gap-3 text-sm border-b border-gray-50 pb-2 last:border-0 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                <div key={index} className="flex items-center gap-3 text-sm border-b border-gray-50 pb-2 last:border-0">
                                     <div className="bg-gray-50 p-2 rounded-lg">
                                         {spec.icon}
                                     </div>
-                                    <div className={`flex gap-1 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                    <div className="flex gap-1">
                                         <span className="font-bold text-gray-900 whitespace-nowrap">{spec.label}:</span>
                                         <span className="text-gray-600 font-medium">{spec.value}</span>
                                     </div>
@@ -379,7 +379,7 @@ const ProductDetails = () => {
                         </div>
 
                         {/* Add to Cart Section */}
-                        <div className={`flex flex-col sm:flex-row gap-4 mb-4 md:mb-6 ${isAr ? 'flex-row-reverse' : ''}`}>
+                        <div className="flex flex-col sm:flex-row gap-4 mb-4 md:mb-6">
                             <div className="flex items-center bg-gray-100 rounded-xl px-4 py-2 border border-gray-200">
                                 <button
                                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -411,16 +411,16 @@ const ProductDetails = () => {
 
 
                         {/* Trust Badges */}
-                        <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 md:pt-8 border-t border-gray-100 ${isAr ? 'flex-row-reverse' : ''}`}>
-                            <div className={`flex items-center gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 md:pt-8 border-t border-gray-100">
+                            <div className="flex items-center gap-3">
                                 <Truck className="h-5 w-5 text-orange-600" />
                                 <span className="text-xs font-bold text-gray-700 uppercase tracking-tighter">{t('fastDelivery')}</span>
                             </div>
-                            <div className={`flex items-center gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>
+                            <div className="flex items-center gap-3">
                                 <ShieldCheck className="h-5 w-5 text-orange-600" />
                                 <span className="text-xs font-bold text-gray-700 uppercase tracking-tighter">{t('genuinePart')}</span>
                             </div>
-                            <div className={`flex items-center gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>
+                            <div className="flex items-center gap-3">
                                 <RotateCcw className="h-5 w-5 text-orange-600" />
                                 <span className="text-xs font-bold text-gray-700 uppercase tracking-tighter">{t('easyReturns')}</span>
                             </div>
@@ -444,7 +444,7 @@ const ProductDetails = () => {
                                 <form onSubmit={handleReviewSubmit} className="space-y-6">
                                     <div className="space-y-3">
                                         <label className={`block text-[10px] font-black text-gray-400 uppercase tracking-widest ${isAr ? 'text-right' : 'text-left'}`}>{t('ratingLabel')}</label>
-                                        <div className={`flex gap-2 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                        <div className="flex gap-2">
                                             {[1, 2, 3, 4, 5].map((star) => (
                                                 <button
                                                     key={star}
@@ -466,14 +466,14 @@ const ProductDetails = () => {
                                             value={comment}
                                             onChange={(e) => setComment(e.target.value)}
                                             rows={4}
-                                            className={`w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none transition-all placeholder:text-gray-300 ${isAr ? 'text-right' : 'text-left'}`}
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none transition-all placeholder:text-gray-300"
                                             placeholder={t('commentPlaceholder')}
                                         />
                                     </div>
 
                                     <div className="space-y-3">
                                         <label className={`block text-[10px] font-black text-gray-400 uppercase tracking-widest ${isAr ? 'text-right' : 'text-left'}`}>{t('photoUpload')}</label>
-                                        <div className={`flex flex-wrap gap-4 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                        <div className="flex flex-wrap gap-4">
                                             {photoPreview ? (
                                                 <div className="relative h-24 w-24 rounded-2xl overflow-hidden group shadow-lg">
                                                     <img src={photoPreview} alt="Preview" className="h-full w-full object-cover" />
@@ -515,8 +515,8 @@ const ProductDetails = () => {
 
                         {/* Reviews List */}
                         <div className="lg:col-span-2">
-                            <div className={`flex items-center justify-between mb-8 ${isAr ? 'flex-row-reverse' : ''}`}>
-                                <h3 className={`text-2xl font-black text-gray-900 ${isAr ? 'text-right' : 'text-left'}`}>
+                            <div className="flex items-center justify-between mb-8">
+                                <h3 className="text-2xl font-black text-gray-900">
                                     {t('customerReviews')}
                                     <span className={`${isAr ? 'mr-3' : 'ml-3'} text-sm font-bold text-gray-400`}>({reviews.length})</span>
                                 </h3>
@@ -534,19 +534,19 @@ const ProductDetails = () => {
                                 <div className="space-y-8">
                                     {Array.isArray(reviews) && reviews.map((rev) => (
                                         <div key={rev.id} className="bg-white rounded-3xl p-8 border border-gray-50 shadow-sm hover:shadow-md transition-shadow animate-in fade-in duration-500">
-                                            <div className={`flex flex-col md:flex-row gap-6 ${isAr ? 'md:flex-row-reverse' : ''}`}>
+                                            <div className="flex flex-col md:flex-row gap-6">
                                                 <div className="flex-1">
-                                                    <div className={`flex items-center gap-4 mb-4 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                                    <div className="flex items-center gap-4 mb-4">
                                                         <div className="h-12 w-12 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600">
                                                             <UserCircle2 className="h-7 w-7" />
                                                         </div>
-                                                        <div className={isAr ? 'text-right' : 'text-left'}>
-                                                            <div className={`flex items-center gap-2 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                                        <div>
+                                                            <div className="flex items-center gap-2">
                                                                 <h4 className="font-black text-gray-900">{rev.userName}</h4>
                                                                 <CheckCircle2 className="h-4 w-4 text-green-500" />
                                                             </div>
-                                                            <div className={`flex items-center gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>
-                                                                <div className={`flex ${isAr ? 'flex-row-reverse' : ''}`}>
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="flex">
                                                                     {[1, 2, 3, 4, 5].map((s) => (
                                                                         <Star
                                                                             key={s}
@@ -561,7 +561,7 @@ const ProductDetails = () => {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <p className={`text-gray-600 font-medium leading-relaxed italic ${isAr ? 'text-right' : 'text-left'}`}>
+                                                    <p className="text-gray-600 font-medium leading-relaxed italic">
                                                         "{rev.comment}"
                                                     </p>
                                                 </div>
