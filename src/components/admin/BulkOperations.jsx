@@ -138,13 +138,19 @@ const BulkOperations = () => {
                 setImportStatus(`Importing ${jsonData.length} products...`);
 
                 const batchSize = 500;
+                let successCount = 0;
+                let errorCount = 0;
+
                 for (let i = 0; i < jsonData.length; i += batchSize) {
                     const batch = writeBatch(db);
                     const chunk = jsonData.slice(i, i + batchSize);
 
                     chunk.forEach((row) => {
                         // Minimal row validation: skip if no name provided for new products
-                        if (!row.productID && !row.name) return;
+                        if (!row.productID && !row.name) {
+                            errorCount++;
+                            return;
+                        }
 
                         let docRef;
                         let isUpdate = false;
@@ -221,24 +227,44 @@ const BulkOperations = () => {
 
                             batch.set(docRef, dataToUpdate);
                         }
+                        successCount++;
                     });
 
                     await batch.commit();
+                    setImportStatus(`Processed ${Math.min(i + batchSize, jsonData.length)} / ${jsonData.length} products...`);
                 }
 
-                toast.success(`Successfully processed ${jsonData.length} products`);
                 setImportStatus('');
-                // Refreshing the page to see changes
-                window.location.reload();
+                toast.success(`Successfully imported ${successCount} products! ${errorCount > 0 ? `(${errorCount} skipped)` : ''} Refresh the page to see changes.`, {
+                    duration: 5000
+                });
+
+                // Reset file input
+                e.target.value = '';
+
+                // Ask user if they want to refresh
+                setTimeout(() => {
+                    if (window.confirm('Products imported successfully! Refresh the page to see the changes?')) {
+                        window.location.reload();
+                    }
+                }, 1000);
             } catch (error) {
                 console.error("Import error details:", error);
 
                 // Specific error message for missing documents during batch.update
                 if (error.code === 'not-found' || error.message?.includes('no document to update')) {
                     toast.error("Import failed: One or more Product IDs were not found in the database.");
+                } else if (error.code === 'permission-denied') {
+                    toast.error("Import failed: Permission denied. Please check your admin access.");
+                } else if (error.code === 'resource-exhausted') {
+                    toast.error("Import failed: Firebase quota exceeded. Please try again later.");
                 } else {
-                    toast.error("Import failed. Check file format or console for details.");
+                    toast.error(`Import failed: ${error.message || 'Unknown error'}. Check console for details.`);
                 }
+
+                setImportStatus('');
+                // Reset file input on error
+                e.target.value = '';
             } finally {
                 setLoading(false);
             }
