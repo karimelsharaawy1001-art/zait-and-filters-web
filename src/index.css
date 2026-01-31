@@ -89,14 +89,12 @@ body {
     margin: 0;
     padding: 0;
     width: 100%;
-    overflow-x: hidden;
     position: relative;
     font-family: var(--font-primary) !important;
 }
 
 #root {
     width: 100%;
-    overflow-x: hidden;
     position: relative;
 }
 
