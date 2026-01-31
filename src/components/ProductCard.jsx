@@ -107,7 +107,7 @@ const ProductCard = ({ product, isCompact = false }) => {
                         }}
                     >
                         <h3
-                            className={`text-[#1A1A1A] font-extrabold leading-tight line-clamp-2 uppercase transition-colors overflow-hidden text-ellipsis ${isCompact ? 'text-[14px]' : 'text-lg'}`}
+                            className={`text-[#1A1A1A] font-extrabold leading-tight line-clamp-2 uppercase transition-colors overflow-hidden text-ellipsis ${isCompact ? '!text-[12px]' : '!text-base'}`}
                             style={{ fontFamily: 'var(--font-commercial)' }}
                         >
                             {i18n.language === 'en' ? (product.nameEn || product.name) : product.name}
@@ -118,10 +118,10 @@ const ProductCard = ({ product, isCompact = false }) => {
                     <div className={`grid grid-cols-2 gap-x-1 gap-y-1.5 border-b border-gray-100 ${isCompact ? 'pb-1.5' : 'pb-2'}`}>
                         {/* Always show Brand */}
                         <div className="flex flex-col items-end overflow-hidden text-right">
-                            <span className={`${isCompact ? 'text-[9px]' : 'text-[10px]'} leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full`}>
+                            <span className={`${isCompact ? 'text-[8px]' : 'text-[9px]'} leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full`}>
                                 {i18n.language === 'ar' ? 'البراند' : 'Brand'}
                             </span>
-                            <span className={`${isCompact ? 'text-[10px]' : 'text-xs'} leading-tight text-[#000000] font-black font-Cairo truncate w-full`}>
+                            <span className={`${isCompact ? 'text-[9px]' : 'text-[10px]'} leading-tight text-[#000000] font-black font-Cairo truncate w-full`}>
                                 {i18n.language === 'en'
                                     ? (product.brandEn || product.partBrand || product.brand)
                                     : (product.partBrand || product.brand || 'No Brand')}
@@ -130,15 +130,15 @@ const ProductCard = ({ product, isCompact = false }) => {
 
                         {/* Always show Model & Year */}
                         <div className="flex flex-col items-end overflow-hidden text-right">
-                            <span className={`${isCompact ? 'text-[9px]' : 'text-[10px]'} leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full`}>
+                            <span className={`${isCompact ? 'text-[8px]' : 'text-[9px]'} leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full`}>
                                 {i18n.language === 'ar' ? 'الموديل' : 'Model'}
                             </span>
                             <div className="flex flex-col items-end w-full">
-                                <span className={`${isCompact ? 'text-[10px]' : 'text-xs'} leading-tight text-[#000000] font-black font-Cairo w-full truncate`} title={product.carModel || `${product.make} ${product.model}`}>
+                                <span className={`${isCompact ? 'text-[9px]' : 'text-[10px]'} leading-tight text-[#000000] font-black font-Cairo w-full truncate`} title={product.carModel || `${product.make} ${product.model}`}>
                                     {product.carModel || `${product.make} ${product.model}` || 'Universal'}
                                 </span>
                                 {(product.yearRange || product.yearStart || product.yearEnd) && (
-                                    <span className={`${isCompact ? 'text-[8px]' : 'text-[9px]'} leading-tight text-[#000000] font-bold font-Cairo mt-0.5 truncate w-full`}>
+                                    <span className={`${isCompact ? 'text-[7px]' : 'text-[8px]'} leading-tight text-[#000000] font-bold font-Cairo mt-0.5 truncate w-full`}>
                                         {product.yearRange ||
                                             (product.yearStart && product.yearEnd ? `${product.yearStart}-${product.yearEnd}` :
                                                 product.yearStart || product.yearEnd || '')}
@@ -149,10 +149,10 @@ const ProductCard = ({ product, isCompact = false }) => {
 
                         {/* Origin */}
                         <div className="flex flex-col items-end overflow-hidden text-right">
-                            <span className={`${isCompact ? 'text-[9px]' : 'text-[10px]'} leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full`}>
+                            <span className={`${isCompact ? 'text-[8px]' : 'text-[9px]'} leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full`}>
                                 {i18n.language === 'ar' ? 'المنشأ' : 'Origin'}
                             </span>
-                            <span className={`${isCompact ? 'text-[10px]' : 'text-xs'} leading-tight text-[#333] font-black italic font-Cairo truncate w-full`}>
+                            <span className={`${isCompact ? 'text-[9px]' : 'text-[10px]'} leading-tight text-[#333] font-black italic font-Cairo truncate w-full`}>
                                 {product.origin || product.countryOfOrigin || 'Imported'}
                             </span>
                         </div>
@@ -160,10 +160,10 @@ const ProductCard = ({ product, isCompact = false }) => {
                         {/* Category */}
                         {product.category && (
                             <div className="flex flex-col items-end overflow-hidden text-right">
-                                <span className={`${isCompact ? 'text-[9px]' : 'text-[10px]'} leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full`}>
+                                <span className={`${isCompact ? 'text-[8px]' : 'text-[9px]'} leading-tight text-gray-400 font-bold uppercase tracking-wider truncate w-full`}>
                                     {i18n.language === 'ar' ? 'الفئة' : 'Category'}
                                 </span>
-                                <span className={`${isCompact ? 'text-[10px]' : 'text-xs'} leading-tight text-[#333] font-black font-Cairo truncate w-full`}>
+                                <span className={`${isCompact ? 'text-[9px]' : 'text-[10px]'} leading-tight text-[#333] font-black font-Cairo truncate w-full`}>
                                     {product.category}
                                 </span>
                             </div>
