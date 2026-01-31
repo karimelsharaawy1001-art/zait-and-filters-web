@@ -6,30 +6,37 @@ const AdminHeader = ({ title }) => {
     const [isSyncing, setIsSyncing] = useState(false);
 
     const handleSync = async () => {
+        if (!window.confirm("Publish latest data to public site? This will trigger a site rebuild.")) return;
+
         setIsSyncing(true);
-        // Simulate a brief delay for user feedback
-        setTimeout(() => {
-            try {
-                // Client-side "Workaround" Sync:
-                // 1. Clear any local caches (localStorage, sessionStorage)
-                localStorage.clear();
-                sessionStorage.clear();
+        const toastId = toast.loading('Initiating Build & Refresh...');
 
-                // 2. Clear browser cache for current page (limited but helpful)
-                // Note: Standard JS cannot clear full browser cache, but we can force reload
-
-                toast.success('تم تحديث بيانات الموقع بنجاح');
-
-                // 3. Hard reload the page to bypass cached data
-                setTimeout(() => {
-                    window.location.reload(true);
-                }, 1000);
-            } catch (error) {
-                console.error('Sync error:', error);
-                toast.error('حدث خطأ أثناء تحديث البيانات');
+        try {
+            const webhookUrl = import.meta.env.VITE_VERCEL_DEPLOY_HOOK;
+            if (!webhookUrl) {
+                toast.error("Deployment Hook not configured!", { id: toastId });
                 setIsSyncing(false);
+                return;
             }
-        }, 1500);
+
+            // 1. Trigger Vercel Build
+            await fetch(webhookUrl, { method: 'POST' });
+
+            // 2. Clear local caches
+            localStorage.clear();
+            sessionStorage.clear();
+
+            toast.success('Build triggered! Site will update in ~2 mins.', { id: toastId });
+
+            // 3. Hard reload the page after a short delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } catch (error) {
+            console.error('Sync error:', error);
+            toast.error('حدث خطأ أثناء تحديث البيانات: ' + error.message, { id: toastId });
+            setIsSyncing(false);
+        }
     };
 
     return (

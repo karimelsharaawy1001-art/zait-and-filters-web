@@ -281,6 +281,7 @@ const BulkOperations = () => {
                 </div>
 
                 <button
+                    type="button"
                     onClick={downloadTemplate}
                     className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-bold transition-colors"
                 >
@@ -289,6 +290,7 @@ const BulkOperations = () => {
                 </button>
 
                 <button
+                    type="button"
                     onClick={exportProducts}
                     disabled={loading}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
@@ -298,6 +300,7 @@ const BulkOperations = () => {
                 </button>
 
                 <button
+                    type="button"
                     onClick={async () => {
                         const confirmBackup = window.confirm('Generate full local backup JSON? This is free and saves your current view for offline use.');
                         if (!confirmBackup) return;

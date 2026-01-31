@@ -452,6 +452,7 @@ const ManageProducts = () => {
                     </div>
 
                     <button
+                        type="button"
                         onClick={() => {
                             setIsLiveMode(!isLiveMode);
                             if (!isLiveMode) {
@@ -467,6 +468,7 @@ const ManageProducts = () => {
                     </button>
 
                     <button
+                        type="button"
                         onClick={async () => {
                             if (!window.confirm("Publish latest data to public site? This will trigger a site rebuild.")) return;
 
@@ -500,6 +502,7 @@ const ManageProducts = () => {
                     </button>
 
                     <button
+                        type="button"
                         onClick={() => navigate('/admin/products/new')}
                         className="admin-primary-btn !w-fit !px-8"
                     >

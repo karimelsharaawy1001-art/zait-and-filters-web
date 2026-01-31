@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ShoppingCart, User, Menu, X, Package, Users, Car, Settings, LogOut, Droplets, BookOpen, Home, ShoppingBag, UserCircle2, Rocket } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, X, Package, Users, Car, Settings, LogOut, Droplets, BookOpen, Home, ShoppingBag, UserCircle2, Rocket, Megaphone } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useFilters } from '../context/FilterContext';
 import { useTranslation } from 'react-i18next';
@@ -200,7 +200,7 @@ const Navbar = () => {
                                     {t('blog')}
                                 </Link>
                                 <Link to="/marketers" title={t('nav.marketers')} className="text-[#1A1A1A] hover:text-[#28B463] transition-colors p-1">
-                                    <Rocket className="h-5 w-5 stroke-[2px]" />
+                                    <Megaphone className="h-5 w-5 stroke-[2px]" />
                                 </Link>
                             </div>
 
@@ -311,7 +311,7 @@ const Navbar = () => {
                                     className="p-1.5 force-black active:bg-gray-100 rounded-full transition-colors shrink-0"
                                     title={t('nav.marketers')}
                                 >
-                                    <Rocket className="h-6 w-6 stroke-[3px]" />
+                                    <Megaphone className="h-6 w-6 stroke-[3px]" />
                                 </Link>
                                 <button
                                     onClick={handleGarageToggle}
@@ -425,7 +425,7 @@ const Navbar = () => {
                                 onClick={() => setIsOpen(false)}
                                 className={mobileNavLinkClass('/marketers')}
                             >
-                                <Users className={`h-5 w-5 ${mobileIconClass('/marketers')}`} />
+                                <Megaphone className={`h-5 w-5 ${mobileIconClass('/marketers')}`} />
                                 {t('nav.marketers')}
                             </Link>
 
