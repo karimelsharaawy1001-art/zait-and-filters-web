@@ -49,8 +49,10 @@ const Navbar = () => {
     const fetchSuggestions = async (searchTerm) => {
         setIsSuggestionsLoading(true);
         try {
-            // Firestore prefix search is too limited. 
-            // We fetch a larger batch and filter client-side for better results.
+            // Guard against race conditions: check if query still matches current input
+            const currentQuery = normalizeArabic(filters.searchQuery);
+            if (currentQuery !== normalizeArabic(searchTerm)) return;
+
             const queryVal = normalizeArabic(searchTerm);
             const searchKeywords = queryVal.split(/\s+/).filter(Boolean);
 
@@ -79,6 +81,9 @@ const Navbar = () => {
                 return searchKeywords.every(keyword => searchTarget.includes(keyword));
             });
 
+            // Final guard before updating state
+            if (normalizeArabic(filters.searchQuery) !== normalizeArabic(searchTerm)) return;
+
             setSuggestions(filtered.slice(0, 5)); // Still only show top 5
         } catch (error) {
             console.error("Error fetching suggestions:", error);
@@ -95,6 +100,8 @@ const Navbar = () => {
     const handleSearchKeyDown = (e) => {
         if (e.key === 'Enter' && filters.searchQuery.trim().length > 0) {
             setSuggestions([]);
+            // Blurring the input helps close mobile keyboards and prevents further fetch events
+            e.target.blur();
             if (location.pathname !== '/shop') {
                 navigate('/shop');
             }
@@ -224,7 +231,7 @@ const Navbar = () => {
                                                 className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 border-b border-gray-50 last:border-0 text-left transition-colors"
                                             >
                                                 <div className="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-                                                    {p.imageUrl && <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />}
+                                                    {p.image && <img src={p.image} alt={p.name} className="w-full h-full object-cover" />}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm font-black text-black truncate">{p.name}</p>
@@ -357,7 +364,7 @@ const Navbar = () => {
                                             className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 border-b border-gray-50 last:border-0 text-left transition-colors"
                                         >
                                             <div className="w-12 h-12 bg-gray-100 rounded-xl flex-shrink-0 overflow-hidden">
-                                                {p.imageUrl && <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />}
+                                                {p.image && <img src={p.image} alt={p.name} className="w-full h-full object-cover" />}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-black text-black truncate">{p.name}</p>
