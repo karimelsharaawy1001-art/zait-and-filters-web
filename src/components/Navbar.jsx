@@ -12,6 +12,7 @@ import { signOut } from 'firebase/auth';
 import { collection, query, where, getDocs, limit as firestoreLimit, orderBy } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
 import { normalizeArabic, getSearchableText } from '../utils/productUtils';
+import GarageInfoModal from './GarageInfoModal';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -26,6 +27,7 @@ const Navbar = () => {
 
     const [suggestions, setSuggestions] = useState([]);
     const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
+    const [showGarageInfo, setShowGarageInfo] = useState(false);
 
     const handleSearchChange = (e) => {
         const queryVal = e.target.value;
@@ -103,8 +105,7 @@ const Navbar = () => {
 
     const handleGarageToggle = () => {
         if (!auth.currentUser) {
-            toast.error("Please login to use the Garage feature");
-            navigate('/login');
+            setShowGarageInfo(true);
             return;
         }
 
@@ -449,6 +450,10 @@ const Navbar = () => {
                     </div>
                 )}
             </nav>
+            <GarageInfoModal
+                isOpen={showGarageInfo}
+                onClose={() => setShowGarageInfo(false)}
+            />
         </header >
     );
 };
