@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ShoppingCart, User, Menu, X, Package, Users, Car, Settings, LogOut, Droplets, BookOpen, Home, ShoppingBag, UserCircle2 } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, X, Package, Users, Car, Settings, LogOut, Droplets, BookOpen, Home, ShoppingBag, UserCircle2, Rocket } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useFilters } from '../context/FilterContext';
 import { useTranslation } from 'react-i18next';
@@ -183,8 +183,8 @@ const Navbar = () => {
                                     <BookOpen className="h-4 w-4 text-[#28B463]" />
                                     {t('blog')}
                                 </Link>
-                                <Link to="/marketers" className="text-[14px] !text-[#1A1A1A] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#28B463] whitespace-nowrap">
-                                    {t('nav.marketers')}
+                                <Link to="/marketers" title={t('nav.marketers')} className="text-[#1A1A1A] hover:text-[#28B463] transition-colors p-1">
+                                    <Rocket className="h-5 w-5 stroke-[2px]" />
                                 </Link>
                             </div>
 
@@ -289,9 +289,10 @@ const Navbar = () => {
                             <div className="flex items-center gap-x-1.5 sm:gap-x-3">
                                 <Link
                                     to="/marketers"
-                                    className="text-[8px] xs:text-[9px] sm:text-[11px] !text-[#000000] !font-bold uppercase font-Cairo px-1 xs:px-1.5 py-1 whitespace-nowrap"
+                                    className="p-1.5 force-black active:bg-gray-100 rounded-full transition-colors shrink-0"
+                                    title={t('nav.marketers')}
                                 >
-                                    {t('nav.marketers')}
+                                    <Rocket className="h-6 w-6 stroke-[3px]" />
                                 </Link>
                                 <button
                                     onClick={handleGarageToggle}
