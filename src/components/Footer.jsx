@@ -9,24 +9,24 @@ const Footer = () => {
     const { t } = useTranslation();
 
     return (
-        <footer className="footer-section bg-gradient-to-b from-[#0a0a0a] via-[#000000] to-[#000000] text-gray-400 pt-16 pb-8 mt-auto border-t border-white/5">
+        <footer className="footer-section bg-gradient-to-b from-[#0a0a0a] via-[#000000] to-[#000000] text-gray-400 pt-10 pb-6 mt-auto border-t border-white/5">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-x-12 gap-y-8 mb-8">
                     {/* Column 1: About */}
                     <div className="space-y-6 lg:col-span-2">
                         <div className="flex items-center gap-4">
                             <Link to="/" className="shrink-0">
                                 {settings.siteLogo && (
-                                    <img src={settings.siteLogo} alt={settings.siteName} className="h-20 w-auto object-contain drop-shadow-2xl" />
+                                    <img src={settings.siteLogo} alt={settings.siteName} className="h-16 w-auto object-contain drop-shadow-2xl" />
                                 )}
                             </Link>
                             <div className="flex flex-col justify-center">
                                 <Link to="/" className="group">
-                                    <span className="font-black text-3xl text-white tracking-tighter uppercase italic leading-tight block hover:scale-105 transition-transform">
+                                    <span className="font-black text-2xl text-white tracking-tighter uppercase italic leading-tight block hover:scale-105 transition-transform">
                                         ZAIT <span className="text-[#28B463]">& FILTERS</span>
                                     </span>
                                 </Link>
-                                <p className="text-[11px] font-black text-gray-500 mt-1 tracking-widest uppercase">قطع الغيار بضغطة زرار</p>
+                                <p className="text-[10px] font-black text-gray-500 mt-0.5 tracking-widest uppercase">قطع الغيار بضغطة زرار</p>
                             </div>
                         </div>
                         <p className="text-sm leading-relaxed text-gray-400 max-w-md">
@@ -57,11 +57,11 @@ const Footer = () => {
 
                     {/* Column 2: Quick Links */}
                     <div>
-                        <h3 className="text-white font-black text-lg mb-6 uppercase tracking-tight relative inline-block">
+                        <h3 className="text-white font-black text-lg mb-4 uppercase tracking-tight relative inline-block">
                             {t('footerQuickLinks', 'Quick Links')}
                             <span className="absolute -bottom-2 left-0 w-12 h-1 bg-[#28B463] rounded-full"></span>
                         </h3>
-                        <ul className="space-y-3 text-sm font-bold mt-8">
+                        <ul className="space-y-3 text-sm font-bold mt-4">
                             <li><Link to="/" className="hover:text-[#28B463] transition-colors flex items-center gap-2 group"><span className="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-[#28B463] transition-colors"></span>{t('home')}</Link></li>
                             <li><Link to="/shop" className="hover:text-[#28B463] transition-colors flex items-center gap-2 group"><span className="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-[#28B463] transition-colors"></span>{t('shop')}</Link></li>
                             <li><Link to="/blog" className="hover:text-[#28B463] transition-colors flex items-center gap-2 group"><span className="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-[#28B463] transition-colors"></span>{t('blog')}</Link></li>
@@ -73,11 +73,11 @@ const Footer = () => {
 
                     {/* Column: Policies */}
                     <div>
-                        <h3 className="text-white font-black text-lg mb-6 uppercase tracking-tight relative inline-block">
+                        <h3 className="text-white font-black text-lg mb-4 uppercase tracking-tight relative inline-block">
                             {t('policies')}
                             <span className="absolute -bottom-2 left-0 w-12 h-1 bg-[#28B463] rounded-full"></span>
                         </h3>
-                        <ul className="space-y-3 text-sm font-bold mt-8">
+                        <ul className="space-y-3 text-sm font-bold mt-4">
                             <li><Link to="/returns" className="hover:text-[#28B463] transition-colors flex items-center gap-2 group"><span className="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-[#28B463] transition-colors"></span>{t('returnsPolicy')}</Link></li>
                             <li><Link to="/shipping" className="hover:text-[#28B463] transition-colors flex items-center gap-2 group"><span className="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-[#28B463] transition-colors"></span>{t('shippingInfo')}</Link></li>
                         </ul>
@@ -85,11 +85,11 @@ const Footer = () => {
 
                     {/* Column 3: Contact Info */}
                     <div className="lg:col-span-2">
-                        <h3 className="text-white font-black text-lg mb-6 uppercase tracking-tight relative inline-block">
+                        <h3 className="text-white font-black text-lg mb-4 uppercase tracking-tight relative inline-block">
                             {t('footerContact', 'Contact Us')}
                             <span className="absolute -bottom-2 left-0 w-12 h-1 bg-[#28B463] rounded-full"></span>
                         </h3>
-                        <ul className="space-y-4 text-sm mt-8">
+                        <ul className="space-y-4 text-sm mt-4">
                             {settings.contactAddress && (
                                 <li className="flex gap-3 items-start group">
                                     <div className="p-2 bg-[#28B463]/10 rounded-lg group-hover:bg-[#28B463]/20 transition-colors">
@@ -118,10 +118,10 @@ const Footer = () => {
                     </div>
 
                     {/* Column 4: Newsletter - Moved to bottom on mobile, full width */}
-                    <div className="lg:col-span-5 mt-8">
-                        <div className="bg-gradient-to-r from-[#28B463]/10 via-[#28B463]/5 to-transparent p-8 rounded-2xl border border-[#28B463]/20">
+                    <div className="lg:col-span-5 mt-4">
+                        <div className="bg-gradient-to-r from-[#28B463]/10 via-[#28B463]/5 to-transparent p-6 rounded-2xl border border-[#28B463]/20">
                             <div className="max-w-2xl">
-                                <h3 className="text-white font-black text-2xl uppercase tracking-tight mb-2">Stay Updated</h3>
+                                <h3 className="text-white font-black text-xl uppercase tracking-tight mb-2">Stay Updated</h3>
                                 <p className="text-sm text-gray-400 mb-6">Subscribe for exclusive updates on new filters, oils, and auto products.</p>
                                 <form
                                     onSubmit={async (e) => {
@@ -163,7 +163,7 @@ const Footer = () => {
                     </div>
 
                 </div>
-                <div className="pt-8 border-t border-white/10">
+                <div className="pt-4 border-t border-white/10">
                     <p className="text-[10px] text-center text-gray-600 uppercase font-black tracking-[0.3em]">
                         © 2024 ZAIT & FILTERS. All rights reserved.
                     </p>
