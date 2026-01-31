@@ -33,8 +33,7 @@ const Footer = () => {
                             {settings.footerDescription}
                         </p>
                         {/* Social Links */}
-                        <div>
-                            <h4 className="text-white font-black text-xs uppercase tracking-widest mb-4">تواصل معنا</h4>
+                        <div className="pt-2">
                             <div className="flex gap-3">
                                 {settings.facebookUrl && (
                                     <a href={settings.facebookUrl} target="_blank" rel="noopener noreferrer" className="group p-3 bg-white/5 rounded-xl hover:bg-[#28B463] transition-all duration-300 text-white border border-white/10 hover:border-[#28B463] hover:scale-110 hover:shadow-lg hover:shadow-[#28B463]/20">
