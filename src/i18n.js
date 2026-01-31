@@ -303,6 +303,7 @@ const resources = {
                 "allOrigins": "Select Origin...",
                 "allBrands": "Select Brand...",
                 "forYou": "Personalized for You",
+                "filtersButton": "Categories & Filters",
                 "garageOffersTitle": "Tailored for Your Vehicle"
             },
             "garageInfo": {
@@ -615,6 +616,7 @@ const resources = {
                 "allOrigins": "اختر بلد المنشأ...",
                 "allBrands": "اختر ماركة القطعة...",
                 "forYou": "خصيصاً لك",
+                "filtersButton": "الأقسام و التصنيفات",
                 "garageOffersTitle": "عروض مخصصة لسيارتك"
             },
             "garageInfo": {
