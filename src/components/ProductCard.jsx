@@ -134,7 +134,7 @@ const ProductCard = ({ product, isCompact = false }) => {
                                 {i18n.language === 'ar' ? 'الموديل' : 'Model'}
                             </span>
                             <div className="flex flex-col items-end w-full">
-                                <span className={`${isCompact ? 'text-[9px]' : 'text-[10px]'} leading-tight text-[#000000] font-black font-Cairo w-full truncate`} title={product.carModel || `${product.make} ${product.model}`}>
+                                <span className={`${isCompact ? 'text-[9px]' : 'text-[10px]'} leading-tight text-[#000000] font-black font-Cairo w-full line-clamp-2`} title={product.carModel || `${product.make} ${product.model}`}>
                                     {product.carModel || `${product.make} ${product.model}` || 'Universal'}
                                 </span>
                                 {(product.yearRange || product.yearStart || product.yearEnd) && (
