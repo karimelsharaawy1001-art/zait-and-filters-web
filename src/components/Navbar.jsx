@@ -92,6 +92,15 @@ const Navbar = () => {
         navigate(`/product/${product.id}`);
     };
 
+    const handleSearchKeyDown = (e) => {
+        if (e.key === 'Enter' && filters.searchQuery.trim().length > 0) {
+            setSuggestions([]);
+            if (location.pathname !== '/shop') {
+                navigate('/shop');
+            }
+        }
+    };
+
     const handleLogout = async () => {
         try {
             await signOut(auth);
@@ -196,6 +205,7 @@ const Navbar = () => {
                                         placeholder={t('search')}
                                         value={filters.searchQuery}
                                         onChange={handleSearchChange}
+                                        onKeyDown={handleSearchKeyDown}
                                         onBlur={() => setTimeout(() => setSuggestions([]), 200)}
                                         className="w-full bg-white border-[1px] border-[#1A1A1A] rounded-lg py-1.5 pl-10 pr-4 focus:ring-2 focus:ring-[#28B463] transition-all text-[14px] font-bold font-Cairo text-black placeholder:text-gray-500"
                                     />
@@ -218,7 +228,9 @@ const Navbar = () => {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm font-black text-black truncate">{p.name}</p>
-                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{p.partBrand} | {p.salePrice || p.price} EGP</p>
+                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                                                        {p.partBrand} {p.make ? `• ${p.make}` : ''} {p.model ? ` ${p.model}` : ''} | {p.salePrice || p.price} EGP
+                                                    </p>
                                                 </div>
                                             </button>
                                         ))}
@@ -326,6 +338,7 @@ const Navbar = () => {
                                     placeholder={t('search')}
                                     value={filters.searchQuery}
                                     onChange={handleSearchChange}
+                                    onKeyDown={handleSearchKeyDown}
                                     onBlur={() => setTimeout(() => setSuggestions([]), 200)}
                                     className="w-full bg-white border-[1px] border-[#1A1A1A] rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-[#28B463] transition-all text-[14px] font-bold font-Cairo text-black placeholder:text-gray-500"
                                 />
@@ -348,7 +361,9 @@ const Navbar = () => {
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-black text-black truncate">{p.name}</p>
-                                                <p className="text-[10px] text-gray-500 font-bold">{p.partBrand} • {p.salePrice || p.price} EGP</p>
+                                                <p className="text-[10px] text-gray-500 font-bold">
+                                                    {p.partBrand} {p.make ? `• ${p.make}` : ''} {p.model ? ` ${p.model}` : ''} • {p.salePrice || p.price} EGP
+                                                </p>
                                             </div>
                                         </button>
                                     ))}

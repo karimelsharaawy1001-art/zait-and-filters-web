@@ -22,6 +22,7 @@ const ShopPage = () => {
         const page = parseInt(searchParams.get('page')) || 1;
         const brand = searchParams.get('brand') || '';
         const origin = searchParams.get('origin') || '';
+        const search = searchParams.get('search') || '';
 
         if (make !== filters.make) updateFilter('make', make);
         if (model !== filters.model) updateFilter('model', model);
@@ -31,6 +32,7 @@ const ShopPage = () => {
         if (viscosity !== filters.viscosity) updateFilter('viscosity', viscosity);
         if (brand !== filters.brand) updateFilter('brand', brand);
         if (origin !== filters.origin) updateFilter('origin', origin);
+        if (search !== filters.searchQuery) updateFilter('searchQuery', search);
         if (page !== filters.page) updateFilter('page', page);
     }, [searchParams]);
 
@@ -45,6 +47,7 @@ const ShopPage = () => {
         if (filters.viscosity) params.set('viscosity', filters.viscosity);
         if (filters.brand) params.set('brand', filters.brand);
         if (filters.origin) params.set('origin', filters.origin);
+        if (filters.searchQuery) params.set('search', filters.searchQuery);
         if (filters.page && filters.page > 1) params.set('page', filters.page);
 
         const newSearchString = params.toString();
