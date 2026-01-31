@@ -281,7 +281,7 @@ const Navbar = () => {
                                     <span className="font-black text-[18px] xs:text-[22px] sm:text-3xl tracking-tighter uppercase italic leading-none font-Cairo" >
                                         <span style={{ color: '#1A1A1A' }}>ZAIT</span> <span style={{ color: '#28B463' }}>& FILTERS</span>
                                     </span>
-                                    <p className="text-[6px] xs:text-[7px] font-black text-[#000000] mt-0.5 tracking-widest uppercase font-Cairo">بضغطة زرار</p>
+                                    <p className="text-[6px] xs:text-[7px] font-black text-[#000000] mt-0.5 tracking-widest uppercase font-Cairo">قطع الغيار بضغطة زرار</p>
                                 </Link>
                             </div>
 
