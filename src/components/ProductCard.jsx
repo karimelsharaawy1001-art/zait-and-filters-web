@@ -107,7 +107,7 @@ const ProductCard = ({ product, isCompact = false }) => {
                         }}
                     >
                         <h3
-                            className={`text-[#1A1A1A] font-extrabold leading-tight line-clamp-2 uppercase transition-colors overflow-hidden text-ellipsis ${isCompact ? '!text-[12px]' : '!text-base'}`}
+                            className={`text-[#1A1A1A] font-extrabold leading-tight line-clamp-2 uppercase transition-colors overflow-hidden text-ellipsis ${isCompact ? '!text-[10px]' : '!text-sm'}`}
                             style={{ fontFamily: 'var(--font-commercial)' }}
                         >
                             {i18n.language === 'en' ? (product.nameEn || product.name) : product.name}
