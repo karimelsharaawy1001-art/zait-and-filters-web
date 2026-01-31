@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Outlet, useSearchParams } from 'react-router-dom';
 import { safeLocalStorage } from './utils/safeStorage';
-import { Toaster } from 'react-hot-toast';
+import { Toaster, toast, resolveValue } from 'react-hot-toast';
+import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 // Header components (Non-lazy)
 import Navbar from './components/Navbar';
@@ -108,8 +109,9 @@ const PublicLayout = () => {
       <div className={`min-h-screen bg-gray-50 flex flex-col font-sans ${i18n.language === 'ar' ? 'font-arabic rtl' : 'ltr'}`} dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
         <Toaster
           position="top-center"
+          reverseOrder={false}
           toastOptions={{
-            duration: 3000,
+            duration: 5000,
             style: {
               background: '#fff',
               color: '#000',
@@ -118,21 +120,36 @@ const PublicLayout = () => {
               padding: '12px 24px',
               boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
             },
-            success: {
-              iconTheme: {
-                primary: '#10B981',
-                secondary: '#fff',
-              },
-            },
-            error: {
-              iconTheme: {
-                primary: '#EF4444',
-                secondary: '#fff',
-              },
-            },
           }}
-        />
-        <div className="sticky top-0 z-[100] bg-white">
+          containerStyle={{
+            top: 20,
+          }}
+        >
+          {(t) => (
+            <div
+              onClick={() => toast.dismiss(t.id)}
+              className="cursor-pointer transition-all hover:scale-105 active:scale-95"
+            >
+              <div className="flex items-center gap-3">
+                {t.type === 'loading' ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#28B463] border-t-transparent" />
+                ) : t.icon ? (
+                  t.icon
+                ) : (
+                  <div className={`h-2 w-2 rounded-full ${t.type === 'success' ? 'bg-[#28B463]' : t.type === 'error' ? 'bg-[#EF4444]' : 'bg-gray-400'}`} />
+                )}
+                <div className="text-sm font-Cairo">
+                  {resolveValue(t.message, t)}
+                </div>
+                {/* Visual close indicator */}
+                <div className="ml-2 text-gray-300 hover:text-gray-600 transition-colors">
+                  <X className="h-4 w-4 stroke-[3px]" />
+                </div>
+              </div>
+            </div>
+          )}
+        </Toaster>
+        <div className="sticky top-0 z-[110] w-full bg-white shadow-sm">
           <Navbar />
           <GarageActiveIndicator />
         </div>
@@ -193,32 +210,6 @@ function App() {
       <ScrollToTop />
       <StaticDataProvider>
         <SettingsProvider>
-          <Toaster
-            position="top-center"
-            toastOptions={{
-              duration: 3000,
-              style: {
-                background: '#fff',
-                color: '#000',
-                fontWeight: '600',
-                borderRadius: '16px',
-                padding: '12px 24px',
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-              },
-              success: {
-                iconTheme: {
-                  primary: '#10B981',
-                  secondary: '#fff',
-                },
-              },
-              error: {
-                iconTheme: {
-                  primary: '#EF4444',
-                  secondary: '#fff',
-                },
-              },
-            }}
-          />
           <ErrorBoundary>
             <React.Suspense fallback={<PageLoader />}>
               <Routes>

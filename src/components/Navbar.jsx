@@ -138,7 +138,7 @@ const Navbar = () => {
     const mobileIconClass = (path) => isActive(path) ? 'text-[#28B463]' : 'text-gray-400';
 
     return (
-        <header className="relative w-full z-[100] transition-all duration-300">
+        <header className="w-full transition-all duration-300">
             {/* Main Navbar - py-4 = 16px top + 16px bottom = 32px padding, h-16 content = 64px, Total: ~96px on mobile */}
             <nav className="w-full bg-white/80 backdrop-blur-xl border-b border-gray-100/50 shadow-sm py-4">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
