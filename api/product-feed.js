@@ -1,17 +1,19 @@
-import admin from 'firebase-admin';
+import { initializeApp, getApps } from 'firebase/app';
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
 
-// Initialize Firebase Admin if not already initialized
-if (!admin.apps.length) {
-    admin.initializeApp({
-        credential: admin.credential.cert({
-            projectId: process.env.VITE_FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        }),
-    });
-}
+// Initialize Firebase with client SDK (no admin credentials needed)
+const firebaseConfig = {
+    apiKey: process.env.VITE_FIREBASE_API_KEY,
+    authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.VITE_FIREBASE_APP_ID,
+};
 
-const db = admin.firestore();
+// Initialize Firebase if not already initialized
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+const db = getFirestore(app);
 
 export default async function handler(req, res) {
     try {
@@ -20,7 +22,8 @@ export default async function handler(req, res) {
         res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
 
         // Fetch all products from Firestore
-        const productsSnapshot = await db.collection('products').get();
+        const productsRef = collection(db, 'products');
+        const productsSnapshot = await getDocs(productsRef);
 
         if (productsSnapshot.empty) {
             return res.status(200).send(generateEmptyFeed());
