@@ -456,56 +456,89 @@ const Checkout = () => {
                 const tempOrderId = `temp_${Date.now()}`;
                 await handleOnlinePayment(tempOrderId, selectedMethod);
             } else {
-                console.log("[DEBUG] Offline/Manual payment path selected. Method:", formData.paymentMethod);
+                console.log("[DEBUG] Starting order creation...");
 
-                // Use a ref-like pattern for the latest state to avoid closure bugs
-                const currentData = { ...orderData };
+                let orderId;
+                let finalOrderNumber;
 
-                const result = await runTransaction(db, async (tx) => {
-                    console.log("[DEBUG] Inside transaction, reading counter...");
-                    const counterRef = doc(db, 'settings', 'counters');
-                    const counterSnap = await tx.get(counterRef);
+                try {
+                    // TRY SEQUENTIAL TRANSACTION FIRST
+                    const result = await runTransaction(db, async (tx) => {
+                        const counterRef = doc(db, 'settings', 'counters');
+                        const counterSnap = await tx.get(counterRef);
 
-                    let nextNumber = 3501;
-                    if (counterSnap.exists()) {
-                        nextNumber = (counterSnap.data().lastOrderNumber || 3500) + 1;
-                    }
-                    console.log("[DEBUG] Next order number determined:", nextNumber);
+                        let nextNumber = 3501;
+                        if (counterSnap.exists()) {
+                            nextNumber = (counterSnap.data().lastOrderNumber || 3500) + 1;
+                        }
 
-                    const orderRef = doc(collection(db, 'orders'));
-                    const finalOrder = {
-                        ...currentData,
-                        orderNumber: nextNumber,
-                        createdAt: serverTimestamp()
-                    };
-
-                    console.log("[DEBUG] Setting order doc:", orderRef.id);
-                    tx.set(orderRef, finalOrder);
-
-                    console.log("[DEBUG] Updating counter...");
-                    tx.set(counterRef, { lastOrderNumber: nextNumber }, { merge: true });
-
-                    if (appliedPromo?.id) {
-                        console.log("[DEBUG] Updating promo usage:", appliedPromo.id);
-                        tx.update(doc(db, 'promo_codes', appliedPromo.id), { usedCount: increment(1) });
-                    }
-
-                    if (auth.currentUser && saveNewAddress && selectedAddressId === 'new') {
-                        console.log("[DEBUG] Saving new address for UID:", auth.currentUser.uid);
-                        const addrRef = doc(collection(db, 'users', auth.currentUser.uid, 'addresses'));
-                        tx.set(addrRef, {
-                            detailedAddress: formData.address,
-                            governorate: formData.governorate,
-                            city: formData.city,
-                            label: t('savedAddress'),
+                        const orderRef = doc(collection(db, 'orders'));
+                        tx.set(orderRef, {
+                            ...orderData,
+                            orderNumber: nextNumber,
                             createdAt: serverTimestamp()
                         });
+
+                        tx.set(counterRef, { lastOrderNumber: nextNumber }, { merge: true });
+
+                        if (appliedPromo?.id) {
+                            tx.update(doc(db, 'promo_codes', appliedPromo.id), { usedCount: increment(1) });
+                        }
+
+                        if (auth.currentUser && saveNewAddress && selectedAddressId === 'new') {
+                            const addrRef = doc(collection(db, 'users', auth.currentUser.uid, 'addresses'));
+                            tx.set(addrRef, {
+                                detailedAddress: formData.address,
+                                governorate: formData.governorate,
+                                city: formData.city,
+                                label: t('savedAddress'),
+                                createdAt: serverTimestamp()
+                            });
+                        }
+
+                        return { id: orderRef.id, number: nextNumber };
+                    });
+
+                    orderId = result.id;
+                    finalOrderNumber = result.number;
+                    console.log("[DEBUG] Transaction succeeded:", orderId);
+
+                } catch (txError) {
+                    // FALLBACK IF QUOTA EXCEEDED
+                    if (txError.code === 'resource-exhausted' || txError.message?.includes('Quota')) {
+                        console.warn("[QUOTA] Fallback triggered. Creating order without counter.");
+                        const fallbackOrderRef = doc(collection(db, 'orders'));
+                        const timestampId = Date.now().toString().slice(-6);
+                        finalOrderNumber = `T-${timestampId}`; // T for Temporary/Time-based
+
+                        await setDoc(fallbackOrderRef, {
+                            ...orderData,
+                            orderNumber: finalOrderNumber,
+                            createdAt: serverTimestamp(),
+                            quotaFallback: true
+                        });
+                        orderId = fallbackOrderRef.id;
+
+                        // Also handle promo usage and address saving outside transaction if fallback
+                        if (appliedPromo?.id) {
+                            setDoc(doc(db, 'promo_codes', appliedPromo.id), { usedCount: increment(1) }, { merge: true })
+                                .catch(e => console.warn("Promo usage update failed during fallback:", e));
+                        }
+                        if (auth.currentUser && saveNewAddress && selectedAddressId === 'new') {
+                            const addrRef = doc(collection(db, 'users', auth.currentUser.uid, 'addresses'));
+                            setDoc(addrRef, {
+                                detailedAddress: formData.address,
+                                governorate: formData.governorate,
+                                city: formData.city,
+                                label: t('savedAddress'),
+                                createdAt: serverTimestamp()
+                            }).catch(e => console.warn("Address save failed during fallback:", e));
+                        }
+
+                    } else {
+                        throw txError;
                     }
-
-                    return { id: orderRef.id, number: nextNumber };
-                });
-
-                console.log("[DEBUG] Transaction committed successfully:", result);
+                }
 
                 // Background updates
                 cartItems.forEach(item => {
@@ -520,7 +553,7 @@ const Checkout = () => {
                     setDoc(doc(db, 'abandoned_carts', cartId), {
                         recovered: true,
                         recoveredAt: serverTimestamp(),
-                        orderId: result.id
+                        orderId: orderId
                     }, { merge: true }).catch(e => console.warn("Abandoned cart sync failed:", e));
                 }
 
@@ -536,7 +569,7 @@ const Checkout = () => {
 
                 // Allow toast to be seen before navigating
                 setTimeout(() => {
-                    navigate(`/order-success?id=${result.id}`);
+                    navigate(`/order-success?id=${orderId}`);
                 }, 500);
             }
         } catch (error) {

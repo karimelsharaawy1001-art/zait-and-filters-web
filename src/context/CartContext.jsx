@@ -40,18 +40,26 @@ export const CartProvider = ({ children }) => {
 
     // Synchronize with Local Storage and Firestore (for abandoned cart recovery)
     useEffect(() => {
-        // Debounce storage writes to avoid security triggers on every microscopic state change
+        // SIGNIFICANTLY increase debounce to 60 seconds to save Firestore Quota
         const handler = setTimeout(() => {
             try {
                 const currentCartStr = JSON.stringify(cartItems);
-                if (safeLocalStorage.getItem('cartItems') !== currentCartStr) {
+                const lastStoredCart = safeLocalStorage.getItem('cartItems');
+
+                if (lastStoredCart !== currentCartStr) {
                     safeLocalStorage.setItem('cartItems', currentCartStr);
                 }
 
-                if (cartItems.length > 0) {
+                // Only sync to Firestore if there are items AND something significant changed
+                if (cartItems.length > 0 && lastStoredCart !== currentCartStr) {
                     const syncCart = async () => {
                         try {
                             const cartId = auth.currentUser ? auth.currentUser.uid : sessionId;
+
+                            // Check if we already synced this exact state to avoid double-writes
+                            const lastSyncedKey = `last_sync_${cartId}`;
+                            if (safeLocalStorage.getItem(lastSyncedKey) === currentCartStr) return;
+
                             const cartData = {
                                 sessionId: sessionId,
                                 uid: auth.currentUser?.uid || null,
@@ -67,8 +75,14 @@ export const CartProvider = ({ children }) => {
                             };
 
                             await setDoc(doc(db, 'abandoned_carts', cartId), cartData, { merge: true });
+                            safeLocalStorage.setItem(lastSyncedKey, currentCartStr);
+                            console.log("[QUOTA] Abandoned cart synced (Optimized)");
                         } catch (err) {
-                            console.error("Error syncing abandoned cart:", err);
+                            if (err.code === 'resource-exhausted') {
+                                console.warn("[QUOTA] Limit reached, skipping abandoned cart sync.");
+                            } else {
+                                console.error("Error syncing abandoned cart:", err);
+                            }
                         }
                     };
                     syncCart();
@@ -76,7 +90,7 @@ export const CartProvider = ({ children }) => {
             } catch (error) {
                 console.error("Failed to handle cart persistence:", error);
             }
-        }, 1000); // 1-second debounce for storage writes
+        }, 60000); // 60-second debounce to save quota
 
         return () => clearTimeout(handler);
     }, [cartItems, currentStage, customerDetails, auth.currentUser, sessionId]);

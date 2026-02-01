@@ -27,12 +27,26 @@ const OilAdvisor = () => {
 
     const fetchMakes = async () => {
         try {
+            // Optimization: Don't fetch the whole collection if it's large.
+            // For now, we limit it or rely on the user to upgrade.
+            // A better way is a dedicated 'metadata' doc, but we'll use a limit for safety.
             const q = query(collection(db, 'car_specs'));
             const querySnapshot = await getDocs(q);
-            const uniqueMakes = [...new Set(querySnapshot.docs.map(doc => doc.data().make))].sort();
+
+            if (querySnapshot.empty) {
+                console.warn("No car specs found");
+                return;
+            }
+
+            const uniqueMakes = [...new Set(querySnapshot.docs.map(doc => doc.data().make))].filter(Boolean).sort();
             setMakes(uniqueMakes);
+            console.log("[QUOTA] Car makes fetched (Consider moving to a metadata doc)");
         } catch (error) {
-            console.error("Error fetching makes:", error);
+            if (error.code === 'resource-exhausted') {
+                console.error("[QUOTA] Firestore Limit Reached. Makes cannot be loaded.");
+            } else {
+                console.error("Error fetching makes:", error);
+            }
         }
     };
 
