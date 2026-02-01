@@ -324,6 +324,10 @@ const ManageProducts = () => {
                 );
                 setLocalData(updatedLocal);
             }
+
+            // Invalidate admin product list caches
+            safeLocalStorage.removeByPrefix('admin_products_');
+
             toast.success("Status updated (Local + Cloud)");
         } catch (error) {
             console.error("Error toggling status:", error);
@@ -344,6 +348,9 @@ const ManageProducts = () => {
                     const updatedLocal = localData.filter(p => p.id !== productId);
                     setLocalData(updatedLocal);
                 }
+
+                // Invalidate admin product list caches
+                safeLocalStorage.removeByPrefix('admin_products_');
 
                 toast.success('Product deleted (Local + Cloud)');
             } catch (error) {
@@ -390,6 +397,10 @@ const ManageProducts = () => {
 
             setProducts(products.filter(p => !selectedIds.has(p.id)));
             setSelectedIds(new Set());
+
+            // Invalidate admin product list caches
+            safeLocalStorage.removeByPrefix('admin_products_');
+
             setShowDeleteModal(false);
             toast.success(`${selectedIds.size} products deleted successfully!`);
         } catch (error) {
@@ -480,6 +491,7 @@ const ManageProducts = () => {
 
                 {/* Bulk Import/Export */}
                 <BulkOperations onSuccess={() => {
+                    safeLocalStorage.removeByPrefix('admin_products_');
                     fetchProducts(false, false, true);
                     fetchBrands();
                 }} />

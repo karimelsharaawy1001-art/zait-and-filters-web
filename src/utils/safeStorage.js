@@ -62,6 +62,32 @@ class SafeStorage {
         delete window.appMemory[this.prefix + key];
     }
 
+    removeByPrefix(prefix) {
+        try {
+            if (typeof window !== 'undefined' && window[`${this.type}Storage`]) {
+                const storage = window[`${this.type}Storage`];
+                const keysToRemove = [];
+                for (let i = 0; i < storage.length; i++) {
+                    const key = storage.key(i);
+                    if (key && key.startsWith(prefix)) {
+                        keysToRemove.push(key);
+                    }
+                }
+                keysToRemove.forEach(key => storage.removeItem(key));
+            }
+        } catch (e) {
+            // Silent fail
+        }
+
+        // Fallback to in-memory storage
+        const memoryPrefix = this.prefix + prefix;
+        Object.keys(window.appMemory).forEach(key => {
+            if (key.startsWith(memoryPrefix)) {
+                delete window.appMemory[key];
+            }
+        });
+    }
+
     clear() {
         try {
             if (typeof window !== 'undefined' && window[`${this.type}Storage`]) {
