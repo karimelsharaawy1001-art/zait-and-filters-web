@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, orderBy, getDocs, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, where, addDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { toast } from 'react-hot-toast';
 import { signOut } from 'firebase/auth';
@@ -387,9 +387,57 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
     const [searchResults, setSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
 
+    // Advanced Filtering States
+    const [categories, setCategories] = useState([]);
+    const [carOptions, setCarOptions] = useState([]);
+    const [makes, setMakes] = useState([]);
+    const [models, setModels] = useState([]);
+    const [filterCategory, setFilterCategory] = useState('');
+    const [filterMake, setFilterMake] = useState('');
+    const [filterModel, setFilterModel] = useState('');
+    const [filterYear, setFilterYear] = useState('');
+
+    // Fetch Search Metadata (Categories & Cars)
+    useEffect(() => {
+        const fetchMetadata = async () => {
+            try {
+                const [catsSnap, carsSnap] = await Promise.all([
+                    getDocs(collection(db, 'categories')),
+                    getDocs(collection(db, 'cars'))
+                ]);
+
+                const cats = catsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const cars = carsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                setCategories(cats);
+                setCarOptions(cars);
+                setMakes([...new Set(cars.map(c => c.make))].sort());
+            } catch (error) {
+                console.error("Error fetching search metadata:", error);
+            }
+        };
+        fetchMetadata();
+    }, []);
+
+    // Dependent Dropdown: Update models when make changes
+    useEffect(() => {
+        if (filterMake) {
+            const makeModels = carOptions
+                .filter(c => c.make === filterMake)
+                .map(c => c.model);
+            setModels([...new Set(makeModels)].sort());
+            setFilterModel(''); // Reset model
+        } else {
+            setModels([]);
+            setFilterModel('');
+        }
+    }, [filterMake, carOptions]);
+
     const handleProductSearch = async (q) => {
         setProductSearch(q);
-        if (q.length < 2) {
+
+        // We trigger search if there's a query OR if filters are active
+        if (q.length < 2 && !filterCategory && !filterMake && !filterYear) {
             setSearchResults([]);
             return;
         }
@@ -398,12 +446,30 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
         try {
             const productsRef = collection(db, 'products');
             const qSnap = await getDocs(productsRef);
-            const all = qSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            const filtered = all.filter(p =>
-                p.name?.toLowerCase().includes(q.toLowerCase()) ||
-                p.sku?.toLowerCase().includes(q.toLowerCase()) ||
-                p.partNumber?.toLowerCase().includes(q.toLowerCase())
-            ).slice(0, 5);
+            let all = qSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Apply Multi-Attribute Filter Matrix
+            const filtered = all.filter(p => {
+                const matchesQuery = !q ||
+                    p.name?.toLowerCase().includes(q.toLowerCase()) ||
+                    p.sku?.toLowerCase().includes(q.toLowerCase()) ||
+                    p.partNumber?.toLowerCase().includes(q.toLowerCase());
+
+                const matchesCategory = !filterCategory || p.category === filterCategory;
+
+                // Car Filtering Logic
+                const matchesMake = !filterMake || p.make === filterMake;
+                const matchesModel = !filterModel || p.model === filterModel;
+
+                // Year Logic: Product must overlap with the requested year
+                const matchesYear = !filterYear || (
+                    (!p.yearStart || Number(filterYear) >= Number(p.yearStart)) &&
+                    (!p.yearEnd || Number(filterYear) <= Number(p.yearEnd))
+                );
+
+                return matchesQuery && matchesCategory && matchesMake && matchesModel && matchesYear;
+            }).slice(0, 10); // Show more results in modal
+
             setSearchResults(filtered);
         } catch (error) {
             console.error("Search error:", error);
@@ -411,6 +477,11 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
             setIsSearching(false);
         }
     };
+
+    // Re-trigger search when filters change
+    useEffect(() => {
+        handleProductSearch(productSearch);
+    }, [filterCategory, filterMake, filterModel, filterYear]);
 
     const addProductToOrder = (product) => {
         const existing = formData.items.find(item => item.id === product.id);
@@ -581,21 +652,94 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
 
                     {/* Items Section: Robust Management */}
                     <div className="space-y-4 pt-4 border-t border-gray-50">
-                        <div className="flex items-center justify-between gap-4">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest shrink-0">Inventory Matrix</label>
-                            <div className="relative flex-1 max-w-sm">
-                                <div className="flex items-center bg-gray-50 rounded-xl px-4 py-2 border border-gray-100 focus-within:ring-2 ring-[#1A1A1A] transition-all">
+                        <div className="flex flex-col gap-4">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest shrink-0">Inventory Filter Matrix</label>
+                                {(filterCategory || filterMake || filterYear || productSearch) && (
+                                    <button
+                                        onClick={() => {
+                                            setFilterCategory('');
+                                            setFilterMake('');
+                                            setFilterModel('');
+                                            setFilterYear('');
+                                            setProductSearch('');
+                                            setSearchResults([]);
+                                        }}
+                                        className="text-[9px] font-black text-[#e31e24] uppercase tracking-widest hover:underline"
+                                    >
+                                        Clear All Filters
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Advanced Filter Grid */}
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                                <div>
+                                    <select
+                                        value={filterCategory}
+                                        onChange={(e) => setFilterCategory(e.target.value)}
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-[10px] font-bold text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none"
+                                    >
+                                        <option value="">All Categories</option>
+                                        {categories.map(cat => (
+                                            <option key={cat.id} value={cat.name}>{cat.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <select
+                                        value={filterMake}
+                                        onChange={(e) => setFilterMake(e.target.value)}
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-[10px] font-bold text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none"
+                                    >
+                                        <option value="">All Makes</option>
+                                        {makes.map(make => (
+                                            <option key={make} value={make}>{make}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <select
+                                        value={filterModel}
+                                        onChange={(e) => setFilterModel(e.target.value)}
+                                        disabled={!filterMake}
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-[10px] font-bold text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none disabled:opacity-50"
+                                    >
+                                        <option value="">All Models</option>
+                                        {models.map(model => (
+                                            <option key={model} value={model}>{model}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <input
+                                        type="number"
+                                        placeholder="Year (e.g. 2020)"
+                                        value={filterYear}
+                                        onChange={(e) => setFilterYear(e.target.value)}
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-[10px] font-bold text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="relative">
+                                <div className="flex items-center bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-100 focus-within:ring-2 ring-[#1A1A1A] transition-all">
                                     <Search className="h-4 w-4 text-gray-400 mr-3" />
                                     <input
                                         type="text"
-                                        placeholder="Inject product..."
+                                        placeholder="Precision search by name, SKU or Part#..."
                                         value={productSearch}
                                         onChange={(e) => handleProductSearch(e.target.value)}
-                                        className="bg-transparent border-none outline-none text-xs w-full font-bold text-black"
+                                        className="bg-transparent border-none outline-none text-xs w-full font-bold text-black placeholder:text-gray-300"
                                     />
                                 </div>
+                                {isSearching && (
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                        <div className="animate-spin h-3 w-3 border-b-2 border-[#1A1A1A] rounded-full"></div>
+                                    </div>
+                                )}
                                 {searchResults.length > 0 && (
-                                    <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-gray-100 shadow-2xl rounded-2xl z-[110] overflow-hidden animate-in fade-in slide-in-from-top-2">
+                                    <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-gray-100 shadow-2xl rounded-2xl z-[110] overflow-hidden animate-in fade-in slide-in-from-top-2 max-h-64 overflow-y-auto">
                                         {searchResults.map(p => (
                                             <button
                                                 key={p.id}
@@ -607,7 +751,10 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                                                 </div>
                                                 <div className="min-w-0 flex-1">
                                                     <p className="text-xs font-black truncate text-black">{p.name}</p>
-                                                    <p className="text-[10px] text-[#e31e24] font-black uppercase tracking-widest">{p.price} EGP</p>
+                                                    <div className="flex gap-2 mt-0.5">
+                                                        <p className="text-[10px] text-[#e31e24] font-black uppercase tracking-widest">{p.price} EGP</p>
+                                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">| {p.partBrand || p.brand}</p>
+                                                    </div>
                                                 </div>
                                                 <PlusCircle className="h-5 w-5 text-[#e31e24] opacity-50 hover:opacity-100 transition-opacity" />
                                             </button>
