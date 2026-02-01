@@ -323,12 +323,29 @@ const Checkout = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        let timeoutId;
         try {
             setLoading(true);
+            console.log("Submit started:", { formData, cartItemsCount: cartItems.length });
+
+            // Safety timeout to prevent permanent hang
+            timeoutId = setTimeout(() => {
+                setLoading(currentLoading => {
+                    if (currentLoading) {
+                        toast.error("تأخر الطلب كثيراً. يرجى التحقق من اتصال الإنترنت أو المحاولة مرة أخرى.");
+                        console.error("Checkout timed out after 30 seconds");
+                        return false;
+                    }
+                    return false;
+                });
+            }, 30000);
+
 
             if (formData.phone.length < 10) {
                 toast.error(t('phoneError'));
                 setLoading(false);
+                clearTimeout(timeoutId);
                 return;
             }
 
@@ -336,6 +353,7 @@ const Checkout = () => {
             if ((formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') && !receiptUrl) {
                 toast.error('Please upload the payment receipt first');
                 setLoading(false);
+                clearTimeout(timeoutId);
                 return;
             }
 
@@ -343,6 +361,7 @@ const Checkout = () => {
                 toast.error(t('cartEmpty'));
                 navigate('/');
                 setLoading(false);
+                clearTimeout(timeoutId);
                 return;
             }
 
@@ -385,18 +404,12 @@ const Checkout = () => {
                 }
             }
 
-            // Verify Instapay/Wallet Upload Status
-            if (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') {
-                if (uploadingReceipt) {
-                    toast.error('Please wait for the receipt to finish uploading.');
-                    setLoading(false);
-                    return;
-                }
-                if (!receiptUrl) {
-                    toast.error('Please upload the payment receipt first');
-                    setLoading(false);
-                    return;
-                }
+            // Receipt sanity check
+            if ((formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') && uploadingReceipt) {
+                toast.error('Please wait for the receipt to finish uploading.');
+                setLoading(false);
+                clearTimeout(timeoutId);
+                return;
             }
 
             const rawOrderData = {
@@ -428,7 +441,12 @@ const Checkout = () => {
                 createdAt: new Date()
             };
 
-            const orderData = rawOrderData;
+            // Enhanced data cleaning to remove undefined/NaN
+            const orderData = JSON.parse(JSON.stringify(rawOrderData, (key, value) => {
+                if (typeof value === 'number' && isNaN(value)) return 0;
+                if (value === undefined) return null;
+                return value;
+            }));
 
             if (selectedMethod?.type === 'online') {
                 safeLocalStorage.setItem('pending_order', JSON.stringify(orderData));
@@ -436,41 +454,29 @@ const Checkout = () => {
                 const tempOrderId = `temp_${Date.now()}`;
                 await handleOnlinePayment(tempOrderId, selectedMethod);
             } else {
-                console.log("Starting order transaction...");
+                console.log("Executing transaction...");
                 const orderId = await runTransaction(db, async (transaction) => {
-                    // 1. ALL READS FIRST
+                    // 1. READ COUNTER (Fastest possible single read)
                     const counterRef = doc(db, 'settings', 'counters');
                     const counterSnap = await transaction.get(counterRef);
 
-                    // Pre-fetch all products to check existence before any writes
-                    const productSnapshots = [];
-                    for (const item of cartItems) {
-                        if (item.id && item.id !== 'unknown') {
-                            const productRef = doc(db, 'products', item.id);
-                            const productSnap = await transaction.get(productRef);
-                            if (productSnap.exists()) {
-                                productSnapshots.push({ ref: productRef, quantity: item.quantity || 1 });
-                            }
-                        }
-                    }
-
-                    // 2. ALL WRITES AFTER READS
                     let nextNumber = 3501;
                     if (counterSnap.exists()) {
                         nextNumber = (counterSnap.data().lastOrderNumber || 3500) + 1;
                     }
 
+                    // 2. CREATE ORDER (Single write)
                     const orderRef = doc(collection(db, 'orders'));
-                    const finalOrderWithServerTime = {
+                    transaction.set(orderRef, {
                         ...orderData,
                         orderNumber: nextNumber,
-                        createdAt: serverTimestamp() // Preferred for Firestore
-                    };
+                        createdAt: serverTimestamp()
+                    });
 
-                    transaction.set(orderRef, finalOrderWithServerTime);
+                    // 3. UPDATE COUNTER (Single write)
                     transaction.set(counterRef, { lastOrderNumber: nextNumber }, { merge: true });
 
-                    if (appliedPromo && appliedPromo.id) {
+                    if (appliedPromo?.id) {
                         transaction.update(doc(db, 'promo_codes', appliedPromo.id), { usedCount: increment(1) });
                     }
 
@@ -485,39 +491,50 @@ const Checkout = () => {
                         });
                     }
 
-                    // Perform product soldCount updates
-                    for (const snap of productSnapshots) {
-                        transaction.update(snap.ref, { soldCount: increment(snap.quantity) });
-                    }
-
-                    console.log("Transaction writes queued successfully. Order Number:", nextNumber);
                     return orderRef.id;
                 });
-                console.log("Transaction committed. Order ID:", orderId);
 
-                // Mark cart as recovered
+                console.log("Order created:", orderId);
+
+                // Non-blocking product updates (Speed up navigation)
+                cartItems.forEach(item => {
+                    if (item.id && item.id !== 'unknown') {
+                        setDoc(doc(db, 'products', item.id), { soldCount: increment(item.quantity || 1) }, { merge: true })
+                            .catch(e => console.warn("SoldCount update failed:", e));
+                    }
+                });
+
+                // Recovered cart sync
                 const cartId = auth.currentUser ? auth.currentUser.uid : safeLocalStorage.getItem('cartSessionId');
                 if (cartId) {
-                    await setDoc(doc(db, 'abandoned_carts', cartId), {
-                        recovered: true,
-                        recoveredAt: serverTimestamp(),
-                        orderId: orderId
-                    }, { merge: true });
+                    try {
+                        await setDoc(doc(db, 'abandoned_carts', cartId), {
+                            recovered: true,
+                            recoveredAt: serverTimestamp(),
+                            orderId: orderId
+                        }, { merge: true });
+                    } catch (e) {
+                        console.warn("Abandoned cart sync failed, but order is safe:", e);
+                    }
                 }
 
                 clearCart();
+                clearTimeout(timeoutId);
+
                 if (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') {
                     toast.success('تم استلام طلبك وبانتظار مراجعة التحويل. سيتم التأكيد خلال 24 ساعة.');
                 } else {
                     toast.success(t('orderPlaced'));
                 }
+
                 navigate(`/order-success?id=${orderId}`);
             }
         } catch (error) {
-            console.error("Error creating order:", error);
+            console.error("Critical error in handleSubmit:", error);
             toast.error(t('orderError'));
         } finally {
             setLoading(false);
+            if (timeoutId) clearTimeout(timeoutId);
         }
     };
 
