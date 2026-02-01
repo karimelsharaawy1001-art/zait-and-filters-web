@@ -467,39 +467,6 @@ const ManageProducts = () => {
                         {isLiveMode ? 'Disconnect Live Sync' : 'Connect Live Sync'}
                     </button>
 
-                    <button
-                        type="button"
-                        onClick={async () => {
-                            if (!window.confirm("Publish latest data to public site? This will trigger a site rebuild.")) return;
-
-                            const webhookUrl = import.meta.env.VITE_VERCEL_DEPLOY_HOOK;
-                            if (!webhookUrl) {
-                                toast.error("Deployment Hook not configured!");
-                                return;
-                            }
-
-                            const toastId = toast.loading('Initiating Build & Refresh...');
-                            try {
-                                // 1. Trigger Vercel Build (which runs the sync script)
-                                await fetch(webhookUrl, { method: 'POST' });
-
-                                // 2. Refresh Local Admin Cache
-                                const q = collection(db, 'products');
-                                const snapshot = await getDocs(q);
-                                const newData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                                setLocalData(newData);
-                                if (!isLiveMode) processLocalData(newData);
-
-                                toast.success('Build triggered! Site will update in ~2 mins.', { id: toastId });
-                            } catch (err) {
-                                console.error("Publish failed", err);
-                                toast.error('Publish failed: ' + err.message, { id: toastId });
-                            }
-                        }}
-                        className="mr-2 px-6 py-3 rounded-full font-bold text-xs uppercase tracking-widest bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20"
-                    >
-                        تحديث البيانات للجمهور
-                    </button>
 
                     <button
                         type="button"
@@ -512,7 +479,10 @@ const ManageProducts = () => {
                 </div>
 
                 {/* Bulk Import/Export */}
-                <BulkOperations />
+                <BulkOperations onSuccess={() => {
+                    fetchProducts(false, false, true);
+                    fetchBrands();
+                }} />
 
                 {/* Filters Section - White Surface */}
                 <div className="bg-white rounded-[24px] shadow-sm border border-gray-200 p-8 mb-10 group/filters">

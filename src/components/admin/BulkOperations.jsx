@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 import { Download, Upload, FileSpreadsheet, Loader2, TrendingUp } from 'lucide-react';
 import { parseYearRange } from '../../utils/productUtils';
 
-const BulkOperations = () => {
+const BulkOperations = ({ onSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [importStatus, setImportStatus] = useState('');
 
@@ -243,11 +243,9 @@ const BulkOperations = () => {
                 e.target.value = '';
 
                 // Ask user if they want to refresh
-                setTimeout(() => {
-                    if (window.confirm('Products imported successfully! Refresh the page to see the changes?')) {
-                        window.location.reload();
-                    }
-                }, 1000);
+                if (onSuccess) {
+                    onSuccess();
+                }
             } catch (error) {
                 console.error("Import error details:", error);
 
