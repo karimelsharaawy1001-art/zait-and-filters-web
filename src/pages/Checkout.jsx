@@ -449,40 +449,51 @@ const Checkout = () => {
             }));
 
             if (selectedMethod?.type === 'online') {
+                console.log("[DEBUG] Online payment path selected");
+                toast.loading("Initiating payment gateway...");
                 safeLocalStorage.setItem('pending_order', JSON.stringify(orderData));
                 safeLocalStorage.setItem('pending_cart_items', JSON.stringify(cartItems));
                 const tempOrderId = `temp_${Date.now()}`;
                 await handleOnlinePayment(tempOrderId, selectedMethod);
             } else {
-                console.log("Executing transaction...");
-                const orderId = await runTransaction(db, async (transaction) => {
-                    // 1. READ COUNTER (Fastest possible single read)
+                console.log("[DEBUG] Offline/Manual payment path selected. Method:", formData.paymentMethod);
+
+                // Use a ref-like pattern for the latest state to avoid closure bugs
+                const currentData = { ...orderData };
+
+                const result = await runTransaction(db, async (tx) => {
+                    console.log("[DEBUG] Inside transaction, reading counter...");
                     const counterRef = doc(db, 'settings', 'counters');
-                    const counterSnap = await transaction.get(counterRef);
+                    const counterSnap = await tx.get(counterRef);
 
                     let nextNumber = 3501;
                     if (counterSnap.exists()) {
                         nextNumber = (counterSnap.data().lastOrderNumber || 3500) + 1;
                     }
+                    console.log("[DEBUG] Next order number determined:", nextNumber);
 
-                    // 2. CREATE ORDER (Single write)
                     const orderRef = doc(collection(db, 'orders'));
-                    transaction.set(orderRef, {
-                        ...orderData,
+                    const finalOrder = {
+                        ...currentData,
                         orderNumber: nextNumber,
                         createdAt: serverTimestamp()
-                    });
+                    };
 
-                    // 3. UPDATE COUNTER (Single write)
-                    transaction.set(counterRef, { lastOrderNumber: nextNumber }, { merge: true });
+                    console.log("[DEBUG] Setting order doc:", orderRef.id);
+                    tx.set(orderRef, finalOrder);
+
+                    console.log("[DEBUG] Updating counter...");
+                    tx.set(counterRef, { lastOrderNumber: nextNumber }, { merge: true });
 
                     if (appliedPromo?.id) {
-                        transaction.update(doc(db, 'promo_codes', appliedPromo.id), { usedCount: increment(1) });
+                        console.log("[DEBUG] Updating promo usage:", appliedPromo.id);
+                        tx.update(doc(db, 'promo_codes', appliedPromo.id), { usedCount: increment(1) });
                     }
 
                     if (auth.currentUser && saveNewAddress && selectedAddressId === 'new') {
+                        console.log("[DEBUG] Saving new address for UID:", auth.currentUser.uid);
                         const addrRef = doc(collection(db, 'users', auth.currentUser.uid, 'addresses'));
-                        transaction.set(addrRef, {
+                        tx.set(addrRef, {
                             detailedAddress: formData.address,
                             governorate: formData.governorate,
                             city: formData.city,
@@ -491,12 +502,12 @@ const Checkout = () => {
                         });
                     }
 
-                    return orderRef.id;
+                    return { id: orderRef.id, number: nextNumber };
                 });
 
-                console.log("Order created:", orderId);
+                console.log("[DEBUG] Transaction committed successfully:", result);
 
-                // Non-blocking product updates (Speed up navigation)
+                // Background updates
                 cartItems.forEach(item => {
                     if (item.id && item.id !== 'unknown') {
                         setDoc(doc(db, 'products', item.id), { soldCount: increment(item.quantity || 1) }, { merge: true })
@@ -504,35 +515,37 @@ const Checkout = () => {
                     }
                 });
 
-                // Recovered cart sync
                 const cartId = auth.currentUser ? auth.currentUser.uid : safeLocalStorage.getItem('cartSessionId');
                 if (cartId) {
-                    try {
-                        await setDoc(doc(db, 'abandoned_carts', cartId), {
-                            recovered: true,
-                            recoveredAt: serverTimestamp(),
-                            orderId: orderId
-                        }, { merge: true });
-                    } catch (e) {
-                        console.warn("Abandoned cart sync failed, but order is safe:", e);
-                    }
+                    setDoc(doc(db, 'abandoned_carts', cartId), {
+                        recovered: true,
+                        recoveredAt: serverTimestamp(),
+                        orderId: result.id
+                    }, { merge: true }).catch(e => console.warn("Abandoned cart sync failed:", e));
                 }
 
                 clearCart();
                 clearTimeout(timeoutId);
 
-                if (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') {
-                    toast.success('تم استلام طلبك وبانتظار مراجعة التحويل. سيتم التأكيد خلال 24 ساعة.');
-                } else {
-                    toast.success(t('orderPlaced'));
-                }
+                const successMsg = (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet')
+                    ? 'تم استلام طلبك وبانتظار مراجعة التحويل. سيتم التأكيد خلال 24 ساعة.'
+                    : t('orderPlaced');
 
-                navigate(`/order-success?id=${orderId}`);
+                toast.success(successMsg, { duration: 5000 });
+                console.log("[DEBUG] Navigating to success page...");
+
+                // Allow toast to be seen before navigating
+                setTimeout(() => {
+                    navigate(`/order-success?id=${result.id}`);
+                }, 500);
             }
         } catch (error) {
-            console.error("Critical error in handleSubmit:", error);
-            toast.error(t('orderError'));
+            console.error("[DEBUG] FATAL ERROR IN SUBMIT:", error);
+            // Show more detailed error if possible
+            const errorMsg = error.message || t('orderError');
+            toast.error(`Error: ${errorMsg}`);
         } finally {
+            console.log("[DEBUG] Submit finished (finally block)");
             setLoading(false);
             if (timeoutId) clearTimeout(timeoutId);
         }
