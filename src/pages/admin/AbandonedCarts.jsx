@@ -266,8 +266,18 @@ const AbandonedCarts = () => {
                                                 <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-black text-admin-text-primary poppins mb-1">{item.name}</p>
-                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{item.brand} • {item.quantity} units</p>
+                                                <p className="text-sm font-black text-admin-text-primary poppins mb-0.5">{item.name}</p>
+                                                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                                    <span className="text-[10px] text-admin-accent font-black uppercase tracking-widest">{item.brand || 'No Brand'}</span>
+                                                    <span className="text-[8px] text-gray-300">•</span>
+                                                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+                                                        {item.make} {item.model} {item.yearRange ? `(${item.yearRange})` : ''}
+                                                    </span>
+                                                </div>
+                                                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+                                                    {item.category} {item.subcategory || item.subCategory ? `• ${item.subcategory || item.subCategory}` : ''}
+                                                </p>
+                                                <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mt-0.5">{item.quantity} units</p>
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-lg font-black text-admin-text-primary poppins">{item.price?.toLocaleString()} <span className="text-[10px] opacity-40">EGP</span></p>

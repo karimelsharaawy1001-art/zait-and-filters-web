@@ -358,7 +358,11 @@ const Checkout = () => {
                 make: item.make || null,
                 model: item.model || null,
                 yearStart: item.yearStart || null,
-                yearEnd: item.yearEnd || null
+                yearEnd: item.yearEnd || null,
+                yearRange: item.yearRange || null,
+                category: item.category || null,
+                subcategory: item.subcategory || item.subCategory || null,
+                countryOfOrigin: item.countryOfOrigin || item.country || null
             }));
 
             if (appliedPromo?.type === 'product_gift') {

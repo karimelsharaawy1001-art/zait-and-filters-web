@@ -351,10 +351,20 @@ const OrderDetails = () => {
                                                     </div>
                                                 </div>
                                                 <div>
+                                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Categorization</p>
+                                                    <p className="text-xs font-black text-gray-800">
+                                                        {item.category || 'N/A'} {item.subcategory || item.subCategory ? `• ${item.subcategory || item.subCategory}` : ''}
+                                                    </p>
+                                                </div>
+                                                <div>
                                                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Compatibility</p>
                                                     <p className="text-xs font-black text-gray-800">
                                                         {item.make} {item.model}
-                                                        {item.yearRange && <span className="text-gray-400 ml-1">({item.yearRange})</span>}
+                                                        {(item.yearRange || item.yearStart) && (
+                                                            <span className="text-gray-400 ml-1">
+                                                                ({item.yearRange || `${item.yearStart}${item.yearEnd ? ` - ${item.yearEnd}` : ''}`})
+                                                            </span>
+                                                        )}
                                                     </p>
                                                 </div>
                                                 <div>
