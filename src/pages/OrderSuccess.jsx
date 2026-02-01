@@ -46,6 +46,7 @@ const OrderSuccess = () => {
                         orderData.paymentStatus = 'Paid';
                         orderData.orderNumber = nextNumber;
                         orderData.updatedAt = new Date();
+                        orderData.isOpened = false;
 
                         transaction.set(orderRef, orderData);
                         transaction.set(counterRef, { lastOrderNumber: nextNumber }, { merge: true });

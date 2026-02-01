@@ -476,7 +476,8 @@ const Checkout = () => {
                         tx.set(orderRef, {
                             ...orderData,
                             orderNumber: nextNumber,
-                            createdAt: serverTimestamp()
+                            createdAt: serverTimestamp(),
+                            isOpened: false
                         });
 
                         tx.set(counterRef, { lastOrderNumber: nextNumber }, { merge: true });
@@ -515,7 +516,8 @@ const Checkout = () => {
                             ...orderData,
                             orderNumber: finalOrderNumber,
                             createdAt: serverTimestamp(),
-                            quotaFallback: true
+                            quotaFallback: true,
+                            isOpened: false
                         });
                         orderId = fallbackOrderRef.id;
 

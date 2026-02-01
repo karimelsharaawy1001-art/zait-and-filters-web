@@ -79,7 +79,7 @@ const AdminLayout = () => {
     useEffect(() => {
         const q = query(
             collection(db, 'orders'),
-            where('status', 'in', ['Pending', 'Awaiting Payment Verification'])
+            where('isOpened', '==', false)
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {

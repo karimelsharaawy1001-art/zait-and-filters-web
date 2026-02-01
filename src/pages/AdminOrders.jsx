@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, getDocs, doc, updateDoc, orderBy, where, getDoc, addDoc } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { toast } from 'react-hot-toast';
 import { signOut } from 'firebase/auth';
@@ -40,6 +40,16 @@ const AdminOrders = () => {
         }
     };
 
+    const markAsOpened = async (orderId) => {
+        try {
+            const orderRef = doc(db, 'orders', orderId);
+            await updateDoc(orderRef, { isOpened: true });
+            setOrders(prev => prev.map(o => o.id === orderId ? { ...o, isOpened: true } : o));
+        } catch (error) {
+            console.warn("Error marking as opened:", error);
+        }
+    };
+
     useEffect(() => {
         fetchOrders();
     }, []);
@@ -73,7 +83,7 @@ const AdminOrders = () => {
                     const affId = affiliateDoc.id;
 
                     // 2. Check if commission already exists for this order to avoid duplicates (idempotency)
-                    const transRef = collection(db, `affiliates/${affId}/transactions`);
+                    const transRef = collection(db, `affiliates / ${affId}/transactions`);
                     const checkTrans = query(transRef, where('orderId', '==', orderId));
                     const transSnap = await getDocs(checkTrans);
 
@@ -314,20 +324,24 @@ const AdminOrders = () => {
 
                                                         {/* Edit Details Button */}
                                                         <button
-                                                            onClick={() => setEditingOrder(order)}
-                                                            className="min-h-[44px] min-w-[44px] flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-blue-100 rounded-xl transition-all active:scale-90"
-                                                            title="Adjustment Layer"
+                                                            onClick={() => {
+                                                                setEditingOrder(order);
+                                                                if (order.isOpened === false) markAsOpened(order.id);
+                                                            }}
+                                                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-400 hover:text-black"
+                                                            title="Edit Order"
                                                         >
-                                                            <Edit2 className="h-5 w-5" />
+                                                            <Edit2 className="w-5 h-5" />
                                                         </button>
 
                                                         {/* View Details Link */}
                                                         <Link
                                                             to={`/admin/order/${order.id}`}
-                                                            className="min-h-[44px] min-w-[44px] flex items-center justify-center bg-red-50 text-[#e31e24] hover:bg-[#e31e24] hover:text-white border border-red-100 rounded-xl transition-all active:scale-90"
-                                                            title="Full Visual Log"
+                                                            onClick={() => { if (order.isOpened === false) markAsOpened(order.id); }}
+                                                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-400 hover:text-black"
+                                                            title="View Details"
                                                         >
-                                                            <Eye className="h-5 w-5" />
+                                                            <Eye className="w-5 h-5" />
                                                         </Link>
                                                     </div>
                                                 </td>
