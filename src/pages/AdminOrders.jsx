@@ -5,7 +5,7 @@ import { toast } from 'react-hot-toast';
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import AdminHeader from '../components/AdminHeader';
-import { Eye, DollarSign, Edit2, CheckCircle, Search } from 'lucide-react';
+import { Eye, DollarSign, Edit2, CheckCircle, Search, Plus, Minus, Trash2, PlusCircle, Package, CreditCard, Clock, X, Save } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const AdminOrders = () => {
@@ -199,7 +199,7 @@ const AdminOrders = () => {
         <div className="min-h-full bg-gray-50 pb-20 font-sans text-gray-900">
             <AdminHeader title="Operations Center" />
 
-            <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <main className="max-w-full mx-auto py-8 px-4 md:px-10">
                 <div className="">
                     <div className="flex flex-col md:flex-row gap-6 mb-10">
                         {/* Status Filter Hub - White Surface */}
@@ -255,16 +255,16 @@ const AdminOrders = () => {
                     ) : (
                         <div className="bg-white shadow-sm rounded-[32px] overflow-hidden border border-gray-100 mb-8">
                             <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200">
-                                <table className="w-full min-w-[1000px] lg:min-w-0">
+                                <table className="w-full min-w-[1200px] lg:min-w-0">
                                     <thead>
-                                        <tr className="bg-gray-50">
-                                            <th scope="col" className="px-8 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Registry</th>
-                                            <th scope="col" className="px-8 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Timestamp</th>
-                                            <th scope="col" className="px-8 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Consignee</th>
-                                            <th scope="col" className="px-8 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Financials</th>
-                                            <th scope="col" className="px-8 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Revenue</th>
-                                            <th scope="col" className="px-8 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Current Phase</th>
-                                            <th scope="col" className="px-8 py-5 text-right text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Quick Operations</th>
+                                        <tr className="bg-gray-50/50">
+                                            <th scope="col" className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">Registry</th>
+                                            <th scope="col" className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">Timestamp</th>
+                                            <th scope="col" className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">Consignee</th>
+                                            <th scope="col" className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">Flow</th>
+                                            <th scope="col" className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">Revenue</th>
+                                            <th scope="col" className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">Operational Phase</th>
+                                            <th scope="col" className="px-6 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
@@ -372,121 +372,347 @@ const AdminOrders = () => {
     );
 };
 
-// PART 3: Edit Order Modal Component
+// PART 3: Pro-Grade Order Editor Modal
 const EditOrderModal = ({ order, onClose, onSave }) => {
     const [formData, setFormData] = useState({
         paymentMethod: order.paymentMethod || '',
         paymentStatus: order.paymentStatus || 'Pending',
-        status: order.status || 'Pending'
+        status: order.status || 'Pending',
+        items: [...(order.items || [])],
+        extraFees: order.extraFees || 0,
+        manualDiscount: order.manualDiscount || 0
     });
     const [saving, setSaving] = useState(false);
+    const [productSearch, setProductSearch] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+
+    const handleProductSearch = async (q) => {
+        setProductSearch(q);
+        if (q.length < 2) {
+            setSearchResults([]);
+            return;
+        }
+
+        setIsSearching(true);
+        try {
+            const productsRef = collection(db, 'products');
+            const qSnap = await getDocs(productsRef);
+            const all = qSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const filtered = all.filter(p =>
+                p.name?.toLowerCase().includes(q.toLowerCase()) ||
+                p.sku?.toLowerCase().includes(q.toLowerCase()) ||
+                p.partNumber?.toLowerCase().includes(q.toLowerCase())
+            ).slice(0, 5);
+            setSearchResults(filtered);
+        } catch (error) {
+            console.error("Search error:", error);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    const addProductToOrder = (product) => {
+        const existing = formData.items.find(item => item.id === product.id);
+        if (existing) {
+            setFormData({
+                ...formData,
+                items: formData.items.map(item =>
+                    item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+                )
+            });
+        } else {
+            setFormData({
+                ...formData,
+                items: [...formData.items, {
+                    id: product.id,
+                    name: product.name,
+                    nameEn: product.nameEn || product.name,
+                    price: product.price,
+                    image: product.image || product.images?.[0] || '/placeholder.png',
+                    quantity: 1,
+                    brand: product.partBrand || product.brand || 'N/A'
+                }]
+            });
+        }
+        setProductSearch('');
+        setSearchResults([]);
+    };
+
+    const updateItemQuantity = (id, delta) => {
+        setFormData({
+            ...formData,
+            items: formData.items.map(item => {
+                if (item.id === id) {
+                    const newQty = Math.max(1, item.quantity + delta);
+                    return { ...item, quantity: newQty };
+                }
+                return item;
+            })
+        });
+    };
+
+    const removeItem = (id) => {
+        setFormData({
+            ...formData,
+            items: formData.items.filter(item => item.id !== id)
+        });
+    };
+
+    const calculateNewTotals = () => {
+        const subtotal = formData.items.reduce((acc, item) => acc + (parseFloat(item.price) * item.quantity), 0);
+        const shipping = parseFloat(order.shipping_cost || 0);
+        const promoDiscount = parseFloat(order.discount || 0);
+        const total = subtotal + shipping + parseFloat(formData.extraFees || 0) - promoDiscount - parseFloat(formData.manualDiscount || 0);
+        return { subtotal, total };
+    };
 
     const handleSave = async () => {
         setSaving(true);
         try {
+            const { subtotal, total } = calculateNewTotals();
             const orderRef = doc(db, 'orders', order.id);
-            await updateDoc(orderRef, {
+            const updateData = {
                 ...formData,
-                updatedAt: new Date()
-            });
-            onSave({ ...order, ...formData });
+                subtotal,
+                total,
+                updatedAt: serverTimestamp()
+            };
+
+            await updateDoc(orderRef, updateData);
+            onSave({ ...order, ...updateData });
             toast.success('Order synchronized successfully!');
         } catch (error) {
-            console.error("Error updating status:", error);
-            toast.error("Sync Error: Database rejected modification.");
+            console.error("Error updating order:", error);
+            toast.error("Database Error: Failed to commit changes.");
         } finally {
             setSaving(false);
         }
     };
 
+    const { subtotal: newSubtotal, total: newTotal } = calculateNewTotals();
+
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
-            <div className="bg-white rounded-[32px] shadow-2xl relative w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-300 border border-gray-200 flex flex-col">
-                <div className="bg-[#e31e24] p-10 text-white relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-10 opacity-10 group-hover:rotate-45 transition-transform duration-700">
-                        <Edit2 className="w-48 h-48" />
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={onClose}></div>
+            <div className="bg-white rounded-[32px] shadow-2xl relative w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-300 border border-gray-100 flex flex-col max-h-[95vh]">
+                {/* Header: Premium Dark Style */}
+                <div className="bg-[#1A1A1A] p-8 text-white relative overflow-hidden shrink-0">
+                    <div className="flex justify-between items-start relative z-10">
+                        <div>
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="h-2 w-2 rounded-full bg-[#e31e24] animate-pulse"></div>
+                                <h3 className="text-xl font-black uppercase tracking-widest poppins italic">Pro-Grade Order Editor</h3>
+                            </div>
+                            <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em]">Precision Modification • #{order.orderNumber || order.id.slice(-6).toUpperCase()}</p>
+                        </div>
+                        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                            <X className="h-6 w-6 text-white/50 hover:text-white" />
+                        </button>
                     </div>
-                    <h3 className="text-2xl font-black uppercase tracking-widest poppins italic">Adjustment Protocol</h3>
-                    <p className="text-white/70 text-[11px] font-black mt-2 uppercase tracking-[0.25em]">System ID: {order.orderNumber || order.id.slice(-6).toUpperCase()}</p>
+                    {/* Decorative Background Element */}
+                    <div className="absolute top-0 right-0 p-8 opacity-5">
+                        <Package className="w-48 h-48" />
+                    </div>
                 </div>
 
-                <div className="p-10 space-y-8 overflow-y-auto max-h-[70vh]">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {/* Status Column */}
-                        <div className="space-y-8">
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Gateway Source</label>
+                <div className="p-8 space-y-8 overflow-y-auto flex-1">
+                    {/* Core Parameters Section */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <CreditCard className="w-3 h-3" />
+                                Payment Flow
+                            </label>
+                            <div className="space-y-3">
                                 <select
                                     value={formData.paymentMethod}
                                     onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-black focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-black text-xs"
+                                    className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none transition-all font-bold text-xs"
                                 >
-                                    <option value="Cash on Delivery" className="bg-white">Cash on Delivery</option>
-                                    <option value="Credit Card (EasyKash)" className="bg-white">Credit Card (EasyKash)</option>
-                                    <option value="InstaPay" className="bg-white">InstaPay</option>
-                                    <option value="Wallet" className="bg-white">Wallet</option>
+                                    <option value="Cash on Delivery">Cash on Delivery</option>
+                                    <option value="Credit Card (EasyKash)">Credit Card (EasyKash)</option>
+                                    <option value="InstaPay">InstaPay</option>
+                                    <option value="Wallet">Wallet</option>
                                 </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Payment Matrix</label>
                                 <select
                                     value={formData.paymentStatus}
                                     onChange={(e) => setFormData({ ...formData, paymentStatus: e.target.value })}
-                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-black focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-black text-xs"
+                                    className={`w-full px-5 py-3.5 border rounded-2xl outline-none transition-all font-bold text-xs ${formData.paymentStatus === 'Paid' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-gray-50 text-black border-gray-100'
+                                        }`}
                                 >
-                                    <option value="Pending" className="bg-white">Pending</option>
-                                    <option value="Paid" className="bg-white">Verified: Paid</option>
-                                    <option value="Failed" className="bg-white">Exception: Failed</option>
-                                    <option value="Refunded" className="bg-white">Action: Refunded</option>
+                                    <option value="Pending">Pending Verification</option>
+                                    <option value="Paid">Verified: Paid</option>
+                                    <option value="Failed">Operation: Failed</option>
+                                    <option value="Refunded">Action: Refunded</option>
                                 </select>
                             </div>
                         </div>
 
-                        {/* Logistics Column */}
-                        <div className="space-y-8">
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Logistic Pipeline</label>
-                                <select
-                                    value={formData.status}
-                                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-black focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-black text-xs"
-                                >
-                                    <option value="Pending" className="bg-white">Inbound / Pending</option>
-                                    <option value="Awaiting Payment Verification" className="bg-white">Awaiting Verification</option>
-                                    <option value="Processing" className="bg-white">Workflow: Processing</option>
-                                    <option value="Shipped" className="bg-white">Transit: Shipped</option>
-                                    <option value="Delivered" className="bg-white">Terminal: Delivered</option>
-                                    <option value="Cancelled" className="bg-white">Void: Cancelled</option>
-                                    <option value="Returned" className="bg-white">Reversal: Returned</option>
-                                </select>
-                            </div>
-
-                            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-                                <p className="text-[10px] font-black text-[#e31e24] uppercase tracking-widest mb-3">Consignee Data</p>
-                                <p className="text-sm font-black text-black truncate mb-1">{order.customer?.name}</p>
-                                <p className="text-xs text-gray-500 font-bold truncate opacity-80 mb-0.5">{order.customer?.phone}</p>
-                                <p className="text-[10px] text-gray-400 truncate font-medium uppercase">{order.customer?.governorate}, {order.customer?.city}</p>
+                        <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <Clock className="w-3 h-3" />
+                                Operational Status
+                            </label>
+                            <select
+                                value={formData.status}
+                                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none transition-all font-bold text-xs mb-3"
+                            >
+                                <option value="Pending">Inbound / Pending</option>
+                                <option value="Awaiting Payment Verification">Awaiting Verification</option>
+                                <option value="Processing">Workflow: Processing</option>
+                                <option value="Shipped">Transit: Shipped</option>
+                                <option value="Delivered">Terminal: Delivered</option>
+                                <option value="Cancelled">Void: Cancelled</option>
+                                <option value="Returned">Reversal: Returned</option>
+                            </select>
+                            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-center gap-4">
+                                <div className="h-10 w-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center shrink-0">
+                                    <Package className="w-5 h-5 text-gray-400" />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Consignee</p>
+                                    <p className="text-xs font-black text-black truncate">{order.customer?.name}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Action Hub */}
-                    <div className="flex flex-col gap-4 pt-6 border-t border-gray-100">
+                    {/* Items Section: Robust Management */}
+                    <div className="space-y-4 pt-4 border-t border-gray-50">
+                        <div className="flex items-center justify-between gap-4">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest shrink-0">Inventory Matrix</label>
+                            <div className="relative flex-1 max-w-sm">
+                                <div className="flex items-center bg-gray-50 rounded-xl px-4 py-2 border border-gray-100 focus-within:ring-2 ring-[#1A1A1A] transition-all">
+                                    <Search className="h-4 w-4 text-gray-400 mr-3" />
+                                    <input
+                                        type="text"
+                                        placeholder="Inject product..."
+                                        value={productSearch}
+                                        onChange={(e) => handleProductSearch(e.target.value)}
+                                        className="bg-transparent border-none outline-none text-xs w-full font-bold text-black"
+                                    />
+                                </div>
+                                {searchResults.length > 0 && (
+                                    <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-gray-100 shadow-2xl rounded-2xl z-[110] overflow-hidden animate-in fade-in slide-in-from-top-2">
+                                        {searchResults.map(p => (
+                                            <button
+                                                key={p.id}
+                                                onClick={() => addProductToOrder(p)}
+                                                className="w-full px-5 py-4 text-left hover:bg-gray-50 flex items-center gap-4 border-b border-gray-50 last:border-0 transition-colors"
+                                            >
+                                                <div className="bg-gray-100 rounded-lg h-10 w-10 shrink-0 overflow-hidden border border-gray-200">
+                                                    <img src={p.image || p.images?.[0]} className="w-full h-full object-cover" />
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-xs font-black truncate text-black">{p.name}</p>
+                                                    <p className="text-[10px] text-[#e31e24] font-black uppercase tracking-widest">{p.price} EGP</p>
+                                                </div>
+                                                <PlusCircle className="h-5 w-5 text-[#e31e24] opacity-50 hover:opacity-100 transition-opacity" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="bg-gray-50/50 rounded-[28px] border border-gray-100 divide-y divide-gray-100 overflow-hidden">
+                            {formData.items.length === 0 ? (
+                                <div className="p-12 text-center text-gray-300 italic text-xs font-bold uppercase tracking-widest">No Active Payloads</div>
+                            ) : formData.items.map((item, idx) => (
+                                <div key={idx} className="p-5 flex items-center gap-5 bg-white last:border-0">
+                                    <div className="w-14 h-14 rounded-2xl border border-gray-100 bg-gray-50 overflow-hidden shrink-0 shadow-sm">
+                                        <img src={item.image} className="w-full h-full object-cover" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-black truncate text-black uppercase tracking-tight poppins">{item.name}</p>
+                                        <p className="text-[10px] font-black text-[#e31e24] tracking-widest mt-0.5">{item.price} EGP</p>
+                                    </div>
+                                    <div className="flex items-center bg-gray-50 border border-gray-100 rounded-xl overflow-hidden shadow-inner">
+                                        <button onClick={() => updateItemQuantity(item.id, -1)} className="p-2.5 hover:bg-gray-200 text-gray-500 transition-all active:scale-90">
+                                            <Minus className="h-3.5 w-3.5" />
+                                        </button>
+                                        <span className="px-4 py-1 font-black text-xs min-w-[36px] text-center text-black">
+                                            {item.quantity}
+                                        </span>
+                                        <button onClick={() => updateItemQuantity(item.id, 1)} className="p-2.5 hover:bg-gray-200 text-gray-500 transition-all active:scale-90">
+                                            <Plus className="h-3.5 w-3.5" />
+                                        </button>
+                                    </div>
+                                    <button onClick={() => removeItem(item.id)} className="p-2.5 text-gray-300 hover:text-[#e31e24] hover:bg-red-50 rounded-xl transition-all active:scale-90">
+                                        <Trash2 className="h-4.5 w-4.5" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Financial Overrides */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-50">
+                        <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Service Surcharge (EGP)</label>
+                            <input
+                                type="number"
+                                value={formData.extraFees}
+                                onChange={(e) => setFormData({ ...formData, extraFees: e.target.value })}
+                                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none transition-all font-black text-xs"
+                                placeholder="0.00"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Manual Adjustment (EGP)</label>
+                            <input
+                                type="number"
+                                value={formData.manualDiscount}
+                                onChange={(e) => setFormData({ ...formData, manualDiscount: e.target.value })}
+                                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-black focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-black text-xs"
+                                placeholder="0.00"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Financial Summary: High Contrast */}
+                    <div className="bg-[#1A1A1A] rounded-[28px] p-8 text-white space-y-3 shrink-0 shadow-2xl relative overflow-hidden">
+                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-40">
+                            <span>Subtotal Matrix</span>
+                            <span>{newSubtotal} EGP</span>
+                        </div>
+                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-40">
+                            <span>Logistics + Surcharge</span>
+                            <span>+{(parseFloat(order.shipping_cost || 0) + parseFloat(formData.extraFees || 0))} EGP</span>
+                        </div>
+                        {order.discount > 0 && (
+                            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-[#e31e24]">
+                                <span>Promo Injection</span>
+                                <span>-{order.discount} EGP</span>
+                            </div>
+                        )}
+                        <div className="flex justify-between items-center pt-5 mt-2 border-t border-white/10 relative z-10">
+                            <span className="text-sm font-black uppercase tracking-[0.2em] poppins italic opacity-60">Terminal Total</span>
+                            <span className="text-3xl font-black text-white poppins tabular-nums transition-all">
+                                {newTotal} <span className="text-[12px] font-bold text-white/30 tracking-widest uppercase">EGP</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Footer Actions */}
+                <div className="p-8 border-t border-gray-50 shrink-0 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
+                    <div className="flex gap-4">
+                        <button
+                            onClick={onClose}
+                            className="flex-1 px-6 py-4 rounded-2xl font-black text-gray-400 hover:text-black hover:bg-gray-50 transition-all uppercase tracking-[0.2em] text-[10px]"
+                        >
+                            Abort Changes
+                        </button>
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="w-full bg-[#e31e24] hover:bg-[#b8181d] text-white font-black py-5 rounded-2xl hover:scale-[1.02] transition-all shadow-xl shadow-[#e31e24]/20 disabled:opacity-50 flex items-center justify-center gap-4 uppercase tracking-[0.2em] text-[11px]"
+                            className="flex-[2] bg-[#1A1A1A] hover:bg-black text-white font-black py-4 rounded-[20px] shadow-2xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-4 uppercase tracking-[0.25em] text-[11px]"
                         >
-                            {saving ? "Synchronizing..." : "Finalize Modification"}
-                            {!saving && <CheckCircle className="h-5 w-5" />}
-                        </button>
-                        <button
-                            onClick={onClose}
-                            className="w-full text-gray-400 font-black py-4 text-[10px] uppercase tracking-widest hover:text-black transition-colors"
-                        >
-                            Abort Protocol
+                            {saving ? "Processing..." : "Commit Protocol"}
+                            {!saving && <Save className="h-5 w-5 text-[#e31e24]" />}
                         </button>
                     </div>
                 </div>

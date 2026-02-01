@@ -41,7 +41,7 @@ const AdminHeader = ({ title }) => {
 
     return (
         <header className="bg-white border-b border-gray-200 sticky top-0 md:top-0 lg:sticky lg:top-0 z-30">
-            <div className="max-w-7xl mx-auto py-4 sm:py-5 px-4 sm:px-6 lg:px-8 flex flex-col xs:flex-row justify-between items-center gap-3">
+            <div className="max-w-full mx-auto py-4 sm:py-5 px-4 md:px-10 flex flex-col xs:flex-row justify-between items-center gap-3">
                 <h1 className="text-lg sm:text-2xl font-black text-[#000000] tracking-tight font-Cairo italic uppercase text-center xs:text-left">{title}</h1>
 
                 <button
