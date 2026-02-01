@@ -321,31 +321,33 @@ const Checkout = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (formData.phone.length < 10) {
-            toast.error(t('phoneError'));
-            return;
-        }
-
-        // Instapay & Wallet Validation
-        if ((formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') && !receiptUrl) {
-            toast.error('Please upload the payment receipt first');
-            return;
-        }
-
-        setLoading(true);
-        const formattedPhone = `+2${formData.phone}`;
-        const affRef = safeLocalStorage.getItem('affiliate_ref');
-
-        if (cartItems.length === 0) {
-            toast.error(t('cartEmpty'));
-            navigate('/');
-            return;
-        }
-
-        const selectedMethod = activeMethods.find(m => m.id === formData.paymentMethod);
-
         try {
+            setLoading(true);
+
+            if (formData.phone.length < 10) {
+                toast.error(t('phoneError'));
+                setLoading(false);
+                return;
+            }
+
+            // Instapay & Wallet Validation
+            if ((formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') && !receiptUrl) {
+                toast.error('Please upload the payment receipt first');
+                setLoading(false);
+                return;
+            }
+
+            if (cartItems.length === 0) {
+                toast.error(t('cartEmpty'));
+                navigate('/');
+                setLoading(false);
+                return;
+            }
+
+            const formattedPhone = `+2${formData.phone}`;
+            const affRef = safeLocalStorage.getItem('affiliate_ref');
+            const selectedMethod = activeMethods.find(m => m.id === formData.paymentMethod);
+
             const finalOrderItems = cartItems.map(item => ({
                 id: item.id || 'unknown',
                 name: item.name || 'Unknown Product',
@@ -374,7 +376,9 @@ const Checkout = () => {
                         nameEn: "🎁 FREE GIFT",
                         price: 0,
                         quantity: 1,
-                        image: "https://images.unsplash.com/photo-1549463591-24398142643c?auto=format&fit=crop&q=80&w=200"
+                        image: "https://images.unsplash.com/photo-1549463591-24398142643c?auto=format&fit=crop&q=80&w=200",
+                        brand: "Z&F",
+                        category: "Gifts"
                     });
                 }
             }
@@ -383,10 +387,12 @@ const Checkout = () => {
             if (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') {
                 if (uploadingReceipt) {
                     toast.error('Please wait for the receipt to finish uploading.');
+                    setLoading(false);
                     return;
                 }
                 if (!receiptUrl) {
                     toast.error('Please upload the payment receipt first');
+                    setLoading(false);
                     return;
                 }
             }
@@ -417,15 +423,10 @@ const Checkout = () => {
                 status: (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') ? 'Awaiting Payment Verification' : 'Pending',
                 paymentStatus: (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') ? 'Awaiting Verification' : 'Pending',
                 receiptUrl: (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') ? (receiptUrl || null) : null,
-                createdAt: new Date().toISOString() // Use ISO string to be safe, though Date is supported
+                createdAt: new Date()
             };
 
-            // Deep clean to remove any undefined values that might slip through
-            const orderData = JSON.parse(JSON.stringify(rawOrderData));
-            // Restore Date object if needed, but ISO string is safer for JSON serialization. 
-            // Actually Firestore supports Date objects. Let's re-add it manually or trust ISO string.
-            // JSON.stringify turns Date to string. Firestore runs better with Timestamps or Dates.
-            orderData.createdAt = new Date();
+            const orderData = rawOrderData;
 
             if (selectedMethod?.type === 'online') {
                 safeLocalStorage.setItem('pending_order', JSON.stringify(orderData));
@@ -440,26 +441,41 @@ const Checkout = () => {
                     if (counterSnap.exists()) {
                         nextNumber = (counterSnap.data().lastOrderNumber || 3500) + 1;
                     }
+
                     const orderRef = doc(collection(db, 'orders'));
                     transaction.set(orderRef, { ...orderData, orderNumber: nextNumber });
                     transaction.set(counterRef, { lastOrderNumber: nextNumber }, { merge: true });
-                    if (appliedPromo) {
+
+                    if (appliedPromo && appliedPromo.id) {
                         transaction.update(doc(db, 'promo_codes', appliedPromo.id), { usedCount: increment(1) });
                     }
+
                     if (auth.currentUser && saveNewAddress && selectedAddressId === 'new') {
-                        transaction.set(doc(collection(db, 'users', auth.currentUser.uid, 'addresses')), {
+                        const addrRef = doc(collection(db, 'users', auth.currentUser.uid, 'addresses'));
+                        transaction.set(addrRef, {
                             detailedAddress: formData.address,
                             governorate: formData.governorate,
                             city: formData.city,
                             label: t('savedAddress'),
-                            createdAt: new Date()
+                            createdAt: serverTimestamp()
                         });
                     }
-                    cartItems.forEach(item => {
-                        transaction.update(doc(db, 'products', item.id), { soldCount: increment(item.quantity || 1) });
-                    });
+
+                    // Update sold counts for items with valid IDs
+                    for (const item of cartItems) {
+                        if (item.id && item.id !== 'unknown') {
+                            const productRef = doc(db, 'products', item.id);
+                            // Verify product exists before updating to avoid transaction crash
+                            const productSnap = await transaction.get(productRef);
+                            if (productSnap.exists()) {
+                                transaction.update(productRef, { soldCount: increment(item.quantity || 1) });
+                            }
+                        }
+                    }
+
                     return orderRef.id;
                 });
+
                 // Mark cart as recovered
                 const cartId = auth.currentUser ? auth.currentUser.uid : safeLocalStorage.getItem('cartSessionId');
                 if (cartId) {
