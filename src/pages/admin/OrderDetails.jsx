@@ -14,7 +14,7 @@ import {
 import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Loader2, Package, User, MapPin, CreditCard, Clock, Edit2, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, Package, User, MapPin, CreditCard, Clock, Edit2, CheckCircle, Trash2, Plus, Minus, PlusCircle, Search, Save, X } from 'lucide-react';
 import AdminHeader from '../../components/AdminHeader';
 
 const OrderDetails = () => {
@@ -28,8 +28,60 @@ const OrderDetails = () => {
     const [editForm, setEditForm] = useState({
         paymentStatus: '',
         paymentMethod: '',
-        status: ''
+        status: '',
+        items: [],
+        extraFees: 0,
+        manualDiscount: 0
     });
+    const [productSearch, setProductSearch] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+
+    // Advanced Filtering States
+    const [categories, setCategories] = useState([]);
+    const [carOptions, setCarOptions] = useState([]);
+    const [makes, setMakes] = useState([]);
+    const [models, setModels] = useState([]);
+    const [filterCategory, setFilterCategory] = useState('');
+    const [filterMake, setFilterMake] = useState('');
+    const [filterModel, setFilterModel] = useState('');
+    const [filterYear, setFilterYear] = useState('');
+
+    // Fetch Search Metadata (Categories & Cars)
+    useEffect(() => {
+        const fetchMetadata = async () => {
+            try {
+                const [catsSnap, carsSnap] = await Promise.all([
+                    getDocs(collection(db, 'categories')),
+                    getDocs(collection(db, 'cars'))
+                ]);
+
+                const cats = catsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const cars = carsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                setCategories(cats);
+                setCarOptions(cars);
+                setMakes([...new Set(cars.map(c => c.make))].sort());
+            } catch (error) {
+                console.error("Error fetching search metadata:", error);
+            }
+        };
+        fetchMetadata();
+    }, []);
+
+    // Dependent Dropdown: Update models when make changes
+    useEffect(() => {
+        if (filterMake) {
+            const makeModels = carOptions
+                .filter(c => c.make === filterMake)
+                .map(c => c.model);
+            setModels([...new Set(makeModels)].sort());
+            setFilterModel(''); // Reset model
+        } else {
+            setModels([]);
+            setFilterModel('');
+        }
+    }, [filterMake, carOptions]);
 
     useEffect(() => {
         const fetchOrder = async () => {
@@ -37,7 +89,13 @@ const OrderDetails = () => {
                 const docRef = doc(db, 'orders', id);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
-                    setOrder({ id: docSnap.id, ...docSnap.data() });
+                    const data = docSnap.data();
+                    setOrder({ id: docSnap.id, ...data });
+
+                    // Mark as opened if it hasn't been yet
+                    if (data.isOpened === false) {
+                        updateDoc(docRef, { isOpened: true }).catch(err => console.warn("Error marking as opened:", err));
+                    }
                 } else {
                     toast.error('Order not found');
                     navigate('/admin/orders');
@@ -202,26 +260,138 @@ const OrderDetails = () => {
         setEditForm({
             paymentStatus: order.paymentStatus || 'Pending',
             paymentMethod: order.paymentMethod || 'Cash on Delivery',
-            status: order.status || 'Pending'
+            status: order.status || 'Pending',
+            items: [...(order.items || [])],
+            extraFees: order.extraFees || 0,
+            manualDiscount: order.manualDiscount || 0
         });
         setShowEditModal(true);
+    };
+
+    const handleProductSearch = async (q) => {
+        setProductSearch(q);
+
+        // Trigger search if there's a query OR if filters are active
+        if (q.length < 2 && !filterCategory && !filterMake && !filterYear) {
+            setSearchResults([]);
+            return;
+        }
+
+        setIsSearching(true);
+        try {
+            const productsRef = collection(db, 'products');
+            const qSnap = await getDocs(productsRef);
+            let all = qSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Apply Multi-Attribute Filter Matrix
+            const filtered = all.filter(p => {
+                const matchesQuery = !q ||
+                    p.name?.toLowerCase().includes(q.toLowerCase()) ||
+                    p.sku?.toLowerCase().includes(q.toLowerCase()) ||
+                    p.partNumber?.toLowerCase().includes(q.toLowerCase());
+
+                const matchesCategory = !filterCategory || p.category === filterCategory;
+                const matchesMake = !filterMake || p.make === filterMake;
+                const matchesModel = !filterModel || p.model === filterModel;
+
+                const matchesYear = !filterYear || (
+                    (!p.yearStart || Number(filterYear) >= Number(p.yearStart)) &&
+                    (!p.yearEnd || Number(filterYear) <= Number(p.yearEnd))
+                );
+
+                return matchesQuery && matchesCategory && matchesMake && matchesModel && matchesYear;
+            }).slice(0, 10);
+
+            setSearchResults(filtered);
+        } catch (error) {
+            console.error("Search error:", error);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    // Re-trigger search when filters change
+    useEffect(() => {
+        handleProductSearch(productSearch);
+    }, [filterCategory, filterMake, filterModel, filterYear]);
+
+    const addProductToOrder = (product) => {
+        const existing = editForm.items.find(item => item.id === product.id);
+        if (existing) {
+            setEditForm({
+                ...editForm,
+                items: editForm.items.map(item =>
+                    item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+                )
+            });
+        } else {
+            setEditForm({
+                ...editForm,
+                items: [...editForm.items, {
+                    id: product.id,
+                    name: product.name,
+                    nameEn: product.nameEn || product.name,
+                    price: product.price,
+                    image: product.image || product.images?.[0] || '/placeholder.png',
+                    quantity: 1,
+                    brand: product.partBrand || product.brand || 'N/A'
+                }]
+            });
+        }
+        setProductSearch('');
+        setSearchResults([]);
+    };
+
+    const updateItemQuantity = (id, delta) => {
+        setEditForm({
+            ...editForm,
+            items: editForm.items.map(item => {
+                if (item.id === id) {
+                    const newQty = Math.max(1, item.quantity + delta);
+                    return { ...item, quantity: newQty };
+                }
+                return item;
+            })
+        });
+    };
+
+    const removeItem = (id) => {
+        setEditForm({
+            ...editForm,
+            items: editForm.items.filter(item => item.id !== id)
+        });
+    };
+
+    const calculateRecalculatedTotals = () => {
+        const subtotal = editForm.items.reduce((acc, item) => acc + (parseFloat(item.price) * item.quantity), 0);
+        const shipping = parseFloat(order.shipping_cost || 0);
+        const promoDiscount = parseFloat(order.discount || 0);
+        const total = subtotal + shipping + parseFloat(editForm.extraFees || 0) - promoDiscount - parseFloat(editForm.manualDiscount || 0);
+        return { subtotal, total };
     };
 
     const handleSaveEdit = async () => {
         setUpdating(true);
         try {
+            const { subtotal, total } = calculateRecalculatedTotals();
             const orderRef = doc(db, 'orders', id);
-            await updateDoc(orderRef, {
+            const updateData = {
                 paymentStatus: editForm.paymentStatus,
                 paymentMethod: editForm.paymentMethod,
-                status: editForm.status
-            });
+                status: editForm.status,
+                items: editForm.items,
+                subtotal: subtotal,
+                total: total,
+                extraFees: parseFloat(editForm.extraFees || 0),
+                manualDiscount: parseFloat(editForm.manualDiscount || 0),
+                updatedAt: serverTimestamp()
+            };
+
+            await updateDoc(orderRef, updateData);
 
             setOrder(prev => ({
                 ...prev,
-                paymentStatus: editForm.paymentStatus,
-                paymentMethod: editForm.paymentMethod,
-                status: editForm.status
+                ...updateData
             }));
 
             setShowEditModal(false);
@@ -351,10 +521,20 @@ const OrderDetails = () => {
                                                     </div>
                                                 </div>
                                                 <div>
+                                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Categorization</p>
+                                                    <p className="text-xs font-black text-gray-800">
+                                                        {item.category || 'N/A'} {item.subcategory || item.subCategory ? `• ${item.subcategory || item.subCategory}` : ''}
+                                                    </p>
+                                                </div>
+                                                <div>
                                                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Compatibility</p>
                                                     <p className="text-xs font-black text-gray-800">
                                                         {item.make} {item.model}
-                                                        {item.yearRange && <span className="text-gray-400 ml-1">({item.yearRange})</span>}
+                                                        {(item.yearRange || item.yearStart) && (
+                                                            <span className="text-gray-400 ml-1">
+                                                                ({item.yearRange || `${item.yearStart}${item.yearEnd ? ` - ${item.yearEnd}` : ''}`})
+                                                            </span>
+                                                        )}
                                                     </p>
                                                 </div>
                                                 <div>
@@ -383,6 +563,18 @@ const OrderDetails = () => {
                                     <span>Shipping Cost</span>
                                     <span>+{order.shipping_cost || 0} EGP</span>
                                 </div>
+                                {order.extraFees > 0 && (
+                                    <div className="flex justify-between items-center text-[10px] text-blue-600 font-black uppercase tracking-widest">
+                                        <span>Extra Fees / Service</span>
+                                        <span>+{order.extraFees} EGP</span>
+                                    </div>
+                                )}
+                                {order.manualDiscount > 0 && (
+                                    <div className="flex justify-between items-center text-[10px] text-red-500 font-black uppercase tracking-widest">
+                                        <span>Manual Adjustment</span>
+                                        <span>-{order.manualDiscount} EGP</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between items-center pt-4 border-t border-gray-200">
                                     <span className="text-sm font-black text-black uppercase tracking-widest poppins">Total Amount</span>
                                     <span className="text-2xl font-black text-[#1A1A1A] poppins">{total} <span className="text-[10px] font-normal text-gray-400">EGP</span></span>
@@ -466,77 +658,283 @@ const OrderDetails = () => {
 
             {/* Edit Order Modal */}
             {showEditModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowEditModal(false)}></div>
-                    <div className="bg-white rounded-3xl shadow-2xl relative w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200 border border-gray-100">
-                        <div className="bg-[#28B463] p-8 text-white">
-                            <h3 className="text-xl font-black uppercase tracking-widest poppins">Edit Order</h3>
-                            <p className="text-white/70 text-[10px] font-black mt-1 uppercase tracking-widest">Order #{order.orderNumber || order.id.slice(-6).toUpperCase()}</p>
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setShowEditModal(false)}></div>
+                    <div className="bg-white rounded-[32px] shadow-2xl relative w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-300 border border-gray-100 flex flex-col max-h-[95vh]">
+                        {/* Header: Premium Dark Style */}
+                        <div className="bg-[#1A1A1A] p-8 text-white relative overflow-hidden shrink-0">
+                            <div className="flex justify-between items-start relative z-10">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="h-2 w-2 rounded-full bg-[#E31E24] animate-pulse"></div>
+                                        <h3 className="text-xl font-black uppercase tracking-widest poppins italic">Pro-Grade Order Editor</h3>
+                                    </div>
+                                    <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em]">Precision Modification • #{order.orderNumber || order.id.slice(-6).toUpperCase()}</p>
+                                </div>
+                                <button onClick={() => setShowEditModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                                    <X className="h-6 w-6 text-white/50 hover:text-white" />
+                                </button>
+                            </div>
+                            <div className="absolute top-0 right-0 p-8 opacity-5">
+                                <Package className="w-48 h-48" />
+                            </div>
                         </div>
-                        <div className="p-8 space-y-6">
-                            {/* Payment Status */}
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Payment Status</label>
-                                <select
-                                    value={editForm.paymentStatus}
-                                    onChange={(e) => setEditForm({ ...editForm, paymentStatus: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all font-bold text-sm shadow-sm cursor-pointer"
-                                >
-                                    <option value="Pending" className="bg-white">Pending</option>
-                                    <option value="Paid" className="bg-white">Paid</option>
-                                    <option value="Failed" className="bg-white">Failed</option>
-                                    <option value="Refunded" className="bg-white">Refunded</option>
-                                </select>
+
+                        <div className="p-8 space-y-8 overflow-y-auto flex-1">
+                            {/* Core Parameters Section */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                        <CreditCard className="w-3 h-3" />
+                                        Payment Flow
+                                    </label>
+                                    <div className="space-y-3">
+                                        <select
+                                            value={editForm.paymentMethod}
+                                            onChange={(e) => setEditForm({ ...editForm, paymentMethod: e.target.value })}
+                                            className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none transition-all font-bold text-xs"
+                                        >
+                                            <option value="Cash on Delivery">Cash on Delivery</option>
+                                            <option value="Credit Card (EasyKash)">Credit Card (EasyKash)</option>
+                                            <option value="Instapay">Instapay</option>
+                                            <option value="Wallet">Wallet</option>
+                                        </select>
+                                        <select
+                                            value={editForm.paymentStatus}
+                                            onChange={(e) => setEditForm({ ...editForm, paymentStatus: e.target.value })}
+                                            className={`w-full px-5 py-3.5 border rounded-2xl outline-none transition-all font-bold text-xs ${editForm.paymentStatus === 'Paid' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-gray-50 text-black border-gray-100'}`}
+                                        >
+                                            <option value="Pending">Pending Verification</option>
+                                            <option value="Paid">Verified: Paid</option>
+                                            <option value="Failed">Operation: Failed</option>
+                                            <option value="Refunded">Action: Refunded</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                        <Clock className="w-3 h-3" />
+                                        Operational Status
+                                    </label>
+                                    <select
+                                        value={editForm.status}
+                                        onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                                        className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none transition-all font-bold text-xs mb-3"
+                                    >
+                                        <option value="Pending">Inbound / Pending</option>
+                                        <option value="Processing">Workflow: Processing</option>
+                                        <option value="Shipped">Transit: Shipped</option>
+                                        <option value="Delivered">Terminal: Delivered</option>
+                                        <option value="Cancelled">Void: Cancelled</option>
+                                        <option value="Returned">Reversal: Returned</option>
+                                    </select>
+                                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-center gap-4">
+                                        <div className="h-10 w-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center shrink-0">
+                                            <User className="w-5 h-5 text-gray-400" />
+                                        </div>
+                                        <div className="min-w-0 text-[10px] font-black uppercase tracking-widest">
+                                            <p className="text-gray-400">Consignee</p>
+                                            <p className="text-black truncate text-xs">{customer.name}</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            {/* Payment Method */}
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Payment Method</label>
-                                <select
-                                    value={editForm.paymentMethod}
-                                    onChange={(e) => setEditForm({ ...editForm, paymentMethod: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all font-bold text-sm shadow-sm cursor-pointer"
-                                >
-                                    <option value="Cash on Delivery" className="bg-white">Cash on Delivery</option>
-                                    <option value="Credit Card (EasyKash)" className="bg-white">Credit Card (EasyKash)</option>
-                                    <option value="InstaPay" className="bg-white">InstaPay</option>
-                                    <option value="Wallet" className="bg-white">Wallet</option>
-                                    <option value="Instapay" className="bg-white">Instapay</option>
-                                </select>
+                            {/* Items Section: Robust Management */}
+                            <div className="space-y-4 pt-4 border-t border-gray-50">
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest shrink-0">Inventory Filter Matrix</label>
+                                        {(filterCategory || filterMake || filterYear || productSearch) && (
+                                            <button
+                                                onClick={() => {
+                                                    setFilterCategory('');
+                                                    setFilterMake('');
+                                                    setFilterModel('');
+                                                    setFilterYear('');
+                                                    setProductSearch('');
+                                                    setSearchResults([]);
+                                                }}
+                                                className="text-[9px] font-black text-[#E31E24] uppercase tracking-widest hover:underline"
+                                            >
+                                                Clear All Filters
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                                        <select
+                                            value={filterCategory}
+                                            onChange={(e) => setFilterCategory(e.target.value)}
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-[10px] font-bold text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none"
+                                        >
+                                            <option value="">All Categories</option>
+                                            {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
+                                        </select>
+                                        <select
+                                            value={filterMake}
+                                            onChange={(e) => setFilterMake(e.target.value)}
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-[10px] font-bold text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none"
+                                        >
+                                            <option value="">All Makes</option>
+                                            {makes.map(m => <option key={m} value={m}>{m}</option>)}
+                                        </select>
+                                        <select
+                                            value={filterModel}
+                                            onChange={(e) => setFilterModel(e.target.value)}
+                                            disabled={!filterMake}
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-[10px] font-bold text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none disabled:opacity-50"
+                                        >
+                                            <option value="">All Models</option>
+                                            {models.map(m => <option key={m} value={m}>{m}</option>)}
+                                        </select>
+                                        <input
+                                            type="number"
+                                            placeholder="Year"
+                                            value={filterYear}
+                                            onChange={(e) => setFilterYear(e.target.value)}
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-[10px] font-bold text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none"
+                                        />
+                                    </div>
+
+                                    <div className="relative">
+                                        <div className="flex items-center bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-100 focus-within:ring-2 ring-[#1A1A1A]">
+                                            <Search className="h-4 w-4 text-gray-400 mr-3" />
+                                            <input
+                                                type="text"
+                                                placeholder="Add product by name, SKU or Part#..."
+                                                value={productSearch}
+                                                onChange={(e) => handleProductSearch(e.target.value)}
+                                                className="bg-transparent border-none outline-none text-xs w-full font-bold text-black"
+                                            />
+                                        </div>
+                                        {isSearching && (
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                                <div className="animate-spin h-3 w-3 border-b-2 border-[#1A1A1A] rounded-full"></div>
+                                            </div>
+                                        )}
+                                        {searchResults.length > 0 && (
+                                            <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-gray-100 shadow-2xl rounded-2xl z-[110] overflow-hidden max-h-64 overflow-y-auto">
+                                                {searchResults.map(p => (
+                                                    <button
+                                                        key={p.id}
+                                                        onClick={() => addProductToOrder(p)}
+                                                        className="w-full px-5 py-4 text-left hover:bg-gray-50 flex items-center gap-4 border-b border-gray-50 last:border-0"
+                                                    >
+                                                        <div className="bg-gray-100 rounded-lg h-10 w-10 shrink-0 overflow-hidden border border-gray-200">
+                                                            <img src={p.image || p.images?.[0]} className="w-full h-full object-cover" />
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="text-xs font-black truncate">{p.name}</p>
+                                                            <div className="flex gap-2 mt-0.5">
+                                                                <p className="text-[10px] text-[#E31E24] font-black uppercase tracking-widest">{p.price} EGP</p>
+                                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">| {p.partBrand || p.brand}</p>
+                                                            </div>
+                                                        </div>
+                                                        <PlusCircle className="h-5 w-5 text-[#E31E24] opacity-50 hover:opacity-100 transition-opacity" />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="bg-gray-50/50 rounded-[28px] border border-gray-100 divide-y divide-gray-100 overflow-hidden">
+                                    {editForm.items.length === 0 ? (
+                                        <div className="p-12 text-center text-gray-300 italic text-xs font-bold uppercase tracking-widest">No Active Payloads</div>
+                                    ) : editForm.items.map((item, idx) => (
+                                        <div key={idx} className="p-5 flex items-center gap-5 bg-white last:border-0">
+                                            <div className="w-14 h-14 rounded-2xl border border-gray-100 bg-gray-50 overflow-hidden shrink-0 shadow-sm">
+                                                <img src={item.image} className="w-full h-full object-cover" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-black truncate text-black uppercase tracking-tight poppins">{item.name}</p>
+                                                <p className="text-[10px] font-black text-[#E31E24] tracking-widest mt-0.5">{item.price} EGP</p>
+                                            </div>
+                                            <div className="flex items-center bg-gray-50 border border-gray-100 rounded-xl overflow-hidden shadow-inner">
+                                                <button onClick={() => updateItemQuantity(item.id, -1)} className="p-2.5 hover:bg-gray-200 text-gray-500 transition-all active:scale-90">
+                                                    <Minus className="h-3.5 w-3.5" />
+                                                </button>
+                                                <span className="px-4 py-1 font-black text-xs min-w-[36px] text-center text-black">
+                                                    {item.quantity}
+                                                </span>
+                                                <button onClick={() => updateItemQuantity(item.id, 1)} className="p-2.5 hover:bg-gray-200 text-gray-500 transition-all active:scale-90">
+                                                    <Plus className="h-3.5 w-3.5" />
+                                                </button>
+                                            </div>
+                                            <button onClick={() => removeItem(item.id)} className="p-2.5 text-gray-300 hover:text-[#E31E24] hover:bg-red-50 rounded-xl transition-all active:scale-90">
+                                                <Trash2 className="h-4.5 w-4.5" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
 
-                            {/* Delivery Status */}
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Delivery Status</label>
-                                <select
-                                    value={editForm.status}
-                                    onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all font-bold text-sm shadow-sm cursor-pointer"
-                                >
-                                    <option value="Pending" className="bg-white">Pending</option>
-                                    <option value="Processing" className="bg-white">Processing</option>
-                                    <option value="Shipped" className="bg-white">Shipped</option>
-                                    <option value="Delivered" className="bg-white">Delivered</option>
-                                    <option value="Cancelled" className="bg-white">Cancelled</option>
-                                    <option value="Returned" className="bg-white">Returned</option>
-                                </select>
+                            {/* Section: Financial Overrides */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-50">
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Service Surcharge (EGP)</label>
+                                    <input
+                                        type="number"
+                                        value={editForm.extraFees}
+                                        onChange={(e) => setEditForm({ ...editForm, extraFees: e.target.value })}
+                                        className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none transition-all font-black text-xs"
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Manual Adjustment (EGP)</label>
+                                    <input
+                                        type="number"
+                                        value={editForm.manualDiscount}
+                                        onChange={(e) => setEditForm({ ...editForm, manualDiscount: e.target.value })}
+                                        className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-black focus:ring-2 focus:ring-[#E31E24] outline-none transition-all font-black text-xs"
+                                        placeholder="0.00"
+                                    />
+                                </div>
                             </div>
 
-                            {/* Action Buttons */}
-                            <div className="space-y-3 pt-4">
+                            {/* Recap Section */}
+                            <div className="bg-[#1A1A1A] rounded-[28px] p-8 text-white space-y-3 shrink-0 shadow-2xl relative overflow-hidden">
+                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-40">
+                                    <span>Subtotal Matrix</span>
+                                    <span>{calculateRecalculatedTotals().subtotal} EGP</span>
+                                </div>
+                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-40">
+                                    <span>Logistics + Surcharge</span>
+                                    <span>+{(parseFloat(order.shipping_cost || 0) + parseFloat(editForm.extraFees || 0))} EGP</span>
+                                </div>
+                                {order.discount > 0 && (
+                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-[#E31E24]">
+                                        <span>Promo Injection</span>
+                                        <span>-{order.discount} EGP</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between items-center pt-5 mt-2 border-t border-white/10 relative z-10">
+                                    <span className="text-sm font-black uppercase tracking-[0.2em] poppins italic opacity-60">Terminal Total</span>
+                                    <span className="text-3xl font-black text-white poppins tabular-nums transition-all">
+                                        {calculateRecalculatedTotals().total} <span className="text-[12px] font-bold text-white/30 tracking-widest uppercase">EGP</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-8 border-t border-gray-50 shrink-0 bg-white">
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => setShowEditModal(false)}
+                                    className="flex-1 px-6 py-4 rounded-2xl font-black text-gray-400 hover:text-black hover:bg-gray-50 transition-all uppercase tracking-[0.2em] text-[10px]"
+                                >
+                                    Abort Changes
+                                </button>
                                 <button
                                     onClick={handleSaveEdit}
                                     disabled={updating}
-                                    className="w-full bg-[#28B463] hover:bg-[#219653] text-white font-black py-4 rounded-xl shadow-lg shadow-[#28B463]/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3 uppercase tracking-widest text-xs"
+                                    className="flex-[2] bg-[#1A1A1A] hover:bg-black text-white font-black py-4 rounded-[20px] shadow-2xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-4 uppercase tracking-[0.25em] text-[11px]"
                                 >
-                                    {updating ? "Saving..." : "Save Changes"}
-                                    {!updating && <CheckCircle className="h-4 w-4" />}
-                                </button>
-                                <button
-                                    onClick={() => setShowEditModal(false)}
-                                    className="w-full text-gray-400 font-black py-3 text-[10px] uppercase tracking-widest hover:text-black transition-all"
-                                >
-                                    Cancel
+                                    {updating ? "Processing..." : "Commit Protocol"}
+                                    {!updating && <Save className="h-5 w-5 text-[#E31E24]" />}
                                 </button>
                             </div>
                         </div>

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
+import { safeLocalStorage } from '../utils/safeStorage';
 import { collection, addDoc, doc, writeBatch, increment, getDoc, getDocs, query, where, limit, runTransaction, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { useSafeNavigation } from '../utils/safeNavigation';
 import axios from 'axios';
 import { safeStorage } from '../utils/storage';
 import { Loader2, ShieldCheck, Banknote, CreditCard, Ticket, CheckCircle2, AlertCircle, MapPin, Plus, User, Mail, Smartphone, Trash2 } from 'lucide-react';
@@ -13,7 +15,7 @@ import TrustPaymentSection from '../components/TrustPaymentSection';
 
 const Checkout = () => {
     const { cartItems, getCartTotal, clearCart, updateCartStage, updateCustomerInfo } = useCart();
-    const navigate = useNavigate();
+    const { navigate } = useSafeNavigation();
     const { t, i18n } = useTranslation();
     const isAr = i18n.language === 'ar';
     const [loading, setLoading] = useState(false);
@@ -172,7 +174,9 @@ const Checkout = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
 
         if (name === 'governorate') {
-            const selectedRate = (shippingRates || []).find(r => r.governorate === value);
+            const selectedRate = (shippingRates || []).find(r =>
+                r.governorate?.trim() === value?.trim()
+            );
             setShippingCost(selectedRate ? (Number(selectedRate.cost) || 0) : 0);
         }
     };
@@ -321,30 +325,51 @@ const Checkout = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (formData.phone.length < 10) {
-            toast.error(t('phoneError'));
-            return;
-        }
-
-        // Instapay & Wallet Validation
-        if ((formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') && !receiptUrl) {
-            toast.error('Please upload the payment receipt first');
-            return;
-        }
-
-        setLoading(true);
-        const formattedPhone = `+2${formData.phone}`;
-        const affRef = safeStorage.getItem('affiliate_ref');
-
-        if (cartItems.length === 0) {
-            toast.error(t('cartEmpty'));
-            navigate('/');
-            return;
-        }
-
-        const selectedMethod = activeMethods.find(m => m.id === formData.paymentMethod);
-
+        let timeoutId;
         try {
+            setLoading(true);
+            console.log("Submit started:", { formData, cartItemsCount: cartItems.length });
+
+            // Safety timeout to prevent permanent hang
+            timeoutId = setTimeout(() => {
+                setLoading(currentLoading => {
+                    if (currentLoading) {
+                        toast.error("تأخر الطلب كثيراً. يرجى التحقق من اتصال الإنترنت أو المحاولة مرة أخرى.");
+                        console.error("Checkout timed out after 30 seconds");
+                        return false;
+                    }
+                    return false;
+                });
+            }, 30000);
+
+
+            if (formData.phone.length < 10) {
+                toast.error(t('phoneError'));
+                setLoading(false);
+                clearTimeout(timeoutId);
+                return;
+            }
+
+            // Instapay & Wallet Validation
+            if ((formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') && !receiptUrl) {
+                toast.error('Please upload the payment receipt first');
+                setLoading(false);
+                clearTimeout(timeoutId);
+                return;
+            }
+
+            if (cartItems.length === 0) {
+                toast.error(t('cartEmpty'));
+                navigate('/');
+                setLoading(false);
+                clearTimeout(timeoutId);
+                return;
+            }
+
+            const formattedPhone = `+2${formData.phone}`;
+            const affRef = safeLocalStorage.getItem('affiliate_ref');
+            const selectedMethod = activeMethods.find(m => m.id === formData.paymentMethod);
+
             const finalOrderItems = cartItems.map(item => ({
                 id: item.id || 'unknown',
                 name: item.name || 'Unknown Product',
@@ -357,7 +382,11 @@ const Checkout = () => {
                 make: item.make || null,
                 model: item.model || null,
                 yearStart: item.yearStart || null,
-                yearEnd: item.yearEnd || null
+                yearEnd: item.yearEnd || null,
+                yearRange: item.yearRange || null,
+                category: item.category || null,
+                subcategory: item.subcategory || item.subCategory || null,
+                countryOfOrigin: item.countryOfOrigin || item.country || null
             }));
 
             if (appliedPromo?.type === 'product_gift') {
@@ -369,21 +398,19 @@ const Checkout = () => {
                         nameEn: "🎁 FREE GIFT",
                         price: 0,
                         quantity: 1,
-                        image: "https://images.unsplash.com/photo-1549463591-24398142643c?auto=format&fit=crop&q=80&w=200"
+                        image: "https://images.unsplash.com/photo-1549463591-24398142643c?auto=format&fit=crop&q=80&w=200",
+                        brand: "Z&F",
+                        category: "Gifts"
                     });
                 }
             }
 
-            // Verify Instapay/Wallet Upload Status
-            if (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') {
-                if (uploadingReceipt) {
-                    toast.error('Please wait for the receipt to finish uploading.');
-                    return;
-                }
-                if (!receiptUrl) {
-                    toast.error('Please upload the payment receipt first');
-                    return;
-                }
+            // Receipt sanity check
+            if ((formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') && uploadingReceipt) {
+                toast.error('Please wait for the receipt to finish uploading.');
+                setLoading(false);
+                clearTimeout(timeoutId);
+                return;
             }
 
             const rawOrderData = {
@@ -412,72 +439,151 @@ const Checkout = () => {
                 status: (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') ? 'Awaiting Payment Verification' : 'Pending',
                 paymentStatus: (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') ? 'Awaiting Verification' : 'Pending',
                 receiptUrl: (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') ? (receiptUrl || null) : null,
-                createdAt: new Date().toISOString() // Use ISO string to be safe, though Date is supported
+                createdAt: new Date()
             };
 
-            // Deep clean to remove any undefined values that might slip through
-            const orderData = JSON.parse(JSON.stringify(rawOrderData));
-            // Restore Date object if needed, but ISO string is safer for JSON serialization. 
-            // Actually Firestore supports Date objects. Let's re-add it manually or trust ISO string.
-            // JSON.stringify turns Date to string. Firestore runs better with Timestamps or Dates.
-            orderData.createdAt = new Date();
+            // Enhanced data cleaning to remove undefined/NaN
+            const orderData = JSON.parse(JSON.stringify(rawOrderData, (key, value) => {
+                if (typeof value === 'number' && isNaN(value)) return 0;
+                if (value === undefined) return null;
+                return value;
+            }));
 
             if (selectedMethod?.type === 'online') {
-                safeStorage.setItem('pending_order', JSON.stringify(orderData));
-                safeStorage.setItem('pending_cart_items', JSON.stringify(cartItems));
+                console.log("[DEBUG] Online payment path selected");
+                toast.loading("Initiating payment gateway...");
+                safeLocalStorage.setItem('pending_order', JSON.stringify(orderData));
+                safeLocalStorage.setItem('pending_cart_items', JSON.stringify(cartItems));
                 const tempOrderId = `temp_${Date.now()}`;
                 await handleOnlinePayment(tempOrderId, selectedMethod);
             } else {
-                const orderId = await runTransaction(db, async (transaction) => {
-                    const counterRef = doc(db, 'settings', 'counters');
-                    const counterSnap = await transaction.get(counterRef);
-                    let nextNumber = 3501;
-                    if (counterSnap.exists()) {
-                        nextNumber = (counterSnap.data().lastOrderNumber || 3500) + 1;
-                    }
-                    const orderRef = doc(collection(db, 'orders'));
-                    transaction.set(orderRef, { ...orderData, orderNumber: nextNumber });
-                    transaction.set(counterRef, { lastOrderNumber: nextNumber }, { merge: true });
-                    if (appliedPromo) {
-                        transaction.update(doc(db, 'promo_codes', appliedPromo.id), { usedCount: increment(1) });
-                    }
-                    if (auth.currentUser && saveNewAddress && selectedAddressId === 'new') {
-                        transaction.set(doc(collection(db, 'users', auth.currentUser.uid, 'addresses')), {
-                            detailedAddress: formData.address,
-                            governorate: formData.governorate,
-                            city: formData.city,
-                            label: t('savedAddress'),
-                            createdAt: new Date()
+                console.log("[DEBUG] Starting order creation...");
+
+                let orderId;
+                let finalOrderNumber;
+
+                try {
+                    // TRY SEQUENTIAL TRANSACTION FIRST
+                    const result = await runTransaction(db, async (tx) => {
+                        const counterRef = doc(db, 'settings', 'counters');
+                        const counterSnap = await tx.get(counterRef);
+
+                        let nextNumber = 3501;
+                        if (counterSnap.exists()) {
+                            nextNumber = (counterSnap.data().lastOrderNumber || 3500) + 1;
+                        }
+
+                        const orderRef = doc(collection(db, 'orders'));
+                        tx.set(orderRef, {
+                            ...orderData,
+                            orderNumber: nextNumber,
+                            createdAt: serverTimestamp(),
+                            isOpened: false
                         });
-                    }
-                    cartItems.forEach(item => {
-                        transaction.update(doc(db, 'products', item.id), { soldCount: increment(item.quantity || 1) });
+
+                        tx.set(counterRef, { lastOrderNumber: nextNumber }, { merge: true });
+
+                        if (appliedPromo?.id) {
+                            tx.update(doc(db, 'promo_codes', appliedPromo.id), { usedCount: increment(1) });
+                        }
+
+                        if (auth.currentUser && saveNewAddress && selectedAddressId === 'new') {
+                            const addrRef = doc(collection(db, 'users', auth.currentUser.uid, 'addresses'));
+                            tx.set(addrRef, {
+                                detailedAddress: formData.address,
+                                governorate: formData.governorate,
+                                city: formData.city,
+                                label: t('savedAddress'),
+                                createdAt: serverTimestamp()
+                            });
+                        }
+
+                        return { id: orderRef.id, number: nextNumber };
                     });
-                    return orderRef.id;
+
+                    orderId = result.id;
+                    finalOrderNumber = result.number;
+                    console.log("[DEBUG] Transaction succeeded:", orderId);
+
+                } catch (txError) {
+                    // FALLBACK IF QUOTA EXCEEDED
+                    if (txError.code === 'resource-exhausted' || txError.message?.includes('Quota')) {
+                        console.warn("[QUOTA] Fallback triggered. Creating order without counter.");
+                        const fallbackOrderRef = doc(collection(db, 'orders'));
+                        const timestampId = Date.now().toString().slice(-6);
+                        finalOrderNumber = `T-${timestampId}`; // T for Temporary/Time-based
+
+                        await setDoc(fallbackOrderRef, {
+                            ...orderData,
+                            orderNumber: finalOrderNumber,
+                            createdAt: serverTimestamp(),
+                            quotaFallback: true,
+                            isOpened: false
+                        });
+                        orderId = fallbackOrderRef.id;
+
+                        // Also handle promo usage and address saving outside transaction if fallback
+                        if (appliedPromo?.id) {
+                            setDoc(doc(db, 'promo_codes', appliedPromo.id), { usedCount: increment(1) }, { merge: true })
+                                .catch(e => console.warn("Promo usage update failed during fallback:", e));
+                        }
+                        if (auth.currentUser && saveNewAddress && selectedAddressId === 'new') {
+                            const addrRef = doc(collection(db, 'users', auth.currentUser.uid, 'addresses'));
+                            setDoc(addrRef, {
+                                detailedAddress: formData.address,
+                                governorate: formData.governorate,
+                                city: formData.city,
+                                label: t('savedAddress'),
+                                createdAt: serverTimestamp()
+                            }).catch(e => console.warn("Address save failed during fallback:", e));
+                        }
+
+                    } else {
+                        throw txError;
+                    }
+                }
+
+                // Background updates
+                cartItems.forEach(item => {
+                    if (item.id && item.id !== 'unknown') {
+                        setDoc(doc(db, 'products', item.id), { soldCount: increment(item.quantity || 1) }, { merge: true })
+                            .catch(e => console.warn("SoldCount update failed:", e));
+                    }
                 });
-                // Mark cart as recovered
-                const cartId = auth.currentUser ? auth.currentUser.uid : safeStorage.getItem('cartSessionId');
+
+                const cartId = auth.currentUser ? auth.currentUser.uid : safeLocalStorage.getItem('cartSessionId');
                 if (cartId) {
-                    await setDoc(doc(db, 'abandoned_carts', cartId), {
+                    setDoc(doc(db, 'abandoned_carts', cartId), {
                         recovered: true,
                         recoveredAt: serverTimestamp(),
                         orderId: orderId
-                    }, { merge: true });
+                    }, { merge: true }).catch(e => console.warn("Abandoned cart sync failed:", e));
                 }
 
                 clearCart();
-                if (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet') {
-                    toast.success('تم استلام طلبك وبانتظار مراجعة التحويل. سيتم التأكيد خلال 24 ساعة.');
-                } else {
-                    toast.success(t('orderPlaced'));
-                }
-                navigate(`/order-success?id=${orderId}`);
+                clearTimeout(timeoutId);
+
+                const successMsg = (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet')
+                    ? 'تم استلام طلبك وبانتظار مراجعة التحويل. سيتم التأكيد خلال 24 ساعة.'
+                    : t('orderPlaced');
+
+                toast.success(successMsg, { duration: 5000 });
+                console.log("[DEBUG] Navigating to success page...");
+
+                // Allow toast to be seen before navigating
+                setTimeout(() => {
+                    navigate(`/order-success?id=${orderId}`);
+                }, 500);
             }
         } catch (error) {
-            console.error("Error creating order:", error);
-            toast.error(t('orderError'));
+            console.error("[DEBUG] FATAL ERROR IN SUBMIT:", error);
+            // Show more detailed error if possible
+            const errorMsg = error.message || t('orderError');
+            toast.error(`Error: ${errorMsg}`);
         } finally {
+            console.log("[DEBUG] Submit finished (finally block)");
             setLoading(false);
+            if (timeoutId) clearTimeout(timeoutId);
         }
     };
 

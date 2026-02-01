@@ -38,6 +38,7 @@ const ManageBlog = () => {
         try {
             await updateDoc(doc(db, 'blog_posts', postId), {
                 isActive: !currentStatus,
+                status: !currentStatus ? 'published' : 'draft',
                 updatedAt: new Date()
             });
             setPosts(posts.map(p =>

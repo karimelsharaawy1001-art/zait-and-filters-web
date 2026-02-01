@@ -190,53 +190,53 @@ const ManageAffiliates = () => {
     });
 
     return (
-        <div className="min-h-screen bg-admin-bg font-sans pb-20 p-4 md:p-8">
+        <div className="min-h-screen bg-gray-50 font-sans pb-20 p-4 md:p-8">
             <AdminHeader title="Affiliate Management" />
 
             <main className="max-w-7xl mx-auto mt-10">
                 {/* Stats Summary */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                    <div className="bg-admin-card p-6 rounded-[2rem] border border-admin-border shadow-admin group hover:bg-[#ffffff05] transition-all">
+                    <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm group hover:bg-gray-50 transition-all">
                         <div className="flex items-center gap-5">
                             <div className="p-4 bg-admin-accent/10 text-admin-accent rounded-2xl group-hover:scale-110 transition-transform">
                                 <Users className="h-6 w-6" />
                             </div>
                             <div>
-                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Partners</p>
-                                <h3 className="text-2xl font-black text-white poppins">{summary.totalAffiliates || 0}</h3>
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Partners</p>
+                                <h3 className="text-2xl font-black text-black poppins">{summary.totalAffiliates || 0}</h3>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-admin-card p-6 rounded-[2rem] border border-admin-border shadow-admin group hover:bg-[#ffffff05] transition-all">
+                    <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm group hover:bg-gray-50 transition-all">
                         <div className="flex items-center gap-5">
                             <div className="p-4 bg-admin-green/10 text-admin-green rounded-2xl group-hover:scale-110 transition-transform">
                                 <TrendingUp className="h-6 w-6" />
                             </div>
                             <div>
-                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Total Sales</p>
-                                <h3 className="text-2xl font-black text-white poppins">{summary.totalSales || 0}</h3>
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Sales</p>
+                                <h3 className="text-2xl font-black text-black poppins">{summary.totalSales || 0}</h3>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-admin-card p-6 rounded-[2rem] border border-admin-border shadow-admin group hover:bg-[#ffffff05] transition-all">
+                    <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm group hover:bg-gray-50 transition-all">
                         <div className="flex items-center gap-5">
                             <div className="p-4 bg-admin-accent/10 text-admin-accent rounded-2xl group-hover:scale-110 transition-transform">
                                 <DollarSign className="h-6 w-6" />
                             </div>
                             <div>
-                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Total Paid</p>
-                                <h3 className="text-2xl font-black text-white poppins">{(summary.totalEarnings || 0).toLocaleString()} <span className="text-xs text-gray-500">EGP</span></h3>
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Paid</p>
+                                <h3 className="text-2xl font-black text-black poppins">{(summary.totalEarnings || 0).toLocaleString()} <span className="text-xs text-gray-400">EGP</span></h3>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-admin-card p-6 rounded-[2rem] border border-admin-border shadow-admin group hover:bg-[#ffffff05] transition-all">
+                    <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm group hover:bg-gray-50 transition-all">
                         <div className="flex items-center gap-5">
                             <div className="p-4 bg-admin-red/10 text-admin-red rounded-2xl group-hover:scale-110 transition-transform">
                                 <Ban className="h-6 w-6" />
                             </div>
                             <div>
-                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Active Rate</p>
-                                <h3 className="text-2xl font-black text-white poppins">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Rate</p>
+                                <h3 className="text-2xl font-black text-black poppins">
                                     {summary.totalAffiliates > 0
                                         ? ((summary.activeAffiliates / summary.totalAffiliates) * 100).toFixed(1)
                                         : '0.0'}%
@@ -247,35 +247,35 @@ const ManageAffiliates = () => {
                 </div>
 
                 {/* Main Table */}
-                <div className="bg-admin-card rounded-[2.5rem] shadow-admin border border-admin-border overflow-hidden">
-                    <div className="p-10 border-b border-[#ffffff05] flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#ffffff02]">
+                <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="p-10 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gray-50/30">
                         <div>
-                            <h3 className="text-xl font-black text-white uppercase tracking-widest poppins">Partner Network</h3>
-                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Manage referral partners and commission payouts</p>
+                            <h3 className="text-xl font-black text-black uppercase tracking-widest poppins">Partner Network</h3>
+                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Manage referral partners and commission payouts</p>
                         </div>
                         <div className="relative max-w-sm w-full">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-600" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
                             <input
                                 type="text"
                                 placeholder="Search by code or user ID..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-11 pr-5 py-4 bg-[#ffffff05] border border-admin-border rounded-2xl focus:ring-2 focus:ring-admin-accent transition-all font-bold text-sm text-white placeholder-gray-600 outline-none"
+                                className="w-full pl-11 pr-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-admin-accent transition-all font-bold text-sm text-black placeholder-gray-400 outline-none"
                             />
                         </div>
                     </div>
 
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
-                            <thead className="bg-[#ffffff02]">
+                            <thead className="bg-gray-50/50">
                                 <tr>
-                                    <th className="px-10 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest poppins">Identity</th>
-                                    <th className="px-10 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest poppins">Metrics</th>
-                                    <th className="px-10 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest poppins">Tiering</th>
-                                    <th className="px-10 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest poppins">Gateway</th>
-                                    <th className="px-10 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest poppins">Escrow</th>
-                                    <th className="px-10 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest poppins">Status</th>
-                                    <th className="px-10 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest poppins text-right">Ops</th>
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest poppins">Identity</th>
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest poppins">Metrics</th>
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest poppins">Tiering</th>
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest poppins">Gateway</th>
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest poppins">Escrow</th>
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest poppins">Status</th>
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest poppins text-right">Ops</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
@@ -289,40 +289,40 @@ const ManageAffiliates = () => {
                                         </td>
                                     </tr>
                                 ) : filteredAffiliates.length > 0 ? filteredAffiliates.map((aff) => (
-                                    <tr key={aff.id} className="hover:bg-[#ffffff02] transition-all group border-b border-[#ffffff05]">
+                                    <tr key={aff.id} className="hover:bg-gray-50 transition-all group">
                                         <td className="px-10 py-8">
                                             <div className="flex flex-col">
-                                                <span className="font-black text-white text-base poppins uppercase tracking-wide group-hover:text-admin-accent transition-colors">{aff.referralCode || 'NO CODE'}</span>
-                                                <span className="text-[9px] font-bold text-gray-600 truncate max-w-[100px] mt-1">{aff.userId || 'No UID'}</span>
+                                                <span className="font-black text-black text-base poppins uppercase tracking-wide group-hover:text-admin-accent transition-colors">{aff.referralCode || 'NO CODE'}</span>
+                                                <span className="text-[9px] font-bold text-gray-400 truncate max-w-[100px] mt-1">{aff.userId || 'No UID'}</span>
                                             </div>
                                         </td>
                                         <td className="px-10 py-8">
                                             <div className="flex flex-col">
-                                                <span className="text-sm font-black text-white">{aff.referralCount || 0} Successful Conversions</span>
-                                                <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mt-1">Generated: {(aff.totalEarnings || 0).toLocaleString()} EGP</span>
+                                                <span className="text-sm font-black text-black">{aff.referralCount || 0} Successful Conversions</span>
+                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Generated: {(aff.totalEarnings || 0).toLocaleString()} EGP</span>
                                             </div>
                                         </td>
                                         <td className="px-10 py-8">
                                             <div className="flex flex-col gap-2">
                                                 <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg border w-fit
-                                                    ${aff.currentTier === 3 ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
-                                                        aff.currentTier === 2 ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-[#ffffff05] text-gray-500 border-[#ffffff1a]'}
+                                                    ${aff.currentTier === 3 ? 'bg-purple-50 text-purple-600 border-purple-100' :
+                                                        aff.currentTier === 2 ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-gray-50 text-gray-400 border-gray-100'}
                                                 `}>
                                                     Tier {aff.currentTier || 1}
                                                 </span>
-                                                <span className="text-xs font-black text-white">{(aff.commissionPercentage || 5)}% Take-Home</span>
+                                                <span className="text-xs font-black text-black">{(aff.commissionPercentage || 5)}% Take-Home</span>
                                             </div>
                                         </td>
                                         <td className="px-10 py-8">
                                             <div className="flex flex-col gap-2">
                                                 {aff.instaPayNumber && (
-                                                    <span className="text-[9px] font-black text-admin-accent bg-admin-accent/10 px-2 py-1 rounded-lg border border-admin-accent/20 uppercase tracking-widest">IP: {aff.instaPayNumber}</span>
+                                                    <span className="text-[9px] font-black text-admin-accent bg-admin-accent/5 px-2 py-1 rounded-lg border border-admin-accent/10 uppercase tracking-widest">IP: {aff.instaPayNumber}</span>
                                                 )}
                                                 {aff.walletNumber && (
-                                                    <span className="text-[9px] font-black text-purple-400 bg-purple-500/10 px-2 py-1 rounded-lg border border-purple-500/20 uppercase tracking-widest">W: {aff.walletNumber}</span>
+                                                    <span className="text-[9px] font-black text-purple-600 bg-purple-50 px-2 py-1 rounded-lg border border-purple-100 uppercase tracking-widest">W: {aff.walletNumber}</span>
                                                 )}
                                                 {!aff.instaPayNumber && !aff.walletNumber && (
-                                                    <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest italic">Incomplete KYC</span>
+                                                    <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest italic">Incomplete KYC</span>
                                                 )}
                                             </div>
                                         </td>
@@ -331,7 +331,7 @@ const ManageAffiliates = () => {
                                                 <div className="p-2 bg-admin-accent/10 rounded-xl">
                                                     <Wallet className="h-4 w-4 text-admin-accent" />
                                                 </div>
-                                                <span className="font-black text-white text-base poppins">{(aff.pendingBalance || 0).toLocaleString()} <span className="text-[10px] text-gray-500 uppercase">EGP</span></span>
+                                                <span className="font-black text-black text-base poppins">{(aff.pendingBalance || 0).toLocaleString()} <span className="text-[10px] text-gray-400 uppercase">EGP</span></span>
                                             </div>
                                         </td>
                                         <td className="px-10 py-8">
@@ -344,23 +344,23 @@ const ManageAffiliates = () => {
                                                     ${aff.status === 'banned' ? 'text-admin-red border-admin-red/20 hover:bg-admin-red/10' : ''}
                                                 `}
                                             >
-                                                <option value="active" className="bg-admin-card">Active</option>
-                                                <option value="pending" className="bg-admin-card">Pending</option>
-                                                <option value="banned" className="bg-admin-card">Banned</option>
+                                                <option value="active" className="bg-white text-black">Active</option>
+                                                <option value="pending" className="bg-white text-black">Pending</option>
+                                                <option value="banned" className="bg-white text-black">Banned</option>
                                             </select>
                                         </td>
                                         <td className="px-10 py-8 text-right">
                                             <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
                                                 <button
                                                     onClick={() => navigate(`/admin/affiliates/${aff.id}`)}
-                                                    className="p-3 bg-[#ffffff05] text-gray-500 hover:text-admin-accent hover:bg-admin-accent/10 rounded-2xl transition-all border border-admin-border hover:border-admin-accent/20 shadow-lg"
+                                                    className="p-3 bg-white text-gray-400 hover:text-admin-accent hover:bg-admin-accent/10 rounded-2xl transition-all border border-gray-100 hover:border-admin-accent/20 shadow-sm"
                                                     title="View Full Intel"
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(aff.id)}
-                                                    className="p-3 bg-admin-red/5 text-gray-500 hover:text-admin-red hover:bg-admin-red/10 rounded-2xl transition-all border border-admin-border hover:border-admin-red/20 shadow-lg"
+                                                    className="p-3 bg-red-50 text-gray-400 hover:text-admin-red hover:bg-admin-red/10 rounded-2xl transition-all border border-gray-100 hover:border-admin-red/20 shadow-sm"
                                                     title="Terminate Account"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
@@ -372,10 +372,10 @@ const ManageAffiliates = () => {
                                     <tr>
                                         <td colSpan="7" className="px-10 py-32 text-center">
                                             <div className="flex flex-col items-center gap-4">
-                                                <div className="bg-[#ffffff05] p-10 rounded-full border border-admin-border">
-                                                    <Users className="h-16 w-16 text-gray-800" />
+                                                <div className="bg-gray-50 p-10 rounded-full border border-gray-100">
+                                                    <Users className="h-16 w-16 text-gray-200" />
                                                 </div>
-                                                <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">No active partners detected in node</p>
+                                                <p className="text-gray-400 font-black uppercase tracking-widest text-[10px]">No active partners detected in node</p>
                                             </div>
                                         </td>
                                     </tr>

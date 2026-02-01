@@ -22,7 +22,7 @@ const BlogPostPage = () => {
         const fetchPost = async () => {
             setLoading(true);
             try {
-                // 1. Try fetching by slug
+                // 1. Try fetching by slug using direct Firestore query (most reliable for sync)
                 const q = query(collection(db, 'blog_posts'), where('slug', '==', slugOrId), limit(1));
                 const querySnapshot = await getDocs(q);
 
@@ -213,13 +213,11 @@ const BlogPostPage = () => {
                     </footer>
                 </article>
 
-                {/* Related Products Funnel */}
-                <section className="mt-20 not-italic">
-                    <h2 className={`text-3xl font-black text-gray-900 mb-10 font-Cairo tracking-tighter italic ${isAr ? 'text-right' : 'text-left'}`}>
-                        {isAr ? 'منتجات مقترحة صيانة' : 'Recommended for You'}
-                    </h2>
-                    <RelatedProducts />
-                </section>
+                {/* Suggested Products Section */}
+                <RelatedProducts
+                    suggestedCategory={post.suggestedCategoryId}
+                    manualIds={post.manualProductIds}
+                />
             </div>
         </div>
     );

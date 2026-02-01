@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useSafeNavigation } from '../utils/safeNavigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +11,7 @@ import Breadcrumbs from '../components/Breadcrumbs';
 
 const CategoryPage = () => {
     const { id } = useParams();
-    const navigate = useNavigate();
+    const { navigate } = useSafeNavigation();
     const { t, i18n } = useTranslation();
     const { updateFilter } = useFilters();
 
@@ -79,7 +80,7 @@ const CategoryPage = () => {
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
                     <div>
                         <button
-                            onClick={() => navigate('/')}
+                            onClick={() => navigate(-1)}
                             className="flex items-center gap-2 text-gray-400 hover:text-black transition-colors mb-4 group"
                         >
                             <ArrowLeft className="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" />
@@ -98,7 +99,7 @@ const CategoryPage = () => {
                         <button
                             onClick={() => {
                                 updateFilter('category', category.name);
-                                navigate(`/shop?category=${encodeURIComponent(category.name)}`);
+                                navigate(`/shop?category=${encodeURIComponent(category.name)}`, { replace: true });
                             }}
                             className="admin-primary-btn w-fit px-8"
                         >
@@ -121,6 +122,7 @@ const CategoryPage = () => {
                                         src={subImage}
                                         alt={subName}
                                         className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                        loading="lazy"
                                     />
 
                                     {/* Heavy Dark Gradient Overlay for Readability */}

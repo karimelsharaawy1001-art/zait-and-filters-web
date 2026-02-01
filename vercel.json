@@ -9,6 +9,18 @@
       "destination": "/api/product-meta?id=:id"
     },
     {
+      "source": "/api/product-feed",
+      "destination": "/api/product-feed"
+    },
+    {
+      "source": "/admin",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin/(.*)",
+      "destination": "/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

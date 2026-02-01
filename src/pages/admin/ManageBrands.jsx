@@ -74,8 +74,8 @@ const ManageBrands = () => {
 
             <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h2 className="text-xl font-black text-white uppercase tracking-widest poppins">Brand Partners</h2>
-                    <p className="text-gray-500 font-bold text-sm mt-1 uppercase tracking-widest text-[10px]">Logos displayed in the home page marquee.</p>
+                    <h2 className="text-xl font-black text-black uppercase tracking-widest poppins">Brand Partners</h2>
+                    <p className="text-gray-400 font-bold text-sm mt-1 uppercase tracking-widest text-[10px]">Logos displayed in the home page marquee.</p>
                 </div>
                 {!isAdding && (
                     <button
@@ -97,7 +97,7 @@ const ManageBrands = () => {
                                 name="name"
                                 value={formData.name}
                                 onChange={handleChange}
-                                className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg shadow-inner"
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-black placeholder-gray-400 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-sm"
                                 placeholder="e.g. Toyota, NGK..."
                                 required
                             />
@@ -126,7 +126,7 @@ const ManageBrands = () => {
                             <button
                                 type="button"
                                 onClick={() => setIsAdding(false)}
-                                className="flex-1 py-4 bg-[#ffffff05] hover:bg-[#ffffff0d] text-admin-text-secondary hover:text-white rounded-xl transition-all border border-admin-border font-black uppercase tracking-widest text-xs"
+                                className="flex-1 py-4 bg-gray-50 hover:bg-gray-100 text-gray-400 hover:text-black rounded-xl transition-all border border-gray-200 font-black uppercase tracking-widest text-xs"
                             >
                                 Cancel
                             </button>
@@ -142,11 +142,11 @@ const ManageBrands = () => {
                         <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">Syncing brand registry...</p>
                     </div>
                 ) : brands.map((brand) => (
-                    <div key={brand.id} className="group relative bg-[#ffffff02] p-8 rounded-[2rem] border border-admin-border shadow-admin hover:bg-[#ffffff05] transition-all hover:-translate-y-1 flex flex-col items-center">
+                    <div key={brand.id} className="group relative bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm hover:bg-gray-50 transition-all hover:-translate-y-1 flex flex-col items-center">
                         <div className="h-20 w-32 flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
-                            <img src={brand.imageUrl} alt={brand.name} className="max-h-full max-w-full object-contain filter drop-shadow-lg" />
+                            <img src={brand.imageUrl} alt={brand.name} className="max-h-full max-w-full object-contain filter drop-shadow-md" />
                         </div>
-                        <p className="text-center text-[10px] font-black text-gray-500 group-hover:text-white uppercase tracking-widest truncate w-full transition-colors">{brand.name}</p>
+                        <p className="text-center text-[10px] font-black text-gray-400 group-hover:text-black uppercase tracking-widest truncate w-full transition-colors">{brand.name}</p>
                         <button
                             onClick={() => handleDelete(brand.id)}
                             className="absolute -top-3 -right-3 bg-admin-red/10 text-admin-red p-3 rounded-2xl opacity-0 group-hover:opacity-100 transition-all shadow-xl hover:bg-admin-red hover:text-white border border-admin-red/20"

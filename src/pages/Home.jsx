@@ -23,6 +23,8 @@ const RecommendationSkeleton = () => (
     </div>
 );
 
+
+
 const Home = () => {
     const { t, i18n } = useTranslation();
     const { activeCar } = useFilters();
@@ -214,7 +216,7 @@ const Home = () => {
             <Hero />
 
             {/* Brands Section */}
-            <section className="py-3 bg-white border-b border-gray-50">
+            <section className="py-6 bg-white border-b border-gray-50">
                 <BrandMarquee />
             </section>
 

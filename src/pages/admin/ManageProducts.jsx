@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, getDocs, deleteDoc, doc, updateDoc, query, orderBy, writeBatch, limit, startAfter, getCountFromServer, where } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
-import { safeStorage } from '../../utils/storage';
+import { safeLocalStorage, safeSessionStorage } from '../../utils/safeStorage';
 import AdminHeader from '../../components/AdminHeader';
 import { Edit3, Trash2, Plus, Search, Filter, AlertTriangle, ArrowUpDown, ChevronLeft, ChevronRight, Eye, MoreVertical, CheckCircle, XCircle, TrendingUp, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -101,7 +101,7 @@ const ManageProducts = () => {
         }
     };
 
-    const [isLiveMode, setIsLiveMode] = useState(false);
+    const [isLiveMode, setIsLiveMode] = useState(true);
     const [localData, setLocalData] = useState([]);
 
     useEffect(() => {
@@ -172,7 +172,7 @@ const ManageProducts = () => {
         const cacheKey = `admin_products_${categoryFilter}_${subcategoryFilter}_${makeFilter}_${modelFilter}_${brandFilter}_${statusFilter}_${sortBy}_${searchQuery}_${currentPage}`;
 
         if (!skipCache && !isNext && !isPrev) {
-            const cachedData = safeStorage.getItem(cacheKey);
+            const cachedData = safeLocalStorage.getItem(cacheKey);
             if (cachedData) {
                 const parsed = JSON.parse(cachedData);
                 if ((Date.now() - parsed.timestamp) < 3600000) {
@@ -253,7 +253,7 @@ const ManageProducts = () => {
             }
 
             if (!isNext && !isPrev) {
-                safeStorage.setItem(cacheKey, JSON.stringify({
+                safeLocalStorage.setItem(cacheKey, JSON.stringify({
                     products: productsList,
                     totalCount: currentTotal,
                     timestamp: Date.now()
@@ -276,7 +276,7 @@ const ManageProducts = () => {
     };
 
     const fetchBrands = async () => {
-        const cachedBrands = sessionStorage.getItem('admin_unique_brands');
+        const cachedBrands = safeSessionStorage.getItem('admin_unique_brands');
         if (cachedBrands) {
             setUniquePartBrands(JSON.parse(cachedBrands));
             return;
@@ -291,7 +291,7 @@ const ManageProducts = () => {
             }))].filter(Boolean).sort();
 
             setUniquePartBrands(brands);
-            sessionStorage.setItem('admin_unique_brands', JSON.stringify(brands));
+            safeSessionStorage.setItem('admin_unique_brands', JSON.stringify(brands));
         } catch (error) {
             console.error("Error fetching brands:", error);
         }
@@ -324,6 +324,10 @@ const ManageProducts = () => {
                 );
                 setLocalData(updatedLocal);
             }
+
+            // Invalidate admin product list caches
+            safeLocalStorage.removeByPrefix('admin_products_');
+
             toast.success("Status updated (Local + Cloud)");
         } catch (error) {
             console.error("Error toggling status:", error);
@@ -344,6 +348,9 @@ const ManageProducts = () => {
                     const updatedLocal = localData.filter(p => p.id !== productId);
                     setLocalData(updatedLocal);
                 }
+
+                // Invalidate admin product list caches
+                safeLocalStorage.removeByPrefix('admin_products_');
 
                 toast.success('Product deleted (Local + Cloud)');
             } catch (error) {
@@ -390,6 +397,10 @@ const ManageProducts = () => {
 
             setProducts(products.filter(p => !selectedIds.has(p.id)));
             setSelectedIds(new Set());
+
+            // Invalidate admin product list caches
+            safeLocalStorage.removeByPrefix('admin_products_');
+
             setShowDeleteModal(false);
             toast.success(`${selectedIds.size} products deleted successfully!`);
         } catch (error) {
@@ -452,6 +463,7 @@ const ManageProducts = () => {
                     </div>
 
                     <button
+                        type="button"
                         onClick={() => {
                             setIsLiveMode(!isLiveMode);
                             if (!isLiveMode) {
@@ -466,40 +478,9 @@ const ManageProducts = () => {
                         {isLiveMode ? 'Disconnect Live Sync' : 'Connect Live Sync'}
                     </button>
 
-                    <button
-                        onClick={async () => {
-                            if (!window.confirm("Publish latest data to public site? This will trigger a site rebuild.")) return;
-
-                            const webhookUrl = import.meta.env.VITE_VERCEL_DEPLOY_HOOK;
-                            if (!webhookUrl) {
-                                toast.error("Deployment Hook not configured!");
-                                return;
-                            }
-
-                            const toastId = toast.loading('Initiating Build & Refresh...');
-                            try {
-                                // 1. Trigger Vercel Build (which runs the sync script)
-                                await fetch(webhookUrl, { method: 'POST' });
-
-                                // 2. Refresh Local Admin Cache
-                                const q = collection(db, 'products');
-                                const snapshot = await getDocs(q);
-                                const newData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                                setLocalData(newData);
-                                if (!isLiveMode) processLocalData(newData);
-
-                                toast.success('Build triggered! Site will update in ~2 mins.', { id: toastId });
-                            } catch (err) {
-                                console.error("Publish failed", err);
-                                toast.error('Publish failed: ' + err.message, { id: toastId });
-                            }
-                        }}
-                        className="mr-2 px-6 py-3 rounded-full font-bold text-xs uppercase tracking-widest bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20"
-                    >
-                        تحديث البيانات للجمهور
-                    </button>
 
                     <button
+                        type="button"
                         onClick={() => navigate('/admin/products/new')}
                         className="admin-primary-btn !w-fit !px-8"
                     >
@@ -509,7 +490,11 @@ const ManageProducts = () => {
                 </div>
 
                 {/* Bulk Import/Export */}
-                <BulkOperations />
+                <BulkOperations onSuccess={() => {
+                    safeLocalStorage.removeByPrefix('admin_products_');
+                    fetchProducts(false, false, true);
+                    fetchBrands();
+                }} />
 
                 {/* Filters Section - White Surface */}
                 <div className="bg-white rounded-[24px] shadow-sm border border-gray-200 p-8 mb-10 group/filters">
@@ -536,7 +521,7 @@ const ManageProducts = () => {
                         </button>
                         <button
                             onClick={() => {
-                                sessionStorage.removeItem('admin_unique_brands');
+                                safeSessionStorage.removeItem('admin_unique_brands');
                                 fetchProducts(false, false, true);
                                 fetchBrands();
                                 toast.success('Data synced with cloud');
@@ -667,8 +652,8 @@ const ManageProducts = () => {
                 ) : (
                     <div className="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden transition-all group/table">
                         {/* Desktop Data Grid */}
-                        <div className="hidden md:block overflow-x-auto">
-                            <table className="w-full">
+                        <div className="hidden md:block overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200">
+                            <table className="w-full min-w-[1000px] lg:min-w-0">
                                 <thead>
                                     <tr className="bg-gray-50">
                                         <th className="px-4 py-5 text-left border-b border-gray-100 w-12">
@@ -755,26 +740,26 @@ const ManageProducts = () => {
                                             <td className="px-4 py-6 whitespace-nowrap text-center">
                                                 <button
                                                     onClick={() => handleToggleActive(product.id, product.isActive)}
-                                                    className={`relative inline-flex h-6 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-all duration-300 ease-in-out focus:outline-none ${product.isActive !== false ? 'bg-green-500' : 'bg-gray-200'}`}
+                                                    className={`relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-all duration-300 ease-in-out focus:outline-none ${product.isActive !== false ? 'bg-green-500' : 'bg-gray-200'}`}
                                                 >
-                                                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-300 ease-in-out ${product.isActive !== false ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                    <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow transition duration-300 ease-in-out ${product.isActive !== false ? 'translate-x-7' : 'translate-x-0'}`} />
                                                 </button>
                                             </td>
                                             <td className="px-4 py-6 whitespace-nowrap text-right">
-                                                <div className="flex items-center justify-end gap-2">
+                                                <div className="flex items-center justify-end gap-3">
                                                     <button
                                                         onClick={() => navigate(`/admin/edit-product/${product.id}`)}
-                                                        className="p-2.5 bg-[#28B463]/10 text-[#28B463] hover:bg-[#28B463] hover:text-white border border-[#28B463]/20 rounded-xl transition-all hover:-translate-y-1 shadow-lg shadow-[#28B463]/5"
+                                                        className="min-h-[44px] min-w-[44px] flex items-center justify-center bg-[#28B463]/10 text-[#28B463] hover:bg-[#28B463] hover:text-white border border-[#28B463]/20 rounded-xl transition-all active:scale-95 shadow-lg shadow-[#28B463]/5"
                                                         title="Edit Product"
                                                     >
-                                                        <Edit3 className="h-4 w-4" />
+                                                        <Edit3 className="h-5 w-5" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(product.id, product.name)}
-                                                        className="p-2.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-100 rounded-xl transition-all hover:-translate-y-1 shadow-lg shadow-red-600/5"
+                                                        className="min-h-[44px] min-w-[44px] flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-100 rounded-xl transition-all active:scale-95 shadow-lg shadow-red-600/5"
                                                         title="Delete Product"
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
+                                                        <Trash2 className="h-5 w-5" />
                                                     </button>
                                                 </div>
                                             </td>

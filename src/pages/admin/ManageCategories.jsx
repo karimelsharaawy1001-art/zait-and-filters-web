@@ -152,8 +152,8 @@ const ManageCategories = () => {
             <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Form Section */}
-                    <div className="bg-admin-card p-8 rounded-3xl shadow-admin border border-admin-border h-fit">
-                        <h2 className="text-xl font-black text-white mb-6 uppercase tracking-widest poppins">Add New Category</h2>
+                    <div className="bg-white p-8 rounded-3xl shadow-admin border border-admin-border h-fit">
+                        <h2 className="text-xl font-black text-black mb-6 uppercase tracking-widest poppins">Add New Category</h2>
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div>
                                 <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Category Name</label>
@@ -161,7 +161,7 @@ const ManageCategories = () => {
                                     type="text"
                                     value={formData.name}
                                     onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-admin-border rounded-xl text-black placeholder-gray-400 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm"
                                     required
                                 />
                             </div>
@@ -181,7 +181,7 @@ const ManageCategories = () => {
                                     value={formData.subCategories}
                                     onChange={e => setFormData({ ...formData, subCategories: e.target.value })}
                                     placeholder="Engine Oil, Gear Oil, Transmission Oil"
-                                    className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-admin-border rounded-xl text-black placeholder-gray-400 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm"
                                 />
                                 <p className="mt-2 text-[10px] text-gray-500 font-bold uppercase tracking-widest">Comma-separated values (e.g. 'Engine Oil, Gear Oil')</p>
                             </div>

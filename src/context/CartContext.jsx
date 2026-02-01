@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { db, auth } from '../firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { safeStorage } from '../utils/storage';
+import { safeLocalStorage } from '../utils/safeStorage';
 
 const CartContext = createContext();
 
@@ -10,7 +10,7 @@ export const useCart = () => useContext(CartContext);
 export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState(() => {
         try {
-            const storedCart = safeStorage.getItem('cartItems');
+            const storedCart = safeLocalStorage.getItem('cartItems');
             return storedCart ? JSON.parse(storedCart) : [];
         } catch (error) {
             console.error("Failed to load cart from safe storage", error);
@@ -19,13 +19,13 @@ export const CartProvider = ({ children }) => {
     });
 
     const [sessionId] = useState(() => {
-        let id = safeStorage.getItem('cartSessionId');
+        let id = safeLocalStorage.getItem('cartSessionId');
         if (!id) {
             // Safer way to access randomUUID in browser
             id = (typeof crypto !== 'undefined' && crypto.randomUUID)
                 ? crypto.randomUUID()
                 : Math.random().toString(36).substring(2) + Date.now().toString(36);
-            safeStorage.setItem('cartSessionId', id);
+            safeLocalStorage.setItem('cartSessionId', id);
         }
         return id;
     });
@@ -40,37 +40,59 @@ export const CartProvider = ({ children }) => {
 
     // Synchronize with Local Storage and Firestore (for abandoned cart recovery)
     useEffect(() => {
-        try {
-            safeStorage.setItem('cartItems', JSON.stringify(cartItems));
+        // SIGNIFICANTLY increase debounce to 60 seconds to save Firestore Quota
+        const handler = setTimeout(() => {
+            try {
+                const currentCartStr = JSON.stringify(cartItems);
+                const lastStoredCart = safeLocalStorage.getItem('cartItems');
 
-            if (cartItems.length > 0) {
-                const syncCart = async () => {
-                    try {
-                        const cartId = auth.currentUser ? auth.currentUser.uid : sessionId;
-                        const cartData = {
-                            sessionId: sessionId,
-                            uid: auth.currentUser?.uid || null,
-                            email: customerDetails.email || auth.currentUser?.email || null,
-                            customerName: customerDetails.name || auth.currentUser?.displayName || 'Guest',
-                            customerPhone: customerDetails.phone || null,
-                            items: cartItems,
-                            total: cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-                            lastModified: serverTimestamp(),
-                            recovered: false,
-                            emailSent: false,
-                            lastStepReached: currentStage
-                        };
+                if (lastStoredCart !== currentCartStr) {
+                    safeLocalStorage.setItem('cartItems', currentCartStr);
+                }
 
-                        await setDoc(doc(db, 'abandoned_carts', cartId), cartData, { merge: true });
-                    } catch (err) {
-                        console.error("Error syncing abandoned cart:", err);
-                    }
-                };
-                syncCart();
+                // Only sync to Firestore if there are items AND something significant changed
+                if (cartItems.length > 0 && lastStoredCart !== currentCartStr) {
+                    const syncCart = async () => {
+                        try {
+                            const cartId = auth.currentUser ? auth.currentUser.uid : sessionId;
+
+                            // Check if we already synced this exact state to avoid double-writes
+                            const lastSyncedKey = `last_sync_${cartId}`;
+                            if (safeLocalStorage.getItem(lastSyncedKey) === currentCartStr) return;
+
+                            const cartData = {
+                                sessionId: sessionId,
+                                uid: auth.currentUser?.uid || null,
+                                email: customerDetails.email || auth.currentUser?.email || null,
+                                customerName: customerDetails.name || auth.currentUser?.displayName || 'Guest',
+                                customerPhone: customerDetails.phone || null,
+                                items: cartItems,
+                                total: cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                                lastModified: serverTimestamp(),
+                                recovered: false,
+                                emailSent: false,
+                                lastStepReached: currentStage
+                            };
+
+                            await setDoc(doc(db, 'abandoned_carts', cartId), cartData, { merge: true });
+                            safeLocalStorage.setItem(lastSyncedKey, currentCartStr);
+                            console.log("[QUOTA] Abandoned cart synced (Optimized)");
+                        } catch (err) {
+                            if (err.code === 'resource-exhausted') {
+                                console.warn("[QUOTA] Limit reached, skipping abandoned cart sync.");
+                            } else {
+                                console.error("Error syncing abandoned cart:", err);
+                            }
+                        }
+                    };
+                    syncCart();
+                }
+            } catch (error) {
+                console.error("Failed to handle cart persistence:", error);
             }
-        } catch (error) {
-            console.error("Failed to handle cart persistence", error);
-        }
+        }, 60000); // 60-second debounce to save quota
+
+        return () => clearTimeout(handler);
     }, [cartItems, currentStage, customerDetails, auth.currentUser, sessionId]);
 
     const updateCartStage = (stage) => {

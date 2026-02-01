@@ -5,7 +5,7 @@ import { toast } from 'react-hot-toast';
 import { Shield, Eye, EyeOff, Save, Loader2, CreditCard, Banknote, Smartphone } from 'lucide-react';
 import AdminHeader from '../../components/AdminHeader';
 
-const ManagePayments = () => {
+const PaymentMethods = () => {
     const [configs, setConfigs] = useState({});
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -359,5 +359,5 @@ const ManagePayments = () => {
 
 };
 
-export default ManagePayments;
+export default PaymentMethods;
 

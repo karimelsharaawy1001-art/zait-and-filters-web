@@ -51,12 +51,13 @@ const CategoryThumbnails = () => {
                                 src={cat.imageUrl}
                                 alt={cat.name}
                                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                loading="lazy"
                             />
 
                             {/* Dark Overlay for Readability */}
                             <div
                                 className="absolute inset-0 group-hover:opacity-90 transition-all duration-500"
-                                style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', borderRadius: '12px' }}
+                                style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)', borderRadius: '12px' }}
                             ></div>
 
                             {/* Content - Centered */}

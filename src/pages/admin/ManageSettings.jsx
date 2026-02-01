@@ -61,7 +61,7 @@ const ManageSettings = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-admin-bg flex flex-col items-center justify-center gap-4">
+            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4">
                 <div className="h-12 w-12 border-4 border-admin-accent border-t-transparent rounded-full animate-spin"></div>
                 <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">Synchronizing node configuration...</p>
             </div>

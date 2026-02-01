@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { useFilters } from '../context/FilterContext';
-import { useNavigate } from 'react-router-dom';
+import { useSafeNavigation } from '../utils/safeNavigation';
 import { useTranslation } from 'react-i18next';
 import { useStaticData } from '../context/StaticDataContext';
 import { db } from '../firebase';
@@ -17,7 +17,7 @@ const oilLinks = {
 
 const CarSelector = () => {
     const { t } = useTranslation();
-    const navigate = useNavigate();
+    const { navigate } = useSafeNavigation();
     const { updateFilter, filters } = useFilters();
     const { cars, withFallback, isStaticLoaded } = useStaticData();
 
@@ -250,14 +250,6 @@ const CarSelector = () => {
                     </div>
                 </div>
 
-                {/* No Results Message */}
-                {noResults && (
-                    <div className="animate-in fade-in slide-in-from-top-1 duration-300">
-                        <p className="text-[#e31e24] text-[12px] font-bold text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">
-                            {t('noPartsForModel')}
-                        </p>
-                    </div>
-                )}
 
                 {/* Search Button */}
                 <div className="pt-2">

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingCart, FilterX, ChevronRight, ChevronDown, SlidersHorizontal, Car } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { ShoppingCart, FilterX, ChevronRight, ChevronDown, SlidersHorizontal, Car, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useFilters } from '../context/FilterContext';
 import { useStaticData } from '../context/StaticDataContext';
@@ -11,6 +11,7 @@ import { toast } from 'react-hot-toast';
 import { parseYearRange, normalizeArabic, getSearchableText } from '../utils/productUtils';
 import useScrollRestoration from '../hooks/useScrollRestoration';
 import inventoryData from '../data/inventory.json';
+import SkeletonProductCard from './SkeletonProductCard';
 
 const ProductGrid = ({ showFilters = true }) => {
     const { t, i18n } = useTranslation();
@@ -48,89 +49,95 @@ const ProductGrid = ({ showFilters = true }) => {
     });
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
     const [carHeaderImage, setCarHeaderImage] = useState('');
+    const [isFiltering, setIsFiltering] = useState(false);
     const PAGE_SIZE = 20;
 
-    const fetchProducts = async () => {
-        setLoading(true);
+    // ⚡ High-Performance Memoized Static Search Engine
+    const filteredStaticProducts = useMemo(() => {
+        if (!isStaticLoaded && inventoryData.length === 0) return { results: [], total: 0 };
+
+        console.log('⚡ Calculating Memoized Static Search');
+        let results = inventoryData.length > 0 ? [...inventoryData] : [...staticProducts];
+
+        // 1. Garage Filter
+        if (isGarageFilterActive && activeCar?.make) {
+            const cMake = activeCar.make.toUpperCase();
+            const cModel = (activeCar.model || '').toUpperCase();
+            results = results.filter(p => {
+                const pMake = (p.make || p.car_make || '').toUpperCase();
+                const pModel = (p.model || p.car_model || '').toUpperCase();
+                const isUniversal = !pMake || pMake === 'UNIVERSAL' || pMake === 'GENERAL' ||
+                    p.category === 'إكسسوارات وعناية' || p.category === 'إضافة للموتور و البنزين';
+                if (isUniversal) return true;
+                const isCarMatch = pMake === cMake && (!cModel || pModel === cModel);
+                let isYearMatch = true;
+                if (isCarMatch && activeCar.year) {
+                    const y = parseInt(activeCar.year);
+                    isYearMatch = (!p.yearStart || y >= p.yearStart) && (!p.yearEnd || y <= p.yearEnd);
+                }
+                return isCarMatch && isYearMatch;
+            });
+        } else {
+            if (filters.make) results = results.filter(p => p.make === filters.make);
+            if (filters.model) results = results.filter(p => p.model === filters.model);
+            if (filters.year) {
+                const yearNum = parseInt(filters.year);
+                results = results.filter(p => p.yearStart <= yearNum && p.yearEnd >= yearNum);
+            }
+        }
+
+        // 2. Category & Subcategory
+        if (filters.category && filters.category !== 'All') results = results.filter(p => p.category === filters.category);
+        if (filters.subcategory) results = results.filter(p => p.subcategory === filters.subcategory);
+
+        // 3. Other Metadata
+        if (filters.brand) results = results.filter(p => p.partBrand === filters.brand);
+        if (filters.origin) results = results.filter(p => p.countryOfOrigin === filters.origin);
+        if (filters.viscosity) results = results.filter(p => p.viscosity === filters.viscosity);
+
+        // 4. Search Query
+        if (filters.searchQuery && filters.searchQuery.trim().length > 0) {
+            const searchKeywords = filters.searchQuery.trim().split(/\s+/).filter(Boolean).map(k => normalizeArabic(k));
+            results = results.filter(p => {
+                const searchTarget = normalizeArabic(getSearchableText(p));
+                return searchKeywords.every(keyword => searchTarget.includes(keyword));
+            });
+        }
+
+        const total = results.length;
+        results.sort((a, b) => a.name.localeCompare(b.name));
+
+        return { results, total };
+    }, [
+        isStaticLoaded,
+        isGarageFilterActive,
+        activeCar?.id,
+        filters.category,
+        filters.subcategory,
+        filters.make,
+        filters.model,
+        filters.year,
+        filters.brand,
+        filters.origin,
+        filters.searchQuery,
+        filters.viscosity,
+        staticProducts
+    ]);
+
+    const fetchProducts = async (isDebounced = false) => {
+        if (!isDebounced) setLoading(true);
+        setIsFiltering(true);
         try {
-            // Master Static Logic: Primary source of truth for high-concurrency scaling
-            // If we have static data loaded, we perform ALL filtering and searching client-side.
-            // This achieves $0 cost and maximum speed.
             if (isStaticLoaded || inventoryData.length > 0) {
-                console.log('⚡ Using High-Performance Static Search Engine');
-                let results = inventoryData.length > 0 ? [...inventoryData] : [...staticProducts];
+                const { results, total } = filteredStaticProducts;
+                setTotalProducts(total);
 
-                // 1. Garage Filter (NARROW MATCH)
-                if (isGarageFilterActive && activeCar?.make) {
-                    const cMake = activeCar.make.toUpperCase();
-                    const cModel = (activeCar.model || '').toUpperCase();
-
-                    results = results.filter(p => {
-                        const pMake = (p.make || p.car_make || '').toUpperCase();
-                        const pModel = (p.model || p.car_model || '').toUpperCase();
-
-                        // Check if Universal
-                        const isUniversal = !pMake || pMake === 'UNIVERSAL' || pMake === 'GENERAL' ||
-                            p.category === 'إكسسوارات وعناية' || p.category === 'إضافة للموتور و البنزين';
-
-                        if (isUniversal) return true;
-
-                        // Specific car match
-                        const isCarMatch = pMake === cMake && (!cModel || pModel === cModel);
-
-                        // Year match if applicable
-                        let isYearMatch = true;
-                        if (isCarMatch && activeCar.year) {
-                            const y = parseInt(activeCar.year);
-                            isYearMatch = (!p.yearStart || y >= p.yearStart) && (!p.yearEnd || y <= p.yearEnd);
-                        }
-
-                        return isCarMatch && isYearMatch;
-                    });
-                } else {
-                    // 2. Manual Car Filters
-                    if (filters.make) results = results.filter(p => p.make === filters.make);
-                    if (filters.model) results = results.filter(p => p.model === filters.model);
-                    if (filters.year) {
-                        const yearNum = parseInt(filters.year);
-                        results = results.filter(p => p.yearStart <= yearNum && p.yearEnd >= yearNum);
-                    }
-                }
-
-                // 3. Category & Subcategory
-                if (filters.category && filters.category !== 'All') {
-                    results = results.filter(p => p.category === filters.category);
-                }
-                if (filters.subcategory) {
-                    results = results.filter(p => p.subcategory === filters.subcategory);
-                }
-
-                // 4. Other Metadata
-                if (filters.brand) results = results.filter(p => p.partBrand === filters.brand);
-                if (filters.origin) results = results.filter(p => p.countryOfOrigin === filters.origin);
-
-                // 5. Search Query
-                if (filters.searchQuery && filters.searchQuery.trim().length > 0) {
-                    const searchKeywords = filters.searchQuery.trim().split(/\s+/).filter(Boolean).map(k => normalizeArabic(k));
-                    results = results.filter(p => {
-                        const searchTarget = normalizeArabic(getSearchableText(p));
-                        return searchKeywords.every(keyword => searchTarget.includes(keyword));
-                    });
-                }
-
-                setTotalProducts(results.length);
-
-                // Sorting (Standard: Name ASC)
-                results.sort((a, b) => a.name.localeCompare(b.name));
-
-                // Pagination
                 const currentPage = Math.max(1, parseInt(filters.page) || 1);
                 const startIndex = (currentPage - 1) * PAGE_SIZE;
                 setProducts(results.slice(startIndex, startIndex + PAGE_SIZE));
 
-                // Extraction (Lazy)
                 if (!filterOptions.categories || Object.keys(filterOptions.categories).length === 0) {
-                    extractFilterOptions(staticProducts);
+                    extractFilterOptions(staticProducts.length > 0 ? staticProducts : inventoryData);
                 }
                 return;
             }
@@ -184,20 +191,21 @@ const ProductGrid = ({ showFilters = true }) => {
             toast.error("Shopping data sync error. Trying backup...");
         } finally {
             setLoading(false);
+            setIsFiltering(false);
         }
     };
 
     useEffect(() => {
-        console.log('[ProductGrid] Triggering fetch with filters:', filters);
-        fetchProducts();
+        console.log('[ProductGrid] Scheduling debounced fetch...');
 
-        // Scroll to grid top on page change - ONLY if not restoring position
-        if (filters.page > 1 && !hasSavedPosition()) {
-            const gridElement = document.getElementById('product-grid');
-            if (gridElement) {
-                gridElement.scrollIntoView({ behavior: 'smooth' });
-            }
-        }
+        // Show skeletons immediately for immediate feedback
+        setIsFiltering(true);
+
+        const handler = setTimeout(() => {
+            fetchProducts(true);
+        }, 300);
+
+        return () => clearTimeout(handler);
     }, [
         isGarageFilterActive,
         activeCar?.id,
@@ -212,6 +220,16 @@ const ProductGrid = ({ showFilters = true }) => {
         filters.page,
         filters.viscosity
     ]);
+
+    // Scroll to grid top on page change - ONLY if not restoring position
+    useEffect(() => {
+        if (filters.page > 1 && !hasSavedPosition()) {
+            const gridElement = document.getElementById('product-grid');
+            if (gridElement) {
+                gridElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    }, [filters.page, hasSavedPosition]);
 
     // Extract unique values for each filter type
     const extractFilterOptions = async (productsList) => {
@@ -624,177 +642,226 @@ const ProductGrid = ({ showFilters = true }) => {
                     {showFilters && (
                         <div className="lg:hidden mb-6">
                             <button
-                                onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
-                                className="w-full flex items-center justify-center space-x-2 bg-white p-3 rounded-lg shadow border border-gray-200"
+                                onClick={() => setIsMobileFilterOpen(true)}
+                                className="w-full flex items-center justify-between bg-white px-6 py-4 rounded-2xl shadow-sm border border-gray-100 transition-all active:scale-[0.98] active:bg-gray-50"
                             >
-                                <SlidersHorizontal className="h-5 w-5 text-gray-600" />
-                                <span className="font-medium text-gray-800">{t('shopFilters.category')} & {t('filters')}</span>
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-[#28B463]/10 p-2 rounded-xl">
+                                        <SlidersHorizontal className="h-5 w-5 text-[#28B463]" />
+                                    </div>
+                                    <span className="font-black text-black text-sm uppercase tracking-tight">
+                                        {t('shopFilters.filtersButton')}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {hasActiveFilters && (
+                                        <span className="flex h-2 w-2 rounded-full bg-[#28B463] animate-pulse" />
+                                    )}
+                                    <ChevronDown className="h-5 w-5 text-gray-400" />
+                                </div>
                             </button>
                         </div>
                     )}
 
-                    {/* Mobile Sidebar (Collapsible) */}
-                    {showFilters && isMobileFilterOpen && (
-                        <div className="lg:hidden mb-8 bg-white p-6 rounded-2xl shadow-xl border border-gray-100 animate-in slide-in-from-top duration-300 overflow-y-auto max-h-[85vh]">
-                            <div className="space-y-6">
-                                <div className="flex justify-between items-center pb-2 border-b border-gray-100">
-                                    <h3 className="font-black text-black text-lg uppercase tracking-tight">{t('filters')}</h3>
+                    {/* Mobile Sidebar (Professional Drawer) */}
+                    {showFilters && (
+                        <>
+                            {/* Backdrop */}
+                            <div
+                                className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998] transition-opacity duration-300 lg:hidden ${isMobileFilterOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                                onClick={() => setIsMobileFilterOpen(false)}
+                            />
+
+                            {/* Drawer */}
+                            <div
+                                className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-[9999] p-8 shadow-2xl transition-transform duration-500 lg:hidden max-h-[90vh] flex flex-col ${isMobileFilterOpen ? 'translate-y-0' : 'translate-y-full'}`}
+                            >
+                                {/* Drawer Header */}
+                                <div className="flex justify-between items-center mb-8 shrink-0">
+                                    <div>
+                                        <h3 className="font-black text-black text-xl uppercase tracking-tighter">
+                                            {t('shopFilters.filtersButton')}
+                                        </h3>
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
+                                            {totalProducts} {t('products')} {t('available')}
+                                        </p>
+                                    </div>
                                     <button
                                         onClick={() => setIsMobileFilterOpen(false)}
-                                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                        className="p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-all active:scale-90"
                                     >
-                                        <ChevronDown className="h-6 w-6 text-gray-400" />
+                                        <X className="h-6 w-6 text-black" />
                                     </button>
                                 </div>
 
-                                {/* Mobile Category Selection */}
-                                <div className="space-y-2">
-                                    <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
-                                        {t('shopFilters.category')}
-                                    </label>
-                                    <select
-                                        value={activeFilters.categories[0] || ''}
-                                        onChange={(e) => handleSelectFilter('categories', e.target.value)}
-                                        dir={isRTL ? 'rtl' : 'ltr'}
-                                        className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
-                                    >
-                                        <option value="">{t('shopFilters.allCategories')}</option>
-                                        {Object.keys(filterOptions?.categories || {}).map(cat => {
-                                            const catName = typeof cat === 'string' ? cat : (cat?.name || String(cat));
-                                            return <option key={catName} value={catName}>{catName}</option>;
-                                        })}
-                                    </select>
-                                </div>
+                                {/* Drawer Content (Scrollable) */}
+                                <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-8 pb-32">
+                                    {/* All filter options same as desktop but styled for mobile touch targets */}
+                                    <div className="space-y-6">
+                                        {/* Repeat same filter logic as sidebar but with mobile-optimized spacing */}
+                                        {/* Category Selection */}
+                                        <div className="space-y-3">
+                                            <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
+                                                {t('shopFilters.category')}
+                                            </label>
+                                            <select
+                                                value={activeFilters.categories[0] || ''}
+                                                onChange={(e) => handleSelectFilter('categories', e.target.value)}
+                                                dir={isRTL ? 'rtl' : 'ltr'}
+                                                className={`w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl text-base font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:22px_22px] bg-no-repeat ${isRTL ? 'bg-[left_1.25rem_center] text-right' : 'bg-[right_1.25rem_center] text-left'}`}
+                                            >
+                                                <option value="">{t('shopFilters.allCategories')}</option>
+                                                {Object.keys(filterOptions?.categories || {}).map(cat => {
+                                                    const catName = typeof cat === 'string' ? cat : (cat?.name || String(cat));
+                                                    return <option key={catName} value={catName}>{catName}</option>;
+                                                })}
+                                            </select>
+                                        </div>
 
-                                {/* Mobile Subcategory Selection */}
-                                {activeFilters.categories.length > 0 && filterOptions.categories[activeFilters.categories[0]]?.length > 0 && (
-                                    <div className="space-y-2 animate-in slide-in-from-top duration-300">
-                                        <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
-                                            {t('shopFilters.subcategory')}
-                                        </label>
-                                        <select
-                                            value={activeFilters.subcategory[0] || ''}
-                                            onChange={(e) => handleSelectFilter('subcategory', e.target.value)}
-                                            dir={isRTL ? 'rtl' : 'ltr'}
-                                            className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
-                                        >
-                                            <option value="">{t('shopFilters.allSubcategories') || 'كل الفئات الفرعية'}</option>
-                                            {(filterOptions?.categories?.[activeFilters.categories[0]] || []).map(sub => {
-                                                const subName = typeof sub === 'string' ? sub : (sub?.name || String(sub));
-                                                return <option key={subName} value={subName}>{subName}</option>;
-                                            })}
-                                        </select>
+                                        {/* Subcategory */}
+                                        {activeFilters.categories.length > 0 && filterOptions.categories[activeFilters.categories[0]]?.length > 0 && (
+                                            <div className="space-y-4 pt-4 border-t border-gray-100">
+                                                <label className={`text-[10px] font-black text-black uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
+                                                    {t('shopFilters.subcategory')}
+                                                </label>
+                                                <div className="grid grid-cols-1 gap-3">
+                                                    {(filterOptions?.categories?.[activeFilters.categories[0]] || []).map(sub => {
+                                                        const subName = typeof sub === 'string' ? sub : (sub?.name || String(sub));
+                                                        return (
+                                                            <button
+                                                                key={subName}
+                                                                onClick={() => toggleFilter('subcategory', subName)}
+                                                                className={`flex items-center justify-between p-4 rounded-2xl transition-all border-2 ${activeFilters.subcategory.includes(subName) ? 'bg-[#28B463]/5 border-[#28B463] shadow-sm' : 'bg-gray-50 border-transparent hover:border-gray-200'}`}
+                                                            >
+                                                                <span className={`text-sm font-bold ${activeFilters.subcategory.includes(subName) ? 'text-black' : 'text-gray-500'}`}>
+                                                                    {subName}
+                                                                </span>
+                                                                {activeFilters.subcategory.includes(subName) && (
+                                                                    <div className="w-5 h-5 rounded-full bg-[#28B463] flex items-center justify-center">
+                                                                        <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                                                                    </div>
+                                                                )}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Car Filters Header */}
+                                        <div className="pt-6 border-t border-gray-100">
+                                            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
+                                                {t('carLabel')} & {t('technicalSpecs')}
+                                            </h4>
+                                            <div className="space-y-4">
+                                                {/* Make */}
+                                                <div className="space-y-2">
+                                                    <select
+                                                        value={activeFilters.makes[0] || ''}
+                                                        onChange={(e) => handleSelectFilter('makes', e.target.value)}
+                                                        dir={isRTL ? 'rtl' : 'ltr'}
+                                                        className={`w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl text-base font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:22px_22px] bg-no-repeat ${isRTL ? 'bg-[left_1.25rem_center] text-right' : 'bg-[right_1.25rem_center] text-left'}`}
+                                                    >
+                                                        <option value="">{t('shopFilters.allMakes')}</option>
+                                                        {Object.keys(filterOptions?.makes || {}).map(make => (
+                                                            <option key={make} value={make}>{make}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+
+                                                {/* Model */}
+                                                {activeFilters.makes.length > 0 && filterOptions.makes[activeFilters.makes[0]]?.length > 0 && (
+                                                    <div className="space-y-2 animate-in slide-in-from-top duration-200">
+                                                        <select
+                                                            value={activeFilters.models[0] || ''}
+                                                            onChange={(e) => handleSelectFilter('models', e.target.value)}
+                                                            dir={isRTL ? 'rtl' : 'ltr'}
+                                                            className={`w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl text-base font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:22px_22px] bg-no-repeat ${isRTL ? 'bg-[left_1.25rem_center] text-right' : 'bg-[right_1.25rem_center] text-left'}`}
+                                                        >
+                                                            <option value="">{t('shopFilters.allModels')}</option>
+                                                            {(filterOptions?.makes?.[activeFilters.makes[0]] || []).map(model => (
+                                                                <option key={model} value={model}>{model}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                )}
+
+                                                {/* Year */}
+                                                <div className="space-y-2">
+                                                    <select
+                                                        value={activeFilters.years[0] || ''}
+                                                        onChange={(e) => handleSelectFilter('years', e.target.value)}
+                                                        dir={isRTL ? 'rtl' : 'ltr'}
+                                                        className={`w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl text-base font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:22px_22px] bg-no-repeat ${isRTL ? 'bg-[left_1.25rem_center] text-right' : 'bg-[right_1.25rem_center] text-left'}`}
+                                                    >
+                                                        <option value="">{t('shopFilters.allYears')}</option>
+                                                        {filterOptions.years.map(year => (
+                                                            <option key={year} value={year}>{year}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Additional Metadata Header */}
+                                        <div className="pt-6 border-t border-gray-100">
+                                            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
+                                                {t('brand')} & {t('originLabel')}
+                                            </h4>
+                                            <div className="space-y-4">
+                                                {/* Origin */}
+                                                <div className="space-y-2">
+                                                    <select
+                                                        value={activeFilters.origins[0] || ''}
+                                                        onChange={(e) => handleSelectFilter('origins', e.target.value)}
+                                                        dir={isRTL ? 'rtl' : 'ltr'}
+                                                        className={`w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl text-base font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:22px_22px] bg-no-repeat ${isRTL ? 'bg-[left_1.25rem_center] text-right' : 'bg-[right_1.25rem_center] text-left'}`}
+                                                    >
+                                                        <option value="">{t('shopFilters.allOrigins')}</option>
+                                                        {filterOptions.origins.map(origin => (
+                                                            <option key={origin} value={origin}>{origin}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+
+                                                {/* Brand */}
+                                                <div className="space-y-2">
+                                                    <select
+                                                        value={activeFilters.brands[0] || ''}
+                                                        onChange={(e) => handleSelectFilter('brands', e.target.value)}
+                                                        dir={isRTL ? 'rtl' : 'ltr'}
+                                                        className={`w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl text-base font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:22px_22px] bg-no-repeat ${isRTL ? 'bg-[left_1.25rem_center] text-right' : 'bg-[right_1.25rem_center] text-left'}`}
+                                                    >
+                                                        <option value="">{t('shopFilters.allBrands')}</option>
+                                                        {filterOptions.brands.map(brand => (
+                                                            <option key={brand} value={brand}>{brand}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                )}
-
-                                {/* Mobile Make Selection */}
-                                <div className="space-y-2">
-                                    <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
-                                        {t('shopFilters.make')}
-                                    </label>
-                                    <select
-                                        value={activeFilters.makes[0] || ''}
-                                        onChange={(e) => handleSelectFilter('makes', e.target.value)}
-                                        dir={isRTL ? 'rtl' : 'ltr'}
-                                        className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
-                                    >
-                                        <option value="">{t('shopFilters.allMakes')}</option>
-                                        {Object.keys(filterOptions?.makes || {}).map(make => (
-                                            <option key={make} value={make}>{make}</option>
-                                        ))}
-                                    </select>
                                 </div>
 
-                                {/* Mobile Model Selection */}
-                                {activeFilters.makes.length > 0 && (filterOptions?.makes?.[activeFilters.makes[0]] || []).length > 0 && (
-                                    <div className="space-y-2 animate-in slide-in-from-top duration-300">
-                                        <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
-                                            {t('shopFilters.model')}
-                                        </label>
-                                        <select
-                                            value={activeFilters.models[0] || ''}
-                                            onChange={(e) => handleSelectFilter('models', e.target.value)}
-                                            dir={isRTL ? 'rtl' : 'ltr'}
-                                            className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
+                                {/* Drawer Footer (Fixed) */}
+                                <div className="absolute bottom-0 left-0 right-0 p-8 pt-4 bg-gradient-to-t from-white via-white to-white/0 shrink-0">
+                                    <div className="flex gap-4">
+                                        <button
+                                            onClick={handleResetFilters}
+                                            className="flex-1 py-5 text-center text-[#1A1A1A] text-xs font-black uppercase tracking-widest border-2 border-gray-100 rounded-2xl hover:bg-gray-50 transition-all active:scale-95"
                                         >
-                                            <option value="">{t('shopFilters.allModels')}</option>
-                                            {(filterOptions?.makes?.[activeFilters.makes[0]] || []).map(model => (
-                                                <option key={model} value={model}>{model}</option>
-                                            ))}
-                                        </select>
+                                            {t('resetAll')}
+                                        </button>
+                                        <button
+                                            onClick={() => setIsMobileFilterOpen(false)}
+                                            className="flex-1 py-5 text-center bg-[#28B463] text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-[#28B463]/20 transition-all active:scale-95"
+                                        >
+                                            {t('applyFilters')}
+                                        </button>
                                     </div>
-                                )}
-
-                                {/* Mobile Year Selection */}
-                                <div className="space-y-2">
-                                    <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
-                                        {t('shopFilters.year')}
-                                    </label>
-                                    <select
-                                        value={activeFilters.years[0] || ''}
-                                        onChange={(e) => handleSelectFilter('years', e.target.value)}
-                                        dir={isRTL ? 'rtl' : 'ltr'}
-                                        className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
-                                    >
-                                        <option value="">{t('shopFilters.allYears')}</option>
-                                        {Array.isArray(filterOptions?.years) && filterOptions.years.map(year => (
-                                            <option key={year} value={year}>{year}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                {/* Mobile Origin Selection */}
-                                <div className="space-y-2">
-                                    <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
-                                        {t('shopFilters.origin')}
-                                    </label>
-                                    <select
-                                        value={activeFilters.origins[0] || ''}
-                                        onChange={(e) => handleSelectFilter('origins', e.target.value)}
-                                        dir={isRTL ? 'rtl' : 'ltr'}
-                                        className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
-                                    >
-                                        <option value="">{t('shopFilters.allOrigins')}</option>
-                                        {Array.isArray(filterOptions?.origins) && filterOptions.origins.map(origin => (
-                                            <option key={origin} value={origin}>{origin}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                {/* Mobile Brand Selection */}
-                                <div className="space-y-2">
-                                    <label className={`text-[10px] font-black text-gray-400 uppercase tracking-widest block ${isRTL ? 'text-right' : ''}`}>
-                                        {t('shopFilters.brand')}
-                                    </label>
-                                    <select
-                                        value={activeFilters.brands[0] || ''}
-                                        onChange={(e) => handleSelectFilter('brands', e.target.value)}
-                                        dir={isRTL ? 'rtl' : 'ltr'}
-                                        className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:20px_20px] bg-no-repeat ${isRTL ? 'bg-[left_1rem_center] text-right' : 'bg-[right_1rem_center] text-left'}`}
-                                    >
-                                        <option value="">{t('shopFilters.allBrands')}</option>
-                                        {Array.isArray(filterOptions?.brands) && filterOptions.brands.map(brand => (
-                                            <option key={brand} value={brand}>{brand}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="pt-6 border-t border-gray-100 flex gap-4">
-                                    <button
-                                        onClick={handleResetFilters}
-                                        className="flex-1 py-4 text-center text-[#1A1A1A] text-[10px] font-black uppercase tracking-widest border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
-                                    >
-                                        {t('resetAll')}
-                                    </button>
-                                    <button
-                                        onClick={() => setIsMobileFilterOpen(false)}
-                                        className="flex-1 py-4 text-center bg-[#28B463] text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-[#28B463]/20"
-                                    >
-                                        {t('applyFilters')}
-                                    </button>
                                 </div>
                             </div>
-                        </div>
+                        </>
                     )}
 
 
@@ -812,7 +879,13 @@ const ProductGrid = ({ showFilters = true }) => {
                             </div>
                         )}
 
-                        {products.length === 0 ? (
+                        {isFiltering ? (
+                            <div className={`grid grid-cols-2 ${showFilters ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'} gap-4 sm:gap-6`}>
+                                {[...Array(PAGE_SIZE)].map((_, i) => (
+                                    <SkeletonProductCard key={i} isCompact={!showFilters} />
+                                ))}
+                            </div>
+                        ) : products.length === 0 ? (
                             <div className="text-center py-16 bg-white rounded-lg border border-dashed border-gray-300">
                                 <FilterX className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                                 <p className="text-xl font-medium text-gray-900">{t('noProducts')}</p>
@@ -827,7 +900,7 @@ const ProductGrid = ({ showFilters = true }) => {
                         ) : (
                             <div className={`grid grid-cols-2 ${showFilters ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'} gap-4 sm:gap-6`}>
                                 {products.map((product) => (
-                                    <ProductCard key={product.id} product={product} />
+                                    <ProductCard key={product.id} product={product} isCompact={!showFilters} />
                                 ))}
                             </div>
                         )}

@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 import { Download, Upload, FileSpreadsheet, Loader2, TrendingUp } from 'lucide-react';
 import { parseYearRange } from '../../utils/productUtils';
 
-const BulkOperations = () => {
+const BulkOperations = ({ onSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [importStatus, setImportStatus] = useState('');
 
@@ -138,13 +138,19 @@ const BulkOperations = () => {
                 setImportStatus(`Importing ${jsonData.length} products...`);
 
                 const batchSize = 500;
+                let successCount = 0;
+                let errorCount = 0;
+
                 for (let i = 0; i < jsonData.length; i += batchSize) {
                     const batch = writeBatch(db);
                     const chunk = jsonData.slice(i, i + batchSize);
 
                     chunk.forEach((row) => {
                         // Minimal row validation: skip if no name provided for new products
-                        if (!row.productID && !row.name) return;
+                        if (!row.productID && !row.name) {
+                            errorCount++;
+                            return;
+                        }
 
                         let docRef;
                         let isUpdate = false;
@@ -221,24 +227,42 @@ const BulkOperations = () => {
 
                             batch.set(docRef, dataToUpdate);
                         }
+                        successCount++;
                     });
 
                     await batch.commit();
+                    setImportStatus(`Processed ${Math.min(i + batchSize, jsonData.length)} / ${jsonData.length} products...`);
                 }
 
-                toast.success(`Successfully processed ${jsonData.length} products`);
                 setImportStatus('');
-                // Refreshing the page to see changes
-                window.location.reload();
+                toast.success(`Successfully imported ${successCount} products! ${errorCount > 0 ? `(${errorCount} skipped)` : ''} Refresh the page to see changes.`, {
+                    duration: 5000
+                });
+
+                // Reset file input
+                e.target.value = '';
+
+                // Ask user if they want to refresh
+                if (onSuccess) {
+                    onSuccess();
+                }
             } catch (error) {
                 console.error("Import error details:", error);
 
                 // Specific error message for missing documents during batch.update
                 if (error.code === 'not-found' || error.message?.includes('no document to update')) {
                     toast.error("Import failed: One or more Product IDs were not found in the database.");
+                } else if (error.code === 'permission-denied') {
+                    toast.error("Import failed: Permission denied. Please check your admin access.");
+                } else if (error.code === 'resource-exhausted') {
+                    toast.error("Import failed: Firebase quota exceeded. Please try again later.");
                 } else {
-                    toast.error("Import failed. Check file format or console for details.");
+                    toast.error(`Import failed: ${error.message || 'Unknown error'}. Check console for details.`);
                 }
+
+                setImportStatus('');
+                // Reset file input on error
+                e.target.value = '';
             } finally {
                 setLoading(false);
             }
@@ -255,6 +279,7 @@ const BulkOperations = () => {
                 </div>
 
                 <button
+                    type="button"
                     onClick={downloadTemplate}
                     className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-bold transition-colors"
                 >
@@ -263,6 +288,7 @@ const BulkOperations = () => {
                 </button>
 
                 <button
+                    type="button"
                     onClick={exportProducts}
                     disabled={loading}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
@@ -272,6 +298,7 @@ const BulkOperations = () => {
                 </button>
 
                 <button
+                    type="button"
                     onClick={async () => {
                         const confirmBackup = window.confirm('Generate full local backup JSON? This is free and saves your current view for offline use.');
                         if (!confirmBackup) return;

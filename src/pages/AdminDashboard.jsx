@@ -36,6 +36,7 @@ const AdminDashboard = () => {
     const [recentOrders, setRecentOrders] = useState([]);
 
     useEffect(() => {
+        console.log('Admin Route Loaded: Dashboard');
         fetchDashboardData();
     }, []);
 

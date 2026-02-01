@@ -303,8 +303,14 @@ const resources = {
                 "allOrigins": "Select Origin...",
                 "allBrands": "Select Brand...",
                 "forYou": "Personalized for You",
-                "garageOffersTitle": "Tailored for Your Vehicle",
-                "garageMatchBadge": "Matches Your Car"
+                "filtersButton": "Categories & Filters",
+                "garageOffersTitle": "Tailored for Your Vehicle"
+            },
+            "garageInfo": {
+                "title": "Your Private Garage",
+                "description": "Register your vehicle to get exactly matching parts and oils for your specific model. Enjoy a personalized maintenance experience guaranteed for your car.",
+                "action": "Sign In to My Garage",
+                "close": "Maybe Later"
             }
         }
     },
@@ -610,8 +616,14 @@ const resources = {
                 "allOrigins": "اختر بلد المنشأ...",
                 "allBrands": "اختر ماركة القطعة...",
                 "forYou": "خصيصاً لك",
-                "garageOffersTitle": "عروض مخصصة لسيارتك",
-                "garageMatchBadge": "متوافق مع سيارتك"
+                "filtersButton": "الأقسام و التصنيفات",
+                "garageOffersTitle": "عروض مخصصة لسيارتك"
+            },
+            "garageInfo": {
+                "title": "جراجك الخاص",
+                "description": "سجل بيانات عربيتك عشان نوفرلك قطع الغيار والزيوت المطابقة ليها بالظبط. استمتع بتجربة صيانة مخصصة ومضمونة لعربيتك.",
+                "action": "تسجيل دخول لـ جراجي",
+                "close": "ربما لاحقاً"
             }
         }
     }

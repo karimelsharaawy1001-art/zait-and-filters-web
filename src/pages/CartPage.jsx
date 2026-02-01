@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useSafeNavigation } from '../utils/safeNavigation';
 import { useCart } from '../context/CartContext';
 import { useTranslation } from 'react-i18next';
 import { db } from '../firebase';
@@ -11,7 +12,7 @@ import SEO from '../components/SEO';
 
 const CartPage = () => {
     const { cartItems, setCartItems, updateQuantity, removeFromCart, getCartTotal } = useCart();
-    const [searchParams] = useSearchParams();
+    const { searchParams } = useSafeNavigation();
     const { t, i18n } = useTranslation();
     const isAr = i18n.language === 'ar';
 

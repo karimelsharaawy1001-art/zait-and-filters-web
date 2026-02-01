@@ -221,16 +221,16 @@ const EditProduct = () => {
                     <div className="mb-6">
                         <button
                             onClick={() => navigate('/admin/products')}
-                            className="flex items-center text-gray-500 hover:text-white font-bold transition-colors uppercase tracking-widest text-[10px]"
+                            className="flex items-center text-gray-400 hover:text-black font-bold transition-colors uppercase tracking-widest text-[10px]"
                         >
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Back to Management
                         </button>
                     </div>
 
-                    <div className="bg-admin-card shadow-admin rounded-3xl p-8 max-w-2xl mx-auto border border-admin-border">
+                    <div className="bg-white shadow-admin rounded-3xl p-8 max-w-2xl mx-auto border border-admin-border">
                         <div className="flex items-center justify-between mb-8">
-                            <h2 className="text-xl font-black text-white uppercase tracking-widest poppins">Edit Product</h2>
+                            <h2 className="text-xl font-black text-black uppercase tracking-widest poppins">Edit Product</h2>
                             <div className="flex items-center">
                                 <label className="inline-flex items-center cursor-pointer group">
                                     <input
@@ -261,7 +261,7 @@ const EditProduct = () => {
                                         value={formData.name}
                                         onChange={handleChange}
                                         placeholder="اسم المنتج بالعربي"
-                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-admin-border rounded-xl text-black placeholder-gray-400 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm"
                                     />
                                 </div>
                                 <div className="col-span-1">
@@ -367,7 +367,7 @@ const EditProduct = () => {
                                         name="make"
                                         value={formData.make}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg cursor-pointer"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-admin-border rounded-xl text-black focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm cursor-pointer"
                                     >
                                         <option value="" className="bg-admin-card">Select Make (Optional)</option>
                                         {carMakes.map(make => (
@@ -401,7 +401,7 @@ const EditProduct = () => {
                                         disabled
                                         placeholder="Calculated automatically..."
                                         value={formData.yearRange}
-                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg opacity-50 cursor-not-allowed"
+                                        className="w-full px-4 py-3 bg-gray-100 border border-admin-border rounded-xl text-gray-500 placeholder-gray-400 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm opacity-50 cursor-not-allowed"
                                     />
                                 </div>
                                 <div className="col-span-1">
@@ -436,7 +436,7 @@ const EditProduct = () => {
                                         required
                                         value={formData.category}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg cursor-pointer"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-admin-border rounded-xl text-black focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm cursor-pointer"
                                     >
                                         <option value="" className="bg-admin-card">Select Category</option>
                                         {categories.map(cat => (
@@ -451,7 +451,7 @@ const EditProduct = () => {
                                         required
                                         value={formData.subcategory || ''}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg cursor-pointer"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-admin-border rounded-xl text-black focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm cursor-pointer"
                                     >
                                         <option value="" className="bg-admin-card">Select Subcategory</option>
                                         {subCategories.map((sub, idx) => {
@@ -477,11 +477,11 @@ const EditProduct = () => {
                                 <input type="hidden" name="image" value={formData.image} required />
                             </div>
 
-                            <div className="flex justify-end gap-3 pt-6 border-t border-[#ffffff0d]">
+                            <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
                                 <button
                                     type="button"
                                     onClick={() => navigate('/admin/products')}
-                                    className="px-6 py-3 text-[10px] font-black text-admin-text-secondary uppercase tracking-widest hover:text-white transition-all"
+                                    className="px-6 py-3 text-[10px] font-black text-admin-text-secondary uppercase tracking-widest hover:text-black transition-all"
                                 >
                                     Cancel
                                 </button>

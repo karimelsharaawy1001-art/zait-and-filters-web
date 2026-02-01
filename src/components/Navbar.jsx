@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import { Search, ShoppingCart, User, Menu, X, Package, Users, Car, Settings, LogOut, Droplets, BookOpen, Home, ShoppingBag, UserCircle2 } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, X, Package, Users, Car, Settings, LogOut, Droplets, BookOpen, Home, ShoppingBag, UserCircle2, Rocket, Megaphone } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useFilters } from '../context/FilterContext';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useSafeNavigation } from '../utils/safeNavigation';
 import { useSettings } from '../context/SettingsContext';
 import { auth, db } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { collection, query, where, getDocs, limit as firestoreLimit, orderBy } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
 import { normalizeArabic, getSearchableText } from '../utils/productUtils';
+import GarageInfoModal from './GarageInfoModal';
 
 const GarageActiveBar = ({ activeCar, onDeactivate, isRTL }) => {
     if (!activeCar) return null;
@@ -59,11 +61,12 @@ const Navbar = () => {
     const { t, i18n } = useTranslation();
     const isRTL = i18n.language === 'ar';
     const cartCount = getCartCount();
-    const navigate = useNavigate();
+    const { navigate } = useSafeNavigation();
     const location = useLocation();
 
     const [suggestions, setSuggestions] = useState([]);
     const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
+    const [showGarageInfo, setShowGarageInfo] = useState(false);
 
     const handleSearchChange = (e) => {
         const queryVal = e.target.value;
@@ -85,8 +88,10 @@ const Navbar = () => {
     const fetchSuggestions = async (searchTerm) => {
         setIsSuggestionsLoading(true);
         try {
-            // Firestore prefix search is too limited. 
-            // We fetch a larger batch and filter client-side for better results.
+            // Guard against race conditions: check if query still matches current input
+            const currentQuery = normalizeArabic(filters.searchQuery);
+            if (currentQuery !== normalizeArabic(searchTerm)) return;
+
             const queryVal = normalizeArabic(searchTerm);
             const searchKeywords = queryVal.split(/\s+/).filter(Boolean);
 
@@ -115,6 +120,9 @@ const Navbar = () => {
                 return searchKeywords.every(keyword => searchTarget.includes(keyword));
             });
 
+            // Final guard before updating state
+            if (normalizeArabic(filters.searchQuery) !== normalizeArabic(searchTerm)) return;
+
             setSuggestions(filtered.slice(0, 5)); // Still only show top 5
         } catch (error) {
             console.error("Error fetching suggestions:", error);
@@ -126,6 +134,17 @@ const Navbar = () => {
     const handleSuggestionClick = (product) => {
         setSuggestions([]);
         navigate(`/product/${product.id}`);
+    };
+
+    const handleSearchKeyDown = (e) => {
+        if (e.key === 'Enter' && filters.searchQuery.trim().length > 0) {
+            setSuggestions([]);
+            // Blurring the input helps close mobile keyboards and prevents further fetch events
+            e.target.blur();
+            if (location.pathname !== '/shop') {
+                navigate('/shop');
+            }
+        }
     };
 
     const handleLogout = async () => {
@@ -141,8 +160,7 @@ const Navbar = () => {
 
     const handleGarageToggle = () => {
         if (!auth.currentUser) {
-            toast.error("Please login to use the Garage feature");
-            navigate('/login');
+            setShowGarageInfo(true);
             return;
         }
 
@@ -173,17 +191,8 @@ const Navbar = () => {
     const mobileIconClass = (path) => isActive(path) ? 'text-[#28B463]' : 'text-gray-400';
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-[100] transition-all duration-300">
-            {/* Global Garage Active Bar */}
-            {isGarageFilterActive && (
-                <GarageActiveBar
-                    activeCar={activeCar}
-                    onDeactivate={toggleGarageFilter}
-                    isRTL={isRTL}
-                />
-            )}
-
-            {/* Main Navbar */}
+        <header className="w-full transition-all duration-300">
+            {/* Main Navbar - py-4 = 16px top + 16px bottom = 32px padding, h-16 content = 64px, Total: ~96px on mobile */}
             <nav className="w-full bg-white/80 backdrop-blur-xl border-b border-gray-100/50 shadow-sm py-4">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Desktop Layout (Hidden on Mobile) */}
@@ -192,7 +201,13 @@ const Navbar = () => {
                         <div className="flex items-center gap-4 shrink-0">
                             <Link to="/" className="shrink-0">
                                 {settings.siteLogo && (
-                                    <img src={settings.siteLogo} alt={settings.siteName} className="h-10 w-auto object-contain" />
+                                    <img
+                                        src={settings.siteLogo}
+                                        alt={settings.siteName}
+                                        className="h-10 w-auto object-contain"
+                                        loading="eager"
+                                        fetchpriority="high"
+                                    />
                                 )}
                             </Link>
                             <Link to="/" className="flex flex-col justify-center">
@@ -221,8 +236,8 @@ const Navbar = () => {
                                     <BookOpen className="h-4 w-4 text-[#28B463]" />
                                     {t('blog')}
                                 </Link>
-                                <Link to="/marketers" className="text-[14px] !text-[#1A1A1A] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#28B463] whitespace-nowrap">
-                                    {t('nav.marketers')}
+                                <Link to="/marketers" title={t('nav.marketers')} className="text-[#1A1A1A] hover:text-[#28B463] transition-colors p-1">
+                                    <Megaphone className="h-5 w-5 stroke-[2px]" />
                                 </Link>
                             </div>
 
@@ -234,6 +249,7 @@ const Navbar = () => {
                                         placeholder={t('search')}
                                         value={filters.searchQuery}
                                         onChange={handleSearchChange}
+                                        onKeyDown={handleSearchKeyDown}
                                         onBlur={() => setTimeout(() => setSuggestions([]), 200)}
                                         className="w-full bg-white border-[1px] border-[#1A1A1A] rounded-lg py-1.5 pl-10 pr-4 focus:ring-2 focus:ring-[#28B463] transition-all text-[14px] font-bold font-Cairo text-black placeholder:text-gray-500"
                                     />
@@ -252,11 +268,13 @@ const Navbar = () => {
                                                 className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 border-b border-gray-50 last:border-0 text-left transition-colors"
                                             >
                                                 <div className="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-                                                    {p.imageUrl && <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />}
+                                                    {p.image && <img src={p.image} alt={p.name} className="w-full h-full object-cover" />}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm font-black text-black truncate">{p.name}</p>
-                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{p.partBrand} | {p.salePrice || p.price} EGP</p>
+                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                                                        {p.partBrand} {p.make ? `• ${p.make}` : ''} {p.model ? ` ${p.model}` : ''} | {p.salePrice || p.price} EGP
+                                                    </p>
                                                 </div>
                                             </button>
                                         ))}
@@ -315,11 +333,11 @@ const Navbar = () => {
                                 >
                                     {isOpen ? <X className="h-6 w-6 stroke-[3px]" /> : <Menu className="h-6 w-6 stroke-[3px]" />}
                                 </button>
-                                <Link to="/" className="flex flex-col justify-center">
-                                    <span className="font-black text-[24px] sm:text-3xl tracking-tighter uppercase italic leading-none font-Cairo whitespace-nowrap" >
+                                <Link to="/" className="flex flex-col justify-center max-w-[160px] xs:max-w-none">
+                                    <span className="font-black text-[18px] xs:text-[22px] sm:text-3xl tracking-tighter uppercase italic leading-none font-Cairo" >
                                         <span style={{ color: '#1A1A1A' }}>ZAIT</span> <span style={{ color: '#28B463' }}>& FILTERS</span>
                                     </span>
-                                    <p className="text-[7px] font-black text-[#000000] mt-0.5 tracking-widest uppercase font-Cairo">بضغطة زرار</p>
+                                    <p className="text-[6px] xs:text-[7px] font-black text-[#000000] mt-0.5 tracking-widest uppercase font-Cairo">قطع الغيار بضغطة زرار</p>
                                 </Link>
                             </div>
 
@@ -327,9 +345,10 @@ const Navbar = () => {
                             <div className="flex items-center gap-x-1.5 sm:gap-x-3">
                                 <Link
                                     to="/marketers"
-                                    className="text-[9px] sm:text-[11px] !text-[#000000] !font-bold uppercase font-Cairo px-1.5 py-1 whitespace-nowrap"
+                                    className="p-1.5 force-black active:bg-gray-100 rounded-full transition-colors shrink-0"
+                                    title={t('nav.marketers')}
                                 >
-                                    {t('nav.marketers')}
+                                    <Megaphone className="h-6 w-6 stroke-[3px]" />
                                 </Link>
                                 <button
                                     onClick={handleGarageToggle}
@@ -363,6 +382,7 @@ const Navbar = () => {
                                     placeholder={t('search')}
                                     value={filters.searchQuery}
                                     onChange={handleSearchChange}
+                                    onKeyDown={handleSearchKeyDown}
                                     onBlur={() => setTimeout(() => setSuggestions([]), 200)}
                                     className="w-full bg-white border-[1px] border-[#1A1A1A] rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-[#28B463] transition-all text-[14px] font-bold font-Cairo text-black placeholder:text-gray-500"
                                 />
@@ -381,11 +401,13 @@ const Navbar = () => {
                                             className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 border-b border-gray-50 last:border-0 text-left transition-colors"
                                         >
                                             <div className="w-12 h-12 bg-gray-100 rounded-xl flex-shrink-0 overflow-hidden">
-                                                {p.imageUrl && <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />}
+                                                {p.image && <img src={p.image} alt={p.name} className="w-full h-full object-cover" />}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-black text-black truncate">{p.name}</p>
-                                                <p className="text-[10px] text-gray-500 font-bold">{p.partBrand} • {p.salePrice || p.price} EGP</p>
+                                                <p className="text-[10px] text-gray-500 font-bold">
+                                                    {p.partBrand} {p.make ? `• ${p.make}` : ''} {p.model ? ` ${p.model}` : ''} • {p.salePrice || p.price} EGP
+                                                </p>
                                             </div>
                                         </button>
                                     ))}
@@ -440,7 +462,7 @@ const Navbar = () => {
                                 onClick={() => setIsOpen(false)}
                                 className={mobileNavLinkClass('/marketers')}
                             >
-                                <Users className={`h-5 w-5 ${mobileIconClass('/marketers')}`} />
+                                <Megaphone className={`h-5 w-5 ${mobileIconClass('/marketers')}`} />
                                 {t('nav.marketers')}
                             </Link>
 
@@ -488,6 +510,10 @@ const Navbar = () => {
                     </div>
                 )}
             </nav>
+            <GarageInfoModal
+                isOpen={showGarageInfo}
+                onClose={() => setShowGarageInfo(false)}
+            />
         </header >
     );
 };

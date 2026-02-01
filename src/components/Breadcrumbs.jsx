@@ -30,25 +30,42 @@ const Breadcrumbs = ({ extraSteps = [] }) => {
     ];
 
     // Build breadcrumbs based on paths
-    let currentPath = '';
-    pathnames.forEach((value, index) => {
-        currentPath += `/${value}`;
+    if (extraSteps.length === 0) {
+        let currentPath = '';
+        pathnames.forEach((value, index) => {
+            currentPath += `/${value}`;
 
-        // Skip some system paths or IDs if we're going to use extraSteps
-        const isLast = index === pathnames.length - 1;
-        const name = t(`nav.${value}`) || value.charAt(0).toUpperCase() + value.slice(1);
+            // Skip some system paths or IDs if we're going to use extraSteps
+            const isLast = index === pathnames.length - 1;
+            const name = t(`nav.${value}`) || value.charAt(0).toUpperCase() + value.slice(1);
 
+            breadcrumbs.push({
+                name,
+                path: currentPath,
+                label: name
+            });
+
+            breadcrumbList.push({
+                '@type': 'ListItem',
+                position: breadcrumbList.length + 1,
+                name: name,
+                item: `${window.location.origin}${currentPath}`
+            });
+        });
+    }
+    // Add extra steps if provided
+    extraSteps.forEach((step) => {
         breadcrumbs.push({
-            name,
-            path: currentPath,
-            label: name
+            name: step.name,
+            path: step.path,
+            label: step.name
         });
 
         breadcrumbList.push({
             '@type': 'ListItem',
             position: breadcrumbList.length + 1,
-            name: name,
-            item: `${window.location.origin}${currentPath}`
+            name: step.name,
+            item: `${window.location.origin}${step.path}`
         });
     });
 

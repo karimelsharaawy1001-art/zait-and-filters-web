@@ -1,135 +1,207 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { safeStorage } from './utils/storage';
-import { Toaster } from 'react-hot-toast';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation, Outlet, useSearchParams } from 'react-router-dom';
+import { safeLocalStorage } from './utils/safeStorage';
+import { Toaster, toast, resolveValue } from 'react-hot-toast';
+import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+// Header components (Non-lazy)
 import Navbar from './components/Navbar';
-import ScrollToTop from './components/ScrollToTop';
-import Hero from './components/Hero';
-import ProductGrid from './components/ProductGrid';
-import CartPage from './pages/CartPage';
-import AdminLogin from './pages/AdminLogin';
-import AdminDashboard from './pages/AdminDashboard';
-import Checkout from './pages/Checkout';
-import AdminOrders from './pages/AdminOrders';
-import ManageCategories from './pages/admin/ManageCategories';
-import AbandonedCarts from './pages/admin/AbandonedCarts';
-import ManageCars from './pages/admin/ManageCars';
-import AdminCarSpecs from './pages/admin/AdminCarSpecs';
-import ManageProducts from './pages/admin/ManageProducts';
-import EditProduct from './pages/admin/EditProduct';
-import EditCategory from './pages/admin/EditCategory';
-import EditCar from './pages/admin/EditCar';
-import OrderDetails from './pages/admin/OrderDetails';
-import ManageHero from './pages/admin/ManageHero';
-import ManageBrands from './pages/admin/ManageBrands';
-import ManagePayments from './pages/admin/ManagePayments';
-import ManageShipping from './pages/admin/ManageShipping';
-import ManagePromoCodes from './pages/admin/ManagePromoCodes';
-import PaymentManager from './pages/admin/PaymentManager';
-import ManageSettings from './pages/admin/ManageSettings';
-import ManageAffiliates from './pages/admin/ManageAffiliates';
-import AdminManagement from './pages/admin/AdminManagement';
-import AdminAffiliateDetails from './pages/admin/AdminAffiliateDetails';
-import ManagePolicies from './pages/admin/ManagePolicies';
-import Integrations from './pages/admin/Integrations';
-import GoogleSearchConsole from './pages/admin/GoogleSearchConsole';
-import FacebookPixel from './pages/admin/FacebookPixel';
-import GoogleAnalytics from './pages/admin/GoogleAnalytics';
-import Mailchimp from './pages/admin/Mailchimp';
-import GoogleMerchantCenter from './pages/admin/GoogleMerchantCenter';
-import FacebookInstagramShopping from './pages/admin/FacebookInstagramShopping';
-import InstallmentPartners from './pages/admin/InstallmentPartners';
-import CloudinarySettings from './pages/admin/CloudinarySettings';
-import SendGridSettings from './pages/admin/SendGridSettings';
-import ShopPage from './pages/ShopPage';
-import PolicyPage from './pages/PolicyPage';
 import Footer from './components/Footer';
-import AdminLayout from './components/AdminLayout';
-import AddProduct from './pages/admin/AddProduct';
-import AdminReviews from './pages/admin/AdminReviews';
-import AdminMessages from './pages/admin/AdminMessages';
-import ProductDetails from './pages/ProductDetails';
-import Home from './pages/Home';
-import OrderHistory from './pages/OrderHistory';
-import OrderSuccess from './pages/OrderSuccess';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import ContactUs from './pages/ContactUs';
-import AffiliateDashboard from './pages/AffiliateDashboard';
-import AffiliateRegister from './pages/AffiliateRegister';
-import Profile from './pages/Profile';
-import OilAdvisor from './pages/OilAdvisor';
-import RecoverCart from './pages/RecoverCart';
-import CategoryPage from './pages/CategoryPage';
-import BrandPage from './pages/BrandPage';
-import BlogListPage from './pages/BlogListPage';
-import BlogPostPage from './pages/BlogPostPage';
-import ManageBlog from './pages/admin/ManageBlog';
-import AddEditBlog from './pages/admin/AddEditBlog';
-import NotFound from './pages/NotFound';
+import GarageActiveIndicator from './components/GarageActiveIndicator';
+import ScrollToTop from './components/ScrollToTop';
+import { StaticDataProvider } from './context/StaticDataContext';
+import { SettingsProvider } from './context/SettingsContext';
+import ErrorBoundary from './components/ErrorBoundary';
+import PageLoader from './components/PageLoader';
 import ProtectedRoute from './components/ProtectedRoute';
 import UserProtectedRoute from './components/UserProtectedRoute';
 import AffiliateProtectedRoute from './components/AffiliateProtectedRoute';
-import { SettingsProvider } from './context/SettingsContext';
-import { Outlet, useSearchParams } from 'react-router-dom';
-import { useEffect } from 'react';
-import ErrorBoundary from './components/ErrorBoundary';
+
+// Lazy Load Layouts
+const AdminLayout = React.lazy(() => import('./components/AdminLayout'));
+
+// Lazy Load Public Pages
+const Home = React.lazy(() => import('./pages/Home'));
+const ShopPage = React.lazy(() => import('./pages/ShopPage'));
+const CategoryPage = React.lazy(() => import('./pages/CategoryPage'));
+const BrandPage = React.lazy(() => import('./pages/BrandPage'));
+const ProductDetails = React.lazy(() => import('./pages/ProductDetails'));
+const CartPage = React.lazy(() => import('./pages/CartPage'));
+const Checkout = React.lazy(() => import('./pages/Checkout'));
+const ContactUs = React.lazy(() => import('./pages/ContactUs'));
+const PolicyPage = React.lazy(() => import('./pages/PolicyPage'));
+const OrderHistory = React.lazy(() => import('./pages/OrderHistory'));
+const OilAdvisor = React.lazy(() => import('./pages/OilAdvisor'));
+const OrderSuccess = React.lazy(() => import('./pages/OrderSuccess'));
+const RecoverCart = React.lazy(() => import('./pages/RecoverCart'));
+const BlogListPage = React.lazy(() => import('./pages/BlogListPage'));
+const BlogPostPage = React.lazy(() => import('./pages/BlogPostPage'));
+const Login = React.lazy(() => import('./pages/Login'));
+const Signup = React.lazy(() => import('./pages/Signup'));
+const Profile = React.lazy(() => import('./pages/Profile'));
+const AffiliateDashboard = React.lazy(() => import('./pages/AffiliateDashboard'));
+const AffiliateRegister = React.lazy(() => import('./pages/AffiliateRegister'));
+const NotFound = React.lazy(() => import('./pages/NotFound'));
+
+// Lazy Load Admin Pages
+const AdminLogin = React.lazy(() => import('./pages/AdminLogin'));
+const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard'));
+const AdminOrders = React.lazy(() => import('./pages/AdminOrders'));
+const ManageCategories = React.lazy(() => import('./pages/admin/ManageCategories'));
+const AbandonedCarts = React.lazy(() => import('./pages/admin/AbandonedCarts'));
+const ManageCars = React.lazy(() => import('./pages/admin/ManageCars'));
+const AdminCarSpecs = React.lazy(() => import('./pages/admin/AdminCarSpecs'));
+const ManageProducts = React.lazy(() => import('./pages/admin/ManageProducts'));
+const AddProduct = React.lazy(() => import('./pages/admin/AddProduct'));
+const EditProduct = React.lazy(() => import('./pages/admin/EditProduct'));
+const EditCategory = React.lazy(() => import('./pages/admin/EditCategory'));
+const EditCar = React.lazy(() => import('./pages/admin/EditCar'));
+const OrderDetails = React.lazy(() => import('./pages/admin/OrderDetails'));
+const ManageHero = React.lazy(() => import('./pages/admin/ManageHero'));
+const ManageBrands = React.lazy(() => import('./pages/admin/ManageBrands'));
+const PaymentMethods = React.lazy(() => import('./pages/admin/PaymentMethods'));
+const ManageShipping = React.lazy(() => import('./pages/admin/ManageShipping'));
+const ManagePromoCodes = React.lazy(() => import('./pages/admin/ManagePromoCodes'));
+const PaymentManager = React.lazy(() => import('./pages/admin/PaymentManager'));
+const ManageSettings = React.lazy(() => import('./pages/admin/ManageSettings'));
+const ManageAffiliates = React.lazy(() => import('./pages/admin/ManageAffiliates'));
+const AdminManagement = React.lazy(() => import('./pages/admin/AdminManagement'));
+const AdminAffiliateDetails = React.lazy(() => import('./pages/admin/AdminAffiliateDetails'));
+const ManagePolicies = React.lazy(() => import('./pages/admin/ManagePolicies'));
+const AdminReviews = React.lazy(() => import('./pages/admin/AdminReviews'));
+const AdminMessages = React.lazy(() => import('./pages/admin/AdminMessages'));
+const ManageBlog = React.lazy(() => import('./pages/admin/ManageBlog'));
+const AddEditBlog = React.lazy(() => import('./pages/admin/AddEditBlog'));
+
+// Lazy Load Integration Pages
+const Integrations = React.lazy(() => import('./pages/admin/Integrations'));
+const GoogleSearchConsole = React.lazy(() => import('./pages/admin/GoogleSearchConsole'));
+const FacebookPixel = React.lazy(() => import('./pages/admin/FacebookPixel'));
+const GoogleAnalytics = React.lazy(() => import('./pages/admin/GoogleAnalytics'));
+const Mailchimp = React.lazy(() => import('./pages/admin/Mailchimp'));
+const GoogleMerchantCenter = React.lazy(() => import('./pages/admin/GoogleMerchantCenter'));
+const FacebookInstagramShopping = React.lazy(() => import('./pages/admin/FacebookInstagramShopping'));
+const InstallmentPartners = React.lazy(() => import('./pages/admin/InstallmentPartners'));
+const CloudinarySettings = React.lazy(() => import('./pages/admin/CloudinarySettings'));
+const SendGridSettings = React.lazy(() => import('./pages/admin/SendGridSettings'));
+
+const SafeModeUI = ({ error }) => (
+  <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4 text-center">
+    <h1 className="text-2xl font-black text-red-600 mb-4">SAFE MODE ACTIVE</h1>
+    <p className="text-gray-600 mb-6 max-w-md">
+      We've detected a browser security restriction. The app is running in restricted mode to protect your data.
+    </p>
+    <button
+      onClick={() => window.location.reload()}
+      className="bg-[#28B463] text-white px-8 py-3 rounded-lg font-bold"
+    >
+      Retry Connection
+    </button>
+  </div>
+);
 
 const PublicLayout = () => {
   const { i18n } = useTranslation();
-  return (
-    <div className={`min-h-screen bg-gray-50 flex flex-col font-sans ${i18n.language === 'ar' ? 'font-arabic rtl' : 'ltr'}`} dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#fff',
-            color: '#000',
-            fontWeight: '600',
-            borderRadius: '16px',
-            padding: '12px 24px',
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-          },
-          success: {
-            iconTheme: {
-              primary: '#10B981',
-              secondary: '#fff',
+  const location = useLocation();
+
+  try {
+    return (
+      <div className={`min-h-screen bg-gray-50 flex flex-col font-sans ${i18n.language === 'ar' ? 'font-arabic rtl' : 'ltr'}`} dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
+        <Toaster
+          position="top-center"
+          reverseOrder={false}
+          toastOptions={{
+            duration: 5000,
+            style: {
+              background: '#fff',
+              color: '#000',
+              fontWeight: '600',
+              borderRadius: '16px',
+              padding: '12px 24px',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
             },
-          },
-          error: {
-            iconTheme: {
-              primary: '#EF4444',
-              secondary: '#fff',
-            },
-          },
-        }}
-      />
-      <Navbar />
-      <main className="flex-1 pt-32 md:pt-20">
-        <Outlet />
-      </main>
-      <Footer />
-    </div>
-  );
+          }}
+          containerStyle={{
+            top: 20,
+          }}
+        >
+          {(t) => (
+            <div
+              onClick={() => toast.dismiss(t.id)}
+              className="cursor-pointer transition-all hover:scale-105 active:scale-95"
+            >
+              <div className="flex items-center gap-3">
+                {t.type === 'loading' ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#28B463] border-t-transparent" />
+                ) : t.icon ? (
+                  t.icon
+                ) : (
+                  <div className={`h-2 w-2 rounded-full ${t.type === 'success' ? 'bg-[#28B463]' : t.type === 'error' ? 'bg-[#EF4444]' : 'bg-gray-400'}`} />
+                )}
+                <div className="text-sm font-Cairo">
+                  {resolveValue(t.message, t)}
+                </div>
+                {/* Visual close indicator */}
+                <div className="ml-2 text-gray-300 hover:text-gray-600 transition-colors">
+                  <X className="h-4 w-4 stroke-[3px]" />
+                </div>
+              </div>
+            </div>
+          )}
+        </Toaster>
+        <div className="sticky top-0 z-[110] w-full bg-white shadow-sm">
+          <Navbar />
+          <GarageActiveIndicator />
+        </div>
+        <main key={location.pathname} className="flex-1 w-full overflow-x-hidden">
+          <Outlet />
+        </main>
+        <Footer />
+      </div>
+    );
+  } catch (error) {
+    console.error("Critical Render Error:", error);
+    return <SafeModeUI error={error} />;
+  }
 };
 
 const ReferralTracker = () => {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    const ref = searchParams.get('ref');
-    if (ref) {
-      console.log("Referral Code Detected:", ref);
-      safeStorage.setItem('affiliate_ref', ref);
+    try {
+      const ref = searchParams.get('ref');
+      if (ref) {
+        console.log("Referral Code Detected:", ref);
+        safeLocalStorage.setItem('affiliate_ref', ref);
+      }
+    } catch (e) {
+      console.warn("Referral tracking failed in restricted environment");
     }
   }, [searchParams]);
 
   return null;
 };
 
-import { StaticDataProvider } from './context/StaticDataContext';
+// Initialize Global Safety Flag
+if (typeof window !== 'undefined') {
+  window.isPureStateMode = false;
+
+  // Global Listener for SecurityErrors (The Final Shield)
+  window.addEventListener('error', (event) => {
+    if (event.error?.name === 'SecurityError' || event.message?.includes('SecurityError')) {
+      console.warn('⚠️ PROACTIVE SECURITY SHIELD: High-restriction environment detected. Activating Pure State Mode.');
+      window.isPureStateMode = true;
+    }
+  });
+
+  window.addEventListener('unhandledrejection', (event) => {
+    if (event.reason?.name === 'SecurityError' || event.reason?.message?.includes('SecurityError')) {
+      console.warn('⚠️ PROACTIVE SECURITY SHIELD: Async Security Error detected. Activating Pure State Mode.');
+      window.isPureStateMode = true;
+    }
+  });
+}
 
 function App() {
   return (
@@ -138,134 +210,108 @@ function App() {
       <ScrollToTop />
       <StaticDataProvider>
         <SettingsProvider>
-          <Toaster
-            position="top-center"
-            toastOptions={{
-              duration: 3000,
-              style: {
-                background: '#fff',
-                color: '#000',
-                fontWeight: '600',
-                borderRadius: '16px',
-                padding: '12px 24px',
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-              },
-              success: {
-                iconTheme: {
-                  primary: '#10B981',
-                  secondary: '#fff',
-                },
-              },
-              error: {
-                iconTheme: {
-                  primary: '#EF4444',
-                  secondary: '#fff',
-                },
-              },
-            }}
-          />
           <ErrorBoundary>
-            <Routes>
-              {/* Public Routes */}
-              <Route element={<PublicLayout />}>
-                <Route path="/" element={<Home />} />
-                <Route path="/shop" element={<ShopPage />} />
-                <Route path="/category/:id" element={<CategoryPage />} />
-                <Route path="/brand/:brandName" element={<BrandPage />} />
-                <Route path="/product/:id" element={<ProductDetails />} />
-                <Route path="/cart" element={<CartPage />} />
-                <Route path="/contact" element={<ContactUs />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/returns" element={<PolicyPage pageId="returns-policy" />} />
-                <Route path="/shipping" element={<PolicyPage pageId="shipping-info" />} />
-                <Route path="/my-orders" element={<OrderHistory />} />
-                <Route path="/oil-advisor" element={<OilAdvisor />} />
-                <Route path="/order-success" element={<OrderSuccess />} />
-                <Route path="/recover-cart" element={<RecoverCart />} />
-                <Route path="/blog" element={<BlogListPage />} />
-                <Route path="/blog/:id" element={<BlogPostPage />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/marketers" element={<AffiliateRegister />} />
-                <Route path="/affiliate-register" element={<AffiliateRegister />} />
+            <React.Suspense fallback={<PageLoader />}>
+              <Routes>
+                {/* 1. Admin Logic (Highest Priority) */}
+                <Route path="/admin/login" element={<AdminLogin />} />
                 <Route
-                  path="/profile"
+                  path="/admin"
                   element={
-                    <UserProtectedRoute>
-                      <Profile />
-                    </UserProtectedRoute>
+                    <ProtectedRoute>
+                      <AdminLayout />
+                    </ProtectedRoute>
                   }
-                />
-                <Route
-                  path="/affiliate-dashboard"
-                  element={
-                    <AffiliateProtectedRoute>
-                      <AffiliateDashboard />
-                    </AffiliateProtectedRoute>
-                  }
-                />
-              </Route>
+                >
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="dashboard" element={<AdminDashboard />} />
+                  <Route path="orders" element={<AdminOrders />} />
+                  <Route path="abandoned-carts" element={<AbandonedCarts />} />
+                  <Route path="messages" element={<AdminMessages />} />
+                  <Route path="categories" element={<ManageCategories />} />
+                  <Route path="reviews" element={<AdminReviews />} />
+                  <Route path="car-specs" element={<AdminCarSpecs />} />
+                  <Route path="cars" element={<ManageCars />} />
+                  <Route path="products" element={<ManageProducts />} />
+                  <Route path="products/new" element={<AddProduct />} />
+                  <Route path="edit-product/:id" element={<EditProduct />} />
+                  <Route path="edit-category/:id" element={<EditCategory />} />
+                  <Route path="edit-car/:id" element={<EditCar />} />
+                  <Route path="order/:id" element={<OrderDetails />} />
+                  <Route path="hero" element={<ManageHero />} />
+                  <Route path="brands" element={<ManageBrands />} />
+                  <Route path="payment-methods" element={<PaymentMethods />} />
+                  <Route path="payments-manager" element={<PaymentManager />} />
+                  <Route path="shipping" element={<ManageShipping />} />
+                  <Route path="promo-codes" element={<ManagePromoCodes />} />
+                  <Route path="affiliates" element={<ManageAffiliates />} />
+                  <Route path="management" element={<AdminManagement />} />
+                  <Route path="affiliates/:id" element={<AdminAffiliateDetails />} />
+                  <Route path="integrations" element={<Integrations />} />
+                  <Route path="integrations/google-search-console" element={<GoogleSearchConsole />} />
+                  <Route path="integrations/facebook-pixel" element={<FacebookPixel />} />
+                  <Route path="integrations/google-analytics" element={<GoogleAnalytics />} />
+                  <Route path="integrations/mailchimp" element={<Mailchimp />} />
+                  <Route path="integrations/google-merchant-center" element={<GoogleMerchantCenter />} />
+                  <Route path="integrations/facebook-instagram-shopping" element={<FacebookInstagramShopping />} />
+                  <Route path="integrations/installment-partners" element={<InstallmentPartners />} />
+                  <Route path="integrations/cloudinary" element={<CloudinarySettings />} />
+                  <Route path="integrations/sendgrid" element={<SendGridSettings />} />
+                  <Route path="blog" element={<ManageBlog />} />
+                  <Route path="blog/new" element={<AddEditBlog />} />
+                  <Route path="blog/edit/:id" element={<AddEditBlog />} />
+                  <Route path="settings" element={<ManageSettings />} />
+                  <Route path="policies" element={<ManagePolicies />} />
+                </Route>
 
-              {/* Admin Login (Standalone) */}
-              <Route path="/admin/login" element={<AdminLogin />} />
+                {/* 3. Public Routes */}
+                <Route element={<PublicLayout />}>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/shop" element={<ShopPage />} />
+                  <Route path="/category/:id" element={<CategoryPage />} />
+                  <Route path="/brand/:brandName" element={<BrandPage />} />
+                  <Route path="/product/:id" element={<ProductDetails />} />
+                  <Route path="/cart" element={<CartPage />} />
+                  <Route path="/contact" element={<ContactUs />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/returns" element={<PolicyPage pageId="returns-policy" />} />
+                  <Route path="/shipping" element={<PolicyPage pageId="shipping-info" />} />
+                  <Route path="/my-orders" element={<OrderHistory />} />
+                  <Route path="/oil-advisor" element={<OilAdvisor />} />
+                  <Route path="/order-success" element={<OrderSuccess />} />
+                  <Route path="/recover-cart" element={<RecoverCart />} />
+                  <Route path="/blog" element={<BlogListPage />} />
+                  <Route path="/blog/:id" element={<BlogPostPage />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route path="/marketers" element={<AffiliateRegister />} />
+                  <Route path="/affiliate-register" element={<AffiliateRegister />} />
+                  <Route
+                    path="/profile"
+                    element={
+                      <UserProtectedRoute>
+                        <Profile />
+                      </UserProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/affiliate-dashboard"
+                    element={
+                      <AffiliateProtectedRoute>
+                        <AffiliateDashboard />
+                      </AffiliateProtectedRoute>
+                    }
+                  />
+                </Route>
 
-              {/* Protected Admin Routes */}
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute>
-                    <AdminLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<AdminDashboard />} />
-                <Route path="dashboard" element={<AdminDashboard />} />
-                <Route path="orders" element={<AdminOrders />} />
-                <Route path="abandoned-carts" element={<AbandonedCarts />} />
-                <Route path="messages" element={<AdminMessages />} />
-                <Route path="categories" element={<ManageCategories />} />
-                <Route path="reviews" element={<AdminReviews />} />
-                <Route path="car-specs" element={<AdminCarSpecs />} />
-                <Route path="cars" element={<ManageCars />} />
-                <Route path="products" element={<ManageProducts />} />
-                <Route path="products/new" element={<AddProduct />} />
-                <Route path="edit-product/:id" element={<EditProduct />} />
-                <Route path="edit-category/:id" element={<EditCategory />} />
-                <Route path="edit-car/:id" element={<EditCar />} />
-                <Route path="order/:id" element={<OrderDetails />} />
-                <Route path="hero" element={<ManageHero />} />
-                <Route path="brands" element={<ManageBrands />} />
-                <Route path="payments" element={<ManagePayments />} />
-                <Route path="payments-manager" element={<PaymentManager />} />
-                <Route path="shipping" element={<ManageShipping />} />
-                <Route path="promo-codes" element={<ManagePromoCodes />} />
-                <Route path="affiliates" element={<ManageAffiliates />} />
-                <Route path="management" element={<AdminManagement />} />
-                <Route path="affiliates/:id" element={<AdminAffiliateDetails />} />
-                <Route path="integrations" element={<Integrations />} />
-                <Route path="integrations/google-search-console" element={<GoogleSearchConsole />} />
-                <Route path="integrations/facebook-pixel" element={<FacebookPixel />} />
-                <Route path="integrations/google-analytics" element={<GoogleAnalytics />} />
-                <Route path="integrations/mailchimp" element={<Mailchimp />} />
-                <Route path="integrations/google-merchant-center" element={<GoogleMerchantCenter />} />
-                <Route path="integrations/facebook-instagram-shopping" element={<FacebookInstagramShopping />} />
-                <Route path="integrations/installment-partners" element={<InstallmentPartners />} />
-                <Route path="integrations/cloudinary" element={<CloudinarySettings />} />
-                <Route path="integrations/sendgrid" element={<SendGridSettings />} />
-                <Route path="/admin/blog" element={<ManageBlog />} />
-                <Route path="/admin/blog/new" element={<AddEditBlog />} />
-                <Route path="/admin/blog/edit/:id" element={<AddEditBlog />} />
-                <Route path="settings" element={<ManageSettings />} />
-                <Route path="policies" element={<ManagePolicies />} />
-              </Route>
-
-              {/* Catch-all 404 Route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+                {/* 4. Catch-all 404 Route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </React.Suspense>
           </ErrorBoundary>
         </SettingsProvider>
       </StaticDataProvider>
-    </Router>
+    </Router >
   )
 }
 
