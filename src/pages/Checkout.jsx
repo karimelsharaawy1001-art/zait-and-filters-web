@@ -173,7 +173,9 @@ const Checkout = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
 
         if (name === 'governorate') {
-            const selectedRate = (shippingRates || []).find(r => r.governorate === value);
+            const selectedRate = (shippingRates || []).find(r =>
+                r.governorate?.trim() === value?.trim()
+            );
             setShippingCost(selectedRate ? (Number(selectedRate.cost) || 0) : 0);
         }
     };

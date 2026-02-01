@@ -5,33 +5,33 @@ import { toast } from 'react-hot-toast';
 import { Truck, Plus, Trash2, Edit2, Save, X, Loader2, RefreshCcw } from 'lucide-react';
 
 const EGYPT_GOVERNORATES = [
-    { name: "Cairo", cost: 50 },
-    { name: "Giza", cost: 50 },
-    { name: "Alexandria", cost: 60 },
-    { name: "Qalyubia", cost: 55 },
-    { name: "Sharqia", cost: 65 },
-    { name: "Daqahlia", cost: 65 },
-    { name: "Beheira", cost: 70 },
-    { name: "Monufia", cost: 65 },
-    { name: "Gharbia", cost: 65 },
-    { name: "Kafr El Sheikh", cost: 70 },
-    { name: "Damietta", cost: 75 },
-    { name: "Port Said", cost: 75 },
-    { name: "Ismailia", cost: 75 },
-    { name: "Suez", cost: 75 },
-    { name: "Fayoum", cost: 80 },
-    { name: "Beni Suef", cost: 80 },
-    { name: "Minya", cost: 90 },
-    { name: "Assiut", cost: 90 },
-    { name: "Sohag", cost: 100 },
-    { name: "Qena", cost: 110 },
-    { name: "Luxor", cost: 120 },
-    { name: "Aswan", cost: 130 },
-    { name: "Red Sea", cost: 150 },
-    { name: "New Valley", cost: 150 },
-    { name: "Matrouh", cost: 150 },
-    { name: "North Sinai", cost: 150 },
-    { name: "South Sinai", cost: 150 }
+    { governorate: "القاهرة", cost: 50 },
+    { governorate: "الجيزة", cost: 50 },
+    { governorate: "الإسكندرية", cost: 60 },
+    { governorate: "القليوبية", cost: 55 },
+    { governorate: "الشرقية", cost: 65 },
+    { governorate: "الدقهلية", cost: 65 },
+    { governorate: "البحيرة", cost: 70 },
+    { governorate: "المنوفية", cost: 65 },
+    { governorate: "الغربية", cost: 65 },
+    { governorate: "كفر الشيخ", cost: 70 },
+    { governorate: "دمياط", cost: 75 },
+    { governorate: "بورسعيد", cost: 75 },
+    { governorate: "الإسماعيلية", cost: 75 },
+    { governorate: "السويس", cost: 75 },
+    { governorate: "الفيوم", cost: 80 },
+    { governorate: "بني سويف", cost: 80 },
+    { governorate: "المنيا", cost: 90 },
+    { governorate: "أسيوط", cost: 90 },
+    { governorate: "سوهاج", cost: 100 },
+    { governorate: "قنا", cost: 110 },
+    { governorate: "الأقصر", cost: 120 },
+    { governorate: "أسوان", cost: 130 },
+    { governorate: "البحر الأحمر", cost: 150 },
+    { governorate: "الوادي الجديد", cost: 150 },
+    { governorate: "مطروح", cost: 150 },
+    { governorate: "شمال سيناء", cost: 150 },
+    { governorate: "جنوب سيناء", cost: 150 }
 ];
 
 const ManageShipping = () => {
@@ -51,7 +51,12 @@ const ManageShipping = () => {
         try {
             const querySnapshot = await getDocs(collection(db, 'shipping_rates'));
             const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setRates(data.sort((a, b) => a.governorate.localeCompare(b.governorate)));
+            // Add safety sort to prevent crashes on missing fields
+            setRates(data.sort((a, b) => {
+                const govA = a?.governorate || '';
+                const govB = b?.governorate || '';
+                return govA.localeCompare(govB);
+            }));
         } catch (error) {
             console.error("Error fetching shipping rates:", error);
         } finally {
