@@ -268,7 +268,7 @@ const AbandonedCarts = () => {
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-black text-admin-text-primary poppins mb-0.5">{item.name}</p>
                                                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                                                    <span className="text-[10px] text-admin-accent font-black uppercase tracking-widest">{item.brand || 'No Brand'}</span>
+                                                    <span className="text-[10px] text-admin-accent font-black uppercase tracking-widest">{item.partBrand || item.brand || item.brandEn || 'No Brand'}</span>
                                                     <span className="text-[8px] text-gray-300">•</span>
                                                     <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
                                                         {item.make} {item.model} {item.yearRange ? `(${item.yearRange})` : ''}
