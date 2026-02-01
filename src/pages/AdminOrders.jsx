@@ -501,8 +501,15 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                     nameEn: product.nameEn || product.name,
                     price: product.price,
                     image: product.image || product.images?.[0] || '/placeholder.png',
-                    quantity: 1,
-                    brand: product.partBrand || product.brand || 'N/A'
+                    brand: product.partBrand || product.brand || 'N/A',
+                    category: product.category || 'N/A',
+                    subcategory: product.subcategory || 'N/A',
+                    origin: product.origin || product.countryOfOrigin || 'N/A',
+                    make: product.make || 'Universal',
+                    model: product.model || 'Universal',
+                    yearStart: product.yearStart || '',
+                    yearEnd: product.yearEnd || '',
+                    partNumber: product.partNumber || product.sku || 'N/A'
                 }]
             });
         }
@@ -774,7 +781,10 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-xs font-black truncate text-black uppercase tracking-tight poppins">{item.name}</p>
-                                        <p className="text-[10px] font-black text-[#e31e24] tracking-widest mt-0.5">{item.price} EGP</p>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            <p className="text-[10px] font-black text-[#e31e24] tracking-widest">{item.price} EGP</p>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">| {item.brand || 'N/A'}</p>
+                                        </div>
                                     </div>
                                     <div className="flex items-center bg-gray-50 border border-gray-100 rounded-xl overflow-hidden shadow-inner">
                                         <button onClick={() => updateItemQuantity(item.id, -1)} className="p-2.5 hover:bg-gray-200 text-gray-500 transition-all active:scale-90">
