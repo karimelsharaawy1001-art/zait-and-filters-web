@@ -110,22 +110,22 @@ const AdminReviews = () => {
     return (
         <div className="p-4 md:p-8">
             <div className="mb-12">
-                <h1 className="text-4xl font-black text-white tracking-tight uppercase poppins">Moderation Hub</h1>
-                <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest mt-1">Audit and authorize customer feedback loops</p>
+                <h1 className="text-4xl font-black text-black tracking-tight uppercase poppins">Moderation Hub</h1>
+                <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mt-1">Audit and authorize customer feedback loops</p>
             </div>
 
             {reviews.length === 0 ? (
-                <div className="bg-admin-card rounded-[2.5rem] p-20 text-center border border-admin-border flex flex-col items-center shadow-admin mt-10">
-                    <div className="bg-[#ffffff05] p-10 rounded-full mb-8 border border-admin-border">
-                        <MessageSquare className="h-12 w-12 text-gray-700" />
+                <div className="bg-white rounded-[2.5rem] p-20 text-center border border-gray-100 flex flex-col items-center shadow-sm mt-10">
+                    <div className="bg-gray-50 p-10 rounded-full mb-8 border border-gray-100">
+                        <MessageSquare className="h-12 w-12 text-gray-300" />
                     </div>
-                    <h2 className="text-2xl font-black text-white uppercase tracking-tight poppins">Frequency Stabilized</h2>
-                    <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest mt-4">All pending reviews have been processed</p>
+                    <h2 className="text-2xl font-black text-black uppercase tracking-tight poppins">Frequency Stabilized</h2>
+                    <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mt-4">All pending reviews have been processed</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mt-10">
                     {reviews.map((rev) => (
-                        <div key={rev.id} className="bg-admin-card rounded-[2.5rem] border border-admin-border shadow-admin overflow-hidden flex flex-col md:flex-row group transition-all duration-500 hover:scale-[1.01]">
+                        <div key={rev.id} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden flex flex-col md:flex-row group transition-all duration-500 hover:scale-[1.01]">
                             {/* Photo (If exists) */}
                             {rev.photoUrl ? (
                                 <div className="md:w-56 h-56 md:h-auto flex-shrink-0 bg-[#ffffff03] relative overflow-hidden">
@@ -147,11 +147,11 @@ const AdminReviews = () => {
                                                 <div className="p-1.5 bg-admin-accent/10 rounded-lg">
                                                     <User className="w-4 h-4 text-admin-accent" />
                                                 </div>
-                                                <span className="text-[11px] font-black text-white uppercase tracking-widest">{rev.userName}</span>
+                                                <span className="text-[11px] font-black text-black uppercase tracking-widest">{rev.userName}</span>
                                             </div>
-                                            <div className="flex items-center gap-3 bg-[#ffffff03] px-3 py-2 rounded-xl border border-admin-border">
-                                                <Package className="w-3.5 h-3.5 text-gray-500" />
-                                                <Link to={`/product/${rev.productId}`} className="text-[9px] font-black text-admin-accent hover:text-white uppercase tracking-widest flex items-center gap-2 transition-colors">
+                                            <div className="flex items-center gap-3 bg-gray-50 px-3 py-2 rounded-xl border border-gray-100">
+                                                <Package className="w-3.5 h-3.5 text-gray-400" />
+                                                <Link to={`/product/${rev.productId}`} className="text-[9px] font-black text-admin-accent hover:text-black uppercase tracking-widest flex items-center gap-2 transition-colors">
                                                     {rev.productName}
                                                     <ExternalLink className="w-3 h-3" />
                                                 </Link>

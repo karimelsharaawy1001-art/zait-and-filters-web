@@ -124,7 +124,7 @@ const Dashboard = () => {
     }
 
     return (
-        <div className="min-h-screen bg-matte-black pb-20 font-sans">
+        <div className="min-h-screen bg-admin-bg pb-20 font-sans">
             <AdminHeader title="Dashboard" />
 
             <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -142,7 +142,7 @@ const Dashboard = () => {
                 {/* 1. Stats Cards Row - Unified Carbon Grey */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                     {/* Total Revenue */}
-                    <div className="bg-carbon-grey rounded-2xl p-7 flex flex-col gap-4 border border-border-dark shadow-premium-3d hover:border-racing-red/30 transition-all group">
+                    <div className="bg-white rounded-2xl p-7 flex flex-col gap-4 border border-admin-border shadow-sm hover:border-admin-accent/30 transition-all group">
                         <div className="flex items-center justify-between">
                             <div className="p-3.5 bg-green-500/10 text-green-500 rounded-xl group-hover:scale-110 transition-transform">
                                 <DollarSign className="h-7 w-7" />
@@ -150,69 +150,69 @@ const Dashboard = () => {
                             <TrendingUp className="h-6 w-6 text-green-500" />
                         </div>
                         <div className="flex flex-col gap-1">
-                            <p className="text-[10px] font-black text-dim-grey uppercase tracking-widest">Total Revenue</p>
-                            <h3 className="text-3xl font-black text-snow-white">
-                                {stats.totalRevenue.toLocaleString()} <span className="text-sm font-bold text-silver-grey">EGP</span>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Revenue</p>
+                            <h3 className="text-3xl font-black text-black">
+                                {stats.totalRevenue.toLocaleString()} <span className="text-sm font-bold text-gray-500">EGP</span>
                             </h3>
                         </div>
                     </div>
 
                     {/* Total Orders */}
-                    <div className="bg-carbon-grey rounded-2xl p-7 flex flex-col gap-4 border border-border-dark shadow-premium-3d hover:border-racing-red/30 transition-all group">
+                    <div className="bg-white rounded-2xl p-7 flex flex-col gap-4 border border-admin-border shadow-sm hover:border-admin-accent/30 transition-all group">
                         <div className="flex items-center justify-between">
                             <div className="p-3.5 bg-blue-500/10 text-blue-500 rounded-xl group-hover:scale-110 transition-transform">
                                 <ShoppingCart className="h-7 w-7" />
                             </div>
                         </div>
                         <div className="flex flex-col gap-1">
-                            <p className="text-[10px] font-black text-dim-grey uppercase tracking-widest">Total Orders</p>
-                            <h3 className="text-3xl font-black text-snow-white">{stats.totalOrders}</h3>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Orders</p>
+                            <h3 className="text-3xl font-black text-black">{stats.totalOrders}</h3>
                         </div>
                     </div>
 
                     {/* Active Customers */}
-                    <div className="bg-carbon-grey rounded-2xl p-7 flex flex-col gap-4 border border-border-dark shadow-premium-3d hover:border-racing-red/30 transition-all group">
+                    <div className="bg-white rounded-2xl p-7 flex flex-col gap-4 border border-admin-border shadow-sm hover:border-admin-accent/30 transition-all group">
                         <div className="flex items-center justify-between">
                             <div className="p-3.5 bg-admin-red/10 text-admin-red rounded-xl group-hover:scale-110 transition-transform">
                                 <Users className="h-7 w-7" />
                             </div>
                         </div>
                         <div className="flex flex-col gap-1">
-                            <p className="text-[10px] font-black text-dim-grey uppercase tracking-widest">Active Customers</p>
-                            <h3 className="text-3xl font-black text-snow-white">{stats.activeCustomers}</h3>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Customers</p>
+                            <h3 className="text-3xl font-black text-black">{stats.activeCustomers}</h3>
                         </div>
                     </div>
 
                     {/* Products in Stock */}
-                    <div className="bg-carbon-grey rounded-2xl p-7 flex flex-col gap-4 border border-border-dark shadow-premium-3d hover:border-racing-red/30 transition-all group">
+                    <div className="bg-white rounded-2xl p-7 flex flex-col gap-4 border border-admin-border shadow-sm hover:border-admin-accent/30 transition-all group">
                         <div className="flex items-center justify-between">
                             <div className="p-3.5 bg-orange-500/10 text-orange-500 rounded-xl group-hover:scale-110 transition-transform">
                                 <Package className="h-7 w-7" />
                             </div>
                         </div>
                         <div className="flex flex-col gap-1">
-                            <p className="text-[10px] font-black text-dim-grey uppercase tracking-widest">Products in Stock</p>
-                            <h3 className="text-3xl font-black text-snow-white">{stats.productsInStock}</h3>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Products in Stock</p>
+                            <h3 className="text-3xl font-black text-black">{stats.productsInStock}</h3>
                         </div>
                     </div>
                 </div>
 
                 {/* 2. Actionable Insights - Premium Modern */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-                    <div className="bg-carbon-grey rounded-[32px] p-10 shadow-premium-3d border border-orange-500/10 flex flex-col gap-6 relative overflow-hidden group">
+                    <div className="bg-white rounded-[32px] p-10 shadow-sm border border-admin-accent/10 flex flex-col gap-6 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-125 transition-transform duration-700">
                             <Clock className="w-48 h-48" />
                         </div>
                         <div className="flex items-center gap-5">
-                            <div className="p-5 bg-admin-red text-white rounded-2xl shadow-xl shadow-admin-red/20">
+                            <div className="p-5 bg-admin-red text-white rounded-2xl shadow-xl shadow-admin-red/20 text-white">
                                 <Clock className="h-10 w-10" />
                             </div>
                             <div className="flex flex-col gap-1">
                                 <p className="text-[11px] font-black text-admin-red uppercase tracking-widest">Needs Attention</p>
-                                <h3 className="text-5xl font-black text-white">{stats.pendingOrders}</h3>
+                                <h3 className="text-5xl font-black text-black">{stats.pendingOrders}</h3>
                             </div>
                         </div>
-                        <p className="text-base font-medium text-silver-grey max-w-sm">There are currently {stats.pendingOrders} pending orders awaiting your immediate processing.</p>
+                        <p className="text-base font-medium text-gray-500 max-w-sm">There are currently {stats.pendingOrders} pending orders awaiting your immediate processing.</p>
                         <button
                             onClick={() => navigate('/admin/orders')}
                             className="admin-primary-btn !w-fit !px-8"
@@ -222,26 +222,26 @@ const Dashboard = () => {
                         </button>
                     </div>
 
-                    <div className="bg-carbon-grey rounded-[32px] p-10 shadow-premium-3d border border-racing-red/10 flex flex-col gap-6 relative overflow-hidden group">
+                    <div className="bg-white rounded-[32px] p-10 shadow-sm border border-admin-red/10 flex flex-col gap-6 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-125 transition-transform duration-700">
                             <AlertTriangle className="w-48 h-48" />
                         </div>
                         <div className="flex items-center gap-5">
-                            <div className="p-5 bg-admin-red text-white rounded-2xl shadow-xl shadow-admin-red/20">
+                            <div className="p-5 bg-admin-red text-white rounded-2xl shadow-xl shadow-admin-red/20 text-white">
                                 <AlertTriangle className="h-10 w-10" />
                             </div>
                             <div className="flex flex-col gap-1">
                                 <p className="text-[11px] font-black text-admin-red uppercase tracking-widest">Stock Alert</p>
-                                <h3 className="text-5xl font-black text-white">{lowStockProducts.length}</h3>
+                                <h3 className="text-5xl font-black text-black">{lowStockProducts.length}</h3>
                             </div>
                         </div>
                         <div className="flex flex-col gap-2.5">
                             {lowStockProducts.length === 0 ? (
-                                <p className="text-base font-medium text-silver-grey">Excellent! All your products are currently well-stocked.</p>
+                                <p className="text-base font-medium text-gray-500">Excellent! All your products are currently well-stocked.</p>
                             ) : (
                                 lowStockProducts.map(product => (
-                                    <div key={product.id} className="flex items-center justify-between bg-white/[0.03] border border-border-dark rounded-xl px-4 py-3">
-                                        <span className="text-sm font-bold text-snow-white truncate max-w-[240px]">{product.name}</span>
+                                    <div key={product.id} className="flex items-center justify-between bg-gray-50 border border-admin-border rounded-xl px-4 py-3">
+                                        <span className="text-sm font-bold text-black truncate max-w-[240px]">{product.name}</span>
                                         <span className="text-[10px] font-black text-admin-red bg-admin-red/10 border border-admin-red/20 px-3 py-1.5 rounded-full">
                                             {product.stockQuantity || 0} UNITS LEFT
                                         </span>
@@ -260,9 +260,9 @@ const Dashboard = () => {
                 </div>
 
                 {/* 3. Recent Orders Table - High Contrast */}
-                <div className="bg-carbon-grey rounded-3xl shadow-premium-3d border border-border-dark overflow-hidden">
-                    <div className="px-10 py-8 border-b border-border-dark flex items-center justify-between">
-                        <h3 className="text-xl font-black text-snow-white uppercase tracking-tight">Recent Orders</h3>
+                <div className="bg-white rounded-3xl shadow-sm border border-admin-border overflow-hidden">
+                    <div className="px-10 py-8 border-b border-admin-border flex items-center justify-between">
+                        <h3 className="text-xl font-black text-black uppercase tracking-tight">Recent Orders</h3>
                         <button
                             onClick={() => navigate('/admin/orders')}
                             className="text-admin-red hover:text-admin-red-dark font-black text-[11px] uppercase tracking-widest flex items-center gap-2 transition-colors"
@@ -274,12 +274,12 @@ const Dashboard = () => {
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-matte-black/40">
-                                    <th className="px-10 py-5 text-left text-[11px] font-black text-snow-white uppercase tracking-widest border-b-2 border-racing-red/30">ID</th>
-                                    <th className="px-10 py-5 text-left text-[11px] font-black text-snow-white uppercase tracking-widest border-b-2 border-racing-red/30">Client</th>
-                                    <th className="px-10 py-5 text-left text-[11px] font-black text-snow-white uppercase tracking-widest border-b-2 border-racing-red/30">Revenue</th>
-                                    <th className="px-10 py-5 text-left text-[11px] font-black text-white uppercase tracking-widest border-b-2 border-admin-red/30">Phase</th>
-                                    <th className="px-10 py-5 text-left text-[11px] font-black text-snow-white uppercase tracking-widest border-b-2 border-racing-red/30">Timestamp</th>
+                                <tr className="bg-gray-50">
+                                    <th className="px-10 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-admin-border">ID</th>
+                                    <th className="px-10 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-admin-border">Client</th>
+                                    <th className="px-10 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-admin-border">Revenue</th>
+                                    <th className="px-10 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-admin-border">Phase</th>
+                                    <th className="px-10 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-admin-border">Timestamp</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border-dark/50">
@@ -294,30 +294,30 @@ const Dashboard = () => {
                                         <tr
                                             key={order.id}
                                             onClick={() => navigate(`/admin/order/${order.id}`)}
-                                            className="hover:bg-white/[0.02] transition-colors cursor-pointer group"
+                                            className="hover:bg-gray-50 transition-colors cursor-pointer group"
                                         >
                                             <td className="px-10 py-6">
-                                                <span className="text-sm font-black text-white group-hover:text-admin-red transition-colors">#{order.id.slice(-6).toUpperCase()}</span>
+                                                <span className="text-sm font-black text-black group-hover:text-admin-red transition-colors">#{order.id.slice(-6).toUpperCase()}</span>
                                             </td>
                                             <td className="px-10 py-6">
-                                                <span className="text-sm font-bold text-silver-grey">{order.customer?.name || 'GUEST USER'}</span>
+                                                <span className="text-sm font-bold text-gray-500">{order.customer?.name || 'GUEST USER'}</span>
                                             </td>
                                             <td className="px-10 py-6">
-                                                <span className="text-sm font-black text-snow-white">{order.total?.toLocaleString()} EGP</span>
+                                                <span className="text-sm font-black text-black">{order.total?.toLocaleString()} EGP</span>
                                             </td>
                                             <td className="px-10 py-6">
                                                 <span className={`text-[9px] font-black uppercase tracking-[0.15em] px-4 py-2 rounded-full border
-                                                    ${order.status === 'Pending' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' : ''}
-                                                    ${order.status === 'Processing' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : ''}
-                                                    ${order.status === 'Shipped' ? 'bg-purple-500/10 text-purple-500 border-purple-500/20' : ''}
-                                                    ${order.status === 'Delivered' ? 'bg-green-500/10 text-green-500 border-green-500/20' : ''}
-                                                    ${order.status === 'Cancelled' ? 'bg-admin-red/10 text-admin-red border-admin-red/20' : ''}
+                                                    ${order.status === 'Pending' ? 'bg-orange-50 text-orange-600 border-orange-100' : ''}
+                                                    ${order.status === 'Processing' ? 'bg-blue-50 text-blue-600 border-blue-100' : ''}
+                                                    ${order.status === 'Shipped' ? 'bg-purple-50 text-purple-600 border-purple-100' : ''}
+                                                    ${order.status === 'Delivered' ? 'bg-green-50 text-green-600 border-green-100' : ''}
+                                                    ${order.status === 'Cancelled' ? 'bg-red-50 text-admin-red border-red-100' : ''}
                                                 `}>
                                                     {order.status}
                                                 </span>
                                             </td>
                                             <td className="px-10 py-6">
-                                                <span className="text-sm font-bold text-dim-grey">
+                                                <span className="text-sm font-bold text-gray-400">
                                                     {order.createdAt?.seconds
                                                         ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('en-GB')
                                                         : 'N/A'}

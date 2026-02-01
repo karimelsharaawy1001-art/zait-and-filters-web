@@ -163,9 +163,9 @@ const AdminCarSpecs = () => {
                             placeholder="Search make, model, or year..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-12 pr-6 py-4 bg-[#ffffff05] border border-admin-border rounded-2xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent focus:border-transparent transition-all outline-none shadow-lg shadow-inner font-bold text-sm"
+                            className="w-full pl-12 pr-6 py-4 bg-white border border-gray-200 rounded-2xl text-black placeholder-gray-400 focus:ring-2 focus:ring-admin-accent focus:border-transparent transition-all outline-none shadow-sm font-bold text-sm"
                         />
-                        <Search className="absolute left-4 top-4 h-5 w-5 text-gray-600" />
+                        <Search className="absolute left-4 top-4 h-5 w-5 text-gray-300" />
                     </div>
 
                     <button
@@ -181,12 +181,12 @@ const AdminCarSpecs = () => {
                 {showForm && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
                         <div className="bg-admin-card rounded-[2.5rem] shadow-admin w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-admin-border animate-in zoom-in-95 duration-300">
-                            <div className="p-10 border-b border-[#ffffff0d] flex justify-between items-center sticky top-0 bg-admin-card/80 backdrop-blur-md z-10">
+                            <div className="p-10 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white/80 backdrop-blur-md z-10">
                                 <div>
-                                    <h2 className="text-2xl font-black text-white uppercase tracking-widest poppins">{editingId ? 'Edit Metrics' : 'New Configuration'}</h2>
-                                    <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Define vehicle fluid capacities and types</p>
+                                    <h2 className="text-2xl font-black text-black uppercase tracking-widest poppins">{editingId ? 'Edit Metrics' : 'New Configuration'}</h2>
+                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Define vehicle fluid capacities and types</p>
                                 </div>
-                                <button onClick={resetForm} className="p-3 bg-[#ffffff05] hover:bg-[#ffffff0d] rounded-2xl transition-all text-gray-500 hover:text-white border border-admin-border">
+                                <button onClick={resetForm} className="p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-all text-gray-400 hover:text-black border border-gray-100">
                                     <X className="h-6 w-6" />
                                 </button>
                             </div>
@@ -203,7 +203,7 @@ const AdminCarSpecs = () => {
                                             value={formData.make}
                                             onChange={handleInputChange}
                                             placeholder="Toyota"
-                                            className="w-full bg-[#ffffff05] border border-admin-border focus:ring-2 focus:ring-admin-accent rounded-xl px-5 py-4 text-white font-bold outline-none transition-all shadow-lg"
+                                            className="w-full bg-white border border-gray-200 focus:ring-2 focus:ring-admin-accent rounded-xl px-5 py-4 text-black font-bold outline-none transition-all shadow-sm"
                                         />
                                     </div>
                                     <div>
@@ -244,9 +244,9 @@ const AdminCarSpecs = () => {
                                                 value={formData.engineType}
                                                 onChange={handleInputChange}
                                                 placeholder="1.8L Dual VVT-i"
-                                                className="w-full bg-[#ffffff05] border border-admin-border focus:ring-2 focus:ring-admin-accent rounded-xl px-5 py-4 pl-12 text-white font-bold outline-none transition-all shadow-lg"
+                                                className="w-full bg-white border border-gray-200 focus:ring-2 focus:ring-admin-accent rounded-xl px-5 py-4 pl-12 text-black font-bold outline-none transition-all shadow-sm"
                                             />
-                                            <Fuel className="absolute left-4 top-4 h-5 w-5 text-gray-600" />
+                                            <Fuel className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
                                         </div>
                                     </div>
                                 </div>
@@ -269,7 +269,7 @@ const AdminCarSpecs = () => {
                                                 value={formData.motorOilViscosity}
                                                 onChange={handleInputChange}
                                                 placeholder="0W-20"
-                                                className="w-full bg-[#ffffff05] border border-[#ffffff1a] focus:ring-2 focus:ring-admin-accent rounded-xl px-5 py-4 text-white font-bold outline-none transition-all shadow-lg"
+                                                className="w-full bg-white border border-gray-100 focus:ring-2 focus:ring-admin-accent rounded-xl px-5 py-4 text-black font-bold outline-none transition-all shadow-sm"
                                             />
                                         </div>
                                         <div>
@@ -306,7 +306,7 @@ const AdminCarSpecs = () => {
                                                 value={formData.transmissionFluidType}
                                                 onChange={handleInputChange}
                                                 placeholder="Toyota Genuine ATF WS"
-                                                className="w-full bg-[#ffffff05] border border-[#ffffff1a] focus:ring-2 focus:ring-blue-500 rounded-xl px-5 py-4 text-white font-bold outline-none transition-all shadow-lg"
+                                                className="w-full bg-white border border-gray-100 focus:ring-2 focus:ring-blue-500 rounded-xl px-5 py-4 text-black font-bold outline-none transition-all shadow-sm"
                                             />
                                         </div>
                                         <div>
@@ -329,7 +329,7 @@ const AdminCarSpecs = () => {
                                     <button
                                         type="button"
                                         onClick={resetForm}
-                                        className="flex-1 px-8 py-4 bg-[#ffffff05] hover:bg-[#ffffff0d] text-gray-500 hover:text-white rounded-xl transition-all font-black uppercase tracking-widest text-[10px] border border-admin-border"
+                                        className="flex-1 px-8 py-4 bg-gray-50 hover:bg-gray-100 text-gray-400 hover:text-black rounded-xl transition-all font-black uppercase tracking-widest text-[10px] border border-gray-200"
                                     >
                                         Cancel
                                     </button>
@@ -352,15 +352,15 @@ const AdminCarSpecs = () => {
                 )}
 
                 {/* Table Section */}
-                <div className="bg-admin-card rounded-[2.5rem] shadow-admin overflow-hidden border border-admin-border animate-in fade-in slide-in-from-bottom-6 duration-700">
+                <div className="bg-white rounded-[2.5rem] shadow-sm overflow-hidden border border-gray-100 animate-in fade-in slide-in-from-bottom-6 duration-700">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
-                            <thead className="bg-[#ffffff02]">
+                            <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-10 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest poppins">Vehicle Entity</th>
-                                    <th className="px-10 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest poppins">Lubricants</th>
-                                    <th className="px-10 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest poppins">Drivetrain</th>
-                                    <th className="px-10 py-6 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest poppins">Operations</th>
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest poppins">Vehicle Entity</th>
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest poppins">Lubricants</th>
+                                    <th className="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest poppins">Drivetrain</th>
+                                    <th className="px-10 py-6 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest poppins">Operations</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[#ffffff05]">
@@ -386,17 +386,17 @@ const AdminCarSpecs = () => {
                                     </tr>
                                 ) : (
                                     filteredSpecs.map((spec) => (
-                                        <tr key={spec.id} className="hover:bg-[#ffffff02] transition-all group">
+                                        <tr key={spec.id} className="hover:bg-gray-50/50 transition-all group">
                                             <td className="px-10 py-8">
                                                 <div className="flex items-center gap-6">
-                                                    <div className="w-14 h-14 bg-[#ffffff05] rounded-2xl flex items-center justify-center shadow-inner border border-admin-border group-hover:border-admin-accent/30 transition-all group-hover:scale-105">
-                                                        <Car className="h-7 w-7 text-gray-600 group-hover:text-admin-accent transition-colors" />
+                                                    <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 group-hover:border-admin-accent/30 transition-all group-hover:scale-105">
+                                                        <Car className="h-7 w-7 text-gray-400 group-hover:text-admin-accent transition-colors" />
                                                     </div>
                                                     <div>
-                                                        <p className="font-black text-white text-base poppins leading-none mb-2">{spec.make} {spec.model}</p>
+                                                        <p className="font-black text-black text-base poppins leading-none mb-2">{spec.make} {spec.model}</p>
                                                         <div className="flex items-center gap-3">
                                                             <span className="text-[10px] font-black text-admin-accent bg-admin-accent/10 px-2.5 py-1 rounded-lg uppercase tracking-widest border border-admin-accent/20">{spec.year}</span>
-                                                            <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">{spec.engineType}</span>
+                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{spec.engineType}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -406,31 +406,31 @@ const AdminCarSpecs = () => {
                                                     <div className="p-1.5 bg-admin-accent/10 rounded-lg">
                                                         <Droplets className="h-4 w-4 text-admin-accent" />
                                                     </div>
-                                                    <span className="font-black text-white poppins text-sm">{spec.motorOilViscosity}</span>
+                                                    <span className="font-black text-black poppins text-sm">{spec.motorOilViscosity}</span>
                                                 </div>
-                                                <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">{spec.motorOilCapacity} Liters Capacity</p>
+                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{spec.motorOilCapacity} Liters Capacity</p>
                                             </td>
                                             <td className="px-10 py-8">
                                                 <div className="flex items-center gap-3 mb-2">
                                                     <div className="p-1.5 bg-blue-600/10 rounded-lg">
                                                         <Settings className="h-4 w-4 text-blue-500" />
                                                     </div>
-                                                    <span className="font-black text-white poppins text-sm truncate max-w-[180px] inline-block">{spec.transmissionFluidType}</span>
+                                                    <span className="font-black text-black poppins text-sm truncate max-w-[180px] inline-block">{spec.transmissionFluidType}</span>
                                                 </div>
-                                                <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">{spec.transmissionCapacity} Liters Capacity</p>
+                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{spec.transmissionCapacity} Liters Capacity</p>
                                             </td>
                                             <td className="px-10 py-8 text-right">
                                                 <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
                                                     <button
                                                         onClick={() => handleEdit(spec)}
-                                                        className="p-3 bg-admin-accent/5 text-gray-500 hover:text-admin-accent hover:bg-admin-accent/10 rounded-2xl transition-all border border-[#ffffff05] hover:border-admin-accent/20 shadow-lg"
+                                                        className="p-3 bg-white text-gray-400 hover:text-admin-accent hover:bg-gray-50 rounded-2xl transition-all border border-gray-100 hover:border-admin-accent/20 shadow-sm"
                                                         title="Edit Metrics"
                                                     >
                                                         <Edit2 className="h-4 w-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(spec.id)}
-                                                        className="p-3 bg-admin-red/5 text-gray-500 hover:text-admin-red hover:bg-admin-red/10 rounded-2xl transition-all border border-[#ffffff05] hover:border-admin-red/20 shadow-lg"
+                                                        className="p-3 bg-white text-gray-400 hover:text-admin-red hover:bg-red-50 rounded-2xl transition-all border border-gray-100 hover:border-admin-red/20 shadow-sm"
                                                         title="Delete Entry"
                                                     >
                                                         <Trash2 className="h-4 w-4" />

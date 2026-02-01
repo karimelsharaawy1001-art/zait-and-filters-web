@@ -140,13 +140,13 @@ const ManageShipping = () => {
                     </div>
                     <div>
                         <h1 className="text-3xl font-black text-black uppercase tracking-widest poppins">Shipping Rates</h1>
-                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Manage governorate-based delivery costs</p>
+                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Manage governorate-based delivery costs</p>
                     </div>
                 </div>
                 <button
                     onClick={handleSeed}
                     disabled={actionLoading}
-                    className="flex items-center gap-3 bg-white text-black px-8 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition-all border border-gray-200 shadow-sm group active:scale-95 disabled:opacity-50"
+                    className="flex items-center gap-3 bg-white text-black px-8 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition-all border border-gray-100 shadow-sm group active:scale-95 disabled:opacity-50"
                 >
                     <RefreshCcw className={`h-4 w-4 text-[#28B463] group-hover:rotate-180 transition-transform duration-500 ${actionLoading ? 'animate-spin' : ''}`} />
                     Provision Default Egypt Matrix
@@ -156,7 +156,7 @@ const ManageShipping = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-7xl mx-auto">
                 {/* Form Side */}
                 <div className="lg:col-span-1">
-                    <div className="bg-white rounded-[2.5rem] p-10 shadow-admin border border-gray-200 sticky top-8 group overflow-hidden">
+                    <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-100 sticky top-8 group overflow-hidden">
                         <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
                             <Plus className="h-24 w-24 text-black" />
                         </div>
@@ -169,23 +169,23 @@ const ManageShipping = () => {
                         </h2>
                         <form onSubmit={handleAdd} className="space-y-8 relative">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Governorate Entity</label>
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Governorate Entity</label>
                                 <input
                                     type="text"
                                     value={newRate.governorate}
                                     onChange={(e) => setNewRate({ ...newRate, governorate: e.target.value })}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all placeholder-gray-400"
+                                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all placeholder-gray-300"
                                     placeholder="e.g. Cairo"
                                     required
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Operational Cost (EGP)</label>
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Operational Cost (EGP)</label>
                                 <input
                                     type="number"
                                     value={newRate.cost}
                                     onChange={(e) => setNewRate({ ...newRate, cost: e.target.value })}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all placeholder-gray-400"
+                                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all placeholder-gray-300"
                                     placeholder="e.g. 50"
                                     required
                                 />
@@ -204,11 +204,11 @@ const ManageShipping = () => {
 
                 {/* Table Side */}
                 <div className="lg:col-span-2">
-                    <div className="bg-white rounded-[2.5rem] shadow-admin border border-gray-200 overflow-hidden">
+                    <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
                         {loading ? (
                             <div className="p-20 flex flex-col items-center justify-center gap-4">
                                 <div className="h-10 w-10 border-4 border-admin-accent border-t-transparent rounded-full animate-spin"></div>
-                                <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Tracing Logistics Node...</p>
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tracing Logistics Node...</p>
                             </div>
                         ) : rates.length === 0 ? (
                             <div className="p-20 text-center">
@@ -219,9 +219,9 @@ const ManageShipping = () => {
                                 <table className="w-full border-collapse">
                                     <thead>
                                         <tr className="bg-gray-50 border-b border-gray-100 text-left">
-                                            <th className="px-10 py-6 text-[10px] font-black text-gray-600 uppercase tracking-widest poppins">Geographic Entity</th>
-                                            <th className="px-10 py-6 text-[10px] font-black text-gray-600 uppercase tracking-widest text-center poppins">Operational Cost</th>
-                                            <th className="px-10 py-6 text-[10px] font-black text-gray-600 uppercase tracking-widest text-right poppins">Operations</th>
+                                            <th className="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest poppins">Geographic Entity</th>
+                                            <th className="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center poppins">Operational Cost</th>
+                                            <th className="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right poppins">Operations</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-[#ffffff05]">
@@ -245,7 +245,7 @@ const ManageShipping = () => {
                                                             type="number"
                                                             value={editRate.cost}
                                                             onChange={(e) => setEditRate({ ...editRate, cost: e.target.value })}
-                                                            className="w-32 mx-auto bg-[#ffffff05] border border-admin-accent/30 rounded-xl px-4 py-2.5 text-sm font-bold text-black text-center focus:ring-1 focus:ring-admin-accent outline-none"
+                                                            className="w-32 mx-auto bg-gray-50 border border-admin-accent/30 rounded-xl px-4 py-2.5 text-sm font-bold text-black text-center focus:ring-1 focus:ring-admin-accent outline-none"
                                                         />
                                                     ) : (
                                                         <span className="text-xl font-black text-admin-accent font-mono uppercase tracking-tighter">

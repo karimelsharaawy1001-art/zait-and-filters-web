@@ -110,14 +110,14 @@ const EditCategory = () => {
                     <div className="mb-8">
                         <button
                             onClick={() => navigate('/admin/categories')}
-                            className="flex items-center text-gray-500 hover:text-white font-bold transition-colors uppercase tracking-widest text-[10px]"
+                            className="flex items-center text-gray-400 hover:text-black font-bold transition-colors uppercase tracking-widest text-[10px]"
                         >
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Back to Categories
                         </button>
                     </div>
 
-                    <div className="bg-admin-card shadow-admin rounded-3xl p-8 border border-admin-border">
+                    <div className="bg-white shadow-admin rounded-3xl p-8 border border-admin-border">
                         <div className="flex items-center gap-4 mb-8">
                             <div className="bg-[#FF0000] p-3 rounded-2xl shadow-lg shadow-red-500/20">
                                 <Edit2 className="h-6 w-6 text-white" />
