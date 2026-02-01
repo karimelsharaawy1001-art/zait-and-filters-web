@@ -436,16 +436,38 @@ const Checkout = () => {
                 const tempOrderId = `temp_${Date.now()}`;
                 await handleOnlinePayment(tempOrderId, selectedMethod);
             } else {
+                console.log("Starting order transaction...");
                 const orderId = await runTransaction(db, async (transaction) => {
+                    // 1. ALL READS FIRST
                     const counterRef = doc(db, 'settings', 'counters');
                     const counterSnap = await transaction.get(counterRef);
+
+                    // Pre-fetch all products to check existence before any writes
+                    const productSnapshots = [];
+                    for (const item of cartItems) {
+                        if (item.id && item.id !== 'unknown') {
+                            const productRef = doc(db, 'products', item.id);
+                            const productSnap = await transaction.get(productRef);
+                            if (productSnap.exists()) {
+                                productSnapshots.push({ ref: productRef, quantity: item.quantity || 1 });
+                            }
+                        }
+                    }
+
+                    // 2. ALL WRITES AFTER READS
                     let nextNumber = 3501;
                     if (counterSnap.exists()) {
                         nextNumber = (counterSnap.data().lastOrderNumber || 3500) + 1;
                     }
 
                     const orderRef = doc(collection(db, 'orders'));
-                    transaction.set(orderRef, { ...orderData, orderNumber: nextNumber });
+                    const finalOrderWithServerTime = {
+                        ...orderData,
+                        orderNumber: nextNumber,
+                        createdAt: serverTimestamp() // Preferred for Firestore
+                    };
+
+                    transaction.set(orderRef, finalOrderWithServerTime);
                     transaction.set(counterRef, { lastOrderNumber: nextNumber }, { merge: true });
 
                     if (appliedPromo && appliedPromo.id) {
@@ -463,20 +485,15 @@ const Checkout = () => {
                         });
                     }
 
-                    // Update sold counts for items with valid IDs
-                    for (const item of cartItems) {
-                        if (item.id && item.id !== 'unknown') {
-                            const productRef = doc(db, 'products', item.id);
-                            // Verify product exists before updating to avoid transaction crash
-                            const productSnap = await transaction.get(productRef);
-                            if (productSnap.exists()) {
-                                transaction.update(productRef, { soldCount: increment(item.quantity || 1) });
-                            }
-                        }
+                    // Perform product soldCount updates
+                    for (const snap of productSnapshots) {
+                        transaction.update(snap.ref, { soldCount: increment(snap.quantity) });
                     }
 
+                    console.log("Transaction writes queued successfully. Order Number:", nextNumber);
                     return orderRef.id;
                 });
+                console.log("Transaction committed. Order ID:", orderId);
 
                 // Mark cart as recovered
                 const cartId = auth.currentUser ? auth.currentUser.uid : safeLocalStorage.getItem('cartSessionId');
