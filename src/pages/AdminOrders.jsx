@@ -143,6 +143,7 @@ const AdminOrders = () => {
     const getStatusColor = (status) => {
         const colors = {
             'Pending': 'bg-orange-50 text-orange-600 border-orange-100',
+            'Awaiting Payment Verification': 'bg-amber-50 text-amber-600 border-amber-100',
             'Processing': 'bg-blue-50 text-blue-600 border-blue-100',
             'Shipped': 'bg-purple-50 text-purple-600 border-purple-100',
             'Delivered': 'bg-green-50 text-green-600 border-green-100',
@@ -158,12 +159,20 @@ const AdminOrders = () => {
     // Calculate counts for each status
     const getStatusCount = (status) => {
         if (status === 'All') return orders.length;
+        if (status === 'Pending') {
+            return orders.filter(order => order.status === 'Pending' || order.status === 'Awaiting Payment Verification').length;
+        }
         return orders.filter(order => order.status === status).length;
     };
 
     // PART 2: Filtering Logic (Tabs + Search)
     const filteredOrders = orders.filter(order => {
-        const matchesTab = activeTab === 'All' || order.status === activeTab;
+        let matchesTab = activeTab === 'All' || order.status === activeTab;
+
+        // Special mapping: Pending tab shows both Pending and Awaiting Verification
+        if (activeTab === 'Pending') {
+            matchesTab = order.status === 'Pending' || order.status === 'Awaiting Payment Verification';
+        }
 
         const searchLower = searchQuery.toLowerCase().trim();
         const matchesSearch = !searchQuery ||
@@ -282,6 +291,7 @@ const AdminOrders = () => {
                                                         className={`text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl border outline-none cursor-pointer transition-all shadow-sm active:scale-95 ${getStatusColor(order.status)}`}
                                                     >
                                                         <option value="Pending" className="bg-white">Pending</option>
+                                                        <option value="Awaiting Payment Verification" className="bg-white">Awaiting Verification</option>
                                                         <option value="Processing" className="bg-white">Processing</option>
                                                         <option value="Shipped" className="bg-white">Shipped</option>
                                                         <option value="Delivered" className="bg-white">Delivered</option>
@@ -430,6 +440,7 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                                     className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl text-black focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-black text-xs"
                                 >
                                     <option value="Pending" className="bg-white">Inbound / Pending</option>
+                                    <option value="Awaiting Payment Verification" className="bg-white">Awaiting Verification</option>
                                     <option value="Processing" className="bg-white">Workflow: Processing</option>
                                     <option value="Shipped" className="bg-white">Transit: Shipped</option>
                                     <option value="Delivered" className="bg-white">Terminal: Delivered</option>

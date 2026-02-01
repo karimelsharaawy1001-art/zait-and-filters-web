@@ -30,6 +30,7 @@ const AdminLayout = () => {
 
     const [unreadCount, setUnreadCount] = useState(0);
     const [pendingReviewsCount, setPendingReviewsCount] = useState(0);
+    const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const sidebarRef = useRef(null);
 
@@ -70,6 +71,19 @@ const AdminLayout = () => {
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
             setPendingReviewsCount(snapshot.size);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    useEffect(() => {
+        const q = query(
+            collection(db, 'orders'),
+            where('status', 'in', ['Pending', 'Awaiting Payment Verification'])
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            setPendingOrdersCount(snapshot.size);
         });
 
         return () => unsubscribe();
@@ -193,6 +207,11 @@ const AdminLayout = () => {
                                         <span className={`text-sm font-semibold tracking-wide transition-all ${isActive ? 'translate-x-1' : 'group-hover:translate-x-1'}`}>
                                             {item.name}
                                         </span>
+                                        {item.name === 'Orders' && pendingOrdersCount > 0 && (
+                                            <span className="ml-auto bg-[#e31e24] text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse shadow-sm border border-white/20">
+                                                {pendingOrdersCount}
+                                            </span>
+                                        )}
                                         {item.name === 'Messages' && unreadCount > 0 && (
                                             <span className="ml-auto bg-[#28B463] text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse shadow-sm border border-white/20">
                                                 {unreadCount}
