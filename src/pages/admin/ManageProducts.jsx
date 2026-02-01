@@ -101,7 +101,7 @@ const ManageProducts = () => {
         }
     };
 
-    const [isLiveMode, setIsLiveMode] = useState(false);
+    const [isLiveMode, setIsLiveMode] = useState(true);
     const [localData, setLocalData] = useState([]);
 
     useEffect(() => {
