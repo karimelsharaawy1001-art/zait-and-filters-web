@@ -54,10 +54,15 @@ const ProductGrid = ({ showFilters = true }) => {
 
     // ⚡ High-Performance Memoized Static Search Engine
     const filteredStaticProducts = useMemo(() => {
-        if (!isStaticLoaded && inventoryData.length === 0) return { results: [], total: 0 };
-
         console.log('⚡ Calculating Memoized Static Search');
-        let results = inventoryData.length > 0 ? [...inventoryData] : [...staticProducts];
+
+        // Data Priority: 1. Runtime-fetched staticProducts, 2. Bundled inventoryData
+        let results = [];
+        if (staticProducts && staticProducts.length > 0) {
+            results = [...staticProducts];
+        } else if (inventoryData && inventoryData.length > 0) {
+            results = [...inventoryData];
+        }
 
         // 1. Garage Filter
         if (isGarageFilterActive && activeCar?.make) {

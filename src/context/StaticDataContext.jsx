@@ -25,7 +25,8 @@ export const StaticDataProvider = ({ children }) => {
         const loadAllStaticData = async () => {
             try {
                 const load = async (file) => {
-                    const r = await fetch(`/data/${file}`);
+                    const version = new Date().getTime(); // Simple cache busting
+                    const r = await fetch(`/data/${file}?v=${version}`);
                     return r.ok ? await r.json() : [];
                 };
 
