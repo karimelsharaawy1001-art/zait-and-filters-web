@@ -245,6 +245,10 @@ const BulkOperations = ({ onSuccess }) => {
                 // Ask user if they want to refresh
                 if (onSuccess) {
                     onSuccess();
+                    // Force a reload to ensure all state is reset if needed
+                    setTimeout(() => {
+                        toast('Refresh the page if products still don\'t appear.', { icon: 'ℹ️' });
+                    }, 1000);
                 }
             } catch (error) {
                 console.error("Import error details:", error);

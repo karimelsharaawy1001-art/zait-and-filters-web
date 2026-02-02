@@ -127,11 +127,11 @@ const ManageProducts = () => {
         let result = [...data];
 
         // 1. Filtering
-        if (categoryFilter !== 'All') result = result.filter(p => p.category === categoryFilter);
-        if (subcategoryFilter !== 'All') result = result.filter(p => p.subcategory === subcategoryFilter);
-        if (makeFilter !== 'All') result = result.filter(p => p.make === makeFilter);
-        if (modelFilter !== 'All') result = result.filter(p => p.model === modelFilter);
-        if (brandFilter !== 'All') result = result.filter(p => (p.partBrand || p.brand) === brandFilter);
+        if (categoryFilter !== 'All') result = result.filter(p => String(p.category).toLowerCase() === categoryFilter.toLowerCase());
+        if (subcategoryFilter !== 'All') result = result.filter(p => String(p.subcategory || p.subCategory).toLowerCase() === subcategoryFilter.toLowerCase());
+        if (makeFilter !== 'All') result = result.filter(p => String(p.make).toLowerCase() === makeFilter.toLowerCase());
+        if (modelFilter !== 'All') result = result.filter(p => String(p.model).toLowerCase() === modelFilter.toLowerCase());
+        if (brandFilter !== 'All') result = result.filter(p => String(p.partBrand || p.brand).toLowerCase() === brandFilter.toLowerCase());
         if (statusFilter === 'Active') result = result.filter(p => p.isActive);
         if (statusFilter === 'Inactive') result = result.filter(p => !p.isActive);
         if (yearFilter) result = result.filter(p => p.yearStart && p.yearEnd && parseInt(yearFilter) >= p.yearStart && parseInt(yearFilter) <= p.yearEnd);
@@ -140,7 +140,9 @@ const ManageProducts = () => {
             const lower = searchQuery.toLowerCase();
             result = result.filter(p =>
                 (p.name && p.name.toLowerCase().includes(lower)) ||
+                (p.nameEn && p.nameEn.toLowerCase().includes(lower)) ||
                 (p.partBrand && p.partBrand.toLowerCase().includes(lower)) ||
+                (p.brand && p.brand.toLowerCase().includes(lower)) ||
                 (p.partNumber && p.partNumber.toLowerCase().includes(lower))
             );
         }
@@ -263,8 +265,9 @@ const ManageProducts = () => {
         } catch (error) {
             console.error("Firestore Fetch Error:", error);
             if (error.code === 'resource-exhausted') {
-                toast.error('🔥 Quota Exceeded! Switching to Static Mode.');
-                setIsLiveMode(false); // Auto-switch to Static Mode
+                toast.error('🔥 Firebase Quota Exceeded! Reading from local cache...', { duration: 6000 });
+                // We don't force setIsLiveMode(false) here, just show the warning
+                // and fallback to local processing for this specific view
                 processLocalData();
             } else {
                 toast.error(`Sync Error: ${error.message}`);
@@ -440,6 +443,30 @@ const ManageProducts = () => {
     return (
         <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900">
             <AdminHeader title="Product Management" />
+
+            {/* STATIC MODE WARNING BANNER */}
+            {!isLiveMode && (
+                <div className="bg-yellow-100 border-b border-yellow-200 px-4 py-3">
+                    <div className="flex items-center justify-between max-w-7xl mx-auto">
+                        <div className="flex items-center gap-3">
+                            <AlertTriangle className="h-5 w-5 text-yellow-700" />
+                            <p className="text-sm font-bold text-yellow-800 uppercase tracking-tight">
+                                Static Mode Active: Viewing local backup. New imports won't show until you "Connect Live Sync".
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => {
+                                setIsLiveMode(true);
+                                fetchProducts(false, false, true);
+                            }}
+                            className="px-4 py-1 bg-yellow-800 text-white rounded-lg text-xs font-black uppercase tracking-widest hover:bg-yellow-900 transition-all"
+                        >
+                            Reconnect Live
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
 
                 {/* Header Section */}
