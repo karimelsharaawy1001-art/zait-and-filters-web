@@ -176,14 +176,21 @@ const ManageProducts = () => {
         if (!skipCache && !isNext && !isPrev) {
             const cachedData = safeLocalStorage.getItem(cacheKey);
             if (cachedData) {
-                const parsed = JSON.parse(cachedData);
-                if ((Date.now() - parsed.timestamp) < 3600000) {
-                    setProducts(parsed.products);
-                    setTotalCount(parsed.totalCount);
-                    setLoading(false);
-                    return;
+                try {
+                    const parsed = JSON.parse(cachedData);
+                    if ((Date.now() - (parsed.timestamp || 0)) < 3600000) {
+                        setProducts(parsed.products || []);
+                        setTotalCount(parsed.totalCount || 0);
+                        setLoading(false);
+                        return;
+                    }
+                } catch (e) {
+                    safeLocalStorage.removeItem(cacheKey);
                 }
             }
+        } else if (skipCache) {
+            safeLocalStorage.removeByPrefix('admin_products_');
+            console.log('🧹 Cache cleared on Master Sync');
         }
 
         try {
@@ -266,11 +273,10 @@ const ManageProducts = () => {
             console.error("Firestore Fetch Error:", error);
             if (error.code === 'resource-exhausted') {
                 toast.error('🔥 Firebase Quota Exceeded! Reading from local cache...', { duration: 6000 });
-                // We don't force setIsLiveMode(false) here, just show the warning
-                // and fallback to local processing for this specific view
                 processLocalData();
             } else {
-                toast.error(`Sync Error: ${error.message}`);
+                console.error("Firestore Detailed Error:", error);
+                toast.error(`Sync Error: ${error.code || 'Unknown'} - ${error.message.substring(0, 50)}...`);
                 setProducts([]);
             }
         } finally {
