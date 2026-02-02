@@ -127,6 +127,8 @@ const AddProduct = () => {
         try {
             await addDoc(collection(db, 'products'), {
                 ...formData,
+                make: formData.make?.toUpperCase().trim() || '',
+                model: formData.model?.toUpperCase().trim() || '',
                 brand: formData.partBrand || '', // Sync legacy brand field
                 nameEn: formData.nameEn || null,
                 brandEn: formData.brandEn || null,

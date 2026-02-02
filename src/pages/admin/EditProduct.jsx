@@ -182,6 +182,8 @@ const EditProduct = () => {
         try {
             await updateDoc(doc(db, 'products', id), {
                 ...formData,
+                make: formData.make?.toUpperCase().trim() || '',
+                model: formData.model?.toUpperCase().trim() || '',
                 brand: formData.partBrand || '', // Sync legacy brand field
                 nameEn: formData.nameEn || null,
                 brandEn: formData.brandEn || null,

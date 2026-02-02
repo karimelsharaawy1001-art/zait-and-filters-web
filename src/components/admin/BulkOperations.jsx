@@ -168,8 +168,8 @@ const BulkOperations = ({ onSuccess }) => {
                         if (row.name) dataToUpdate.name = String(row.name).trim();
                         if (row.category) dataToUpdate.category = String(row.category).trim();
                         if (row.subcategory) dataToUpdate.subcategory = String(row.subcategory).trim();
-                        if (row.carMake) dataToUpdate.make = String(row.carMake).trim();
-                        if (row.carModel) dataToUpdate.model = String(row.carModel).trim();
+                        if (row.carMake) dataToUpdate.make = String(row.carMake).trim().toUpperCase();
+                        if (row.carModel) dataToUpdate.model = String(row.carModel).trim().toUpperCase();
                         if (row.yearRange) {
                             dataToUpdate.yearRange = String(row.yearRange).trim();
                             const { yearStart, yearEnd } = parseYearRange(row.yearRange);
@@ -363,7 +363,7 @@ const BulkOperations = ({ onSuccess }) => {
 
                 <button
                     onClick={async () => {
-                        if (window.confirm('This will update ALL existing products to ensure they have numeric year ranges for the new filter. Proceed?')) {
+                        if (window.confirm('MASTER DATA REPAIR: This will fix year ranges AND normalize all Car Makes/Models to UPPERCASE for perfect filtering. This is recommended after every bulk import. Proceed?')) {
                             setLoading(true);
                             setImportStatus('Syncing years...');
                             try {
@@ -379,16 +379,29 @@ const BulkOperations = ({ onSuccess }) => {
 
                                     chunk.forEach(docSnap => {
                                         const data = docSnap.data();
+                                        const updates = {};
+
+                                        // 1. Fix Year Data
                                         if (data.yearRange && (!data.yearStart || !data.yearEnd)) {
                                             const { yearStart, yearEnd } = parseYearRange(data.yearRange);
-                                            if (yearStart || yearEnd) {
-                                                batch.update(docSnap.ref, {
-                                                    yearStart: yearStart || null,
-                                                    yearEnd: yearEnd || null,
-                                                    updatedAt: new Date()
-                                                });
-                                                chunkUpdateCount++;
-                                            }
+                                            if (yearStart) updates.yearStart = yearStart;
+                                            if (yearEnd) updates.yearEnd = yearEnd;
+                                        }
+
+                                        // 2. Normalize Casing (Strict Uppercase for Filters)
+                                        if (data.make && data.make !== data.make.toUpperCase()) {
+                                            updates.make = data.make.toUpperCase().trim();
+                                        }
+                                        if (data.model && data.model !== data.model.toUpperCase()) {
+                                            updates.model = data.model.toUpperCase().trim();
+                                        }
+
+                                        if (Object.keys(updates).length > 0) {
+                                            batch.update(docSnap.ref, {
+                                                ...updates,
+                                                updatedAt: new Date()
+                                            });
+                                            chunkUpdateCount++;
                                         }
                                     });
 
@@ -423,11 +436,11 @@ const BulkOperations = ({ onSuccess }) => {
                     className="flex items-center gap-2 px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
                 >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <TrendingUp className="h-4 w-4" />}
-                    Sync Year Data
+                    Master Data Repair
                 </button>
             </div>
             <p className="mt-2 text-[10px] text-gray-400 uppercase tracking-widest font-bold">
-                Supported formats: .xlsx, .xls | Max 500 rows per batch
+                Supported formats: .xlsx, .xls | Max 500 rows per batch | <span className="text-[#28B463]">Auto-Uppercase active</span>
             </p>
         </div>
     );
