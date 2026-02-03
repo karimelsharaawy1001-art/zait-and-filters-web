@@ -280,7 +280,7 @@ const AbandonedCarts = () => {
                                                 <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mt-0.5">{item.quantity} units</p>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-lg font-black text-admin-text-primary poppins">{item.price?.toLocaleString()} <span className="text-[10px] opacity-40">EGP</span></p>
+                                                <p className="text-lg font-black text-admin-text-primary poppins">{(item.salePrice || item.price)?.toLocaleString()} <span className="text-[10px] opacity-40">EGP</span></p>
                                             </div>
                                         </div>
                                     ))}

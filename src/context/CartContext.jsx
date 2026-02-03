@@ -67,7 +67,10 @@ export const CartProvider = ({ children }) => {
                                 customerName: customerDetails.name || auth.currentUser?.displayName || 'Guest',
                                 customerPhone: customerDetails.phone || null,
                                 items: cartItems,
-                                total: cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                                total: cartItems.reduce((sum, item) => {
+                                    const effectivePrice = item.salePrice || item.price;
+                                    return sum + (effectivePrice * item.quantity);
+                                }, 0),
                                 lastModified: serverTimestamp(),
                                 recovered: false,
                                 emailSent: false,
@@ -145,7 +148,10 @@ export const CartProvider = ({ children }) => {
     };
 
     const getCartTotal = () => {
-        return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+        return cartItems.reduce((total, item) => {
+            const effectivePrice = item.salePrice || item.price;
+            return total + (effectivePrice * item.quantity);
+        }, 0);
     };
 
     const getCartCount = () => {

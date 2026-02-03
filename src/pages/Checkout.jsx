@@ -373,7 +373,7 @@ const Checkout = () => {
                 id: item.id || 'unknown',
                 name: item.name || 'Unknown Product',
                 nameEn: item.nameEn || null,
-                price: Number(item.price) || 0,
+                price: Number(item.salePrice || item.price) || 0,
                 quantity: Number(item.quantity) || 1,
                 image: item.image || null,
                 brand: item.brand || null,
