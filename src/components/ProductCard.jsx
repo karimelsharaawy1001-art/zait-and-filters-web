@@ -73,12 +73,14 @@ const ProductCard = ({ product, isCompact = false }) => {
 
                 {/* Status Badges - Optimized for Mobile Overlay */}
                 <div className={`absolute z-20 flex flex-col gap-1.5 ${isCompact ? 'top-1.5 right-1.5' : 'top-3 right-3'}`}>
-                    {/* Original Badge */}
-                    <div className="flex items-center justify-center px-2 py-1.5 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl bg-[#10b981] shadow-xl shadow-green-900/20 border-2 border-white/20 backdrop-blur-sm">
-                        <span className="text-[9px] sm:text-xs text-white font-black uppercase tracking-widest font-Cairo leading-none whitespace-nowrap">
-                            {i18n.language === 'ar' ? 'منتج أصلي' : 'ORIGINAL'}
-                        </span>
-                    </div>
+                    {/* Original Badge - Only show if isGenuine is true */}
+                    {product.isGenuine && (
+                        <div className="flex items-center justify-center px-2 py-1.5 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl bg-[#10b981] shadow-xl shadow-green-900/20 border-2 border-white/20 backdrop-blur-sm">
+                            <span className="text-[9px] sm:text-xs text-white font-black uppercase tracking-widest font-Cairo leading-none whitespace-nowrap">
+                                {i18n.language === 'ar' ? 'منتج أصلي' : 'ORIGINAL'}
+                            </span>
+                        </div>
+                    )}
 
                     {/* Sale Badge - Stacking below Original on the same side */}
                     {hasSale && (

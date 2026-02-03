@@ -11,7 +11,7 @@ const BulkOperations = ({ onSuccess }) => {
     const [importStatus, setImportStatus] = useState('');
 
     const headers = [
-        'productID', 'name', 'activeStatus', 'category', 'subcategory', 'carMake', 'carModel',
+        'productID', 'name', 'activeStatus', 'isGenuine', 'category', 'subcategory', 'carMake', 'carModel',
         'yearRange', 'partBrand', 'countryOfOrigin', 'costPrice', 'sellPrice',
         'salePrice', 'warranty', 'description', 'imageUrl', 'partNumber', 'compatibility'
     ];
@@ -21,6 +21,7 @@ const BulkOperations = ({ onSuccess }) => {
             {
                 name: "فلتر زيت",
                 activeStatus: "TRUE",
+                isGenuine: "TRUE",
                 category: "Maintenance",
                 subcategory: "Filters",
                 carMake: "Toyota",
@@ -40,6 +41,7 @@ const BulkOperations = ({ onSuccess }) => {
             {
                 name: "تيل فرامل",
                 activeStatus: "TRUE",
+                isGenuine: "FALSE",
                 category: "Brakes",
                 subcategory: "Front Brakes",
                 carMake: "Mitsubishi",
@@ -74,6 +76,7 @@ const BulkOperations = ({ onSuccess }) => {
                     productID: doc.id,
                     name: data.name || '',
                     activeStatus: data.isActive ? 'TRUE' : 'FALSE',
+                    isGenuine: data.isGenuine ? 'TRUE' : 'FALSE',
                     category: data.category || '',
                     subcategory: data.subcategory || data.subCategory || '',
                     carMake: data.make || '',
@@ -213,6 +216,10 @@ const BulkOperations = ({ onSuccess }) => {
                             dataToUpdate.isActive = parseBoolean(row.activeStatus);
                         }
 
+                        if (row.isGenuine !== undefined && row.isGenuine !== "") {
+                            dataToUpdate.isGenuine = parseBoolean(row.isGenuine);
+                        }
+
                         dataToUpdate.updatedAt = new Date();
 
                         if (isUpdate) {
@@ -224,6 +231,7 @@ const BulkOperations = ({ onSuccess }) => {
                             // Fallback for required fields on new products
                             if (!dataToUpdate.category) dataToUpdate.category = 'Uncategorized';
                             if (dataToUpdate.isActive === undefined) dataToUpdate.isActive = true;
+                            if (dataToUpdate.isGenuine === undefined) dataToUpdate.isGenuine = false;
 
                             batch.set(docRef, dataToUpdate);
                         }

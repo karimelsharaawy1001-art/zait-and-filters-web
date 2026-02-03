@@ -36,7 +36,8 @@ const EditProduct = () => {
         yearStart: '',
         yearEnd: '',
         warranty_months: '',
-        isActive: true
+        isActive: true,
+        isGenuine: false
     });
 
     useEffect(() => {
@@ -75,7 +76,8 @@ const EditProduct = () => {
                         yearStart: productData.yearStart?.toString() || '',
                         yearEnd: productData.yearEnd?.toString() || '',
                         warranty_months: productData.warranty_months?.toString() || '',
-                        isActive: productData.isActive !== undefined ? productData.isActive : true
+                        isActive: productData.isActive !== undefined ? productData.isActive : true,
+                        isGenuine: productData.isGenuine || false
                     });
 
                     // Set subcategories for the current category
@@ -193,6 +195,7 @@ const EditProduct = () => {
                 yearStart: formData.yearStart ? Number(formData.yearStart) : null,
                 yearEnd: formData.yearEnd ? Number(formData.yearEnd) : null,
                 warranty_months: formData.warranty_months ? Number(formData.warranty_months) : null,
+                isGenuine: formData.isGenuine || false,
                 updatedAt: new Date()
             });
 
@@ -250,6 +253,31 @@ const EditProduct = () => {
                                     </span>
                                 </label>
                             </div>
+                        </div>
+
+                        {/* Genuine Badge Toggle */}
+                        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-2xl">
+                            <label className="inline-flex items-center cursor-pointer group w-full justify-between">
+                                <div>
+                                    <span className="text-sm font-black text-gray-900 uppercase tracking-widest">Show Genuine Badge</span>
+                                    <p className="text-xs text-gray-500 font-bold mt-1">Display "منتج أصلي" badge on product card</p>
+                                </div>
+                                <div className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        name="isGenuine"
+                                        checked={formData.isGenuine}
+                                        onChange={handleChange}
+                                        className="sr-only peer"
+                                    />
+                                    <div className="relative w-14 h-7 bg-gray-300 rounded-full peer transition-all duration-300 peer-checked:bg-green-500 peer-focus:ring-4 peer-focus:ring-green-500/20 shadow-lg peer-checked:shadow-green-500/40">
+                                        <div className="absolute top-0.5 start-0.5 bg-white rounded-full h-6 w-6 transition-all duration-300 peer-checked:translate-x-7 shadow-md"></div>
+                                    </div>
+                                    <span className={`ms-3 text-xs font-black uppercase tracking-widest transition-all duration-300 ${formData.isGenuine ? 'text-green-600' : 'text-gray-400'}`}>
+                                        {formData.isGenuine ? 'ON' : 'OFF'}
+                                    </span>
+                                </div>
+                            </label>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
