@@ -344,6 +344,36 @@ const ManageProducts = () => {
         }
     };
 
+    const handleToggleGenuine = async (productId, currentStatus) => {
+        try {
+            await updateDoc(doc(db, 'products', productId), {
+                isGenuine: !currentStatus
+            });
+
+            const updatedProducts = products.map(p =>
+                p.id === productId ? { ...p, isGenuine: !currentStatus } : p
+            );
+            setProducts(updatedProducts);
+
+            // Update local cache mirror if in static mode
+            if (!isLiveMode) {
+                const updatedLocal = localData.map(p =>
+                    p.id === productId ? { ...p, isGenuine: !currentStatus } : p
+                );
+                setLocalData(updatedLocal);
+            }
+
+            // Invalidate admin product list caches
+            safeLocalStorage.removeByPrefix('admin_products_');
+
+            toast.success("Genuine badge updated");
+        } catch (error) {
+            console.error("Error toggling genuine status:", error);
+            toast.error("Failed to update genuine badge");
+        }
+    };
+
+
     const handleDelete = async (productId, productName) => {
         if (window.confirm(`Are you sure you want to delete "${productName}"?`)) {
             try {
@@ -712,6 +742,7 @@ const ManageProducts = () => {
                                         <th className="px-4 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100 italic">Cost</th>
                                         <th className="px-4 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100 font-black">Sell</th>
                                         <th className="px-4 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100 text-center">Active</th>
+                                        <th className="px-4 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100 text-center">Genuine</th>
                                         <th className="px-4 py-5 text-right text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Actions</th>
                                     </tr>
                                 </thead>
@@ -776,6 +807,14 @@ const ManageProducts = () => {
                                                     className={`relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-all duration-300 ease-in-out focus:outline-none ${product.isActive !== false ? 'bg-green-500' : 'bg-gray-200'}`}
                                                 >
                                                     <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow transition duration-300 ease-in-out ${product.isActive !== false ? 'translate-x-7' : 'translate-x-0'}`} />
+                                                </button>
+                                            </td>
+                                            <td className="px-4 py-6 whitespace-nowrap text-center">
+                                                <button
+                                                    onClick={() => handleToggleGenuine(product.id, product.isGenuine)}
+                                                    className={`relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-all duration-300 ease-in-out focus:outline-none ${product.isGenuine ? 'bg-green-500' : 'bg-gray-200'}`}
+                                                >
+                                                    <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow transition duration-300 ease-in-out ${product.isGenuine ? 'translate-x-7' : 'translate-x-0'}`} />
                                                 </button>
                                             </td>
                                             <td className="px-4 py-6 whitespace-nowrap text-right">
