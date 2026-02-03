@@ -429,6 +429,11 @@ const BulkOperations = ({ onSuccess }) => {
                             } finally {
                                 setLoading(false);
                                 setImportStatus('');
+
+                                // Trigger product refresh
+                                if (onSuccess) {
+                                    onSuccess();
+                                }
                             }
                         }
                     }}
