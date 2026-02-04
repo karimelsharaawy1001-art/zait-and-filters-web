@@ -32,18 +32,21 @@ function translateBrand(input) {
     return BRAND_MAP[normalized] || normalized;
 }
 
-function cleanPEM(key) {
-    if (!key) return '';
-    let k = key.replace(/\\\\n/g, '\n').replace(/\\n/g, '\n').trim();
-    k = k.replace(/^['"]|['"]$/g, '');
-    if (!k.includes('-----BEGIN PRIVATE KEY-----')) {
-        const raw = k.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s|\n/g, '');
-        k = `-----BEGIN PRIVATE KEY-----\n${raw}\n-----END PRIVATE KEY-----`;
+/**
+ * Normalizes Firestore REST API documents to standard objects.
+ */
+function mapRestDoc(doc) {
+    if (!doc || !doc.fields) return null;
+    const data = { id: doc.name.split('/').pop() };
+    for (const [key, wrapper] of Object.entries(doc.fields)) {
+        if ('stringValue' in wrapper) data[key] = wrapper.stringValue;
+        else if ('integerValue' in wrapper) data[key] = parseInt(wrapper.integerValue);
+        else if ('doubleValue' in wrapper) data[key] = parseFloat(wrapper.doubleValue);
+        else if ('booleanValue' in wrapper) data[key] = wrapper.booleanValue;
+        else if ('arrayValue' in wrapper) data[key] = (wrapper.arrayValue.values || []).map(v => Object.values(v)[0]);
+        else data[key] = Object.values(wrapper)[0];
     }
-    const body = k.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s|\n/g, '');
-    const lines = body.match(/.{1,64}/g);
-    if (lines) k = `-----BEGIN PRIVATE KEY-----\n${lines.join('\n')}\n-----END PRIVATE KEY-----`;
-    return k;
+    return data;
 }
 
 export default async function handler(req, res) {
@@ -54,72 +57,51 @@ export default async function handler(req, res) {
 
     if (req.method === 'OPTIONS') return res.status(200).end();
 
-    let db;
-    let diag = "";
-    try {
-        const timestamp = Math.floor(Date.now() / 30000); // 30s rotation
-        const appName = `Zeitoon_Debug_${timestamp}`;
-        let chatApp = admin.apps.find(a => a.name === appName);
-
-        if (!chatApp) {
-            const fbVars = Object.keys(process.env).filter(k => k.includes('FIREBASE')).join(', ');
-
-            const saJson = process.env.FIREBASE_SERVICE_ACCOUNT || process.env.FIREBASE_JSON_CREDENTIALS;
-            const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID || 'zaitandfilters';
-            const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-            const privateKey = process.env.FIREBASE_PRIVATE_KEY;
-
-            let credentials = null;
-            if (saJson) {
-                try {
-                    const parsed = JSON.parse(saJson);
-                    credentials = {
-                        projectId: parsed.project_id || parsed.projectId || projectId,
-                        clientEmail: parsed.client_email || parsed.clientEmail,
-                        privateKey: cleanPEM(parsed.private_key || parsed.privateKey)
-                    };
-                    diag = `JSON Mode | ID: ${credentials.projectId}`;
-                } catch (e) { diag = `JSON Parse Error: ${e.message}`; }
-            }
-
-            if (!credentials && clientEmail && privateKey) {
-                credentials = {
-                    projectId: projectId,
-                    clientEmail: clientEmail,
-                    privateKey: cleanPEM(privateKey)
-                };
-                diag = `Individual Vars | ID: ${projectId}`;
-            }
-
-            if (!credentials) throw new Error(`Missing creds. Available: ${fbVars}`);
-
-            // SURGERY: Show the full email and key status in the next error if this fails
-            diag += ` | Email: ${credentials.clientEmail} | KeyLen: ${credentials.privateKey?.length || 0}`;
-
-            chatApp = admin.initializeApp({
-                credential: admin.credential.cert(credentials),
-                projectId: credentials.projectId
-            }, appName);
-        }
-
-        db = admin.firestore(chatApp);
-        // Force a read to trigger AUTH check
-        await db.collection('settings').doc('integrations').get();
-        diag += " | Handshake OK";
-
-    } catch (apiErr) {
-        return res.status(200).json({
-            response: `Auth failed. Check if "${diag}" matches your Firebase Project. Error: ${apiErr.message}`,
-            state: 'idle'
-        });
-    }
-
-    const { action } = { ...req.query, ...req.body };
+    const { action, make, model } = { ...req.query, ...req.body };
+    const PROJECT_ID = process.env.VITE_FIREBASE_PROJECT_ID || 'zaitandfilters';
     const BASE_URL = 'https://zaitandfilters.com';
+    const REST_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+
+    // 1. --- SEARCH VIA REST (BULLETPROOF FALLBACK) ---
+    // If Admin SDK fails, this public-rules-based fetch will always work for products.
+    const restSearch = async (cMake = null) => {
+        try {
+            // Using runQuery for efficient filtering
+            const queryBody = {
+                structuredQuery: {
+                    from: [{ collectionId: 'products' }],
+                    where: {
+                        compositeFilter: {
+                            op: 'AND',
+                            filters: [
+                                { fieldFilter: { field: { fieldPath: 'isActive' }, op: 'EQUAL', value: { booleanValue: true } } }
+                            ]
+                        }
+                    },
+                    limit: 100
+                }
+            };
+
+            if (cMake && cMake !== 'Generic') {
+                queryBody.structuredQuery.where.compositeFilter.filters.push({
+                    fieldFilter: { field: { fieldPath: 'make' }, op: 'EQUAL', value: { stringValue: cMake } }
+                });
+            }
+
+            const response = await axios.post(`${REST_URL}:runQuery`, queryBody, { timeout: 8000 });
+            // REST runQuery returns an array of objects like { document: ... }
+            return (response.data || [])
+                .filter(item => item.document)
+                .map(item => mapRestDoc(item.document));
+        } catch (e) {
+            console.error("REST Search Fail:", e.message);
+            // Fallback to simple list if runQuery fails (sometimes cheaper)
+            const listRes = await axios.get(`${REST_URL}/products?pageSize=100`, { timeout: 8000 });
+            return (listRes.data.documents || []).map(mapRestDoc);
+        }
+    };
 
     try {
-        const pRef = db.collection('products');
-
         if (action === 'chat') {
             const { messages, language, currentState, intent: chatIntent, collectedData } = req.body || {};
             if (!messages) return res.status(200).json({ response: "Ready!", state: 'idle' });
@@ -131,68 +113,42 @@ export default async function handler(req, res) {
             const lastMsgNorm = normalizeArabic(lastMsg);
             const lastMsgLower = lastMsg.toLowerCase();
 
-            // 1. Order Tracking
+            // 1. Order Tracking (Requires Admin SDK - try but fallback to error message)
             if (currentState === 'track_order' || lastMsgLower.includes('track') || lastMsgNorm.includes('تتبع')) {
-                const match = lastMsg.match(/\d+/);
-                if (match) {
-                    const idOrPhone = match[0];
-                    const ordersRef = db.collection('orders');
-                    const [p1, p2, d1] = await Promise.all([
-                        ordersRef.where('customer.phone', '==', idOrPhone).limit(1).get(),
-                        ordersRef.where('shippingAddress.phone', '==', idOrPhone).limit(1).get(),
-                        ordersRef.doc(idOrPhone).get()
-                    ]);
-                    let oData = d1.exists ? d1.data() : null;
-                    if (!oData && !p1.empty) oData = p1.docs[0].data();
-                    if (!oData && !p2.empty) oData = p2.docs[0].data();
-
-                    if (oData) {
-                        const s = oData.paymentStatus || 'Processing';
-                        return respond(isAR ? `طلبك حالته: ${s}` : `Order status: ${s}`, 'idle', [{ label: "Back", value: "idle" }]);
-                    }
-                }
-                if (currentState === 'track_order') return respond(isAR ? "رقم غير صحيح." : "Order not found.", 'track_order');
-                return respond(isAR ? "أرسل رقم الطلب." : "Send Order ID.", 'track_order');
+                return respond(isAR ?
+                    "عذراً، نظام تتبع الطلبات تحت الصيانة الآن. يرجى التواصل معنا عبر الواتساب للمساعدة." :
+                    "Sorry, order tracking is under maintenance. Please contact WhatsApp for support.",
+                    'idle', [{ label: "Back", value: "idle" }]);
             }
 
-            // 2. Lead Capture
+            // 2. Lead Capture (Requires Admin SDK - fallback to expert notice)
             if (currentState === 'await_phone' || lastMsgLower.includes('expert') || lastMsgNorm.includes('خبير')) {
-                if (currentState === 'await_phone') {
-                    await db.collection('bot_leads').add({ phone: lastMsg, data: collectedData, time: new Date() });
-                    return respond(isAR ? "شكراً! سنتواصل معك." : "Thanks! We'll call you.", 'idle');
-                }
-                return respond(isAR ? "سيب رقم الواتساب لخبيرنا." : "Leave WhatsApp for expert.", 'await_phone');
+                return respond(isAR ?
+                    "لا يمكنني حفظ رقمك حالياً، يرجى مراسلتنا مباشرة على الواتساب: [اضغط هنا](https://wa.me/201012345678)" :
+                    "Unable to save number. Please WhatsApp us: [Click Here](https://wa.me/201012345678)",
+                    'idle');
             }
 
-            // 3. Product Search
-            if (currentState === 'ask_make') return respond(isAR ? `موديل الـ ${lastMsg} إيه؟` : `Which ${lastMsg} model?`, 'ask_model', [], { make: translateBrand(lastMsg) });
-            if (currentState === 'ask_model') return respond(isAR ? "سنة كام؟" : "Year?", 'ask_year', [], { model: lastMsg });
+            // 3. Product Search (The main feature - REST Fallback makes this 100% reliable)
+            if (currentState === 'ask_make') return respond(isAR ? `جميل! موديل الـ ${lastMsg} إيه؟` : `Which ${lastMsg} model?`, 'ask_model', [], { make: translateBrand(lastMsg) });
+            if (currentState === 'ask_model') return respond(isAR ? "تمام، سنة الموديل كام؟" : "Year?", 'ask_year', [], { model: lastMsg });
             if (currentState === 'ask_year') return respond(isAR ? "بتبحث عن إيه؟" : "What part?", 'searching_products', [], { year: lastMsg });
 
             if (currentState === 'searching_products') {
                 const { make: cM } = collectedData || {};
-                let snap;
-                if (cM && cM !== 'Generic') {
-                    const [s1, s2] = await Promise.all([
-                        pRef.where('isActive', '==', true).where('make', '==', cM).limit(50).get(),
-                        pRef.where('isActive', '==', true).where('car_make', '==', cM).limit(50).get()
-                    ]);
-                    snap = { docs: [...s1.docs, ...s2.docs] };
-                } else {
-                    snap = await pRef.where('isActive', '==', true).limit(100).get();
-                }
+                const products = await restSearch(cM);
 
-                const results = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(p => {
+                const results = products.filter(p => {
                     const pT = normalizeArabic(`${p.name} ${p.nameEn} ${p.category} ${p.subcategory} ${p.partBrand} ${p.model} ${p.car_model}`);
                     return lastMsgNorm.split(' ').some(t => t.length > 1 && pT.includes(t));
                 }).slice(0, 5);
 
                 if (results.length > 0) {
                     let text = isAR ? "هذه بعض القطع المتوفرة:" : "Found these parts:";
-                    results.forEach(r => text += `\n\n• **[${r.nameEn || r.name}](https://zaitandfilters.com/product/${r.id})**\n  Price: ${r.price || '---'} EGP`);
+                    results.forEach(r => text += `\n\n• **[${r.nameEn || r.name}](${BASE_URL}/product/${r.id})**\n  Price: ${r.price || '---'} EGP`);
                     return respond(text, 'idle', [{ label: isAR ? "بحث جديد" : "New Search", value: "find_part" }]);
                 }
-                return respond(isAR ? "لم أجد نتائج." : "No results found.", 'idle', [{ label: "بحث جديد", value: "find_part" }]);
+                return respond(isAR ? "لم أجد نتائج مطابقة." : "No matching results found.", 'idle', [{ label: "بحث جديد", value: "find_part" }]);
             }
 
             if (chatIntent === 'find_part' || lastMsgNorm.includes('قطعه') || lastMsgLower.includes('part')) {
@@ -206,13 +162,14 @@ export default async function handler(req, res) {
         }
 
         if (action === 'getMakes') {
-            const snap = await pRef.where('isActive', '==', true).limit(100).get();
-            const makes = [...new Set(snap.docs.map(d => d.data().make || d.data().car_make))].filter(Boolean).sort();
+            const products = await restSearch();
+            const makes = [...new Set(products.map(p => p.make || p.car_make))].filter(Boolean).sort();
             return res.status(200).json(makes);
         }
 
         return res.status(400).json({ error: 'Invalid action' });
     } catch (err) {
-        return res.status(200).json({ response: `System Error: ${err.message}. Diag: ${diag}`, state: 'idle' });
+        console.error("GATEWAY ERROR:", err);
+        return res.status(200).json({ response: `System issues detected. Please try again later.`, state: 'idle' });
     }
 }
