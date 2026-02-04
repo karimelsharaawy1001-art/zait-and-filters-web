@@ -4,7 +4,7 @@ import axios from 'axios';
 // --- GLOBAL CACHE ---
 let globalProductCache = null;
 let lastCacheUpdate = 0;
-const CACHE_TTL = 15 * 60 * 1000; // 15 Minutes
+const CACHE_TTL = 30 * 60 * 1000; // 30 Minutes
 
 // --- HELPERS ---
 const sanitize = (v) => v ? String(v).replace(/^['"]|['"]$/g, '').trim() : '';
@@ -40,27 +40,69 @@ export default async function handler(req, res) {
         }
 
         try {
-            const listRes = await axios.get(`${REST_URL}/products?pageSize=300`, { timeout: 15000 });
-            const products = (listRes.data.documents || []).map(mapRestDoc).filter(p => p && p.isActive !== false);
+            // OPTION A: Try to load from static JSON if it exists (Zero Quota Usage)
+            try {
+                const fs = await import('fs');
+                const path = await import('path');
+                const staticPath = path.join(process.cwd(), 'public', 'data', 'products-db.json');
+                if (fs.existsSync(staticPath)) {
+                    const data = JSON.parse(fs.readFileSync(staticPath, 'utf8'));
+                    const minimal = data.map(p => ({
+                        id: p.id,
+                        name: String(p.name || ''),
+                        nameEn: String(p.nameEn || ''),
+                        make: String(p.make || p.car_make || ''),
+                        model: String(p.model || p.car_model || ''),
+                        category: String(p.category || ''),
+                        subcategory: String(p.subcategory || ''),
+                        partBrand: String(p.partBrand || ''),
+                        price: p.price
+                    }));
+                    globalProductCache = minimal;
+                    lastCacheUpdate = Date.now();
+                    console.log(`Index loaded from STATIC FILE: ${minimal.length} products.`);
+                    return minimal;
+                }
+            } catch (staticErr) {
+                console.log("Static load skipped or failed:", staticErr.message);
+            }
 
-            const minimalProducts = products.map(p => ({
-                id: p.id,
-                name: p.name,
-                nameEn: p.nameEn,
-                make: p.make,
-                car_make: p.car_make,
-                model: p.model,
-                car_model: p.car_model,
-                category: p.category,
-                subcategory: p.subcategory,
-                partBrand: p.partBrand,
-                price: p.price
-            }));
+            // OPTION B: Fallback to Firestore REST API (Handles missing static file)
+            let allMinimalProducts = [];
+            let pageToken = null;
+            let pageCount = 0;
 
-            globalProductCache = minimalProducts;
+            do {
+                const url = `${REST_URL}/products?pageSize=300${pageToken ? `&pageToken=${pageToken}` : ''}`;
+                const listRes = await axios.get(url, { timeout: 20000 });
+                const documents = listRes.data.documents || [];
+
+                const minimalPage = documents
+                    .map(mapRestDoc)
+                    .filter(p => p && p.isActive !== false)
+                    .map(p => ({
+                        id: p.id,
+                        name: String(p.name || ''),
+                        nameEn: String(p.nameEn || ''),
+                        make: String(p.make || p.car_make || ''),
+                        model: String(p.model || p.car_model || ''),
+                        category: String(p.category || ''),
+                        subcategory: String(p.subcategory || ''),
+                        partBrand: String(p.partBrand || ''),
+                        price: p.price
+                    }));
+
+                allMinimalProducts = allMinimalProducts.concat(minimalPage);
+                pageToken = listRes.data.nextPageToken;
+                pageCount++;
+            } while (pageToken);
+
+            globalProductCache = allMinimalProducts;
             lastCacheUpdate = Date.now();
-            return minimalProducts;
+            console.log(`Index Rebuilt from Firestore: ${allMinimalProducts.length} total products.`);
+            return allMinimalProducts;
         } catch (e) {
+            console.error("Fetch Error:", e.message);
             if (globalProductCache) return globalProductCache;
             throw e;
         }
@@ -74,7 +116,6 @@ export default async function handler(req, res) {
                 const index = await fetchAllProducts();
                 return res.status(200).json(index);
             } catch (idxErr) {
-                console.error("getIndex failed:", idxErr.message);
                 if (idxErr.response && idxErr.response.status === 429) {
                     return res.status(429).json({ error: "QUOTA_EXCEEDED" });
                 }
@@ -83,23 +124,17 @@ export default async function handler(req, res) {
         }
 
         if (action === 'chat') {
-            const { language } = req.body || {};
-            const isAR = language === 'ar';
-            return res.status(200).json({
-                response: isAR ? "أهلاً بك! معاك زيتون. كيف أساعدك اليوم؟" : "Hello! I'm Zeitoon. How can I help you?",
-                state: 'idle'
-            });
+            return res.status(200).json({ response: "Ready", state: 'idle' });
         }
 
         if (action === 'getMakes') {
             const products = await fetchAllProducts();
-            const makes = [...new Set(products.map(p => p.make || p.car_make))].filter(Boolean).sort();
+            const makes = [...new Set(products.map(p => p.make))].filter(Boolean).sort();
             return res.status(200).json(makes);
         }
 
         return res.status(400).json({ error: 'Invalid action' });
     } catch (err) {
-        console.error("API Global Error:", err.message);
         return res.status(500).json({ error: err.message });
     }
 }

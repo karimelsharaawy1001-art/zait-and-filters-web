@@ -43,14 +43,11 @@ const ChatWidget = () => {
     const [chatState, setChatState] = useState('idle');
     const [intent, setIntent] = useState(null);
     const [collectedData, setCollectedData] = useState({});
-
-    // --- LOCAL INDEX ---
     const [productIndex, setProductIndex] = useState([]);
 
     const messagesEndRef = useRef(null);
     const isRTL = i18n.language === 'ar';
 
-    // 1. Initial State
     useEffect(() => {
         if (isOpen && messages.length === 0) {
             setMessages([{
@@ -63,8 +60,6 @@ const ChatWidget = () => {
                     { label: t('chatbot.talkExpert'), intent: 'talk_to_expert' }
                 ]
             }]);
-
-            // Fetch product index ONCE when widget opens to save quota
             fetchProductIndex();
         }
     }, [isOpen]);
@@ -72,48 +67,59 @@ const ChatWidget = () => {
     const fetchProductIndex = async () => {
         try {
             if (productIndex && productIndex.length > 0) return;
-            const res = await axios.get('/api/products?action=getIndex');
-            // Ensure we only set it if it's an array
+            // Fetch from static JSON to avoid Firestore Quota issues
+            const res = await axios.get('/data/products-db.json');
             if (Array.isArray(res.data)) {
-                setProductIndex(res.data);
-            } else {
-                console.warn("Product index received is not an array:", res.data);
-                setProductIndex([]);
+                // Map to minimal structure used by performLocalSearch
+                const mapped = res.data.map(p => ({
+                    id: p.id,
+                    name: String(p.name || ''),
+                    nameEn: String(p.nameEn || ''),
+                    make: String(p.make || p.car_make || ''),
+                    model: String(p.model || p.car_model || ''),
+                    category: String(p.category || ''),
+                    subcategory: String(p.subcategory || ''),
+                    partBrand: String(p.partBrand || ''),
+                    price: p.price
+                }));
+                console.log(`Chatbot Loaded ${mapped.length} products from Static Index.`);
+                setProductIndex(mapped);
             }
         } catch (e) {
-            console.error("Index load fail:", e);
-            setProductIndex([]);
+            console.error("Static Index load fail, trying fallback:", e);
+            // Fallback to API if static file fails
+            try {
+                const res = await axios.get('/api/products?action=getIndex');
+                if (Array.isArray(res.data)) setProductIndex(res.data);
+            } catch (err2) { console.error("Fallback fail:", err2); }
         }
     };
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
+    useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
-    useEffect(() => { scrollToBottom(); }, [messages]);
-
-    // --- LOCAL SEARCH ENGINE ---
     const performLocalSearch = (query, data) => {
         const { make: cM } = data || {};
         const qNorm = normalizeArabic(query);
         const terms = qNorm.split(' ').filter(t => t.length > 1);
 
-        if (!Array.isArray(productIndex) || productIndex.length === 0) {
-            return [];
-        }
+        if (!Array.isArray(productIndex) || productIndex.length === 0) return [];
 
         return productIndex.filter(p => {
             if (!p) return false;
-            // car make filter
+
+            // 1. Car Make Filtering (Improved: Check both make and car_make)
             if (cM && cM !== 'Generic' && cM !== 'generic') {
-                const pMake = normalizeArabic(p.make || p.car_make);
+                const pMake = normalizeArabic(p.make || '');
                 const targetMake = normalizeArabic(cM);
-                if (pMake !== targetMake) return false;
+                // If it's not a general part, it MUST match the make
+                if (pMake && pMake !== 'generic' && pMake !== targetMake) return false;
             }
 
-            // text search
+            // 2. Search Matching (Improved: Matches MUST contain at least one term fully)
             const pT = normalizeArabic(`${p.name} ${p.nameEn} ${p.category} ${p.subcategory} ${p.partBrand} ${p.model} ${p.car_model}`);
-            return terms.some(t => pT.includes(t));
+
+            // If user types multiple words, ensure they ALL appear or the whole phrase appears
+            return terms.every(t => pT.includes(t)) || pT.includes(qNorm);
         }).slice(0, 5);
     };
 
@@ -135,7 +141,6 @@ const ChatWidget = () => {
         if (customIntent) setIntent(customIntent);
 
         try {
-            // --- CLIENT-SIDE LOGIC BRANCH ---
             let botResp = null;
             const isSearching = chatState === 'searching_products';
 
@@ -153,7 +158,7 @@ const ChatWidget = () => {
                 };
             } else if (chatState === 'ask_year') {
                 botResp = {
-                    response: isRTL ? "بتبحث عن إيه؟" : "What part?",
+                    response: isRTL ? "بتبحث عن إيه؟ (مثلاً: تيل فرامل، فلتر زيت)" : "What part? (e.g., Brake pad, Oil filter)",
                     state: 'searching_products',
                     newData: { year: text }
                 };
@@ -169,7 +174,7 @@ const ChatWidget = () => {
                     };
                 } else {
                     botResp = {
-                        response: isRTL ? `عذراً، لم أجد نتائج لـ "${text}".` : `No results for "${text}".`,
+                        response: isRTL ? `عذراً، لم أجد نتائج مطابقة لـ "${text}". جرب كتابة اسم القطعة بشكل مختلف.` : `No results for "${text}". Try a different term.`,
                         state: 'idle',
                         options: [{ label: isRTL ? "بحث جديد" : "New Search", intent: 'find_part' }]
                     };
@@ -181,12 +186,11 @@ const ChatWidget = () => {
                 };
             } else if (activeIntent === 'track_order' || normalizeArabic(text).includes('تتبع')) {
                 botResp = {
-                    response: isRTL ? "نظام تتبع الطلبات تحت الصيانة الآن. يرجى التواصل معنا عبر الواتساب." : "Order tracking is under maintenance. Please WhatsApp us.",
+                    response: isRTL ? "نظام تتبع الطلبات تحت الصيانة. يرجى المتابعة لاحقاً." : "Order tracking is offline. Please check later.",
                     state: 'idle'
                 };
             }
 
-            // Fallback to server if local logic didn't handle it
             if (!botResp) {
                 const response = await axios.post('/api/products?action=chat', {
                     messages: [...messages, userMsg],
@@ -198,7 +202,6 @@ const ChatWidget = () => {
                 botResp = response.data;
             }
 
-            // Apply Response
             if (botResp) {
                 const { response: botText, state: nextState, options, newData } = botResp;
                 if (nextState) {
@@ -222,9 +225,7 @@ const ChatWidget = () => {
                 content: t('chatbot.error') || "System Error",
                 timestamp: new Date()
             }]);
-        } finally {
-            setIsLoading(false);
-        }
+        } finally { setIsLoading(false); }
     };
 
     const formatMessage = (content) => {
@@ -246,27 +247,17 @@ const ChatWidget = () => {
         <div className={`fixed bottom-6 z-[9999] flex flex-col items-end ${isRTL ? 'left-6' : 'right-6'}`} style={{ direction: isRTL ? 'rtl' : 'ltr' }}>
             {isOpen && (
                 <div className={`mb-4 w-[380px] sm:w-[420px] max-h-[600px] h-[70vh] bg-white/95 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-white/20 flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-500`}>
-
-                    {/* Header */}
                     <div className="bg-[#1A1A1A] p-6 text-white relative overflow-hidden flex-shrink-0">
                         <div className="relative z-10 flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 <div className="h-12 w-12 rounded-2xl bg-[#28B463] flex items-center justify-center shadow-lg shadow-[#28B463]/30">
                                     <Sparkles className="h-6 w-6 text-white" />
                                 </div>
-                                <div>
-                                    <h3 className="font-black text-lg uppercase tracking-widest font-Cairo">{t('chatbot.title')}</h3>
-                                    <div className="flex items-center gap-2">
-                                        <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Always Online</span>
-                                    </div>
-                                </div>
+                                <div><h3 className="font-black text-lg uppercase tracking-widest font-Cairo">{t('chatbot.title')}</h3><div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span><span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Always Online</span></div></div>
                             </div>
                             <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors"><ChevronDown className="h-6 w-6 text-white/50" /></button>
                         </div>
                     </div>
-
-                    {/* Messages Area */}
                     <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50/50 custom-scrollbar">
                         {messages.map((msg, idx) => (
                             <div key={idx} className="space-y-4">
@@ -275,69 +266,23 @@ const ChatWidget = () => {
                                         <div className={`h-8 w-8 rounded-xl flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-[#1A1A1A]' : 'bg-[#28B463]'}`}>
                                             {msg.role === 'user' ? <User className="h-4 w-4 text-white" /> : <Bot className="h-4 w-4 text-white" />}
                                         </div>
-                                        <div className={`p-4 rounded-[1.5rem] shadow-sm text-sm font-bold leading-relaxed ${msg.role === 'user' ? 'bg-[#1A1A1A] text-white rounded-tr-none' : 'bg-white border border-gray-100 text-gray-800 rounded-tl-none'
-                                            }`}>
-                                            {formatMessage(msg.content)}
-                                        </div>
+                                        <div className={`p-4 rounded-[1.5rem] shadow-sm text-sm font-bold leading-relaxed ${msg.role === 'user' ? 'bg-[#1A1A1A] text-white rounded-tr-none' : 'bg-white border border-gray-100 text-gray-800 rounded-tl-none'}`}>{formatMessage(msg.content)}</div>
                                     </div>
                                 </div>
-
-                                {/* Options Buttons */}
                                 {msg.options && msg.options.length > 0 && idx === messages.length - 1 && !isLoading && (
-                                    <div className="flex flex-wrap gap-2 px-11">
-                                        {msg.options.map((opt, oIdx) => (
-                                            <button
-                                                key={oIdx}
-                                                onClick={() => handleSend(opt.label, opt.intent)}
-                                                className="px-4 py-2.5 bg-white border-2 border-gray-100 rounded-xl text-xs font-black text-gray-700 hover:border-[#28B463] hover:text-[#28B463] transition-all shadow-sm"
-                                            >
-                                                {opt.label}
-                                            </button>
-                                        ))}
-                                    </div>
+                                    <div className="flex flex-wrap gap-2 px-11">{msg.options.map((opt, oIdx) => (<button key={oIdx} onClick={() => handleSend(opt.label, opt.intent)} className="px-4 py-2.5 bg-white border-2 border-gray-100 rounded-xl text-xs font-black text-gray-700 hover:border-[#28B463] hover:text-[#28B463] transition-all shadow-sm">{opt.label}</button>))}</div>
                                 )}
                             </div>
                         ))}
-                        {isLoading && (
-                            <div className="flex justify-start animate-pulse">
-                                <div className="flex gap-3 max-w-[85%]">
-                                    <div className="h-8 w-8 rounded-xl bg-[#28B463] flex items-center justify-center"><Loader2 className="h-4 w-4 text-white animate-spin" /></div>
-                                    <div className="bg-white border border-gray-100 p-4 rounded-[1.5rem] rounded-tl-none shadow-sm"><div className="flex gap-1"><div className="h-2 w-2 rounded-full bg-gray-200 animate-bounce"></div><div className="h-2 w-2 rounded-full bg-gray-300 animate-bounce [animation-delay:-.3s]"></div><div className="h-2 w-2 rounded-full bg-gray-200 animate-bounce [animation-delay:-.5s]"></div></div></div>
-                                </div>
-                            </div>
-                        )}
+                        {isLoading && (<div className="flex justify-start animate-pulse"><div className="flex gap-3 max-w-[85%]"><div className="h-8 w-8 rounded-xl bg-[#28B463] flex items-center justify-center"><Loader2 className="h-4 w-4 text-white animate-spin" /></div><div className="bg-white border border-gray-100 p-4 rounded-[1.5rem] rounded-tl-none shadow-sm"><div className="flex gap-1"><div className="h-2 w-2 rounded-full bg-gray-200 animate-bounce"></div><div className="h-2 w-2 rounded-full bg-gray-300 animate-bounce [animation-delay:-.3s]"></div><div className="h-2 w-2 rounded-full bg-gray-200 animate-bounce [animation-delay:-.5s]"></div></div></div></div></div>)}
                         <div ref={messagesEndRef} />
                     </div>
-
-                    {/* Input Area */}
                     <div className="p-6 bg-white border-t border-gray-100 flex-shrink-0">
-                        <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="relative flex items-center gap-3">
-                            <input
-                                type="text"
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                placeholder={t('chatbot.placeholder')}
-                                className="flex-1 bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all"
-                            />
-                            <button
-                                type="submit"
-                                disabled={!inputValue.trim() || isLoading}
-                                className="h-[52px] w-[52px] bg-[#1A1A1A] text-white rounded-2xl flex items-center justify-center hover:bg-black transition-all active:scale-95 disabled:opacity-30 group"
-                            >
-                                <Send className={`h-5 w-5 ${isRTL ? 'rotate-180' : ''}`} />
-                            </button>
-                        </form>
+                        <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="relative flex items-center gap-3"><input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder={t('chatbot.placeholder')} className="flex-1 bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all" /><button type="submit" disabled={!inputValue.trim() || isLoading} className="h-[52px] w-[52px] bg-[#1A1A1A] text-white rounded-2xl flex items-center justify-center hover:bg-black transition-all active:scale-95 disabled:opacity-30 group"><Send className={`h-5 w-5 ${isRTL ? 'rotate-180' : ''}`} /></button></form>
                     </div>
                 </div>
             )}
-
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className={`h-16 w-16 bg-[#28B463] text-white rounded-2xl flex items-center justify-center shadow-[0_10px_30px_-10px_rgba(40,180,99,0.5)] hover:scale-110 active:scale-90 transition-all duration-300 group`}
-            >
-                {isOpen ? <X className="h-7 w-7" /> : <MessageSquare className="h-7 w-7" />}
-                {!isOpen && <div className="absolute -top-1 -right-1 h-4 w-4 bg-[#1A1A1A] rounded-full border-2 border-white animate-bounce"></div>}
-            </button>
+            <button onClick={() => setIsOpen(!isOpen)} className={`h-16 w-16 bg-[#28B463] text-white rounded-2xl flex items-center justify-center shadow-[0_10px_30px_-10px_rgba(40,180,99,0.5)] hover:scale-110 active:scale-90 transition-all duration-300 group`}>{isOpen ? <X className="h-7 w-7" /> : <MessageSquare className="h-7 w-7" />}{!isOpen && <div className="absolute -top-1 -right-1 h-4 w-4 bg-[#1A1A1A] rounded-full border-2 border-white animate-bounce"></div>}</button>
         </div>
     );
 };
