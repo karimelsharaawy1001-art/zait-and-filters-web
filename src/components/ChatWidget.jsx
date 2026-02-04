@@ -68,7 +68,11 @@ const ChatWidget = () => {
 
             const { response: botText, state: nextState, options, newData } = response.data;
 
-            if (nextState) setChatState(nextState);
+            if (nextState) {
+                setChatState(nextState);
+                if (nextState === 'idle') setIntent(null);
+                if (nextState === 'ask_make') setCollectedData({});
+            }
             if (newData) setCollectedData(prev => ({ ...prev, ...newData }));
 
             setMessages(prev => [...prev, {

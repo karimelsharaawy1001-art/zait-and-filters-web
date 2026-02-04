@@ -30,34 +30,54 @@ export default async function handler(req, res) {
     const isAR = language === 'ar';
 
     // Helper for structured responses
-    const respond = (text, nextState = null, options = []) => {
+    const respond = (text, nextState = null, options = [], newData = null) => {
         return res.status(200).json({
             response: text,
             state: nextState,
-            options: options
+            options: options,
+            newData: newData
         });
     };
 
     try {
-        const lastMsg = messages[messages.length - 1].content.toLowerCase();
+        const { messages, language, currentState, intent, collectedData } = req.body;
+        console.log(`[ChatAgent] State: ${currentState}, Intent: ${intent}, LastMsg: ${messages[messages.length - 1].content}`);
 
-        // 1. INTENT: TRACK ORDER
-        if (intent === 'track_order' || lastMsg.includes('track') || lastMsg.includes('تتبع')) {
-            // Find if there's a number in the message
+        const lastMsg = messages[messages.length - 1].content.trim();
+        const lastMsgLower = lastMsg.toLowerCase();
+
+        // 1. GLOBAL ESCAPES: Let user jump into other flows at any time
+        if (lastMsgLower.includes('track') || lastMsgLower.includes('تتبع')) {
+            return respond(
+                isAR ? "من فضلك أرسل رقم الطلب أو رقم الهاتف المستخدم للطلب." : "Please send your Order ID or the Phone Number used for the order.",
+                'track_order'
+            );
+        }
+        if (lastMsgLower.includes('expert') || lastMsgLower.includes('خبير') || lastMsgLower.includes('واتساب') || lastMsgLower.includes('whatsapp')) {
+            return respond(
+                isAR ? "يسعدني جداً مساعدتك. من فضلك سيب رقم الواتساب الخاص بك، وفريقنا الفني هيتواصل معاك فوراً." : "I'd love to help! Please leave your WhatsApp number, and our technical expert will contact you immediately.",
+                'await_phone'
+            );
+        }
+
+        // 2. STATE HANDLERS
+        // --- TRACK ORDER STATE ---
+        if (currentState === 'track_order') {
             const numberMatch = lastMsg.match(/\d+/);
             if (numberMatch) {
                 const idOrPhone = numberMatch[0];
-                let orderData = null;
+                const ordersRef = db.collection('orders');
 
-                // Try phone search first (more common)
-                const phoneQuery = await db.collection('orders').where('customer.phone', '==', idOrPhone).limit(1).get();
-                if (!phoneQuery.empty) {
-                    orderData = phoneQuery.docs[0].data();
-                } else {
-                    // Try ID search
-                    const doc = await db.collection('orders').doc(idOrPhone).get();
-                    if (doc.exists) orderData = doc.data();
-                }
+                // Try searching by phone and ID
+                const [phoneSnap, phoneSnapAlt, docSnap] = await Promise.all([
+                    ordersRef.where('customer.phone', '==', idOrPhone).limit(1).get(),
+                    ordersRef.where('shippingAddress.phone', '==', idOrPhone).limit(1).get(),
+                    ordersRef.doc(idOrPhone).get()
+                ]);
+
+                let orderData = docSnap.exists ? docSnap.data() : null;
+                if (!orderData && !phoneSnap.empty) orderData = phoneSnap.docs[0].data();
+                if (!orderData && !phoneSnapAlt.empty) orderData = phoneSnapAlt.docs[0].data();
 
                 if (orderData) {
                     const statusMap = {
@@ -67,11 +87,13 @@ export default async function handler(req, res) {
                         'Delivered': isAR ? 'تم التوصيل' : 'Delivered',
                         'Cancelled': isAR ? 'ملغي' : 'Cancelled'
                     };
-                    const status = statusMap[orderData.status] || orderData.status;
+                    const status = statusMap[orderData.paymentStatus] || orderData.paymentStatus || 'Pending';
                     const msg = isAR
                         ? `تم العثور على طلبك! الحالة الحالية هي: *${status}*. الإجمالي: ${orderData.total} ج.م.`
                         : `Order found! Current status is: *${status}*. Total: ${orderData.total} EGP.`;
-                    return respond(msg, 'idle');
+                    return respond(msg, 'idle', [
+                        { label: isAR ? "الرجوع للرئيسية" : "Back to Home", value: "idle" }
+                    ]);
                 } else {
                     return respond(
                         isAR ? "عذراً، لم أستطع العثور على طلب بهذا الرقم. هل يمكنك التأكد من الرقم؟" : "Sorry, I couldn't find an order with that number. Could you double-check?",
@@ -85,18 +107,7 @@ export default async function handler(req, res) {
             );
         }
 
-        // 2. INTENT: SEARCH PRODUCTS
-        if (intent === 'find_part' || lastMsg.includes('part') || lastMsg.includes('قطعة') || lastMsg.includes('زيت')) {
-            // Check for specific car details in message or state
-            // For a rule-based bot, we'll guide them step-by-step
-            if (!currentState || currentState === 'idle') {
-                return respond(
-                    isAR ? "سأساعدك في العثور على ما تحتاجه! ما هو نوع سيارتك؟ (مثال: Toyota, Nissan)" : "I can help you find what you need! What is your car make? (e.g., Toyota, Nissan)",
-                    'ask_make'
-                );
-            }
-        }
-
+        // --- PRODUCT SEARCH FLOW ---
         if (currentState === 'ask_make') {
             return respond(
                 isAR ? `جميل! موديل الـ ${lastMsg} إيه؟ (مثال: Corolla, Sunny)` : `Great! Which ${lastMsg} model? (e.g., Corolla, Sunny)`,
@@ -124,15 +135,66 @@ export default async function handler(req, res) {
             );
         }
 
-        // 3. WHATSAPP LEAD GEN
-        if (lastMsg.includes('whatsapp') || lastMsg.includes('واتساب') || lastMsg.includes('خبير') || lastMsg.includes('expert')) {
+        if (currentState === 'searching_products') {
+            const { make, model } = collectedData || {};
+            let q = db.collection('products').where('isActive', '==', true);
+            if (make) q = q.where('make', '==', make);
+
+            const snapshot = await q.limit(5).get();
+            const results = snapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() }))
+                .filter(p => !model || p.model === model); // Filter model in memory to avoid index issues
+
+            if (results.length > 0) {
+                let respText = isAR
+                    ? `إليك بعض النتائج المتوافقة مع ${make} ${model || ''}:`
+                    : `Here are some compatible results for ${make} ${model || ''}:`;
+
+                results.forEach(p => {
+                    const title = p.name || p.nameEn;
+                    respText += `\n\n• **[${title}](https://zaitandfilters.com/product/${p.id})**\n  السعر: ${p.price} EGP`;
+                });
+
+                return respond(respText, 'idle', [
+                    { label: isAR ? "بحث جديد" : "New Search", value: "find_part" },
+                    { label: isAR ? "تحدث مع خبير" : "Talk to Expert", value: "talk_to_expert" }
+                ]);
+            }
+
             return respond(
-                isAR ? "يسعدني جداً مساعدتك. من فضلك سيب رقم الواتساب الخاص بك، وفريقنا الفني هيتواصل معاك فوراً." : "I'd love to help! Please leave your WhatsApp number, and our technical expert will contact you immediately.",
-                'await_phone'
+                isAR
+                    ? `لم أجد نتائج فورية لـ ${lastMsg}. هل تحب أن يتواصل معك خبير فني للتأكد من التوفر؟`
+                    : `No immediate results found for ${lastMsg}. Would you like an expert to contact you to check availability?`,
+                'idle',
+                [
+                    { label: isAR ? "تحدث مع خبير" : "Talk to Expert", value: "talk_to_expert" },
+                    { label: isAR ? "بحث جديد" : "New Search", value: "find_part" }
+                ]
             );
         }
 
-        // DEFAULT WELCOME
+        if (currentState === 'await_phone') {
+            // Save lead to Firestore
+            await db.collection('bot_leads').add({
+                phone: lastMsg,
+                collectedData,
+                timestamp: admin.firestore.FieldValue.serverTimestamp()
+            });
+            return respond(
+                isAR ? "شكراً لك! خبيرنا سيتواصل معك عبر الواتساب في أقرب وقت." : "Thank you! Our expert will contact you via WhatsApp shortly.",
+                'idle'
+            );
+        }
+
+        // --- TRIGGER FLOWS FROM IDLE ---
+        if (intent === 'find_part' || lastMsgLower.includes('part') || lastMsgLower.includes('قطعة')) {
+            return respond(
+                isAR ? "سأساعدك في العثور على ما تحتاجه! ما هو نوع سيارتك؟ (مثال: Toyota, Nissan)" : "I can help you find what you need! What is your car make? (e.g., Toyota, Nissan)",
+                'ask_make'
+            );
+        }
+
+        // DEFAULT WELCOME (If nothing else matches)
         const welcome = isAR
             ? "أنا زيتون، مساعدك الذكي. كيف يمكنني مساعدتك اليوم؟"
             : "I'm Zeitoon, your smart assistant. How can I help you today?";
@@ -144,6 +206,6 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error("Chat Error:", error);
-        res.status(500).json({ error: "Internal Server Error" });
+        return res.status(500).json({ error: "Internal Server Error" });
     }
 }
