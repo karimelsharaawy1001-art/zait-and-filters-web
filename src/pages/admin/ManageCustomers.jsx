@@ -52,6 +52,8 @@ const ManageCustomers = () => {
         fullName: '',
         email: '',
         phoneNumber: '',
+        secondaryPhone: '',
+        address: '',
         password: '',
         isAffiliate: false,
         isBlocked: false
@@ -111,7 +113,7 @@ const ManageCustomers = () => {
 
             toast.success("Customer added successfully (Firestore only)");
             setShowAddModal(false);
-            setFormData({ fullName: '', email: '', phoneNumber: '', password: '', isAffiliate: false, isBlocked: false });
+            setFormData({ fullName: '', email: '', phoneNumber: '', secondaryPhone: '', address: '', password: '', isAffiliate: false, isBlocked: false });
             fetchCustomers();
         } catch (error) {
             console.error("Error adding customer:", error);
@@ -130,6 +132,8 @@ const ManageCustomers = () => {
                 fullName: formData.fullName,
                 email: formData.email,
                 phoneNumber: formData.phoneNumber,
+                secondaryPhone: formData.secondaryPhone,
+                address: formData.address,
                 updatedAt: serverTimestamp()
             });
 
@@ -446,6 +450,34 @@ const ManageCustomers = () => {
                                             onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                                             className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:ring-2 focus:ring-[#28B463] outline-none transition-all"
                                             placeholder="010XXXXXXXX"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Secondary Phone (Optional)</label>
+                                    <div className="relative">
+                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                        <input
+                                            type="tel"
+                                            value={formData.secondaryPhone}
+                                            onChange={(e) => setFormData({ ...formData, secondaryPhone: e.target.value })}
+                                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:ring-2 focus:ring-[#28B463] outline-none transition-all"
+                                            placeholder="010XXXXXXXX"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Address (Optional)</label>
+                                    <div className="relative">
+                                        <MapPin className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
+                                        <textarea
+                                            value={formData.address}
+                                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:ring-2 focus:ring-[#28B463] outline-none transition-all resize-none"
+                                            placeholder="Street, Building, Floor, Apartment..."
+                                            rows={3}
                                         />
                                     </div>
                                 </div>
