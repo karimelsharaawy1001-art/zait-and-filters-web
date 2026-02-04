@@ -58,7 +58,7 @@ const ChatWidget = () => {
         if (customIntent) setIntent(customIntent);
 
         try {
-            const response = await axios.post('/api/chat-agent', {
+            const response = await axios.post('/api/products?action=chat', {
                 messages: [...messages, userMsg],
                 language: i18n.language,
                 currentState: chatState,
