@@ -465,6 +465,15 @@ const ManageProducts = () => {
     };
 
     const getFilteredExportData = async () => {
+        // Debug Toast
+        const debugMsg = [
+            isLiveMode ? 'Live' : 'Static',
+            categoryFilter !== 'All' ? `Cat:${categoryFilter}` : '',
+            brandFilter !== 'All' ? `Brand:${brandFilter}` : '',
+            searchQuery ? `Search:${searchQuery}` : ''
+        ].filter(Boolean).join(', ');
+        toast.success(`Exporting: ${debugMsg || 'All Data'}`);
+
         if (!isLiveMode) {
             // Static Mode Filtering
             let result = [...localData];

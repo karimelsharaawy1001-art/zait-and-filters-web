@@ -68,11 +68,13 @@ const BulkOperations = ({ onSuccess, onExportFetch }) => {
 
     const exportProducts = async () => {
         setLoading(true);
+        console.log("Export triggered. onExportFetch exists:", !!onExportFetch);
         try {
             let rawData = [];
             if (onExportFetch) {
                 rawData = await onExportFetch();
             } else {
+                toast('Exporting ALL products (Standard Mode)', { icon: 'ℹ️' });
                 const querySnapshot = await getDocs(collection(db, 'products'));
                 rawData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             }
