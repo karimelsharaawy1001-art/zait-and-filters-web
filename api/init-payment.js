@@ -1,8 +1,8 @@
-import crypto from 'crypto';
+import axios from 'axios';
 
 export default async function handler(req, res) {
     console.log('API Hit!');
-    console.log('=== Payment API Called (GET Redirect Mode) ===');
+    console.log('=== Payment API Called (DirectPay API v1) ===');
 
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -20,74 +20,73 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // UPDATED CREDENTIALS FROM USER SCREENSHOT
-    // TODO: Move these to environment variables after verification
+    // UPDATED CREDENTIALS
     const EASYKASH_API_KEY = "mt6ilpuqy9n1bn84";
-    const EASYKASH_SECRET_KEY = "87ca3d5640dc3f5809d3dfbf4a5045ad";
+    // Secret not used in this endpoint
 
-    if (!EASYKASH_API_KEY || !EASYKASH_SECRET_KEY) {
-        console.error('❌ Server configuration error: missing keys');
-        return res.status(500).json({ error: 'Server configuration error: missing keys' });
+    if (!EASYKASH_API_KEY) {
+        console.error('❌ Server configuration error: missing API key');
+        return res.status(500).json({ error: 'Server configuration error: missing API key' });
     }
 
     try {
         const {
             amount,
-            orderId,
             customerName,
             customerPhone,
             customerEmail,
             returnUrl
         } = req.body;
 
-        // ADJUSTMENT: Send amount as currency decimal string (e.g. "150.00")
-        // The previous "pips" logic (x100) might have been creating huge amounts (e.g. 15000 EGP) causing rejection.
         const parsedAmount = parseFloat(amount) || 0;
-        const finalAmount = parsedAmount.toFixed(2);
 
-        // Ensure orderId is efficient (alphanumeric)
-        const merchantOrderId = orderId || `ORDER_${Date.now()}`;
-        const currency = 'EGP';
-        const email = customerEmail || "customer@example.com";
-        const name = customerName || "Customer";
-        const phone = customerPhone || "01000000000";
+        // Construct Payload for EasyKash DirectPay API
+        const payload = {
+            amount: parsedAmount, // Standard float/number
+            currency: "EGP",
+            paymentOptions: [2, 4, 5, 6], // Card (2), Wallet (4), Fawry (5), Meeza (6) - if enabled by merchant
+            items: [], // Optional but good to have empty if not used
+            cashExpiry: 24,
+            name: customerName || "Customer",
+            email: customerEmail || "customer@example.com",
+            mobile: customerPhone || "01000000000",
+            redirectUrl: returnUrl || `${req.headers.origin}/order-success`,
+            customerReference: Date.now() // Must be a number unique ref
+        };
 
-        // Signature construction
-        // Standard: apiKey|amount|currency|merchantMerchantOrderId
-        const signatureString = `${EASYKASH_API_KEY}|${finalAmount}|${currency}|${merchantOrderId}`;
-        const signature = crypto
-            .createHmac('sha256', EASYKASH_SECRET_KEY)
-            .update(signatureString)
-            .digest('hex');
+        console.log('Sending request to EasyKash DirectPay API...', payload);
 
-        // Construct Query Params for GET Redirect
-        const queryParams = new URLSearchParams({
-            api_key: EASYKASH_API_KEY,
-            merchant_order_id: merchantOrderId,
-            amount: finalAmount,
-            currency: currency,
-            customer_name: name,
-            customer_email: email,
-            customer_phone: phone,
-            return_url: returnUrl || `${req.headers.origin}/order-success`,
-            signature: signature,
-            source: 'website'
+        const response = await axios.post('https://back.easykash.net/api/directpayv1/pay', payload, {
+            headers: {
+                'authorization': EASYKASH_API_KEY,
+                'Content-Type': 'application/json'
+            }
         });
 
-        const redirectUrl = `https://www.easykash.net/api/v1/checkout?${queryParams.toString()}`;
+        const data = response.data;
+        console.log('EasyKash Response:', JSON.stringify(data));
 
-        // Return full URL for direct redirect
-        return res.status(200).json({
-            success: true,
-            method: 'GET',
-            url: redirectUrl
-        });
+        // API returns { "redirectUrl": "..." }
+        // We normalize this to 'url' for our frontend
+        let paymentUrl = null;
+        if (data && data.redirectUrl) paymentUrl = data.redirectUrl;
+        else if (data && data.url) paymentUrl = data.url;
+        else if (data && typeof data === 'string' && data.startsWith('http')) paymentUrl = data;
+
+        if (paymentUrl) {
+            return res.status(200).json({
+                success: true,
+                url: paymentUrl
+            });
+        } else {
+            throw new Error("No URL in response: " + JSON.stringify(data));
+        }
 
     } catch (error) {
-        console.error('❌ Error generating payment params:', error);
+        console.error('❌ EasyKash DirectPay Error:', error.response?.data || error.message);
         return res.status(500).json({
             error: 'Internal server error',
-            message: error.message
+            message: error.response?.data?.message || error.message
         });
     }
 }
