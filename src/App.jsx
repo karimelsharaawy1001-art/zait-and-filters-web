@@ -49,6 +49,7 @@ const AdminLogin = React.lazy(() => import('./pages/AdminLogin'));
 const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard'));
 const AdminOrders = React.lazy(() => import('./pages/AdminOrders'));
 const ManageCategories = React.lazy(() => import('./pages/admin/ManageCategories'));
+const ManageCustomers = React.lazy(() => import('./pages/admin/ManageCustomers'));
 const AbandonedCarts = React.lazy(() => import('./pages/admin/AbandonedCarts'));
 const ManageCars = React.lazy(() => import('./pages/admin/ManageCars'));
 const AdminCarSpecs = React.lazy(() => import('./pages/admin/AdminCarSpecs'));
@@ -250,6 +251,7 @@ function App() {
                   <Route path="abandoned-carts" element={<AbandonedCarts />} />
                   <Route path="messages" element={<AdminMessages />} />
                   <Route path="categories" element={<ManageCategories />} />
+                  <Route path="customers" element={<ManageCustomers />} />
                   <Route path="reviews" element={<AdminReviews />} />
                   <Route path="car-specs" element={<AdminCarSpecs />} />
                   <Route path="cars" element={<ManageCars />} />

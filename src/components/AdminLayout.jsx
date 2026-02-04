@@ -108,6 +108,7 @@ const AdminLayout = () => {
         { name: 'Car Specs', icon: <Settings className="w-5 h-5" />, path: '/admin/car-specs' },
         { name: 'Cars', icon: <Car className="w-5 h-5" />, path: '/admin/cars' },
         { name: 'Categories', icon: <FolderTree className="w-5 h-5" />, path: '/admin/categories' },
+        { name: 'Customers', icon: <Users className="w-5 h-5" />, path: '/admin/customers' },
         { name: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, path: '/admin/dashboard' },
         { name: 'General Settings', icon: <Settings className="w-5 h-5" />, path: '/admin/settings' },
         { name: 'Hero Slider', icon: <LayoutDashboard className="w-5 h-5" />, path: '/admin/hero' },
