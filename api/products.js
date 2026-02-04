@@ -32,14 +32,15 @@ function translateBrand(input) {
     return BRAND_MAP[normalized] || normalized;
 }
 
-function escapeXml(unsafe) {
-    if (!unsafe) return '';
-    return String(unsafe)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&apos;');
+function formatPrivateKey(key) {
+    if (!key) return key;
+    // Replace escaped newlines with actual ones
+    let formatted = key.replace(/\\n/g, '\n');
+    // Ensure it has the proper headers if they are missing
+    if (!formatted.includes('-----BEGIN PRIVATE KEY-----')) {
+        formatted = `-----BEGIN PRIVATE KEY-----\n${formatted}\n-----END PRIVATE KEY-----`;
+    }
+    return formatted;
 }
 
 export default async function handler(req, res) {
@@ -53,45 +54,46 @@ export default async function handler(req, res) {
 
     let db;
     try {
-        const appName = 'ZeitoonApp';
+        const appName = 'ZeitoonAppv2'; // Changed name to force fresh init
         let chatApp = admin.apps.find(a => a.name === appName);
 
         if (!chatApp) {
-            // Check for JSON string FIRST
             const saJson = process.env.FIREBASE_SERVICE_ACCOUNT || process.env.FIREBASE_JSON_CREDENTIALS;
-
-            // Check for INDIVIDUAL vars SECOND
-            const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
+            const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID || 'zaitandfilters';
             const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
             const privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
             if (saJson) {
                 const config = JSON.parse(saJson);
+                const pk = formatPrivateKey(config.private_key || config.privateKey);
                 chatApp = admin.initializeApp({
-                    credential: admin.credential.cert(config),
-                    projectId: config.project_id || 'zaitandfilters'
+                    credential: admin.credential.cert({
+                        ...config,
+                        privateKey: pk
+                    }),
+                    projectId: config.project_id || projectId
                 }, appName);
-            } else if (projectId && clientEmail && privateKey) {
+            } else if (clientEmail && privateKey) {
                 chatApp = admin.initializeApp({
                     credential: admin.credential.cert({
                         projectId: projectId,
                         clientEmail: clientEmail,
-                        privateKey: privateKey.replace(/\\n/g, '\n')
+                        privateKey: formatPrivateKey(privateKey)
                     }),
                     projectId: projectId
                 }, appName);
             } else {
-                // Return Diagnostic Info (Keys only)
-                const availableKeys = Object.keys(process.env).filter(k => k.includes('FIREBASE'));
-                return res.status(200).json({
-                    response: `Diagnostic Error: Credentials not found. Available keys: ${availableKeys.join(', ')}. Please ensure FIREBASE_SERVICE_ACCOUNT or individual keys are set in Vercel.`,
-                    state: 'idle'
-                });
+                // If we reach here, we are missing the "Admin" credentials
+                throw new Error("Missing FIREBASE_SERVICE_ACCOUNT or FIREBASE_PRIVATE_KEY. Please verify Vercel environment variables.");
             }
         }
         db = admin.firestore(chatApp);
     } catch (e) {
-        return res.status(200).json({ response: `Firebase Init Error: ${e.message}`, state: 'idle' });
+        console.error("FIREBASE INIT ERROR:", e);
+        return res.status(200).json({
+            response: `Authentication Error: The database key is in an unsupported format. Error: ${e.message}`,
+            state: 'idle'
+        });
     }
 
     const { action, make, model, productId, category, email, firstName, lastName, targetUrl, tagName, expectedValue } = { ...req.query, ...req.body };
@@ -150,7 +152,7 @@ export default async function handler(req, res) {
             if (currentState === 'ask_year') return respond(isAR ? "بتبحث عن إيه؟" : "What part?", 'searching_products', [], { year: lastMsg });
 
             if (currentState === 'searching_products') {
-                const { make: cM, model: cMo } = collectedData || {};
+                const { make: cM } = collectedData || {};
                 let snap;
                 if (cM && cM !== 'Generic') {
                     const q1 = pRef.where('isActive', '==', true).where('make', '==', cM).limit(50).get();
@@ -189,7 +191,6 @@ export default async function handler(req, res) {
             ]);
         }
 
-        // --- Utility Actions ---
         if (action === 'getMakes') {
             const snap = await pRef.where('isActive', '==', true).get();
             const makes = [...new Set(snap.docs.map(d => d.data().make || d.data().car_make))].filter(Boolean).sort();
@@ -199,6 +200,6 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Invalid action' });
     } catch (err) {
         console.error("FATAL ERROR:", err);
-        return res.status(200).json({ response: `System Error: ${err.message}. Please check credentials.`, state: 'idle' });
+        return res.status(200).json({ response: `System Error: ${err.message}.`, state: 'idle' });
     }
 }
