@@ -32,36 +32,21 @@ function translateBrand(input) {
     return BRAND_MAP[normalized] || normalized;
 }
 
-/**
- * Super robust PEM repair for OpenSSL 3 / Node 17+
- */
 function cleanPEM(key) {
     if (!key) return '';
-    // 1. Convert all types of literal and escaped newlines to actual line breaks
     let k = key.replace(/\\\\n/g, '\n').replace(/\\n/g, '\n').trim();
-    // 2. Strip any accidental wrapping quotes (usually from .env mangling)
     k = k.replace(/^['"]|['"]$/g, '');
-
-    // 3. Ensure proper PEM headers exist
     if (!k.includes('-----BEGIN PRIVATE KEY-----')) {
-        // Strip out existing tags and whitespace to get raw base64
         const raw = k.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s|\n/g, '');
-        // Re-wrap with correct format
         k = `-----BEGIN PRIVATE KEY-----\n${raw}\n-----END PRIVATE KEY-----`;
     }
-
-    // 4. Force specific line length if it's all one line (important for some decoders)
-    if (!k.includes('\n', 50)) {
-        const body = k.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s|\n/g, '');
-        const lines = body.match(/.{1,64}/g);
-        if (lines) k = `-----BEGIN PRIVATE KEY-----\n${lines.join('\n')}\n-----END PRIVATE KEY-----`;
-    }
-
+    const body = k.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s|\n/g, '');
+    const lines = body.match(/.{1,64}/g);
+    if (lines) k = `-----BEGIN PRIVATE KEY-----\n${lines.join('\n')}\n-----END PRIVATE KEY-----`;
     return k;
 }
 
 export default async function handler(req, res) {
-    // Enable CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -70,70 +55,61 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
 
     let db;
-    let diag = "Starting...";
+    let diag = "";
     try {
-        // ROTATE App Name to bypass any cached failures in serverless instance
-        const appName = `Zeitoon_Rotation_${Math.floor(Date.now() / 60000)}`;
+        const timestamp = Math.floor(Date.now() / 30000); // 30s rotation
+        const appName = `Zeitoon_Debug_${timestamp}`;
         let chatApp = admin.apps.find(a => a.name === appName);
 
         if (!chatApp) {
+            const fbVars = Object.keys(process.env).filter(k => k.includes('FIREBASE')).join(', ');
+
             const saJson = process.env.FIREBASE_SERVICE_ACCOUNT || process.env.FIREBASE_JSON_CREDENTIALS;
             const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID || 'zaitandfilters';
             const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
             const privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
-            let finalConfig = null;
-
+            let credentials = null;
             if (saJson) {
                 try {
                     const parsed = JSON.parse(saJson);
-                    finalConfig = {
-                        ...parsed,
-                        privateKey: cleanPEM(parsed.private_key || parsed.privateKey),
-                        projectId: parsed.project_id || parsed.projectId || projectId
+                    credentials = {
+                        projectId: parsed.project_id || parsed.projectId || projectId,
+                        clientEmail: parsed.client_email || parsed.clientEmail,
+                        privateKey: cleanPEM(parsed.private_key || parsed.privateKey)
                     };
-                    diag = `JSON Config [${finalConfig.projectId}]`;
-                } catch (pe) {
-                    diag = `JSON Error: ${pe.message}`;
-                }
+                    diag = `JSON Mode | ID: ${credentials.projectId}`;
+                } catch (e) { diag = `JSON Parse Error: ${e.message}`; }
             }
 
-            if (!finalConfig && clientEmail && privateKey) {
-                finalConfig = {
+            if (!credentials && clientEmail && privateKey) {
+                credentials = {
                     projectId: projectId,
                     clientEmail: clientEmail,
                     privateKey: cleanPEM(privateKey)
                 };
-                diag = `Individual Vars [${projectId}]`;
+                diag = `Individual Vars | ID: ${projectId}`;
             }
 
-            if (!finalConfig) throw new Error("No database keys found. Please set FIREBASE_SERVICE_ACCOUNT in Vercel.");
+            if (!credentials) throw new Error(`Missing creds. Available: ${fbVars}`);
+
+            // SURGERY: Show the full email and key status in the next error if this fails
+            diag += ` | Email: ${credentials.clientEmail} | KeyLen: ${credentials.privateKey?.length || 0}`;
 
             chatApp = admin.initializeApp({
-                credential: admin.credential.cert(finalConfig),
-                projectId: finalConfig.projectId
+                credential: admin.credential.cert(credentials),
+                projectId: credentials.projectId
             }, appName);
-
-            diag += " | App Init OK";
-        } else {
-            diag = "Using Cached Rotation App";
         }
 
         db = admin.firestore(chatApp);
-
-        // --- INSTANT WARM-UP CHECK ---
-        // If this fails, we know it's a BAD HANDSHAKE immediately.
+        // Force a read to trigger AUTH check
         await db.collection('settings').doc('integrations').get();
-        diag += " | Connection Verified";
+        diag += " | Handshake OK";
 
     } catch (apiErr) {
-        console.error("FIREBASE FATAL:", apiErr);
-        let errorMsg = apiErr.message;
-        if (errorMsg.includes('UNAUTHENTICATED')) {
-            errorMsg = "Authentication failed. The key is decoded but rejected by Firebase (Wrong Project or Revoked).";
-        }
         return res.status(200).json({
-            response: `Database Error: ${errorMsg}. Diagnostics: ${diag}`,
+            response: `Auth failed. Check if "${diag}" matches your Firebase Project. Error: ${apiErr.message}`,
             state: 'idle'
         });
     }
