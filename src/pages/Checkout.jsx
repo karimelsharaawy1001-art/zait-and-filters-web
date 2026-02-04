@@ -318,8 +318,14 @@ const Checkout = () => {
             }
         } catch (error) {
             console.error("Payment initialization error:", error);
-            const msg = error.response?.data?.message || error.message || t('onlinePaymentError');
-            toast.error(msg);
+            // Log full details for debugging
+            if (error.response) {
+                console.error("API Response Data:", error.response.data);
+                console.error("API Status:", error.response.status);
+            }
+
+            const msg = error.response?.data?.message || (typeof error.response?.data === 'string' ? error.response.data : "") || error.message || t('onlinePaymentError');
+            toast.error("Payment Error: " + msg);
         }
     };
 

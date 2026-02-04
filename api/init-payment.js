@@ -1,4 +1,23 @@
 import axios from 'axios';
+import admin from 'firebase-admin';
+
+// Initialize Firebase Admin
+if (!admin.apps.length) {
+    try {
+        if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+            const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+            admin.initializeApp({
+                credential: admin.credential.cert(serviceAccount)
+            });
+        } else {
+            admin.initializeApp();
+        }
+    } catch (error) {
+        console.error('Firebase Admin initialization failed:', error);
+    }
+}
+
+const db = admin.firestore();
 
 export default async function handler(req, res) {
     console.log('API Hit!');
@@ -20,13 +39,32 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // UPDATED CREDENTIALS
-    const EASYKASH_API_KEY = "mt6ilpuqy9n1bn84";
-    // Secret not used in this endpoint
+    // 1. Fetch Dynamic Credentials from Firestore
+    let EASYKASH_API_KEY = process.env.EASYKASH_API_KEY; // Fallback to env var
+
+    try {
+        console.log('[Payment API] Fetching credentials from Firestore...');
+        const configSnap = await db.collection('payment_configs').doc('easykash').get();
+        if (configSnap.exists) {
+            const config = configSnap.data();
+            if (config.apiKey) {
+                EASYKASH_API_KEY = config.apiKey;
+                console.log('[Payment API] Using API Key from Firestore:', EASYKASH_API_KEY.substring(0, 4) + '****');
+            } else {
+                console.warn('[Payment API] EasyKash apiKey not found in Firestore config, using fallback.');
+            }
+        } else {
+            console.warn('[Payment API] EasyKash config document not found in Firestore, using fallback.');
+        }
+    } catch (dbError) {
+        console.error('[Payment API] Error fetching Firestore config:', dbError.message);
+        // We continue with fallback EASYKASH_API_KEY
+    }
 
     if (!EASYKASH_API_KEY) {
-        console.error('❌ Server configuration error: missing API key');
-        return res.status(500).json({ error: 'Server configuration error: missing API key' });
+        // Ultimate fallback to known previous key if everything else fails
+        EASYKASH_API_KEY = "5cao5gsexgmwpqkx";
+        console.warn('[Payment API] No API Key found in env or Firestore, using hardcoded fallback.');
     }
 
     try {
@@ -35,17 +73,16 @@ export default async function handler(req, res) {
             customerName,
             customerPhone,
             customerEmail,
-            returnUrl
+            returnUrl,
+            orderId
         } = req.body;
 
+        // Ensure amount is a number and handled correctly for EasyKash (typically decimal string or number)
         const parsedAmount = parseFloat(amount) || 0;
 
         // Construct Payload for EasyKash DirectPay API
         const payload = {
-            amount: parsedAmount, // Standard float/number
-            // Card (2), Wallet (4), Fawry (5), Meeza (6)
-            // Installments: ValU (17), Aman (21), Souhoula (22), Contact (23), Blnk (25), Forsa (34)
-            // Bank Installments: NBE (8-10), Banque Misr (18-20), Multiple Banks (26-28)
+            amount: Number(parsedAmount.toFixed(2)), // Ensure 2 decimal places as number
             paymentOptions: [
                 2, 4, 5, 6,
                 17, 21, 22, 23, 25, 34,
@@ -58,27 +95,28 @@ export default async function handler(req, res) {
             email: customerEmail || "customer@example.com",
             mobile: customerPhone || "01000000000",
             redirectUrl: returnUrl || `${req.headers.origin}/order-success`,
-            customerReference: Date.now() + Math.floor(Math.random() * 1000000) // Ensure uniqueness
+            customerReference: orderId || (Date.now() + Math.floor(Math.random() * 1000000)).toString()
         };
 
-        console.log('Sending request to EasyKash DirectPay API...', payload);
+        console.log('Sending request to EasyKash DirectPay API...', {
+            endpoint: 'https://back.easykash.net/api/directpayv1/pay',
+            amount: payload.amount,
+            ref: payload.customerReference
+        });
 
         const response = await axios.post('https://back.easykash.net/api/directpayv1/pay', payload, {
             headers: {
                 'authorization': EASYKASH_API_KEY,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 15000 // Add timeout to prevent hanging
         });
 
         const data = response.data;
         console.log('EasyKash Response:', JSON.stringify(data));
 
-        // API returns { "redirectUrl": "..." }
-        // We normalize this to 'url' for our frontend
-        let paymentUrl = null;
-        if (data && data.redirectUrl) paymentUrl = data.redirectUrl;
-        else if (data && data.url) paymentUrl = data.url;
-        else if (data && typeof data === 'string' && data.startsWith('http')) paymentUrl = data;
+        // API returns { "redirectUrl": "..." } or sometimes { "url": "..." }
+        let paymentUrl = data?.redirectUrl || data?.url || (typeof data === 'string' && data.startsWith('http') ? data : null);
 
         if (paymentUrl) {
             return res.status(200).json({
@@ -86,16 +124,35 @@ export default async function handler(req, res) {
                 url: paymentUrl
             });
         } else {
+            console.error('❌ EasyKash returned unexpected data format:', data);
             throw new Error("No URL in response: " + JSON.stringify(data));
         }
 
     } catch (error) {
-        console.error('❌ EasyKash DirectPay Error:', error.response?.data || error.message);
-        // Return detailed error from EasyKash if available
-        const apiError = error.response?.data ? JSON.stringify(error.response.data) : error.message;
-        return res.status(500).json({
-            error: 'Internal server error',
-            message: apiError
+        // Log detailed error for debugging on the server
+        const errorData = error.response?.data;
+        const statusCode = error.response?.status || 500;
+
+        console.error('❌ EasyKash DirectPay Error:', {
+            status: statusCode,
+            data: errorData,
+            message: error.message
+        });
+
+        // Return a more readable error to the frontend
+        let friendlyMessage = "Failed to initialize payment gateway.";
+        if (errorData) {
+            if (typeof errorData === 'string') friendlyMessage += ` Detail: ${errorData}`;
+            else if (errorData.message) friendlyMessage += ` Detail: ${errorData.message}`;
+            else friendlyMessage += ` Detail: ${JSON.stringify(errorData)}`;
+        } else {
+            friendlyMessage += ` ${error.message}`;
+        }
+
+        return res.status(statusCode).json({
+            error: 'Payment initialization failed',
+            message: friendlyMessage,
+            details: errorData // Return original error for frontend debugging if needed
         });
     }
 }
