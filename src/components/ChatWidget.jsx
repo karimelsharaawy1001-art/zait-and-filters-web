@@ -45,7 +45,7 @@ const ChatWidget = () => {
     const [collectedData, setCollectedData] = useState({});
 
     // --- LOCAL INDEX ---
-    const [productIndex, setProductIndex] = useState(null);
+    const [productIndex, setProductIndex] = useState([]);
 
     const messagesEndRef = useRef(null);
     const isRTL = i18n.language === 'ar';
@@ -71,11 +71,18 @@ const ChatWidget = () => {
 
     const fetchProductIndex = async () => {
         try {
-            if (productIndex) return;
+            if (productIndex && productIndex.length > 0) return;
             const res = await axios.get('/api/products?action=getIndex');
-            setProductIndex(res.data);
+            // Ensure we only set it if it's an array
+            if (Array.isArray(res.data)) {
+                setProductIndex(res.data);
+            } else {
+                console.warn("Product index received is not an array:", res.data);
+                setProductIndex([]);
+            }
         } catch (e) {
             console.error("Index load fail:", e);
+            setProductIndex([]);
         }
     };
 
@@ -91,9 +98,12 @@ const ChatWidget = () => {
         const qNorm = normalizeArabic(query);
         const terms = qNorm.split(' ').filter(t => t.length > 1);
 
-        if (!productIndex) return [];
+        if (!Array.isArray(productIndex) || productIndex.length === 0) {
+            return [];
+        }
 
         return productIndex.filter(p => {
+            if (!p) return false;
             // car make filter
             if (cM && cM !== 'Generic' && cM !== 'generic') {
                 const pMake = normalizeArabic(p.make || p.car_make);
@@ -124,63 +134,60 @@ const ChatWidget = () => {
         const activeIntent = customIntent || intent;
         if (customIntent) setIntent(customIntent);
 
-        // --- CLIENT-SIDE LOGIC BRANCH ---
-        // We handle SEARCHING locally to save quota. Other stateless flows still go to server.
+        try {
+            // --- CLIENT-SIDE LOGIC BRANCH ---
+            let botResp = null;
+            const isSearching = chatState === 'searching_products';
 
-        let botResp = null;
-        const isSearching = chatState === 'searching_products';
-
-        if (chatState === 'ask_make') {
-            botResp = {
-                response: isRTL ? `جميل! موديل الـ ${text} إيه؟` : `Which ${text} model?`,
-                state: 'ask_model',
-                newData: { make: translateBrand(text) }
-            };
-        } else if (chatState === 'ask_model') {
-            botResp = {
-                response: isRTL ? "تمام، سنة الموديل كام؟" : "Year?",
-                state: 'ask_year',
-                newData: { model: text }
-            };
-        } else if (chatState === 'ask_year') {
-            botResp = {
-                response: isRTL ? "بتبحث عن إيه؟" : "What part?",
-                state: 'searching_products',
-                newData: { year: text }
-            };
-        } else if (isSearching) {
-            // THE CRITICAL QUOTA SAVER
-            const results = performLocalSearch(text, collectedData);
-            if (results.length > 0) {
-                let txt = isRTL ? "هذه بعض القطع المتوفرة:" : "Found these parts:";
-                results.forEach(r => txt += `\n\n• **[${r.nameEn || r.name}](https://zaitandfilters.com/product/${r.id})**\n  Price: ${r.price || '---'} EGP`);
+            if (chatState === 'ask_make') {
                 botResp = {
-                    response: txt,
-                    state: 'idle',
-                    options: [{ label: isRTL ? "بحث جديد" : "New Search", intent: 'find_part' }]
+                    response: isRTL ? `جميل! موديل الـ ${text} إيه؟` : `Which ${text} model?`,
+                    state: 'ask_model',
+                    newData: { make: translateBrand(text) }
                 };
-            } else {
+            } else if (chatState === 'ask_model') {
                 botResp = {
-                    response: isRTL ? `عذراً، لم أجد نتائج لـ "${text}".` : `No results for "${text}".`,
-                    state: 'idle',
-                    options: [{ label: isRTL ? "بحث جديد" : "New Search", intent: 'find_part' }]
+                    response: isRTL ? "تمام، سنة الموديل كام؟" : "Year?",
+                    state: 'ask_year',
+                    newData: { model: text }
+                };
+            } else if (chatState === 'ask_year') {
+                botResp = {
+                    response: isRTL ? "بتبحث عن إيه؟" : "What part?",
+                    state: 'searching_products',
+                    newData: { year: text }
+                };
+            } else if (isSearching) {
+                const results = performLocalSearch(text, collectedData);
+                if (results.length > 0) {
+                    let txt = isRTL ? "هذه بعض القطع المتوفرة:" : "Found these parts:";
+                    results.forEach(r => txt += `\n\n• **[${r.nameEn || r.name}](https://zaitandfilters.com/product/${r.id})**\n  Price: ${r.price || '---'} EGP`);
+                    botResp = {
+                        response: txt,
+                        state: 'idle',
+                        options: [{ label: isRTL ? "بحث جديد" : "New Search", intent: 'find_part' }]
+                    };
+                } else {
+                    botResp = {
+                        response: isRTL ? `عذراً، لم أجد نتائج لـ "${text}".` : `No results for "${text}".`,
+                        state: 'idle',
+                        options: [{ label: isRTL ? "بحث جديد" : "New Search", intent: 'find_part' }]
+                    };
+                }
+            } else if (activeIntent === 'find_part' || normalizeArabic(text).includes('قطعه')) {
+                botResp = {
+                    response: isRTL ? "ماركة العربية إيه؟ (تويوتا، نيسان...)" : "What is your car make? (Toyota, Nissan...)",
+                    state: 'ask_make'
+                };
+            } else if (activeIntent === 'track_order' || normalizeArabic(text).includes('تتبع')) {
+                botResp = {
+                    response: isRTL ? "نظام تتبع الطلبات تحت الصيانة الآن. يرجى التواصل معنا عبر الواتساب." : "Order tracking is under maintenance. Please WhatsApp us.",
+                    state: 'idle'
                 };
             }
-        } else if (activeIntent === 'find_part' || normalizeArabic(text).includes('قطعه')) {
-            botResp = {
-                response: isRTL ? "ماركة العربية إيه؟ (تويوتا، نيسان...)" : "What is your car make? (Toyota, Nissan...)",
-                state: 'ask_make'
-            };
-        } else if (activeIntent === 'track_order' || normalizeArabic(text).includes('تتبع')) {
-            botResp = {
-                response: isRTL ? "نظام تتبع الطلبات تحت الصيانة الآن. يرجى التواصل معنا عبر الواتساب." : "Order tracking is under maintenance. Please WhatsApp us.",
-                state: 'idle'
-            };
-        }
 
-        // If local logic didn't handle it, fall back to server (rare now)
-        if (!botResp) {
-            try {
+            // Fallback to server if local logic didn't handle it
+            if (!botResp) {
                 const response = await axios.post('/api/products?action=chat', {
                     messages: [...messages, userMsg],
                     language: i18n.language,
@@ -189,28 +196,35 @@ const ChatWidget = () => {
                     collectedData
                 });
                 botResp = response.data;
-            } catch (err) {
-                botResp = { response: t('chatbot.error'), state: 'idle' };
             }
+
+            // Apply Response
+            if (botResp) {
+                const { response: botText, state: nextState, options, newData } = botResp;
+                if (nextState) {
+                    setChatState(nextState);
+                    if (nextState === 'idle') setIntent(null);
+                    if (nextState === 'ask_make') setCollectedData({});
+                }
+                if (newData) setCollectedData(prev => ({ ...prev, ...newData }));
+
+                setMessages(prev => [...prev, {
+                    role: 'bot',
+                    content: botText,
+                    timestamp: new Date(),
+                    options: options || []
+                }]);
+            }
+        } catch (err) {
+            console.error("Chat Error:", err);
+            setMessages(prev => [...prev, {
+                role: 'bot',
+                content: t('chatbot.error') || "System Error",
+                timestamp: new Date()
+            }]);
+        } finally {
+            setIsLoading(false);
         }
-
-        // Apply Response
-        const { response: botText, state: nextState, options, newData } = botResp;
-        if (nextState) {
-            setChatState(nextState);
-            if (nextState === 'idle') setIntent(null);
-            if (nextState === 'ask_make') setCollectedData({});
-        }
-        if (newData) setCollectedData(prev => ({ ...prev, ...newData }));
-
-        setMessages(prev => [...prev, {
-            role: 'bot',
-            content: botText,
-            timestamp: new Date(),
-            options: options || []
-        }]);
-
-        setIsLoading(false);
     };
 
     const formatMessage = (content) => {

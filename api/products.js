@@ -34,17 +34,15 @@ export default async function handler(req, res) {
     const PROJECT_ID = sanitize(process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || 'zaitandfilters');
     const REST_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 
-    const fetchAllProducts = async (isMinimal = false) => {
+    const fetchAllProducts = async () => {
         if (globalProductCache && (Date.now() - lastCacheUpdate < CACHE_TTL)) {
             return globalProductCache;
         }
 
         try {
-            // Fetch more for the index to ensure full coverage
             const listRes = await axios.get(`${REST_URL}/products?pageSize=300`, { timeout: 15000 });
             const products = (listRes.data.documents || []).map(mapRestDoc).filter(p => p && p.isActive !== false);
 
-            // Minimal version for client-side search to save bandwidth
             const minimalProducts = products.map(p => ({
                 id: p.id,
                 name: p.name,
@@ -63,7 +61,6 @@ export default async function handler(req, res) {
             lastCacheUpdate = Date.now();
             return minimalProducts;
         } catch (e) {
-            console.error("Fetch Error:", e.message);
             if (globalProductCache) return globalProductCache;
             throw e;
         }
@@ -72,22 +69,24 @@ export default async function handler(req, res) {
     try {
         const { action } = { ...req.query, ...req.body };
 
-        // 1. --- NEW ACTION: getIndex ---
-        // Provides the full product list for client-side search
         if (action === 'getIndex') {
-            const index = await fetchAllProducts();
-            return res.status(200).json(index);
+            try {
+                const index = await fetchAllProducts();
+                return res.status(200).json(index);
+            } catch (idxErr) {
+                console.error("getIndex failed:", idxErr.message);
+                if (idxErr.response && idxErr.response.status === 429) {
+                    return res.status(429).json({ error: "QUOTA_EXCEEDED" });
+                }
+                return res.status(500).json({ error: idxErr.message });
+            }
         }
 
-        // 2. --- CHAT ACTION (Stateless/Routing) ---
         if (action === 'chat') {
             const { language } = req.body || {};
             const isAR = language === 'ar';
-
-            // We still provide basic routing/formatting if needed, 
-            // but the SEARCH logic itself will move to ChatWidget.jsx
             return res.status(200).json({
-                response: isAR ? "وصلت! أقدر أساعدك في إيه؟" : "How can I help you today?",
+                response: isAR ? "أهلاً بك! معاك زيتون. كيف أساعدك اليوم؟" : "Hello! I'm Zeitoon. How can I help you?",
                 state: 'idle'
             });
         }
@@ -100,10 +99,7 @@ export default async function handler(req, res) {
 
         return res.status(400).json({ error: 'Invalid action' });
     } catch (err) {
-        console.error("API Error:", err.message);
-        return res.status(200).json({
-            response: "Search is temporarily limited. Please try again in 5 minutes.",
-            state: 'idle'
-        });
+        console.error("API Global Error:", err.message);
+        return res.status(500).json({ error: err.message });
     }
 }
