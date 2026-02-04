@@ -95,29 +95,43 @@ const ManageCustomers = () => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            // Note: Creating a user in Firebase Auth from Admin panel usually requires Firebase Admin SDK
-            // or a custom backend function. For now, we only create the Firestore document.
-            // If the user wants actual Auth creation, he might need a Cloud Function.
-            // But I'll implement the document creation as requested.
+            // Get current user token for admin verification
+            const token = await auth.currentUser?.getIdToken();
+            if (!token) {
+                toast.error("You must be logged in as admin");
+                setIsSubmitting(false); // Make sure to stop loading
+                return;
+            }
 
-            const newCustomer = {
-                ...formData,
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
-            };
+            const response = await fetch('/api/create-user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    fullName: formData.fullName,
+                    email: formData.email,
+                    phoneNumber: formData.phoneNumber,
+                    secondaryPhone: formData.secondaryPhone,
+                    address: formData.address,
+                    password: formData.password
+                })
+            });
 
-            // Remove password before saving to Firestore (Security)
-            const { password, ...firestoreData } = newCustomer;
+            const data = await response.json();
 
-            const docRef = await addDoc(collection(db, 'users'), firestoreData);
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to create customer');
+            }
 
-            toast.success("Customer added successfully (Firestore only)");
+            toast.success("Customer account created successfully!");
             setShowAddModal(false);
             setFormData({ fullName: '', email: '', phoneNumber: '', secondaryPhone: '', address: '', password: '', isAffiliate: false, isBlocked: false });
             fetchCustomers();
         } catch (error) {
             console.error("Error adding customer:", error);
-            toast.error("Failed to add customer");
+            toast.error(error.message);
         } finally {
             setIsSubmitting(false);
         }
