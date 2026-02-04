@@ -58,7 +58,7 @@ export default async function handler(req, res) {
             email: customerEmail || "customer@example.com",
             mobile: customerPhone || "01000000000",
             redirectUrl: returnUrl || `${req.headers.origin}/order-success`,
-            customerReference: Date.now() // Must be a number unique ref
+            customerReference: Date.now() + Math.floor(Math.random() * 1000000) // Ensure uniqueness
         };
 
         console.log('Sending request to EasyKash DirectPay API...', payload);
@@ -91,9 +91,11 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error('❌ EasyKash DirectPay Error:', error.response?.data || error.message);
+        // Return detailed error from EasyKash if available
+        const apiError = error.response?.data ? JSON.stringify(error.response.data) : error.message;
         return res.status(500).json({
             error: 'Internal server error',
-            message: error.response?.data?.message || error.message
+            message: apiError
         });
     }
 }
