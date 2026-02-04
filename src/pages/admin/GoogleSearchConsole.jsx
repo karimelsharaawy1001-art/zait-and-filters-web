@@ -4,6 +4,7 @@ import { NavLink } from 'react-router-dom';
 import { db } from '../../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
+import axios from 'axios';
 
 const GoogleSearchConsole = () => {
     const [verificationCode, setVerificationCode] = useState('');
@@ -59,7 +60,7 @@ const GoogleSearchConsole = () => {
                 code = code.split('content="')[1].split('"')[0];
             }
 
-            const response = await axios.post('/api/check-seo', {
+            const response = await axios.post('/api/products?action=check-seo', {
                 targetUrl: window.location.origin, // Check the current site
                 tagName: 'google-site-verification',
                 expectedValue: code
@@ -125,15 +126,15 @@ const GoogleSearchConsole = () => {
 
             {/* Status Indicator Bar */}
             <div className={`mb-10 p-4 rounded-2xl flex items-center justify-between border ${testStatus === 'found' ? 'bg-green-50 border-green-100 text-green-700' :
-                    testStatus === 'not_found' || testStatus === 'mismatch' ? 'bg-red-50 border-red-100 text-red-700' :
-                        testStatus === 'error' ? 'bg-orange-50 border-orange-100 text-orange-700' :
-                            'bg-gray-50 border-gray-200 text-gray-600'
+                testStatus === 'not_found' || testStatus === 'mismatch' ? 'bg-red-50 border-red-100 text-red-700' :
+                    testStatus === 'error' ? 'bg-orange-50 border-orange-100 text-orange-700' :
+                        'bg-gray-50 border-gray-200 text-gray-600'
                 }`}>
                 <div className="flex items-center gap-3">
                     <div className={`w-3 h-3 rounded-full animate-pulse ${testStatus === 'found' ? 'bg-green-500' :
-                            testStatus === 'not_found' || testStatus === 'mismatch' ? 'bg-red-500' :
-                                testStatus === 'error' ? 'bg-orange-500' :
-                                    'bg-gray-400'
+                        testStatus === 'not_found' || testStatus === 'mismatch' ? 'bg-red-500' :
+                            testStatus === 'error' ? 'bg-orange-500' :
+                                'bg-gray-400'
                         }`} />
                     <span className="text-sm font-black uppercase tracking-widest">
                         Live Status: {

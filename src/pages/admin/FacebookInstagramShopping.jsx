@@ -4,7 +4,7 @@ import { NavLink } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
 const FacebookInstagramShopping = () => {
-    const feedUrl = `${window.location.origin}/api/facebook-feed`;
+    const feedUrl = `${window.location.origin}/api/products?action=generateFeed&platform=facebook`;
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text);

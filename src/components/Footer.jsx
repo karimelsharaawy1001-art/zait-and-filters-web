@@ -133,7 +133,7 @@ const Footer = () => {
 
                                         const loadingToast = toast.loading('Subscribing...');
                                         try {
-                                            await axios.post('/api/mailchimp-subscribe', { email });
+                                            await axios.post('/api/products?action=subscribe', { email });
                                             toast.success('Subscribed successfully!', { id: loadingToast });
                                             e.target.reset();
                                         } catch (error) {

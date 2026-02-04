@@ -1,4 +1,5 @@
 import admin from 'firebase-admin';
+import axios from 'axios';
 
 // Initialize Firebase Admin
 if (!admin.apps.length) {
@@ -18,195 +19,211 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
+// Helper to escape XML
+function escapeXml(unsafe) {
+    if (!unsafe) return '';
+    return String(unsafe)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+}
+
 export default async function handler(req, res) {
-    const { action, make, model, productId, category, brand } = req.query;
-    console.log(`[API/Products] Action: ${action}, Make: ${make}, Model: ${model}`);
+    const { action, make, model, productId, category, email, firstName, lastName, targetUrl, tagName, expectedValue } = { ...req.query, ...req.body };
+    const BASE_URL = 'https://zait-and-filters-web.vercel.app';
 
     try {
         const productsRef = db.collection('products');
         let productsQuery = productsRef.where('isActive', '==', true);
 
-        // 1. Inventory Metadata Actions
-        if (action === 'getMakes') {
-            try {
-                const snapshot = await productsQuery.get();
-                if (snapshot.empty) return res.status(200).json([]);
-
-                const rawData = snapshot.docs.map(doc => doc.data());
-                // Handle both 'make' and 'car_make' fields
-                const makes = [...new Set(rawData.map(d => d.make || d.car_make))].filter(Boolean).sort();
-                return res.status(200).json(makes);
-            } catch (err) {
-                console.error("[API/Products] getMakes error:", err);
-                return res.status(200).json([]); // Suppress 500, return empty
+        // --- 1. SEO CHECK (Merged from check-seo.js) ---
+        if (action === 'check-seo') {
+            if (!targetUrl || !tagName) {
+                return res.status(400).json({ error: 'Missing targetUrl or tagName' });
             }
-        }
 
-        if (action === 'getModels' && make) {
             try {
-                const snapshot = await productsQuery.where('make', '==', make).get();
-                const snapshotAlt = await productsQuery.where('car_make', '==', make).get();
-
-                const rawData = [
-                    ...snapshot.docs.map(doc => doc.data()),
-                    ...snapshotAlt.docs.map(doc => doc.data())
-                ];
-
-                const models = [...new Set(rawData.map(d => d.model || d.car_model))].filter(Boolean).sort();
-                return res.status(200).json(models);
-            } catch (err) {
-                console.error("[API/Products] getModels error:", err);
-                return res.status(200).json([]);
-            }
-        }
-
-        if (action === 'getYears' && make && model) {
-            try {
-                const snapshot = await productsQuery.where('make', '==', make).where('model', '==', model).get();
-                const snapshotAlt = await productsQuery.where('car_make', '==', make).where('car_model', '==', model).get();
-
-                const docs = [...snapshot.docs, ...snapshotAlt.docs];
-                const years = new Set();
-                docs.forEach(doc => {
-                    const data = doc.data();
-                    if (data.yearStart && data.yearEnd) {
-                        for (let y = Number(data.yearStart); y <= Number(data.yearEnd); y++) {
-                            years.add(y);
-                        }
-                    } else if (data.yearStart) {
-                        years.add(Number(data.yearStart));
-                    }
+                const response = await axios.get(targetUrl, {
+                    timeout: 8000,
+                    headers: { 'User-Agent': 'Mozilla/5.0 (Vercel-SEO-Checker)' }
                 });
-                return res.status(200).json(Array.from(years).sort((a, b) => b - a));
-            } catch (err) {
-                console.error("[API/Products] getYears error:", err);
-                return res.status(200).json([]);
-            }
-        }
 
-        // 2. Related Products Action
-        if (action === 'getRelated' && productId) {
-            try {
-                let relatedProducts = [];
-                const seenIds = new Set([productId]);
+                const html = response.data;
+                let match;
 
-                const addProducts = (snapshot) => {
-                    snapshot.docs.forEach(doc => {
-                        if (!seenIds.has(doc.id)) {
-                            relatedProducts.push({ id: doc.id, ...doc.data() });
-                            seenIds.add(doc.id);
-                        }
-                    });
-                };
+                if (tagName === 'facebook-pixel') {
+                    const pixelRegex = new RegExp(`fbq\\(['"]init['"]\\s*,\\s*['"](\\d+)['"]\\)`, 'i');
+                    match = html.match(pixelRegex);
+                } else if (tagName === 'google-analytics') {
+                    const gaRegex = new RegExp(`googletagmanager\\.com/gtag/js\\?id=([G|UA]-[A-Z0-9-]+)`, 'i');
+                    const gaConfigRegex = new RegExp(`gtag\\(['"]config['"]\\s*,\\s*['"]([G|UA]-[A-Z0-9-]+)['"]\\)`, 'i');
+                    match = html.match(gaRegex) || html.match(gaConfigRegex);
+                } else if (tagName === 'mailchimp') {
+                    return res.status(200).json({ status: 'simulation_active' });
+                } else {
+                    const metaRegex = new RegExp(`<meta[^>]*name=["']${tagName}["'][^>]*content=["']([^"']+)["']`, 'i');
+                    const altMetaRegex = new RegExp(`<meta[^>]*content=["']([^"']+)["'][^>]*name=["']${tagName}["']`, 'i');
+                    match = html.match(metaRegex) || html.match(altMetaRegex);
+                }
 
-                // Priority 1: Same Make & Model
-                if (make && model && make !== 'Universal' && model !== 'Universal') {
-                    const carQuery = await productsRef
-                        .where('isActive', '==', true)
-                        .where('make', '==', make)
-                        .where('model', '==', model)
-                        .limit(10)
-                        .get();
-                    addProducts(carQuery);
-
-                    if (relatedProducts.length < 5) {
-                        const carQueryAlt = await productsRef
-                            .where('isActive', '==', true)
-                            .where('car_make', '==', make)
-                            .where('car_model', '==', model)
-                            .limit(10)
-                            .get();
-                        addProducts(carQueryAlt);
+                if (match) {
+                    const foundValue = match[1];
+                    if (expectedValue && foundValue !== expectedValue) {
+                        return res.status(200).json({ status: 'mismatch', found: foundValue, expected: expectedValue });
                     }
+                    return res.status(200).json({ status: 'found', value: foundValue });
                 }
-
-                // Priority 2: Same Category
-                if (relatedProducts.length < 8 && category) {
-                    const categoryQuery = await productsRef
-                        .where('isActive', '==', true)
-                        .where('category', '==', category)
-                        .limit(10)
-                        .get();
-                    addProducts(categoryQuery);
-                }
-
-                // Priority 3: Global Popularity (Fallback - No OrderBy to avoid index issues)
-                if (relatedProducts.length < 8) {
-                    const popularQuery = await productsRef
-                        .where('isActive', '==', true)
-                        .limit(10)
-                        .get();
-                    addProducts(popularQuery);
-                }
-
-                // Priority 4: Absolute Fallback (Total backup)
-                if (relatedProducts.length < 4) {
-                    const backupQuery = await productsRef
-                        .limit(10)
-                        .get();
-                    addProducts(backupQuery);
-                }
-
-                return res.status(200).json(relatedProducts.slice(0, 8));
-            } catch (err) {
-                console.error("[API/Products] getRelated error:", err);
-                return res.status(200).json([]);
+                return res.status(200).json({ status: 'not_found' });
+            } catch (error) {
+                return res.status(500).json({ error: 'SEO Check Failed', details: error.message });
             }
         }
 
-        // 3. Removed: Sync Action moved to articles.js
+        // --- 2. MAILCHIMP (Merged from mailchimp-subscribe.js) ---
+        if (action === 'subscribe') {
+            if (!email) return res.status(400).json({ error: 'Email is required' });
 
-        // 4. Feed Generation (Consolidated)
+            const docSnap = await db.collection('settings').doc('integrations').get();
+            if (!docSnap.exists) return res.status(404).json({ error: 'Mailchimp not configured' });
+
+            const data = docSnap.data();
+            const apiKey = data.mailchimpApiKey;
+            const audienceId = data.mailchimpAudienceId;
+            if (!apiKey || !audienceId) return res.status(400).json({ error: 'Mailchimp credentials missing' });
+
+            const dc = apiKey.split('-')[1];
+            const url = `https://${dc}.api.mailchimp.com/3.0/lists/${audienceId}/members`;
+
+            try {
+                await axios.post(url, {
+                    email_address: email,
+                    status: 'subscribed',
+                    merge_fields: { FNAME: firstName || '', LNAME: lastName || '' }
+                }, {
+                    headers: { Authorization: `apikey ${apiKey}` }
+                });
+                return res.status(200).json({ success: true });
+            } catch (error) {
+                if (error.response?.data?.title === 'Member Exists') return res.status(200).json({ success: true, message: 'Existing' });
+                return res.status(500).json({ error: 'Subscription failed' });
+            }
+        }
+
+        // --- 3. PRODUCT FEED (Merged from product-feed.js) ---
         if (action === 'generateFeed') {
-            const productsSnap = await productsRef.where('isActive', '==', true).get();
-            const products = productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const platform = req.query.platform || 'google'; // 'google' or 'facebook'
+            const snapshot = await productsRef.where('isActive', '==', true).get();
+            const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-            const settingsSnap = await db.collection('settings').doc('general').get();
-            const settings = settingsSnap.exists ? settingsSnap.data() : {};
-            const baseUrl = process.env.SITE_URL || 'https://zait-and-filters-web.vercel.app';
-            const platform = req.query.platform; // 'google' or 'facebook'
+            const baseUrl = 'https://zaitandfilters.com';
+            let xml = `<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:g="http://base.google.com/ns/1.0"><channel><title>Zait &amp; Filters</title><link>${baseUrl}</link>`;
 
-            let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">
-    <channel>
-        <title>${settings.siteName || 'Zait &amp; Filters'}</title>
-        <link>${baseUrl}</link>
-        <description>${settings.siteDescription || 'Genuine Spirits &amp; Auto Filters'}</description>
-`;
-
-            products.forEach(product => {
-                const title = (product.nameEn || product.name || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                const description = (product.descriptionEn || product.description || 'Genuine auto part').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                const price = product.price || 0;
-                const link = `${baseUrl}/product/${product.id}`;
-                const imageLink = product.imageUrl || '';
-                const availability = product.stock > 0 ? (platform === 'facebook' ? 'in stock' : 'in_stock') : (platform === 'facebook' ? 'out of stock' : 'out_of_stock');
-                const brand = product.partBrand || 'Zait &amp; Filters';
-
-                xml += `        <item>
-            <g:id>${product.id}</g:id>
-            <g:title>${title}</g:title>
-            <g:description>${description}</g:description>
-            <g:link>${link}</g:link>
-            <g:image_link>${imageLink}</g:image_link>
-            <g:condition>new</g:condition>
-            <g:availability>${availability}</g:availability>
-            <g:price>${price} EGP</g:price>
-            <g:brand>${brand}</g:brand>
-        </item>
-`;
+            products.forEach(p => {
+                const title = escapeXml(`${p.partBrand || ''} ${p.name || ''}`.trim());
+                const availability = p.stock > 0 ? (platform === 'facebook' ? 'in stock' : 'in_stock') : (platform === 'facebook' ? 'out of stock' : 'out_of_stock');
+                xml += `<item>
+                    <g:id>${p.id}</g:id>
+                    <g:title>${title}</g:title>
+                    <g:link>${baseUrl}/product/${p.id}</g:link>
+                    <g:image_link>${escapeXml(p.image || p.imageUrl)}</g:image_link>
+                    <g:availability>${availability}</g:availability>
+                    <g:price>${p.price || 0} EGP</g:price>
+                    <g:brand>${escapeXml(p.partBrand || 'Generic')}</g:brand>
+                    <g:condition>new</g:condition>
+                </item>`;
             });
 
-            xml += `    </channel>
-</rss>`;
-
-            res.setHeader('Content-Type', 'text/xml');
+            xml += `</channel></rss>`;
+            res.setHeader('Content-Type', 'application/xml');
             return res.status(200).send(xml);
         }
 
-        return res.status(400).json({ error: 'Invalid action or missing parameters' });
+        // --- 4. SITEMAP (Merged from sitemap.js) ---
+        if (action === 'generateSitemap') {
+            const [productsSnap, postsSnap] = await Promise.all([
+                productsRef.where('isActive', '==', true).get(),
+                db.collection('blog_posts').where('isActive', '==', true).get()
+            ]);
+
+            const staticPages = ['', '/shop', '/oil-advisor', '/contact', '/blog', '/about', '/garage', '/cart'];
+            const today = new Date().toISOString().split('T')[0];
+
+            let xml = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
+
+            staticPages.forEach(p => {
+                xml += `<url><loc>${BASE_URL}${p}</loc><lastmod>${today}</lastmod><changefreq>daily</changefreq><priority>${p === '' ? '1.0' : '0.8'}</priority></url>`;
+            });
+
+            productsSnap.docs.forEach(doc => {
+                const data = doc.data();
+                xml += `<url><loc>${BASE_URL}/product/${doc.id}</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`;
+            });
+
+            postsSnap.docs.forEach(doc => {
+                const data = doc.data();
+                xml += `<url><loc>${BASE_URL}/blog/${data.slug || doc.id}</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>`;
+            });
+
+            xml += `</urlset>`;
+            res.setHeader('Content-Type', 'application/xml');
+            return res.status(200).send(xml);
+        }
+
+        // --- 5. ORIGINAL PRODUCT ACTIONS ---
+        if (action === 'getMakes') {
+            const snapshot = await productsQuery.get();
+            const rawData = snapshot.docs.map(doc => doc.data());
+            const makes = [...new Set(rawData.map(d => d.make || d.car_make || d.carMake))].filter(Boolean).sort();
+            return res.status(200).json(makes);
+        }
+
+        if (action === 'getModels' && make) {
+            const snapshot = await productsQuery.where('make', '==', make).get();
+            const snapshotAlt = await productsQuery.where('car_make', '==', make).get();
+            const rawData = [...snapshot.docs.map(d => d.data()), ...snapshotAlt.docs.map(d => d.data())];
+            const models = [...new Set(rawData.map(d => d.model || d.car_model))].filter(Boolean).sort();
+            return res.status(200).json(models);
+        }
+
+        if (action === 'getYears' && make && model) {
+            const snapshot = await productsQuery.where('make', '==', make).where('model', '==', model).get();
+            const snapshotAlt = await productsQuery.where('car_make', '==', make).where('car_model', '==', model).get();
+            const docs = [...snapshot.docs, ...snapshotAlt.docs];
+            const years = new Set();
+            docs.forEach(doc => {
+                const data = doc.data();
+                if (data.yearStart && data.yearEnd) {
+                    for (let y = Number(data.yearStart); y <= Number(data.yearEnd); y++) years.add(y);
+                } else if (data.yearStart) years.add(Number(data.yearStart));
+            });
+            return res.status(200).json(Array.from(years).sort((a, b) => b - a));
+        }
+
+        if (action === 'getRelated' && productId) {
+            let related = [];
+            const seen = new Set([productId]);
+            const add = (snap) => snap.docs.forEach(d => { if (!seen.has(d.id)) { related.push({ id: d.id, ...d.data() }); seen.add(d.id); } });
+
+            if (make && model && make !== 'Universal') {
+                const s = await productsRef.where('isActive', '==', true).where('make', '==', make).where('model', '==', model).limit(8).get();
+                add(s);
+            }
+            if (related.length < 8 && category) {
+                const s = await productsRef.where('isActive', '==', true).where('category', '==', category).limit(8).get();
+                add(s);
+            }
+            if (related.length < 4) {
+                const s = await productsRef.where('isActive', '==', true).limit(8).get();
+                add(s);
+            }
+            return res.status(200).json(related.slice(0, 8));
+        }
+
+        return res.status(400).json({ error: 'Invalid action' });
     } catch (error) {
-        console.error('Fatal error in products API:', error);
-        return res.status(200).json([]); // Always return an array to prevent frontend crash
+        console.error('API Error:', error);
+        return res.status(200).json([]);
     }
 }

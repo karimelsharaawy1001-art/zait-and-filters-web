@@ -59,7 +59,7 @@ const Mailchimp = () => {
         try {
             // We'll call our dedicated check-seo endpoint which now has a mailchimp "ping"
             const axios = (await import('axios')).default;
-            const response = await axios.post('/api/check-seo', {
+            const response = await axios.post('/api/products?action=check-seo', {
                 targetUrl: window.location.origin,
                 tagName: 'mailchimp'
             });
@@ -121,13 +121,13 @@ const Mailchimp = () => {
 
             {/* Status Indicator Bar */}
             <div className={`mb-10 p-4 rounded-2xl flex items-center justify-between border ${testStatus === 'found' ? 'bg-green-50 border-green-100 text-green-700' :
-                    testStatus === 'error' ? 'bg-red-50 border-red-100 text-red-700' :
-                        'bg-gray-50 border-gray-200 text-gray-600'
+                testStatus === 'error' ? 'bg-red-50 border-red-100 text-red-700' :
+                    'bg-gray-50 border-gray-200 text-gray-600'
                 }`}>
                 <div className="flex items-center gap-3">
                     <div className={`w-3 h-3 rounded-full animate-pulse ${testStatus === 'found' ? 'bg-green-500' :
-                            testStatus === 'error' ? 'bg-red-500' :
-                                'bg-gray-400'
+                        testStatus === 'error' ? 'bg-red-500' :
+                            'bg-gray-400'
                         }`} />
                     <span className="text-sm font-black uppercase tracking-widest">
                         Live Status: {

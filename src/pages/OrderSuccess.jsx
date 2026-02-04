@@ -75,7 +75,7 @@ const OrderSuccess = () => {
                         const firstName = orderData.shippingAddress?.fullName?.split(' ')[0] || '';
                         const lastName = orderData.shippingAddress?.fullName?.split(' ').slice(1).join(' ') || '';
 
-                        await axios.post('/api/mailchimp-subscribe', {
+                        await axios.post('/api/products?action=subscribe', {
                             email: orderData.customerEmail,
                             firstName: firstName,
                             lastName: lastName
