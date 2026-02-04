@@ -53,26 +53,38 @@ export default async function handler(req, res) {
 
     let db;
     try {
-        const sa = process.env.FIREBASE_SERVICE_ACCOUNT || process.env.FIREBASE_JSON_CREDENTIALS;
         const appName = 'ZeitoonApp';
-
-        // --- SECURE INITIALIZATION ---
-        // We use a NAMED app to ensure we don't pick up a "Poisoned" default app that might have been initialized without credentials elsewhere.
         let chatApp = admin.apps.find(a => a.name === appName);
 
         if (!chatApp) {
-            if (sa) {
-                const config = JSON.parse(sa);
+            // Check for JSON string FIRST
+            const saJson = process.env.FIREBASE_SERVICE_ACCOUNT || process.env.FIREBASE_JSON_CREDENTIALS;
+
+            // Check for INDIVIDUAL vars SECOND
+            const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
+            const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+            const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+
+            if (saJson) {
+                const config = JSON.parse(saJson);
                 chatApp = admin.initializeApp({
                     credential: admin.credential.cert(config),
                     projectId: config.project_id || 'zaitandfilters'
                 }, appName);
+            } else if (projectId && clientEmail && privateKey) {
+                chatApp = admin.initializeApp({
+                    credential: admin.credential.cert({
+                        projectId: projectId,
+                        clientEmail: clientEmail,
+                        privateKey: privateKey.replace(/\\n/g, '\n')
+                    }),
+                    projectId: projectId
+                }, appName);
             } else {
-                // FALLBACK: If SA is absolutely missing, we try default but it will likely fail on Query.
-                // We show this in error message if possible.
-                console.error("CRITICAL: FIREBASE_SERVICE_ACCOUNT is missing.");
+                // Return Diagnostic Info (Keys only)
+                const availableKeys = Object.keys(process.env).filter(k => k.includes('FIREBASE'));
                 return res.status(200).json({
-                    response: "Error: Search engine credentials are missing. Please contact support.",
+                    response: `Diagnostic Error: Credentials not found. Available keys: ${availableKeys.join(', ')}. Please ensure FIREBASE_SERVICE_ACCOUNT or individual keys are set in Vercel.`,
                     state: 'idle'
                 });
             }
@@ -119,7 +131,7 @@ export default async function handler(req, res) {
                         return respond(isAR ? `حالة طلبك: ${s}` : `Order status: ${s}`, 'idle', [{ label: "Back", value: "idle" }]);
                     }
                 }
-                if (currentState === 'track_order') return respond(isAR ? "رقم غير معروف. حاول مرة أخرى؟" : "Order not found. Try again?", 'track_order');
+                if (currentState === 'track_order') return respond(isAR ? "رقم غير صحيح. حاول مرة أخرى؟" : "Order not found. Try again?", 'track_order');
                 return respond(isAR ? "أرسل رقم الطلب أو التليفون." : "Send Order ID or Phone.", 'track_order');
             }
 
@@ -140,7 +152,6 @@ export default async function handler(req, res) {
             if (currentState === 'searching_products') {
                 const { make: cM, model: cMo } = collectedData || {};
                 let snap;
-                // Optimization: Filter by Make if we have it
                 if (cM && cM !== 'Generic') {
                     const q1 = pRef.where('isActive', '==', true).where('make', '==', cM).limit(50).get();
                     const q2 = pRef.where('isActive', '==', true).where('car_make', '==', cM).limit(50).get();
