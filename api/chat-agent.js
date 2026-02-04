@@ -1,7 +1,6 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import admin from 'firebase-admin';
 
-// Initialize Firebase Admin (Singleton pattern)
+// Initialize Firebase Admin
 if (!admin.apps.length) {
     try {
         const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
@@ -13,7 +12,6 @@ if (!admin.apps.length) {
                 credential: admin.credential.cert(serviceAccount)
             });
         } else {
-            // Local development or if Vercel fallback
             admin.initializeApp({
                 projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'zaitandfilters'
             });
@@ -24,174 +22,128 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore();
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-
-const SYSTEM_PROMPT = `You are 'Zeitoon' (زيتون), the official AI Sales Agent for Zait & Filters (زيت اند فلترز). Your mission is to help customers find the perfect spare parts and oils for their vehicles.
-
-CORE RULES:
-1. Friendly & Professional: Greet the customer warmly (e.g., "أهلاً بك في زيت اند فلترز!").
-2. Finding Parts:
-   - If the user asks for a part (e.g., "أحتاج زيت محرك"), politely ask for car details: Make (الماركة), Model (الموديل), and Year (السنة).
-   - Once you have details, use 'search_products' tool.
-   - Present results with clear names, prices, and direct links: [Product Name](https://zaitandfilters.com/product/ID).
-3. Order Tracking:
-   - If the user asks about an order status, ask for 'Order ID' or 'Phone Number'.
-   - Use 'get_order_status' tool.
-4. Lead Generation:
-   - If you can't find a part, or the query is too complex, say: "I'd love to help you find this. Please leave your WhatsApp number, and our technical team will contact you directly."
-   - (بالعربية: "يسعدني جداً مساعدتك. من فضلك سيب رقم الواتساب الخاص بك، وفريقنا الفني هيتواصل معاك فوراً.")
-5. Multi-lingual: Support Arabic and English fluently.
-6. Friendly Exit: Always finish by asking if there's anything else you can do.`;
-
-// tool definitions
-const tools = [
-    {
-        functionDeclarations: [
-            {
-                name: "search_products",
-                description: "Search for automotive products in the database based on vehicle details and part type.",
-                parameters: {
-                    type: "OBJECT",
-                    properties: {
-                        make: { type: "STRING", description: "Car manufacturer (e.g. Toyota, Nissan)" },
-                        model: { type: "STRING", description: "Car model (e.g. Corolla, Sunny)" },
-                        year: { type: "STRING", description: "Manufacturing year (e.g. 2015)" },
-                        query: { type: "STRING", description: "Search term for the part (e.g. Engine Oil, Air Filter)" }
-                    },
-                    required: ["query"]
-                }
-            },
-            {
-                name: "get_order_status",
-                description: "Check the current status and delivery info of a customer order.",
-                parameters: {
-                    type: "OBJECT",
-                    properties: {
-                        idOrPhone: { type: "STRING", description: "The Order ID (e.g. ORD-123) or the Phone number used for the order." }
-                    },
-                    required: ["idOrPhone"]
-                }
-            }
-        ]
-    }
-];
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
-    const { messages, language } = req.body;
+    const { messages, language, currentState, intent } = req.body;
+    const isAR = language === 'ar';
 
-    if (!process.env.GEMINI_API_KEY) {
+    // Helper for structured responses
+    const respond = (text, nextState = null, options = []) => {
         return res.status(200).json({
-            response: language === 'ar'
-                ? "عذراً، محرك المساعد الذكي قيد الصيانة حالياً. يرجى محاولة التواصل معنا عبر واتساب."
-                : "Sorry, the AI engine is currently in maintenance. Please contact us via WhatsApp."
+            response: text,
+            state: nextState,
+            options: options
         });
-    }
+    };
 
     try {
-        const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
-            systemInstruction: SYSTEM_PROMPT,
-            tools: tools
-        });
+        const lastMsg = messages[messages.length - 1].content.toLowerCase();
 
-        const chat = model.startChat({
-            history: messages.slice(0, -1).map(m => ({
-                role: m.role === 'user' ? 'user' : 'model',
-                parts: [{ text: m.content }]
-            }))
-        });
+        // 1. INTENT: TRACK ORDER
+        if (intent === 'track_order' || lastMsg.includes('track') || lastMsg.includes('تتبع')) {
+            // Find if there's a number in the message
+            const numberMatch = lastMsg.match(/\d+/);
+            if (numberMatch) {
+                const idOrPhone = numberMatch[0];
+                let orderData = null;
 
-        const lastMessage = messages[messages.length - 1].content;
-        const result = await chat.sendMessage(lastMessage);
-        const response = result.response;
-
-        let finalResponse = "";
-        const call = response.functionCalls()?.[0];
-
-        if (call) {
-            const { name, args } = call;
-            let toolOutput = {};
-
-            if (name === "search_products") {
-                const { make, model: carModel, year, query: searchTerms } = args;
-
-                let q = db.collection('products').where('isActive', '==', true);
-
-                // Firestore doesn't support complex full-text search easily here without Algolia, 
-                // so we fetch and filter locally for small set, or use startsWith
-                const snapshot = await q.limit(50).get();
-                let products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                // Filter by keywords
-                if (searchTerms) {
-                    const terms = searchTerms.toLowerCase().split(' ');
-                    products = products.filter(p => {
-                        const searchable = `${p.name} ${p.nameEn} ${p.partBrand} ${p.category} ${p.subcategory}`.toLowerCase();
-                        return terms.every(t => searchable.includes(t));
-                    });
-                }
-
-                // Filter by car if provided
-                if (make && make !== 'Universal') {
-                    products = products.filter(p => p.make === 'Universal' || p.make?.toLowerCase().includes(make.toLowerCase()));
-                }
-
-                toolOutput = products.slice(0, 5).map(p => ({
-                    id: p.id,
-                    name: p.name,
-                    nameEn: p.nameEn,
-                    price: p.price,
-                    image: p.image || p.images?.[0],
-                    brand: p.partBrand || p.brand
-                }));
-
-            } else if (name === "get_order_status") {
-                const { idOrPhone } = args;
-                let orderSnap;
-
-                // Try searching by ID
-                if (idOrPhone.length > 5) {
-                    orderSnap = await db.collection('orders').doc(idOrPhone).get();
-                }
-
-                if (!orderSnap?.exists) {
-                    // Try searching by phone
-                    const phoneQuery = await db.collection('orders').where('customer.phone', '==', idOrPhone).limit(1).get();
-                    if (!phoneQuery.empty) orderSnap = phoneQuery.docs[0];
-                }
-
-                if (orderSnap?.exists || !orderSnap?.empty) {
-                    const orderData = orderSnap.data?.() || orderSnap.data();
-                    toolOutput = {
-                        status: orderData.status,
-                        total: orderData.total,
-                        date: orderData.createdAt?.toDate?.()?.toLocaleDateString() || "Recent",
-                        itemsCount: orderData.items?.length || 0
-                    };
+                // Try phone search first (more common)
+                const phoneQuery = await db.collection('orders').where('customer.phone', '==', idOrPhone).limit(1).get();
+                if (!phoneQuery.empty) {
+                    orderData = phoneQuery.docs[0].data();
                 } else {
-                    toolOutput = { error: "Order not found" };
+                    // Try ID search
+                    const doc = await db.collection('orders').doc(idOrPhone).get();
+                    if (doc.exists) orderData = doc.data();
+                }
+
+                if (orderData) {
+                    const statusMap = {
+                        'Pending': isAR ? 'قيد الانتظار' : 'Pending',
+                        'Processing': isAR ? 'جاري التجهيز' : 'Processing',
+                        'Shipped': isAR ? 'تم الشحن' : 'Shipped',
+                        'Delivered': isAR ? 'تم التوصيل' : 'Delivered',
+                        'Cancelled': isAR ? 'ملغي' : 'Cancelled'
+                    };
+                    const status = statusMap[orderData.status] || orderData.status;
+                    const msg = isAR
+                        ? `تم العثور على طلبك! الحالة الحالية هي: *${status}*. الإجمالي: ${orderData.total} ج.م.`
+                        : `Order found! Current status is: *${status}*. Total: ${orderData.total} EGP.`;
+                    return respond(msg, 'idle');
+                } else {
+                    return respond(
+                        isAR ? "عذراً، لم أستطع العثور على طلب بهذا الرقم. هل يمكنك التأكد من الرقم؟" : "Sorry, I couldn't find an order with that number. Could you double-check?",
+                        'track_order'
+                    );
                 }
             }
-
-            // Send tool output back to AI
-            const toolResult = await chat.sendMessage([{
-                functionResponse: {
-                    name: name,
-                    response: { result: toolOutput }
-                }
-            }]);
-
-            finalResponse = toolResult.response.text();
-        } else {
-            finalResponse = response.text();
+            return respond(
+                isAR ? "من فضلك أرسل رقم الطلب أو رقم الهاتف المستخدم للطلب." : "Please send your Order ID or the Phone Number used for the order.",
+                'track_order'
+            );
         }
 
-        res.status(200).json({ response: finalResponse });
+        // 2. INTENT: SEARCH PRODUCTS
+        if (intent === 'find_part' || lastMsg.includes('part') || lastMsg.includes('قطعة') || lastMsg.includes('زيت')) {
+            // Check for specific car details in message or state
+            // For a rule-based bot, we'll guide them step-by-step
+            if (!currentState || currentState === 'idle') {
+                return respond(
+                    isAR ? "سأساعدك في العثور على ما تحتاجه! ما هو نوع سيارتك؟ (مثال: Toyota, Nissan)" : "I can help you find what you need! What is your car make? (e.g., Toyota, Nissan)",
+                    'ask_make'
+                );
+            }
+        }
+
+        if (currentState === 'ask_make') {
+            return respond(
+                isAR ? `جميل! موديل الـ ${lastMsg} إيه؟ (مثال: Corolla, Sunny)` : `Great! Which ${lastMsg} model? (e.g., Corolla, Sunny)`,
+                'ask_model',
+                [],
+                { make: lastMsg }
+            );
+        }
+
+        if (currentState === 'ask_model') {
+            return respond(
+                isAR ? "تمام، سنة الموديل كام؟" : "Understood, and the manufacturing year?",
+                'ask_year',
+                [],
+                { model: lastMsg }
+            );
+        }
+
+        if (currentState === 'ask_year') {
+            return respond(
+                isAR ? "بتبحث عن أي قطعة غيار أو زيت؟ (مثال: زيت محرك، فلتر هواء)" : "What part or oil are you looking for? (e.g., Engine Oil, Air Filter)",
+                'searching_products',
+                [],
+                { year: lastMsg }
+            );
+        }
+
+        // 3. WHATSAPP LEAD GEN
+        if (lastMsg.includes('whatsapp') || lastMsg.includes('واتساب') || lastMsg.includes('خبير') || lastMsg.includes('expert')) {
+            return respond(
+                isAR ? "يسعدني جداً مساعدتك. من فضلك سيب رقم الواتساب الخاص بك، وفريقنا الفني هيتواصل معاك فوراً." : "I'd love to help! Please leave your WhatsApp number, and our technical expert will contact you immediately.",
+                'await_phone'
+            );
+        }
+
+        // DEFAULT WELCOME
+        const welcome = isAR
+            ? "أنا زيتون، مساعدك الذكي. كيف يمكنني مساعدتك اليوم؟"
+            : "I'm Zeitoon, your smart assistant. How can I help you today?";
+        return respond(welcome, 'idle', [
+            { label: isAR ? "أبحث عن قطعة غيار" : "Find a part", value: "find_part" },
+            { label: isAR ? "تتبع طلبي" : "Track my order", value: "track_order" },
+            { label: isAR ? "تحدث مع خبير" : "Talk to an expert", value: "talk_to_expert" }
+        ]);
 
     } catch (error) {
-        console.error("AI Error:", error);
+        console.error("Chat Error:", error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 }
