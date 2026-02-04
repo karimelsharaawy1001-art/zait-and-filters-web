@@ -112,39 +112,48 @@ const PublicLayout = () => {
           reverseOrder={false}
           toastOptions={{
             duration: 5000,
-            style: {
-              background: '#fff',
-              color: '#000',
-              fontWeight: '600',
-              borderRadius: '16px',
-              padding: '12px 24px',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-            },
           }}
           containerStyle={{
             top: 20,
+            zIndex: 99999
           }}
         >
           {(t) => (
             <div
               onClick={() => toast.dismiss(t.id)}
-              className="cursor-pointer transition-all hover:scale-105 active:scale-95"
+              className={`${t.visible ? 'animate-enter' : 'animate-leave'
+                } max-w-md w-full bg-white shadow-[0_20px_50px_rgba(0,0,0,0.15)] rounded-[1.25rem] pointer-events-auto flex ring-1 ring-black ring-opacity-5 p-4 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 border border-gray-100`}
             >
-              <div className="flex items-center gap-3">
-                {t.type === 'loading' ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#28B463] border-t-transparent" />
-                ) : t.icon ? (
-                  t.icon
-                ) : (
-                  <div className={`h-2 w-2 rounded-full ${t.type === 'success' ? 'bg-[#28B463]' : t.type === 'error' ? 'bg-[#EF4444]' : 'bg-gray-400'}`} />
-                )}
-                <div className="text-sm font-Cairo">
-                  {resolveValue(t.message, t)}
+              <div className="flex-1 w-0 flex items-center gap-4">
+                <div className="flex-shrink-0 flex items-center justify-center">
+                  {t.type === 'loading' ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-[#28B463] border-t-transparent" />
+                  ) : t.icon ? (
+                    <span className="text-xl">{t.icon}</span>
+                  ) : (
+                    <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${t.type === 'success' ? 'bg-green-50 text-[#28B463]' : t.type === 'error' ? 'bg-red-50 text-[#EF4444]' : 'bg-gray-50 text-gray-400'}`}>
+                      {t.type === 'success' ? (
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : t.type === 'error' ? (
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      ) : (
+                        <div className="h-2 w-2 rounded-full bg-current" />
+                      )}
+                    </div>
+                  )}
                 </div>
-                {/* Visual close indicator */}
-                <div className="ml-2 text-gray-300 hover:text-gray-600 transition-colors">
-                  <X className="h-4 w-4 stroke-[3px]" />
+                <div className="flex-1 pt-0.5">
+                  <p className="text-sm font-bold text-gray-900 font-Cairo leading-relaxed antialiased">
+                    {resolveValue(t.message, t)}
+                  </p>
                 </div>
+              </div>
+              <div className="ml-4 flex-shrink-0 flex items-center border-l border-gray-100 pl-4">
+                <X className="h-4 w-4 text-gray-300 stroke-[3px]" />
               </div>
             </div>
           )}
