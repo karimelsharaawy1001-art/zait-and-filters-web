@@ -84,12 +84,13 @@ export default async function handler(req, res) {
         // Construct Payload for EasyKash DirectPay API
         const payload = {
             amount: Number(parsedAmount.toFixed(2)), // Ensure 2 decimal places as number
-            currency: "EGP", // REQUIRED FIELD: Verified via direct testing
+            currency: "EGP", // REQUIRED FIELD
             paymentOptions: [
-                1, 2, 3, 5, 8, 9, 10, // Cards & Wallets
-                17, 18, 19, 20, 21, // Apple Pay, ValU, Aman, Souhoola, Contact
-                22, 23, 25, 28, 30, // Bank & Installments
-                40, 41, 42, 43, 44, 45 // Blnk, Klivvr, Tru/MID and others
+                1, 2, 3, 5, 8, 9, 10, 11, // Standard Cards, Wallets, Fawry, Aman
+                14, 15, 16, 17, // Digital Wallets / Apple Pay
+                18, 19, 20, 21, // Souhoola, Contact, ValU
+                24, 25, 26, 31, 34, // Additional Installments / MID
+                40, 41, 42 // Blnk, Klivvr, Tru (Requested)
             ],
             cashExpiry: 24,
             name: customerName || "Customer",
@@ -99,27 +100,31 @@ export default async function handler(req, res) {
             customerReference: orderId || (Date.now() + Math.floor(Math.random() * 1000000)).toString()
         };
 
-        console.log('Sending request to EasyKash DirectPay API...', {
-            endpoint: 'https://back.easykash.net/api/directpayv1/pay',
+        console.log('[EasyKash Request]', JSON.stringify({
+            url: 'https://back.easykash.net/api/directpayv1/pay',
             amount: payload.amount,
-            ref: payload.customerReference
-        });
+            ref: payload.customerReference,
+            optionsCount: payload.paymentOptions.length
+        }));
 
         const response = await axios.post('https://back.easykash.net/api/directpayv1/pay', payload, {
             headers: {
                 'authorization': EASYKASH_API_KEY,
                 'Content-Type': 'application/json'
             },
-            timeout: 15000 // Add timeout to prevent hanging
+            timeout: 15000
         });
 
         const data = response.data;
-        console.log('EasyKash Response:', JSON.stringify(data));
+        console.log('[EasyKash Response]', JSON.stringify(data));
 
         // API returns { "redirectUrl": "..." } or sometimes { "url": "..." }
         let paymentUrl = data?.redirectUrl || data?.url || (typeof data === 'string' && data.startsWith('http') ? data : null);
 
         if (paymentUrl) {
+            // CRITICAL: Fix double slashes in the URL if present (e.g. .net//DirectPayV1)
+            paymentUrl = paymentUrl.replace(/([^:])\/\//g, '$1/');
+
             return res.status(200).json({
                 success: true,
                 url: paymentUrl
