@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 import { Download, Upload, FileSpreadsheet, Loader2, TrendingUp } from 'lucide-react';
 import { parseYearRange } from '../../utils/productUtils';
 
-const BulkOperations = ({ onSuccess }) => {
+const BulkOperations = ({ onSuccess, onExportFetch }) => {
     const [loading, setLoading] = useState(false);
     const [importStatus, setImportStatus] = useState('');
 
@@ -69,11 +69,17 @@ const BulkOperations = ({ onSuccess }) => {
     const exportProducts = async () => {
         setLoading(true);
         try {
-            const querySnapshot = await getDocs(collection(db, 'products'));
-            const products = querySnapshot.docs.map(doc => {
-                const data = doc.data();
+            let rawData = [];
+            if (onExportFetch) {
+                rawData = await onExportFetch();
+            } else {
+                const querySnapshot = await getDocs(collection(db, 'products'));
+                rawData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            }
+
+            const products = rawData.map(data => {
                 return {
-                    productID: doc.id,
+                    productID: data.id,
                     name: data.name || '',
                     activeStatus: data.isActive ? 'TRUE' : 'FALSE',
                     isGenuine: data.isGenuine ? 'TRUE' : 'FALSE',

@@ -464,6 +464,56 @@ const ManageProducts = () => {
         return 'text-red-600';
     };
 
+    const getFilteredExportData = async () => {
+        if (!isLiveMode) {
+            // Static Mode Filtering
+            let result = [...localData];
+            if (categoryFilter !== 'All') result = result.filter(p => String(p.category).toLowerCase() === categoryFilter.toLowerCase());
+            if (subcategoryFilter !== 'All') result = result.filter(p => String(p.subcategory || p.subCategory).toLowerCase() === subcategoryFilter.toLowerCase());
+            if (makeFilter !== 'All') result = result.filter(p => String(p.make).toLowerCase() === makeFilter.toLowerCase());
+            if (modelFilter !== 'All') result = result.filter(p => String(p.model).toLowerCase() === modelFilter.toLowerCase());
+            if (brandFilter !== 'All') result = result.filter(p => String(p.partBrand || p.brand).toLowerCase() === brandFilter.toLowerCase());
+            if (statusFilter === 'Active') result = result.filter(p => p.isActive);
+            if (statusFilter === 'Inactive') result = result.filter(p => !p.isActive);
+            if (yearFilter) result = result.filter(p => p.yearStart && p.yearEnd && parseInt(yearFilter) >= p.yearStart && parseInt(yearFilter) <= p.yearEnd);
+
+            if (searchQuery) {
+                const lower = searchQuery.toLowerCase();
+                result = result.filter(p =>
+                    (p.name && p.name.toLowerCase().includes(lower)) ||
+                    (p.nameEn && p.nameEn.toLowerCase().includes(lower)) ||
+                    (p.partBrand && p.partBrand.toLowerCase().includes(lower)) ||
+                    (p.brand && p.brand.toLowerCase().includes(lower)) ||
+                    (p.partNumber && p.partNumber.toLowerCase().includes(lower))
+                );
+            }
+            return result;
+        } else {
+            // Live Mode Filtering
+            let qConstraints = [];
+            if (categoryFilter !== 'All') qConstraints.push(where('category', '==', categoryFilter));
+            if (subcategoryFilter !== 'All') qConstraints.push(where('subcategory', '==', subcategoryFilter));
+            if (makeFilter !== 'All') qConstraints.push(where('make', '==', makeFilter));
+            if (modelFilter !== 'All') qConstraints.push(where('model', '==', modelFilter));
+            if (brandFilter !== 'All') qConstraints.push(where('partBrand', '==', brandFilter));
+            if (statusFilter === 'Active') qConstraints.push(where('isActive', '==', true));
+            if (statusFilter === 'Inactive') qConstraints.push(where('isActive', '==', false));
+
+            if (searchQuery) {
+                const searchLower = searchQuery.toLowerCase();
+                qConstraints.push(where('name', '>=', searchLower));
+                qConstraints.push(where('name', '<=', searchLower + '\uf8ff'));
+            }
+
+            // Apply default sort if no other constraints (or always sort by name for export consistency)
+            qConstraints.push(orderBy('name', 'asc'));
+
+            const q = query(collection(db, 'products'), ...qConstraints);
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        }
+    };
+
 
     if (loading) {
         return (
@@ -553,11 +603,14 @@ const ManageProducts = () => {
                 </div>
 
                 {/* Bulk Import/Export */}
-                <BulkOperations onSuccess={() => {
-                    safeLocalStorage.removeByPrefix('admin_products_');
-                    fetchProducts(false, false, true);
-                    fetchBrands();
-                }} />
+                <BulkOperations
+                    onSuccess={() => {
+                        safeLocalStorage.removeByPrefix('admin_products_');
+                        fetchProducts(false, false, true);
+                        fetchBrands();
+                    }}
+                    onExportFetch={getFilteredExportData}
+                />
 
                 {/* Filters Section - White Surface */}
                 <div className="bg-white rounded-[24px] shadow-sm border border-gray-200 p-8 mb-10 group/filters">
