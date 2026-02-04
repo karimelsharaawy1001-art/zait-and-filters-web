@@ -27,7 +27,13 @@ import {
     Mail,
     Phone,
     User,
-    Lock
+    Lock,
+    Eye,
+    Package,
+    Clock,
+    Loader2,
+    CreditCard,
+    MapPin
 } from 'lucide-react';
 
 const ManageCustomers = () => {
@@ -36,7 +42,10 @@ const ManageCustomers = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showViewModal, setShowViewModal] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState(null);
+    const [selectedCustomerOrders, setSelectedCustomerOrders] = useState([]);
+    const [fetchingOrders, setFetchingOrders] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -176,6 +185,50 @@ const ManageCustomers = () => {
         setShowEditModal(true);
     };
 
+    const fetchOrderHistory = async (userId) => {
+        setFetchingOrders(true);
+        try {
+            const q = query(
+                collection(db, 'orders'),
+                where('userId', '==', userId),
+                orderBy('createdAt', 'desc')
+            );
+            const qSnap = await getDocs(q);
+            const list = qSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setSelectedCustomerOrders(list);
+        } catch (error) {
+            console.error("Error fetching order history:", error);
+            // Fallback for missing index or other errors
+            try {
+                const q = query(
+                    collection(db, 'orders'),
+                    where('userId', '==', userId)
+                );
+                const qSnap = await getDocs(q);
+                const list = qSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+                    .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+                setSelectedCustomerOrders(list);
+            } catch (err2) {
+                console.error("Fallback fetch fail:", err2);
+                toast.error("Failed to load order history");
+            }
+        } finally {
+            setFetchingOrders(false);
+        }
+    };
+
+    const openViewModal = (customer) => {
+        setSelectedCustomer(customer);
+        setSelectedCustomerOrders([]);
+        setShowViewModal(true);
+        fetchOrderHistory(customer.id);
+    };
+
+    const getUniqueAddresses = (orders) => {
+        const addresses = orders.map(o => o.customer?.address).filter(Boolean);
+        return [...new Set(addresses)];
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900">
             <AdminHeader title="Customer Management" />
@@ -293,6 +346,13 @@ const ManageCustomers = () => {
                                             </td>
                                             <td className="px-6 py-5 text-right">
                                                 <div className="flex items-center justify-end gap-2 pr-2">
+                                                    <button
+                                                        onClick={() => openViewModal(customer)}
+                                                        className="p-2 text-gray-400 hover:text-[#28B463] hover:bg-green-50 rounded-xl transition-all"
+                                                        title="View History"
+                                                    >
+                                                        <Eye className="h-5 w-5" />
+                                                    </button>
                                                     <button
                                                         onClick={() => openEditModal(customer)}
                                                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
@@ -424,6 +484,182 @@ const ManageCustomers = () => {
                                 )}
                             </button>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* View History Modal */}
+            {showViewModal && selectedCustomer && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300 border border-gray-100">
+                        {/* Modal Header */}
+                        <div className="bg-[#1A1A1A] p-8 text-white flex items-center justify-between shrink-0">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 bg-[#28B463] rounded-2xl flex items-center justify-center shadow-lg shadow-[#28B463]/20">
+                                    <User className="h-8 w-8 text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-black uppercase tracking-widest poppins italic">{selectedCustomer.fullName}</h3>
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em] mt-1">Customer Dashboard • Comprehensive Record</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setShowViewModal(false)} className="p-3 hover:bg-white/10 rounded-2xl transition-colors">
+                                <X className="h-8 w-8" />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-thin scrollbar-thumb-gray-200">
+                            {/* Profile Grid */}
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div className="bg-gray-50 rounded-[2rem] p-6 border border-gray-100">
+                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-3 flex items-center gap-2">
+                                        <Mail className="w-3 h-3 text-[#28B463]" /> Contact Matrix
+                                    </p>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <p className="text-xs text-gray-500 font-bold mb-0.5">Primary Email</p>
+                                            <p className="font-black text-black break-all">{selectedCustomer.email}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-500 font-bold mb-0.5">Phone Line</p>
+                                            <p className="font-black text-black">{selectedCustomer.phoneNumber || 'Not Linked'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-gray-50 rounded-[2rem] p-6 border border-gray-100">
+                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-3 flex items-center gap-2">
+                                        <MapPin className="w-3 h-3 text-[#28B463]" /> Captured Addresses
+                                    </p>
+                                    <div className="space-y-3">
+                                        {fetchingOrders ? (
+                                            <div className="animate-pulse flex space-y-2 flex-col">
+                                                <div className="h-4 bg-gray-200 rounded w-full"></div>
+                                                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                                            </div>
+                                        ) : getUniqueAddresses(selectedCustomerOrders).length === 0 ? (
+                                            <p className="text-sm text-gray-400 font-bold italic">No addresses captured from history.</p>
+                                        ) : (
+                                            getUniqueAddresses(selectedCustomerOrders).map((addr, idx) => (
+                                                <div key={idx} className="flex gap-2 text-sm text-gray-700 font-bold">
+                                                    <span className="text-[#28B463] mt-1 shrink-0">•</span>
+                                                    <span>{addr}</span>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="bg-gray-50 rounded-[2rem] p-6 border border-gray-100">
+                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-3 flex items-center gap-2">
+                                        <Clock className="w-3 h-3 text-[#28B463]" /> Account Ledger
+                                    </p>
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <p className="text-xs text-gray-500 font-bold">Total Purchases</p>
+                                            <p className="font-black text-[#28B463] text-lg">{selectedCustomerOrders.length}</p>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <p className="text-xs text-gray-500 font-bold">Total Spent</p>
+                                            <p className="font-black text-black text-lg">
+                                                {selectedCustomerOrders.reduce((acc, o) => acc + (parseFloat(o.total) || 0), 0)} EGP
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Order History */}
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                                    <p className="text-xs font-black text-black uppercase tracking-widest flex items-center gap-2">
+                                        <Package className="w-4 h-4 text-[#28B463]" /> Complete Lifecycle History
+                                    </p>
+                                    {fetchingOrders && <Loader2 className="w-4 h-4 animate-spin text-[#28B463]" />}
+                                </div>
+
+                                {fetchingOrders ? (
+                                    <div className="py-20 text-center">
+                                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#28B463] mx-auto"></div>
+                                        <p className="mt-4 text-xs font-black text-gray-400 uppercase tracking-widest">Retrieving Order Manifest...</p>
+                                    </div>
+                                ) : selectedCustomerOrders.length === 0 ? (
+                                    <div className="py-20 text-center bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-200">
+                                        <Package className="w-16 h-16 text-gray-200 mx-auto mb-4" />
+                                        <h4 className="text-lg font-black text-black uppercase">No Order History</h4>
+                                        <p className="text-gray-400 font-bold text-sm">This customer hasn't established a purchase record yet.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        {selectedCustomerOrders.map((order) => (
+                                            <div key={order.id} className="bg-white rounded-[2rem] border border-gray-100 overflow-hidden hover:shadow-xl hover:border-green-100 transition-all group/order">
+                                                <div className="bg-gray-50 px-8 py-4 flex flex-wrap justify-between items-center gap-4 group-hover/order:bg-green-50 transition-colors">
+                                                    <div className="flex gap-8">
+                                                        <div>
+                                                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Order Index</p>
+                                                            <p className="text-sm font-black text-black poppins">#{order.orderNumber || order.id.slice(-6).toUpperCase()}</p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Timeline</p>
+                                                            <p className="text-sm font-bold text-gray-700 poppins">
+                                                                {order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000).toLocaleString() : 'N/A'}
+                                                            </p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Settlement</p>
+                                                            <div className="flex items-center gap-2">
+                                                                <CreditCard className="w-3 h-3 text-gray-400" />
+                                                                <p className="text-[10px] font-black uppercase text-black">{order.paymentMethod || 'Manual'}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className={`px-4 py-1.5 text-[10px] font-black rounded-full uppercase tracking-widest border
+                                                            ${order.status === 'Delivered' ? 'bg-green-100 text-green-700 border-green-200' :
+                                                                order.status === 'Cancelled' ? 'bg-red-100 text-red-700 border-red-200' :
+                                                                    'bg-orange-100 text-orange-700 border-orange-200'}`}>
+                                                            {order.status}
+                                                        </span>
+                                                        <p className="text-xl font-black text-black poppins">{order.total} <span className="text-[10px] text-gray-400">EGP</span></p>
+                                                    </div>
+                                                </div>
+                                                <div className="p-8">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                                        {order.items?.map((item, idx) => (
+                                                            <div key={idx} className="flex gap-4 items-center p-3 rounded-2xl bg-gray-50/50 border border-gray-50">
+                                                                <img
+                                                                    src={item.image || '/placeholder.png'}
+                                                                    alt={item.name}
+                                                                    className="w-12 h-12 rounded-xl object-cover border border-gray-100 shrink-0"
+                                                                />
+                                                                <div className="min-w-0">
+                                                                    <p className="text-sm font-black text-black truncate">{item.name}</p>
+                                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                                                        {item.partBrand || item.brand} • Qty: {item.quantity}
+                                                                    </p>
+                                                                </div>
+                                                                <p className="ml-auto text-xs font-black text-[#28B463]">{item.price} EGP</p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end shrink-0">
+                            <button
+                                onClick={() => setShowViewModal(false)}
+                                className="px-8 py-3 bg-[#1A1A1A] text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all"
+                            >
+                                Dismiss Dashboard
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
