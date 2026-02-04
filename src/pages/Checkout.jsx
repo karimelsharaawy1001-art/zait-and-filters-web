@@ -297,8 +297,7 @@ const Checkout = () => {
             const customerPhone = formData.phone;
             const customerEmail = formData.email || "customer@example.com";
 
-            // Call our Vercel serverless function instead of EasyKash directly
-            // This bypasses CORS and keeps API keys secure
+            // Call our Vercel serverless function (Server-Side Mode)
             const response = await axios.post('/api/init-payment', {
                 amount: totalAmount,
                 orderId: orderId,
@@ -308,16 +307,19 @@ const Checkout = () => {
                 returnUrl: `${window.location.origin}/order-success?id=${orderId}`
             });
 
-            if (response.data && response.data.url) {
-                console.log("Redirecting to payment gateway:", response.data.url);
-                window.location.href = response.data.url;
+            const data = response.data;
+
+            if (data && data.url) {
+                console.log("Redirecting to payment gateway:", data.url);
+                window.location.href = data.url;
             } else {
-                console.error("Payment API response missing URL:", response.data);
-                throw new Error(t('onlinePaymentError') || "Could not generate payment link. Please try again or choose another method.");
+                console.error("Payment API response missing URL:", data);
+                throw new Error("Could not generate payment link. Please try again or choose another method.");
             }
         } catch (error) {
             console.error("Payment initialization error:", error);
-            toast.error(t('onlinePaymentError'));
+            const msg = error.response?.data?.message || error.message || t('onlinePaymentError');
+            toast.error(msg);
         }
     };
 
