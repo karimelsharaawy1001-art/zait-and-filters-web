@@ -43,9 +43,16 @@ export default async function handler(req, res) {
         // Construct Payload for EasyKash DirectPay API
         const payload = {
             amount: parsedAmount, // Standard float/number
-            currency: "EGP",
-            paymentOptions: [2, 4, 5, 6], // Card (2), Wallet (4), Fawry (5), Meeza (6) - if enabled by merchant
-            items: [], // Optional but good to have empty if not used
+            // Card (2), Wallet (4), Fawry (5), Meeza (6)
+            // Installments: ValU (17), Aman (21), Souhoula (22), Contact (23), Blnk (25), Forsa (34)
+            // Bank Installments: NBE (8-10), Banque Misr (18-20), Multiple Banks (26-28)
+            paymentOptions: [
+                2, 4, 5, 6,
+                17, 21, 22, 23, 25, 34,
+                8, 9, 10,
+                18, 19, 20,
+                26, 27, 28
+            ],
             cashExpiry: 24,
             name: customerName || "Customer",
             email: customerEmail || "customer@example.com",
