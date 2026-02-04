@@ -13,7 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db, auth, default as firebaseApp } from '../../firebase';
 import { initializeApp, deleteApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { setDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
 import AdminHeader from '../../components/AdminHeader';
@@ -123,9 +123,30 @@ const ManageCustomers = () => {
 
             console.log("Creating user in Auth...");
             // 2. Create the user in Authentication
-            const userCredential = await createUserWithEmailAndPassword(secondaryAuth, formData.email, formData.password);
-            const user = userCredential.user;
-            console.log("User created in Auth:", user.uid);
+            let user;
+            try {
+                const userCredential = await createUserWithEmailAndPassword(secondaryAuth, formData.email, formData.password);
+                user = userCredential.user;
+                console.log("User created in Auth:", user.uid);
+            } catch (authError) {
+                if (authError.code === 'auth/email-already-in-use') {
+                    console.log("Email exists. Attempting recovery (Zombie User Check)...");
+                    // Recovery: Try to sign in with the provided password. 
+                    // If successful, it's likely a "ghost" account from a previous failed attempt.
+                    try {
+                        const userCredential = await signInWithEmailAndPassword(secondaryAuth, formData.email, formData.password);
+                        user = userCredential.user;
+                        console.log("Recovery successful! User claimed:", user.uid);
+                        toast.success("Recovered existing account details");
+                    } catch (signInError) {
+                        // If password wrong, then it represents a real different user
+                        console.error("Recovery failed:", signInError);
+                        throw authError; // Throw original error to be handled by outer catch
+                    }
+                } else {
+                    throw authError;
+                }
+            }
 
             // 3. Create Firestore Document with the SAME UID
             const newCustomerData = {
