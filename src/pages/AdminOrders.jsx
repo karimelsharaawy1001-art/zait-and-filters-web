@@ -238,7 +238,7 @@ const AdminOrders = () => {
 
             <main className="max-w-full mx-auto py-8 px-4 md:px-10">
                 <div className="">
-                    <div className="flex flex-col md:flex-row gap-6 mb-10">
+                    <div className="flex flex-col lg:flex-row gap-4 mb-10">
                         {/* Status Filter Hub - White Surface */}
                         <div className="flex-1 bg-white rounded-[24px] shadow-sm border border-gray-200 p-3 group/filters">
                             <div className="flex gap-3 overflow-x-auto scrollbar-hide px-2 py-1">
@@ -267,26 +267,29 @@ const AdminOrders = () => {
                             </div>
                         </div>
 
-                        {/* Order Search - High Performance Input */}
-                        <div className="md:w-72 relative group/search">
-                            <input
-                                type="text"
-                                placeholder="Search Order Matrix..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-white border border-gray-200 rounded-2xl pl-12 pr-6 py-4.5 text-sm font-black shadow-sm text-black placeholder-gray-300 focus:ring-2 focus:ring-[#e31e24] outline-none transition-all group-hover/search:border-[#e31e24]/30"
-                            />
-                            <Search className="absolute left-4.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-gray-300 group-focus-within/search:text-[#e31e24] transition-colors" />
-                        </div>
+                        <div className="flex flex-col sm:flex-row gap-4 lg:w-auto">
+                            {/* Order Search - High Performance Input */}
+                            <div className="sm:w-72 relative group/search">
+                                <input
+                                    type="text"
+                                    placeholder="Search Order Matrix..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full bg-white border border-gray-200 rounded-2xl pl-12 pr-6 py-4.5 text-sm font-black shadow-sm text-black placeholder-gray-300 focus:ring-2 focus:ring-[#e31e24] outline-none transition-all group-hover/search:border-[#e31e24]/30"
+                                />
+                                <Search className="absolute left-4.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-gray-300 group-focus-within/search:text-[#e31e24] transition-colors" />
+                            </div>
 
-                        {/* New Order Button */}
-                        <button
-                            onClick={() => setShowCreateModal(true)}
-                            className="bg-[#28B463] text-white px-8 py-4.5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-[#28B463]/20 hover:bg-[#219653] transition-all flex items-center gap-3 shrink-0"
-                        >
-                            <PlusCircle className="h-5 w-5" />
-                            Create Manual Order
-                        </button>
+                            {/* New Order Button */}
+                            <button
+                                onClick={() => setShowCreateModal(true)}
+                                className="bg-[#28B463] text-white px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-[#28B463]/20 hover:bg-[#219653] transition-all flex items-center justify-center gap-2 whitespace-nowrap"
+                            >
+                                <PlusCircle className="h-4 w-4" />
+                                <span className="hidden sm:inline">Create Manual Order</span>
+                                <span className="sm:hidden">New Order</span>
+                            </button>
+                        </div>
                     </div>
 
                     {loading ? (
@@ -1034,43 +1037,32 @@ const CreateOrderModal = ({ onClose, onSave }) => {
     // Customer Search 
     const handleCustomerSearch = async (q) => {
         setCustomerSearch(q);
-        if (q.length < 2) {
+        if (q.length < 1) {
             setCustomerResults([]);
             return;
         }
 
         setSearchingCustomers(true);
         try {
-            // Firestore doesn't support native fuzzy search, so we do a simple prefix/contain simulation or fetch all (if small)
-            // For scalability, we rely on 'users' collection. 
-            // We'll try to find by phone (exact) or name (startAt)
-
+            // Fetch all users for client-side filtering (better autocomplete experience)
             const usersRef = collection(db, 'users');
-            // Basic query for phone (exact match usually best)
-            // Or Name
+            const usersSnap = await getDocs(usersRef);
 
-            // To be robust without Algoia, let's fetch recent users or just rely on exact phone match if possible
-            // OR fetch all users if list is < 1000 (might be slow)
-            // Let's implement a "Client-side filter of top 100" approach if index exists, else just query by phone
+            const allUsers = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-            const qPhone = query(usersRef, where('phoneNumber', '>=', q), where('phoneNumber', '<=', q + '\uf8ff'), orderBy('phoneNumber'));
-            const phoneSnap = await getDocs(qPhone);
+            // Filter by phone, name, or email
+            const searchLower = q.toLowerCase();
+            const filtered = allUsers.filter(user => {
+                const matchesPhone = user.phoneNumber?.toLowerCase().includes(searchLower);
+                const matchesName = user.fullName?.toLowerCase().includes(searchLower);
+                const matchesEmail = user.email?.toLowerCase().includes(searchLower);
+                return matchesPhone || matchesName || matchesEmail;
+            }).slice(0, 10); // Limit to 10 results
 
-            // Note: If you don't have indexes for phoneNumber, this might require one. 
-            // Fallback: Name search
-
-            let results = phoneSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-            if (results.length === 0) {
-                // Try name search? (Requires index on fullName usually)
-                // For now let's just assume we might need full data scan if indexes aren't perfect
-                // Or just fallback to existing state if we loaded customers in parent (AdminOrders doesn't load users)
-            }
-
-            setCustomerResults(results);
+            setCustomerResults(filtered);
         } catch (error) {
             console.error("Customer search error:", error);
-            // Fallback: If index error, just try searching loaded customers if we had them (we don't)
+            toast.error("Failed to search customers");
         } finally {
             setSearchingCustomers(false);
         }
