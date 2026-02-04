@@ -96,27 +96,36 @@ const ManageCustomers = () => {
 
     const handleAddCustomer = async (e) => {
         e.preventDefault();
+        console.log("handleAddCustomer started");
+
         setIsSubmitting(true);
         let secondaryApp = null;
 
         try {
+            console.log("Checking admin token...");
             // Get current user token path for admin check (optional)
             const token = await auth.currentUser?.getIdToken();
             if (!token) {
+                console.error("No admin token found");
                 toast.error("You must be logged in as admin");
                 setIsSubmitting(false);
                 return;
             }
 
+            console.log("Initializing secondary app...");
             // 1. Initialize a secondary Firebase App to create user without logging out admin
             // We use the same config as the main app
             const config = firebaseApp.options;
-            secondaryApp = initializeApp(config, "SecondaryApp");
+            console.log("Firebase config found:", !!config);
+
+            secondaryApp = initializeApp(config, "SecondaryApp" + Date.now()); // Unique name to avoid conflicts
             const secondaryAuth = getAuth(secondaryApp);
 
+            console.log("Creating user in Auth...");
             // 2. Create the user in Authentication
             const userCredential = await createUserWithEmailAndPassword(secondaryAuth, formData.email, formData.password);
             const user = userCredential.user;
+            console.log("User created in Auth:", user.uid);
 
             // 3. Create Firestore Document with the SAME UID
             const newCustomerData = {
@@ -132,14 +141,17 @@ const ManageCustomers = () => {
                 updatedAt: serverTimestamp()
             };
 
+            console.log("Saving to Firestore...");
             // Use setDoc with the Auth UID to link them
             await setDoc(doc(db, 'users', user.uid), newCustomerData);
 
             // 4. Cleanup
+            console.log("Cleaning up secondary app...");
             await signOut(secondaryAuth);
             await deleteApp(secondaryApp);
             secondaryApp = null;
 
+            console.log("Success!");
             toast.success("Customer account created successfully!");
             setShowAddModal(false);
             setFormData({ fullName: '', email: '', phoneNumber: '', secondaryPhone: '', address: '', password: '', isAffiliate: false, isBlocked: false });
