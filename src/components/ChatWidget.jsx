@@ -3,6 +3,37 @@ import { useTranslation } from 'react-i18next';
 import { MessageSquare, X, Send, Bot, User, Phone, Loader2, Sparkles, ChevronDown } from 'lucide-react';
 import axios from 'axios';
 
+// --- SEARCH UTILS ---
+const BRAND_MAP = {
+    'تويوتا': 'Toyota', 'نيسان': 'Nissan', 'هيونداي': 'Hyundai', 'كيا': 'Kia',
+    'ميتسوبيشي': 'Mitsubishi', 'ميتسوبيشى': 'Mitsubishi', 'هوندا': 'Honda',
+    'مازدا': 'Mazda', 'سوبارو': 'Subaru', 'لكزس': 'Lexus',
+    'بي ام': 'BMW', 'بي ام دابليو': 'BMW', 'BMW': 'BMW',
+    'مرسيدس': 'Mercedes', 'مرسيدس بنز': 'Mercedes',
+    'اودي': 'Audi', 'أودي': 'Audi', 'فولكس': 'Volkswagen', 'فولكس واجن': 'Volkswagen',
+    'فورد': 'Ford', 'شيفروليه': 'Chevrolet', 'شيفورليه': 'Chevrolet',
+    'جيب': 'Jeep', 'دودج': 'Dodge', 'كرايسلر': 'Chrysler',
+    'رينو': 'Renault', 'Peugeot': 'Peugeot', 'بيجو': 'Peugeot', 'ستروين': 'Citroen',
+    'فيات': 'Fiat', 'سكودا': 'Skoda', 'سوزوكي': 'Suzuki', 'سوزوكى': 'Suzuki',
+    'ام جي': 'MG', 'ام جى': 'MG', 'ام جيه': 'MG'
+};
+
+const normalizeArabic = (text) => {
+    if (!text) return '';
+    return String(text)
+        .replace(/[أإآ]/g, 'ا')
+        .replace(/ى/g, 'ي')
+        .replace(/ة/g, 'ه')
+        .toLowerCase()
+        .trim();
+};
+
+const translateBrand = (input) => {
+    if (!input) return input;
+    const normalized = String(input).trim();
+    return BRAND_MAP[normalized] || normalized;
+};
+
 const ChatWidget = () => {
     const { t, i18n } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
@@ -13,9 +44,13 @@ const ChatWidget = () => {
     const [intent, setIntent] = useState(null);
     const [collectedData, setCollectedData] = useState({});
 
+    // --- LOCAL INDEX ---
+    const [productIndex, setProductIndex] = useState(null);
+
     const messagesEndRef = useRef(null);
     const isRTL = i18n.language === 'ar';
 
+    // 1. Initial State
     useEffect(() => {
         if (isOpen && messages.length === 0) {
             setMessages([{
@@ -28,15 +63,48 @@ const ChatWidget = () => {
                     { label: t('chatbot.talkExpert'), intent: 'talk_to_expert' }
                 ]
             }]);
-        }
-    }, [isOpen, i18n.language]);
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
+            // Fetch product index ONCE when widget opens to save quota
+            fetchProductIndex();
+        }
+    }, [isOpen]);
+
+    const fetchProductIndex = async () => {
+        try {
+            if (productIndex) return;
+            const res = await axios.get('/api/products?action=getIndex');
+            setProductIndex(res.data);
+        } catch (e) {
+            console.error("Index load fail:", e);
+        }
+    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(() => { scrollToBottom(); }, [messages]);
+
+    // --- LOCAL SEARCH ENGINE ---
+    const performLocalSearch = (query, data) => {
+        const { make: cM } = data || {};
+        const qNorm = normalizeArabic(query);
+        const terms = qNorm.split(' ').filter(t => t.length > 1);
+
+        if (!productIndex) return [];
+
+        return productIndex.filter(p => {
+            // car make filter
+            if (cM && cM !== 'Generic' && cM !== 'generic') {
+                const pMake = normalizeArabic(p.make || p.car_make);
+                const targetMake = normalizeArabic(cM);
+                if (pMake !== targetMake) return false;
+            }
+
+            // text search
+            const pT = normalizeArabic(`${p.name} ${p.nameEn} ${p.category} ${p.subcategory} ${p.partBrand} ${p.model} ${p.car_model}`);
+            return terms.some(t => pT.includes(t));
+        }).slice(0, 5);
     };
 
     const handleSend = async (content = inputValue, customIntent = null) => {
@@ -53,50 +121,102 @@ const ChatWidget = () => {
         setInputValue('');
         setIsLoading(true);
 
-        // Update intent if provided from button
         const activeIntent = customIntent || intent;
         if (customIntent) setIntent(customIntent);
 
-        try {
-            const response = await axios.post('/api/products?action=chat', {
-                messages: [...messages, userMsg],
-                language: i18n.language,
-                currentState: chatState,
-                intent: activeIntent,
-                collectedData
-            });
+        // --- CLIENT-SIDE LOGIC BRANCH ---
+        // We handle SEARCHING locally to save quota. Other stateless flows still go to server.
 
-            const { response: botText, state: nextState, options, newData } = response.data;
+        let botResp = null;
+        const isSearching = chatState === 'searching_products';
 
-            if (nextState) {
-                setChatState(nextState);
-                if (nextState === 'idle') setIntent(null);
-                if (nextState === 'ask_make') setCollectedData({});
+        if (chatState === 'ask_make') {
+            botResp = {
+                response: isRTL ? `جميل! موديل الـ ${text} إيه؟` : `Which ${text} model?`,
+                state: 'ask_model',
+                newData: { make: translateBrand(text) }
+            };
+        } else if (chatState === 'ask_model') {
+            botResp = {
+                response: isRTL ? "تمام، سنة الموديل كام؟" : "Year?",
+                state: 'ask_year',
+                newData: { model: text }
+            };
+        } else if (chatState === 'ask_year') {
+            botResp = {
+                response: isRTL ? "بتبحث عن إيه؟" : "What part?",
+                state: 'searching_products',
+                newData: { year: text }
+            };
+        } else if (isSearching) {
+            // THE CRITICAL QUOTA SAVER
+            const results = performLocalSearch(text, collectedData);
+            if (results.length > 0) {
+                let txt = isRTL ? "هذه بعض القطع المتوفرة:" : "Found these parts:";
+                results.forEach(r => txt += `\n\n• **[${r.nameEn || r.name}](https://zaitandfilters.com/product/${r.id})**\n  Price: ${r.price || '---'} EGP`);
+                botResp = {
+                    response: txt,
+                    state: 'idle',
+                    options: [{ label: isRTL ? "بحث جديد" : "New Search", intent: 'find_part' }]
+                };
+            } else {
+                botResp = {
+                    response: isRTL ? `عذراً، لم أجد نتائج لـ "${text}".` : `No results for "${text}".`,
+                    state: 'idle',
+                    options: [{ label: isRTL ? "بحث جديد" : "New Search", intent: 'find_part' }]
+                };
             }
-            if (newData) setCollectedData(prev => ({ ...prev, ...newData }));
-
-            setMessages(prev => [...prev, {
-                role: 'bot',
-                content: botText,
-                timestamp: new Date(),
-                options: options || []
-            }]);
-
-        } catch (error) {
-            console.error("Chat Error:", error);
-            setMessages(prev => [...prev, {
-                role: 'bot',
-                content: t('chatbot.error'),
-                timestamp: new Date()
-            }]);
-        } finally {
-            setIsLoading(false);
+        } else if (activeIntent === 'find_part' || normalizeArabic(text).includes('قطعه')) {
+            botResp = {
+                response: isRTL ? "ماركة العربية إيه؟ (تويوتا، نيسان...)" : "What is your car make? (Toyota, Nissan...)",
+                state: 'ask_make'
+            };
+        } else if (activeIntent === 'track_order' || normalizeArabic(text).includes('تتبع')) {
+            botResp = {
+                response: isRTL ? "نظام تتبع الطلبات تحت الصيانة الآن. يرجى التواصل معنا عبر الواتساب." : "Order tracking is under maintenance. Please WhatsApp us.",
+                state: 'idle'
+            };
         }
+
+        // If local logic didn't handle it, fall back to server (rare now)
+        if (!botResp) {
+            try {
+                const response = await axios.post('/api/products?action=chat', {
+                    messages: [...messages, userMsg],
+                    language: i18n.language,
+                    currentState: chatState,
+                    intent: activeIntent,
+                    collectedData
+                });
+                botResp = response.data;
+            } catch (err) {
+                botResp = { response: t('chatbot.error'), state: 'idle' };
+            }
+        }
+
+        // Apply Response
+        const { response: botText, state: nextState, options, newData } = botResp;
+        if (nextState) {
+            setChatState(nextState);
+            if (nextState === 'idle') setIntent(null);
+            if (nextState === 'ask_make') setCollectedData({});
+        }
+        if (newData) setCollectedData(prev => ({ ...prev, ...newData }));
+
+        setMessages(prev => [...prev, {
+            role: 'bot',
+            content: botText,
+            timestamp: new Date(),
+            options: options || []
+        }]);
+
+        setIsLoading(false);
     };
 
     const formatMessage = (content) => {
+        if (!content) return '';
         const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
-        const parts = content.split(linkRegex);
+        const parts = String(content).split(linkRegex);
         const result = [];
         for (let i = 0; i < parts.length; i++) {
             if (i % 3 === 0) result.push(parts[i]);
