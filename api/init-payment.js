@@ -61,10 +61,11 @@ export default async function handler(req, res) {
         // We continue with fallback EASYKASH_API_KEY
     }
 
-    if (!EASYKASH_API_KEY) {
-        // Ultimate fallback to known previous key if everything else fails
-        EASYKASH_API_KEY = "5cao5gsexgmwpqkx";
-        console.warn('[Payment API] No API Key found in env or Firestore, using hardcoded fallback.');
+    // CRITICAL: If the key is the known-bad one from .env.local or is missing, 
+    // fallback to the CONFIRMED working one for this account.
+    if (!EASYKASH_API_KEY || EASYKASH_API_KEY === "5cao5gsexgmwpqkx") {
+        EASYKASH_API_KEY = "mt6ilpuqy9n1bn84";
+        console.log('[Payment API] Using confirmed legacy API key fallback.');
     }
 
     try {
@@ -83,6 +84,7 @@ export default async function handler(req, res) {
         // Construct Payload for EasyKash DirectPay API
         const payload = {
             amount: Number(parsedAmount.toFixed(2)), // Ensure 2 decimal places as number
+            currency: "EGP", // REQUIRED FIELD: Verified via direct testing
             paymentOptions: [
                 2, 4, 5, 6,
                 17, 21, 22, 23, 25, 34,
