@@ -32,17 +32,25 @@ function translateBrand(input) {
     return BRAND_MAP[normalized] || normalized;
 }
 
+/**
+ * Robust PEM Clean: Handshakes fail if the key format isn't perfect for OpenSSL 3.
+ */
 function cleanPEM(key) {
     if (!key) return '';
-    let k = key.replace(/\\n/g, '\n').trim().replace(/^['"]|['"]$/g, '');
-    const match = k.match(/-----BEGIN PRIVATE KEY-----[\s\S]*?-----END PRIVATE KEY-----/);
-    if (match) return match[0];
-    const base64Only = k.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s/g, '');
-    if (base64Only.length > 100) return `-----BEGIN PRIVATE KEY-----\n${base64Only}\n-----END PRIVATE KEY-----`;
+    // Replace double-backslashes and handle literal \n
+    let k = key.replace(/\\\\n/g, '\n').replace(/\\n/g, '\n').trim();
+    // Remove accidental wrapping quotes
+    k = k.replace(/^['"]|['"]$/g, '');
+
+    // Ensure the key has the correct PEM boundaries
+    if (!k.includes('-----BEGIN PRIVATE KEY-----')) {
+        k = `-----BEGIN PRIVATE KEY-----\n${k.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s/g, '')}\n-----END PRIVATE KEY-----`;
+    }
     return k;
 }
 
 export default async function handler(req, res) {
+    // Enable CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -51,51 +59,66 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
 
     let db;
-    let diagnosticInfo = "";
+    let diag = "";
     try {
-        const appName = 'ZeitoonDiagnosticApp';
-        let chatApp = admin.apps.find(a => a.name === appName);
+        const appName = 'Zeitoonv4'; // Upgraded name to force fresh init
 
-        if (!chatApp) {
+        // --- CLEANUP ANY OLD APPS ---
+        // In rare cases, a "bad" app might be stuck in the serverless instance.
+        const existingApp = admin.apps.find(a => a.name === appName);
+
+        if (!existingApp) {
             const saJson = process.env.FIREBASE_SERVICE_ACCOUNT || process.env.FIREBASE_JSON_CREDENTIALS;
             const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID || 'zaitandfilters';
             const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
             const privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
-            let credentials = null;
+            let finalConfig = null;
+
             if (saJson) {
-                const config = JSON.parse(saJson);
-                credentials = {
-                    projectId: config.project_id || projectId,
-                    clientEmail: config.client_email || config.clientEmail,
-                    privateKey: cleanPEM(config.private_key || config.privateKey)
-                };
-            } else if (clientEmail && privateKey) {
-                credentials = {
+                try {
+                    const parsed = JSON.parse(saJson);
+                    // SPREAD the full object to ensure token_uri and other metadata are present
+                    finalConfig = {
+                        ...parsed,
+                        privateKey: cleanPEM(parsed.private_key || parsed.privateKey),
+                        projectId: parsed.project_id || parsed.projectId || projectId
+                    };
+                    diag = `[JSON Detected: ${finalConfig.projectId}]`;
+                } catch (pe) {
+                    diag = `[JSON Parse Fail: ${pe.message}]`;
+                }
+            }
+
+            if (!finalConfig && clientEmail && privateKey) {
+                finalConfig = {
                     projectId: projectId,
                     clientEmail: clientEmail,
                     privateKey: cleanPEM(privateKey)
                 };
+                diag = `[Individual Vars Detected: ${projectId}]`;
             }
 
-            if (!credentials || !credentials.privateKey || !credentials.clientEmail) {
-                throw new Error("Missing FIREBASE_SERVICE_ACCOUNT or FIREBASE_PRIVATE_KEY in Vercel.");
+            if (!finalConfig) {
+                throw new Error("No database credentials found in environment.");
             }
 
-            // MASKED Diagnostic Info
-            diagnosticInfo = `[ID: ${credentials.projectId}, Email: ${credentials.clientEmail.split('@')[0]}...]`;
-
-            chatApp = admin.initializeApp({
-                credential: admin.credential.cert(credentials),
-                projectId: credentials.projectId
+            admin.initializeApp({
+                credential: admin.credential.cert(finalConfig),
+                projectId: finalConfig.projectId
             }, appName);
         }
-        db = admin.firestore(chatApp);
+
+        db = admin.firestore(admin.apps.find(a => a.name === appName));
     } catch (e) {
-        return res.status(200).json({ response: `Initialization Failure: ${e.message}`, state: 'idle' });
+        console.error("INIT ERROR:", e);
+        return res.status(200).json({
+            response: `Service Init Failed: ${e.message}. Status: ${diag}`,
+            state: 'idle'
+        });
     }
 
-    const { action, make, model, productId, category, email, firstName, lastName, targetUrl, tagName, expectedValue } = { ...req.query, ...req.body };
+    const { action, make, model } = { ...req.query, ...req.body };
     const BASE_URL = 'https://zaitandfilters.com';
 
     try {
@@ -118,18 +141,22 @@ export default async function handler(req, res) {
                 if (match) {
                     const idOrPhone = match[0];
                     const ordersRef = db.collection('orders');
-                    const [p1, p2, d1] = await Promise.all([
-                        ordersRef.where('customer.phone', '==', idOrPhone).limit(1).get(),
-                        ordersRef.where('shippingAddress.phone', '==', idOrPhone).limit(1).get(),
-                        ordersRef.doc(idOrPhone).get()
-                    ]);
-                    let oData = d1.exists ? d1.data() : null;
-                    if (!oData && !p1.empty) oData = p1.docs[0].data();
-                    if (!oData && !p2.empty) oData = p2.docs[0].data();
+                    try {
+                        const [p1, p2, d1] = await Promise.all([
+                            ordersRef.where('customer.phone', '==', idOrPhone).limit(1).get(),
+                            ordersRef.where('shippingAddress.phone', '==', idOrPhone).limit(1).get(),
+                            ordersRef.doc(idOrPhone).get()
+                        ]);
+                        let oData = d1.exists ? d1.data() : null;
+                        if (!oData && !p1.empty) oData = p1.docs[0].data();
+                        if (!oData && !p2.empty) oData = p2.docs[0].data();
 
-                    if (oData) {
-                        const s = oData.paymentStatus || 'Processing';
-                        return respond(isAR ? `حالة طلبك: ${s}` : `Order status: ${s}`, 'idle', [{ label: "Back", value: "idle" }]);
+                        if (oData) {
+                            const s = oData.paymentStatus || 'Processing';
+                            return respond(isAR ? `حالة طلبك: ${s}` : `Order status: ${s}`, 'idle', [{ label: "Back", value: "idle" }]);
+                        }
+                    } catch (trackErr) {
+                        return respond(isAR ? `خطأ في تتبع الطلب: ${trackErr.message}` : `Track Error: ${trackErr.message}`, 'idle');
                     }
                 }
                 if (currentState === 'track_order') return respond(isAR ? "رقم غير صحيح." : "Order not found.", 'track_order');
@@ -164,13 +191,9 @@ export default async function handler(req, res) {
                         snap = await pRef.where('isActive', '==', true).limit(100).get();
                     }
                 } catch (snapErr) {
-                    // Check for UNAUTHENTICATED here
-                    if (snapErr.message.includes('UNAUTHENTICATED')) {
-                        return respond(isAR ?
-                            `خطأ في المصادقة: المفتاح الحالي لا يملك صلاحية الوصول لقاعدة البيانات. ${diagnosticInfo}` :
-                            `Auth Error: The current key lacks database access permissions. ${diagnosticInfo}`, 'idle');
-                    }
-                    throw snapErr;
+                    return respond(isAR ?
+                        `خطأ في الوصول للبيانات: ${snapErr.message}. يرجى التأكد من صلاحيات المفتاح في Firebase. ${diag}` :
+                        `Data Access Error: ${snapErr.message}. Please verify key permissions. ${diag}`, 'idle');
                 }
 
                 const results = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(p => {
@@ -183,7 +206,7 @@ export default async function handler(req, res) {
                     results.forEach(r => text += `\n\n• **[${r.nameEn || r.name}](https://zaitandfilters.com/product/${r.id})**\n  Price: ${r.price || '---'} EGP`);
                     return respond(text, 'idle', [{ label: isAR ? "بحث جديد" : "New Search", value: "find_part" }]);
                 }
-                return respond(isAR ? "لم أجد نتائج." : "No results.", 'idle', [{ label: "بحث جديد", value: "find_part" }]);
+                return respond(isAR ? "لم أجد نتائج." : "No results found for your search.", 'idle', [{ label: "بحث جديد", value: "find_part" }]);
             }
 
             if (chatIntent === 'find_part' || lastMsgNorm.includes('قطعه') || lastMsgLower.includes('part')) {
@@ -205,9 +228,6 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Invalid action' });
     } catch (err) {
         console.error("FATAL ERROR:", err);
-        return res.status(200).json({
-            response: `Database Access Error: ${err.message}. ${diagnosticInfo}`,
-            state: 'idle'
-        });
+        return res.status(200).json({ response: `System Error: ${err.message}. Status: ${diag}`, state: 'idle' });
     }
 }
