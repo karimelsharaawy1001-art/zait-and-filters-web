@@ -85,13 +85,6 @@ export default async function handler(req, res) {
         const payload = {
             amount: Number(parsedAmount.toFixed(2)), // Ensure 2 decimal places as number
             currency: "EGP", // REQUIRED FIELD: Verified via direct testing
-            paymentOptions: [
-                2, 4, 5, 6,
-                17, 21, 22, 23, 25, 34,
-                8, 9, 10,
-                18, 19, 20,
-                26, 27, 28
-            ],
             cashExpiry: 24,
             name: customerName || "Customer",
             email: customerEmail || "customer@example.com",
