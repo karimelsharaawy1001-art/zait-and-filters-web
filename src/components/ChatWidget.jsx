@@ -166,7 +166,8 @@ const ChatWidget = () => {
                 const results = performLocalSearch(text, collectedData);
                 if (results.length > 0) {
                     let txt = isRTL ? "هذه بعض القطع المتوفرة:" : "Found these parts:";
-                    results.forEach(r => txt += `\n\n• **[${r.nameEn || r.name}](https://zaitandfilters.com/product/${r.id})**\n  Price: ${r.price || '---'} EGP`);
+                    const origin = window.location.origin;
+                    results.forEach(r => txt += `\n\n• **[${r.nameEn || r.name}](${origin}/product/${r.id})**\n  Price: ${r.price || '---'} EGP`);
                     botResp = {
                         response: txt,
                         state: 'idle',
@@ -230,12 +231,14 @@ const ChatWidget = () => {
 
     const formatMessage = (content) => {
         if (!content) return '';
-        const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+        // Improved Regex: Matches [text](url) where url can be absolute or relative
+        const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+|(?:\/[^\s)]+))\)/g;
         const parts = String(content).split(linkRegex);
         const result = [];
         for (let i = 0; i < parts.length; i++) {
             if (i % 3 === 0) result.push(parts[i]);
             else if (i % 3 === 1) {
+                // parts[i] = label, parts[i+1] = url
                 result.push(<a key={i} href={parts[i + 1]} target="_blank" rel="noopener noreferrer" className="text-[#28B463] font-bold underline mx-1">{parts[i]}</a>);
                 i++;
             }
