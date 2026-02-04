@@ -32,15 +32,27 @@ function translateBrand(input) {
     return BRAND_MAP[normalized] || normalized;
 }
 
-function formatPrivateKey(key) {
-    if (!key) return key;
-    // Replace escaped newlines with actual ones
-    let formatted = key.replace(/\\n/g, '\n');
-    // Ensure it has the proper headers if they are missing
-    if (!formatted.includes('-----BEGIN PRIVATE KEY-----')) {
-        formatted = `-----BEGIN PRIVATE KEY-----\n${formatted}\n-----END PRIVATE KEY-----`;
+/**
+ * Robust PEM Clean: Extracts exactly the BEGIN/END block and handles Vercel double-escaping.
+ */
+function cleanPEM(key) {
+    if (!key) return '';
+    // 1. Convert literal \n to actual newlines
+    let k = key.replace(/\\n/g, '\n');
+    // 2. Remove any accidental surrounding quotes or whitespace
+    k = k.trim().replace(/^['"]|['"]$/g, '');
+
+    // 3. Try to find the standard PEM block
+    const match = k.match(/-----BEGIN PRIVATE KEY-----[\s\S]*?-----END PRIVATE KEY-----/);
+    if (match) return match[0];
+
+    // 4. If no tags, check if it's just the raw base64 and wrap it
+    const base64Only = k.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s/g, '');
+    if (base64Only.length > 100) {
+        return `-----BEGIN PRIVATE KEY-----\n${base64Only}\n-----END PRIVATE KEY-----`;
     }
-    return formatted;
+
+    return k;
 }
 
 export default async function handler(req, res) {
@@ -54,7 +66,7 @@ export default async function handler(req, res) {
 
     let db;
     try {
-        const appName = 'ZeitoonAppv2'; // Changed name to force fresh init
+        const appName = 'ZeitoonFinalApp'; // New name for clean start
         let chatApp = admin.apps.find(a => a.name === appName);
 
         if (!chatApp) {
@@ -63,35 +75,37 @@ export default async function handler(req, res) {
             const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
             const privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
+            let credentials = null;
+
             if (saJson) {
                 const config = JSON.parse(saJson);
-                const pk = formatPrivateKey(config.private_key || config.privateKey);
-                chatApp = admin.initializeApp({
-                    credential: admin.credential.cert({
-                        ...config,
-                        privateKey: pk
-                    }),
-                    projectId: config.project_id || projectId
-                }, appName);
+                credentials = {
+                    projectId: config.project_id || projectId,
+                    clientEmail: config.client_email || config.clientEmail,
+                    privateKey: cleanPEM(config.private_key || config.privateKey)
+                };
             } else if (clientEmail && privateKey) {
-                chatApp = admin.initializeApp({
-                    credential: admin.credential.cert({
-                        projectId: projectId,
-                        clientEmail: clientEmail,
-                        privateKey: formatPrivateKey(privateKey)
-                    }),
-                    projectId: projectId
-                }, appName);
-            } else {
-                // If we reach here, we are missing the "Admin" credentials
-                throw new Error("Missing FIREBASE_SERVICE_ACCOUNT or FIREBASE_PRIVATE_KEY. Please verify Vercel environment variables.");
+                credentials = {
+                    projectId: projectId,
+                    clientEmail: clientEmail,
+                    privateKey: cleanPEM(privateKey)
+                };
             }
+
+            if (!credentials || !credentials.privateKey || !credentials.clientEmail) {
+                throw new Error("Credentials missing. Ensure FIREBASE_SERVICE_ACCOUNT is set in Vercel.");
+            }
+
+            chatApp = admin.initializeApp({
+                credential: admin.credential.cert(credentials),
+                projectId: credentials.projectId
+            }, appName);
         }
         db = admin.firestore(chatApp);
     } catch (e) {
-        console.error("FIREBASE INIT ERROR:", e);
+        console.error("FIREBASE FAIL:", e);
         return res.status(200).json({
-            response: `Authentication Error: The database key is in an unsupported format. Error: ${e.message}`,
+            response: `Authentication Failure: ${e.message}`,
             state: 'idle'
         });
     }
@@ -200,6 +214,6 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Invalid action' });
     } catch (err) {
         console.error("FATAL ERROR:", err);
-        return res.status(200).json({ response: `System Error: ${err.message}.`, state: 'idle' });
+        return res.status(200).json({ response: `System Error: ${err.message}`, state: 'idle' });
     }
 }
