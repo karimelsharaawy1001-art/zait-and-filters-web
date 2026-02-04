@@ -114,30 +114,30 @@ const PublicLayout = () => {
             duration: 5000,
           }}
           containerStyle={{
-            top: 20,
+            top: 40,
             zIndex: 99999
           }}
         >
           {(t) => (
             <div
-              onClick={() => toast.dismiss(t.id)}
-              className={`${t.visible ? 'animate-enter' : 'animate-leave'
-                } max-w-md w-full bg-white shadow-[0_20px_50px_rgba(0,0,0,0.15)] rounded-[1.25rem] pointer-events-auto flex ring-1 ring-black ring-opacity-5 p-4 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 border border-gray-100`}
+              className={`${t.visible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+                } max-w-md w-full backdrop-blur-xl bg-white/95 border border-white/20 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] rounded-[1.5rem] pointer-events-auto flex items-center p-3.5 transition-all duration-300 ease-out font-Cairo`}
+              style={{
+                direction: i18n.language === 'ar' ? 'rtl' : 'ltr'
+              }}
             >
-              <div className="flex-1 w-0 flex items-center gap-4">
-                <div className="flex-shrink-0 flex items-center justify-center">
+              <div className="flex-1 flex items-center gap-3.5 min-w-0">
+                <div className="flex-shrink-0">
                   {t.type === 'loading' ? (
                     <div className="animate-spin rounded-full h-5 w-5 border-2 border-[#28B463] border-t-transparent" />
-                  ) : t.icon ? (
-                    <span className="text-xl">{t.icon}</span>
                   ) : (
-                    <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${t.type === 'success' ? 'bg-green-50 text-[#28B463]' : t.type === 'error' ? 'bg-red-50 text-[#EF4444]' : 'bg-gray-50 text-gray-400'}`}>
+                    <div className={`h-11 w-11 rounded-2xl flex items-center justify-center transition-transform hover:rotate-12 ${t.type === 'success' ? 'bg-[#28B463]/10 text-[#28B463]' : t.type === 'error' ? 'bg-[#EF4444]/10 text-[#EF4444]' : 'bg-gray-100 text-gray-400'}`}>
                       {t.type === 'success' ? (
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
                         </svg>
                       ) : t.type === 'error' ? (
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       ) : (
@@ -146,14 +146,24 @@ const PublicLayout = () => {
                     </div>
                   )}
                 </div>
-                <div className="flex-1 pt-0.5">
-                  <p className="text-sm font-bold text-gray-900 font-Cairo leading-relaxed antialiased">
+                <div className="flex-1 min-w-0">
+                  <p className="text-[14px] font-black text-gray-900 leading-tight truncate-2-lines">
                     {resolveValue(t.message, t)}
                   </p>
                 </div>
               </div>
-              <div className="ml-4 flex-shrink-0 flex items-center border-l border-gray-100 pl-4">
-                <X className="h-4 w-4 text-gray-300 stroke-[3px]" />
+
+              <div className={`flex items-center ${i18n.language === 'ar' ? 'mr-4 border-r pr-4' : 'ml-4 border-l pl-4'} border-gray-100/50`}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toast.dismiss(t.id);
+                  }}
+                  className="p-2.5 rounded-xl hover:bg-gray-50 text-gray-300 hover:text-red-500 transition-all duration-200 active:scale-90 group"
+                  aria-label="Close"
+                >
+                  <X className="h-4.5 w-4.5 stroke-[3px] group-hover:rotate-90 transition-transform duration-300" />
+                </button>
               </div>
             </div>
           )}
