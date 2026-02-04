@@ -297,7 +297,7 @@ const Checkout = () => {
             const customerPhone = formData.phone;
             const customerEmail = formData.email || "customer@example.com";
 
-            // Call our Vercel serverless function (Client-Side Prep)
+            // Call our Vercel serverless function (which constructs the Redirect URL)
             const response = await axios.post('/api/init-payment', {
                 amount: totalAmount,
                 orderId: orderId,
@@ -309,42 +309,16 @@ const Checkout = () => {
 
             const data = response.data;
 
-            if (data && data.params && data.url) {
-                // Form Submission Mode (Standard for EasyKash)
-                console.log("Submitting payment form to:", data.url);
-
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = data.url;
-                form.style.display = 'none'; // Ensure it's hidden
-
-                Object.keys(data.params).forEach(key => {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = key;
-                    input.value = data.params[key];
-                    form.appendChild(input);
-                });
-
-                document.body.appendChild(form);
-                form.submit();
-
-            } else if (data && data.url) {
-                // Direct Redirect Mode
-                console.log("Redirecting to payment gateway:", data.url);
+            if (data && data.url) {
+                console.log("Redirecting to EasyKash:", data.url);
                 window.location.href = data.url;
             } else {
-                console.error("Payment API response missing URL or Params:", data);
+                console.error("Payment API response missing URL:", data);
                 throw new Error(t('onlinePaymentError') || "Could not generate payment link.");
             }
         } catch (error) {
             console.error("Payment initialization error:", error);
-
-            // Safety: Don't show raw HTML in toast
-            let msg = error.response?.data?.message || error.message || t('onlinePaymentError');
-            if (msg && typeof msg === 'string' && msg.includes('<!DOCTYPE')) {
-                msg = "Connection to Payment Gateway failed. Please try again later.";
-            }
+            const msg = error.response?.data?.message || error.message || t('onlinePaymentError');
             toast.error(msg);
         }
     };

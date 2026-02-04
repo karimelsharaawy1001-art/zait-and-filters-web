@@ -2,7 +2,7 @@ import crypto from 'crypto';
 
 export default async function handler(req, res) {
     console.log('API Hit!');
-    console.log('=== Payment API Called (Client-Side Mode) ===');
+    console.log('=== Payment API Called (GET Redirect Mode) ===');
 
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -60,25 +60,27 @@ export default async function handler(req, res) {
             .update(signatureString)
             .digest('hex');
 
-        // Return params for client-side form submission
-        // CRITICAL: URL must be www.easykash.net to avoid 301 Redirect (POST -> GET)
-        // URL: https://www.easykash.net/api/v1/checkout
+        // Construct Query Params for GET Redirect
+        const queryParams = new URLSearchParams({
+            api_key: EASYKASH_API_KEY,
+            merchant_order_id: merchantOrderId,
+            amount: finalAmount,
+            currency: currency,
+            customer_name: name,
+            customer_email: email,
+            customer_phone: phone,
+            return_url: returnUrl || `${req.headers.origin}/order-success`,
+            signature: signature,
+            source: 'website'
+        });
+
+        const redirectUrl = `https://www.easykash.net/api/v1/checkout?${queryParams.toString()}`;
+
+        // Return full URL for direct redirect
         return res.status(200).json({
             success: true,
-            method: 'POST',
-            url: 'https://www.easykash.net/api/v1/checkout',
-            params: {
-                api_key: EASYKASH_API_KEY,
-                merchant_order_id: merchantOrderId,
-                amount: finalAmount,
-                currency: currency,
-                customer_name: name,
-                customer_email: email,
-                customer_phone: phone,
-                return_url: returnUrl || `${req.headers.origin}/order-success`,
-                signature: signature,
-                source: 'website'
-            }
+            method: 'GET',
+            url: redirectUrl
         });
 
     } catch (error) {
