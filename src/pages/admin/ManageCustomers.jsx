@@ -11,7 +11,10 @@ import {
     addDoc,
     serverTimestamp
 } from 'firebase/firestore';
-import { db, auth } from '../../firebase';
+import { db, auth, default as firebaseApp } from '../../firebase';
+import { initializeApp, deleteApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { setDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
 import AdminHeader from '../../components/AdminHeader';
 import {
@@ -94,36 +97,48 @@ const ManageCustomers = () => {
     const handleAddCustomer = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
+        let secondaryApp = null;
+
         try {
-            // Get current user token for admin verification
+            // Get current user token path for admin check (optional)
             const token = await auth.currentUser?.getIdToken();
             if (!token) {
                 toast.error("You must be logged in as admin");
-                setIsSubmitting(false); // Make sure to stop loading
+                setIsSubmitting(false);
                 return;
             }
 
-            const response = await fetch('/api/create-user', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    fullName: formData.fullName,
-                    email: formData.email,
-                    phoneNumber: formData.phoneNumber,
-                    secondaryPhone: formData.secondaryPhone,
-                    address: formData.address,
-                    password: formData.password
-                })
-            });
+            // 1. Initialize a secondary Firebase App to create user without logging out admin
+            // We use the same config as the main app
+            const config = firebaseApp.options;
+            secondaryApp = initializeApp(config, "SecondaryApp");
+            const secondaryAuth = getAuth(secondaryApp);
 
-            const data = await response.json();
+            // 2. Create the user in Authentication
+            const userCredential = await createUserWithEmailAndPassword(secondaryAuth, formData.email, formData.password);
+            const user = userCredential.user;
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to create customer');
-            }
+            // 3. Create Firestore Document with the SAME UID
+            const newCustomerData = {
+                fullName: formData.fullName,
+                email: formData.email,
+                phoneNumber: formData.phoneNumber,
+                secondaryPhone: formData.secondaryPhone,
+                address: formData.address,
+                isAffiliate: formData.isAffiliate,
+                isBlocked: formData.isBlocked,
+                isAdmin: false, // Default to false for customers
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            };
+
+            // Use setDoc with the Auth UID to link them
+            await setDoc(doc(db, 'users', user.uid), newCustomerData);
+
+            // 4. Cleanup
+            await signOut(secondaryAuth);
+            await deleteApp(secondaryApp);
+            secondaryApp = null;
 
             toast.success("Customer account created successfully!");
             setShowAddModal(false);
@@ -131,8 +146,23 @@ const ManageCustomers = () => {
             fetchCustomers();
         } catch (error) {
             console.error("Error adding customer:", error);
-            toast.error(error.message);
+
+            // Handle specific auth errors
+            if (error.code === 'auth/email-already-in-use') {
+                toast.error("Email is already in use");
+            } else if (error.code === 'auth/weak-password') {
+                toast.error("Password is too weak");
+            } else {
+                toast.error(error.message || "Failed to create customer");
+            }
         } finally {
+            if (secondaryApp) {
+                try {
+                    await deleteApp(secondaryApp);
+                } catch (e) {
+                    console.error("Error cleaning up secondary app", e);
+                }
+            }
             setIsSubmitting(false);
         }
     };
