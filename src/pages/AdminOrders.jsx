@@ -957,6 +957,7 @@ const CreateOrderModal = ({ onClose, onSave }) => {
             id: null,
             name: '',
             phone: '',
+            secondaryPhone: '',
             email: '', // Optional
             address: '',
             governorate: '',
@@ -1202,6 +1203,7 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                     customer: {
                         name: orderData.customer.name,
                         phone: orderData.customer.phone,
+                        secondaryPhone: orderData.customer.secondaryPhone,
                         email: orderData.customer.email,
                         address: orderData.customer.address,
                         governorate: orderData.customer.governorate,
@@ -1283,7 +1285,7 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                 <button
                                     onClick={() => {
                                         setCustomerMode('new');
-                                        setOrderData(prev => ({ ...prev, customer: { ...prev.customer, id: null, name: '', phone: '', email: '', address: '', governorate: '', city: '' } }));
+                                        setOrderData(prev => ({ ...prev, customer: { ...prev.customer, id: null, name: '', phone: '', secondaryPhone: '', email: '', address: '', governorate: '', city: '' } }));
                                     }}
                                     className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${customerMode === 'new' ? 'bg-white shadow-lg text-black' : 'text-gray-400 hover:text-gray-600'}`}
                                 >
@@ -1366,7 +1368,16 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                             className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
                                         />
                                     </div>
-                                    <div className="col-span-2">
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase">Secondary Phone (Optional)</label>
+                                        <input
+                                            type="text"
+                                            value={orderData.customer.secondaryPhone}
+                                            onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, secondaryPhone: e.target.value } })}
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
+                                        />
+                                    </div>
+                                    <div>
                                         <label className="text-[10px] font-bold text-gray-400 uppercase">Email (Optional)</label>
                                         <input
                                             type="email"
