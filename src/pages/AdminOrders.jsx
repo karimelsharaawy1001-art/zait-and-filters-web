@@ -1,17 +1,54 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, orderBy, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, where, addDoc } from 'firebase/firestore';
+import {
+    collection,
+    query,
+    orderBy,
+    getDocs,
+    doc,
+    updateDoc,
+    deleteDoc,
+    serverTimestamp,
+    where,
+    addDoc,
+    runTransaction,
+    setDoc,
+    increment
+} from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { toast } from 'react-hot-toast';
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import AdminHeader from '../components/AdminHeader';
-import { Eye, DollarSign, Edit2, CheckCircle, Search, Plus, Minus, Trash2, PlusCircle, Package, CreditCard, Clock, X, Save } from 'lucide-react';
+import {
+    Eye,
+    DollarSign,
+    Edit2,
+    CheckCircle,
+    Search,
+    Plus,
+    Minus,
+    Trash2,
+    PlusCircle,
+    Package,
+    CreditCard,
+    Clock,
+    X,
+    Save,
+    User,
+    MapPin,
+    UserPlus,
+    ChevronDown,
+    Loader2,
+    ShieldCheck,
+    AlertCircle
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const AdminOrders = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [editingOrder, setEditingOrder] = useState(null);
+    const [showCreateModal, setShowCreateModal] = useState(false);
     const [activeTab, setActiveTab] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
     const navigate = useNavigate();
@@ -241,6 +278,15 @@ const AdminOrders = () => {
                             />
                             <Search className="absolute left-4.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-gray-300 group-focus-within/search:text-[#e31e24] transition-colors" />
                         </div>
+
+                        {/* New Order Button */}
+                        <button
+                            onClick={() => setShowCreateModal(true)}
+                            className="bg-[#28B463] text-white px-8 py-4.5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-[#28B463]/20 hover:bg-[#219653] transition-all flex items-center gap-3 shrink-0"
+                        >
+                            <PlusCircle className="h-5 w-5" />
+                            Create Manual Order
+                        </button>
                     </div>
 
                     {loading ? (
@@ -365,6 +411,17 @@ const AdminOrders = () => {
                             prevOrders.map(o => o.id === updatedOrder.id ? updatedOrder : o)
                         );
                         setEditingOrder(null);
+                    }}
+                />
+            )}
+
+            {/* Create Order Modal */}
+            {showCreateModal && (
+                <CreateOrderModal
+                    onClose={() => setShowCreateModal(false)}
+                    onSave={() => {
+                        setShowCreateModal(false);
+                        fetchOrders();
                     }}
                 />
             )}
@@ -872,6 +929,706 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                             {!saving && <Save className="h-5 w-5 text-[#e31e24]" />}
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const CreateOrderModal = ({ onClose, onSave }) => {
+    const [step, setStep] = useState(1); // 1: Customer, 2: Items, 3: Review
+    const [loading, setLoading] = useState(false);
+    const [customerMode, setCustomerMode] = useState('existing'); // 'existing' or 'new'
+
+    // Customer Search State
+    const [customerSearch, setCustomerSearch] = useState('');
+    const [customerResults, setCustomerResults] = useState([]);
+    const [searchingCustomers, setSearchingCustomers] = useState(false);
+
+    // Shipping Rates
+    const [shippingRates, setShippingRates] = useState([]);
+
+    // Form Data
+    const [orderData, setOrderData] = useState({
+        customer: {
+            id: null,
+            name: '',
+            phone: '',
+            email: '', // Optional
+            address: '',
+            governorate: '',
+            city: ''
+        },
+        items: [],
+        paymentMethod: 'Cash on Delivery',
+        paymentStatus: 'Pending',
+        status: 'Pending',
+        manualDiscount: 0,
+        extraFees: 0
+    });
+
+    // Product Search State
+    const [productSearch, setProductSearch] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearchingProducts, setIsSearchingProducts] = useState(false);
+
+    // Filters
+    const [categories, setCategories] = useState([]);
+    const [carOptions, setCarOptions] = useState([]);
+    const [makes, setMakes] = useState([]);
+    const [models, setModels] = useState([]);
+    const [filterCategory, setFilterCategory] = useState('');
+    const [filterMake, setFilterMake] = useState('');
+    const [filterModel, setFilterModel] = useState('');
+    const [filterYear, setFilterYear] = useState('');
+
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            try {
+                // Fetch Shipping Rates
+                const ratesSnap = await getDocs(collection(db, 'shipping_rates'));
+                setShippingRates(ratesSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+
+                // Fetch Search Metadata
+                const [catsSnap, carsSnap] = await Promise.all([
+                    getDocs(collection(db, 'categories')),
+                    getDocs(collection(db, 'cars'))
+                ]);
+
+                const cats = catsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const cars = carsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                setCategories(cats);
+                setCarOptions(cars);
+                setMakes([...new Set(cars.map(c => c.make))].sort());
+            } catch (error) {
+                console.error("Error loading metadata:", error);
+            }
+        };
+        fetchInitialData();
+    }, []);
+
+    // Product Filter Logic (Dependent Dropdowns)
+    useEffect(() => {
+        if (filterMake) {
+            const makeModels = carOptions
+                .filter(c => c.make === filterMake)
+                .map(c => c.model);
+            setModels([...new Set(makeModels)].sort());
+            setFilterModel('');
+        } else {
+            setModels([]);
+            setFilterModel('');
+        }
+    }, [filterMake, carOptions]);
+
+    // Calculate Shipping
+    useEffect(() => {
+        if (orderData.customer.governorate) {
+            const rate = shippingRates.find(r => r.governorate === orderData.customer.governorate);
+            // We just store the shipping cost for calculation later, or we can add it to orderData state if we want to display/edit it
+            // For now, let's keep it simple and calculate totals dynamically
+        }
+    }, [orderData.customer.governorate, shippingRates]);
+
+    // Customer Search 
+    const handleCustomerSearch = async (q) => {
+        setCustomerSearch(q);
+        if (q.length < 2) {
+            setCustomerResults([]);
+            return;
+        }
+
+        setSearchingCustomers(true);
+        try {
+            // Firestore doesn't support native fuzzy search, so we do a simple prefix/contain simulation or fetch all (if small)
+            // For scalability, we rely on 'users' collection. 
+            // We'll try to find by phone (exact) or name (startAt)
+
+            const usersRef = collection(db, 'users');
+            // Basic query for phone (exact match usually best)
+            // Or Name
+
+            // To be robust without Algoia, let's fetch recent users or just rely on exact phone match if possible
+            // OR fetch all users if list is < 1000 (might be slow)
+            // Let's implement a "Client-side filter of top 100" approach if index exists, else just query by phone
+
+            const qPhone = query(usersRef, where('phoneNumber', '>=', q), where('phoneNumber', '<=', q + '\uf8ff'), orderBy('phoneNumber'));
+            const phoneSnap = await getDocs(qPhone);
+
+            // Note: If you don't have indexes for phoneNumber, this might require one. 
+            // Fallback: Name search
+
+            let results = phoneSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+            if (results.length === 0) {
+                // Try name search? (Requires index on fullName usually)
+                // For now let's just assume we might need full data scan if indexes aren't perfect
+                // Or just fallback to existing state if we loaded customers in parent (AdminOrders doesn't load users)
+            }
+
+            setCustomerResults(results);
+        } catch (error) {
+            console.error("Customer search error:", error);
+            // Fallback: If index error, just try searching loaded customers if we had them (we don't)
+        } finally {
+            setSearchingCustomers(false);
+        }
+    };
+
+    // Product Search
+    const handleProductSearch = async (q) => {
+        setProductSearch(q);
+        if (q.length < 2 && !filterCategory && !filterMake && !filterYear) {
+            setSearchResults([]);
+            return;
+        }
+
+        setIsSearchingProducts(true);
+        try {
+            const productsRef = collection(db, 'products');
+            // Fetching all for client-side filtering (standard pattern in this app so far)
+            const qSnap = await getDocs(productsRef);
+            let all = qSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            const filtered = all.filter(p => {
+                const matchesQuery = !q ||
+                    p.name?.toLowerCase().includes(q.toLowerCase()) ||
+                    p.sku?.toLowerCase().includes(q.toLowerCase()) ||
+                    p.partNumber?.toLowerCase().includes(q.toLowerCase());
+
+                const matchesCategory = !filterCategory || p.category === filterCategory;
+                const matchesMake = !filterMake || p.make === filterMake;
+                const matchesModel = !filterModel || p.model === filterModel;
+                const matchesYear = !filterYear || (
+                    (!p.yearStart || Number(filterYear) >= Number(p.yearStart)) &&
+                    (!p.yearEnd || Number(filterYear) <= Number(p.yearEnd))
+                );
+
+                return matchesQuery && matchesCategory && matchesMake && matchesModel && matchesYear;
+            }).slice(0, 10);
+
+            setSearchResults(filtered);
+        } catch (error) {
+            console.error("Search error:", error);
+        } finally {
+            setIsSearchingProducts(false);
+        }
+    };
+
+    // Re-trigger product search
+    useEffect(() => {
+        handleProductSearch(productSearch);
+    }, [filterCategory, filterMake, filterModel, filterYear]);
+
+    const addProduct = (product) => {
+        setOrderData(prev => {
+            const existing = prev.items.find(i => i.id === product.id);
+            if (existing) {
+                return {
+                    ...prev,
+                    items: prev.items.map(i => i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i)
+                };
+            }
+            return {
+                ...prev,
+                items: [...prev.items, {
+                    id: product.id,
+                    name: product.name,
+                    nameEn: product.nameEn || product.name,
+                    price: Number(product.price) || 0,
+                    image: product.image || product.images?.[0] || '/placeholder.png',
+                    brand: product.partBrand || product.brand || 'N/A',
+                    partNumber: product.partNumber || product.sku || 'N/A',
+                    quantity: 1
+                }]
+            };
+        });
+        setProductSearch('');
+        setSearchResults([]);
+    };
+
+    const updateItemQty = (id, delta) => {
+        setOrderData(prev => ({
+            ...prev,
+            items: prev.items.map(i => {
+                if (i.id === id) return { ...i, quantity: Math.max(1, i.quantity + delta) };
+                return i;
+            })
+        }));
+    };
+
+    const removeItem = (id) => {
+        setOrderData(prev => ({ ...prev, items: prev.items.filter(i => i.id !== id) }));
+    };
+
+    const calculateTotals = () => {
+        const subtotal = orderData.items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+        const shippingRate = shippingRates.find(r => r.governorate === orderData.customer.governorate);
+        const shipping = shippingRate ? Number(shippingRate.cost) : 0;
+        const total = subtotal + shipping + Number(orderData.extraFees) - Number(orderData.manualDiscount);
+        return { subtotal, shipping, total: Math.max(0, total) };
+    };
+
+    const handleSubmitOrder = async () => {
+        if (!orderData.customer.name || !orderData.customer.phone || !orderData.customer.governorate || !orderData.customer.address) {
+            toast.error("Please fill in all required customer details.");
+            return;
+        }
+        if (orderData.items.length === 0) {
+            toast.error("Please add at least one product.");
+            return;
+        }
+
+        setLoading(true);
+        const { subtotal, shipping, total } = calculateTotals();
+
+        try {
+            await runTransaction(db, async (tx) => {
+                const counterRef = doc(db, 'settings', 'counters');
+                const counterSnap = await tx.get(counterRef);
+
+                let nextNumber = 3501;
+                if (counterSnap.exists()) {
+                    nextNumber = (counterSnap.data().lastOrderNumber || 3500) + 1;
+                }
+
+                const orderRef = doc(collection(db, 'orders'));
+
+                // If new customer, create user record? 
+                // Creating user record from here is complex due to Auth requirements. 
+                // We'll just store customer data in the order for now, OR create a Firestore-only user doc if requested.
+                // The implementation plan mainly said "Add new customer entry form" which implies order data.
+                // We can optionally create a user doc so they show in "Customers".
+
+                if (customerMode === 'new' && orderData.customer.phone) {
+                    // Check if user exists by phone
+                    // ... Skip for simplicity/safety to avoid duplicates, just save order data
+                }
+
+                const finalOrder = {
+                    customer: {
+                        name: orderData.customer.name,
+                        phone: orderData.customer.phone,
+                        email: orderData.customer.email,
+                        address: orderData.customer.address,
+                        governorate: orderData.customer.governorate,
+                        city: orderData.customer.city
+                    },
+                    userId: orderData.customer.id || 'manual_guest', // Link if selected, else guest
+                    items: orderData.items,
+                    subtotal,
+                    shipping_cost: shipping,
+                    extraFees: Number(orderData.extraFees),
+                    manualDiscount: Number(orderData.manualDiscount),
+                    total,
+                    paymentMethod: orderData.paymentMethod,
+                    paymentStatus: orderData.paymentStatus,
+                    status: orderData.status,
+                    orderNumber: nextNumber,
+                    createdAt: serverTimestamp(),
+                    isOpened: false,
+                    source: 'admin_panel'
+                };
+
+                tx.set(orderRef, finalOrder);
+                tx.set(counterRef, { lastOrderNumber: nextNumber }, { merge: true });
+            });
+
+            toast.success("Order created successfully!");
+            onSave();
+        } catch (error) {
+            console.error("Failed to create order:", error);
+            toast.error("Failed to create order.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const { subtotal, shipping, total } = calculateTotals();
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose}></div>
+            <div className="bg-white rounded-[32px] shadow-2xl relative w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+                {/* Header */}
+                <div className="bg-[#1A1A1A] p-6 text-white flex justify-between items-center shrink-0">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[#28B463] flex items-center justify-center">
+                            <PlusCircle className="text-white h-5 w-5" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-black uppercase tracking-widest">Create Manual Order</h3>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em]">Administrator Terminal</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
+                        <X className="h-6 w-6" />
+                    </button>
+                </div>
+
+                {/* Body */}
+                <div className="flex-1 overflow-y-auto p-8">
+                    {/* Stepper */}
+                    <div className="flex items-center justify-center mb-8">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-colors ${step >= 1 ? 'bg-[#28B463] text-white' : 'bg-gray-100 text-gray-400'}`}>1</div>
+                        <div className={`w-16 h-1 bg-gray-100 mx-2 ${step >= 2 ? 'bg-[#28B463]' : ''}`}></div>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-colors ${step >= 2 ? 'bg-[#28B463] text-white' : 'bg-gray-100 text-gray-400'}`}>2</div>
+                        <div className={`w-16 h-1 bg-gray-100 mx-2 ${step >= 3 ? 'bg-[#28B463]' : ''}`}></div>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-colors ${step >= 3 ? 'bg-[#28B463] text-white' : 'bg-gray-100 text-gray-400'}`}>3</div>
+                    </div>
+
+                    {/* Step 1: Customer Details */}
+                    {step === 1 && (
+                        <div className="space-y-6 max-w-2xl mx-auto">
+                            <div className="flex bg-gray-100 p-1 rounded-2xl w-fit mx-auto mb-6">
+                                <button
+                                    onClick={() => setCustomerMode('existing')}
+                                    className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${customerMode === 'existing' ? 'bg-white shadow-lg text-black' : 'text-gray-400 hover:text-gray-600'}`}
+                                >
+                                    Existing Customer
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setCustomerMode('new');
+                                        setOrderData(prev => ({ ...prev, customer: { ...prev.customer, id: null, name: '', phone: '', email: '', address: '', governorate: '', city: '' } }));
+                                    }}
+                                    className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${customerMode === 'new' ? 'bg-white shadow-lg text-black' : 'text-gray-400 hover:text-gray-600'}`}
+                                >
+                                    New Customer
+                                </button>
+                            </div>
+
+                            {customerMode === 'existing' && (
+                                <div className="space-y-4">
+                                    <div className="relative">
+                                        <div className="flex items-center bg-gray-50 border border-gray-200 rounded-2xl p-4 focus-within:ring-2 ring-[#28B463]">
+                                            <Search className="h-5 w-5 text-gray-400 mr-3" />
+                                            <input
+                                                type="text"
+                                                placeholder="Search by Phone Number..."
+                                                value={customerSearch}
+                                                onChange={(e) => handleCustomerSearch(e.target.value)}
+                                                className="bg-transparent w-full text-sm font-bold text-black border-none outline-none placeholder-gray-400"
+                                            />
+                                            {searchingCustomers && <Loader2 className="h-4 w-4 animate-spin text-[#28B463]" />}
+                                        </div>
+                                    </div>
+
+                                    {/* Results */}
+                                    {customerResults.length > 0 && (
+                                        <div className="bg-white border border-gray-100 shadow-xl rounded-2xl max-h-60 overflow-y-auto">
+                                            {customerResults.map(user => (
+                                                <button
+                                                    key={user.id}
+                                                    onClick={() => {
+                                                        setOrderData(prev => ({
+                                                            ...prev,
+                                                            customer: {
+                                                                id: user.id,
+                                                                name: user.fullName || 'No Name',
+                                                                phone: user.phoneNumber || '',
+                                                                email: user.email || '',
+                                                                address: user.address || '',
+                                                                // Note: user.address might be just string, usually we need more granular if available
+                                                                // If user has saved addresses subcollection this is harder. 
+                                                                // For now let's just prefill what we can from user doc
+                                                                governorate: '',
+                                                                city: ''
+                                                            }
+                                                        }));
+                                                        setCustomerSearch('');
+                                                        setCustomerResults([]);
+                                                    }}
+                                                    className="w-full text-left p-4 hover:bg-gray-50 border-b border-gray-50 last:border-0"
+                                                >
+                                                    <p className="font-black text-sm text-black">{user.fullName}</p>
+                                                    <p className="text-xs text-gray-400">{user.phoneNumber} • {user.email}</p>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Customer Form Fields (Prefilled or Empty) */}
+                            <div className="space-y-4 bg-gray-50/50 p-6 rounded-[24px] border border-gray-100">
+                                <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Customer Details</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase">Full Name</label>
+                                        <input
+                                            type="text"
+                                            value={orderData.customer.name}
+                                            onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, name: e.target.value } })}
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
+                                            disabled={customerMode === 'existing' && orderData.customer.id} // Disable editing name if linked to existing user to keep consistency? Or allow override? Let's allow override for flexibility.
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase">Phone Number</label>
+                                        <input
+                                            type="text"
+                                            value={orderData.customer.phone}
+                                            onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, phone: e.target.value } })}
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
+                                        />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase">Email (Optional)</label>
+                                        <input
+                                            type="email"
+                                            value={orderData.customer.email}
+                                            onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, email: e.target.value } })}
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase">Governorate</label>
+                                        <select
+                                            value={orderData.customer.governorate}
+                                            onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, governorate: e.target.value } })}
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
+                                        >
+                                            <option value="">Select...</option>
+                                            {shippingRates.map(r => (
+                                                <option key={r.id} value={r.governorate}>{r.governorate} (+{r.cost} EGP)</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase">City</label>
+                                        <input
+                                            type="text"
+                                            value={orderData.customer.city}
+                                            onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, city: e.target.value } })}
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
+                                        />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase">Detailed Address</label>
+                                        <textarea
+                                            value={orderData.customer.address}
+                                            onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, address: e.target.value } })}
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
+                                            rows={2}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Step 2: Product Selection */}
+                    {step === 2 && (
+                        <div className="space-y-6">
+                            {/* Search & Filter Bar */}
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <select value={filterMake} onChange={e => setFilterMake(e.target.value)} className="bg-gray-50 border-gray-100 rounded-xl text-xs font-bold p-2.5">
+                                        <option value="">All Makes</option>
+                                        {makes.map(m => <option key={m} value={m}>{m}</option>)}
+                                    </select>
+                                    <select value={filterModel} onChange={e => setFilterModel(e.target.value)} disabled={!filterMake} className="bg-gray-50 border-gray-100 rounded-xl text-xs font-bold p-2.5 disabled:opacity-50">
+                                        <option value="">All Models</option>
+                                        {models.map(m => <option key={m} value={m}>{m}</option>)}
+                                    </select>
+                                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="bg-gray-50 border-gray-100 rounded-xl text-xs font-bold p-2.5">
+                                        <option value="">All Categories</option>
+                                        {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                                    </select>
+                                    <input
+                                        type="number"
+                                        placeholder="Year"
+                                        value={filterYear}
+                                        onChange={e => setFilterYear(e.target.value)}
+                                        className="bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold p-2.5"
+                                    />
+                                </div>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Search products by Name, SKU, or Part Number..."
+                                        value={productSearch}
+                                        onChange={e => handleProductSearch(e.target.value)}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:ring-2 focus:ring-[#28B463] outline-none"
+                                    />
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                    {isSearchingProducts && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#28B463] animate-spin" />}
+
+                                    {/* Product Results */}
+                                    {searchResults.length > 0 && (
+                                        <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-gray-100 shadow-2xl rounded-2xl z-[50] max-h-60 overflow-y-auto">
+                                            {searchResults.map(p => (
+                                                <button
+                                                    key={p.id}
+                                                    onClick={() => addProduct(p)}
+                                                    className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 border-b border-gray-50 last:border-0"
+                                                >
+                                                    <img src={p.image || p.images?.[0] || '/placeholder.png'} className="w-10 h-10 rounded-lg object-cover" />
+                                                    <div className="text-left flex-1 min-w-0">
+                                                        <p className="text-xs font-black truncate text-black">{p.name}</p>
+                                                        <p className="text-[10px] text-gray-400 font-bold">{p.partBrand} • {p.price} EGP</p>
+                                                    </div>
+                                                    <PlusCircle className="h-5 w-5 text-[#28B463]" />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Selected Items */}
+                            <div className="bg-gray-50 rounded-[28px] p-4 border border-gray-100 min-h-[200px]">
+                                <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Selected Inventory ({orderData.items.length})</h4>
+                                {orderData.items.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center h-40 text-gray-300">
+                                        <Package className="h-10 w-10 mb-2 opacity-50" />
+                                        <p className="text-xs font-bold">No Products Added</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {orderData.items.map(item => (
+                                            <div key={item.id} className="flex items-center gap-4 bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
+                                                <img src={item.image} className="w-12 h-12 rounded-xl object-cover bg-gray-50" />
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs font-black truncate">{item.name}</p>
+                                                    <p className="text-[10px] text-gray-400 font-bold">{item.price} EGP</p>
+                                                </div>
+                                                <div className="flex items-center bg-gray-50 rounded-lg px-2">
+                                                    <button onClick={() => updateItemQty(item.id, -1)} className="p-2 text-gray-500 hover:text-black"><Minus className="h-3 w-3" /></button>
+                                                    <span className="text-xs font-black mx-2">{item.quantity}</span>
+                                                    <button onClick={() => updateItemQty(item.id, 1)} className="p-2 text-gray-500 hover:text-black"><Plus className="h-3 w-3" /></button>
+                                                </div>
+                                                <button onClick={() => removeItem(item.id)} className="p-2 text-gray-400 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Step 3: Review & Payment */}
+                    {step === 3 && (
+                        <div className="space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {/* Summary Cards */}
+                                <div className="space-y-4">
+                                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest">Order Configuration</h4>
+                                    <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 space-y-4">
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Payment Method</label>
+                                            <select
+                                                value={orderData.paymentMethod}
+                                                onChange={(e) => setOrderData({ ...orderData, paymentMethod: e.target.value })}
+                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
+                                            >
+                                                <option value="Cash on Delivery">Cash on Delivery</option>
+                                                <option value="Credit Card">Credit Card</option>
+                                                <option value="InstaPay">InstaPay</option>
+                                                <option value="Wallet">Wallet</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Initial Status</label>
+                                            <select
+                                                value={orderData.status}
+                                                onChange={(e) => setOrderData({ ...orderData, status: e.target.value })}
+                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
+                                            >
+                                                <option value="Pending">Pending</option>
+                                                <option value="Processing">Processing</option>
+                                                <option value="Awaiting Payment Verification">Awaiting Payment Verification</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Manual Discount (EGP)</label>
+                                            <input
+                                                type="number"
+                                                value={orderData.manualDiscount}
+                                                onChange={(e) => setOrderData({ ...orderData, manualDiscount: e.target.value })}
+                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
+                                                placeholder="0"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Extra Fees (EGP)</label>
+                                            <input
+                                                type="number"
+                                                value={orderData.extraFees}
+                                                onChange={(e) => setOrderData({ ...orderData, extraFees: e.target.value })}
+                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
+                                                placeholder="0"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Final Totals */}
+                                <div className="space-y-4">
+                                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest">Financial Summary</h4>
+                                    <div className="bg-[#1A1A1A] rounded-[28px] p-8 text-white space-y-4 shadow-xl">
+                                        <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase">
+                                            <span>Subtotal</span>
+                                            <span>{subtotal.toFixed(2)} EGP</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase">
+                                            <span>Shipping</span>
+                                            <span>+{shipping.toFixed(2)} EGP</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase">
+                                            <span>Extra Fees</span>
+                                            <span>+{Number(orderData.extraFees).toFixed(2)} EGP</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-xs text-[#e31e24] font-bold uppercase">
+                                            <span>Discount</span>
+                                            <span>-{Number(orderData.manualDiscount).toFixed(2)} EGP</span>
+                                        </div>
+                                        <div className="border-t border-white/10 pt-4 mt-2">
+                                            <div className="flex justify-between items-center text-2xl font-black">
+                                                <span>TOTAL</span>
+                                                <span>{total.toFixed(2)} EGP</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Footer Controls */}
+                <div className="p-6 border-t border-gray-50 flex justify-between items-center bg-gray-50/50">
+                    <button
+                        onClick={() => {
+                            if (step > 1) setStep(step - 1);
+                            else onClose();
+                        }}
+                        className="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-all text-xs uppercase tracking-widest"
+                    >
+                        {step === 1 ? 'Cancel' : 'Back'}
+                    </button>
+
+                    <button
+                        onClick={() => {
+                            if (step < 3) {
+                                if (step === 1) {
+                                    if (!orderData.customer.name || !orderData.customer.governorate) {
+                                        toast.error("Please provide Customer Name and Governorate");
+                                        return;
+                                    }
+                                }
+                                setStep(step + 1);
+                            } else {
+                                handleSubmitOrder();
+                            }
+                        }}
+                        disabled={loading}
+                        className="px-8 py-3 bg-[#1A1A1A] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl disabled:opacity-50 flex items-center gap-2"
+                    >
+                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : step === 3 ? 'Confirm Order' : 'Next Step'}
+                    </button>
                 </div>
             </div>
         </div>

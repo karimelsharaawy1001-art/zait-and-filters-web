@@ -499,7 +499,7 @@ const ManageCustomers = () => {
                                     <User className="h-8 w-8 text-white" />
                                 </div>
                                 <div>
-                                    <h3 className="text-2xl font-black uppercase tracking-widest poppins italic">{selectedCustomer.fullName}</h3>
+                                    <h3 className="text-2xl font-black text-white uppercase tracking-widest poppins italic">{selectedCustomer.fullName}</h3>
                                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em] mt-1">Customer Dashboard • Comprehensive Record</p>
                                 </div>
                             </div>
