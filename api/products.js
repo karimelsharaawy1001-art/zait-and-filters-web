@@ -4,14 +4,21 @@ import axios from 'axios';
 // Initialize Firebase Admin
 if (!admin.apps.length) {
     try {
-        if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-            const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+        const serviceAccountVar = process.env.FIREBASE_SERVICE_ACCOUNT;
+        const projectIdVar = process.env.VITE_FIREBASE_PROJECT_ID || 'zaitandfilters';
+
+        if (serviceAccountVar) {
+            const serviceAccount = JSON.parse(serviceAccountVar);
             admin.initializeApp({
-                credential: admin.credential.cert(serviceAccount)
+                credential: admin.credential.cert(serviceAccount),
+                projectId: projectIdVar
             });
         } else {
-            admin.initializeApp();
+            admin.initializeApp({
+                projectId: projectIdVar
+            });
         }
+        console.log('Firebase Admin initialized with Project ID:', projectIdVar);
     } catch (error) {
         console.error('Firebase Admin initialization failed:', error);
     }
@@ -40,7 +47,7 @@ function normalizeArabic(text) {
         .replace(/[أإآ]/g, 'ا')
         .replace(/ى/g, 'ي')
         .replace(/ة/g, 'ه')
-        .replace(/گ/g, 'ج') // Handle some Variations
+        .replace(/گ/g, 'ج')
         .toLowerCase()
         .trim();
 }
@@ -89,7 +96,12 @@ export default async function handler(req, res) {
                     const metaRegex = new RegExp(`<meta[^>]*name=["']${tagName}["'][^>]*content=["']([^"']+)["']`, 'i');
                     match = html.match(metaRegex);
                 }
-                return res.status(200).json(match ? { status: 'found', value: match[1] } : { status: 'not_found' });
+                if (match) {
+                    const foundValue = match[1];
+                    if (expectedValue && foundValue !== expectedValue) return res.status(200).json({ status: 'mismatch', found: foundValue, expected: expectedValue });
+                    return res.status(200).json({ status: 'found', value: foundValue });
+                }
+                return res.status(200).json({ status: 'not_found' });
             } catch (e) { return res.status(500).json({ error: 'SEO Check Failed', details: e.message }); }
         }
 
@@ -152,8 +164,8 @@ export default async function handler(req, res) {
                 };
 
                 const lastMsg = messages?.[messages.length - 1]?.content?.trim() || '';
-                const lastMsgLower = lastMsg.toLowerCase();
                 const lastMsgNorm = normalizeArabic(lastMsg);
+                const lastMsgLower = lastMsg.toLowerCase();
 
                 // CRITICAL: Handle Active State FIRST
                 if (currentState && currentState !== 'idle') {
@@ -168,25 +180,22 @@ export default async function handler(req, res) {
                         try {
                             const { make: cMake, model: cModel } = collectedData || {};
 
-                            // Strategy: Search specifically by the car build to get relevant docs within Hobby limits
                             let snapshot;
                             if (cMake) {
-                                const q1 = productsRef.where('isActive', '==', true).where('make', '==', cMake).limit(200).get();
-                                const q2 = productsRef.where('isActive', '==', true).where('car_make', '==', cMake).limit(200).get();
+                                const q1 = productsRef.where('isActive', '==', true).where('make', '==', cMake).limit(100).get();
+                                const q2 = productsRef.where('isActive', '==', true).where('car_make', '==', cMake).limit(100).get();
                                 const [s1, s2] = await Promise.all([q1, q2]);
                                 snapshot = { docs: [...s1.docs, ...s2.docs] };
                             } else {
-                                snapshot = await productsRef.where('isActive', '==', true).limit(300).get();
+                                snapshot = await productsRef.where('isActive', '==', true).limit(200).get();
                             }
 
                             const results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(p => {
-                                // Robust Match Logic
                                 const pMake = String(p.make || p.car_make || p.carMake || '').toLowerCase();
                                 const pModel = String(p.model || p.car_model || '').toLowerCase();
                                 if (cMake && !pMake.includes(String(cMake).toLowerCase())) return false;
                                 if (cModel && !pModel.includes(String(cModel).toLowerCase())) return false;
 
-                                // Keyword Search with Arabic Normalization
                                 const terms = lastMsgNorm.split(' ').filter(t => t.length >= 1);
                                 if (terms.length === 0) return true;
 
