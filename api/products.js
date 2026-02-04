@@ -1,7 +1,9 @@
 import admin from 'firebase-admin';
 import axios from 'axios';
 
-// --- CONFIG & HELPERS ---
+// --- HELPERS ---
+const sanitize = (v) => v ? String(v).replace(/^['"]|['"]$/g, '').trim() : '';
+
 const BRAND_MAP = {
     'تويوتا': 'Toyota', 'نيسان': 'Nissan', 'هيونداي': 'Hyundai', 'كيا': 'Kia',
     'ميتسوبيشي': 'Mitsubishi', 'ميتسوبيشى': 'Mitsubishi', 'هوندا': 'Honda',
@@ -32,9 +34,6 @@ function translateBrand(input) {
     return BRAND_MAP[normalized] || normalized;
 }
 
-/**
- * Normalizes Firestore REST API documents to standard objects.
- */
 function mapRestDoc(doc) {
     if (!doc || !doc.fields) return null;
     const data = { id: doc.name.split('/').pop() };
@@ -57,51 +56,63 @@ export default async function handler(req, res) {
 
     if (req.method === 'OPTIONS') return res.status(200).end();
 
-    const { action, make, model } = { ...req.query, ...req.body };
-    const PROJECT_ID = process.env.VITE_FIREBASE_PROJECT_ID || 'zaitandfilters';
-    const BASE_URL = 'https://zaitandfilters.com';
+    const PROJECT_ID = sanitize(process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || 'zaitandfilters');
     const REST_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 
-    // 1. --- SEARCH VIA REST (BULLETPROOF FALLBACK) ---
-    // If Admin SDK fails, this public-rules-based fetch will always work for products.
+    let diagTrace = `Trace: Start | ID:[${PROJECT_ID}]`;
+
     const restSearch = async (cMake = null) => {
         try {
-            // Using runQuery for efficient filtering
+            diagTrace += " | Querying REST";
             const queryBody = {
                 structuredQuery: {
                     from: [{ collectionId: 'products' }],
                     where: {
-                        compositeFilter: {
-                            op: 'AND',
-                            filters: [
-                                { fieldFilter: { field: { fieldPath: 'isActive' }, op: 'EQUAL', value: { booleanValue: true } } }
-                            ]
+                        fieldFilter: {
+                            field: { fieldPath: 'isActive' },
+                            op: 'EQUAL',
+                            value: { booleanValue: true }
                         }
                     },
                     limit: 100
                 }
             };
 
-            if (cMake && cMake !== 'Generic') {
-                queryBody.structuredQuery.where.compositeFilter.filters.push({
-                    fieldFilter: { field: { fieldPath: 'make' }, op: 'EQUAL', value: { stringValue: cMake } }
-                });
+            if (cMake && cMake !== 'Generic' && cMake !== 'generic') {
+                queryBody.structuredQuery.where = {
+                    compositeFilter: {
+                        op: 'AND',
+                        filters: [
+                            { fieldFilter: { field: { fieldPath: 'isActive' }, op: 'EQUAL', value: { booleanValue: true } } },
+                            { fieldFilter: { field: { fieldPath: 'make' }, op: 'EQUAL', value: { stringValue: cMake } } }
+                        ]
+                    }
+                };
             }
 
-            const response = await axios.post(`${REST_URL}:runQuery`, queryBody, { timeout: 8000 });
-            // REST runQuery returns an array of objects like { document: ... }
+            const response = await axios.post(`${REST_URL}:runQuery`, queryBody, { timeout: 10000 });
+            diagTrace += ` | REST OK (${(response.data || []).length})`;
             return (response.data || [])
                 .filter(item => item.document)
                 .map(item => mapRestDoc(item.document));
         } catch (e) {
-            console.error("REST Search Fail:", e.message);
-            // Fallback to simple list if runQuery fails (sometimes cheaper)
-            const listRes = await axios.get(`${REST_URL}/products?pageSize=100`, { timeout: 8000 });
-            return (listRes.data.documents || []).map(mapRestDoc);
+            const errInfo = e.response ? `HTTP ${e.response.status}: ${JSON.stringify(e.response.data)}` : e.message;
+            diagTrace += ` | REST ERR: ${errInfo}`;
+            // Absolute fallback: list all
+            try {
+                const listRes = await axios.get(`${REST_URL}/products?pageSize=50`, { timeout: 10000 });
+                return (listRes.data.documents || []).map(mapRestDoc);
+            } catch (le) {
+                diagTrace += ` | List ERR: ${le.message}`;
+                throw new Error(`Both REST methods failed. ${diagTrace}`);
+            }
         }
     };
 
     try {
+        const { action } = { ...req.query, ...req.body };
+        const BASE_URL = 'https://zaitandfilters.com';
+
         if (action === 'chat') {
             const { messages, language, currentState, intent: chatIntent, collectedData } = req.body || {};
             if (!messages) return res.status(200).json({ response: "Ready!", state: 'idle' });
@@ -113,25 +124,17 @@ export default async function handler(req, res) {
             const lastMsgNorm = normalizeArabic(lastMsg);
             const lastMsgLower = lastMsg.toLowerCase();
 
-            // 1. Order Tracking (Requires Admin SDK - try but fallback to error message)
+            // Flows
             if (currentState === 'track_order' || lastMsgLower.includes('track') || lastMsgNorm.includes('تتبع')) {
-                return respond(isAR ?
-                    "عذراً، نظام تتبع الطلبات تحت الصيانة الآن. يرجى التواصل معنا عبر الواتساب للمساعدة." :
-                    "Sorry, order tracking is under maintenance. Please contact WhatsApp for support.",
-                    'idle', [{ label: "Back", value: "idle" }]);
+                return respond(isAR ? "نظام تتبع الطلبات معطل مؤقتاً. يرجى المتابعة لاحقاً." : "Order tracking is temporary offline.", 'idle');
             }
-
-            // 2. Lead Capture (Requires Admin SDK - fallback to expert notice)
             if (currentState === 'await_phone' || lastMsgLower.includes('expert') || lastMsgNorm.includes('خبير')) {
-                return respond(isAR ?
-                    "لا يمكنني حفظ رقمك حالياً، يرجى مراسلتنا مباشرة على الواتساب: [اضغط هنا](https://wa.me/201012345678)" :
-                    "Unable to save number. Please WhatsApp us: [Click Here](https://wa.me/201012345678)",
-                    'idle');
+                return respond(isAR ? "سنتواصل معك عبر الواتساب فور إصلاح النظام. شكراً!" : "We will contact you via WhatsApp soon.", 'idle');
             }
 
-            // 3. Product Search (The main feature - REST Fallback makes this 100% reliable)
-            if (currentState === 'ask_make') return respond(isAR ? `جميل! موديل الـ ${lastMsg} إيه؟` : `Which ${lastMsg} model?`, 'ask_model', [], { make: translateBrand(lastMsg) });
-            if (currentState === 'ask_model') return respond(isAR ? "تمام، سنة الموديل كام؟" : "Year?", 'ask_year', [], { model: lastMsg });
+            // Search Logic
+            if (currentState === 'ask_make') return respond(isAR ? `موديل الـ ${lastMsg} إيه؟` : `Which ${lastMsg} model?`, 'ask_model', [], { make: translateBrand(lastMsg) });
+            if (currentState === 'ask_model') return respond(isAR ? "سنة كام؟" : "Year?", 'ask_year', [], { model: lastMsg });
             if (currentState === 'ask_year') return respond(isAR ? "بتبحث عن إيه؟" : "What part?", 'searching_products', [], { year: lastMsg });
 
             if (currentState === 'searching_products') {
@@ -144,18 +147,18 @@ export default async function handler(req, res) {
                 }).slice(0, 5);
 
                 if (results.length > 0) {
-                    let text = isAR ? "هذه بعض القطع المتوفرة:" : "Found these parts:";
+                    let text = isAR ? "لقيت لك الحاجات دي:" : "Found these for you:";
                     results.forEach(r => text += `\n\n• **[${r.nameEn || r.name}](${BASE_URL}/product/${r.id})**\n  Price: ${r.price || '---'} EGP`);
                     return respond(text, 'idle', [{ label: isAR ? "بحث جديد" : "New Search", value: "find_part" }]);
                 }
-                return respond(isAR ? "لم أجد نتائج مطابقة." : "No matching results found.", 'idle', [{ label: "بحث جديد", value: "find_part" }]);
+                return respond(isAR ? "مش لاقي نتايج للبحث ده." : "No results for this search.", 'idle', [{ label: "بحث جديد", value: "find_part" }]);
             }
 
             if (chatIntent === 'find_part' || lastMsgNorm.includes('قطعه') || lastMsgLower.includes('part')) {
                 return respond(isAR ? "ماركة العربية إيه؟" : "What is your car make?", 'ask_make');
             }
 
-            return respond(isAR ? "أهلاً بك! أنا زيتون مساعدك الذكي. كيف أساعدك؟" : "Hello! How can I help?", 'idle', [
+            return respond(isAR ? "أهلاً بك! معاك زيتون. أقدر أساعدك في إيه؟" : "Hello! I'm Zeitoon. How can I help?", 'idle', [
                 { label: isAR ? "قطعة غيار" : "Find Part", value: "find_part" },
                 { label: isAR ? "تتبع طلب" : "Track Order", value: "track_order" }
             ]);
@@ -169,7 +172,10 @@ export default async function handler(req, res) {
 
         return res.status(400).json({ error: 'Invalid action' });
     } catch (err) {
-        console.error("GATEWAY ERROR:", err);
-        return res.status(200).json({ response: `System issues detected. Please try again later.`, state: 'idle' });
+        console.error("FINAL CATCH:", err);
+        return res.status(200).json({
+            response: `Error: ${err.message}. Diag: ${diagTrace}`,
+            state: 'idle'
+        });
     }
 }
