@@ -238,9 +238,9 @@ const AdminOrders = () => {
 
             <main className="max-w-full mx-auto py-8 px-4 md:px-10">
                 <div className="">
-                    <div className="flex flex-col lg:flex-row gap-4 mb-10">
+                    <div className="flex flex-col gap-4 mb-10">
                         {/* Status Filter Hub - White Surface */}
-                        <div className="flex-1 bg-white rounded-[24px] shadow-sm border border-gray-200 p-3 group/filters">
+                        <div className="bg-white rounded-[24px] shadow-sm border border-gray-200 p-3 group/filters">
                             <div className="flex gap-3 overflow-x-auto scrollbar-hide px-2 py-1">
                                 {statusTabs.map(tab => {
                                     const count = getStatusCount(tab);
@@ -267,9 +267,9 @@ const AdminOrders = () => {
                             </div>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row gap-4 lg:w-auto">
+                        <div className="flex flex-col sm:flex-row gap-4">
                             {/* Order Search - High Performance Input */}
-                            <div className="sm:w-72 relative group/search">
+                            <div className="flex-1 relative group/search">
                                 <input
                                     type="text"
                                     placeholder="Search Order Matrix..."
@@ -283,7 +283,7 @@ const AdminOrders = () => {
                             {/* New Order Button */}
                             <button
                                 onClick={() => setShowCreateModal(true)}
-                                className="bg-[#28B463] text-white px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-[#28B463]/20 hover:bg-[#219653] transition-all flex items-center justify-center gap-2 whitespace-nowrap"
+                                className="bg-[#28B463] text-white px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-[#28B463]/20 hover:bg-[#219653] transition-all flex items-center justify-center gap-2 whitespace-nowrap shrink-0"
                             >
                                 <PlusCircle className="h-4 w-4" />
                                 <span className="hidden sm:inline">Create Manual Order</span>
