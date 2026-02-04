@@ -40,8 +40,10 @@ export default async function handler(req, res) {
             returnUrl
         } = req.body;
 
+        // ADJUSTMENT: Send amount as currency decimal string (e.g. "150.00")
+        // The previous "pips" logic (x100) might have been creating huge amounts (e.g. 15000 EGP) causing rejection.
         const parsedAmount = parseFloat(amount) || 0;
-        const finalAmount = Math.round(parsedAmount * 100).toString(); // 100 pips = 1 EGP
+        const finalAmount = parsedAmount.toFixed(2);
 
         // Ensure orderId is efficient (alphanumeric)
         const merchantOrderId = orderId || `ORDER_${Date.now()}`;
@@ -51,8 +53,7 @@ export default async function handler(req, res) {
         const phone = customerPhone || "01000000000";
 
         // Signature construction
-        // Standard: apiKey|amount|currency|merchantMerchantOrderId|secret (sometimes?)
-        // Based on docs pattern: apiKey|amount|currency|merchantOrderId
+        // Standard: apiKey|amount|currency|merchantMerchantOrderId
         const signatureString = `${EASYKASH_API_KEY}|${finalAmount}|${currency}|${merchantOrderId}`;
         const signature = crypto
             .createHmac('sha256', EASYKASH_SECRET_KEY)
@@ -75,7 +76,8 @@ export default async function handler(req, res) {
                 customer_email: email,
                 customer_phone: phone,
                 return_url: returnUrl || `${req.headers.origin}/order-success`,
-                signature: signature
+                signature: signature,
+                source: 'website'
             }
         });
 
