@@ -20,8 +20,10 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const EASYKASH_API_KEY = process.env.EASYKASH_API_KEY;
-    const EASYKASH_SECRET_KEY = process.env.EASYKASH_HMAC_SECRET;
+    // UPDATED CREDENTIALS FROM USER SCREENSHOT
+    // TODO: Move these to environment variables after verification
+    const EASYKASH_API_KEY = "mt6ilpuqy9n1bn84";
+    const EASYKASH_SECRET_KEY = "87ca3d5640dc3f5809d3dfbf4a5045ad";
 
     if (!EASYKASH_API_KEY || !EASYKASH_SECRET_KEY) {
         console.error('❌ Server configuration error: missing keys');
@@ -41,6 +43,7 @@ export default async function handler(req, res) {
         const parsedAmount = parseFloat(amount) || 0;
         const finalAmount = Math.round(parsedAmount * 100).toString(); // 100 pips = 1 EGP
 
+        // Ensure orderId is efficient (alphanumeric)
         const merchantOrderId = orderId || `ORDER_${Date.now()}`;
         const currency = 'EGP';
         const email = customerEmail || "customer@example.com";
@@ -48,6 +51,8 @@ export default async function handler(req, res) {
         const phone = customerPhone || "01000000000";
 
         // Signature construction
+        // Standard: apiKey|amount|currency|merchantMerchantOrderId|secret (sometimes?)
+        // Based on docs pattern: apiKey|amount|currency|merchantOrderId
         const signatureString = `${EASYKASH_API_KEY}|${finalAmount}|${currency}|${merchantOrderId}`;
         const signature = crypto
             .createHmac('sha256', EASYKASH_SECRET_KEY)
@@ -56,6 +61,7 @@ export default async function handler(req, res) {
 
         // Return params for client-side form submission
         // CRITICAL: URL must be www.easykash.net to avoid 301 Redirect (POST -> GET)
+        // URL: https://www.easykash.net/api/v1/checkout
         return res.status(200).json({
             success: true,
             method: 'POST',
