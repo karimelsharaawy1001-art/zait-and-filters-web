@@ -26,7 +26,7 @@ const db = admin.firestore();
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
-    const { messages, language, currentState, intent } = req.body;
+    const { messages, language, currentState, intent, collectedData } = req.body;
     const isAR = language === 'ar';
 
     // Helper for structured responses
@@ -40,7 +40,6 @@ export default async function handler(req, res) {
     };
 
     try {
-        const { messages, language, currentState, intent, collectedData } = req.body;
         console.log(`[ChatAgent] State: ${currentState}, Intent: ${intent}, LastMsg: ${messages[messages.length - 1].content}`);
 
         const lastMsg = messages[messages.length - 1].content.trim();
@@ -137,21 +136,35 @@ export default async function handler(req, res) {
 
         if (currentState === 'searching_products') {
             const { make, model } = collectedData || {};
-            let q = db.collection('products').where('isActive', '==', true);
-            if (make) q = q.where('make', '==', make);
 
-            const snapshot = await q.limit(5).get();
+            // Query only active products to avoid missing index errors with composite filters
+            // We fetch a larger batch and filter in-memory for speed/simplicity in rule-based bot
+            const snapshot = await db.collection('products').where('isActive', '==', true).limit(500).get();
+
             const results = snapshot.docs
                 .map(doc => ({ id: doc.id, ...doc.data() }))
-                .filter(p => !model || p.model === model); // Filter model in memory to avoid index issues
+                .filter(p => {
+                    // Match Make (if provided)
+                    if (make && p.make !== make && p.car_make !== make) return false;
+                    // Match Model (if provided)
+                    if (model && p.model !== model && p.car_model !== model) return false;
+
+                    // Keyword Search for Part Name (lastMsg)
+                    const searchTerms = lastMsgLower.split(' ').filter(t => t.length > 1);
+                    if (searchTerms.length === 0) return true; // Show anything for short inputs
+
+                    const prodText = `${p.name || ''} ${p.nameEn || ''} ${p.category || ''} ${p.subcategory || ''}`.toLowerCase();
+                    return searchTerms.some(term => prodText.includes(term));
+                })
+                .slice(0, 5);
 
             if (results.length > 0) {
                 let respText = isAR
-                    ? `إليك بعض النتائج المتوافقة مع ${make} ${model || ''}:`
-                    : `Here are some compatible results for ${make} ${model || ''}:`;
+                    ? `إليك بعض النتائج المتوافقة مع ${make || ''} ${model || ''}:`
+                    : `Here are some compatible results for ${make || ''} ${model || ''}:`;
 
                 results.forEach(p => {
-                    const title = p.name || p.nameEn;
+                    const title = p.nameEn || p.name;
                     respText += `\n\n• **[${title}](https://zaitandfilters.com/product/${p.id})**\n  السعر: ${p.price} EGP`;
                 });
 
@@ -163,8 +176,8 @@ export default async function handler(req, res) {
 
             return respond(
                 isAR
-                    ? `لم أجد نتائج فورية لـ ${lastMsg}. هل تحب أن يتواصل معك خبير فني للتأكد من التوفر؟`
-                    : `No immediate results found for ${lastMsg}. Would you like an expert to contact you to check availability?`,
+                    ? `لم أجد نتائج فورية لـ "${lastMsg}". هل تحب أن يتواصل معك خبير فني للتأكد من التوفر؟`
+                    : `No immediate results found for "${lastMsg}". Would you like an expert to contact you to check availability?`,
                 'idle',
                 [
                     { label: isAR ? "تحدث مع خبير" : "Talk to Expert", value: "talk_to_expert" },
