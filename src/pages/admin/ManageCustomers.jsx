@@ -129,13 +129,13 @@ const ManageCustomers = () => {
 
             // 3. Create Firestore Document with the SAME UID
             const newCustomerData = {
-                fullName: formData.fullName,
-                email: formData.email,
-                phoneNumber: formData.phoneNumber,
-                secondaryPhone: formData.secondaryPhone,
-                address: formData.address,
-                isAffiliate: formData.isAffiliate,
-                isBlocked: formData.isBlocked,
+                fullName: formData.fullName || '',
+                email: formData.email || '',
+                phoneNumber: formData.phoneNumber || '',
+                secondaryPhone: formData.secondaryPhone || '',
+                address: formData.address || '',
+                isAffiliate: !!formData.isAffiliate,
+                isBlocked: !!formData.isBlocked,
                 isAdmin: false, // Default to false for customers
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
