@@ -9,6 +9,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import GarageActiveIndicator from './components/GarageActiveIndicator';
 import ScrollToTop from './components/ScrollToTop';
+import ChatWidget from './components/ChatWidget';
 import { StaticDataProvider } from './context/StaticDataContext';
 import { SettingsProvider } from './context/SettingsContext';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -176,6 +177,7 @@ const PublicLayout = () => {
           <Outlet />
         </main>
         <Footer />
+        <ChatWidget />
       </div>
     );
   } catch (error) {

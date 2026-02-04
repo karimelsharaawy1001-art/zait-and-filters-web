@@ -311,6 +311,16 @@ const resources = {
                 "description": "Register your vehicle to get exactly matching parts and oils for your specific model. Enjoy a personalized maintenance experience guaranteed for your car.",
                 "action": "Sign In to My Garage",
                 "close": "Maybe Later"
+            },
+            "chatbot": {
+                "title": "Zeitoon AI Assistant",
+                "welcome": "Hello! I'm Zeitoon. How can I help you today?",
+                "placeholder": "Type your message...",
+                "askPart": "I'm looking for a part",
+                "trackOrder": "Track my order",
+                "talkExpert": "Talk to an expert",
+                "error": "Something went wrong. Please try again.",
+                "whatsappRequest": "Please leave your WhatsApp number below:"
             }
         }
     },
@@ -624,6 +634,16 @@ const resources = {
                 "description": "سجل بيانات عربيتك عشان نوفرلك قطع الغيار والزيوت المطابقة ليها بالظبط. استمتع بتجربة صيانة مخصصة ومضمونة لعربيتك.",
                 "action": "تسجيل دخول لـ جراجي",
                 "close": "ربما لاحقاً"
+            },
+            "chatbot": {
+                "title": "زيتون - المساعد الذكي",
+                "welcome": "أهلاً بك! أنا زيتون المساعد الذكي لزيت اند فلترز. كيف يمكنني مساعدتك اليوم؟",
+                "placeholder": "اكتب رسالتك هنا...",
+                "askPart": "أبحث عن قطعة غيار",
+                "trackOrder": "تتبع طلبي",
+                "talkExpert": "تحدث مع خبير",
+                "error": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+                "whatsappRequest": "من فضلك اترك رقم الواتساب هنا:"
             }
         }
     }
