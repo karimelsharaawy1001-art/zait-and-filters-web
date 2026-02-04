@@ -34,6 +34,17 @@ const BRAND_MAP = {
     'ام جي': 'MG', 'ام جى': 'MG', 'ام جيه': 'MG'
 };
 
+function normalizeArabic(text) {
+    if (!text) return '';
+    return String(text)
+        .replace(/[أإآ]/g, 'ا')
+        .replace(/ى/g, 'ي')
+        .replace(/ة/g, 'ه')
+        .replace(/گ/g, 'ج') // Handle some Variations
+        .toLowerCase()
+        .trim();
+}
+
 function translateBrand(input) {
     if (!input) return input;
     const normalized = String(input).trim();
@@ -142,8 +153,9 @@ export default async function handler(req, res) {
 
                 const lastMsg = messages?.[messages.length - 1]?.content?.trim() || '';
                 const lastMsgLower = lastMsg.toLowerCase();
+                const lastMsgNorm = normalizeArabic(lastMsg);
 
-                // CRITICAL: Handle Active State FIRST to prevent intent recursion
+                // CRITICAL: Handle Active State FIRST
                 if (currentState && currentState !== 'idle') {
                     if (currentState === 'ask_make') {
                         const translated = translateBrand(lastMsg);
@@ -155,93 +167,85 @@ export default async function handler(req, res) {
                     if (currentState === 'searching_products') {
                         try {
                             const { make: cMake, model: cModel } = collectedData || {};
-                            const snapshot = await productsRef.where('isActive', '==', true).limit(300).get();
+
+                            // Strategy: Search specifically by the car build to get relevant docs within Hobby limits
+                            let snapshot;
+                            if (cMake) {
+                                const q1 = productsRef.where('isActive', '==', true).where('make', '==', cMake).limit(200).get();
+                                const q2 = productsRef.where('isActive', '==', true).where('car_make', '==', cMake).limit(200).get();
+                                const [s1, s2] = await Promise.all([q1, q2]);
+                                snapshot = { docs: [...s1.docs, ...s2.docs] };
+                            } else {
+                                snapshot = await productsRef.where('isActive', '==', true).limit(300).get();
+                            }
 
                             const results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(p => {
-                                // Robust Type Checking
+                                // Robust Match Logic
                                 const pMake = String(p.make || p.car_make || p.carMake || '').toLowerCase();
                                 const pModel = String(p.model || p.car_model || '').toLowerCase();
-
                                 if (cMake && !pMake.includes(String(cMake).toLowerCase())) return false;
                                 if (cModel && !pModel.includes(String(cModel).toLowerCase())) return false;
 
-                                // Keyword Search
-                                const terms = lastMsgLower.split(' ').filter(t => t.length > 1);
+                                // Keyword Search with Arabic Normalization
+                                const terms = lastMsgNorm.split(' ').filter(t => t.length >= 1);
                                 if (terms.length === 0) return true;
 
-                                const txt = String(`${p.name || ''} ${p.nameEn || ''} ${p.category || ''} ${p.partBrand || ''}`).toLowerCase();
-                                return terms.some(t => txt.includes(t));
+                                const pText = normalizeArabic(`${p.name || ''} ${p.nameEn || ''} ${p.category || ''} ${p.subcategory || ''} ${p.partBrand || ''}`);
+                                return terms.some(t => pText.includes(t));
                             }).slice(0, 5);
 
                             if (results.length > 0) {
-                                let text = isAR ? "لقد وجدت بعض النتائج المتوافقة:" : "I found some compatible results:";
+                                let text = isAR ? "لقد وجدت بعض النتائج المتوافقة:" : "Found some compatible results:";
                                 results.forEach(r => {
-                                    const title = r.nameEn || r.name || 'Product';
-                                    text += `\n\n• **[${title}](https://zaitandfilters.com/product/${r.id})**\n  Price: ${r.price || '---'} EGP`;
+                                    text += `\n\n• **[${r.nameEn || r.name || 'Part'}](https://zaitandfilters.com/product/${r.id})**\n  Price: ${r.price || '---'} EGP`;
                                 });
                                 return chatRespond(text, 'idle', [{ label: isAR ? "بحث جديد" : "New Search", value: "find_part" }]);
                             }
-                            return chatRespond(isAR ? `عذراً، لم أجد نتائج لـ "${lastMsg}". هل تحب التحدث مع خبير؟` : `Sorry, I couldn't find results for "${lastMsg}". Would you like to talk to an expert?`, 'idle', [
-                                { label: isAR ? "تكلم مع خبير" : "Talk to Expert", value: "talk_to_expert" },
+                            return chatRespond(isAR ? `عذراً، لم أجد نتائج لـ "${lastMsg}". تكلم مع خبير؟` : `No results for "${lastMsg}". Talk to an expert?`, 'idle', [
+                                { label: isAR ? "تكلم مع خبير" : "Talk Expert", value: "talk_to_expert" },
                                 { label: isAR ? "بحث جديد" : "New Search", value: "find_part" }
                             ]);
                         } catch (searchErr) {
-                            console.error('Search Logic Error:', searchErr);
-                            throw new Error(`Search Fail: ${searchErr.message}`);
+                            console.error("Search Logic Fail:", searchErr);
+                            return chatRespond(`Search System Error: ${searchErr.message}`, 'idle');
                         }
                     }
 
                     if (currentState === 'track_order') {
                         const match = lastMsg.match(/\d+/);
                         if (match) {
-                            const idOrPhone = match[0];
-                            const ordersRef = db.collection('orders');
-                            const [phoneSnap, phoneSnapAlt, docSnap] = await Promise.all([
-                                ordersRef.where('customer.phone', '==', idOrPhone).limit(1).get(),
-                                ordersRef.where('shippingAddress.phone', '==', idOrPhone).limit(1).get(),
-                                ordersRef.doc(idOrPhone).get()
-                            ]);
-                            let oData = docSnap.exists ? docSnap.data() : null;
-                            if (!oData && !phoneSnap.empty) oData = phoneSnap.docs[0].data();
-                            if (!oData && !phoneSnapAlt.empty) oData = phoneSnapAlt.docs[0].data();
-
-                            if (oData) {
-                                const sMap = { 'Pending': isAR ? 'قيد الانتظار' : 'Pending', 'Processing': isAR ? 'جاري التجهيز' : 'Processing', 'Shipped': isAR ? 'تم الشحن' : 'Shipped', 'Delivered': isAR ? 'تم التوصيل' : 'Delivered', 'Cancelled': isAR ? 'ملغي' : 'Cancelled' };
-                                const status = sMap[oData.paymentStatus] || oData.paymentStatus || 'Pending';
-                                const msg = isAR ? `تم العثور على طلبك! الحالة: *${status}*.` : `Order found! Status: *${status}*.`;
-                                return chatRespond(msg, 'idle', [{ label: isAR ? "الرجوع للرئيسية" : "Back to Home", value: "idle" }]);
+                            const o = await db.collection('orders').doc(match[0]).get();
+                            if (o.exists) {
+                                const data = o.data();
+                                return chatRespond(isAR ? `الطلب ${match[0]} حالته: ${data.paymentStatus}` : `Order ${match[0]} status: ${data.paymentStatus}`, 'idle');
                             }
                         }
-                        return chatRespond(isAR ? "عذراً، لم أستطع العثور على طلب بهذا الرقم." : "Sorry, I couldn't find an order with that number.", 'track_order');
+                        return chatRespond(isAR ? "رقم الطلب غير صحيح." : "Invalid Order ID.", 'idle');
                     }
 
                     if (currentState === 'await_phone') {
                         await db.collection('bot_leads').add({ phone: lastMsg, data: collectedData, time: new Date() });
-                        return chatRespond(isAR ? "شكراً لك! خبيرنا سيتواصل معك عبر الواتساب قريباً." : "Thank you! Our expert will contact you via WhatsApp shortly.", 'idle');
+                        return chatRespond(isAR ? "شكراً! خبيرنا هيكلمك." : "Thanks! Our expert will call.", 'idle');
                     }
                 }
 
-                // Intent Triggers (Only if idle or starting fresh)
+                // Intent Triggers
                 if (chatIntent === 'find_part' || lastMsgLower.includes('part') || lastMsgLower.includes('قطعة')) {
-                    return chatRespond(isAR ? "سأساعدك في العثور على ما تحتاجه! ما هو نوع سيارتك؟ (Toyota, Nissan...)" : "I can help! What is your car make? (Toyota, Nissan...)", 'ask_make');
+                    return chatRespond(isAR ? "أهلاً بك! ما هو نوع سيارتك؟" : "I can help! What is your car make?", 'ask_make');
                 }
-                if (lastMsgLower.includes('track') || lastMsgLower.includes('تتبع')) return chatRespond(isAR ? "أرسل رقم الطلب أو رقم الهاتف." : "Send Order ID or Phone.", 'track_order');
-                if (lastMsgLower.includes('expert') || lastMsgLower.includes('خبير')) return chatRespond(isAR ? "سيب رقم الواتساب وخبيرنا هيكلمك." : "Leave WhatsApp for expert.", 'await_phone');
+                if (lastMsgLower.includes('track') || lastMsgLower.includes('تتبع')) return chatRespond(isAR ? "أرسل رقم الطلب." : "Send Order ID.", 'track_order');
+                if (lastMsgLower.includes('expert') || lastMsgLower.includes('خبير')) return chatRespond(isAR ? "سيب رقمك لخبيرنا." : "Leave WhatsApp.", 'await_phone');
 
-                // Default Welcome
-                const welcome = isAR ? "أنا زيتون، مساعدك الذكي. كيف أساعدك؟" : "I'm Zeitoon, your smart assistant. How can I help?";
-                return chatRespond(welcome, 'idle', [
+                return chatRespond(isAR ? "أنا زيتون، مساعدك الذكي. كيف أساعدك؟" : "I'm Zeitoon, your smart assistant. How can I help?", 'idle', [
                     { label: isAR ? "قطعة غيار" : "Find Part", value: "find_part" },
-                    { label: isAR ? "تتبع طلبي" : "Track Order", value: "track_order" },
-                    { label: isAR ? "تحدث مع خبير" : "Talk Expert", value: "talk_to_expert" }
+                    { label: isAR ? "تتبع طلبي" : "Track Order", value: "track_order" }
                 ]);
             } catch (chatError) {
-                console.error('Chat Logic Error (Global):', chatError);
-                return res.status(500).json({ error: 'Chat Failed', details: chatError.message });
+                console.error("Global Chat Fail:", chatError);
+                return res.status(200).json({ response: `System Failure: ${chatError.message}`, state: 'idle' });
             }
         }
 
-        // --- 5. ORIGINAL ACTIONS ---
         if (action === 'getMakes') {
             const snapshot = await productsRef.where('isActive', '==', true).get();
             const makes = [...new Set(snapshot.docs.map(d => d.data().make || d.data().car_make))].filter(Boolean).sort();
@@ -250,7 +254,10 @@ export default async function handler(req, res) {
 
         return res.status(400).json({ error: 'Invalid action' });
     } catch (error) {
-        console.error('Core API Error:', error);
-        return res.status(500).json({ error: 'Internal Error', message: error.message });
+        console.error("Core API Fatal:", error);
+        return res.status(200).json({
+            response: `Core System Error: ${error.message}`,
+            state: 'idle'
+        });
     }
 }
