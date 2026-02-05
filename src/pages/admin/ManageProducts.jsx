@@ -306,10 +306,23 @@ const ManageProducts = () => {
         }
     };
 
-    // Re-fetch on filter changes
+    // Search Debounce Implementation
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery);
+        }, 500); // 500ms delay
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [searchQuery]);
+
+    // Re-fetch on filter changes (Triggered by DEBOUNCED query now)
     useEffect(() => {
         fetchProducts();
-    }, [categoryFilter, subcategoryFilter, makeFilter, modelFilter, brandFilter, statusFilter, sortBy, searchQuery]);
+    }, [categoryFilter, subcategoryFilter, makeFilter, modelFilter, brandFilter, statusFilter, sortBy, debouncedSearchQuery]);
 
     useEffect(() => {
         fetchBrands();
@@ -613,6 +626,7 @@ const ManageProducts = () => {
 
                 {/* Bulk Import/Export */}
                 <BulkOperations
+                    validCars={cars}
                     onSuccess={() => {
                         safeLocalStorage.removeByPrefix('admin_products_');
                         fetchProducts(false, false, true);

@@ -146,22 +146,61 @@ const BulkOperations = ({ onSuccess, onExportFetch }) => {
                     return;
                 }
 
-                setImportStatus(`Importing ${jsonData.length} products...`);
+                setImportStatus(`Validating ${jsonData.length} products...`);
+
+                // 1. Prepare Validation Map
+                const validMakes = new Set();
+                const validModelsByMake = {};
+
+                if (validCars && Array.isArray(validCars)) {
+                    validCars.forEach(car => {
+                        const mk = String(car.make || '').toUpperCase().trim();
+                        const md = String(car.model || '').toUpperCase().trim();
+                        if (mk) {
+                            validMakes.add(mk);
+                            if (!validModelsByMake[mk]) validModelsByMake[mk] = new Set();
+                            if (md) validModelsByMake[mk].add(md);
+                        }
+                    });
+                }
 
                 const batchSize = 500;
                 let successCount = 0;
                 let errorCount = 0;
+                const errors = [];
 
                 for (let i = 0; i < jsonData.length; i += batchSize) {
                     const batch = writeBatch(db);
                     const chunk = jsonData.slice(i, i + batchSize);
 
-                    chunk.forEach((row) => {
-                        // Minimal row validation: skip if no name provided for new products
+                    chunk.forEach((row, idx) => {
+                        const rowNum = i + idx + 2; // Excel row number (header is 1)
+
+                        // A. Basic Validation
                         if (!row.productID && !row.name) {
                             errorCount++;
+                            errors.push(`Row ${rowNum}: Missing Product ID or Name`);
                             return;
                         }
+
+                        // B. Make/Model Validation (Strict)
+                        let rowMake = String(row.carMake || '').toUpperCase().trim();
+                        let rowModel = String(row.carModel || '').toUpperCase().trim();
+
+                        if (rowMake && validMakes.size > 0 && !validMakes.has(rowMake)) {
+                            errorCount++;
+                            errors.push(`Row ${rowNum} (${row.name}): Invalid Make "${row.carMake}". Must match Admin > Cars list exactly.`);
+                            return; // SKIP invalid make
+                        }
+
+                        if (rowMake && rowModel && validModelsByMake[rowMake] && !validModelsByMake[rowMake].has(rowModel)) {
+                            // Allow "Generic" or empty models if make represents a broad category? 
+                            // For now, strict: if make exists, model MUST exist in that make
+                            errorCount++;
+                            errors.push(`Row ${rowNum} (${row.name}): Invalid Model "${row.carModel}" for Make "${row.carMake}". Check spelling.`);
+                            return; // SKIP invalid model
+                        }
+
 
                         let docRef;
                         let isUpdate = false;
@@ -179,8 +218,11 @@ const BulkOperations = ({ onSuccess, onExportFetch }) => {
                         if (row.name) dataToUpdate.name = String(row.name).trim();
                         if (row.category) dataToUpdate.category = String(row.category).trim();
                         if (row.subcategory) dataToUpdate.subcategory = String(row.subcategory).trim();
-                        if (row.carMake) dataToUpdate.make = String(row.carMake).trim().toUpperCase();
-                        if (row.carModel) dataToUpdate.model = String(row.carModel).trim().toUpperCase();
+
+                        // Use the normalized values
+                        if (rowMake) dataToUpdate.make = rowMake;
+                        if (rowModel) dataToUpdate.model = rowModel;
+
                         if (row.yearRange) {
                             dataToUpdate.yearRange = String(row.yearRange).trim();
                             const { yearStart, yearEnd } = parseYearRange(row.yearRange);
@@ -246,24 +288,47 @@ const BulkOperations = ({ onSuccess, onExportFetch }) => {
                         successCount++;
                     });
 
-                    await batch.commit();
-                    setImportStatus(`Processed ${Math.min(i + batchSize, jsonData.length)} / ${jsonData.length} products...`);
+                    if (successCount > 0 || errorCount > 0) { // Only commit if we processed something
+                        // Note: We might be committing fewer options if some were skipped, but that's fine.
+                        // The batch only contains valid operations.
+                        try {
+                            await batch.commit();
+                        } catch (batchErr) {
+                            console.error("Batch commit error", batchErr);
+                            // If batch fails, we can't easily distinguish which rows failed, but we can assume none were saved.
+                            // We should probably log a generic error for this chunk.
+                            errors.push(`System Error: A batch of ${chunk.length} rows failed to save to database.`);
+                        }
+                    }
+
+                    setImportStatus(`Processed ${Math.min(i + batchSize, jsonData.length)} / ${jsonData.length}...`);
                 }
 
                 setImportStatus('');
-                toast.success(`Successfully imported ${successCount} products! ${errorCount > 0 ? `(${errorCount} skipped)` : ''} Refresh the page to see changes.`, {
-                    duration: 5000
-                });
+
+                if (errorCount > 0) {
+                    toast.error(`Import completed with ${errorCount} errors. Downloading report...`, { duration: 6000 });
+                    // Download Error Report
+                    const element = document.createElement("a");
+                    const file = new Blob([errors.join('\n')], { type: 'text/plain' });
+                    element.href = URL.createObjectURL(file);
+                    element.download = "Import_Errors_Report.txt";
+                    document.body.appendChild(element);
+                    element.click();
+                    document.body.removeChild(element);
+                } else {
+                    toast.success(`Successfully imported all ${successCount} products!`, { duration: 5000 });
+                }
 
                 // Reset file input
                 e.target.value = '';
 
-                // Ask user if they want to refresh
+                // Trigger success callback
                 if (onSuccess) {
                     onSuccess();
                     // Force a reload to ensure all state is reset if needed
                     setTimeout(() => {
-                        toast('Refresh the page if products still don\'t appear.', { icon: 'ℹ️' });
+                        if (errorCount === 0) toast('Refresh the page if products still don\'t appear.', { icon: 'ℹ️' });
                     }, 1000);
                 }
             } catch (error) {
@@ -271,7 +336,7 @@ const BulkOperations = ({ onSuccess, onExportFetch }) => {
 
                 // Specific error message for missing documents during batch.update
                 if (error.code === 'not-found' || error.message?.includes('no document to update')) {
-                    toast.error("Import failed: One or more Product IDs were not found in the database.");
+                    toast.error("Import failed: One or more Product IDs were not found in the database. (Tried to update non-existent items)");
                 } else if (error.code === 'permission-denied') {
                     toast.error("Import failed: Permission denied. Please check your admin access.");
                 } else if (error.code === 'resource-exhausted') {
