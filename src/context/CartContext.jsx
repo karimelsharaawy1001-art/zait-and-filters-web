@@ -38,62 +38,63 @@ export const CartProvider = ({ children }) => {
 
     const [currentStage, setCurrentStage] = useState('Cart Page');
 
-    // Synchronize with Local Storage and Firestore (for abandoned cart recovery)
+    // 1. Immediate Local Storage Sync
     useEffect(() => {
-        // SIGNIFICANTLY increase debounce to 60 seconds to save Firestore Quota
+        try {
+            safeLocalStorage.setItem('cartItems', JSON.stringify(cartItems));
+        } catch (error) {
+            console.error("Failed to save cart to local storage:", error);
+        }
+    }, [cartItems]);
+
+    // 2. Debounced Firestore Sync (Abandoned Cart Recovery)
+    useEffect(() => {
         const handler = setTimeout(() => {
             try {
-                const currentCartStr = JSON.stringify(cartItems);
-                const lastStoredCart = safeLocalStorage.getItem('cartItems');
+                if (cartItems.length === 0) return;
 
-                if (lastStoredCart !== currentCartStr) {
-                    safeLocalStorage.setItem('cartItems', currentCartStr);
-                }
+                const syncCart = async () => {
+                    try {
+                        const cartId = auth.currentUser ? auth.currentUser.uid : sessionId;
+                        const currentCartStr = JSON.stringify(cartItems);
 
-                // Only sync to Firestore if there are items AND something significant changed
-                if (cartItems.length > 0 && lastStoredCart !== currentCartStr) {
-                    const syncCart = async () => {
-                        try {
-                            const cartId = auth.currentUser ? auth.currentUser.uid : sessionId;
+                        // Check if we already synced this state
+                        const lastSyncedKey = `last_sync_${cartId}`;
+                        if (safeLocalStorage.getItem(lastSyncedKey) === currentCartStr) return;
 
-                            // Check if we already synced this exact state to avoid double-writes
-                            const lastSyncedKey = `last_sync_${cartId}`;
-                            if (safeLocalStorage.getItem(lastSyncedKey) === currentCartStr) return;
+                        const cartData = {
+                            sessionId: sessionId,
+                            uid: auth.currentUser?.uid || null,
+                            email: customerDetails.email || auth.currentUser?.email || null,
+                            customerName: customerDetails.name || auth.currentUser?.displayName || 'Guest',
+                            customerPhone: customerDetails.phone || null,
+                            items: cartItems,
+                            total: cartItems.reduce((sum, item) => {
+                                const effectivePrice = Number(item.salePrice) || Number(item.price);
+                                return sum + (effectivePrice * item.quantity);
+                            }, 0),
+                            lastModified: serverTimestamp(),
+                            recovered: false,
+                            emailSent: false,
+                            lastStepReached: currentStage
+                        };
 
-                            const cartData = {
-                                sessionId: sessionId,
-                                uid: auth.currentUser?.uid || null,
-                                email: customerDetails.email || auth.currentUser?.email || null,
-                                customerName: customerDetails.name || auth.currentUser?.displayName || 'Guest',
-                                customerPhone: customerDetails.phone || null,
-                                items: cartItems,
-                                total: cartItems.reduce((sum, item) => {
-                                    const effectivePrice = item.salePrice || item.price;
-                                    return sum + (effectivePrice * item.quantity);
-                                }, 0),
-                                lastModified: serverTimestamp(),
-                                recovered: false,
-                                emailSent: false,
-                                lastStepReached: currentStage
-                            };
-
-                            await setDoc(doc(db, 'abandoned_carts', cartId), cartData, { merge: true });
-                            safeLocalStorage.setItem(lastSyncedKey, currentCartStr);
-                            console.log("[QUOTA] Abandoned cart synced (Optimized)");
-                        } catch (err) {
-                            if (err.code === 'resource-exhausted') {
-                                console.warn("[QUOTA] Limit reached, skipping abandoned cart sync.");
-                            } else {
-                                console.error("Error syncing abandoned cart:", err);
-                            }
+                        await setDoc(doc(db, 'abandoned_carts', cartId), cartData, { merge: true });
+                        safeLocalStorage.setItem(lastSyncedKey, currentCartStr);
+                        console.log("[QUOTA] Abandoned cart synced (Optimized)");
+                    } catch (err) {
+                        if (err.code === 'resource-exhausted') {
+                            console.warn("[QUOTA] Limit reached, skipping abandoned cart sync.");
+                        } else {
+                            console.error("Error syncing abandoned cart:", err);
                         }
-                    };
-                    syncCart();
-                }
+                    }
+                };
+                syncCart();
             } catch (error) {
-                console.error("Failed to handle cart persistence:", error);
+                console.error("Failed to handle firestore persistence:", error);
             }
-        }, 60000); // 60-second debounce to save quota
+        }, 10000); // reduced to 10s for better recovery, but still debounced
 
         return () => clearTimeout(handler);
     }, [cartItems, currentStage, customerDetails, auth.currentUser, sessionId]);
@@ -112,7 +113,13 @@ export const CartProvider = ({ children }) => {
             if (existingItem) {
                 return prevItems.map((item) =>
                     item.id === product.id
-                        ? { ...product, quantity: item.quantity + quantity }
+                        ? {
+                            ...item, // Keep existing item properties (safest)
+                            ...product, // Update with new product details (in case price changed)
+                            quantity: item.quantity + quantity,
+                            // Ensure salePrice is preserved/updated correctly
+                            salePrice: product.salePrice !== undefined ? product.salePrice : item.salePrice
+                        }
                         : item
                 );
             }
