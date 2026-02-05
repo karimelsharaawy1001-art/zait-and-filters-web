@@ -107,30 +107,50 @@ export const CartProvider = ({ children }) => {
         setCustomerDetails(prev => ({ ...prev, ...info }));
     };
 
+    const parsePrice = (value) => {
+        if (value === undefined || value === null || value === '') return null;
+        const parsed = Number(value);
+        return isNaN(parsed) ? null : parsed;
+    };
+
     const addToCart = (product, quantity = 1) => {
+        // Sanitize Product Data on Entry
+        const safePrice = parsePrice(product.price) || 0;
+        let safeSalePrice = parsePrice(product.salePrice);
+
+        // Strict Rule: If salePrice is invalid (0) or not better than regular price, ignore it.
+        // This fixes the "User sees regular price" bug by ensuring falsey/bad sale prices are NULLED.
+        if (safeSalePrice !== null && (safeSalePrice <= 0 || safeSalePrice >= safePrice)) {
+            safeSalePrice = null;
+        }
+
+        const sanitizedProduct = {
+            ...product,
+            price: safePrice,
+            salePrice: safeSalePrice
+        };
+
         setCartItems((prevItems) => {
             const existingItem = prevItems.find((item) => item.id === product.id);
             if (existingItem) {
                 return prevItems.map((item) =>
                     item.id === product.id
                         ? {
-                            ...item, // Keep existing item properties (safest)
-                            ...product, // Update with new product details (in case price changed)
-                            quantity: item.quantity + quantity,
-                            // Ensure salePrice is preserved/updated correctly
-                            salePrice: product.salePrice !== undefined ? product.salePrice : item.salePrice
+                            ...item,
+                            ...sanitizedProduct, // Overwrite with sanitized, fresh data
+                            quantity: item.quantity + quantity
                         }
                         : item
                 );
             }
-            return [...prevItems, { ...product, quantity }];
+            return [...prevItems, { ...sanitizedProduct, quantity }];
         });
     };
 
     const updateQuantity = (id, newQuantity) => {
         if (newQuantity < 1) {
             removeFromCart(id);
-            // Dynamic import toast to avoid circular dependency or unnecessary load if not needed elsewhere
+            // Dynamic import to avoid circular dependency
             import('react-hot-toast').then(({ toast }) => {
                 toast.success('تم إزالة المنتج من السلة', {
                     icon: '🗑️',
@@ -156,7 +176,8 @@ export const CartProvider = ({ children }) => {
 
     const getCartTotal = () => {
         return cartItems.reduce((total, item) => {
-            const effectivePrice = item.salePrice || item.price;
+            // Since we sanitized on entry, we can trust salePrice if it exists
+            const effectivePrice = item.salePrice !== null ? item.salePrice : item.price;
             return total + (effectivePrice * item.quantity);
         }, 0);
     };
