@@ -473,15 +473,22 @@ const BulkOperations = ({ onSuccess, onExportFetch }) => {
                                         let newMake = data.make ? data.make.trim() : null;
                                         let newModel = data.model ? data.model.trim() : null;
 
-                                        // Special Case: Hyundai i10 / Grand i10
+                                        // Special Case: Hyundai i-Series
                                         if (newMake && newMake.toUpperCase() === 'HYUNDAI') {
-                                            if (newModel && newModel.toUpperCase() === 'I10') {
-                                                newModel = 'i10'; // Enforce lowercase i
-                                            } else if (newModel && newModel.toUpperCase() === 'GRAND I10') {
-                                                newModel = 'Grand i10'; // Enforce lowercase i
-                                                newMake = 'HYUNDAI'; // Ensure Make is consistent
-                                            } else if (newModel && newModel.toUpperCase() === 'GRAND I10 SEDAN') {
-                                                newModel = 'Grand i10 The Sedan'; // Standardize if needed, or just case
+                                            const mUpper = newModel ? newModel.toUpperCase() : '';
+
+                                            if (mUpper === 'I10') {
+                                                newModel = 'i10';
+                                            } else if (mUpper === 'GRAND I10') {
+                                                newModel = 'GRAND i10';
+                                            } else if (mUpper === 'GRAND I10 SEDAN') {
+                                                newModel = 'GRAND i10 SEDAN'; // Assuming they want GRAND capitalized
+                                            } else if (mUpper === 'I20') {
+                                                newModel = 'i20';
+                                            } else if (mUpper === 'I30') {
+                                                newModel = 'i30';
+                                            } else if (mUpper === 'IX35') {
+                                                newModel = 'ix35';
                                             } else {
                                                 // Default Uppercase for others
                                                 if (newModel) newModel = newModel.toUpperCase();
