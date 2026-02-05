@@ -133,98 +133,64 @@ const ProductGrid = ({ showFilters = true }) => {
         if (!isDebounced) setLoading(true);
         setIsFiltering(true);
         try {
-            // 1. Try Static Data First (Fastest)
-            let staticResults = [];
-            let useStatic = false;
-
+            // 1. Try Static/Context Data First (Now includes "Fresh" items from Context)
             if (isStaticLoaded || inventoryData.length > 0) {
                 const { results, total } = filteredStaticProducts;
-                staticResults = results;
+                setTotalProducts(total);
 
-                // If we found results in static, default to showing them
-                if (total > 0) {
-                    setTotalProducts(total);
-                    const currentPage = Math.max(1, parseInt(filters.page) || 1);
-                    const startIndex = (currentPage - 1) * PAGE_SIZE;
-                    setProducts(results.slice(startIndex, startIndex + PAGE_SIZE));
-                    useStatic = true;
+                const currentPage = Math.max(1, parseInt(filters.page) || 1);
+                const startIndex = (currentPage - 1) * PAGE_SIZE;
+                setProducts(results.slice(startIndex, startIndex + PAGE_SIZE));
 
-                    if (!filterOptions.categories || Object.keys(filterOptions.categories).length === 0) {
-                        extractFilterOptions(staticProducts.length > 0 ? staticProducts : inventoryData);
+                if (!filterOptions.categories || Object.keys(filterOptions.categories).length === 0) {
+                    extractFilterOptions(staticProducts.length > 0 ? staticProducts : inventoryData);
+                }
+                return;
+            }
+
+            // 2. Fallback Firestore logic (Shielded - Only if Context failed entirely)
+            await withFallback(async () => {
+                let qConstraints = [where('isActive', '==', true)];
+
+                if (isGarageFilterActive && activeCar?.make) {
+                    qConstraints.push(where('make', '==', activeCar.make));
+                    if (activeCar.model) qConstraints.push(where('model', '==', activeCar.model));
+                } else {
+                    if (filters.make) qConstraints.push(where('make', '==', filters.make));
+                    if (filters.model) qConstraints.push(where('model', '==', filters.model));
+                    if (filters.year) {
+                        const yearNum = parseInt(filters.year);
+                        qConstraints.push(where('yearStart', '<=', yearNum), where('yearEnd', '>=', yearNum));
                     }
                 }
-            }
 
-            // 2. Hybrid Fallback Strategy:
-            // If static yielded 0 results, OR we want to be thorough about new imports, check Firestore.
-            // We ONLY do this if we suspect missing data (e.g. empty static result) to save quota.
-            const shouldCheckLive = !useStatic || (staticResults.length === 0);
+                if (filters.category && filters.category !== 'All') qConstraints.push(where('category', '==', filters.category));
+                if (filters.subcategory) qConstraints.push(where('subcategory', '==', filters.subcategory));
+                if (filters.brand) qConstraints.push(where('partBrand', '==', filters.brand));
+                if (filters.origin) qConstraints.push(where('countryOfOrigin', '==', filters.origin));
 
-            if (shouldCheckLive) {
-                console.log('🔄 Hybrid Search: Static empty/insufficient. Checking Live Firestore...');
+                const countQuery = query(collection(db, 'products'), ...qConstraints);
+                const countSnapshot = await getCountFromServer(countQuery);
+                setTotalProducts(countSnapshot.data().count);
 
-                await withFallback(async () => {
-                    let qConstraints = [where('isActive', '==', true)];
+                const currentPage = Math.max(1, parseInt(filters.page) || 1);
+                const q = query(collection(db, 'products'), ...qConstraints, limit(PAGE_SIZE * currentPage));
+                const querySnapshot = await getDocs(q);
 
-                    if (isGarageFilterActive && activeCar?.make) {
-                        qConstraints.push(where('make', '==', activeCar.make));
-                        if (activeCar.model) qConstraints.push(where('model', '==', activeCar.model));
-                    } else {
-                        if (filters.make) qConstraints.push(where('make', '==', filters.make));
-                        if (filters.model) qConstraints.push(where('model', '==', filters.model));
-                        if (filters.year) {
-                            const yearNum = parseInt(filters.year);
-                            qConstraints.push(where('yearStart', '<=', yearNum), where('yearEnd', '>=', yearNum));
-                        }
-                    }
+                let fetched = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                    if (filters.category && filters.category !== 'All') qConstraints.push(where('category', '==', filters.category));
-                    if (filters.subcategory) qConstraints.push(where('subcategory', '==', filters.subcategory));
-                    if (filters.brand) qConstraints.push(where('partBrand', '==', filters.brand));
-                    if (filters.origin) qConstraints.push(where('countryOfOrigin', '==', filters.origin));
+                if (filters.searchQuery) {
+                    const keywords = filters.searchQuery.toLowerCase().split(' ');
+                    fetched = fetched.filter(p => keywords.every(k => getSearchableText(p).toLowerCase().includes(k)));
+                    setTotalProducts(fetched.length);
+                }
 
-                    // Note when searching by text, we often can't do simple Firestore queries.
-                    // But if there IS a search query, and static found nothing, we should try.
+                setProducts(fetched.slice((currentPage - 1) * PAGE_SIZE));
 
-                    // 1. Get Count
-                    const countQuery = query(collection(db, 'products'), ...qConstraints);
-                    const countSnapshot = await getCountFromServer(countQuery);
-                    const liveCount = countSnapshot.data().count;
-
-                    if (liveCount > 0) {
-                        // We found live data! Use it.
-                        setTotalProducts(liveCount);
-
-                        const currentPage = Math.max(1, parseInt(filters.page) || 1);
-                        const q = query(collection(db, 'products'), ...qConstraints, limit(PAGE_SIZE));
-                        const querySnapshot = await getDocs(q);
-
-                        let fetched = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                        // Client-side text filter for Firestore results (since full-text search is limited)
-                        if (filters.searchQuery) {
-                            const keywords = filters.searchQuery.toLowerCase().split(' ');
-                            fetched = fetched.filter(p => keywords.every(k => getSearchableText(p).toLowerCase().includes(k)));
-                            // Note: Updating total count after client-side search is tricky without fetching all.
-                            // For now, we update total to fetched length if filtered.
-                            if (fetched.length !== querySnapshot.docs.length) setTotalProducts(fetched.length);
-                        }
-
-                        setProducts(fetched); // Reset to page 1 logic for simplicity in fallback
-
-                        if (Object.keys(filterOptions.categories).length === 0) {
-                            extractFilterOptions(fetched);
-                        }
-                    } else {
-                        // Truly empty
-                        if (!useStatic) {
-                            setTotalProducts(0);
-                            setProducts([]);
-                        }
-                    }
-                });
-            }
-
+                if (Object.keys(filterOptions.categories).length === 0) {
+                    extractFilterOptions(fetched);
+                }
+            });
         } catch (error) {
             console.error("Fetch Failure:", error);
             toast.error("Shopping data sync error. using offline backup...");
