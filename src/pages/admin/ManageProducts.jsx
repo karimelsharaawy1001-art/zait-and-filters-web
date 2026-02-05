@@ -527,12 +527,14 @@ const ManageProducts = () => {
                 qConstraints.push(where('name', '<=', searchLower + '\uf8ff'));
             }
 
-            // Apply default sort if no other constraints (or always sort by name for export consistency)
-            qConstraints.push(orderBy('name', 'asc'));
-
+            // Perform sorting client-side to avoid Firestore Index requirements for every filter combination
             const q = query(collection(db, 'products'), ...qConstraints);
             const snapshot = await getDocs(q);
-            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Sort by name A-Z by default for export
+            data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            return data;
         }
     };
 

@@ -469,13 +469,34 @@ const BulkOperations = ({ onSuccess, onExportFetch }) => {
                                             if (yearEnd) updates.yearEnd = yearEnd;
                                         }
 
-                                        // 2. Normalize Casing (Strict Uppercase for Filters)
-                                        if (data.make && data.make !== data.make.toUpperCase()) {
-                                            updates.make = data.make.toUpperCase().trim();
+                                        // 2. Normalize Casing (Strict Uppercase for Filters, but allow exceptions)
+                                        let newMake = data.make ? data.make.trim() : null;
+                                        let newModel = data.model ? data.model.trim() : null;
+
+                                        // Special Case: Hyundai i10 / Grand i10
+                                        if (newMake && newMake.toUpperCase() === 'HYUNDAI') {
+                                            if (newModel && newModel.toUpperCase() === 'I10') {
+                                                newModel = 'i10'; // Enforce lowercase i
+                                            } else if (newModel && newModel.toUpperCase() === 'GRAND I10') {
+                                                newModel = 'Grand i10'; // Enforce lowercase i
+                                                newMake = 'HYUNDAI'; // Ensure Make is consistent
+                                            } else if (newModel && newModel.toUpperCase() === 'GRAND I10 SEDAN') {
+                                                newModel = 'Grand i10 The Sedan'; // Standardize if needed, or just case
+                                            } else {
+                                                // Default Uppercase for others
+                                                if (newModel) newModel = newModel.toUpperCase();
+                                            }
+                                            // Always uppercase Hyundai
+                                            newMake = 'HYUNDAI';
+                                        } else {
+                                            // Standard Behavior
+                                            if (newMake) newMake = newMake.toUpperCase();
+                                            if (newModel) newModel = newModel.toUpperCase();
                                         }
-                                        if (data.model && data.model !== data.model.toUpperCase()) {
-                                            updates.model = data.model.toUpperCase().trim();
-                                        }
+
+                                        if (newMake && newMake !== data.make) updates.make = newMake;
+                                        if (newModel && newModel !== data.model) updates.model = newModel;
+
 
                                         if (Object.keys(updates).length > 0) {
                                             batch.update(docSnap.ref, {
