@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '../firebase';
-import { doc, getDoc, updateDoc, collection, getDocs, arrayUnion, arrayRemove, query, where, orderBy } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, getDocs, arrayUnion, arrayRemove, query, where, orderBy, addDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { toast } from 'react-hot-toast';
 import {
@@ -221,6 +221,70 @@ const Profile = () => {
             });
         } catch (error) {
             console.error("Error toggling active car:", error);
+        }
+    };
+    const fetchAddresses = async () => {
+        if (!auth.currentUser) return;
+        setFetchingAddresses(true);
+        try {
+            const addressesSnap = await getDocs(collection(db, 'users', auth.currentUser.uid, 'addresses'));
+            const addresses = addressesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setSavedAddresses(addresses);
+        } catch (error) {
+            console.error("Error fetching addresses:", error);
+        } finally {
+            setFetchingAddresses(false);
+        }
+    };
+
+    const fetchShippingRates = async () => {
+        try {
+            const ratesSnap = await getDocs(collection(db, 'shippingRates'));
+            setShippingRates(ratesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        } catch (error) {
+            console.error("Error fetching shipping rates:", error);
+        }
+    };
+
+    const handleAddAddress = async (e) => {
+        e.preventDefault();
+        if (!newAddress.governorate || !newAddress.city || !newAddress.detailedAddress) {
+            toast.error(isAr ? "يرجى ملء جميع الحقول الإجبارية" : "Please fill all required fields");
+            return;
+        }
+
+        setSaving(true);
+        try {
+            const addressData = {
+                ...newAddress,
+                label: newAddress.label || (isAr ? 'المنزل' : 'Home'),
+                createdAt: serverTimestamp()
+            };
+
+            const docRef = await addDoc(collection(db, 'users', auth.currentUser.uid, 'addresses'), addressData);
+            setSavedAddresses(prev => [{ id: docRef.id, ...addressData }, ...prev]);
+
+            toast.success(isAr ? "تم إضافة العنوان بنجاح" : "Address added successfully!");
+            setIsAddressModalOpen(false);
+            setNewAddress({ label: '', governorate: '', city: '', detailedAddress: '' });
+        } catch (error) {
+            console.error("Error adding address:", error);
+            toast.error(isAr ? "فشل إضافة العنوان" : "Failed to add address");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDeleteAddress = async (addressId) => {
+        if (!window.confirm(isAr ? "هل أنت متأكد من حذف هذا العنوان؟" : "Are you sure you want to delete this address?")) return;
+
+        try {
+            await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'addresses', addressId));
+            setSavedAddresses(prev => prev.filter(a => a.id !== addressId));
+            toast.success(isAr ? "تم حذف العنوان" : "Address deleted");
+        } catch (error) {
+            console.error("Error deleting address:", error);
+            toast.error(isAr ? "فشل حذف العنوان" : "Failed to delete address");
         }
     };
 
