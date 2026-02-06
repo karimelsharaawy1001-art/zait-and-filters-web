@@ -26,14 +26,14 @@ export const FilterProvider = ({ children }) => {
 
     // Sync Garage Data from Firestore
     useEffect(() => {
-        let unsubscribe = () => { };
-
+        // QUOTA SHIELD: Replaced onSnapshot with one-time fetch
         const syncGarage = async (user) => {
             if (user) {
-                const userDocRef = doc(db, 'users', user.uid);
-                unsubscribe = onSnapshot(userDocRef, (doc) => {
-                    if (doc.exists()) {
-                        const data = doc.data();
+                try {
+                    const userDocRef = doc(db, 'users', user.uid);
+                    const docSnap = await getDoc(userDocRef);
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
                         const garage = data.garage || [];
                         setUserGarage(garage);
 
@@ -46,7 +46,9 @@ export const FilterProvider = ({ children }) => {
                             setIsGarageFilterActive(false);
                         }
                     }
-                });
+                } catch (error) {
+                    console.error('Error fetching garage:', error);
+                }
             } else {
                 setUserGarage([]);
                 setActiveCar(null);
@@ -58,9 +60,9 @@ export const FilterProvider = ({ children }) => {
 
         return () => {
             authUnsubscribe();
-            unsubscribe();
         };
     }, []);
+
 
     const updateFilter = (key, value) => {
         setFilters(prev => {

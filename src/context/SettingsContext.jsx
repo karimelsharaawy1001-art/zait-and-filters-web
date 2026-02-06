@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 
 const SettingsContext = createContext();
 
@@ -19,15 +19,22 @@ export const SettingsProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = onSnapshot(doc(db, 'settings', 'general'), (doc) => {
-            if (doc.exists()) {
-                setSettings(doc.data());
+        // QUOTA SHIELD: Replaced onSnapshot with one-time fetch
+        const fetchSettings = async () => {
+            try {
+                const docSnap = await getDoc(doc(db, 'settings', 'general'));
+                if (docSnap.exists()) {
+                    setSettings(docSnap.data());
+                }
+            } catch (error) {
+                console.error('Error fetching settings:', error);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
-        });
-
-        return () => unsubscribe();
+        };
+        fetchSettings();
     }, []);
+
 
     return (
         <SettingsContext.Provider value={{ settings, loading }}>
