@@ -17,6 +17,7 @@ export const StaticDataProvider = ({ children }) => {
         categories: [],
         cars: [],
         brands: [],
+        shipping_rates: [],
         isLoaded: false
     });
     const [isQuotaExceeded, setIsQuotaExceeded] = useState(false);
@@ -30,11 +31,12 @@ export const StaticDataProvider = ({ children }) => {
                     return r.ok ? await r.json() : [];
                 };
 
-                const [staticProd, categories, cars, brands] = await Promise.all([
+                const [staticProd, categories, cars, brands, shipping_rates] = await Promise.all([
                     load('products-db.json'),
                     load('categories-db.json'),
                     load('cars-db.json'),
-                    load('brands-db.json')
+                    load('brands-db.json'),
+                    load('shipping-rates-db.json')
                 ]);
 
                 // HYBRID SYNC: Fetch "Fresh" data from Firestore to overlay on static
@@ -73,6 +75,7 @@ export const StaticDataProvider = ({ children }) => {
                     categories,
                     cars,
                     brands,
+                    shipping_rates,
                     isLoaded: true
                 });
                 console.log(`🧊 Multi-Source Static DB Loaded (${mergedProducts.length} Products, ${cars.length} Cars)`);

@@ -12,7 +12,8 @@ import {
     addDoc,
     runTransaction,
     setDoc,
-    increment
+    increment,
+    limit
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { toast } from 'react-hot-toast';
@@ -60,7 +61,11 @@ const AdminOrders = () => {
 
     const fetchOrders = async () => {
         try {
-            const q = query(collection(db, 'orders'), orderBy('orderNumber', 'desc'));
+            const q = query(
+                collection(db, 'orders'),
+                orderBy('orderNumber', 'desc'),
+                limit(50)
+            );
             const querySnapshot = await getDocs(q);
             const ordersList = querySnapshot.docs.map(doc => ({
                 id: doc.id,
@@ -69,14 +74,6 @@ const AdminOrders = () => {
             setOrders(ordersList);
         } catch (error) {
             console.error("Error fetching orders: ", error);
-            if (error.code === 'failed-precondition') {
-                const querySnapshot = await getDocs(collection(db, 'orders'));
-                const ordersList = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                setOrders(ordersList);
-            }
         } finally {
             setLoading(false);
         }
@@ -1006,7 +1003,8 @@ const CreateOrderModal = ({ onClose, onSave }) => {
         staticProducts,
         categories: staticCategories,
         cars: staticCars,
-        isStaticLoaded
+        isStaticLoaded,
+        shipping_rates: staticShippingRates
     } = useStaticData();
 
     const [step, setStep] = useState(1); // 1: Customer, 2: Items, 3: Review
@@ -1055,28 +1053,11 @@ const CreateOrderModal = ({ onClose, onSave }) => {
     const [filterModel, setFilterModel] = useState('');
     const [filterYear, setFilterYear] = useState('');
 
-    const [allCustomers, setAllCustomers] = useState([]);
-    const [isCustomersLoaded, setIsCustomersLoaded] = useState(false);
-
     useEffect(() => {
-        const fetchInitialData = async () => {
-            try {
-                // Fetch Shipping Rates
-                const ratesSnap = await getDocs(collection(db, 'shipping_rates'));
-                setShippingRates(ratesSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-
-                // Fetch Users ONCE for local search (Quota Shield)
-                const usersRef = collection(db, 'users');
-                const usersSnap = await getDocs(usersRef);
-                const users = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                setAllCustomers(users);
-                setIsCustomersLoaded(true);
-            } catch (error) {
-                console.error("Error loading initial data:", error);
-            }
-        };
-        fetchInitialData();
-    }, []);
+        if (isStaticLoaded && staticShippingRates) {
+            setShippingRates(staticShippingRates);
+        }
+    }, [isStaticLoaded, staticShippingRates]);
 
     // Initialize Metadata from static context
     useEffect(() => {
@@ -1100,23 +1081,34 @@ const CreateOrderModal = ({ onClose, onSave }) => {
         }
     }, [filterMake, staticCars]);
 
-    // Customer Search - LOCAL ONLY
-    const handleCustomerSearch = (q) => {
+    // Customer Search - LIGHTWEIGHT QUERY (Quota Shield)
+    const handleCustomerSearch = async (q) => {
         setCustomerSearch(q);
-        if (q.length < 1) {
+        if (q.length < 3) { // Require 3 chars to prevent accidental broad reads
             setCustomerResults([]);
             return;
         }
 
-        const searchLower = q.toLowerCase();
-        const filtered = allCustomers.filter(user => {
-            const matchesPhone = user.phoneNumber?.toLowerCase().includes(searchLower);
-            const matchesName = user.fullName?.toLowerCase().includes(searchLower);
-            const matchesEmail = user.email?.toLowerCase().includes(searchLower);
-            return matchesPhone || matchesName || matchesEmail;
-        }).slice(0, 10);
+        setSearchingCustomers(true);
+        try {
+            // Search by Phone (Prefix Search is quota-friendly)
+            const usersRef = collection(db, 'users');
+            const phoneQuery = query(
+                usersRef,
+                where('phoneNumber', '>=', q),
+                where('phoneNumber', '<=', q + '\uf8ff'),
+                limit(10)
+            );
 
-        setCustomerResults(filtered);
+            const phoneSnap = await getDocs(phoneQuery);
+            const phoneResults = phoneSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+            setCustomerResults(phoneResults);
+        } catch (error) {
+            console.error("Customer search error:", error);
+        } finally {
+            setSearchingCustomers(false);
+        }
     };
 
     // Product Search Logic - LOCAL ONLY (Quota Shield)

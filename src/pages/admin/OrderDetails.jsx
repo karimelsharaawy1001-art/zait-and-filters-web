@@ -14,10 +14,18 @@ import {
 import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Loader2, Package, User, MapPin, CreditCard, Clock, Edit2, CheckCircle, Trash2, Plus, Minus, PlusCircle, Search, Save, X } from 'lucide-react';
 import AdminHeader from '../../components/AdminHeader';
+import { useStaticData } from '../../context/StaticDataContext';
+import { normalizeArabic } from '../../utils/productUtils';
 
 const OrderDetails = () => {
+    const {
+        staticProducts,
+        categories: staticCategories,
+        cars: staticCars,
+        isStaticLoaded
+    } = useStaticData();
+
     const { id } = useParams();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
@@ -48,27 +56,15 @@ const OrderDetails = () => {
     const [filterModel, setFilterModel] = useState('');
     const [filterYear, setFilterYear] = useState('');
 
-    // Fetch Search Metadata (Categories & Cars)
+    // Initialize Metadata from static context
     useEffect(() => {
-        const fetchMetadata = async () => {
-            try {
-                const [catsSnap, carsSnap] = await Promise.all([
-                    getDocs(collection(db, 'categories')),
-                    getDocs(collection(db, 'cars'))
-                ]);
-
-                const cats = catsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                const cars = carsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                setCategories(cats);
-                setCarOptions(cars);
-                setMakes([...new Set(cars.map(c => c.make))].sort());
-            } catch (error) {
-                console.error("Error fetching search metadata:", error);
-            }
-        };
-        fetchMetadata();
-    }, []);
+        if (isStaticLoaded) {
+            setCategories(staticCategories);
+            setCarOptions(staticCars);
+            const uniqueMakes = [...new Set(staticCars.map(c => c.make))].sort();
+            setMakes(uniqueMakes);
+        }
+    }, [isStaticLoaded, staticCategories, staticCars]);
 
     // Dependent Dropdown: Update models when make changes
     useEffect(() => {
@@ -276,42 +272,36 @@ const OrderDetails = () => {
         setProductSearch(q);
 
         // Trigger search if there's a query OR if filters are active
-        if (q.length < 2 && !filterCategory && !filterMake && !filterYear) {
+        if (!q && !filterCategory && !filterMake && !filterYear) {
             setSearchResults([]);
             return;
         }
 
         setIsSearching(true);
-        try {
-            const productsRef = collection(db, 'products');
-            const qSnap = await getDocs(productsRef);
-            let all = qSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // Quota Shield: Filter LOCAL staticProducts
+        const searchLower = normalizeArabic(q.toLowerCase());
 
-            // Apply Multi-Attribute Filter Matrix
-            const filtered = all.filter(p => {
-                const matchesQuery = !q ||
-                    p.name?.toLowerCase().includes(q.toLowerCase()) ||
-                    p.sku?.toLowerCase().includes(q.toLowerCase()) ||
-                    p.partNumber?.toLowerCase().includes(q.toLowerCase());
+        const filtered = staticProducts.filter(p => {
+            const matchesQuery = !q ||
+                normalizeArabic(p.name?.toLowerCase() || '').includes(searchLower) ||
+                normalizeArabic(p.nameEn?.toLowerCase() || '').includes(searchLower) ||
+                p.sku?.toLowerCase().includes(searchLower) ||
+                p.partNumber?.toLowerCase().includes(searchLower);
 
-                const matchesCategory = !filterCategory || p.category === filterCategory;
-                const matchesMake = !filterMake || p.make === filterMake;
-                const matchesModel = !filterModel || p.model === filterModel;
+            const matchesCategory = !filterCategory || p.category === filterCategory;
+            const matchesMake = !filterMake || p.make === filterMake;
+            const matchesModel = !filterModel || p.model === filterModel;
 
-                const matchesYear = !filterYear || (
-                    (!p.yearStart || Number(filterYear) >= Number(p.yearStart)) &&
-                    (!p.yearEnd || Number(filterYear) <= Number(p.yearEnd))
-                );
+            const matchesYear = !filterYear || (
+                (!p.yearStart || Number(filterYear) >= Number(p.yearStart)) &&
+                (!p.yearEnd || Number(filterYear) <= Number(p.yearEnd))
+            );
 
-                return matchesQuery && matchesCategory && matchesMake && matchesModel && matchesYear;
-            }).slice(0, 10);
+            return matchesQuery && matchesCategory && matchesMake && matchesModel && matchesYear;
+        }).slice(0, 30);
 
-            setSearchResults(filtered);
-        } catch (error) {
-            console.error("Search error:", error);
-        } finally {
-            setIsSearching(false);
-        }
+        setSearchResults(filtered);
+        setIsSearching(false);
     };
 
     // Re-trigger search when filters change
