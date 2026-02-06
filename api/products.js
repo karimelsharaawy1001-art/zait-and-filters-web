@@ -12,19 +12,23 @@ function mapRestDoc(doc) {
     if (!doc || !doc.fields) return null;
     const data = { id: doc.name.split('/').pop() };
     for (const [key, wrapper] of Object.entries(doc.fields)) {
+        if (!wrapper) continue;
         if ('stringValue' in wrapper) data[key] = wrapper.stringValue;
         else if ('integerValue' in wrapper) data[key] = parseInt(wrapper.integerValue);
         else if ('doubleValue' in wrapper) data[key] = parseFloat(wrapper.doubleValue);
         else if ('booleanValue' in wrapper) data[key] = wrapper.booleanValue;
         else if ('arrayValue' in wrapper) data[key] = (wrapper.arrayValue.values || []).map(v => Object.values(v)[0]);
         else if ('timestampValue' in wrapper) data[key] = wrapper.timestampValue;
-        else data[key] = Object.values(wrapper)[0];
+        else {
+            const vals = Object.values(wrapper);
+            if (vals.length > 0) data[key] = vals[0];
+        }
     }
     return data;
 }
 
 export default async function handler(req, res) {
-    // CORS Headers
+    // CORS Headers - Essential for all responses
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -33,25 +37,75 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
 
     try {
-        // 1. Environment Parsing
+        // 1. Better Body Parsing for Vercel
+        let body = {};
+        if (req.body) {
+            if (typeof req.body === 'string') {
+                try { body = JSON.parse(req.body); } catch (e) { console.error("Body Parse Error:", e); }
+            } else {
+                body = req.body;
+            }
+        }
+
+        // 2. Action Detection
+        const action = req.query.action || body.action;
+
+        // 3. Environment (Check both VITE_ and standard)
         const PROJECT_ID = sanitize(process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || 'zaitandfilters');
         const API_KEY = sanitize(process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || '');
         const REST_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 
-        // 2. Action Parsing
-        const action = req.query.action || (req.body && req.body.action);
+        if (action === 'check-seo') {
+            const tagName = body.tagName || req.query.tagName;
+            const expectedValue = body.expectedValue || req.query.expectedValue;
 
-        if (action === 'ping') {
-            return res.status(200).json({ status: 'pong', projectId: PROJECT_ID, hasKey: !!API_KEY });
+            try {
+                // Use native fetch for maximum stability in serverless
+                const settingsUrl = `${REST_URL}/settings/integrations${API_KEY ? `?key=${API_KEY}` : ''}`;
+                const fetchRes = await fetch(settingsUrl);
+
+                if (!fetchRes.ok) {
+                    if (fetchRes.status === 404) {
+                        return res.status(200).json({ status: 'not_found', v: 'v5-rest' });
+                    }
+                    const errText = await fetchRes.text();
+                    return res.status(500).json({
+                        error: 'Firestore API Error',
+                        status: fetchRes.status,
+                        msg: errText,
+                        projectId: PROJECT_ID,
+                        hasKey: !!API_KEY
+                    });
+                }
+
+                const data = await fetchRes.json();
+                const settings = mapRestDoc(data) || {};
+
+                if (tagName === 'google-analytics') {
+                    const savedId = settings.googleAnalyticsId;
+                    if (!savedId) return res.status(200).json({ status: 'not_found', v: 'v5-rest' });
+                    if (expectedValue && savedId !== expectedValue) return res.status(200).json({ status: 'mismatch', v: 'v5-rest' });
+                    return res.status(200).json({ status: 'found', v: 'v5-rest' });
+                }
+
+                return res.status(200).json({ status: 'unsupported_tag', received: tagName });
+            } catch (innerErr) {
+                return res.status(500).json({
+                    error: 'Inner Fetch Failure',
+                    msg: innerErr.message,
+                    stack: innerErr.stack
+                });
+            }
         }
 
+        // --- PRODUCT ACTIONS (Cached) ---
         const fetchAllProducts = async () => {
             if (globalProductCache && (Date.now() - lastCacheUpdate < CACHE_TTL)) {
                 return globalProductCache;
             }
 
             try {
-                // Static file fallback
+                // Option A: Static Load
                 try {
                     const fs = await import('fs');
                     const path = await import('path');
@@ -75,7 +129,7 @@ export default async function handler(req, res) {
                     }
                 } catch (staticErr) { }
 
-                // REST API fetch
+                // Option B: REST API fetch
                 let allMinimalProducts = [];
                 let pageToken = null;
                 do {
@@ -117,43 +171,13 @@ export default async function handler(req, res) {
             return res.status(200).json(makes);
         }
 
-        if (action === 'check-seo') {
-            const tagName = req.body?.tagName || req.query.tagName;
-            const expectedValue = req.body?.expectedValue || req.query.expectedValue;
-
-            try {
-                const settingsUrl = `${REST_URL}/settings/integrations${API_KEY ? `?key=${API_KEY}` : ''}`;
-                const settingsRes = await axios.get(settingsUrl, { timeout: 10000 });
-                const settings = mapRestDoc(settingsRes.data) || {};
-
-                if (tagName === 'google-analytics') {
-                    const savedId = settings.googleAnalyticsId;
-                    if (!savedId) return res.status(200).json({ status: 'not_found' });
-                    if (expectedValue && savedId !== expectedValue) return res.status(200).json({ status: 'mismatch' });
-                    return res.status(200).json({ status: 'found' });
-                }
-
-                return res.status(400).json({ error: 'Unsupported tag' });
-            } catch (err) {
-                if (err.response && err.response.status === 404) {
-                    return res.status(200).json({ status: 'not_found' });
-                }
-                // Return descriptive error for debugging
-                return res.status(500).json({
-                    error: 'SEO Check Internal Failure',
-                    msg: err.message,
-                    code: err.code,
-                    endpoint: tagName
-                });
-            }
-        }
-
         return res.status(400).json({ error: 'Invalid action', action });
+
     } catch (err) {
-        console.error("FATAL API ERROR:", err);
+        console.error("CRITICAL HANDLER FAILURE:", err);
         return res.status(500).json({
-            error: 'Fatal API Failure',
-            message: err.message,
+            error: 'Critical Handler Failure',
+            msg: err.message,
             stack: err.stack
         });
     }
