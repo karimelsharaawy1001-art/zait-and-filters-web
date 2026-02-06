@@ -587,13 +587,18 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                 )
             });
         } else {
+            // Use sale price if available, fallback to regular price
+            const activePrice = (product.salePrice !== null && product.salePrice !== undefined)
+                ? Number(product.salePrice)
+                : Number(product.price);
+
             setFormData({
                 ...formData,
                 items: [...formData.items, {
                     id: product.id,
                     name: product.name,
                     nameEn: product.nameEn || product.name,
-                    price: product.price,
+                    price: activePrice,
                     image: product.image || product.images?.[0] || '/placeholder.png',
                     brand: product.partBrand || product.brand || 'N/A',
                     category: product.category || 'N/A',
@@ -865,8 +870,15 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                                                 </div>
                                                 <div className="min-w-0 flex-1">
                                                     <p className="text-xs font-black truncate text-black">{p.name}</p>
-                                                    <div className="flex gap-2 mt-0.5">
-                                                        <p className="text-[10px] text-[#e31e24] font-black uppercase tracking-widest">{p.price} EGP</p>
+                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                        {(p.salePrice !== null && p.salePrice !== undefined) ? (
+                                                            <>
+                                                                <p className="text-[10px] text-[#28B463] font-black uppercase tracking-widest">{p.salePrice} EGP</p>
+                                                                <p className="text-[9px] text-gray-400 line-through font-bold">{p.price} EGP</p>
+                                                            </>
+                                                        ) : (
+                                                            <p className="text-[10px] text-[#e31e24] font-black uppercase tracking-widest">{p.price} EGP</p>
+                                                        )}
                                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">| {p.partBrand || p.brand}</p>
                                                     </div>
                                                 </div>
@@ -1170,13 +1182,18 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                     items: prev.items.map(i => i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i)
                 };
             }
+            // Use sale price if available, fallback to regular price
+            const activePrice = (product.salePrice !== null && product.salePrice !== undefined)
+                ? Number(product.salePrice)
+                : Number(product.price);
+
             return {
                 ...prev,
                 items: [...prev.items, {
                     id: product.id,
                     name: product.name,
                     nameEn: product.nameEn || product.name,
-                    price: Number(product.price) || 0,
+                    price: activePrice,
                     image: product.image || product.images?.[0] || '/placeholder.png',
                     brand: product.partBrand || product.brand || 'N/A',
                     partNumber: product.partNumber || product.sku || 'N/A',
@@ -1366,13 +1383,13 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                                         setOrderData(prev => ({
                                                             ...prev,
                                                             customer: {
-                                                                id: user.id,
-                                                                name: user.fullName || 'No Name',
-                                                                phone: user.phoneNumber || '',
+                                                                id: user.id || null,
+                                                                name: user.fullName || user.name || '',
+                                                                phone: user.phoneNumber || user.phone || '',
                                                                 email: user.email || '',
                                                                 address: user.address || '',
-                                                                governorate: '',
-                                                                city: ''
+                                                                governorate: user.governorate || '',
+                                                                city: user.city || ''
                                                             }
                                                         }));
                                                         setCustomerSearch('');
@@ -1492,7 +1509,16 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                                     <img src={p.image || p.images?.[0] || '/placeholder.png'} className="w-10 h-10 rounded-lg object-cover" />
                                                     <div className="text-left flex-1 min-w-0">
                                                         <p className="text-xs font-black truncate text-black">{p.name}</p>
-                                                        <p className="text-[10px] text-gray-400 font-bold">{p.price} EGP</p>
+                                                        <div className="flex items-center gap-2">
+                                                            {(p.salePrice !== null && p.salePrice !== undefined) ? (
+                                                                <>
+                                                                    <p className="text-[10px] text-[#28B463] font-black">{p.salePrice} EGP</p>
+                                                                    <p className="text-[9px] text-gray-400 line-through font-bold">{p.price} EGP</p>
+                                                                </>
+                                                            ) : (
+                                                                <p className="text-[10px] text-gray-400 font-bold">{p.price} EGP</p>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                     <PlusCircle className="h-5 w-5 text-[#28B463]" />
                                                 </button>
@@ -1623,8 +1649,20 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                         onClick={() => {
                             if (step < 3) {
                                 if (step === 1) {
-                                    if (!orderData.customer.name || !orderData.customer.governorate) {
-                                        toast.error("Please provide Customer Name and Governorate");
+                                    if (!orderData.customer.name) {
+                                        toast.error("Customer Name is required");
+                                        return;
+                                    }
+                                    if (!orderData.customer.phone) {
+                                        toast.error("Phone Number is required");
+                                        return;
+                                    }
+                                    if (!orderData.customer.governorate) {
+                                        toast.error("Governorate is required for shipping calculation");
+                                        return;
+                                    }
+                                    if (!orderData.customer.address) {
+                                        toast.error("Detailed Address is required");
                                         return;
                                     }
                                 }
