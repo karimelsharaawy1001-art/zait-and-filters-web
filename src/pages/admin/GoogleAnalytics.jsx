@@ -56,24 +56,26 @@ const GoogleAnalytics = () => {
         try {
             const response = await axios.post('/api/products?action=check-seo', {
                 targetUrl: window.location.origin,
-                tagName: 'google-analytics', // Special flag for our API
+                tagName: 'google-analytics',
                 expectedValue: measurementId
             });
 
-            setTestStatus(response.data.status);
+            const status = response.data.status;
+            setTestStatus(status);
             setLastChecked(new Date());
 
-            if (response.data.status === 'found') {
+            if (status === 'found') {
                 toast.success('Analytics verification successful! Gtag is active.');
-            } else if (response.data.status === 'not_found') {
-                toast.error('Analytics script not found on your homepage.');
-            } else if (response.data.status === 'mismatch') {
-                toast.error('Measurement ID found but it does not match your saved ID.');
+            } else if (status === 'not_found') {
+                toast.error('Configuration not found in database. Did you click Save?', { duration: 5000 });
+            } else if (status === 'mismatch') {
+                toast.error('The current saved ID does not match what you entered. Click Save first.', { duration: 5000 });
             }
         } catch (error) {
             console.error("Error testing connection:", error);
             setTestStatus('error');
-            toast.error('Failed to run live test');
+            const errorMsg = error.response?.data?.error || error.message;
+            toast.error(`Live test failed: ${errorMsg}`);
         }
     };
 
