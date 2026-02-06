@@ -1,23 +1,4 @@
-import admin from 'firebase-admin';
 import axios from 'axios';
-
-// Initialize Firebase Admin
-if (!admin.apps.length) {
-    try {
-        if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-            const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-            admin.initializeApp({
-                credential: admin.credential.cert(serviceAccount)
-            });
-        } else {
-            admin.initializeApp();
-        }
-    } catch (error) {
-        console.error('Firebase Admin initialization failed:', error);
-    }
-}
-
-const db_admin = admin.firestore();
 
 // --- GLOBAL CACHE ---
 let globalProductCache = null;
@@ -36,6 +17,7 @@ function mapRestDoc(doc) {
         else if ('doubleValue' in wrapper) data[key] = parseFloat(wrapper.doubleValue);
         else if ('booleanValue' in wrapper) data[key] = wrapper.booleanValue;
         else if ('arrayValue' in wrapper) data[key] = (wrapper.arrayValue.values || []).map(v => Object.values(v)[0]);
+        else if ('timestampValue' in wrapper) data[key] = wrapper.timestampValue;
         else data[key] = Object.values(wrapper)[0];
     }
     return data;
@@ -58,7 +40,7 @@ export default async function handler(req, res) {
         }
 
         try {
-            // OPTION A: Try to load from static JSON if it exists
+            // Try to load from static JSON if it exists
             try {
                 const fs = await import('fs');
                 const path = await import('path');
@@ -82,7 +64,7 @@ export default async function handler(req, res) {
                 }
             } catch (staticErr) { }
 
-            // OPTION B: Fallback to Firestore REST API
+            // Fallback to Firestore REST API
             let allMinimalProducts = [];
             let pageToken = null;
             do {
@@ -108,7 +90,6 @@ export default async function handler(req, res) {
             lastCacheUpdate = Date.now();
             return allMinimalProducts;
         } catch (e) {
-            console.error("Fetch Error:", e.message);
             if (globalProductCache) return globalProductCache;
             throw e;
         }
@@ -131,17 +112,13 @@ export default async function handler(req, res) {
         if (action === 'check-seo') {
             const { tagName, expectedValue } = req.body;
             try {
-                // Use Firebase Admin SDK for reliability and internal access
-                const settingsSnap = await db_admin.collection('settings').doc('integrations').get();
-
-                if (!settingsSnap.exists) {
-                    return res.status(200).json({ status: 'not_found' });
-                }
-
-                const data = settingsSnap.data();
+                // Fetch settings using REST API (Avoid service account issues)
+                const settingsUrl = `${REST_URL}/settings/integrations`;
+                const settingsRes = await axios.get(settingsUrl);
+                const settings = mapRestDoc(settingsRes.data) || {};
 
                 if (tagName === 'google-analytics') {
-                    const savedId = data.googleAnalyticsId;
+                    const savedId = settings.googleAnalyticsId;
                     if (!savedId) return res.status(200).json({ status: 'not_found' });
                     if (expectedValue && savedId !== expectedValue) return res.status(200).json({ status: 'mismatch' });
                     return res.status(200).json({ status: 'found' });
@@ -149,7 +126,9 @@ export default async function handler(req, res) {
 
                 return res.status(400).json({ error: 'Unsupported tag check' });
             } catch (err) {
-                console.error("SEO Check Error:", err.message);
+                if (err.response && err.response.status === 404) {
+                    return res.status(200).json({ status: 'not_found' });
+                }
                 return res.status(500).json({ error: err.message });
             }
         }
