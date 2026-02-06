@@ -57,6 +57,7 @@ const AdminOrders = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [activeTab, setActiveTab] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
+    const [allCustomersCache, setAllCustomersCache] = useState([]);
     const navigate = useNavigate();
 
     const fetchOrders = async () => {
@@ -91,7 +92,18 @@ const AdminOrders = () => {
 
     useEffect(() => {
         fetchOrders();
+        fetchAllCustomers();
     }, []);
+
+    const fetchAllCustomers = async () => {
+        try {
+            const usersRef = collection(db, 'users');
+            const snap = await getDocs(usersRef);
+            setAllCustomersCache(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        } catch (error) {
+            console.error("Error fetching customers:", error);
+        }
+    };
 
     // PART 1: Quick Status Dropdown with Optimistic UI
     const handleStatusChange = async (orderId, newStatus) => {
@@ -456,6 +468,7 @@ const AdminOrders = () => {
                         setShowCreateModal(false);
                         fetchOrders();
                     }}
+                    cachedCustomers={allCustomersCache}
                 />
             )}
         </div>
@@ -998,7 +1011,7 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
     );
 };
 
-const CreateOrderModal = ({ onClose, onSave }) => {
+const CreateOrderModal = ({ onClose, onSave, cachedCustomers = [] }) => {
     const {
         staticProducts,
         categories: staticCategories,
@@ -1058,18 +1071,9 @@ const CreateOrderModal = ({ onClose, onSave }) => {
         if (isStaticLoaded && staticShippingRates) {
             setShippingRates(staticShippingRates);
         }
-
-        const fetchCustomers = async () => {
-            try {
-                const usersRef = collection(db, 'users');
-                const snap = await getDocs(usersRef);
-                setAllCustomers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-            } catch (error) {
-                console.error("Error fetching customers:", error);
-            }
-        };
-        fetchCustomers();
-    }, [isStaticLoaded, staticShippingRates]);
+        // Use cached customers from parent instead of fetching
+        setAllCustomers(cachedCustomers);
+    }, [isStaticLoaded, staticShippingRates, cachedCustomers]);
 
     // Initialize Metadata from static context
     useEffect(() => {
