@@ -224,140 +224,121 @@ const PageTracking = () => {
 };
 
 // Initialize Global Safety Flag
-if (typeof window !== 'undefined') {
-  window.isPureStateMode = false;
-
-  // Global Listener for SecurityErrors (The Final Shield)
-  window.addEventListener('error', (event) => {
-    if (event.error?.name === 'SecurityError' || event.message?.includes('SecurityError')) {
-      console.warn('⚠️ PROACTIVE SECURITY SHIELD: High-restriction environment detected. Activating Pure State Mode.');
-      window.isPureStateMode = true;
-    }
-  });
-
-  window.addEventListener('unhandledrejection', (event) => {
-    if (event.reason?.name === 'SecurityError' || event.reason?.message?.includes('SecurityError')) {
-      console.warn('⚠️ PROACTIVE SECURITY SHIELD: Async Security Error detected. Activating Pure State Mode.');
-      window.isPureStateMode = true;
-    }
-  });
-}
+// ... (keep existing code)
 
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <PageTracking />
-        <ReferralTracker />
-        <ScrollToTop />
-        <StaticDataProvider>
-          <SettingsProvider>
-            <ErrorBoundary>
-              <React.Suspense fallback={<PageLoader />}>
-                <Routes>
-                  {/* 1. Standalone Routes (No Layout) */}
-                  <Route path="/print-invoice/:id" element={<InvoiceViewer />} />
+      <PageTracking />
+      <ReferralTracker />
+      <ScrollToTop />
+      <StaticDataProvider>
+        <SettingsProvider>
+          <ErrorBoundary>
+            <React.Suspense fallback={<PageLoader />}>
+              <Routes>
+                {/* 1. Standalone Routes (No Layout) */}
+                <Route path="/print-invoice/:id" element={<InvoiceViewer />} />
 
-                  {/* 2. Admin Logic (Highest Priority) */}
-                  <Route path="/admin/login" element={<AdminLogin />} />
+                {/* 2. Admin Logic (Highest Priority) */}
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute>
+                      <AdminLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="dashboard" element={<AdminDashboard />} />
+                  <Route path="orders" element={<AdminOrders />} />
+                  <Route path="abandoned-carts" element={<AbandonedCarts />} />
+                  <Route path="messages" element={<AdminMessages />} />
+                  <Route path="categories" element={<ManageCategories />} />
+                  <Route path="customers" element={<ManageCustomers />} />
+                  <Route path="reviews" element={<AdminReviews />} />
+                  <Route path="car-specs" element={<AdminCarSpecs />} />
+                  <Route path="cars" element={<ManageCars />} />
+                  <Route path="products" element={<ManageProducts />} />
+                  <Route path="products/new" element={<AddProduct />} />
+                  <Route path="edit-product/:id" element={<EditProduct />} />
+                  <Route path="edit-category/:id" element={<EditCategory />} />
+                  <Route path="edit-car/:id" element={<EditCar />} />
+                  <Route path="order/:id" element={<OrderDetails />} />
+                  <Route path="hero" element={<ManageHero />} />
+                  <Route path="brands" element={<ManageBrands />} />
+                  <Route path="payment-methods" element={<PaymentMethods />} />
+                  <Route path="payments-manager" element={<PaymentManager />} />
+                  <Route path="shipping" element={<ManageShipping />} />
+                  <Route path="promo-codes" element={<ManagePromoCodes />} />
+                  <Route path="affiliates" element={<ManageAffiliates />} />
+                  <Route path="management" element={<AdminManagement />} />
+                  <Route path="affiliates/:id" element={<AdminAffiliateDetails />} />
+                  <Route path="integrations" element={<Integrations />} />
+                  <Route path="integrations/google-search-console" element={<GoogleSearchConsole />} />
+                  <Route path="integrations/facebook-pixel" element={<FacebookPixel />} />
+                  <Route path="integrations/google-analytics" element={<GoogleAnalytics />} />
+                  <Route path="integrations/mailchimp" element={<Mailchimp />} />
+                  <Route path="integrations/google-merchant-center" element={<GoogleMerchantCenter />} />
+                  <Route path="integrations/facebook-instagram-shopping" element={<FacebookInstagramShopping />} />
+                  <Route path="integrations/installment-partners" element={<InstallmentPartners />} />
+                  <Route path="integrations/cloudinary" element={<CloudinarySettings />} />
+                  <Route path="integrations/sendgrid" element={<SendGridSettings />} />
+                  <Route path="blog" element={<ManageBlog />} />
+                  <Route path="blog/new" element={<AddEditBlog />} />
+                  <Route path="blog/edit/:id" element={<AddEditBlog />} />
+                  <Route path="settings" element={<ManageSettings />} />
+                  <Route path="policies" element={<ManagePolicies />} />
+                </Route>
+
+                {/* 3. Public Routes */}
+                <Route element={<PublicLayout />}>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/shop" element={<ShopPage />} />
+                  <Route path="/category/:id" element={<CategoryPage />} />
+                  <Route path="/brand/:brandName" element={<BrandPage />} />
+                  <Route path="/product/:id" element={<ProductDetails />} />
+                  <Route path="/cart" element={<CartPage />} />
+                  <Route path="/contact" element={<ContactUs />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/returns" element={<PolicyPage pageId="returns-policy" />} />
+                  <Route path="/shipping" element={<PolicyPage pageId="shipping-info" />} />
+                  <Route path="/my-orders" element={<OrderHistory />} />
+                  <Route path="/oil-advisor" element={<OilAdvisor />} />
+                  <Route path="/order-success" element={<OrderSuccess />} />
+                  <Route path="/recover-cart" element={<RecoverCart />} />
+                  <Route path="/blog" element={<BlogListPage />} />
+                  <Route path="/blog/:id" element={<BlogPostPage />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route path="/marketers" element={<AffiliateRegister />} />
+                  <Route path="/affiliate-register" element={<AffiliateRegister />} />
                   <Route
-                    path="/admin"
+                    path="/profile"
                     element={
-                      <ProtectedRoute>
-                        <AdminLayout />
-                      </ProtectedRoute>
+                      <UserProtectedRoute>
+                        <Profile />
+                      </UserProtectedRoute>
                     }
-                  >
-                    <Route index element={<AdminDashboard />} />
-                    <Route path="dashboard" element={<AdminDashboard />} />
-                    <Route path="orders" element={<AdminOrders />} />
-                    <Route path="abandoned-carts" element={<AbandonedCarts />} />
-                    <Route path="messages" element={<AdminMessages />} />
-                    <Route path="categories" element={<ManageCategories />} />
-                    <Route path="customers" element={<ManageCustomers />} />
-                    <Route path="reviews" element={<AdminReviews />} />
-                    <Route path="car-specs" element={<AdminCarSpecs />} />
-                    <Route path="cars" element={<ManageCars />} />
-                    <Route path="products" element={<ManageProducts />} />
-                    <Route path="products/new" element={<AddProduct />} />
-                    <Route path="edit-product/:id" element={<EditProduct />} />
-                    <Route path="edit-category/:id" element={<EditCategory />} />
-                    <Route path="edit-car/:id" element={<EditCar />} />
-                    <Route path="order/:id" element={<OrderDetails />} />
-                    <Route path="hero" element={<ManageHero />} />
-                    <Route path="brands" element={<ManageBrands />} />
-                    <Route path="payment-methods" element={<PaymentMethods />} />
-                    <Route path="payments-manager" element={<PaymentManager />} />
-                    <Route path="shipping" element={<ManageShipping />} />
-                    <Route path="promo-codes" element={<ManagePromoCodes />} />
-                    <Route path="affiliates" element={<ManageAffiliates />} />
-                    <Route path="management" element={<AdminManagement />} />
-                    <Route path="affiliates/:id" element={<AdminAffiliateDetails />} />
-                    <Route path="integrations" element={<Integrations />} />
-                    <Route path="integrations/google-search-console" element={<GoogleSearchConsole />} />
-                    <Route path="integrations/facebook-pixel" element={<FacebookPixel />} />
-                    <Route path="integrations/google-analytics" element={<GoogleAnalytics />} />
-                    <Route path="integrations/mailchimp" element={<Mailchimp />} />
-                    <Route path="integrations/google-merchant-center" element={<GoogleMerchantCenter />} />
-                    <Route path="integrations/facebook-instagram-shopping" element={<FacebookInstagramShopping />} />
-                    <Route path="integrations/installment-partners" element={<InstallmentPartners />} />
-                    <Route path="integrations/cloudinary" element={<CloudinarySettings />} />
-                    <Route path="integrations/sendgrid" element={<SendGridSettings />} />
-                    <Route path="blog" element={<ManageBlog />} />
-                    <Route path="blog/new" element={<AddEditBlog />} />
-                    <Route path="blog/edit/:id" element={<AddEditBlog />} />
-                    <Route path="settings" element={<ManageSettings />} />
-                    <Route path="policies" element={<ManagePolicies />} />
-                  </Route>
+                  />
+                  <Route
+                    path="/affiliate-dashboard"
+                    element={
+                      <AffiliateProtectedRoute>
+                        <AffiliateDashboard />
+                      </AffiliateProtectedRoute>
+                    }
+                  />
+                </Route>
 
-                  {/* 3. Public Routes */}
-                  <Route element={<PublicLayout />}>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/shop" element={<ShopPage />} />
-                    <Route path="/category/:id" element={<CategoryPage />} />
-                    <Route path="/brand/:brandName" element={<BrandPage />} />
-                    <Route path="/product/:id" element={<ProductDetails />} />
-                    <Route path="/cart" element={<CartPage />} />
-                    <Route path="/contact" element={<ContactUs />} />
-                    <Route path="/checkout" element={<Checkout />} />
-                    <Route path="/returns" element={<PolicyPage pageId="returns-policy" />} />
-                    <Route path="/shipping" element={<PolicyPage pageId="shipping-info" />} />
-                    <Route path="/my-orders" element={<OrderHistory />} />
-                    <Route path="/oil-advisor" element={<OilAdvisor />} />
-                    <Route path="/order-success" element={<OrderSuccess />} />
-                    <Route path="/recover-cart" element={<RecoverCart />} />
-                    <Route path="/blog" element={<BlogListPage />} />
-                    <Route path="/blog/:id" element={<BlogPostPage />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/signup" element={<Signup />} />
-                    <Route path="/marketers" element={<AffiliateRegister />} />
-                    <Route path="/affiliate-register" element={<AffiliateRegister />} />
-                    <Route
-                      path="/profile"
-                      element={
-                        <UserProtectedRoute>
-                          <Profile />
-                        </UserProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/affiliate-dashboard"
-                      element={
-                        <AffiliateProtectedRoute>
-                          <AffiliateDashboard />
-                        </AffiliateProtectedRoute>
-                      }
-                    />
-                  </Route>
-
-                  {/* 4. Catch-all 404 Route */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </React.Suspense>
-            </ErrorBoundary>
-          </SettingsProvider>
-        </StaticDataProvider>
-      </AuthProvider>
+                {/* 4. Catch-all 404 Route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </React.Suspense>
+          </ErrorBoundary>
+        </SettingsProvider>
+      </StaticDataProvider>
     </Router >
   )
 }
