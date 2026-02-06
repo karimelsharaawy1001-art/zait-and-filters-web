@@ -18,10 +18,11 @@ while IFS='=' read -r key value || [ -n "$key" ]; do
         continue
     fi
 
-    # Only process VITE_APPWRITE variables
-    if [[ $key == VITE_APPWRITE_* ]]; then
-        # Remove any quotes from value
-        value=$(echo "$value" | tr -d '"' | tr -d "'")
+    # Remove any quotes from value
+    value=$(echo "$value" | tr -d '"' | tr -d "'")
+    
+    # Process all VITE_ or public variables
+    if [[ $key == VITE_* ]] || [[ $key == NEXT_PUBLIC_* ]]; then
         
         echo "Setting $key..."
         
