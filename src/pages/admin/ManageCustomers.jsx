@@ -9,7 +9,9 @@ import {
     orderBy,
     where,
     addDoc,
-    serverTimestamp
+    serverTimestamp,
+    getCountFromServer,
+    limit
 } from 'firebase/firestore';
 import { db, auth, default as firebaseApp } from '../../firebase';
 import { initializeApp, deleteApp } from 'firebase/app';
@@ -50,6 +52,7 @@ const ManageCustomers = () => {
     const [selectedCustomerOrders, setSelectedCustomerOrders] = useState([]);
     const [fetchingOrders, setFetchingOrders] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [totalCount, setTotalCount] = useState(0);
 
     const [formData, setFormData] = useState({
         fullName: '',
@@ -69,7 +72,11 @@ const ManageCustomers = () => {
     const fetchCustomers = async () => {
         setLoading(true);
         try {
-            const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+            // Get total count first (Cheap)
+            const countSnap = await getCountFromServer(collection(db, 'users'));
+            setTotalCount(countSnap.data().count);
+
+            const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(50));
             const querySnapshot = await getDocs(q);
             const list = querySnapshot.docs.map(doc => ({
                 id: doc.id,
@@ -320,7 +327,7 @@ const ManageCustomers = () => {
                     <div>
                         <h2 className="text-3xl font-black text-black uppercase tracking-tight italic font-Cairo">Registered Customers</h2>
                         <p className="text-sm text-gray-500 mt-1 font-bold">
-                            Total registered: {customers.length} users
+                            Total registered: {totalCount} users (Latest 50 shown)
                         </p>
                     </div>
 

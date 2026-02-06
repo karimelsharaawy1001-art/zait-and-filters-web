@@ -6,9 +6,11 @@ import {
     query,
     orderBy,
     limit,
-    where
+    where,
+    getCountFromServer
 } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { useStaticData } from '../../context/StaticDataContext';
 import {
     DollarSign,
     ShoppingCart,
@@ -24,6 +26,7 @@ import AdminHeader from '../../components/AdminHeader';
 
 const Dashboard = () => {
     const navigate = useNavigate();
+    const { staticProducts, isStaticLoaded } = useStaticData();
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
         totalRevenue: 0,
@@ -42,65 +45,50 @@ const Dashboard = () => {
     const fetchDashboardData = async () => {
         setLoading(true);
         try {
-            // Parallel fetching for efficiency
-            const [ordersSnap, usersSnap, productsSnap] = await Promise.all([
-                getDocs(collection(db, 'orders')),
-                getDocs(collection(db, 'users')),
-                getDocs(collection(db, 'products'))
+            // Parallel fetching for high-level stats (Targeted & Efficient)
+            const [ordersCountSnap, usersCountSnap, recentOrdersSnap, lowStockSnap] = await Promise.all([
+                getCountFromServer(collection(db, 'orders')),
+                getCountFromServer(collection(db, 'users')),
+                getDocs(query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(5))),
+                getDocs(query(collection(db, 'products'), where('stockQuantity', '<', 5), limit(5)))
             ]);
 
-            // 1. Calculate Total Revenue (exclude cancelled orders)
+            // 1. Basic Stats
+            const totalOrders = ordersCountSnap.data().count;
+            const activeCustomers = usersCountSnap.data().count;
+            const productsInStock = isStaticLoaded ? staticProducts.length : 0;
+
+            // 2. Recent Orders
+            const recent = recentOrdersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setRecentOrders(recent);
+
+            // 3. Low Stock 
+            const low = lowStockSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setLowStockProducts(low);
+
+            // 4. Revenue & Pending (Approximation or focused query)
+            // Note: For full historic revenue, a stats document or cloud function is best.
+            // For now, we fetch pending orders only to get the count.
+            const pendingQuery = query(collection(db, 'orders'), where('status', '==', 'Pending'), limit(50));
+            const pendingSnap = await getDocs(pendingQuery);
+
+            // Approximation for total revenue (fetching only last 100 orders for current context)
+            const revenueQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(100));
+            const revenueSnap = await getDocs(revenueQuery);
             let revenue = 0;
-            let pendingCount = 0;
-            const ordersList = [];
-
-            ordersSnap.forEach(doc => {
-                const order = { id: doc.id, ...doc.data() };
-                ordersList.push(order);
-
-                if (order.status !== 'Cancelled') {
-                    revenue += order.total || 0;
-                }
-
-                if (order.status === 'Pending') {
-                    pendingCount++;
+            revenueSnap.forEach(doc => {
+                const data = doc.data();
+                if (data.status !== 'Cancelled') {
+                    revenue += data.total || 0;
                 }
             });
 
-            // 2. Count Active Customers
-            const customersCount = usersSnap.size;
-
-            // 3. Count Products in Stock
-            const productsCount = productsSnap.size;
-
-            // 4. Find Low Stock Products (stockQuantity < 5)
-            const lowStock = [];
-            productsSnap.forEach(doc => {
-                const product = { id: doc.id, ...doc.data() };
-                if ((product.stockQuantity || 0) < 5) {
-                    lowStock.push(product);
-                }
-            });
-
-            // Sort low stock by quantity (ascending) and take top 5
-            lowStock.sort((a, b) => (a.stockQuantity || 0) - (b.stockQuantity || 0));
-            setLowStockProducts(lowStock.slice(0, 5));
-
-            // 5. Get Recent Orders (last 5, sorted by date desc)
-            const sortedOrders = ordersList.sort((a, b) => {
-                const dateA = a.createdAt?.seconds || 0;
-                const dateB = b.createdAt?.seconds || 0;
-                return dateB - dateA;
-            });
-            setRecentOrders(sortedOrders.slice(0, 5));
-
-            // Update stats
             setStats({
-                totalRevenue: revenue,
-                totalOrders: ordersSnap.size,
-                activeCustomers: customersCount,
-                productsInStock: productsCount,
-                pendingOrders: pendingCount
+                totalRevenue: revenue, // Last 100 orders revenue as proxy
+                totalOrders,
+                activeCustomers,
+                productsInStock,
+                pendingOrders: pendingSnap.size
             });
         } catch (error) {
             console.error("Error fetching dashboard data:", error);

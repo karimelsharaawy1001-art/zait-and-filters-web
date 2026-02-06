@@ -1052,11 +1052,23 @@ const CreateOrderModal = ({ onClose, onSave }) => {
     const [filterMake, setFilterMake] = useState('');
     const [filterModel, setFilterModel] = useState('');
     const [filterYear, setFilterYear] = useState('');
+    const [allCustomers, setAllCustomers] = useState([]);
 
     useEffect(() => {
         if (isStaticLoaded && staticShippingRates) {
             setShippingRates(staticShippingRates);
         }
+
+        const fetchCustomers = async () => {
+            try {
+                const usersRef = collection(db, 'users');
+                const snap = await getDocs(usersRef);
+                setAllCustomers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            } catch (error) {
+                console.error("Error fetching customers:", error);
+            }
+        };
+        fetchCustomers();
     }, [isStaticLoaded, staticShippingRates]);
 
     // Initialize Metadata from static context
@@ -1081,34 +1093,23 @@ const CreateOrderModal = ({ onClose, onSave }) => {
         }
     }, [filterMake, staticCars]);
 
-    // Customer Search - LIGHTWEIGHT QUERY (Quota Shield)
-    const handleCustomerSearch = async (q) => {
+    // Customer Search - LOCAL (Robust Includes Search)
+    const handleCustomerSearch = (q) => {
         setCustomerSearch(q);
-        if (q.length < 3) { // Require 3 chars to prevent accidental broad reads
+        if (!q.trim()) {
             setCustomerResults([]);
             return;
         }
 
-        setSearchingCustomers(true);
-        try {
-            // Search by Phone (Prefix Search is quota-friendly)
-            const usersRef = collection(db, 'users');
-            const phoneQuery = query(
-                usersRef,
-                where('phoneNumber', '>=', q),
-                where('phoneNumber', '<=', q + '\uf8ff'),
-                limit(10)
-            );
+        const searchLower = q.toLowerCase();
+        const filtered = allCustomers.filter(user => {
+            const matchesPhone = user.phoneNumber?.toLowerCase().includes(searchLower) || user.phone?.toLowerCase().includes(searchLower);
+            const matchesName = user.fullName?.toLowerCase().includes(searchLower) || user.name?.toLowerCase().includes(searchLower);
+            const matchesEmail = user.email?.toLowerCase().includes(searchLower);
+            return matchesPhone || matchesName || matchesEmail;
+        }).slice(0, 10);
 
-            const phoneSnap = await getDocs(phoneQuery);
-            const phoneResults = phoneSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-            setCustomerResults(phoneResults);
-        } catch (error) {
-            console.error("Customer search error:", error);
-        } finally {
-            setSearchingCustomers(false);
-        }
+        setCustomerResults(filtered);
     };
 
     // Product Search Logic - LOCAL ONLY (Quota Shield)

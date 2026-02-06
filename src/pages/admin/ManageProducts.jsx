@@ -7,9 +7,11 @@ import AdminHeader from '../../components/AdminHeader';
 import { Edit3, Trash2, Plus, Search, Filter, AlertTriangle, ArrowUpDown, ChevronLeft, ChevronRight, Eye, MoreVertical, CheckCircle, XCircle, TrendingUp, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BulkOperations from '../../components/admin/BulkOperations';
+import { useStaticData } from '../../context/StaticDataContext';
 
 const ManageProducts = () => {
     const navigate = useNavigate();
+    const { staticProducts: shieldProducts, categories: shieldCategories, cars: shieldCars, isStaticLoaded: isShieldLoaded } = useStaticData();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -42,21 +44,15 @@ const ManageProducts = () => {
 
     useEffect(() => {
         fetchProducts();
-        fetchCars();
-        fetchCategories();
     }, []);
 
-    const fetchCars = async () => {
-        try {
-            const querySnapshot = await getDocs(collection(db, 'cars'));
-            const carsList = querySnapshot.docs.map(doc => doc.data());
-            setCars(carsList);
-            const makes = [...new Set(carsList.map(car => car.make))];
+    useEffect(() => {
+        if (isShieldLoaded) {
+            setCars(shieldCars);
+            const makes = [...new Set(shieldCars.map(car => car.make))];
             setCarMakes(makes);
-        } catch (error) {
-            console.error("Error fetching cars:", error);
         }
-    };
+    }, [isShieldLoaded, shieldCars]);
 
     // Category -> Subcategory Sync
     useEffect(() => {
@@ -91,15 +87,11 @@ const ManageProducts = () => {
         }
     }, [makeFilter, cars]);
 
-    const fetchCategories = async () => {
-        try {
-            const querySnapshot = await getDocs(collection(db, 'categories'));
-            const list = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setAllCategories(list);
-        } catch (error) {
-            console.error("Error fetching categories:", error);
+    useEffect(() => {
+        if (isShieldLoaded) {
+            setAllCategories(shieldCategories);
         }
-    };
+    }, [isShieldLoaded, shieldCategories]);
 
     const [isLiveMode, setIsLiveMode] = useState(true);
     const [localData, setLocalData] = useState([]);
