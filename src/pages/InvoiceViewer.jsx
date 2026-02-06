@@ -83,7 +83,7 @@ const InvoiceViewer = () => {
                             <img src={settings.siteLogo} alt="Logo" className="h-20 object-contain object-right mb-6" />
                         ) : (
                             <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-4 text-[#28B463]">
-                                زيت <span className="text-black">& فلاتر</span>
+                                زيت <span className="text-black">& فلترز</span>
                             </h1>
                         )}
                         <span className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mb-1">فاتورة إلى:</span>
