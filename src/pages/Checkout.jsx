@@ -573,15 +573,16 @@ const Checkout = () => {
                 clearCart();
                 clearTimeout(timeoutId);
 
-                const successMsg = (formData.paymentMethod === 'instapay' || formData.paymentMethod === 'wallet')
-                    ? 'تم استلام طلبك وبانتظار مراجعة التحويل. سيتم التأكيد خلال 24 ساعة.'
+                const isInstaPay = formData.paymentMethod?.toLowerCase() === 'instapay' || formData.paymentMethod?.toLowerCase() === 'wallet';
+                const successMsg = isInstaPay
+                    ? (isAr
+                        ? 'تم استلام طلبك وبانتظار مراجعة التحويل. سيتم التأكيد خلال 24 ساعة.'
+                        : 'Order received! We are reviewing your transfer. Confirmation will be sent within 24 hours.')
                     : t('orderPlaced');
 
-                toast.success(successMsg, { duration: 5000 });
-                console.log("[DEBUG] Navigating to success page...");
+                toast.success(successMsg, { duration: 8000 });
+                console.log("[DEBUG] Order successful:", orderId);
 
-                // Allow toast to be seen before navigating
-                // BLIND UPDATE: Add to user history without reading (Quota Safe)
                 if (auth.currentUser) {
                     const userRef = doc(db, 'users', auth.currentUser.uid);
                     updateDoc(userRef, {
@@ -596,13 +597,12 @@ const Checkout = () => {
 
                 setTimeout(() => {
                     navigate(`/order-success?id=${orderId}`);
-                }, 500);
+                }, 1000);
             }
         } catch (error) {
             console.error("[DEBUG] FATAL ERROR IN SUBMIT:", error);
-            // Show more detailed error if possible
-            const errorMsg = error.message || t('orderError');
-            toast.error(`Error: ${errorMsg}`);
+            const errorMsg = error.message || (isAr ? "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى." : "An unexpected error occurred. Please try again.");
+            toast.error(`${isAr ? "خطأ" : "Error"}: ${errorMsg}`, { duration: 6000 });
         } finally {
             console.log("[DEBUG] Submit finished (finally block)");
             setLoading(false);
@@ -699,8 +699,8 @@ const Checkout = () => {
                                                         key={addr.id}
                                                         onClick={() => handleAddressSelect(addr)}
                                                         className={`relative overflow-hidden group cursor-pointer p-4 rounded-2xl border-2 transition-all duration-300 transform active:scale-95 ${isActive
-                                                                ? 'border-orange-600 bg-orange-50/50 shadow-lg shadow-orange-100'
-                                                                : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md'
+                                                            ? 'border-orange-600 bg-orange-50/50 shadow-lg shadow-orange-100'
+                                                            : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md'
                                                             } ${isAr ? 'text-right' : 'text-left'}`}
                                                     >
                                                         {isActive && (
@@ -732,8 +732,8 @@ const Checkout = () => {
                                             <div
                                                 onClick={() => handleAddressSelect('new')}
                                                 className={`relative overflow-hidden group cursor-pointer p-4 rounded-2xl border-2 border-dashed transition-all duration-300 transform active:scale-95 ${selectedAddressId === 'new'
-                                                        ? 'border-orange-600 bg-orange-50/50 shadow-lg shadow-orange-100'
-                                                        : 'border-gray-200 bg-gray-50/30 hover:border-orange-300 hover:bg-gray-50'
+                                                    ? 'border-orange-600 bg-orange-50/50 shadow-lg shadow-orange-100'
+                                                    : 'border-gray-200 bg-gray-50/30 hover:border-orange-300 hover:bg-gray-50'
                                                     } ${isAr ? 'text-right' : 'text-left'}`}
                                             >
                                                 <div className={`flex items-center gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>

@@ -14,6 +14,24 @@ import {
 import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
+import {
+    Loader2,
+    ArrowLeft,
+    Edit2,
+    Clock,
+    Package,
+    User,
+    MapPin,
+    CreditCard,
+    AlertCircle,
+    X,
+    Search,
+    PlusCircle,
+    Minus,
+    Plus,
+    Trash2,
+    Save
+} from 'lucide-react';
 import AdminHeader from '../../components/AdminHeader';
 import { useStaticData } from '../../context/StaticDataContext';
 import { normalizeArabic } from '../../utils/productUtils';
