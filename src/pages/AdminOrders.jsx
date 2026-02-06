@@ -1245,13 +1245,13 @@ const CreateOrderModal = ({ onClose, onSave, cachedCustomers = [], orders = [] }
 
             const finalOrder = {
                 customer: {
-                    name: orderData.customer.name,
-                    phone: orderData.customer.phone,
-                    secondaryPhone: orderData.customer.secondaryPhone,
-                    email: orderData.customer.email,
-                    address: orderData.customer.address,
-                    governorate: orderData.customer.governorate,
-                    city: orderData.customer.city
+                    name: orderData.customer.name || '',
+                    phone: orderData.customer.phone || '',
+                    secondaryPhone: orderData.customer.secondaryPhone || '',
+                    email: orderData.customer.email || '',
+                    address: orderData.customer.address || '',
+                    governorate: orderData.customer.governorate || '',
+                    city: orderData.customer.city || ''
                 },
                 userId: orderData.customer.id || 'manual_guest',
                 items: orderData.items,
