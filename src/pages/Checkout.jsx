@@ -751,34 +751,32 @@ const Checkout = () => {
                                                 </div>
                                             )}
 
-                                            <div className="sm:col-span-2">
-                                                <label className={`block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ${isAr ? 'text-right' : 'text-left'}`}>
-                                                    {isAr ? 'ملاحظات الطلب (اختياري)' : 'Order Notes (Optional)'}
-                                                </label>
-                                                <textarea
-                                                    name="notes"
-                                                    rows={3}
-                                                    value={formData.notes}
-                                                    onChange={handleChange}
-                                                    className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-black placeholder-gray-500 focus:ring-2 focus:ring-[#28B463] outline-none transition-all ${isAr ? 'text-right' : 'text-left'}`}
-                                                    placeholder={isAr ? 'تعليمات خاصة للطلب...' : 'Special instructions for your order...'}
-                                                />
+                                            <div className={`sm:col-span-2 bg-orange-50 p-4 rounded-xl border border-orange-100 flex items-start gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                                <div className="bg-orange-600 p-2 rounded-lg text-white">
+                                                    <MapPin className="h-4 w-4" />
+                                                </div>
+                                                <div className={isAr ? 'text-right' : 'text-left'}>
+                                                    <p className="text-xs font-black text-orange-900 leading-none mb-1">{t('shippingTo')}: {savedAddresses.find(a => a.id === selectedAddressId)?.label || 'Home'}</p>
+                                                    <p className="text-[10px] text-orange-600 font-bold">{formData.address}, {formData.city}, {formData.governorate}</p>
+                                                    <button type="button" onClick={() => handleAddressSelect('new')} className="mt-2 text-[10px] font-black uppercase tracking-widest text-orange-800 hover:underline">{t('changeAddress')}</button>
+                                                </div>
                                             </div>
                                         </>
                                     )}
 
-                                    {auth.currentUser && selectedAddressId !== 'new' && (
-                                        <div className={`sm:col-span-2 bg-orange-50 p-4 rounded-xl border border-orange-100 flex items-start gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>
-                                            <div className="bg-orange-600 p-2 rounded-lg text-white">
-                                                <MapPin className="h-4 w-4" />
-                                            </div>
-                                            <div className={isAr ? 'text-right' : 'text-left'}>
-                                                <p className="text-xs font-black text-orange-900 leading-none mb-1">{t('shippingTo')}: {savedAddresses.find(a => a.id === selectedAddressId)?.label || 'Home'}</p>
-                                                <p className="text-[10px] text-orange-600 font-bold">{formData.address}, {formData.city}, {formData.governorate}</p>
-                                                <button type="button" onClick={() => handleAddressSelect('new')} className="mt-2 text-[10px] font-black uppercase tracking-widest text-orange-800 hover:underline">{t('changeAddress')}</button>
-                                            </div>
-                                        </div>
-                                    )}
+                                    <div className="sm:col-span-2">
+                                        <label className={`block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ${isAr ? 'text-right' : 'text-left'}`}>
+                                            {isAr ? 'ملاحظات الطلب (اختياري)' : 'Order Notes (Optional)'}
+                                        </label>
+                                        <textarea
+                                            name="notes"
+                                            rows={3}
+                                            value={formData.notes}
+                                            onChange={handleChange}
+                                            className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-black placeholder-gray-500 focus:ring-2 focus:ring-[#28B463] outline-none transition-all ${isAr ? 'text-right' : 'text-left'}`}
+                                            placeholder={isAr ? 'تعليمات خاصة للطلب...' : 'Special instructions for your order...'}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -1120,8 +1118,8 @@ const Checkout = () => {
                         </form>
                     </div>
                 </div>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 };
 

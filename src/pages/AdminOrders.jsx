@@ -464,6 +464,8 @@ const AdminOrders = () => {
 };
 
 // PART 3: Pro-Grade Order Editor Modal
+
+// PART 3: Pro-Grade Order Editor Modal
 const EditOrderModal = ({ order, onClose, onSave }) => {
     const [formData, setFormData] = useState({
         paymentMethod: order.paymentMethod || '',
@@ -601,7 +603,8 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                     model: product.model || 'Universal',
                     yearStart: product.yearStart || '',
                     yearEnd: product.yearEnd || '',
-                    partNumber: product.partNumber || product.sku || 'N/A'
+                    partNumber: product.partNumber || product.sku || 'N/A',
+                    quantity: 1
                 }]
             });
         }
@@ -930,21 +933,21 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                             />
                         </div>
                     </div>
-                </div>
 
-                {/* Order Notes Section */}
-                <div className="pt-4 border-t border-gray-50">
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                        <AlertCircle className="w-3 h-3" />
-                        Internal & Customer Notes
-                    </label>
-                    <textarea
-                        value={formData.notes}
-                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                        className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none transition-all font-bold text-xs"
-                        placeholder="Special instructions, delivery notes, or internal tracking details..."
-                        rows={3}
-                    />
+                    {/* Order Notes Section */}
+                    <div className="pt-4 border-t border-gray-50">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <AlertCircle className="w-3 h-3" />
+                            Internal & Customer Notes
+                        </label>
+                        <textarea
+                            value={formData.notes}
+                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                            className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none transition-all font-bold text-xs"
+                            placeholder="Special instructions, delivery notes, or internal tracking details..."
+                            rows={3}
+                        />
+                    </div>
                 </div>
 
                 {/* Financial Summary: High Contrast */}
@@ -970,25 +973,25 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                         </span>
                     </div>
                 </div>
-            </div>
 
-            {/* Footer Actions */}
-            <div className="p-8 border-t border-gray-50 shrink-0 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
-                <div className="flex gap-4">
-                    <button
-                        onClick={onClose}
-                        className="flex-1 px-6 py-4 rounded-2xl font-black text-gray-400 hover:text-black hover:bg-gray-50 transition-all uppercase tracking-[0.2em] text-[10px]"
-                    >
-                        Abort Changes
-                    </button>
-                    <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="flex-[2] bg-[#1A1A1A] hover:bg-black text-white font-black py-4 rounded-[20px] shadow-2xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-4 uppercase tracking-[0.25em] text-[11px]"
-                    >
-                        {saving ? "Processing..." : "Commit Protocol"}
-                        {!saving && <Save className="h-5 w-5 text-[#e31e24]" />}
-                    </button>
+                {/* Footer Actions */}
+                <div className="p-8 border-t border-gray-50 shrink-0 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
+                    <div className="flex gap-4">
+                        <button
+                            onClick={onClose}
+                            className="flex-1 px-6 py-4 rounded-2xl font-black text-gray-400 hover:text-black hover:bg-gray-50 transition-all uppercase tracking-[0.2em] text-[10px]"
+                        >
+                            Abort Changes
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            disabled={saving}
+                            className="flex-[2] bg-[#1A1A1A] hover:bg-black text-white font-black py-4 rounded-[20px] shadow-2xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-4 uppercase tracking-[0.25em] text-[11px]"
+                        >
+                            {saving ? "Processing..." : "Commit Protocol"}
+                            {!saving && <Save className="h-5 w-5 text-[#e31e24]" />}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1015,7 +1018,7 @@ const CreateOrderModal = ({ onClose, onSave }) => {
             name: '',
             phone: '',
             secondaryPhone: '',
-            email: '', // Optional
+            email: '',
             address: '',
             governorate: '',
             city: ''
@@ -1084,15 +1087,6 @@ const CreateOrderModal = ({ onClose, onSave }) => {
         }
     }, [filterMake, carOptions]);
 
-    // Calculate Shipping
-    useEffect(() => {
-        if (orderData.customer.governorate) {
-            const rate = shippingRates.find(r => r.governorate === orderData.customer.governorate);
-            // We just store the shipping cost for calculation later, or we can add it to orderData state if we want to display/edit it
-            // For now, let's keep it simple and calculate totals dynamically
-        }
-    }, [orderData.customer.governorate, shippingRates]);
-
     // Customer Search 
     const handleCustomerSearch = async (q) => {
         setCustomerSearch(q);
@@ -1103,25 +1097,21 @@ const CreateOrderModal = ({ onClose, onSave }) => {
 
         setSearchingCustomers(true);
         try {
-            // Fetch all users for client-side filtering (better autocomplete experience)
             const usersRef = collection(db, 'users');
             const usersSnap = await getDocs(usersRef);
-
             const allUsers = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-            // Filter by phone, name, or email
             const searchLower = q.toLowerCase();
             const filtered = allUsers.filter(user => {
                 const matchesPhone = user.phoneNumber?.toLowerCase().includes(searchLower);
                 const matchesName = user.fullName?.toLowerCase().includes(searchLower);
                 const matchesEmail = user.email?.toLowerCase().includes(searchLower);
                 return matchesPhone || matchesName || matchesEmail;
-            }).slice(0, 10); // Limit to 10 results
+            }).slice(0, 10);
 
             setCustomerResults(filtered);
         } catch (error) {
             console.error("Customer search error:", error);
-            toast.error("Failed to search customers");
         } finally {
             setSearchingCustomers(false);
         }
@@ -1138,7 +1128,6 @@ const CreateOrderModal = ({ onClose, onSave }) => {
         setIsSearchingProducts(true);
         try {
             const productsRef = collection(db, 'products');
-            // Fetching all for client-side filtering (standard pattern in this app so far)
             const qSnap = await getDocs(productsRef);
             let all = qSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
@@ -1256,17 +1245,6 @@ const CreateOrderModal = ({ onClose, onSave }) => {
 
                 const orderRef = doc(collection(db, 'orders'));
 
-                // If new customer, create user record? 
-                // Creating user record from here is complex due to Auth requirements. 
-                // We'll just store customer data in the order for now, OR create a Firestore-only user doc if requested.
-                // The implementation plan mainly said "Add new customer entry form" which implies order data.
-                // We can optionally create a user doc so they show in "Customers".
-
-                if (customerMode === 'new' && orderData.customer.phone) {
-                    // Check if user exists by phone
-                    // ... Skip for simplicity/safety to avoid duplicates, just save order data
-                }
-
                 const finalOrder = {
                     customer: {
                         name: orderData.customer.name,
@@ -1277,7 +1255,7 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                         governorate: orderData.customer.governorate,
                         city: orderData.customer.city
                     },
-                    userId: orderData.customer.id || 'manual_guest', // Link if selected, else guest
+                    userId: orderData.customer.id || 'manual_guest',
                     items: orderData.items,
                     subtotal,
                     shipping_cost: shipping,
@@ -1393,9 +1371,6 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                                                 phone: user.phoneNumber || '',
                                                                 email: user.email || '',
                                                                 address: user.address || '',
-                                                                // Note: user.address might be just string, usually we need more granular if available
-                                                                // If user has saved addresses subcollection this is harder. 
-                                                                // For now let's just prefill what we can from user doc
                                                                 governorate: '',
                                                                 city: ''
                                                             }
@@ -1414,7 +1389,7 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                 </div>
                             )}
 
-                            {/* Customer Form Fields (Prefilled or Empty) */}
+                            {/* Customer Form Fields */}
                             <div className="space-y-4 bg-gray-50/50 p-6 rounded-[24px] border border-gray-100">
                                 <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Customer Details</h4>
                                 <div className="grid grid-cols-2 gap-4">
@@ -1425,7 +1400,6 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                             value={orderData.customer.name}
                                             onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, name: e.target.value } })}
                                             className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
-                                            disabled={customerMode === 'existing' && orderData.customer.id} // Disable editing name if linked to existing user to keep consistency? Or allow override? Let's allow override for flexibility.
                                         />
                                     </div>
                                     <div>
@@ -1434,24 +1408,6 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                             type="text"
                                             value={orderData.customer.phone}
                                             onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, phone: e.target.value } })}
-                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase">Secondary Phone (Optional)</label>
-                                        <input
-                                            type="text"
-                                            value={orderData.customer.secondaryPhone}
-                                            onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, secondaryPhone: e.target.value } })}
-                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase">Email (Optional)</label>
-                                        <input
-                                            type="email"
-                                            value={orderData.customer.email}
-                                            onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, email: e.target.value } })}
                                             className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
                                         />
                                     </div>
@@ -1494,7 +1450,6 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                     {/* Step 2: Product Selection */}
                     {step === 2 && (
                         <div className="space-y-6">
-                            {/* Search & Filter Bar */}
                             <div className="space-y-4">
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     <select value={filterMake} onChange={e => setFilterMake(e.target.value)} className="bg-gray-50 border-gray-100 rounded-xl text-xs font-bold p-2.5">
@@ -1520,15 +1475,12 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                 <div className="relative">
                                     <input
                                         type="text"
-                                        placeholder="Search products by Name, SKU, or Part Number..."
+                                        placeholder="Search products..."
                                         value={productSearch}
                                         onChange={e => handleProductSearch(e.target.value)}
                                         className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:ring-2 focus:ring-[#28B463] outline-none"
                                     />
                                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                                    {isSearchingProducts && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#28B463] animate-spin" />}
-
-                                    {/* Product Results */}
                                     {searchResults.length > 0 && (
                                         <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-gray-100 shadow-2xl rounded-2xl z-[50] max-h-60 overflow-y-auto">
                                             {searchResults.map(p => (
@@ -1540,7 +1492,7 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                                     <img src={p.image || p.images?.[0] || '/placeholder.png'} className="w-10 h-10 rounded-lg object-cover" />
                                                     <div className="text-left flex-1 min-w-0">
                                                         <p className="text-xs font-black truncate text-black">{p.name}</p>
-                                                        <p className="text-[10px] text-gray-400 font-bold">{p.partBrand} • {p.price} EGP</p>
+                                                        <p className="text-[10px] text-gray-400 font-bold">{p.price} EGP</p>
                                                     </div>
                                                     <PlusCircle className="h-5 w-5 text-[#28B463]" />
                                                 </button>
@@ -1550,55 +1502,45 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                 </div>
                             </div>
 
-                            {/* Selected Items */}
                             <div className="bg-gray-50 rounded-[28px] p-4 border border-gray-100 min-h-[200px]">
                                 <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Selected Inventory ({orderData.items.length})</h4>
-                                {orderData.items.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center h-40 text-gray-300">
-                                        <Package className="h-10 w-10 mb-2 opacity-50" />
-                                        <p className="text-xs font-bold">No Products Added</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        {orderData.items.map(item => (
-                                            <div key={item.id} className="flex items-center gap-4 bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
-                                                <img src={item.image} className="w-12 h-12 rounded-xl object-cover bg-gray-50" />
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-xs font-black truncate">{item.name}</p>
-                                                    <div className="relative w-fit mt-1">
-                                                        <input
-                                                            type="number"
-                                                            value={item.price}
-                                                            onChange={(e) => updateItemPrice(item.id, e.target.value)}
-                                                            className="w-24 px-2 py-1 bg-gray-50 border border-gray-100 rounded-lg text-[10px] font-black text-[#28B463] focus:ring-1 focus:ring-[#28B463] outline-none transition-all"
-                                                        />
-                                                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-bold text-gray-400 select-none pointer-events-none">EGP</span>
-                                                    </div>
+                                <div className="space-y-3">
+                                    {orderData.items.map(item => (
+                                        <div key={item.id} className="flex items-center gap-4 bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
+                                            <img src={item.image} className="w-12 h-12 rounded-xl object-cover" />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-black truncate">{item.name}</p>
+                                                <div className="relative w-fit mt-1">
+                                                    <input
+                                                        type="number"
+                                                        value={item.price}
+                                                        onChange={(e) => updateItemPrice(item.id, e.target.value)}
+                                                        className="w-24 px-2 py-1 bg-gray-50 border border-gray-100 rounded-lg text-[10px] font-black text-[#28B463] outline-none"
+                                                    />
                                                 </div>
-                                                <div className="flex items-center bg-gray-50 rounded-lg px-2">
-                                                    <button onClick={() => updateItemQty(item.id, -1)} className="p-2 text-gray-500 hover:text-black"><Minus className="h-3 w-3" /></button>
-                                                    <span className="text-xs font-black mx-2">{item.quantity}</span>
-                                                    <button onClick={() => updateItemQty(item.id, 1)} className="p-2 text-gray-500 hover:text-black"><Plus className="h-3 w-3" /></button>
-                                                </div>
-                                                <button onClick={() => removeItem(item.id)} className="p-2 text-gray-400 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
                                             </div>
-                                        ))}
-                                    </div>
-                                )}
+                                            <div className="flex items-center bg-gray-50 rounded-lg px-2">
+                                                <button onClick={() => updateItemQty(item.id, -1)} className="p-2 text-gray-500"><Minus className="h-3 w-3" /></button>
+                                                <span className="text-xs font-black mx-2">{item.quantity}</span>
+                                                <button onClick={() => updateItemQty(item.id, 1)} className="p-2 text-gray-500"><Plus className="h-3 w-3" /></button>
+                                            </div>
+                                            <button onClick={() => removeItem(item.id)} className="p-2 text-gray-400 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     )}
 
-                    {/* Step 3: Review & Payment */}
+                    {/* Step 3: Review */}
                     {step === 3 && (
                         <div className="space-y-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {/* Summary Cards */}
                                 <div className="space-y-4">
-                                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest">Order Configuration</h4>
+                                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest">Configuration</h4>
                                     <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 space-y-4">
                                         <div>
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Payment Method</label>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Payment</label>
                                             <select
                                                 value={orderData.paymentMethod}
                                                 onChange={(e) => setOrderData({ ...orderData, paymentMethod: e.target.value })}
@@ -1611,25 +1553,12 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Initial Status</label>
-                                            <select
-                                                value={orderData.status}
-                                                onChange={(e) => setOrderData({ ...orderData, status: e.target.value })}
-                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
-                                            >
-                                                <option value="Pending">Pending</option>
-                                                <option value="Processing">Processing</option>
-                                                <option value="Awaiting Payment Verification">Awaiting Payment Verification</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Manual Discount (EGP)</label>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Discount (EGP)</label>
                                             <input
                                                 type="number"
                                                 value={orderData.manualDiscount}
                                                 onChange={(e) => setOrderData({ ...orderData, manualDiscount: e.target.value })}
                                                 className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
-                                                placeholder="0"
                                             />
                                         </div>
                                         <div>
@@ -1639,16 +1568,24 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                                 value={orderData.extraFees}
                                                 onChange={(e) => setOrderData({ ...orderData, extraFees: e.target.value })}
                                                 className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
-                                                placeholder="0"
                                             />
                                         </div>
                                     </div>
+                                    <div className="mt-4">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase">Order Notes</label>
+                                        <textarea
+                                            value={orderData.notes}
+                                            onChange={(e) => setOrderData({ ...orderData, notes: e.target.value })}
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
+                                            rows={2}
+                                            placeholder="Add instructions..."
+                                        />
+                                    </div>
                                 </div>
 
-                                {/* Final Totals */}
                                 <div className="space-y-4">
-                                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest">Financial Summary</h4>
-                                    <div className="bg-[#1A1A1A] rounded-[28px] p-8 text-white space-y-4 shadow-xl">
+                                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest">Totals</h4>
+                                    <div className="bg-[#1A1A1A] rounded-[28px] p-8 text-white space-y-4">
                                         <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase">
                                             <span>Subtotal</span>
                                             <span>{subtotal.toFixed(2)} EGP</span>
@@ -1657,69 +1594,54 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                             <span>Shipping</span>
                                             <span>+{shipping.toFixed(2)} EGP</span>
                                         </div>
-                                        <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase">
-                                            <span>Extra Fees</span>
-                                            <span>+{Number(orderData.extraFees).toFixed(2)} EGP</span>
-                                        </div>
-                                        <div className="flex justify-between items-center text-xs text-[#e31e24] font-bold uppercase">
-                                            <span>Discount</span>
-                                            <span>-{Number(orderData.manualDiscount).toFixed(2)} EGP</span>
-                                        </div>
                                         <div className="border-t border-white/10 pt-4 mt-2">
                                             <div className="flex justify-between items-center text-2xl font-black">
                                                 <span>TOTAL</span>
                                                 <span>{total.toFixed(2)} EGP</span>
                                             </div>
                                         </div>
-                                        <div className="mt-4">
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Order Notes</label>
-                                            <textarea
-                                                value={orderData.notes}
-                                                onChange={(e) => setOrderData({ ...orderData, notes: e.target.value })}
-                                                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none focus:border-[#28B463]"
-                                                rows={2}
-                                                placeholder="Add specific instructions for this order..."
-                                </div>
                                     </div>
                                 </div>
-                    )}
-                            </div>
-
-                            {/* Footer Controls */}
-                            <div className="p-6 border-t border-gray-50 flex justify-between items-center bg-gray-50/50">
-                                <button
-                                    onClick={() => {
-                                        if (step > 1) setStep(step - 1);
-                                        else onClose();
-                                    }}
-                                    className="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-all text-xs uppercase tracking-widest"
-                                >
-                                    {step === 1 ? 'Cancel' : 'Back'}
-                                </button>
-
-                                <button
-                                    onClick={() => {
-                                        if (step < 3) {
-                                            if (step === 1) {
-                                                if (!orderData.customer.name || !orderData.customer.governorate) {
-                                                    toast.error("Please provide Customer Name and Governorate");
-                                                    return;
-                                                }
-                                            }
-                                            setStep(step + 1);
-                                        } else {
-                                            handleSubmitOrder();
-                                        }
-                                    }}
-                                    disabled={loading}
-                                    className="px-8 py-3 bg-[#1A1A1A] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl disabled:opacity-50 flex items-center gap-2"
-                                >
-                                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : step === 3 ? 'Confirm Order' : 'Next Step'}
-                                </button>
                             </div>
                         </div>
+                    )}
+                </div>
+
+                {/* Footer Controls */}
+                <div className="p-6 border-t border-gray-50 flex justify-between items-center bg-gray-50/50 shrink-0">
+                    <button
+                        onClick={() => {
+                            if (step > 1) setStep(step - 1);
+                            else onClose();
+                        }}
+                        className="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-all text-xs uppercase tracking-widest"
+                    >
+                        {step === 1 ? 'Cancel' : 'Back'}
+                    </button>
+
+                    <button
+                        onClick={() => {
+                            if (step < 3) {
+                                if (step === 1) {
+                                    if (!orderData.customer.name || !orderData.customer.governorate) {
+                                        toast.error("Please provide Customer Name and Governorate");
+                                        return;
+                                    }
+                                }
+                                setStep(step + 1);
+                            } else {
+                                handleSubmitOrder();
+                            }
+                        }}
+                        disabled={loading}
+                        className="px-8 py-3 bg-[#1A1A1A] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl disabled:opacity-50 flex items-center gap-2"
+                    >
+                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : step === 3 ? 'Confirm Order' : 'Next Step'}
+                    </button>
+                </div>
             </div>
-                );
+        </div>
+    );
 };
 
-                export default AdminOrders;
+export default AdminOrders;
