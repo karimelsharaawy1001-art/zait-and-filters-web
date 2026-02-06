@@ -790,348 +790,348 @@ const Checkout = () => {
                                         value={formData.notes}
                                         onChange={handleChange}
                                         className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-black placeholder-gray-500 focus:ring-2 focus:ring-[#28B463] outline-none transition-all ${isAr ? 'text-right' : 'text-left'}`}
-                                        placeholder={isAr ? 'تعليمات خاصة للطلب...' : 'Special instructions for your order...'}
                                     />
                                 </div>
                             </div>
-                    </div>
 
-                    <hr className="border-gray-100" />
+                            <hr className="border-gray-100" />
 
-                    <div className="space-y-4">
-                        <h2 className={`text-xl font-black text-gray-900 flex items-center gap-2 ${isAr ? 'flex-row-reverse' : ''}`}>
-                            <Ticket className="h-5 w-5 text-purple-600" />
-                            {t('havePromo')}
-                        </h2>
-                        <div className={`flex gap-2 ${isAr ? 'flex-row-reverse' : ''}`}>
-                            <input
-                                type="text"
-                                value={promoInput}
-                                onChange={(e) => setPromoInput(e.target.value)}
-                                placeholder={t('promoPlaceholder')}
-                                className={`flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-black placeholder-gray-500 focus:ring-2 focus:ring-[#28B463] outline-none transition-all uppercase font-bold ${isAr ? 'text-right' : 'text-left'}`}
-                            />
-                            <button
-                                type="button"
-                                onClick={applyPromoCode}
-                                disabled={promoLoading || !promoInput.trim()}
-                                className="bg-[#28B463] text-white px-6 rounded-xl font-black text-sm hover:bg-[#219653] transition-all disabled:opacity-50"
-                            >
-                                {promoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('apply')}
-                            </button>
-                        </div>
-                        {promoMessage.text && (
-                            <p className={`text-xs font-bold px-2 flex items-center gap-1 ${isAr ? 'flex-row-reverse' : ''} ${promoMessage.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
-                                {promoMessage.type === 'success' ? <CheckCircle2 className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
-                                {promoMessage.text}
-                            </p>
-                        )}
-                    </div>
-
-                    <hr className="border-gray-100" />
-
-
-
-                    <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 font-bold">
-                        <h3 className={`text-sm font-black text-gray-400 uppercase tracking-widest mb-4 ${isAr ? 'text-right' : 'text-left'}`}>{t('finalSummary')}</h3>
-                        <div className="space-y-3">
-                            <div className={`flex justify-between items-center text-sm ${isAr ? 'flex-row-reverse' : ''}`}>
-                                <span className="text-gray-600 font-bold">{t('subtotal')}</span>
-                                <span className="font-black text-gray-900">{subtotal} {t('currency')}</span>
-                            </div>
-
-                            {discount > 0 && (
-                                <div className={`flex justify-between items-center text-sm text-green-600 ${isAr ? 'flex-row-reverse' : ''}`}>
-                                    <span className="font-bold flex items-center gap-1">
-                                        <Ticket className="h-3 w-3" />
-                                        {t('discount')} ({appliedPromo?.code})
-                                    </span>
-                                    <span className="font-black">-{discount} {t('currency')}</span>
+                            <div className="space-y-4">
+                                <h2 className={`text-xl font-black text-gray-900 flex items-center gap-2 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                    <Ticket className="h-5 w-5 text-purple-600" />
+                                    {t('havePromo')}
+                                </h2>
+                                <div className={`flex gap-2 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                    <input
+                                        type="text"
+                                        value={promoInput}
+                                        onChange={(e) => setPromoInput(e.target.value)}
+                                        placeholder={t('promoPlaceholder')}
+                                        className={`flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-black placeholder-gray-500 focus:ring-2 focus:ring-[#28B463] outline-none transition-all uppercase font-bold ${isAr ? 'text-right' : 'text-left'}`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={applyPromoCode}
+                                        disabled={promoLoading || !promoInput.trim()}
+                                        className="bg-[#28B463] text-white px-6 rounded-xl font-black text-sm hover:bg-[#219653] transition-all disabled:opacity-50"
+                                    >
+                                        {promoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('apply')}
+                                    </button>
                                 </div>
-                            )}
-
-                            <div className={`flex justify-between items-center text-sm ${isAr ? 'flex-row-reverse' : ''}`}>
-                                <span className="text-gray-600 font-bold flex items-center gap-1">
-                                    {t('shipping')}
-                                    {appliedPromo?.type === 'payment_method_shipping' && shipping === 0 && <span className="text-[10px] bg-purple-100 text-purple-600 px-1 rounded">PAYMENT RULE</span>}
-                                    {appliedPromo?.type === 'free_shipping_threshold' && shipping === 0 && <span className="text-[10px] bg-blue-100 text-blue-600 px-1 rounded">THRESHOLD RULE</span>}
-                                </span>
-                                <span className={`font-black ${shipping === 0 && subtotal > 0 ? 'text-green-600' : 'text-orange-600'}`}>
-                                    {shipping === 0 && subtotal > 0 ? (isAr ? 'مجاني' : 'FREE') : `+${shipping} ${t('currency')}`}
-                                </span>
+                                {promoMessage.text && (
+                                    <p className={`text-xs font-bold px-2 flex items-center gap-1 ${isAr ? 'flex-row-reverse' : ''} ${promoMessage.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
+                                        {promoMessage.type === 'success' ? <CheckCircle2 className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
+                                        {promoMessage.text}
+                                    </p>
+                                )}
                             </div>
 
-                            {appliedPromo?.type === 'product_gift' && (
-                                <div className={`flex justify-between items-center text-[10px] text-purple-600 font-black uppercase tracking-widest border-t border-purple-100 pt-2 ${isAr ? 'flex-row-reverse' : ''}`}>
-                                    <span>{t('bonusGift')}</span>
+                            <hr className="border-gray-100" />
+
+
+
+                            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 font-bold">
+                                <h3 className={`text-sm font-black text-gray-400 uppercase tracking-widest mb-4 ${isAr ? 'text-right' : 'text-left'}`}>{t('finalSummary')}</h3>
+                                <div className="space-y-3">
+                                    <div className={`flex justify-between items-center text-sm ${isAr ? 'flex-row-reverse' : ''}`}>
+                                        <span className="text-gray-600 font-bold">{t('subtotal')}</span>
+                                        <span className="font-black text-gray-900">{subtotal} {t('currency')}</span>
+                                    </div>
+
+                                    {discount > 0 && (
+                                        <div className={`flex justify-between items-center text-sm text-green-600 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                            <span className="font-bold flex items-center gap-1">
+                                                <Ticket className="h-3 w-3" />
+                                                {t('discount')} ({appliedPromo?.code})
+                                            </span>
+                                            <span className="font-black">-{discount} {t('currency')}</span>
+                                        </div>
+                                    )}
+
+                                    <div className={`flex justify-between items-center text-sm ${isAr ? 'flex-row-reverse' : ''}`}>
+                                        <span className="text-gray-600 font-bold flex items-center gap-1">
+                                            {t('shipping')}
+                                            {appliedPromo?.type === 'payment_method_shipping' && shipping === 0 && <span className="text-[10px] bg-purple-100 text-purple-600 px-1 rounded">PAYMENT RULE</span>}
+                                            {appliedPromo?.type === 'free_shipping_threshold' && shipping === 0 && <span className="text-[10px] bg-blue-100 text-blue-600 px-1 rounded">THRESHOLD RULE</span>}
+                                        </span>
+                                        <span className={`font-black ${shipping === 0 && subtotal > 0 ? 'text-green-600' : 'text-orange-600'}`}>
+                                            {shipping === 0 && subtotal > 0 ? (isAr ? 'مجاني' : 'FREE') : `+${shipping} ${t('currency')}`}
+                                        </span>
+                                    </div>
+
+                                    {appliedPromo?.type === 'product_gift' && (
+                                        <div className={`flex justify-between items-center text-[10px] text-purple-600 font-black uppercase tracking-widest border-t border-purple-100 pt-2 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                            <span>{t('bonusGift')}</span>
+                                        </div>
+                                    )}
+
+                                    <div className={`flex justify-between items-center pt-3 border-t border-gray-200 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                        <span className="text-lg font-black text-gray-900">{t('totalToPay')}</span>
+                                        <span className="text-2xl font-black text-orange-600">{total} <span className="text-xs">{t('currency')}</span></span>
+                                    </div>
                                 </div>
-                            )}
-
-                            <div className={`flex justify-between items-center pt-3 border-t border-gray-200 ${isAr ? 'flex-row-reverse' : ''}`}>
-                                <span className="text-lg font-black text-gray-900">{t('totalToPay')}</span>
-                                <span className="text-2xl font-black text-orange-600">{total} <span className="text-xs">{t('currency')}</span></span>
                             </div>
-                        </div>
-                    </div>
 
-                    <hr className="border-gray-100" />
+                            <hr className="border-gray-100" />
 
-                    <div className="space-y-6">
-                        <h2 className={`text-xl font-black text-gray-900 flex items-center gap-2 ${isAr ? 'flex-row-reverse' : ''}`}>
-                            <span className="bg-[#28B463] text-white h-6 w-6 rounded-full flex items-center justify-center text-xs">3</span>
-                            {t('paymentMethod')}
-                        </h2>
+                            <div className="space-y-6">
+                                <h2 className={`text-xl font-black text-gray-900 flex items-center gap-2 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                    <span className="bg-[#28B463] text-white h-6 w-6 rounded-full flex items-center justify-center text-xs">3</span>
+                                    {t('paymentMethod')}
+                                </h2>
 
-                        {fetchingMethods ? (
-                            <div className={`flex items-center gap-2 text-gray-400 py-4 italic text-sm font-bold ${isAr ? 'flex-row-reverse' : ''}`}>
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                                {t('loadingPayments')}
-                            </div>
-                        ) : activeMethods.length > 0 ? (
-                            <>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {activeMethods.map((method) => (
-                                        <label
-                                            key={method.id}
-                                            className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${isAr ? 'flex-row-reverse text-right' : 'text-left'} ${formData.paymentMethod === method.id ? 'border-orange-600 bg-orange-50 shadow-md' : 'border-gray-100 bg-white hover:border-orange-200'}`}
-                                        >
-                                            <input type="radio" name="paymentMethod" value={method.id} checked={formData.paymentMethod === method.id} onChange={handleChange} className="hidden" />
-                                            <div className={`p-2 rounded-lg ${formData.paymentMethod === method.id ? 'bg-orange-600 text-white' : 'bg-gray-100 text-gray-500'}`}>
-                                                {method.type === 'online' ? <CreditCard className="h-5 w-5" /> : method.id === 'instapay' ? <Smartphone className="h-5 w-5" /> : <Banknote className="h-5 w-5" />}
-                                            </div>
-                                            <div>
-                                                <p className={`text-sm font-bold ${formData.paymentMethod === method.id ? 'text-orange-900' : 'text-gray-700'}`}>
-                                                    {(() => {
-                                                        if (method.id === 'easykash' && (method.name === 'Credit Card (EasyKash)' || !method.nameAr)) {
-                                                            return isAr ? 'الدفع عن طريق الفيزا و شركات التقسيط' : 'Pay via Card or Installments';
-                                                        }
-                                                        return isAr ? (method.nameAr || method.name) : method.name;
-                                                    })()}
-                                                </p>
-                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">{method.type}</p>
-                                            </div>
-                                        </label>
-                                    ))}
-                                </div>
-
-                                {/* Instapay Section */}
-                                {formData.paymentMethod === 'instapay' && (
-                                    <div className="mt-6 bg-[#663299]/5 border border-[#663299]/10 rounded-2xl p-6 animate-in fade-in slide-in-from-top-4">
-                                        <div className="flex items-center gap-3 mb-4">
-                                            <div className="bg-[#663299] p-2 rounded-lg">
-                                                <Smartphone className="h-5 w-5 text-white" />
-                                            </div>
-                                            <h3 className="text-[#663299] font-black uppercase tracking-widest text-sm">Instapay Transfer</h3>
+                                {fetchingMethods ? (
+                                    <div className={`flex items-center gap-2 text-gray-400 py-4 italic text-sm font-bold ${isAr ? 'flex-row-reverse' : ''}`}>
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        {t('loadingPayments')}
+                                    </div>
+                                ) : activeMethods.length > 0 ? (
+                                    <>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            {activeMethods.map((method) => (
+                                                <label
+                                                    key={method.id}
+                                                    className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${isAr ? 'flex-row-reverse text-right' : 'text-left'} ${formData.paymentMethod === method.id ? 'border-orange-600 bg-orange-50 shadow-md' : 'border-gray-100 bg-white hover:border-orange-200'}`}
+                                                >
+                                                    <input type="radio" name="paymentMethod" value={method.id} checked={formData.paymentMethod === method.id} onChange={handleChange} className="hidden" />
+                                                    <div className={`p-2 rounded-lg ${formData.paymentMethod === method.id ? 'bg-orange-600 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                                                        {method.type === 'online' ? <CreditCard className="h-5 w-5" /> : method.id === 'instapay' ? <Smartphone className="h-5 w-5" /> : <Banknote className="h-5 w-5" />}
+                                                    </div>
+                                                    <div>
+                                                        <p className={`text-sm font-bold ${formData.paymentMethod === method.id ? 'text-orange-900' : 'text-gray-700'}`}>
+                                                            {(() => {
+                                                                if (method.id === 'easykash' && (method.name === 'Credit Card (EasyKash)' || !method.nameAr)) {
+                                                                    return isAr ? 'الدفع عن طريق الفيزا و شركات التقسيط' : 'Pay via Card or Installments';
+                                                                }
+                                                                return isAr ? (method.nameAr || method.name) : method.name;
+                                                            })()}
+                                                        </p>
+                                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">{method.type}</p>
+                                                    </div>
+                                                </label>
+                                            ))}
                                         </div>
 
-                                        <div className="space-y-4">
-                                            <p className="text-sm font-bold text-gray-700 leading-relaxed">
-                                                برجاء التحويل عن طريق الضغط على اللينك أدناه أو مسح QR Code
-                                            </p>
-
-                                            <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                                                <a
-                                                    href="https://ipn.eg/S/jimmydodo/instapay/3Jvfcf"
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="flex-1 bg-[#663299] hover:bg-[#522580] text-white font-black py-3 px-6 rounded-xl text-center transition-all shadow-lg shadow-[#663299]/20 w-full"
-                                                >
-                                                    Pay {total} EGP Now
-                                                </a>
-                                                <div className="text-xs font-black text-gray-400 uppercase tracking-widest">
-                                                    Total Amount: <span className="text-[#663299] text-base">{total} EGP</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="pt-4 border-t border-[#663299]/10">
-                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">
-                                                    ارفع إثبات الدفع (لقطة شاشة)
-                                                </label>
-
-                                                {!receiptUrl ? (
-                                                    <div className="relative">
-                                                        <input
-                                                            type="file"
-                                                            accept="image/*"
-                                                            onChange={async (e) => {
-                                                                const file = e.target.files[0];
-                                                                if (!file) return;
-
-                                                                setUploadingReceipt(true);
-                                                                try {
-                                                                    const { uploadToCloudinary } = await import('../utils/cloudinaryUtils');
-                                                                    const url = await uploadToCloudinary(file);
-                                                                    setReceiptUrl(url);
-                                                                    toast.success('Receipt uploaded successfully!');
-                                                                } catch (error) {
-                                                                    console.error("Upload error:", error);
-                                                                    toast.error("Failed to upload receipt");
-                                                                } finally {
-                                                                    setUploadingReceipt(false);
-                                                                }
-                                                            }}
-                                                            className="hidden"
-                                                            id="receipt-upload"
-                                                        />
-                                                        <label
-                                                            htmlFor="receipt-upload"
-                                                            className={`w-full flex items-center justify-center gap-3 py-8 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${uploadingReceipt ? 'bg-gray-50 border-gray-300' : 'bg-white border-[#663299]/30 hover:bg-[#663299]/5'}`}
-                                                        >
-                                                            {uploadingReceipt ? (
-                                                                <>
-                                                                    <Loader2 className="h-6 w-6 text-gray-400 animate-spin" />
-                                                                    <span className="text-gray-400 font-bold text-sm">Uploading...</span>
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <Plus className="h-6 w-6 text-[#663299]" />
-                                                                    <span className="text-[#663299] font-black uppercase tracking-widest text-xs">Upload Receipt Image</span>
-                                                                </>
-                                                            )}
-                                                        </label>
+                                        {/* Instapay Section */}
+                                        {formData.paymentMethod === 'instapay' && (
+                                            <div className="mt-6 bg-[#663299]/5 border border-[#663299]/10 rounded-2xl p-6 animate-in fade-in slide-in-from-top-4">
+                                                <div className="flex items-center gap-3 mb-4">
+                                                    <div className="bg-[#663299] p-2 rounded-lg">
+                                                        <Smartphone className="h-5 w-5 text-white" />
                                                     </div>
-                                                ) : (
-                                                    <div className="relative bg-white p-2 rounded-2xl border border-green-100 shadow-sm flex items-center gap-4">
-                                                        <img src={receiptUrl} alt="Receipt" className="h-16 w-16 object-cover rounded-xl" />
-                                                        <div className="flex-1">
-                                                            <p className="text-green-600 font-black text-xs uppercase tracking-widest flex items-center gap-1">
-                                                                <CheckCircle2 className="h-3 w-3" />
-                                                                Receipt Attached
-                                                            </p>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setReceiptUrl('')}
-                                                                className="text-[10px] text-red-500 font-bold hover:underline mt-1"
-                                                            >
-                                                                Remove & Upload Again
-                                                            </button>
+                                                    <h3 className="text-[#663299] font-black uppercase tracking-widest text-sm">Instapay Transfer</h3>
+                                                </div>
+
+                                                <div className="space-y-4">
+                                                    <p className="text-sm font-bold text-gray-700 leading-relaxed">
+                                                        برجاء التحويل عن طريق الضغط على اللينك أدناه أو مسح QR Code
+                                                    </p>
+
+                                                    <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                                                        <a
+                                                            href="https://ipn.eg/S/jimmydodo/instapay/3Jvfcf"
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="flex-1 bg-[#663299] hover:bg-[#522580] text-white font-black py-3 px-6 rounded-xl text-center transition-all shadow-lg shadow-[#663299]/20 w-full"
+                                                        >
+                                                            Pay {total} EGP Now
+                                                        </a>
+                                                        <div className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                                                            Total Amount: <span className="text-[#663299] text-base">{total} EGP</span>
                                                         </div>
                                                     </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
 
-                                {/* Electronic Wallet Section */}
-                                {formData.paymentMethod === 'wallet' && (
-                                    <div className="mt-6 bg-orange-500/5 border border-orange-500/10 rounded-2xl p-6 animate-in fade-in slide-in-from-top-4">
-                                        <div className="flex items-center gap-3 mb-4">
-                                            <div className="bg-orange-500 p-2 rounded-lg">
-                                                <Smartphone className="h-5 w-5 text-white" />
-                                            </div>
-                                            <h3 className="text-orange-600 font-black uppercase tracking-widest text-sm">Electronic Wallet Transfer</h3>
-                                        </div>
-
-                                        <div className="space-y-4">
-                                            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
-                                                <p className="text-sm font-bold text-gray-700 leading-relaxed text-center">
-                                                    برجاء تحويل المبلغ إلى الرقم التالي
-                                                </p>
-                                                <div className="flex justify-center">
-                                                    <div className="bg-orange-50 px-6 py-2 rounded-lg border border-orange-100">
-                                                        <p className="text-xl font-black text-orange-600 font-mono tracking-wider">
-                                                            {activeMethods.find(m => m.id === 'wallet')?.number || '010XXXXXXXX'}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <p className="text-xs font-bold text-gray-400 text-center uppercase tracking-widest">(بإسم: محمد جمال ابراهيم)</p>
-                                            </div>
-
-                                            <div className="flex justify-center">
-                                                <div className="text-xs font-black text-gray-400 uppercase tracking-widest">
-                                                    Total Amount: <span className="text-orange-600 text-base">{total} EGP</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="pt-4 border-t border-orange-500/10">
-                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">
-                                                    ارفع إثبات الدفع (لقطة شاشة)
-                                                </label>
-
-                                                {!receiptUrl ? (
-                                                    <div className="relative">
-                                                        <input
-                                                            type="file"
-                                                            accept="image/*"
-                                                            onChange={async (e) => {
-                                                                const file = e.target.files[0];
-                                                                if (!file) return;
-
-                                                                setUploadingReceipt(true);
-                                                                try {
-                                                                    const { uploadToCloudinary } = await import('../utils/cloudinaryUtils');
-                                                                    const url = await uploadToCloudinary(file);
-                                                                    setReceiptUrl(url);
-                                                                    toast.success('Receipt uploaded successfully!');
-                                                                } catch (error) {
-                                                                    console.error("Upload error:", error);
-                                                                    toast.error("Failed to upload receipt");
-                                                                } finally {
-                                                                    setUploadingReceipt(false);
-                                                                }
-                                                            }}
-                                                            className="hidden"
-                                                            id="wallet-receipt-upload"
-                                                        />
-                                                        <label
-                                                            htmlFor="wallet-receipt-upload"
-                                                            className={`w-full flex items-center justify-center gap-3 py-8 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${uploadingReceipt ? 'bg-gray-50 border-gray-300' : 'bg-white border-orange-500/30 hover:bg-orange-500/5'}`}
-                                                        >
-                                                            {uploadingReceipt ? (
-                                                                <>
-                                                                    <Loader2 className="h-6 w-6 text-gray-400 animate-spin" />
-                                                                    <span className="text-gray-400 font-bold text-sm">Uploading...</span>
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <Plus className="h-6 w-6 text-orange-600" />
-                                                                    <span className="text-orange-600 font-black uppercase tracking-widest text-xs">Upload Receipt Image</span>
-                                                                </>
-                                                            )}
+                                                    <div className="pt-4 border-t border-[#663299]/10">
+                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">
+                                                            ارفع إثبات الدفع (لقطة شاشة)
                                                         </label>
+
+                                                        {!receiptUrl ? (
+                                                            <div className="relative">
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    onChange={async (e) => {
+                                                                        const file = e.target.files[0];
+                                                                        if (!file) return;
+
+                                                                        setUploadingReceipt(true);
+                                                                        try {
+                                                                            const { uploadToCloudinary } = await import('../utils/cloudinaryUtils');
+                                                                            const url = await uploadToCloudinary(file);
+                                                                            setReceiptUrl(url);
+                                                                            toast.success('Receipt uploaded successfully!');
+                                                                        } catch (error) {
+                                                                            console.error("Upload error:", error);
+                                                                            toast.error("Failed to upload receipt");
+                                                                        } finally {
+                                                                            setUploadingReceipt(false);
+                                                                        }
+                                                                    }}
+                                                                    className="hidden"
+                                                                    id="receipt-upload"
+                                                                />
+                                                                <label
+                                                                    htmlFor="receipt-upload"
+                                                                    className={`w-full flex items-center justify-center gap-3 py-8 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${uploadingReceipt ? 'bg-gray-50 border-gray-300' : 'bg-white border-[#663299]/30 hover:bg-[#663299]/5'}`}
+                                                                >
+                                                                    {uploadingReceipt ? (
+                                                                        <>
+                                                                            <Loader2 className="h-6 w-6 text-gray-400 animate-spin" />
+                                                                            <span className="text-gray-400 font-bold text-sm">Uploading...</span>
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <Plus className="h-6 w-6 text-[#663299]" />
+                                                                            <span className="text-[#663299] font-black uppercase tracking-widest text-xs">Upload Receipt Image</span>
+                                                                        </>
+                                                                    )}
+                                                                </label>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="relative bg-white p-2 rounded-2xl border border-green-100 shadow-sm flex items-center gap-4">
+                                                                <img src={receiptUrl} alt="Receipt" className="h-16 w-16 object-cover rounded-xl" />
+                                                                <div className="flex-1">
+                                                                    <p className="text-green-600 font-black text-xs uppercase tracking-widest flex items-center gap-1">
+                                                                        <CheckCircle2 className="h-3 w-3" />
+                                                                        Receipt Attached
+                                                                    </p>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setReceiptUrl('')}
+                                                                        className="text-[10px] text-red-500 font-bold hover:underline mt-1"
+                                                                    >
+                                                                        Remove & Upload Again
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                ) : (
-                                                    <div className="relative rounded-2xl overflow-hidden border border-gray-200">
-                                                        <img src={receiptUrl} alt="Receipt" className="w-full h-auto" />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setReceiptUrl('')}
-                                                            className="absolute top-2 right-2 bg-white/90 p-2 rounded-full text-red-500 shadow-sm hover:bg-red-500 hover:text-white transition-all"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
-                                                    </div>
-                                                )}
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
+
+                                        {/* Electronic Wallet Section */}
+                                        {formData.paymentMethod === 'wallet' && (
+                                            <div className="mt-6 bg-orange-500/5 border border-orange-500/10 rounded-2xl p-6 animate-in fade-in slide-in-from-top-4">
+                                                <div className="flex items-center gap-3 mb-4">
+                                                    <div className="bg-orange-500 p-2 rounded-lg">
+                                                        <Smartphone className="h-5 w-5 text-white" />
+                                                    </div>
+                                                    <h3 className="text-orange-600 font-black uppercase tracking-widest text-sm">Electronic Wallet Transfer</h3>
+                                                </div>
+
+                                                <div className="space-y-4">
+                                                    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
+                                                        <p className="text-sm font-bold text-gray-700 leading-relaxed text-center">
+                                                            برجاء تحويل المبلغ إلى الرقم التالي
+                                                        </p>
+                                                        <div className="flex justify-center">
+                                                            <div className="bg-orange-50 px-6 py-2 rounded-lg border border-orange-100">
+                                                                <p className="text-xl font-black text-orange-600 font-mono tracking-wider">
+                                                                    {activeMethods.find(m => m.id === 'wallet')?.number || '010XXXXXXXX'}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <p className="text-xs font-bold text-gray-400 text-center uppercase tracking-widest">(بإسم: محمد جمال ابراهيم)</p>
+                                                    </div>
+
+                                                    <div className="flex justify-center">
+                                                        <div className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                                                            Total Amount: <span className="text-orange-600 text-base">{total} EGP</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="pt-4 border-t border-orange-500/10">
+                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">
+                                                            ارفع إثبات الدفع (لقطة شاشة)
+                                                        </label>
+
+                                                        {!receiptUrl ? (
+                                                            <div className="relative">
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    onChange={async (e) => {
+                                                                        const file = e.target.files[0];
+                                                                        if (!file) return;
+
+                                                                        setUploadingReceipt(true);
+                                                                        try {
+                                                                            const { uploadToCloudinary } = await import('../utils/cloudinaryUtils');
+                                                                            const url = await uploadToCloudinary(file);
+                                                                            setReceiptUrl(url);
+                                                                            toast.success('Receipt uploaded successfully!');
+                                                                        } catch (error) {
+                                                                            console.error("Upload error:", error);
+                                                                            toast.error("Failed to upload receipt");
+                                                                        } finally {
+                                                                            setUploadingReceipt(false);
+                                                                        }
+                                                                    }}
+                                                                    className="hidden"
+                                                                    id="wallet-receipt-upload"
+                                                                />
+                                                                <label
+                                                                    htmlFor="wallet-receipt-upload"
+                                                                    className={`w-full flex items-center justify-center gap-3 py-8 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${uploadingReceipt ? 'bg-gray-50 border-gray-300' : 'bg-white border-orange-500/30 hover:bg-orange-500/5'}`}
+                                                                >
+                                                                    {uploadingReceipt ? (
+                                                                        <>
+                                                                            <Loader2 className="h-6 w-6 text-gray-400 animate-spin" />
+                                                                            <span className="text-gray-400 font-bold text-sm">Uploading...</span>
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <Plus className="h-6 w-6 text-orange-600" />
+                                                                            <span className="text-orange-600 font-black uppercase tracking-widest text-xs">Upload Receipt Image</span>
+                                                                        </>
+                                                                    )}
+                                                                </label>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="relative rounded-2xl overflow-hidden border border-gray-200">
+                                                                <img src={receiptUrl} alt="Receipt" className="w-full h-auto" />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setReceiptUrl('')}
+                                                                    className="absolute top-2 right-2 bg-white/90 p-2 rounded-full text-red-500 shadow-sm hover:bg-red-500 hover:text-white transition-all"
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <div className="text-center py-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                                        <p className="text-gray-500 text-sm font-bold">{t('noPaymentMethods') || 'No payment methods available'}</p>
                                     </div>
                                 )}
-                            </>
-                        ) : (
-                            <div className="text-center py-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                                <p className="text-gray-500 text-sm font-bold">{t('noPaymentMethods') || 'No payment methods available'}</p>
                             </div>
-                        )}
+
+                            <TrustPaymentSection />
+
+                            <button
+                                type="submit"
+                                disabled={loading || fetchingMethods || !formData.governorate}
+                                className={`w-full flex justify-center items-center gap-2 py-4 px-4 rounded-2xl shadow-xl text-lg font-black text-white bg-gray-900 hover:bg-black transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed`}
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="h-5 w-5 animate-spin" />
+                                        {t('processing')}
+                                    </>
+                                ) : (
+                                    isOnline ? t('confirmPay') : t('placeOrder')
+                                )}
+                            </button>
+                        </form>
                     </div>
-
-                    <TrustPaymentSection />
-
-                    <button
-                        type="submit"
-                        disabled={loading || fetchingMethods || !formData.governorate}
-                        className={`w-full flex justify-center items-center gap-2 py-4 px-4 rounded-2xl shadow-xl text-lg font-black text-white bg-gray-900 hover:bg-black transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed`}
-                    >
-                        {loading ? (
-                            <>
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                                {t('processing')}
-                            </>
-                        ) : (
-                            isOnline ? t('confirmPay') : t('placeOrder')
-                        )}
-                    </button>
-                </form>
+                </div>
             </div>
         </div>
     );
