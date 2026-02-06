@@ -384,7 +384,7 @@ const Profile = () => {
                                         </div>
                                         <button
                                             onClick={handlePrint}
-                                            disabled={orders.filter(o => o.status?.toLowerCase() === 'delivered').length === 0}
+                                            disabled={orders.filter(o => o.status === 'Delivered' || o.status === 'Completed').length === 0}
                                             className="flex items-center gap-2 bg-[#28B463] text-white px-6 py-3 rounded-2xl font-black text-sm hover:bg-[#219653] transition-all shadow-xl shadow-[#28B463]/20 disabled:opacity-50 disabled:bg-gray-400 disabled:shadow-none"
                                         >
                                             <FileText className="h-4 w-4" />

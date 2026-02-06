@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { Package, Clock, ChevronRight, Printer, Download } from 'lucide-react';
+import { Package, Clock, ChevronRight, Printer, Download, Edit2, Save, X, Loader2 } from 'lucide-react';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { toast } from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { generateInvoice } from '../utils/invoiceGenerator';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +14,9 @@ const OrderHistory = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState(null);
+    const [editingMileage, setEditingMileage] = useState(null); // ID of order being edited
+    const [mileageValue, setMileageValue] = useState('');
+    const [updating, setUpdating] = useState(false);
     const navigate = useNavigate();
     const { t, i18n } = useTranslation();
     const isAr = i18n.language === 'ar';
@@ -81,6 +86,25 @@ const OrderHistory = () => {
         return statuses[status] || t('paymentUnpaid');
     };
 
+    const handleUpdateMileage = async (orderId) => {
+        setUpdating(true);
+        try {
+            const orderRef = doc(db, 'orders', orderId);
+            await updateDoc(orderRef, {
+                currentMileage: mileageValue,
+                updatedAt: serverTimestamp()
+            });
+            setOrders(prev => prev.map(o => o.id === orderId ? { ...o, currentMileage: mileageValue } : o));
+            setEditingMileage(null);
+            toast.success(isAr ? 'تم تحديث العداد بنجاح!' : 'Mileage updated successfully!');
+        } catch (error) {
+            console.error("Error updating mileage:", error);
+            toast.error(isAr ? 'فشل تحديث العداد' : 'Failed to update mileage');
+        } finally {
+            setUpdating(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-[60vh]">
@@ -136,13 +160,41 @@ const OrderHistory = () => {
                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t('totalLabel')}</p>
                                         <p className="text-sm font-black text-orange-600">{order.total} {t('currency')}</p>
                                     </div>
-                                    {order.currentMileage && (
-                                        <div className="bg-orange-50 border border-orange-100 px-3 py-1 rounded-lg flex items-center gap-1.5 h-fit font-bold">
-                                            <svg className="w-3 h-3 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                            </svg>
+                                    {editingMileage === order.id ? (
+                                        <div className="flex items-center gap-2 bg-white border border-orange-200 rounded-lg p-1">
+                                            <input
+                                                type="number"
+                                                value={mileageValue}
+                                                onChange={(e) => setMileageValue(e.target.value)}
+                                                placeholder={t('km')}
+                                                className="w-20 px-2 py-1 text-xs font-bold border-none focus:ring-0"
+                                                autoFocus
+                                            />
+                                            <button
+                                                onClick={() => handleUpdateMileage(order.id)}
+                                                disabled={updating}
+                                                className="text-green-600 hover:text-green-700"
+                                            >
+                                                {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                            </button>
+                                            <button
+                                                onClick={() => setEditingMileage(null)}
+                                                className="text-gray-400 hover:text-gray-600"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div
+                                            className="bg-orange-50 border border-orange-100 px-3 py-1 rounded-lg flex items-center gap-1.5 h-fit font-bold cursor-pointer hover:bg-orange-100 transition-colors group"
+                                            onClick={() => {
+                                                setEditingMileage(order.id);
+                                                setMileageValue(order.currentMileage || '');
+                                            }}
+                                        >
+                                            <Edit2 className="w-3 h-3 text-orange-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                                             <p className="text-[10px] font-black text-orange-700 uppercase tracking-tight">
-                                                {t('mileageRecord')}: {order.currentMileage} {t('km')}
+                                                {t('mileageRecord')}: {order.currentMileage || '---'} {t('km')}
                                             </p>
                                         </div>
                                     )}

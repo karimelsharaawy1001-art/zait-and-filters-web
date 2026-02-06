@@ -36,7 +36,11 @@ export const generateInvoice = (order) => {
     const dateStr = order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString('en-GB') : new Date(order.createdAt).toLocaleDateString('en-GB');
     doc.text(`Date: ${dateStr}`, pageWidth - 70, 43);
     if (order.currentMileage) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(227, 30, 36); // Red color for emphasis
         doc.text(`Mileage: ${order.currentMileage} KM`, pageWidth - 70, 48);
+        doc.setTextColor(0, 0, 0); // Reset color
+        doc.setFont('helvetica', 'normal');
     }
 
     // Bill To

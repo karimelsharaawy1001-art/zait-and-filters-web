@@ -101,10 +101,12 @@ const InvoiceViewer = () => {
                                 {order.paymentStatus === 'Paid' ? 'تم الدفع' : 'في انتظار الدفع'}
                             </span>
                             <p className="text-lg font-black text-black mt-2">رقم الطلب: #{order.orderNumber || order.id?.slice(-6).toUpperCase()}</p>
-                            {order.currentMileage && (
-                                <p className="text-sm font-bold text-gray-500 font-sans mt-0.5">KM: {order.currentMileage}</p>
-                            )}
-                            <p className="text-sm font-bold text-gray-400 font-sans">{date}</p>
+                            <div className="flex flex-col items-start font-sans mt-0.5">
+                                {order.currentMileage && (
+                                    <p className="text-sm font-bold text-orange-600">KM: {order.currentMileage}</p>
+                                )}
+                                <p className="text-sm font-bold text-gray-400">{date}</p>
+                            </div>
                         </div>
                     </div>
                 </div>

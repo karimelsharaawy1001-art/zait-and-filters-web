@@ -210,6 +210,7 @@ const AdminOrders = () => {
             'Processing': 'bg-blue-50 text-blue-600 border-blue-100',
             'Shipped': 'bg-purple-50 text-purple-600 border-purple-100',
             'Delivered': 'bg-green-50 text-green-600 border-green-100',
+            'Completed': 'bg-emerald-50 text-emerald-600 border-emerald-100',
             'Cancelled': 'bg-red-50 text-[#e31e24] border-red-100',
             'Returned': 'bg-red-50 text-[#e31e24] border-red-100'
         };
@@ -217,7 +218,7 @@ const AdminOrders = () => {
     };
 
     // Status tabs configuration
-    const statusTabs = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Returned'];
+    const statusTabs = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Completed', 'Cancelled', 'Returned'];
 
     // Calculate counts for each status
     const getStatusCount = (status) => {
@@ -377,6 +378,7 @@ const AdminOrders = () => {
                                                         <option value="Processing" className="bg-white">Processing</option>
                                                         <option value="Shipped" className="bg-white">Shipped</option>
                                                         <option value="Delivered" className="bg-white">Delivered</option>
+                                                        <option value="Completed" className="bg-white">Completed</option>
                                                         <option value="Cancelled" className="bg-white">Cancelled</option>
                                                         <option value="Returned" className="bg-white">Returned</option>
                                                     </select>
@@ -747,6 +749,7 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                                 <option value="Processing">Workflow: Processing</option>
                                 <option value="Shipped">Transit: Shipped</option>
                                 <option value="Delivered">Terminal: Delivered</option>
+                                <option value="Completed">Terminal: Completed</option>
                                 <option value="Cancelled">Void: Cancelled</option>
                                 <option value="Returned">Reversal: Returned</option>
                             </select>
@@ -935,6 +938,19 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                                 onChange={(e) => setFormData({ ...formData, extraFees: e.target.value })}
                                 className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none transition-all font-black text-xs"
                                 placeholder="0.00"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <GaugeCircle className="w-3 h-3" />
+                                Current Mileage (KM)
+                            </label>
+                            <input
+                                type="number"
+                                value={formData.currentMileage}
+                                onChange={(e) => setFormData({ ...formData, currentMileage: e.target.value })}
+                                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none transition-all font-black text-xs"
+                                placeholder="e.g. 150000"
                             />
                         </div>
                     </div>
