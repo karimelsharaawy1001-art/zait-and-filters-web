@@ -11,8 +11,8 @@
   },
   {
     "id": "7JmzGoTMveuMTYokQ5m8",
-    "name": "TOTAL",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861736/brands/u1mvujcq3vrklilee8db.jpg"
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861736/brands/u1mvujcq3vrklilee8db.jpg",
+    "name": "TOTAL"
   },
   {
     "id": "8n1NM68fOHxh006hj019",
@@ -31,28 +31,28 @@
   },
   {
     "id": "HoJbOBmrHkpWAdhwUT8n",
-    "name": "LEMFORDER",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861550/brands/ukgd7qymi2nhdoguebvg.jpg"
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861550/brands/ukgd7qymi2nhdoguebvg.jpg",
+    "name": "LEMFORDER"
   },
   {
     "id": "I1mWF9wiotbxAx5NE6JS",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861672/brands/etba3vm76uv9oukmjal8.jpg",
-    "name": "NGK"
+    "name": "NGK",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861672/brands/etba3vm76uv9oukmjal8.jpg"
   },
   {
     "id": "JVDaPhUdnNlKSgf4CtWC",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861700/brands/khxjvbegeclcwmvmuzra.jpg",
-    "name": "SACHS"
+    "name": "SACHS",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861700/brands/khxjvbegeclcwmvmuzra.jpg"
   },
   {
     "id": "MAnO3uXu0qQ24Aweh0q1",
-    "name": "LIQUI MOLY",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861576/brands/snbqpx8p4dnsw1cl7zup.jpg"
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861576/brands/snbqpx8p4dnsw1cl7zup.jpg",
+    "name": "LIQUI MOLY"
   },
   {
     "id": "MRjEDz7tm4JRTUjWEXef",
-    "name": "BOSCH",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861379/brands/qhuwye7yyx80kufl4c76.jpg"
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861379/brands/qhuwye7yyx80kufl4c76.jpg",
+    "name": "BOSCH"
   },
   {
     "id": "SohzvIILeT5n4rCYFtsy",
@@ -81,8 +81,8 @@
   },
   {
     "id": "bwMbWKuAtICPJfc0MsiO",
-    "name": "Valeo",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861287/brands/omwas4k8qfykadnk3eas.jpg"
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1768861287/brands/omwas4k8qfykadnk3eas.jpg",
+    "name": "Valeo"
   },
   {
     "id": "fTy1MiAoofULiOWUTRip",

@@ -1518,6 +1518,7 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                                             ) : (
                                                                 <p className="text-[10px] text-gray-400 font-bold">{p.price} EGP</p>
                                                             )}
+                                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">| {p.partBrand || p.brand}</p>
                                                         </div>
                                                     </div>
                                                     <PlusCircle className="h-5 w-5 text-[#28B463]" />
@@ -1536,13 +1537,16 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                             <img src={item.image} className="w-12 h-12 rounded-xl object-cover" />
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-xs font-black truncate">{item.name}</p>
-                                                <div className="relative w-fit mt-1">
-                                                    <input
-                                                        type="number"
-                                                        value={item.price}
-                                                        onChange={(e) => updateItemPrice(item.id, e.target.value)}
-                                                        className="w-24 px-2 py-1 bg-gray-50 border border-gray-100 rounded-lg text-[10px] font-black text-[#28B463] outline-none"
-                                                    />
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <div className="relative w-fit">
+                                                        <input
+                                                            type="number"
+                                                            value={item.price}
+                                                            onChange={(e) => updateItemPrice(item.id, e.target.value)}
+                                                            className="w-24 px-2 py-1 bg-gray-50 border border-gray-100 rounded-lg text-[10px] font-black text-[#28B463] outline-none"
+                                                        />
+                                                    </div>
+                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">| {item.brand || 'N/A'}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center bg-gray-50 rounded-lg px-2">
