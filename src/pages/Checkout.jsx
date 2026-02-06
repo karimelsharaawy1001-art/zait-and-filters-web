@@ -13,7 +13,7 @@ import PhoneInputGroup from '../components/PhoneInputGroup';
 import TrustPaymentSection from '../components/TrustPaymentSection';
 
 const Checkout = () => {
-    const { cartItems, getCartTotal, clearCart, updateCartStage, updateCustomerInfo } = useCart();
+    const { cartItems, getCartTotal, clearCart, updateCartStage, updateCustomerInfo, getEffectivePrice } = useCart();
     const { navigate } = useSafeNavigation();
     const { t, i18n } = useTranslation();
     const isAr = i18n.language === 'ar';
@@ -381,7 +381,7 @@ const Checkout = () => {
                 id: item.id || 'unknown',
                 name: item.name || 'Unknown Product',
                 nameEn: item.nameEn || null,
-                price: Number(item.salePrice || item.price) || 0,
+                price: Number(getEffectivePrice(item)) || 0,
                 quantity: Number(item.quantity) || 1,
                 image: item.image || null,
                 brand: item.brand || null,

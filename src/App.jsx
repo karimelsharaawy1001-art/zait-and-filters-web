@@ -43,6 +43,7 @@ const Profile = React.lazy(() => import('./pages/Profile'));
 const AffiliateDashboard = React.lazy(() => import('./pages/AffiliateDashboard'));
 const AffiliateRegister = React.lazy(() => import('./pages/AffiliateRegister'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
+const InvoiceViewer = React.lazy(() => import('./pages/InvoiceViewer'));
 
 // Lazy Load Admin Pages
 const AdminLogin = React.lazy(() => import('./pages/AdminLogin'));
@@ -235,7 +236,10 @@ function App() {
           <ErrorBoundary>
             <React.Suspense fallback={<PageLoader />}>
               <Routes>
-                {/* 1. Admin Logic (Highest Priority) */}
+                {/* 1. Standalone Routes (No Layout) */}
+                <Route path="/print-invoice/:id" element={<InvoiceViewer />} />
+
+                {/* 2. Admin Logic (Highest Priority) */}
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route
                   path="/admin"

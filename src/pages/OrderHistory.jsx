@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { Package, Clock, ChevronRight } from 'lucide-react';
+import { Package, Clock, ChevronRight, Printer, Download } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { generateInvoice } from '../utils/invoiceGenerator';
 import { useTranslation } from 'react-i18next';
 import { getOptimizedImage } from '../utils/cloudinaryUtils';
 
@@ -164,6 +165,24 @@ const OrderHistory = () => {
                                     `}>
                                         {getStatusI18n(order.status)}
                                     </span>
+
+                                    <button
+                                        onClick={() => window.open(`/print-invoice/${order.id}`, '_blank')}
+                                        className="flex items-center gap-2 text-gray-400 hover:text-black transition-colors px-2 border-r border-gray-100"
+                                        title={isAr ? "طباعة الفاتورة" : "Print Invoice"}
+                                    >
+                                        <Printer className="w-4 h-4 stroke-[3px]" />
+                                        <span className="hidden sm:inline text-[10px] font-black uppercase tracking-widest">{isAr ? "طباعة" : "Print"}</span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => generateInvoice(order)}
+                                        className="flex items-center gap-2 text-[#28B463] hover:text-green-700 transition-colors px-2"
+                                        title={isAr ? "تحميل الفاتورة" : "Download Invoice"}
+                                    >
+                                        <Download className="w-4 h-4 stroke-[3px]" />
+                                        <span className="hidden sm:inline text-[10px] font-black uppercase tracking-widest">{isAr ? "تحميل" : "Download"}</span>
+                                    </button>
                                 </div>
                             </div>
 

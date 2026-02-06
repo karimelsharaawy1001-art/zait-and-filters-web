@@ -69,10 +69,7 @@ export const CartProvider = ({ children }) => {
                             customerName: customerDetails.name || auth.currentUser?.displayName || 'Guest',
                             customerPhone: customerDetails.phone || null,
                             items: cartItems,
-                            total: cartItems.reduce((sum, item) => {
-                                const effectivePrice = Number(item.salePrice) || Number(item.price);
-                                return sum + (effectivePrice * item.quantity);
-                            }, 0),
+                            total: cartItems.reduce((sum, item) => sum + (getEffectivePrice(item) * item.quantity), 0),
                             lastModified: serverTimestamp(),
                             recovered: false,
                             emailSent: false,
@@ -147,6 +144,12 @@ export const CartProvider = ({ children }) => {
         });
     };
 
+    const getEffectivePrice = (item) => {
+        if (!item) return 0;
+        // Strictly use salePrice if it's a valid number and not null
+        return (item.salePrice !== null && item.salePrice !== undefined) ? Number(item.salePrice) : Number(item.price);
+    };
+
     const updateQuantity = (id, newQuantity) => {
         if (newQuantity < 1) {
             removeFromCart(id);
@@ -176,9 +179,7 @@ export const CartProvider = ({ children }) => {
 
     const getCartTotal = () => {
         return cartItems.reduce((total, item) => {
-            // Since we sanitized on entry, we can trust salePrice if it exists
-            const effectivePrice = item.salePrice !== null ? item.salePrice : item.price;
-            return total + (effectivePrice * item.quantity);
+            return total + (getEffectivePrice(item) * item.quantity);
         }, 0);
     };
 
@@ -196,6 +197,7 @@ export const CartProvider = ({ children }) => {
             clearCart,
             getCartTotal,
             getCartCount,
+            getEffectivePrice,
             updateCartStage,
             updateCustomerInfo,
             currentStage

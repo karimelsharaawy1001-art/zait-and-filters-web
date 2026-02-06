@@ -40,9 +40,12 @@ import {
     ChevronDown,
     Loader2,
     ShieldCheck,
-    AlertCircle
+    AlertCircle,
+    Printer,
+    Download
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { generateInvoice } from '../utils/invoiceGenerator';
 
 const AdminOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -392,6 +395,27 @@ const AdminOrders = () => {
                                                         >
                                                             <Eye className="w-5 h-5" />
                                                         </Link>
+
+                                                        {/* Print Invoice Button */}
+                                                        <button
+                                                            onClick={() => window.open(`/print-invoice/${order.id}`, '_blank')}
+                                                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-400 hover:text-[#e31e24]"
+                                                            title="Print Invoice"
+                                                        >
+                                                            <Printer className="w-5 h-5" />
+                                                        </button>
+
+                                                        {/* Download Invoice Button */}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                generateInvoice(order);
+                                                            }}
+                                                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-400 hover:text-[#28B463]"
+                                                            title="Download PDF Invoice"
+                                                        >
+                                                            <Download className="w-5 h-5" />
+                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>
