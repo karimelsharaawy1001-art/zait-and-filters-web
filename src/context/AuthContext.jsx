@@ -45,7 +45,15 @@ export const AuthProvider = ({ children }) => {
     }, [DATABASE_ID, USERS_COLLECTION]);
 
     const login = async (email, password) => {
-        await account.createEmailPasswordSession(email, password);
+        try {
+            await account.createEmailPasswordSession(email, password);
+        } catch (error) {
+            // If session already exists (401), ignore and proceed to get account
+            if (error.code !== 401) {
+                throw error;
+            }
+        }
+
         const sessionUser = await account.get();
         setUser(sessionUser);
 
