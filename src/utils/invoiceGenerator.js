@@ -9,8 +9,7 @@ export const generateInvoice = (order) => {
     if (!order) return;
 
     const doc = new jsPDF();
-    const isAr = order.customer?.governorate ? true : false; // Heuristic for now
-    const currency = 'EGP';
+    const currency = 'ج.م';
 
     // Helper for right alignment
     const pageWidth = doc.internal.pageSize.width;
@@ -25,39 +24,31 @@ export const generateInvoice = (order) => {
     doc.setFont('helvetica', 'normal');
     doc.text('Automotive Spare Parts Specialist', margin, 38);
     doc.text('Cairo, Egypt', margin, 43);
-    doc.text('https://zait-and-filters-web.vercel.app', margin, 48);
 
-    // Invoice Info
+    // Invoice Info - Change "INVOICE" to "ORDER"
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
-    doc.text('INVOICE', pageWidth - 60, 30);
+    doc.text('ORDER (طلب)', pageWidth - 70, 30);
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Order #: ${order.orderNumber || order.id?.slice(-6).toUpperCase()}`, pageWidth - 60, 38);
-    doc.text(`Date: ${order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString() : new Date(order.createdAt).toLocaleDateString()}`, pageWidth - 60, 43);
-    doc.text(`Status: ${order.status}`, pageWidth - 60, 48);
+    doc.text(`Order #: ${order.orderNumber || order.id?.slice(-6).toUpperCase()}`, pageWidth - 70, 38);
+    const dateStr = order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString('en-GB') : new Date(order.createdAt).toLocaleDateString('en-GB');
+    doc.text(`Date: ${dateStr}`, pageWidth - 70, 43);
 
     // Bill To
     doc.line(margin, 55, pageWidth - margin, 55);
     doc.setFont('helvetica', 'bold');
-    doc.text('BILL TO:', margin, 65);
+    doc.text('Bill To (إلى):', margin, 65);
     doc.setFont('helvetica', 'normal');
     doc.text(order.customer?.name || 'Customer', margin, 70);
     doc.text(order.customer?.phone || '', margin, 75);
     doc.text(`${order.customer?.city || ''}, ${order.customer?.governorate || ''}`, margin, 80);
-    doc.text(order.customer?.address || '', margin, 85, { maxWidth: 100 });
-
-    // Payment Method
-    doc.setFont('helvetica', 'bold');
-    doc.text('PAYMENT METHOD:', pageWidth - 80, 65);
-    doc.setFont('helvetica', 'normal');
-    doc.text(order.paymentMethod || 'COD', pageWidth - 80, 70);
 
     // Table
     const tableData = order.items.map((item, index) => [
         index + 1,
-        item.name || item.nameEn || 'Product',
+        `${item.name || item.nameEn || 'Product'}\n(${item.make} ${item.model})`, // Include Make and Model
         item.quantity,
         `${item.price} ${currency}`,
         `${item.price * item.quantity} ${currency}`
@@ -65,39 +56,42 @@ export const generateInvoice = (order) => {
 
     doc.autoTable({
         startY: 95,
-        head: [['#', 'Description', 'Qty', 'Unit Price', 'Total']],
+        head: [['#', 'Description (الوصف)', 'Qty (الكمية)', 'Unit Price (السعر)', 'Total (الإجمالي)']],
         body: tableData,
         theme: 'striped',
-        headStyles: { fillStyle: '#e31e24', textColor: 255 }, // Brand Red
-        styles: { font: 'helvetica' }
+        headStyles: { fillStyle: '#e31e24', textColor: 255 },
+        styles: { font: 'helvetica', halign: 'center' },
+        columnStyles: {
+            1: { halign: 'left', cellWidth: 80 }
+        }
     });
 
     const finalY = doc.lastAutoTable.finalY + 10;
 
     // Totals
-    const totalX = pageWidth - 60;
-    doc.text('Subtotal:', totalX, finalY);
+    const totalX = pageWidth - 70;
+    doc.text('Subtotal (الإجمالي الفرعي):', totalX, finalY);
     doc.text(`${order.subtotal || 0} ${currency}`, pageWidth - margin, finalY, { align: 'right' });
 
-    doc.text('Shipping:', totalX, finalY + 7);
+    doc.text('Shipping (الشحن):', totalX, finalY + 7);
     doc.text(`${order.shipping_cost || 0} ${currency}`, pageWidth - margin, finalY + 7, { align: 'right' });
 
     if (order.discount > 0) {
-        doc.text('Discount:', totalX, finalY + 14);
+        doc.text('Discount (الخصم):', totalX, finalY + 14);
         doc.text(`-${order.discount} ${currency}`, pageWidth - margin, finalY + 14, { align: 'right' });
     }
 
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     const totalRowY = finalY + (order.discount > 0 ? 22 : 15);
-    doc.text('GRAND TOTAL:', totalX, totalRowY);
+    doc.text('GRAND TOTAL (الإجمالي الكلي):', totalX, totalRowY);
     doc.text(`${order.total} ${currency}`, pageWidth - margin, totalRowY, { align: 'right' });
 
-    // Footer
+    // Footer - Remove phone as requested
     doc.setFontSize(8);
     doc.setFont('helvetica', 'italic');
     doc.text('Thank you for shopping with Zait & Filters!', pageWidth / 2, pageWidth === 210 ? 280 : 260, { align: 'center' });
 
     // Save
-    doc.save(`Invoice_${order.orderNumber || order.id?.slice(-6)}.pdf`);
+    doc.save(`Order_${order.orderNumber || order.id?.slice(-6)}.pdf`);
 };
