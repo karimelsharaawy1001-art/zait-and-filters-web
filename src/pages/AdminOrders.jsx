@@ -1232,16 +1232,16 @@ const CreateOrderModal = ({ onClose, onSave, cachedCustomers = [] }) => {
         const { subtotal, shipping, total } = calculateTotals();
 
         try {
-            await runTransaction(db, async (tx) => {
-                const counterRef = doc(db, 'settings', 'counters');
-                const counterSnap = await tx.get(counterRef);
+            try {
+                // QUOTA SHIELD: Client-Side Order Number Generation
+                // Bypassing transaction read to prevent "Quota Exceeded" errors
 
-                let nextNumber = 3501;
-                if (counterSnap.exists()) {
-                    nextNumber = (counterSnap.data().lastOrderNumber || 3500) + 1;
-                }
+                // 1. Calculate next number from loaded orders (Optimistic)
+                const maxOrderNumber = orders.reduce((max, o) => Math.max(max, o.orderNumber || 0), 3500);
+                const nextNumber = maxOrderNumber + 1;
 
                 const orderRef = doc(collection(db, 'orders'));
+                const counterRef = doc(db, 'settings', 'counters');
 
                 const finalOrder = {
                     customer: {
@@ -1270,413 +1270,417 @@ const CreateOrderModal = ({ onClose, onSave, cachedCustomers = [] }) => {
                     source: 'admin_panel'
                 };
 
-                tx.set(orderRef, finalOrder);
-                tx.set(counterRef, { lastOrderNumber: nextNumber }, { merge: true });
-            });
+                // 2. Write Order (Write Quota is usually fine)
+                await setDoc(orderRef, finalOrder);
 
-            toast.success("Order created successfully!");
-            onSave();
-        } catch (error) {
-            console.error("Failed to create order:", error);
-            toast.error("Failed to create order.");
-        } finally {
-            setLoading(false);
-        }
-    };
+                // 3. Blind Update Counter (No Read Required)
+                await updateDoc(counterRef, {
+                    lastOrderNumber: increment(1)
+                }).catch(err => console.warn("Counter update failed (non-critical):", err));
 
-    const { subtotal, shipping, total } = calculateTotals();
+                toast.success(`Order #${nextNumber} created successfully!`);
+                onSave();
+            } catch (error) {
+                console.error("Failed to create order:", error);
+                toast.error("Failed to create order.");
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose}></div>
-            <div className="bg-white rounded-[32px] shadow-2xl relative w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
-                {/* Header */}
-                <div className="bg-[#1A1A1A] p-6 text-white flex justify-between items-center shrink-0">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-[#28B463] flex items-center justify-center">
-                            <PlusCircle className="text-white h-5 w-5" />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-black uppercase tracking-widest">Create Manual Order</h3>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em]">Administrator Terminal</p>
-                        </div>
-                    </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
-                        <X className="h-6 w-6" />
-                    </button>
-                </div>
+        const { subtotal, shipping, total } = calculateTotals();
 
-                {/* Body */}
-                <div className="flex-1 overflow-y-auto p-8">
-                    {/* Stepper */}
-                    <div className="flex items-center justify-center mb-8">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-colors ${step >= 1 ? 'bg-[#28B463] text-white' : 'bg-gray-100 text-gray-400'}`}>1</div>
-                        <div className={`w-16 h-1 bg-gray-100 mx-2 ${step >= 2 ? 'bg-[#28B463]' : ''}`}></div>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-colors ${step >= 2 ? 'bg-[#28B463] text-white' : 'bg-gray-100 text-gray-400'}`}>2</div>
-                        <div className={`w-16 h-1 bg-gray-100 mx-2 ${step >= 3 ? 'bg-[#28B463]' : ''}`}></div>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-colors ${step >= 3 ? 'bg-[#28B463] text-white' : 'bg-gray-100 text-gray-400'}`}>3</div>
-                    </div>
-
-                    {/* Step 1: Customer Details */}
-                    {step === 1 && (
-                        <div className="space-y-6 max-w-2xl mx-auto">
-                            <div className="flex bg-gray-100 p-1 rounded-2xl w-fit mx-auto mb-6">
-                                <button
-                                    onClick={() => setCustomerMode('existing')}
-                                    className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${customerMode === 'existing' ? 'bg-white shadow-lg text-black' : 'text-gray-400 hover:text-gray-600'}`}
-                                >
-                                    Existing Customer
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setCustomerMode('new');
-                                        setOrderData(prev => ({ ...prev, customer: { ...prev.customer, id: null, name: '', phone: '', secondaryPhone: '', email: '', address: '', governorate: '', city: '' } }));
-                                    }}
-                                    className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${customerMode === 'new' ? 'bg-white shadow-lg text-black' : 'text-gray-400 hover:text-gray-600'}`}
-                                >
-                                    New Customer
-                                </button>
+        return (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose}></div>
+                <div className="bg-white rounded-[32px] shadow-2xl relative w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+                    {/* Header */}
+                    <div className="bg-[#1A1A1A] p-6 text-white flex justify-between items-center shrink-0">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-[#28B463] flex items-center justify-center">
+                                <PlusCircle className="text-white h-5 w-5" />
                             </div>
+                            <div>
+                                <h3 className="text-lg font-black uppercase tracking-widest">Create Manual Order</h3>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em]">Administrator Terminal</p>
+                            </div>
+                        </div>
+                        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
+                            <X className="h-6 w-6" />
+                        </button>
+                    </div>
 
-                            {customerMode === 'existing' && (
-                                <div className="space-y-4">
-                                    <div className="relative">
-                                        <div className="flex items-center bg-gray-50 border border-gray-200 rounded-2xl p-4 focus-within:ring-2 ring-[#28B463]">
-                                            <Search className="h-5 w-5 text-gray-400 mr-3" />
+                    {/* Body */}
+                    <div className="flex-1 overflow-y-auto p-8">
+                        {/* Stepper */}
+                        <div className="flex items-center justify-center mb-8">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-colors ${step >= 1 ? 'bg-[#28B463] text-white' : 'bg-gray-100 text-gray-400'}`}>1</div>
+                            <div className={`w-16 h-1 bg-gray-100 mx-2 ${step >= 2 ? 'bg-[#28B463]' : ''}`}></div>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-colors ${step >= 2 ? 'bg-[#28B463] text-white' : 'bg-gray-100 text-gray-400'}`}>2</div>
+                            <div className={`w-16 h-1 bg-gray-100 mx-2 ${step >= 3 ? 'bg-[#28B463]' : ''}`}></div>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-colors ${step >= 3 ? 'bg-[#28B463] text-white' : 'bg-gray-100 text-gray-400'}`}>3</div>
+                        </div>
+
+                        {/* Step 1: Customer Details */}
+                        {step === 1 && (
+                            <div className="space-y-6 max-w-2xl mx-auto">
+                                <div className="flex bg-gray-100 p-1 rounded-2xl w-fit mx-auto mb-6">
+                                    <button
+                                        onClick={() => setCustomerMode('existing')}
+                                        className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${customerMode === 'existing' ? 'bg-white shadow-lg text-black' : 'text-gray-400 hover:text-gray-600'}`}
+                                    >
+                                        Existing Customer
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setCustomerMode('new');
+                                            setOrderData(prev => ({ ...prev, customer: { ...prev.customer, id: null, name: '', phone: '', secondaryPhone: '', email: '', address: '', governorate: '', city: '' } }));
+                                        }}
+                                        className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${customerMode === 'new' ? 'bg-white shadow-lg text-black' : 'text-gray-400 hover:text-gray-600'}`}
+                                    >
+                                        New Customer
+                                    </button>
+                                </div>
+
+                                {customerMode === 'existing' && (
+                                    <div className="space-y-4">
+                                        <div className="relative">
+                                            <div className="flex items-center bg-gray-50 border border-gray-200 rounded-2xl p-4 focus-within:ring-2 ring-[#28B463]">
+                                                <Search className="h-5 w-5 text-gray-400 mr-3" />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search by Phone Number..."
+                                                    value={customerSearch}
+                                                    onChange={(e) => handleCustomerSearch(e.target.value)}
+                                                    className="bg-transparent w-full text-sm font-bold text-black border-none outline-none placeholder-gray-400"
+                                                />
+                                                {searchingCustomers && <Loader2 className="h-4 w-4 animate-spin text-[#28B463]" />}
+                                            </div>
+                                        </div>
+
+                                        {/* Results */}
+                                        {customerResults.length > 0 && (
+                                            <div className="bg-white border border-gray-100 shadow-xl rounded-2xl max-h-60 overflow-y-auto">
+                                                {customerResults.map(user => (
+                                                    <button
+                                                        key={user.id}
+                                                        onClick={() => {
+                                                            setOrderData(prev => ({
+                                                                ...prev,
+                                                                customer: {
+                                                                    id: user.id || null,
+                                                                    name: user.fullName || user.name || '',
+                                                                    phone: user.phoneNumber || user.phone || '',
+                                                                    email: user.email || '',
+                                                                    address: user.address || '',
+                                                                    governorate: user.governorate || '',
+                                                                    city: user.city || ''
+                                                                }
+                                                            }));
+                                                            setCustomerSearch('');
+                                                            setCustomerResults([]);
+                                                        }}
+                                                        className="w-full text-left p-4 hover:bg-gray-50 border-b border-gray-50 last:border-0"
+                                                    >
+                                                        <p className="font-black text-sm text-black">{user.fullName}</p>
+                                                        <p className="text-xs text-gray-400">{user.phoneNumber} • {user.email}</p>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Customer Form Fields */}
+                                <div className="space-y-4 bg-gray-50/50 p-6 rounded-[24px] border border-gray-100">
+                                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Customer Details</h4>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Full Name</label>
                                             <input
                                                 type="text"
-                                                placeholder="Search by Phone Number..."
-                                                value={customerSearch}
-                                                onChange={(e) => handleCustomerSearch(e.target.value)}
-                                                className="bg-transparent w-full text-sm font-bold text-black border-none outline-none placeholder-gray-400"
+                                                value={orderData.customer.name}
+                                                onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, name: e.target.value } })}
+                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
                                             />
-                                            {searchingCustomers && <Loader2 className="h-4 w-4 animate-spin text-[#28B463]" />}
                                         </div>
-                                    </div>
-
-                                    {/* Results */}
-                                    {customerResults.length > 0 && (
-                                        <div className="bg-white border border-gray-100 shadow-xl rounded-2xl max-h-60 overflow-y-auto">
-                                            {customerResults.map(user => (
-                                                <button
-                                                    key={user.id}
-                                                    onClick={() => {
-                                                        setOrderData(prev => ({
-                                                            ...prev,
-                                                            customer: {
-                                                                id: user.id || null,
-                                                                name: user.fullName || user.name || '',
-                                                                phone: user.phoneNumber || user.phone || '',
-                                                                email: user.email || '',
-                                                                address: user.address || '',
-                                                                governorate: user.governorate || '',
-                                                                city: user.city || ''
-                                                            }
-                                                        }));
-                                                        setCustomerSearch('');
-                                                        setCustomerResults([]);
-                                                    }}
-                                                    className="w-full text-left p-4 hover:bg-gray-50 border-b border-gray-50 last:border-0"
-                                                >
-                                                    <p className="font-black text-sm text-black">{user.fullName}</p>
-                                                    <p className="text-xs text-gray-400">{user.phoneNumber} • {user.email}</p>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Customer Form Fields */}
-                            <div className="space-y-4 bg-gray-50/50 p-6 rounded-[24px] border border-gray-100">
-                                <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Customer Details</h4>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase">Full Name</label>
-                                        <input
-                                            type="text"
-                                            value={orderData.customer.name}
-                                            onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, name: e.target.value } })}
-                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase">Phone Number</label>
-                                        <input
-                                            type="text"
-                                            value={orderData.customer.phone}
-                                            onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, phone: e.target.value } })}
-                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase">Governorate</label>
-                                        <select
-                                            value={orderData.customer.governorate}
-                                            onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, governorate: e.target.value } })}
-                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
-                                        >
-                                            <option value="">Select...</option>
-                                            {shippingRates.map(r => (
-                                                <option key={r.id} value={r.governorate}>{r.governorate} (+{r.cost} EGP)</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase">City</label>
-                                        <input
-                                            type="text"
-                                            value={orderData.customer.city}
-                                            onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, city: e.target.value } })}
-                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
-                                        />
-                                    </div>
-                                    <div className="col-span-2">
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase">Detailed Address</label>
-                                        <textarea
-                                            value={orderData.customer.address}
-                                            onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, address: e.target.value } })}
-                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
-                                            rows={2}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Step 2: Product Selection */}
-                    {step === 2 && (
-                        <div className="space-y-6">
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    <select value={filterMake} onChange={e => setFilterMake(e.target.value)} className="bg-gray-50 border-gray-100 rounded-xl text-xs font-bold p-2.5">
-                                        <option value="">All Makes</option>
-                                        {makes.map(m => <option key={m} value={m}>{m}</option>)}
-                                    </select>
-                                    <select value={filterModel} onChange={e => setFilterModel(e.target.value)} disabled={!filterMake} className="bg-gray-50 border-gray-100 rounded-xl text-xs font-bold p-2.5 disabled:opacity-50">
-                                        <option value="">All Models</option>
-                                        {models.map(m => <option key={m} value={m}>{m}</option>)}
-                                    </select>
-                                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="bg-gray-50 border-gray-100 rounded-xl text-xs font-bold p-2.5">
-                                        <option value="">All Categories</option>
-                                        {staticCategories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-                                    </select>
-                                    <input
-                                        type="number"
-                                        placeholder="Year"
-                                        value={filterYear}
-                                        onChange={e => setFilterYear(e.target.value)}
-                                        className="bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold p-2.5"
-                                    />
-                                </div>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        placeholder="Search products..."
-                                        value={productSearch}
-                                        onChange={e => handleProductSearch(e.target.value)}
-                                        className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:ring-2 focus:ring-[#28B463] outline-none"
-                                    />
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                                    {searchResults.length > 0 && (
-                                        <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-gray-100 shadow-2xl rounded-2xl z-[50] max-h-60 overflow-y-auto">
-                                            {searchResults.map(p => (
-                                                <button
-                                                    key={p.id}
-                                                    onClick={() => addProduct(p)}
-                                                    className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 border-b border-gray-50 last:border-0"
-                                                >
-                                                    <img src={p.image || p.images?.[0] || '/placeholder.png'} className="w-10 h-10 rounded-lg object-cover" />
-                                                    <div className="text-left flex-1 min-w-0">
-                                                        <p className="text-xs font-black truncate text-black">{p.name}</p>
-                                                        <div className="flex items-center gap-2">
-                                                            {(p.salePrice !== null && p.salePrice !== undefined) ? (
-                                                                <>
-                                                                    <p className="text-[10px] text-[#28B463] font-black">{p.salePrice} EGP</p>
-                                                                    <p className="text-[9px] text-gray-400 line-through font-bold">{p.price} EGP</p>
-                                                                </>
-                                                            ) : (
-                                                                <p className="text-[10px] text-gray-400 font-bold">{p.price} EGP</p>
-                                                            )}
-                                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">| {p.partBrand || p.brand}</p>
-                                                        </div>
-                                                    </div>
-                                                    <PlusCircle className="h-5 w-5 text-[#28B463]" />
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="bg-gray-50 rounded-[28px] p-4 border border-gray-100 min-h-[200px]">
-                                <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Selected Inventory ({orderData.items.length})</h4>
-                                <div className="space-y-3">
-                                    {orderData.items.map(item => (
-                                        <div key={item.id} className="flex items-center gap-4 bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
-                                            <img src={item.image} className="w-12 h-12 rounded-xl object-cover" />
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-xs font-black truncate">{item.name}</p>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <div className="relative w-fit">
-                                                        <input
-                                                            type="number"
-                                                            value={item.price}
-                                                            onChange={(e) => updateItemPrice(item.id, e.target.value)}
-                                                            className="w-24 px-2 py-1 bg-gray-50 border border-gray-100 rounded-lg text-[10px] font-black text-[#28B463] outline-none"
-                                                        />
-                                                    </div>
-                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">| {item.brand || 'N/A'}</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center bg-gray-50 rounded-lg px-2">
-                                                <button onClick={() => updateItemQty(item.id, -1)} className="p-2 text-gray-500"><Minus className="h-3 w-3" /></button>
-                                                <span className="text-xs font-black mx-2">{item.quantity}</span>
-                                                <button onClick={() => updateItemQty(item.id, 1)} className="p-2 text-gray-500"><Plus className="h-3 w-3" /></button>
-                                            </div>
-                                            <button onClick={() => removeItem(item.id)} className="p-2 text-gray-400 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Step 3: Review */}
-                    {step === 3 && (
-                        <div className="space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-4">
-                                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest">Configuration</h4>
-                                    <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 space-y-4">
                                         <div>
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Payment</label>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Phone Number</label>
+                                            <input
+                                                type="text"
+                                                value={orderData.customer.phone}
+                                                onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, phone: e.target.value } })}
+                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Governorate</label>
                                             <select
-                                                value={orderData.paymentMethod}
-                                                onChange={(e) => setOrderData({ ...orderData, paymentMethod: e.target.value })}
-                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
+                                                value={orderData.customer.governorate}
+                                                onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, governorate: e.target.value } })}
+                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
                                             >
-                                                <option value="Cash on Delivery">Cash on Delivery</option>
-                                                <option value="Credit Card">Credit Card</option>
-                                                <option value="InstaPay">InstaPay</option>
-                                                <option value="Wallet">Wallet</option>
+                                                <option value="">Select...</option>
+                                                {shippingRates.map(r => (
+                                                    <option key={r.id} value={r.governorate}>{r.governorate} (+{r.cost} EGP)</option>
+                                                ))}
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Discount (EGP)</label>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">City</label>
                                             <input
-                                                type="number"
-                                                value={orderData.manualDiscount}
-                                                onChange={(e) => setOrderData({ ...orderData, manualDiscount: e.target.value })}
-                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
+                                                type="text"
+                                                value={orderData.customer.city}
+                                                onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, city: e.target.value } })}
+                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
                                             />
                                         </div>
-                                        <div>
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Extra Fees (EGP)</label>
-                                            <input
-                                                type="number"
-                                                value={orderData.extraFees}
-                                                onChange={(e) => setOrderData({ ...orderData, extraFees: e.target.value })}
-                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
+                                        <div className="col-span-2">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Detailed Address</label>
+                                            <textarea
+                                                value={orderData.customer.address}
+                                                onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, address: e.target.value } })}
+                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
+                                                rows={2}
                                             />
                                         </div>
                                     </div>
-                                    <div className="mt-4">
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase">Order Notes</label>
-                                        <textarea
-                                            value={orderData.notes}
-                                            onChange={(e) => setOrderData({ ...orderData, notes: e.target.value })}
-                                            className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
-                                            rows={2}
-                                            placeholder="Add instructions..."
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Step 2: Product Selection */}
+                        {step === 2 && (
+                            <div className="space-y-6">
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                        <select value={filterMake} onChange={e => setFilterMake(e.target.value)} className="bg-gray-50 border-gray-100 rounded-xl text-xs font-bold p-2.5">
+                                            <option value="">All Makes</option>
+                                            {makes.map(m => <option key={m} value={m}>{m}</option>)}
+                                        </select>
+                                        <select value={filterModel} onChange={e => setFilterModel(e.target.value)} disabled={!filterMake} className="bg-gray-50 border-gray-100 rounded-xl text-xs font-bold p-2.5 disabled:opacity-50">
+                                            <option value="">All Models</option>
+                                            {models.map(m => <option key={m} value={m}>{m}</option>)}
+                                        </select>
+                                        <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="bg-gray-50 border-gray-100 rounded-xl text-xs font-bold p-2.5">
+                                            <option value="">All Categories</option>
+                                            {staticCategories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                                        </select>
+                                        <input
+                                            type="number"
+                                            placeholder="Year"
+                                            value={filterYear}
+                                            onChange={e => setFilterYear(e.target.value)}
+                                            className="bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold p-2.5"
                                         />
+                                    </div>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            placeholder="Search products..."
+                                            value={productSearch}
+                                            onChange={e => handleProductSearch(e.target.value)}
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:ring-2 focus:ring-[#28B463] outline-none"
+                                        />
+                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                        {searchResults.length > 0 && (
+                                            <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-gray-100 shadow-2xl rounded-2xl z-[50] max-h-60 overflow-y-auto">
+                                                {searchResults.map(p => (
+                                                    <button
+                                                        key={p.id}
+                                                        onClick={() => addProduct(p)}
+                                                        className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 border-b border-gray-50 last:border-0"
+                                                    >
+                                                        <img src={p.image || p.images?.[0] || '/placeholder.png'} className="w-10 h-10 rounded-lg object-cover" />
+                                                        <div className="text-left flex-1 min-w-0">
+                                                            <p className="text-xs font-black truncate text-black">{p.name}</p>
+                                                            <div className="flex items-center gap-2">
+                                                                {(p.salePrice !== null && p.salePrice !== undefined) ? (
+                                                                    <>
+                                                                        <p className="text-[10px] text-[#28B463] font-black">{p.salePrice} EGP</p>
+                                                                        <p className="text-[9px] text-gray-400 line-through font-bold">{p.price} EGP</p>
+                                                                    </>
+                                                                ) : (
+                                                                    <p className="text-[10px] text-gray-400 font-bold">{p.price} EGP</p>
+                                                                )}
+                                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">| {p.partBrand || p.brand}</p>
+                                                            </div>
+                                                        </div>
+                                                        <PlusCircle className="h-5 w-5 text-[#28B463]" />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
-                                <div className="space-y-4">
-                                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest">Totals</h4>
-                                    <div className="bg-[#1A1A1A] rounded-[28px] p-8 text-white space-y-4">
-                                        <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase">
-                                            <span>Subtotal</span>
-                                            <span>{subtotal.toFixed(2)} EGP</span>
-                                        </div>
-                                        <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase text-green-400">
-                                            <span>Shipping</span>
-                                            <span>+{shipping.toFixed(2)} EGP</span>
-                                        </div>
-                                        {Number(orderData.extraFees) > 0 && (
-                                            <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase text-blue-400">
-                                                <span>Extra Fees</span>
-                                                <span>+{Number(orderData.extraFees).toFixed(2)} EGP</span>
+                                <div className="bg-gray-50 rounded-[28px] p-4 border border-gray-100 min-h-[200px]">
+                                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Selected Inventory ({orderData.items.length})</h4>
+                                    <div className="space-y-3">
+                                        {orderData.items.map(item => (
+                                            <div key={item.id} className="flex items-center gap-4 bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
+                                                <img src={item.image} className="w-12 h-12 rounded-xl object-cover" />
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs font-black truncate">{item.name}</p>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <div className="relative w-fit">
+                                                            <input
+                                                                type="number"
+                                                                value={item.price}
+                                                                onChange={(e) => updateItemPrice(item.id, e.target.value)}
+                                                                className="w-24 px-2 py-1 bg-gray-50 border border-gray-100 rounded-lg text-[10px] font-black text-[#28B463] outline-none"
+                                                            />
+                                                        </div>
+                                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">| {item.brand || 'N/A'}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center bg-gray-50 rounded-lg px-2">
+                                                    <button onClick={() => updateItemQty(item.id, -1)} className="p-2 text-gray-500"><Minus className="h-3 w-3" /></button>
+                                                    <span className="text-xs font-black mx-2">{item.quantity}</span>
+                                                    <button onClick={() => updateItemQty(item.id, 1)} className="p-2 text-gray-500"><Plus className="h-3 w-3" /></button>
+                                                </div>
+                                                <button onClick={() => removeItem(item.id)} className="p-2 text-gray-400 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
                                             </div>
-                                        )}
-                                        {Number(orderData.manualDiscount) > 0 && (
-                                            <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase text-[#e31e24]">
-                                                <span>Manual Discount</span>
-                                                <span>-{Number(orderData.manualDiscount).toFixed(2)} EGP</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Step 3: Review */}
+                        {step === 3 && (
+                            <div className="space-y-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-4">
+                                        <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest">Configuration</h4>
+                                        <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 space-y-4">
+                                            <div>
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase">Payment</label>
+                                                <select
+                                                    value={orderData.paymentMethod}
+                                                    onChange={(e) => setOrderData({ ...orderData, paymentMethod: e.target.value })}
+                                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
+                                                >
+                                                    <option value="Cash on Delivery">Cash on Delivery</option>
+                                                    <option value="Credit Card">Credit Card</option>
+                                                    <option value="InstaPay">InstaPay</option>
+                                                    <option value="Wallet">Wallet</option>
+                                                </select>
                                             </div>
-                                        )}
-                                        <div className="border-t border-white/10 pt-4 mt-2">
-                                            <div className="flex justify-between items-center text-2xl font-black">
-                                                <span>TOTAL</span>
-                                                <span>{total.toFixed(2)} EGP</span>
+                                            <div>
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase">Discount (EGP)</label>
+                                                <input
+                                                    type="number"
+                                                    value={orderData.manualDiscount}
+                                                    onChange={(e) => setOrderData({ ...orderData, manualDiscount: e.target.value })}
+                                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase">Extra Fees (EGP)</label>
+                                                <input
+                                                    type="number"
+                                                    value={orderData.extraFees}
+                                                    onChange={(e) => setOrderData({ ...orderData, extraFees: e.target.value })}
+                                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="mt-4">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Order Notes</label>
+                                            <textarea
+                                                value={orderData.notes}
+                                                onChange={(e) => setOrderData({ ...orderData, notes: e.target.value })}
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
+                                                rows={2}
+                                                placeholder="Add instructions..."
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest">Totals</h4>
+                                        <div className="bg-[#1A1A1A] rounded-[28px] p-8 text-white space-y-4">
+                                            <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase">
+                                                <span>Subtotal</span>
+                                                <span>{subtotal.toFixed(2)} EGP</span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase text-green-400">
+                                                <span>Shipping</span>
+                                                <span>+{shipping.toFixed(2)} EGP</span>
+                                            </div>
+                                            {Number(orderData.extraFees) > 0 && (
+                                                <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase text-blue-400">
+                                                    <span>Extra Fees</span>
+                                                    <span>+{Number(orderData.extraFees).toFixed(2)} EGP</span>
+                                                </div>
+                                            )}
+                                            {Number(orderData.manualDiscount) > 0 && (
+                                                <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase text-[#e31e24]">
+                                                    <span>Manual Discount</span>
+                                                    <span>-{Number(orderData.manualDiscount).toFixed(2)} EGP</span>
+                                                </div>
+                                            )}
+                                            <div className="border-t border-white/10 pt-4 mt-2">
+                                                <div className="flex justify-between items-center text-2xl font-black">
+                                                    <span>TOTAL</span>
+                                                    <span>{total.toFixed(2)} EGP</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
-                </div>
+                        )}
+                    </div>
 
-                {/* Footer Controls */}
-                <div className="p-6 border-t border-gray-50 flex justify-between items-center bg-gray-50/50 shrink-0">
-                    <button
-                        onClick={() => {
-                            if (step > 1) setStep(step - 1);
-                            else onClose();
-                        }}
-                        className="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-all text-xs uppercase tracking-widest"
-                    >
-                        {step === 1 ? 'Cancel' : 'Back'}
-                    </button>
+                    {/* Footer Controls */}
+                    <div className="p-6 border-t border-gray-50 flex justify-between items-center bg-gray-50/50 shrink-0">
+                        <button
+                            onClick={() => {
+                                if (step > 1) setStep(step - 1);
+                                else onClose();
+                            }}
+                            className="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-all text-xs uppercase tracking-widest"
+                        >
+                            {step === 1 ? 'Cancel' : 'Back'}
+                        </button>
 
-                    <button
-                        onClick={() => {
-                            if (step < 3) {
-                                if (step === 1) {
-                                    if (!orderData.customer.name) {
-                                        toast.error("Customer Name is required");
-                                        return;
+                        <button
+                            onClick={() => {
+                                if (step < 3) {
+                                    if (step === 1) {
+                                        if (!orderData.customer.name) {
+                                            toast.error("Customer Name is required");
+                                            return;
+                                        }
+                                        if (!orderData.customer.phone) {
+                                            toast.error("Phone Number is required");
+                                            return;
+                                        }
+                                        if (!orderData.customer.governorate) {
+                                            toast.error("Governorate is required for shipping calculation");
+                                            return;
+                                        }
+                                        if (!orderData.customer.address) {
+                                            toast.error("Detailed Address is required");
+                                            return;
+                                        }
                                     }
-                                    if (!orderData.customer.phone) {
-                                        toast.error("Phone Number is required");
-                                        return;
-                                    }
-                                    if (!orderData.customer.governorate) {
-                                        toast.error("Governorate is required for shipping calculation");
-                                        return;
-                                    }
-                                    if (!orderData.customer.address) {
-                                        toast.error("Detailed Address is required");
-                                        return;
-                                    }
+                                    setStep(step + 1);
+                                } else {
+                                    handleSubmitOrder();
                                 }
-                                setStep(step + 1);
-                            } else {
-                                handleSubmitOrder();
-                            }
-                        }}
-                        disabled={loading}
-                        className="px-8 py-3 bg-[#1A1A1A] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl disabled:opacity-50 flex items-center gap-2"
-                    >
-                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : step === 3 ? 'Confirm Order' : 'Next Step'}
-                    </button>
+                            }}
+                            disabled={loading}
+                            className="px-8 py-3 bg-[#1A1A1A] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl disabled:opacity-50 flex items-center gap-2"
+                        >
+                            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : step === 3 ? 'Confirm Order' : 'Next Step'}
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-    );
-};
+        );
+    };
 
-export default AdminOrders;
+    export default AdminOrders;
