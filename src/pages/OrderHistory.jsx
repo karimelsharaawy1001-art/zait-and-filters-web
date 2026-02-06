@@ -71,7 +71,9 @@ const OrderHistory = () => {
             'Processing': t('statusProcessing'),
             'Shipped': t('statusShipped'),
             'Delivered': t('statusDelivered'),
-            'Cancelled': t('statusCancelled')
+            'Completed': t('statusCompleted'),
+            'Cancelled': t('statusCancelled'),
+            'Awaiting Payment Verification': t('statusAwaitingPaymentVerification')
         };
         return statuses[status] || status;
     };
@@ -81,9 +83,11 @@ const OrderHistory = () => {
             'Paid': t('paymentPaid'),
             'Pending': t('paymentPending'),
             'Failed': t('paymentFailed'),
-            'Refunded': t('paymentRefunded')
+            'Refunded': t('paymentRefunded'),
+            'Awaiting Verification': t('paymentAwaitingVerification')
         };
-        return statuses[status] || t('paymentUnpaid');
+        const result = statuses[status] || t('paymentUnpaid');
+        return result;
     };
 
     const handleUpdateMileage = async (orderId) => {
@@ -201,19 +205,24 @@ const OrderHistory = () => {
                                 </div>
                                 <div className={`flex items-center gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>
                                     <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-tighter
-                                        ${order.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700' : ''}
-                                        ${order.paymentStatus === 'Pending' ? 'bg-gray-100 text-gray-700' : ''}
-                                        ${order.paymentStatus === 'Failed' ? 'bg-red-100 text-red-700' : ''}
-                                        ${order.paymentStatus === 'Refunded' ? 'bg-orange-100 text-orange-700' : ''}
+                                        ${order.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700 font-bold' : ''}
+                                        ${order.paymentStatus === 'Pending' ? 'bg-gray-100 text-gray-700 font-bold' : ''}
+                                        ${order.paymentStatus === 'Failed' ? 'bg-red-100 text-red-700 font-bold' : ''}
+                                        ${order.paymentStatus === 'Refunded' ? 'bg-orange-100 text-orange-700 font-bold' : ''}
+                                        ${order.paymentStatus === 'Awaiting Verification' ? 'bg-blue-100 text-blue-700 font-bold' : ''}
+                                        ${!['Paid', 'Pending', 'Failed', 'Refunded', 'Awaiting Verification'].includes(order.paymentStatus) ? 'bg-gray-100 text-gray-700 font-bold' : ''}
                                     `}>
                                         {getPaymentStatusI18n(order.paymentStatus)}
                                     </span>
                                     <span className={`px-3 py-1 text-xs font-black rounded-full uppercase tracking-tighter
-                                        ${order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : ''}
-                                        ${order.status === 'Processing' ? 'bg-blue-100 text-blue-700' : ''}
-                                        ${order.status === 'Shipped' ? 'bg-purple-100 text-purple-700' : ''}
-                                        ${order.status === 'Delivered' ? 'bg-green-100 text-green-700' : ''}
-                                        ${order.status === 'Cancelled' ? 'bg-red-100 text-red-700' : ''}
+                                        ${order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700 font-bold' : ''}
+                                        ${order.status === 'Processing' ? 'bg-blue-100 text-blue-700 font-bold' : ''}
+                                        ${order.status === 'Shipped' ? 'bg-purple-100 text-purple-700 font-bold' : ''}
+                                        ${order.status === 'Delivered' ? 'bg-green-100 text-green-700 font-bold' : ''}
+                                        ${order.status === 'Completed' ? 'bg-green-600 text-white font-bold' : ''}
+                                        ${order.status === 'Cancelled' ? 'bg-red-100 text-red-700 font-bold' : ''}
+                                        ${order.status === 'Awaiting Payment Verification' ? 'bg-blue-600 text-white font-bold' : ''}
+                                        ${!['Pending', 'Processing', 'Shipped', 'Delivered', 'Completed', 'Cancelled', 'Awaiting Payment Verification'].includes(order.status) ? 'bg-gray-100 text-gray-700 font-bold' : ''}
                                     `}>
                                         {getStatusI18n(order.status)}
                                     </span>

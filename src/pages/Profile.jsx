@@ -24,7 +24,8 @@ import {
     Building,
     Briefcase,
     Building2,
-    Map
+    Map,
+    Printer
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useFilters } from '../context/FilterContext';
@@ -580,27 +581,61 @@ const Profile = () => {
                                                         </div>
                                                         <div className="flex items-center gap-2">
                                                             <span className={`px-2 py-0.5 text-[9px] font-black rounded-full uppercase tracking-tighter
-                                                                ${order.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700' : ''}
-                                                                ${order.paymentStatus === 'Pending' ? 'bg-gray-100 text-gray-700' : ''}
-                                                                ${order.paymentStatus === 'Failed' ? 'bg-red-100 text-red-700' : ''}
-                                                                ${order.paymentStatus === 'Refunded' ? 'bg-orange-100 text-orange-700' : ''}
+                                                                ${order.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700 font-bold' : ''}
+                                                                ${order.paymentStatus === 'Pending' ? 'bg-gray-100 text-gray-700 font-bold' : ''}
+                                                                ${order.paymentStatus === 'Failed' ? 'bg-red-100 text-red-700 font-bold' : ''}
+                                                                ${order.paymentStatus === 'Refunded' ? 'bg-orange-100 text-orange-700 font-bold' : ''}
+                                                                ${order.paymentStatus === 'Awaiting Verification' ? 'bg-blue-100 text-blue-700 font-bold' : ''}
+                                                                ${!['Paid', 'Pending', 'Failed', 'Refunded', 'Awaiting Verification'].includes(order.paymentStatus) ? 'bg-gray-100 text-gray-700 font-bold' : ''}
                                                             `}>
-                                                                {i18n.language === 'ar' ? (
-                                                                    order.paymentStatus === 'Paid' ? 'تم الدفع' :
-                                                                        order.paymentStatus === 'Pending' ? 'لم يتم الدفع' :
-                                                                            order.paymentStatus === 'Failed' ? 'فشل الدفع' :
-                                                                                order.paymentStatus === 'Refunded' ? 'مسترجع' : 'غير مدفوع'
+                                                                {isAr ? (
+                                                                    order.paymentStatus === 'Paid' ? t('paymentPaid') :
+                                                                        order.paymentStatus === 'Pending' ? t('paymentPending') :
+                                                                            order.paymentStatus === 'Failed' ? t('paymentFailed') :
+                                                                                order.paymentStatus === 'Refunded' ? t('paymentRefunded') :
+                                                                                    order.paymentStatus === 'Awaiting Verification' ? t('paymentAwaitingVerification') : t('paymentUnpaid')
                                                                 ) : order.paymentStatus || 'Unpaid'}
                                                             </span>
                                                             <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-tighter
-                                                                ${order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : ''}
-                                                                ${order.status === 'Processing' ? 'bg-blue-100 text-blue-700' : ''}
-                                                                ${order.status === 'Shipped' ? 'bg-purple-100 text-purple-700' : ''}
-                                                                ${order.status === 'Delivered' ? 'bg-green-100 text-green-700' : ''}
-                                                                ${order.status === 'Cancelled' ? 'bg-red-100 text-red-700' : ''}
+                                                                ${order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700 font-bold' : ''}
+                                                                ${order.status === 'Processing' ? 'bg-blue-100 text-blue-700 font-bold' : ''}
+                                                                ${order.status === 'Shipped' ? 'bg-purple-100 text-purple-700 font-bold' : ''}
+                                                                ${order.status === 'Delivered' ? 'bg-green-100 text-green-700 font-bold' : ''}
+                                                                ${order.status === 'Completed' ? 'bg-green-600 text-white font-bold' : ''}
+                                                                ${order.status === 'Cancelled' ? 'bg-red-100 text-red-700 font-bold' : ''}
+                                                                ${order.status === 'Awaiting Payment Verification' ? 'bg-blue-600 text-white font-bold' : ''}
+                                                                ${!['Pending', 'Processing', 'Shipped', 'Delivered', 'Completed', 'Cancelled', 'Awaiting Payment Verification'].includes(order.status) ? 'bg-gray-100 text-gray-700 font-bold' : ''}
                                                             `}>
-                                                                {order.status}
+                                                                {(() => {
+                                                                    const statuses = {
+                                                                        'Pending': t('statusPending'),
+                                                                        'Processing': t('statusProcessing'),
+                                                                        'Shipped': t('statusShipped'),
+                                                                        'Delivered': t('statusDelivered'),
+                                                                        'Completed': t('statusCompleted'),
+                                                                        'Cancelled': t('statusCancelled'),
+                                                                        'Awaiting Payment Verification': t('statusAwaitingPaymentVerification')
+                                                                    };
+                                                                    return statuses[order.status] || order.status;
+                                                                })()}
                                                             </span>
+
+                                                            <div className="flex items-center gap-1 border-l border-gray-200 ml-2 pl-2">
+                                                                <button
+                                                                    onClick={() => window.open(`/print-invoice/${order.id}`, '_blank')}
+                                                                    className="p-1.5 text-gray-400 hover:text-black transition-colors"
+                                                                    title={isAr ? "طباعة الفاتورة" : "Print Invoice"}
+                                                                >
+                                                                    <Printer className="w-4 h-4" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => generateInvoice(order)}
+                                                                    className="p-1.5 text-[#28B463] hover:text-green-700 transition-colors"
+                                                                    title={isAr ? "تحميل الفاتورة" : "Download Invoice"}
+                                                                >
+                                                                    <Download className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
 

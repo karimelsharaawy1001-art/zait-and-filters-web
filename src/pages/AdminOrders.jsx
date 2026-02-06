@@ -765,6 +765,29 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                         </div>
                     </div>
 
+                    {/* Mileage Section */}
+                    <div className="bg-orange-50/50 rounded-2xl p-6 border border-orange-100 flex items-center justify-between gap-6">
+                        <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 bg-white rounded-xl border border-orange-200 flex items-center justify-center shrink-0 shadow-sm">
+                                <GaugeCircle className="w-6 h-6 text-orange-600" />
+                            </div>
+                            <div className="min-w-0">
+                                <label className="text-[10px] font-black text-orange-700 uppercase tracking-widest block mb-1">Maintenance Data</label>
+                                <p className="text-xs font-bold text-gray-500">Current Mileage Record (km)</p>
+                            </div>
+                        </div>
+                        <div className="relative w-40">
+                            <input
+                                type="number"
+                                value={formData.currentMileage}
+                                onChange={(e) => setFormData({ ...formData, currentMileage: e.target.value })}
+                                placeholder="000,000"
+                                className="w-full bg-white border border-orange-200 rounded-xl pl-4 pr-12 py-3 text-sm font-black text-orange-700 placeholder-orange-200 focus:ring-2 focus:ring-orange-500 outline-none transition-all shadow-sm"
+                            />
+                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-orange-300 uppercase">KM</span>
+                        </div>
+                    </div>
+
                     {/* Items Section: Robust Management */}
                     <div className="space-y-4 pt-4 border-t border-gray-50">
                         <div className="flex flex-col gap-4">
