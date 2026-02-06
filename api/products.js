@@ -133,6 +133,28 @@ export default async function handler(req, res) {
             return res.status(200).json(makes);
         }
 
+        if (action === 'check-seo') {
+            const { tagName, expectedValue } = req.body;
+            try {
+                // Fetch current settings from Firestore REST
+                const settingsUrl = `${REST_URL}/settings/integrations`;
+                const settingsRes = await axios.get(settingsUrl);
+                const settings = mapRestDoc(settingsRes.data) || {};
+
+                if (tagName === 'google-analytics') {
+                    const savedId = settings.googleAnalyticsId;
+                    if (!savedId) return res.status(200).json({ status: 'not_found' });
+                    if (expectedValue && savedId !== expectedValue) return res.status(200).json({ status: 'mismatch' });
+                    return res.status(200).json({ status: 'found' });
+                }
+
+                return res.status(400).json({ error: 'Unsupported tag check' });
+            } catch (err) {
+                console.error("SEO Check Error:", err.message);
+                return res.status(500).json({ error: err.message });
+            }
+        }
+
         return res.status(400).json({ error: 'Invalid action' });
     } catch (err) {
         return res.status(500).json({ error: err.message });

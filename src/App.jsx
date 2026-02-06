@@ -206,6 +206,22 @@ const ReferralTracker = () => {
   return null;
 };
 
+const PageTracking = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (window.gtag) {
+      window.gtag('event', 'page_view', {
+        page_path: location.pathname + location.search,
+        page_location: window.location.href,
+        page_title: document.title
+      });
+    }
+  }, [location]);
+
+  return null;
+};
+
 // Initialize Global Safety Flag
 if (typeof window !== 'undefined') {
   window.isPureStateMode = false;
@@ -229,6 +245,7 @@ if (typeof window !== 'undefined') {
 function App() {
   return (
     <Router>
+      <PageTracking />
       <ReferralTracker />
       <ScrollToTop />
       <StaticDataProvider>

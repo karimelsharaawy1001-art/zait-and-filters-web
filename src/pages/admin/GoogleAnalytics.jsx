@@ -224,6 +224,39 @@ const GoogleAnalytics = () => {
                             </div>
                         </div>
                     </section>
+
+                    <section className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl shadow-gray-200/40">
+                        <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                            <CheckCircle2 className="w-5 h-5 text-blue-600" />
+                            How to Verify Integration
+                        </h3>
+                        <div className="space-y-6">
+                            <div className="p-6 bg-blue-50 rounded-2xl border border-blue-100">
+                                <p className="font-bold text-blue-900 mb-2">Method 1: Google Real-time Report</p>
+                                <p className="text-sm text-blue-800 leading-relaxed">
+                                    Open your website in a separate tab or on your phone. In your Google Analytics dashboard, go to <strong>Reports → Real-time</strong>. You should see yourself as an active user within 30-60 seconds.
+                                </p>
+                            </div>
+
+                            <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100">
+                                <p className="font-bold text-gray-900 mb-2">Method 2: Browser Console (Advanced)</p>
+                                <p className="text-sm text-gray-600 leading-relaxed font-mono">
+                                    1. Open your website.<br />
+                                    2. Press F12 (Developer Tools).<br />
+                                    3. Go to the <strong>Console</strong> tab.<br />
+                                    4. Type <code>window.dataLayer</code> and press Enter.<br />
+                                    5. You should see an array containing your Measurement ID.
+                                </p>
+                            </div>
+
+                            <div className="p-6 bg-green-50 rounded-2xl border border-green-100">
+                                <p className="font-bold text-green-900 mb-2">Method 3: Google Tag Assistant</p>
+                                <p className="text-sm text-green-800 leading-relaxed">
+                                    Install the <strong>Google Tag Assistant</strong> Chrome extension. It will show a green or blue tag icon if the tracking is installed correctly.
+                                </p>
+                            </div>
+                        </div>
+                    </section>
                 </div>
 
                 {/* Right Column: Requirements & Status */}
