@@ -46,6 +46,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { generateInvoice } from '../utils/invoiceGenerator';
+import { useStaticData } from '../context/StaticDataContext';
+import { normalizeArabic } from '../utils/productUtils';
 
 const AdminOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -527,55 +529,61 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
         }
     }, [filterMake, carOptions]);
 
+    const {
+        staticProducts,
+        categories: staticCategories,
+        cars: staticCars,
+        brands: staticBrands,
+        isStaticLoaded
+    } = useStaticData();
+
+    // Product Search
     const handleProductSearch = async (q) => {
         setProductSearch(q);
 
-        // We trigger search if there's a query OR if filters are active
-        if (q.length < 2 && !filterCategory && !filterMake && !filterYear) {
+        if (!q && !filterCategory && !filterMake && !filterYear) {
             setSearchResults([]);
             return;
         }
 
         setIsSearching(true);
-        try {
-            const productsRef = collection(db, 'products');
-            const qSnap = await getDocs(productsRef);
-            let all = qSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // Quota Shield: Filter LOCAL staticProducts instead of querying Firestore
+        const searchLower = normalizeArabic(q.toLowerCase());
 
-            // Apply Multi-Attribute Filter Matrix
-            const filtered = all.filter(p => {
-                const matchesQuery = !q ||
-                    p.name?.toLowerCase().includes(q.toLowerCase()) ||
-                    p.sku?.toLowerCase().includes(q.toLowerCase()) ||
-                    p.partNumber?.toLowerCase().includes(q.toLowerCase());
+        const filtered = staticProducts.filter(p => {
+            const nameMatch = !q || normalizeArabic(p.name?.toLowerCase() || '').includes(searchLower) ||
+                normalizeArabic(p.nameEn?.toLowerCase() || '').includes(searchLower) ||
+                p.sku?.toLowerCase().includes(searchLower) ||
+                p.partNumber?.toLowerCase().includes(searchLower);
 
-                const matchesCategory = !filterCategory || p.category === filterCategory;
+            const categoryMatch = !filterCategory || p.category === filterCategory;
+            const makeMatch = !filterMake || p.make === filterMake;
+            const modelMatch = !filterModel || p.model === filterModel;
+            const yearMatch = !filterYear || (
+                (!p.yearStart || Number(filterYear) >= Number(p.yearStart)) &&
+                (!p.yearEnd || Number(filterYear) <= Number(p.yearEnd))
+            );
 
-                // Car Filtering Logic
-                const matchesMake = !filterMake || p.make === filterMake;
-                const matchesModel = !filterModel || p.model === filterModel;
+            return nameMatch && categoryMatch && makeMatch && modelMatch && yearMatch;
+        }).slice(0, 30);
 
-                // Year Logic: Product must overlap with the requested year
-                const matchesYear = !filterYear || (
-                    (!p.yearStart || Number(filterYear) >= Number(p.yearStart)) &&
-                    (!p.yearEnd || Number(filterYear) <= Number(p.yearEnd))
-                );
-
-                return matchesQuery && matchesCategory && matchesMake && matchesModel && matchesYear;
-            }).slice(0, 10); // Show more results in modal
-
-            setSearchResults(filtered);
-        } catch (error) {
-            console.error("Search error:", error);
-        } finally {
-            setIsSearching(false);
-        }
+        setSearchResults(filtered);
+        setIsSearching(false);
     };
 
-    // Re-trigger search when filters change
+    // Use effects for makes and models remain the same but use staticCars
     useEffect(() => {
-        handleProductSearch(productSearch);
-    }, [filterCategory, filterMake, filterModel, filterYear]);
+        if (filterMake) {
+            const makeModels = staticCars
+                .filter(c => c.make === filterMake)
+                .map(c => c.model);
+            setModels([...new Set(makeModels)].sort());
+            setFilterModel('');
+        } else {
+            setModels([]);
+            setFilterModel('');
+        }
+    }, [filterMake, staticCars]);
 
     const addProductToOrder = (product) => {
         const existing = formData.items.find(item => item.id === product.id);
@@ -1088,7 +1096,7 @@ const CreateOrderModal = ({ onClose, onSave }) => {
     // Product Filter Logic (Dependent Dropdowns)
     useEffect(() => {
         if (filterMake) {
-            const makeModels = carOptions
+            const makeModels = staticCars
                 .filter(c => c.make === filterMake)
                 .map(c => c.model);
             setModels([...new Set(makeModels)].sort());
@@ -1097,7 +1105,7 @@ const CreateOrderModal = ({ onClose, onSave }) => {
             setModels([]);
             setFilterModel('');
         }
-    }, [filterMake, carOptions]);
+    }, [filterMake, staticCars]);
 
     // Customer Search 
     const handleCustomerSearch = async (q) => {
@@ -1129,44 +1137,53 @@ const CreateOrderModal = ({ onClose, onSave }) => {
         }
     };
 
-    // Product Search
+    const {
+        staticProducts,
+        categories: staticCategories,
+        cars: staticCars,
+        isStaticLoaded
+    } = useStaticData();
+
+    // Product Search Logic - LOCAL ONLY (Quota Shield)
     const handleProductSearch = async (q) => {
         setProductSearch(q);
-        if (q.length < 2 && !filterCategory && !filterMake && !filterYear) {
+        if (!q && !filterCategory && !filterMake && !filterYear) {
             setSearchResults([]);
             return;
         }
 
         setIsSearchingProducts(true);
-        try {
-            const productsRef = collection(db, 'products');
-            const qSnap = await getDocs(productsRef);
-            let all = qSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const searchLower = normalizeArabic(q.toLowerCase());
 
-            const filtered = all.filter(p => {
-                const matchesQuery = !q ||
-                    p.name?.toLowerCase().includes(q.toLowerCase()) ||
-                    p.sku?.toLowerCase().includes(q.toLowerCase()) ||
-                    p.partNumber?.toLowerCase().includes(q.toLowerCase());
+        const filtered = staticProducts.filter(p => {
+            const matchesQuery = !q ||
+                normalizeArabic(p.name?.toLowerCase() || '').includes(searchLower) ||
+                normalizeArabic(p.nameEn?.toLowerCase() || '').includes(searchLower) ||
+                p.sku?.toLowerCase().includes(searchLower) ||
+                p.partNumber?.toLowerCase().includes(searchLower);
 
-                const matchesCategory = !filterCategory || p.category === filterCategory;
-                const matchesMake = !filterMake || p.make === filterMake;
-                const matchesModel = !filterModel || p.model === filterModel;
-                const matchesYear = !filterYear || (
-                    (!p.yearStart || Number(filterYear) >= Number(p.yearStart)) &&
-                    (!p.yearEnd || Number(filterYear) <= Number(p.yearEnd))
-                );
+            const matchesCategory = !filterCategory || p.category === filterCategory;
+            const matchesMake = !filterMake || p.make === filterMake;
+            const matchesModel = !filterModel || p.model === filterModel;
+            const matchesYear = !filterYear || (
+                (!p.yearStart || Number(filterYear) >= Number(p.yearStart)) &&
+                (!p.yearEnd || Number(filterYear) <= Number(p.yearEnd))
+            );
 
-                return matchesQuery && matchesCategory && matchesMake && matchesModel && matchesYear;
-            }).slice(0, 10);
+            return matchesQuery && matchesCategory && matchesMake && matchesModel && matchesYear;
+        }).slice(0, 30);
 
-            setSearchResults(filtered);
-        } catch (error) {
-            console.error("Search error:", error);
-        } finally {
-            setIsSearchingProducts(false);
-        }
+        setSearchResults(filtered);
+        setIsSearchingProducts(false);
     };
+
+    // Initialize Metadata from static context
+    useEffect(() => {
+        if (isStaticLoaded) {
+            const uniqueMakes = [...new Set(staticCars.map(c => c.make))].sort();
+            setMakes(uniqueMakes);
+        }
+    }, [isStaticLoaded, staticCars]);
 
     // Re-trigger product search
     useEffect(() => {
