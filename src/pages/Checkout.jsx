@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSafeNavigation } from '../utils/safeNavigation';
 import axios from 'axios';
 import { safeStorage } from '../utils/storage';
-import { Loader2, ShieldCheck, Banknote, CreditCard, Ticket, CheckCircle2, AlertCircle, MapPin, Plus, User, Mail, Smartphone, Trash2 } from 'lucide-react';
+import { Loader2, ShieldCheck, Banknote, CreditCard, Ticket, CheckCircle2, AlertCircle, MapPin, Plus, User, Mail, Smartphone, Trash2, Home, Briefcase, Building, Map } from 'lucide-react';
 import PhoneInputGroup from '../components/PhoneInputGroup';
 import TrustPaymentSection from '../components/TrustPaymentSection';
 
@@ -681,30 +681,74 @@ const Checkout = () => {
 
 
 
-                                {auth.currentUser && savedAddresses.length > 0 && (
-                                    <div className="sm:col-span-2 space-y-3">
-                                        <label className={`block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ${isAr ? 'text-right' : 'text-left'}`}>{t('selectSavedAddress')}</label>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                            {savedAddresses.map((addr) => (
-                                                <div
-                                                    key={addr.id}
-                                                    onClick={() => handleAddressSelect(addr)}
-                                                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-start gap-3 ${selectedAddressId === addr.id ? 'border-orange-600 bg-orange-50' : 'border-gray-100 hover:border-gray-200'} ${isAr ? 'flex-row-reverse' : ''}`}
-                                                >
-                                                    <MapPin className={`h-5 w-5 mt-0.5 ${selectedAddressId === addr.id ? 'text-orange-600' : 'text-gray-400'}`} />
-                                                    <div className={`flex-1 ${isAr ? 'text-right' : 'text-left'}`}>
-                                                        <p className="text-xs font-black text-gray-900">{addr.label || 'Home'}</p>
-                                                        <p className="text-[10px] text-gray-500 font-bold leading-tight">{addr.city}, {addr.governorate}</p>
-                                                        <p className="text-[10px] text-gray-400 mt-1 truncate">{addr.detailedAddress}</p>
+                                {auth.currentUser && (
+                                    <div className="sm:col-span-2 space-y-4">
+                                        <label className={`block text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1 ${isAr ? 'text-right' : 'text-left'}`}>
+                                            {t('deliveryDestination', isAr ? 'وجهة التوصيل' : 'Delivery Destination')}
+                                        </label>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            {/* Saved Addresses */}
+                                            {savedAddresses.map((addr) => {
+                                                const isActive = selectedAddressId === addr.id;
+                                                const Icon = addr.label?.toLowerCase() === 'home' || addr.labelAr === 'المنزل' ? Home :
+                                                    addr.label?.toLowerCase() === 'office' || addr.label?.toLowerCase() === 'work' || addr.labelAr === 'العمل' ? Building : MapPin;
+
+                                                return (
+                                                    <div
+                                                        key={addr.id}
+                                                        onClick={() => handleAddressSelect(addr)}
+                                                        className={`relative overflow-hidden group cursor-pointer p-4 rounded-2xl border-2 transition-all duration-300 transform active:scale-95 ${isActive
+                                                                ? 'border-orange-600 bg-orange-50/50 shadow-lg shadow-orange-100'
+                                                                : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md'
+                                                            } ${isAr ? 'text-right' : 'text-left'}`}
+                                                    >
+                                                        {isActive && (
+                                                            <div className={`absolute top-0 ${isAr ? 'left-0' : 'right-0'} bg-orange-600 text-white p-1 rounded-bl-xl rounded-tr-none shadow-sm`}>
+                                                                <CheckCircle2 className="h-3 w-3" />
+                                                            </div>
+                                                        )}
+                                                        <div className={`flex items-start gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                                            <div className={`p-2 rounded-xl transition-colors ${isActive ? 'bg-orange-600 text-white' : 'bg-gray-50 text-gray-400 group-hover:bg-gray-100'}`}>
+                                                                <Icon className="h-4 w-4" />
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className={`text-sm font-black truncate ${isActive ? 'text-orange-900' : 'text-gray-900'}`}>
+                                                                    {isAr ? (addr.labelAr || addr.label || 'عنوان مسجل') : (addr.label || 'Saved Address')}
+                                                                </p>
+                                                                <p className={`text-[10px] font-bold mt-0.5 ${isActive ? 'text-orange-700' : 'text-gray-500'}`}>
+                                                                    {addr.city}, {addr.governorate}
+                                                                </p>
+                                                                <p className="text-[10px] text-gray-400 mt-2 truncate font-medium">
+                                                                    {addr.detailedAddress}
+                                                                </p>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
+
+                                            {/* New Address Option */}
                                             <div
                                                 onClick={() => handleAddressSelect('new')}
-                                                className={`p-4 rounded-xl border-2 border-dashed cursor-pointer transition-all flex items-center gap-3 ${selectedAddressId === 'new' ? 'border-orange-600 bg-orange-50' : 'border-gray-200 hover:border-gray-300'} ${isAr ? 'flex-row-reverse' : ''}`}
+                                                className={`relative overflow-hidden group cursor-pointer p-4 rounded-2xl border-2 border-dashed transition-all duration-300 transform active:scale-95 ${selectedAddressId === 'new'
+                                                        ? 'border-orange-600 bg-orange-50/50 shadow-lg shadow-orange-100'
+                                                        : 'border-gray-200 bg-gray-50/30 hover:border-orange-300 hover:bg-gray-50'
+                                                    } ${isAr ? 'text-right' : 'text-left'}`}
                                             >
-                                                <Plus className={`h-5 w-5 ${selectedAddressId === 'new' ? 'text-orange-600' : 'text-gray-400'}`} />
-                                                <p className="text-xs font-black text-gray-900">{t('useNewAddress')}</p>
+                                                <div className={`flex items-center gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                                    <div className={`p-2 rounded-xl transition-colors ${selectedAddressId === 'new' ? 'bg-orange-600 text-white' : 'bg-white text-gray-400 group-hover:text-orange-500 shadow-sm'}`}>
+                                                        <Plus className="h-4 w-4" />
+                                                    </div>
+                                                    <div>
+                                                        <p className={`text-sm font-black ${selectedAddressId === 'new' ? 'text-orange-900' : 'text-gray-900'}`}>
+                                                            {t('useNewAddress')}
+                                                        </p>
+                                                        <p className="text-[10px] text-gray-400 font-bold">
+                                                            {isAr ? 'إضافة عنوان شحن جديد' : 'Add a new shipping address'}
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -767,16 +811,31 @@ const Checkout = () => {
                                             </div>
                                         )}
 
-                                        <div className={`sm:col-span-2 bg-orange-50 p-4 rounded-xl border border-orange-100 flex items-start gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>
-                                            <div className="bg-orange-600 p-2 rounded-lg text-white">
-                                                <MapPin className="h-4 w-4" />
+                                        {selectedAddressId !== 'new' && (
+                                            <div className={`sm:col-span-2 bg-gradient-to-br from-orange-50 to-white p-6 rounded-2xl border border-orange-100 flex items-start gap-4 shadow-sm animate-in fade-in slide-in-from-top-4 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                                <div className="bg-orange-600 p-3 rounded-2xl text-white shadow-lg shadow-orange-200">
+                                                    <Map className="h-5 w-5" />
+                                                </div>
+                                                <div className={`flex-1 ${isAr ? 'text-right' : 'text-left'}`}>
+                                                    <div className={`flex justify-between items-center mb-1 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                                        <p className="text-xs font-black text-orange-900 uppercase tracking-widest">{t('shippingTo')}</p>
+                                                        <span className="text-[10px] font-black bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">
+                                                            {savedAddresses.find(a => a.id === selectedAddressId)?.label || 'Home'}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm font-black text-gray-900">{formData.address}</p>
+                                                    <p className="text-[11px] text-orange-600 font-bold mt-1">{formData.city}, {formData.governorate}</p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleAddressSelect('new')}
+                                                        className="mt-4 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-orange-600 transition-colors group"
+                                                    >
+                                                        <Plus className="h-3 w-3" />
+                                                        {t('changeAddress')}
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <div className={isAr ? 'text-right' : 'text-left'}>
-                                                <p className="text-xs font-black text-orange-900 leading-none mb-1">{t('shippingTo')}: {savedAddresses.find(a => a.id === selectedAddressId)?.label || 'Home'}</p>
-                                                <p className="text-[10px] text-orange-600 font-bold">{formData.address}, {formData.city}, {formData.governorate}</p>
-                                                <button type="button" onClick={() => handleAddressSelect('new')} className="mt-2 text-[10px] font-black uppercase tracking-widest text-orange-800 hover:underline">{t('changeAddress')}</button>
-                                            </div>
-                                        </div>
+                                        )}
                                     </>
                                 )}
 
