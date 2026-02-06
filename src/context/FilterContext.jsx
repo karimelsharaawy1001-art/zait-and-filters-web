@@ -1,12 +1,14 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { auth, db } from '../firebase';
-import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { databases } from '../appwrite';
+import { Query } from 'appwrite';
+import { useAuth } from './AuthContext';
 
 const FilterContext = createContext();
 
 export const useFilters = () => useContext(FilterContext);
 
 export const FilterProvider = ({ children }) => {
+    const { user } = useAuth();
     const [filters, setFilters] = useState({
         make: '',
         model: '',
@@ -24,30 +26,34 @@ export const FilterProvider = ({ children }) => {
     const [activeCar, setActiveCar] = useState(null);
     const [userGarage, setUserGarage] = useState([]);
 
-    // Sync Garage Data from Firestore
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const USERS_COLLECTION = import.meta.env.VITE_APPWRITE_USERS_COLLECTION_ID;
+
+    // Sync Garage Data from Appwrite
     useEffect(() => {
-        // QUOTA SHIELD: Replaced onSnapshot with one-time fetch
-        const syncGarage = async (user) => {
-            if (user) {
+        const syncGarage = async () => {
+            if (user && DATABASE_ID && USERS_COLLECTION) {
                 try {
-                    const userDocRef = doc(db, 'users', user.uid);
-                    const docSnap = await getDoc(userDocRef);
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        const garage = data.garage || [];
+                    const response = await databases.listDocuments(
+                        DATABASE_ID,
+                        USERS_COLLECTION,
+                        [Query.equal('userId', user.$id)]
+                    );
+
+                    if (response.total > 0) {
+                        const userData = response.documents[0];
+                        const garage = userData.garage || [];
                         setUserGarage(garage);
 
-                        // Set active car to the one marked as isActive, or the first one
                         const active = garage.find(c => c.isActive) || garage[0] || null;
                         setActiveCar(active);
 
-                        // If no garage, ensure filter is off
                         if (garage.length === 0) {
                             setIsGarageFilterActive(false);
                         }
                     }
                 } catch (error) {
-                    console.error('Error fetching garage:', error);
+                    console.error('Error fetching garage from Appwrite:', error);
                 }
             } else {
                 setUserGarage([]);
@@ -56,12 +62,8 @@ export const FilterProvider = ({ children }) => {
             }
         };
 
-        const authUnsubscribe = auth.onAuthStateChanged(syncGarage);
-
-        return () => {
-            authUnsubscribe();
-        };
-    }, []);
+        syncGarage();
+    }, [user, DATABASE_ID, USERS_COLLECTION]);
 
 
     const updateFilter = (key, value) => {

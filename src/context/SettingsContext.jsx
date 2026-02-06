@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { databases } from '../appwrite';
 
 const SettingsContext = createContext();
 
@@ -18,22 +17,32 @@ export const SettingsProvider = ({ children }) => {
     });
     const [loading, setLoading] = useState(true);
 
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const SETTINGS_COLLECTION = import.meta.env.VITE_APPWRITE_SETTINGS_COLLECTION_ID;
+
     useEffect(() => {
-        // QUOTA SHIELD: Replaced onSnapshot with one-time fetch
         const fetchSettings = async () => {
+            if (!DATABASE_ID || !SETTINGS_COLLECTION) {
+                console.warn("Appwrite Settings: Database or Collection ID missing in ENV");
+                setLoading(false);
+                return;
+            }
+
             try {
-                const docSnap = await getDoc(doc(db, 'settings', 'general'));
-                if (docSnap.exists()) {
-                    setSettings(docSnap.data());
-                }
+                const doc = await databases.getDocument(
+                    DATABASE_ID,
+                    SETTINGS_COLLECTION,
+                    'general' // Document ID 'general'
+                );
+                setSettings(doc);
             } catch (error) {
-                console.error('Error fetching settings:', error);
+                console.error('Error fetching settings from Appwrite:', error);
             } finally {
                 setLoading(false);
             }
         };
         fetchSettings();
-    }, []);
+    }, [DATABASE_ID, SETTINGS_COLLECTION]);
 
 
     return (

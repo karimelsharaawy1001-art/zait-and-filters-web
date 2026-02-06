@@ -1,37 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, writeBatch, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { databases } from '../../appwrite';
+import { ID, Query } from 'appwrite';
 import { toast } from 'react-hot-toast';
-import { Truck, Plus, Trash2, Edit2, Save, X, Loader2, RefreshCcw } from 'lucide-react';
+import AdminHeader from '../../components/AdminHeader';
+import { Truck, Plus, Trash2, Edit2, Save, X, Loader2, RefreshCcw, Map, Shield } from 'lucide-react';
 
 const EGYPT_GOVERNORATES = [
-    { governorate: "القاهرة", cost: 50 },
-    { governorate: "الجيزة", cost: 50 },
-    { governorate: "الإسكندرية", cost: 60 },
-    { governorate: "القليوبية", cost: 55 },
-    { governorate: "الشرقية", cost: 65 },
-    { governorate: "الدقهلية", cost: 65 },
-    { governorate: "البحيرة", cost: 70 },
-    { governorate: "المنوفية", cost: 65 },
-    { governorate: "الغربية", cost: 65 },
-    { governorate: "كفر الشيخ", cost: 70 },
-    { governorate: "دمياط", cost: 75 },
-    { governorate: "بورسعيد", cost: 75 },
-    { governorate: "الإسماعيلية", cost: 75 },
-    { governorate: "السويس", cost: 75 },
-    { governorate: "الفيوم", cost: 80 },
-    { governorate: "بني سويف", cost: 80 },
-    { governorate: "المنيا", cost: 90 },
-    { governorate: "أسيوط", cost: 90 },
-    { governorate: "سوهاج", cost: 100 },
-    { governorate: "قنا", cost: 110 },
-    { governorate: "الأقصر", cost: 120 },
-    { governorate: "أسوان", cost: 130 },
-    { governorate: "البحر الأحمر", cost: 150 },
-    { governorate: "الوادي الجديد", cost: 150 },
-    { governorate: "مطروح", cost: 150 },
-    { governorate: "شمال سيناء", cost: 150 },
-    { governorate: "جنوب سيناء", cost: 150 }
+    { governorate: "القاهرة", cost: 50 }, { governorate: "الجيزة", cost: 50 }, { governorate: "الإسكندرية", cost: 60 },
+    { governorate: "القليوبية", cost: 55 }, { governorate: "الشرقية", cost: 65 }, { governorate: "الدقهلية", cost: 65 },
+    { governorate: "البحيرة", cost: 70 }, { governorate: "المنوفية", cost: 65 }, { governorate: "الغربية", cost: 65 },
+    { governorate: "كفر الشيخ", cost: 70 }, { governorate: "دمياط", cost: 75 }, { governorate: "بورسعيد", cost: 75 },
+    { governorate: "الإسماعيلية", cost: 75 }, { governorate: "السويس", cost: 75 }, { governorate: "الفيوم", cost: 80 },
+    { governorate: "بني سويف", cost: 80 }, { governorate: "المنيا", cost: 90 }, { governorate: "أسيوط", cost: 90 },
+    { governorate: "سوهاج", cost: 100 }, { governorate: "قنا", cost: 110 }, { governorate: "الأقصر", cost: 120 },
+    { governorate: "أسوان", cost: 130 }, { governorate: "البحر الأحمر", cost: 150 }, { governorate: "الوادي الجديد", cost: 150 },
+    { governorate: "مطروح", cost: 150 }, { governorate: "شمال سيناء", cost: 150 }, { governorate: "جنوب سيناء", cost: 150 }
 ];
 
 const ManageShipping = () => {
@@ -42,254 +25,154 @@ const ManageShipping = () => {
     const [newRate, setNewRate] = useState({ governorate: '', cost: '' });
     const [editRate, setEditRate] = useState({ governorate: '', cost: '' });
 
-    useEffect(() => {
-        fetchRates();
-    }, []);
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const SHIPPING_COLLECTION = import.meta.env.VITE_APPWRITE_SHIPPING_COLLECTION_ID || 'shipping_rates';
 
     const fetchRates = async () => {
+        if (!DATABASE_ID) return;
         setLoading(true);
         try {
-            const querySnapshot = await getDocs(collection(db, 'shipping_rates'));
-            const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            // Add safety sort to prevent crashes on missing fields
-            setRates(data.sort((a, b) => {
-                const govA = a?.governorate || '';
-                const govB = b?.governorate || '';
-                return govA.localeCompare(govB);
-            }));
+            const response = await databases.listDocuments(DATABASE_ID, SHIPPING_COLLECTION, [Query.limit(100)]);
+            setRates(response.documents.map(d => ({ id: d.$id, ...d })).sort((a, b) => a.governorate.localeCompare(b.governorate)));
         } catch (error) {
-            console.error("Error fetching shipping rates:", error);
+            console.error(error);
         } finally {
             setLoading(false);
         }
     };
 
+    useEffect(() => {
+        fetchRates();
+    }, [DATABASE_ID]);
+
     const handleAdd = async (e) => {
         e.preventDefault();
-        if (!newRate.governorate || !newRate.cost) return;
         setActionLoading(true);
         try {
-            await addDoc(collection(db, 'shipping_rates'), {
+            await databases.createDocument(DATABASE_ID, SHIPPING_COLLECTION, ID.unique(), {
                 governorate: newRate.governorate,
                 cost: Number(newRate.cost)
             });
             setNewRate({ governorate: '', cost: '' });
             fetchRates();
+            toast.success("Zone registered");
         } catch (error) {
-            console.error("Error adding rate:", error);
+            toast.error("Sync failure");
         } finally {
             setActionLoading(false);
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Delete this shipping rate?")) return;
+        if (!window.confirm("Purge zone?")) return;
         setActionLoading(true);
         try {
-            await deleteDoc(doc(db, 'shipping_rates', id));
+            await databases.deleteDocument(DATABASE_ID, SHIPPING_COLLECTION, id);
             fetchRates();
+            toast.success("Resource deleted");
         } catch (error) {
-            console.error("Error deleting rate:", error);
+            toast.error("Operation failed");
         } finally {
             setActionLoading(false);
         }
     };
 
-    const startEdit = (rate) => {
-        setIsEditing(rate.id);
-        setEditRate({ governorate: rate.governorate, cost: rate.cost });
-    };
-
     const handleUpdate = async (id) => {
         setActionLoading(true);
         try {
-            await updateDoc(doc(db, 'shipping_rates', id), {
+            await databases.updateDocument(DATABASE_ID, SHIPPING_COLLECTION, id, {
                 governorate: editRate.governorate,
                 cost: Number(editRate.cost)
             });
             setIsEditing(null);
             fetchRates();
+            toast.success("Matrix updated");
         } catch (error) {
-            console.error("Error updating rate:", error);
+            toast.error("Sync failure");
         } finally {
             setActionLoading(false);
         }
     };
 
     const handleSeed = async () => {
-        if (!window.confirm("This will load 27 Egypt governorates. Existing rates will remain. Continue?")) return;
+        if (!window.confirm("Initialize default Egypt 27-zone matrix?")) return;
         setActionLoading(true);
         try {
-            const batch = writeBatch(db);
-            EGYPT_GOVERNORATES.forEach(gov => {
-                const docRef = doc(collection(db, 'shipping_rates'));
-                batch.set(docRef, gov);
-            });
-            await batch.commit();
+            for (const gov of EGYPT_GOVERNORATES) {
+                await databases.createDocument(DATABASE_ID, SHIPPING_COLLECTION, ID.unique(), gov);
+            }
             fetchRates();
-            toast.success("Default governorates loaded successfully!");
+            toast.success("Matrix provisioned");
         } catch (error) {
-            console.error("Error seeding data:", error);
-            toast.error("Failed to seed data.");
+            toast.error("Seeding failure");
         } finally {
             setActionLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 font-sans pb-20 p-4 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 max-w-7xl mx-auto mt-10">
-                <div className="flex items-center gap-4">
-                    <div className="bg-[#28B463]/10 p-4 rounded-2xl">
-                        <Truck className="h-6 w-6 text-admin-accent" />
-                    </div>
+        <div className="min-h-screen bg-gray-50 pb-20 font-Cairo text-gray-900">
+            <AdminHeader title="Logistics Intelligence" />
+            <main className="max-w-7xl mx-auto py-8 px-4">
+                <div className="flex justify-between items-center mb-12">
                     <div>
-                        <h1 className="text-3xl font-black text-black uppercase tracking-widest poppins">Shipping Rates</h1>
-                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Manage governorate-based delivery costs</p>
+                        <h2 className="text-3xl font-black uppercase italic">Fulfillment Matrix</h2>
+                        <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mt-1">Managing {rates.length} Geographic Nodes</p>
                     </div>
+                    <button onClick={handleSeed} disabled={actionLoading} className="bg-white text-black px-8 py-5 rounded-2xl font-black uppercase italic text-[10px] tracking-widest border shadow-xl hover:bg-black hover:text-white transition-all flex items-center gap-3 active:scale-95 disabled:opacity-50">
+                        <RefreshCcw size={16} className={actionLoading ? 'animate-spin' : ''} /> Provision Default Framework
+                    </button>
                 </div>
-                <button
-                    onClick={handleSeed}
-                    disabled={actionLoading}
-                    className="flex items-center gap-3 bg-white text-black px-8 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition-all border border-gray-100 shadow-sm group active:scale-95 disabled:opacity-50"
-                >
-                    <RefreshCcw className={`h-4 w-4 text-[#28B463] group-hover:rotate-180 transition-transform duration-500 ${actionLoading ? 'animate-spin' : ''}`} />
-                    Provision Default Egypt Matrix
-                </button>
-            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-7xl mx-auto">
-                {/* Form Side */}
-                <div className="lg:col-span-1">
-                    <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-100 sticky top-8 group overflow-hidden">
-                        <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <Plus className="h-24 w-24 text-black" />
-                        </div>
-
-                        <h2 className="text-xl font-black text-black mb-8 flex items-center gap-3 relative poppins">
-                            <div className="p-2 bg-[#28B463]/10 rounded-xl">
-                                <Plus className="h-5 w-5 text-admin-accent" />
-                            </div>
-                            Manual Entry
-                        </h2>
-                        <form onSubmit={handleAdd} className="space-y-8 relative">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Governorate Entity</label>
-                                <input
-                                    type="text"
-                                    value={newRate.governorate}
-                                    onChange={(e) => setNewRate({ ...newRate, governorate: e.target.value })}
-                                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all placeholder-gray-300"
-                                    placeholder="e.g. Cairo"
-                                    required
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Operational Cost (EGP)</label>
-                                <input
-                                    type="number"
-                                    value={newRate.cost}
-                                    onChange={(e) => setNewRate({ ...newRate, cost: e.target.value })}
-                                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-black focus:ring-2 focus:ring-[#28B463] outline-none transition-all placeholder-gray-300"
-                                    placeholder="e.g. 50"
-                                    required
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                disabled={actionLoading}
-                                className="admin-primary-btn"
-                            >
-                                {actionLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-                                Commit Rate Entity
-                            </button>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                    <section className="bg-white p-10 rounded-[2.5rem] border shadow-sm h-fit space-y-8">
+                        <div className="flex items-center gap-4 border-b pb-6"><Map className="text-red-600" /><h2 className="text-xl font-black uppercase italic">Node Entry</h2></div>
+                        <form onSubmit={handleAdd} className="space-y-6">
+                            <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Geographic Entity</label><input value={newRate.governorate} onChange={e => setNewRate({ ...newRate, governorate: e.target.value })} className="w-full p-4 bg-gray-50 border rounded-2xl font-black italic shadow-inner" placeholder="e.g. القاهرة" required /></div>
+                            <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Operational Cost (EGP)</label><input type="number" value={newRate.cost} onChange={e => setNewRate({ ...newRate, cost: e.target.value })} className="w-full p-4 bg-gray-50 border rounded-2xl font-black italic shadow-inner" placeholder="0.00" required /></div>
+                            <button type="submit" disabled={actionLoading} className="w-full bg-red-600 text-white py-5 rounded-2xl font-black uppercase italic shadow-2xl hover:scale-105 transition-all">{actionLoading ? 'Syncing...' : 'Commit Node'}</button>
                         </form>
-                    </div>
-                </div>
+                    </section>
 
-                {/* Table Side */}
-                <div className="lg:col-span-2">
-                    <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
-                        {loading ? (
-                            <div className="p-20 flex flex-col items-center justify-center gap-4">
-                                <div className="h-10 w-10 border-4 border-admin-accent border-t-transparent rounded-full animate-spin"></div>
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tracing Logistics Node...</p>
-                            </div>
-                        ) : rates.length === 0 ? (
-                            <div className="p-20 text-center">
-                                <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">No logistics matrix detected.</p>
-                            </div>
-                        ) : (
+                    <section className="lg:col-span-2 bg-white rounded-[2.5rem] border shadow-sm overflow-hidden">
+                        {loading ? <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-black" size={40} /></div> : (
                             <div className="overflow-x-auto">
-                                <table className="w-full border-collapse">
-                                    <thead>
-                                        <tr className="bg-gray-50 border-b border-gray-100 text-left">
-                                            <th className="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest poppins">Geographic Entity</th>
-                                            <th className="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center poppins">Operational Cost</th>
-                                            <th className="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right poppins">Operations</th>
+                                <table className="w-full text-left">
+                                    <thead className="bg-gray-50/50 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                        <tr>
+                                            <th className="px-10 py-6">Geographic Protocol</th>
+                                            <th className="px-10 py-6 text-center">Cost Factor</th>
+                                            <th className="px-10 py-6 text-right">Ops</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-[#ffffff05]">
-                                        {rates.map((rate) => (
-                                            <tr key={rate.id} className="hover:bg-gray-50 transition-all group">
+                                    <tbody className="divide-y divide-gray-100">
+                                        {rates.map(rate => (
+                                            <tr key={rate.id} className="hover:bg-gray-50/50 group transition-all">
                                                 <td className="px-10 py-6">
                                                     {isEditing === rate.id ? (
-                                                        <input
-                                                            type="text"
-                                                            value={editRate.governorate}
-                                                            onChange={(e) => setEditRate({ ...editRate, governorate: e.target.value })}
-                                                            className="w-full bg-gray-50 border border-[#28B463]/30 rounded-xl px-4 py-2.5 text-sm font-bold text-black focus:ring-1 focus:ring-[#28B463] outline-none"
-                                                        />
+                                                        <input value={editRate.governorate} onChange={e => setEditRate({ ...editRate, governorate: e.target.value })} className="w-full p-3 bg-white border-2 border-red-600 rounded-xl font-black uppercase text-xs" />
                                                     ) : (
-                                                        <span className="text-base font-black text-black poppins uppercase tracking-wide group-hover:text-admin-accent transition-colors">{rate.governorate}</span>
+                                                        <span className="text-lg font-black italic uppercase tracking-wider group-hover:text-red-600 transition-colors uppercase">{rate.governorate}</span>
                                                     )}
                                                 </td>
                                                 <td className="px-10 py-6 text-center">
                                                     {isEditing === rate.id ? (
-                                                        <input
-                                                            type="number"
-                                                            value={editRate.cost}
-                                                            onChange={(e) => setEditRate({ ...editRate, cost: e.target.value })}
-                                                            className="w-32 mx-auto bg-gray-50 border border-admin-accent/30 rounded-xl px-4 py-2.5 text-sm font-bold text-black text-center focus:ring-1 focus:ring-admin-accent outline-none"
-                                                        />
+                                                        <input type="number" value={editRate.cost} onChange={e => setEditRate({ ...editRate, cost: e.target.value })} className="w-32 p-3 bg-white border-2 border-red-600 rounded-xl font-black text-center" />
                                                     ) : (
-                                                        <span className="text-xl font-black text-admin-accent font-mono uppercase tracking-tighter">
-                                                            {rate.cost}
-                                                            <span className="text-[10px] ml-1 opacity-50">EGP</span>
-                                                        </span>
+                                                        <div className="inline-block px-6 py-2 bg-black text-white rounded-2xl font-black italic text-xl shadow-lg">{rate.cost}<span className="text-[10px] ml-1 opacity-50 not-italic">EGP</span></div>
                                                     )}
                                                 </td>
                                                 <td className="px-10 py-6 text-right">
-                                                    <div className="flex items-center justify-end gap-3">
+                                                    <div className="flex justify-end gap-3 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all">
                                                         {isEditing === rate.id ? (
                                                             <>
-                                                                <button
-                                                                    onClick={() => handleUpdate(rate.id)}
-                                                                    className="p-3 text-admin-green hover:bg-admin-green/10 rounded-xl transition-all border border-admin-green/20"
-                                                                >
-                                                                    <Save className="h-4 w-4" />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => setIsEditing(null)}
-                                                                    className="p-3 text-gray-500 hover:bg-[#ffffff05] rounded-xl transition-all border border-gray-200"
-                                                                >
-                                                                    <X className="h-4 w-4" />
-                                                                </button>
+                                                                <button onClick={() => handleUpdate(rate.id)} className="p-3 bg-red-600 text-white rounded-xl shadow-xl"><Save size={16} /></button>
+                                                                <button onClick={() => setIsEditing(null)} className="p-3 bg-gray-100 text-gray-400 rounded-xl"><X size={16} /></button>
                                                             </>
                                                         ) : (
                                                             <>
-                                                                <button
-                                                                    onClick={() => startEdit(rate)}
-                                                                    className="p-3 text-admin-accent hover:bg-[#28B463]/10 rounded-xl opacity-0 group-hover:opacity-100 transition-all border border-admin-accent/20"
-                                                                >
-                                                                    <Edit2 className="h-4 w-4" />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => handleDelete(rate.id)}
-                                                                    className="p-3 text-admin-red hover:bg-admin-red/10 rounded-xl opacity-0 group-hover:opacity-100 transition-all border border-admin-red/20"
-                                                                >
-                                                                    <Trash2 className="h-4 w-4" />
-                                                                </button>
+                                                                <button onClick={() => { setIsEditing(rate.id); setEditRate({ governorate: rate.governorate, cost: rate.cost }); }} className="p-3 bg-white text-black border rounded-xl shadow-xl hover:bg-black hover:text-white transition-all"><Edit2 size={16} /></button>
+                                                                <button onClick={() => handleDelete(rate.id)} className="p-3 bg-white text-red-600 border rounded-xl shadow-xl hover:bg-red-600 hover:text-white transition-all"><Trash2 size={16} /></button>
                                                             </>
                                                         )}
                                                     </div>
@@ -300,9 +183,9 @@ const ManageShipping = () => {
                                 </table>
                             </div>
                         )}
-                    </div>
+                    </section>
                 </div>
-            </div>
+            </main>
         </div>
     );
 };

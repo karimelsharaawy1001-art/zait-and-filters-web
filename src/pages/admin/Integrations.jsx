@@ -1,153 +1,75 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Search, Facebook, BarChart, ExternalLink, ChevronRight, Mail, CreditCard, Eye } from 'lucide-react';
+import { Search, Facebook, BarChart, ExternalLink, ChevronRight, Mail, CreditCard, Eye, Zap, Activity, ShieldCheck, Globe, Share2, Layers } from 'lucide-react';
+import AdminHeader from '../../components/AdminHeader';
 
 const Integrations = () => {
     const services = [
-        {
-            id: 'google-search-console',
-            name: 'Google Search Console',
-            description: 'Verify your site ownership and monitor your search performance on Google.',
-            icon: <Search className="w-6 h-6 text-white" />,
-            color: 'bg-blue-600',
-            path: '/admin/integrations/google-search-console',
-            status: 'Operational'
-        },
-        {
-            id: 'facebook-pixel',
-            name: 'Facebook Pixel',
-            description: 'Track conversions and optimize your Facebook ads campaigns.',
-            icon: <Facebook className="w-6 h-6 text-white" />,
-            color: 'bg-indigo-600',
-            path: '/admin/integrations/facebook-pixel',
-            status: 'Operational'
-        },
-        {
-            id: 'cloudinary',
-            name: 'Cloudinary',
-            description: 'Automatic image optimization, resizing, and fast delivery (CDN).',
-            icon: <Eye className="w-6 h-6 text-white" />,
-            color: 'bg-[#3448C5]', // Cloudinary Blue
-            path: '/admin/integrations/cloudinary',
-            status: 'Operational'
-        },
-        {
-            id: 'installment-partners',
-            name: 'Installment Partners',
-            description: 'Manage installment providers (Valu, Aman, etc.) and display them on your site.',
-            icon: <CreditCard className="w-6 h-6 text-white" />,
-            color: 'bg-admin-red',
-            path: '/admin/integrations/installment-partners',
-            status: 'Operational'
-        },
-        {
-            id: 'facebook-shopping',
-            name: 'FB & Instagram Shop',
-            description: 'Sync your catalog and sell directly on Facebook and Instagram.',
-            icon: <Facebook className="w-6 h-6 text-white" />,
-            color: 'bg-gradient-to-br from-[#0064E0] to-[#0064E0]', // Meta Blue
-            path: '/admin/integrations/facebook-instagram-shopping',
-            status: 'Operational'
-        },
-        {
-            id: 'google-merchant-center',
-            name: 'Merchant Center',
-            description: 'List your products on Google Shopping and across Google surfaces.',
-            icon: <Search className="w-6 h-6 text-white" />, // Using Search icon for Google GMC
-            color: 'bg-[#4285F4]', // Google Blue
-            path: '/admin/integrations/google-merchant-center',
-            status: 'Operational'
-        },
-        {
-            id: 'mailchimp',
-            name: 'Mailchimp',
-            description: 'Sync your customers and newsletter subscribers to Mailchimp lists.',
-            icon: <Mail className="w-6 h-6 text-white" />,
-            color: 'bg-[#FFE01B]',
-            path: '/admin/integrations/mailchimp',
-            status: 'Operational',
-            iconColor: 'text-black'
-        },
-        {
-            id: 'sendgrid',
-            name: 'SendGrid Email',
-            description: 'Send automated transactional emails for orders and notifications.',
-            icon: <Mail className="w-6 h-6 text-white" />,
-            color: 'bg-[#00B3E3]', // SendGrid Blue
-            path: '/admin/integrations/sendgrid',
-            status: 'Operational'
-        },
-        {
-            id: 'google-analytics',
-            name: 'Google Analytics',
-            description: 'Track website traffic and user behavior in real-time.',
-            icon: <BarChart className="w-6 h-6 text-white" />,
-            color: 'bg-orange-500',
-            path: '/admin/integrations/google-analytics',
-            status: 'Operational'
-        }
+        { id: 'google-search-console', name: 'Search Console', description: 'Monitor search performance and index status on Google.', icon: <Search className="w-6 h-6" />, color: 'bg-blue-600', path: '/admin/integrations/google-search-console' },
+        { id: 'facebook-pixel', name: 'Meta Pixel', description: 'Track conversion events and optimize ad campaigns.', icon: <Facebook className="w-6 h-6" />, color: 'bg-indigo-600', path: '/admin/integrations/facebook-pixel' },
+        { id: 'cloudinary', name: 'Cloudinary CDN', description: 'Dynamic asset optimization and high-speed delivery.', icon: <Eye className="w-6 h-6" />, color: 'bg-blue-500', path: '/admin/integrations/cloudinary' },
+        { id: 'installment-partners', name: 'Fintech Partners', description: 'Manage installment providers and visual badges.', icon: <CreditCard className="w-6 h-6" />, color: 'bg-red-600', path: '/admin/integrations/installment-partners' },
+        { id: 'facebook-shopping', name: 'Social Shopping', description: 'Real-time catalog synchronization for FB/IG Shops.', icon: <Share2 className="w-6 h-6" />, color: 'bg-gradient-to-br from-blue-600 to-indigo-600', path: '/admin/integrations/facebook-instagram-shopping' },
+        { id: 'google-merchant-center', name: 'Merchant Center', description: 'Deploy product catalogs to Google Shopping network.', icon: <Globe className="w-6 h-6" />, color: 'bg-[#4285F4]', path: '/admin/integrations/google-merchant-center' },
+        { id: 'mailchimp', name: 'Mailchimp CRM', description: 'High-volume newsletter and customer segmentation.', icon: <Mail className="w-6 h-6" />, color: 'bg-[#FFE01B]', path: '/admin/integrations/mailchimp', iconColor: 'text-black' },
+        { id: 'sendgrid', name: 'SendGrid Relay', description: 'Transactional email delivery and audit logs.', icon: <Activity className="w-6 h-6" />, color: 'bg-[#00B3E3]', path: '/admin/integrations/sendgrid' },
+        { id: 'google-analytics', name: 'Analytics V4', description: 'Deep behavioral intelligence and traffic telemetry.', icon: <BarChart className="w-6 h-6" />, color: 'bg-orange-500', path: '/admin/integrations/google-analytics' }
     ];
 
     return (
-        <div className="min-h-screen bg-admin-bg font-sans pb-20 p-4 md:p-8">
-            <header className="mb-12 max-w-7xl mx-auto mt-10">
-                <h1 className="text-3xl font-black text-white mb-2 uppercase tracking-widest poppins">Integrations Hub</h1>
-                <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">
-                    Connect your storefront node with third-party analytical and logistics clusters.
-                </p>
-            </header>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-                {services.map((service) => (
-                    <div
-                        key={service.id}
-                        className={`group relative bg-admin-card rounded-[2.5rem] p-10 shadow-admin border border-admin-border transition-all duration-500 hover:bg-[#ffffff05] ${service.disabled ? 'opacity-50 grayscale' : 'hover:border-admin-accent/30'}`}
-                    >
-                        <div className="flex items-start justify-between mb-8">
-                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${service.color} group-hover:scale-110 transition-transform`}>
-                                {service.icon}
-                            </div>
-                            <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl border ${service.disabled ? 'bg-[#ffffff05] text-gray-600 border-[#ffffff1a]' : 'bg-admin-green/10 text-admin-green border-admin-green/20 shadow-lg shadow-admin-green/5'}`}>
-                                {service.disabled ? 'Offline' : 'Operational'}
-                            </span>
-                        </div>
-
-                        <h3 className="text-xl font-black text-white mb-2 group-hover:text-admin-accent transition-colors poppins">
-                            {service.name}
-                        </h3>
-                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed mb-10 min-h-[40px]">
-                            {service.description}
-                        </p>
-
-                        {!service.disabled ? (
-                            <NavLink
-                                to={service.path}
-                                className="flex items-center justify-between w-full py-4 px-8 bg-[#ffffff05] hover:bg-admin-accent text-white rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest transition-all border border-admin-border hover:border-admin-accent hover:shadow-lg hover:shadow-admin-red/40"
-                            >
-                                <span>Initialize Config</span>
-                                <ChevronRight className="w-4 h-4" />
-                            </NavLink>
-                        ) : (
-                            <div className="flex items-center justify-center w-full py-4 px-8 bg-[#ffffff02] text-gray-700 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest border border-dashed border-[#ffffff0d]">
-                                Node Restricted
-                            </div>
-                        )}
+        <div className="min-h-screen bg-gray-50 pb-20 font-Cairo text-gray-900">
+            <AdminHeader title="Ecosystem Intelligence" />
+            <main className="max-w-7xl mx-auto py-8 px-4">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+                    <div>
+                        <h2 className="text-3xl font-black uppercase italic">Connectivity Hub</h2>
+                        <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mt-1">Managing {services.length} External Network Bridges</p>
                     </div>
-                ))}
-            </div>
+                </div>
 
-            <div className="mt-16 p-10 bg-admin-card rounded-[3rem] border border-admin-border shadow-admin flex flex-col md:flex-row items-center justify-between gap-8 max-w-7xl mx-auto relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <ExternalLink className="h-40 w-40 text-white" />
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-orange-50 text-orange-600 rounded-2xl border border-orange-100"><Layers size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Bridges</p><h3 className="text-2xl font-black italic">{services.length}</h3></div></div>
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-green-50 text-green-600 rounded-2xl border border-green-100"><ShieldCheck size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Security</p><h3 className="text-2xl font-black italic">Verified</h3></div></div>
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-blue-50 text-blue-600 rounded-2xl border border-blue-100"><Zap size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Sync Speed</p><h3 className="text-2xl font-black italic">Real-time</h3></div></div>
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-red-50 text-red-600 rounded-2xl border border-red-100"><Activity size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Operational</p><h3 className="text-2xl font-black italic">100%</h3></div></div>
                 </div>
-                <div className="flex-1 relative">
-                    <h4 className="text-lg font-black text-white mb-1 uppercase tracking-widest poppins">Custom Node Integration?</h4>
-                    <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Our sysops team can facilitate direct bridges to any proprietary API or service cluster.</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {services.map((service) => (
+                        <NavLink key={service.id} to={service.path} className="group relative bg-white rounded-[3rem] p-10 shadow-sm border transition-all duration-500 hover:shadow-2xl hover:scale-[1.02] flex flex-col">
+                            <div className="flex items-start justify-between mb-8">
+                                <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center shadow-xl text-white ${service.color} group-hover:rotate-6 transition-all`}>
+                                    {service.icon}
+                                </div>
+                                <span className="text-[9px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full bg-green-50 text-green-600 border border-green-100 italic">Operational</span>
+                            </div>
+                            <h3 className="text-xl font-black uppercase italic mb-3 group-hover:text-red-600 transition-colors">
+                                {service.name}
+                            </h3>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed mb-10 italic">
+                                {service.description}
+                            </p>
+                            <div className="mt-auto flex items-center justify-between w-full py-5 px-8 bg-gray-50 group-hover:bg-black group-hover:text-white rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest transition-all">
+                                <span>Initialize Protocol</span>
+                                <ChevronRight className="w-4 h-4" />
+                            </div>
+                        </NavLink>
+                    ))}
                 </div>
-                <button className="whitespace-nowrap px-10 py-4 bg-admin-red text-white border border-admin-red rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] hover:bg-admin-red-dark hover:scale-105 transition-all shadow-xl shadow-admin-red/20 relative active:scale-95">
-                    Consult SysAdmin
-                </button>
-            </div>
+
+                <div className="mt-16 p-12 bg-black text-white rounded-[3.5rem] shadow-2xl flex flex-col md:flex-row items-center justify-between gap-10 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-12 opacity-5 translate-x-1/4 translate-y-[-1/4] group-hover:scale-110 transition-all">
+                        <ExternalLink size={240} />
+                    </div>
+                    <div className="flex-1 relative z-10">
+                        <h4 className="text-2xl font-black uppercase italic mb-2">Custom Proprietary Hub?</h4>
+                        <p className="text-[11px] font-black uppercase tracking-widest opacity-60">Our system architects can facilitate horizontal bridges to any enterprise ERP or logistics cluster.</p>
+                    </div>
+                    <button className="relative z-10 px-12 py-5 bg-white text-black rounded-[2rem] font-black uppercase italic text-xs hover:scale-105 active:scale-95 transition-all shadow-2xl">
+                        Request API Provisioning
+                    </button>
+                </div>
+            </main>
         </div>
     );
 };

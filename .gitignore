@@ -28,3 +28,8 @@ dist-ssr
 .env
 .vercel
 .env*.local
+
+# Migration & Credentials (DO NOT COMMIT)
+firebase-service-account.json
+migration-config.json
+scripts/

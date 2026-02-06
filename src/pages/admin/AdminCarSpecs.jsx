@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../../firebase';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
-import { Plus, Edit2, Trash2, Save, X, Search, Car, Settings, Droplets, Fuel } from 'lucide-react';
+import { databases } from '../../appwrite';
+import { Query, ID } from 'appwrite';
 import { toast } from 'react-hot-toast';
+import { Plus, Edit2, Trash2, Save, X, Search, Car, Settings, Droplets, Fuel, Loader2, Activity, ShieldCheck, Zap } from 'lucide-react';
 import AdminHeader from '../../components/AdminHeader';
 
 const AdminCarSpecs = () => {
@@ -13,438 +13,128 @@ const AdminCarSpecs = () => {
     const [editingId, setEditingId] = useState(null);
     const [submitting, setSubmitting] = useState(false);
 
-    const [formData, setFormData] = useState({
-        make: '',
-        model: '',
-        year: '',
-        engineType: '',
-        motorOilViscosity: '',
-        motorOilCapacity: '',
-        transmissionFluidType: '',
-        transmissionCapacity: ''
-    });
+    const [formData, setFormData] = useState({ make: '', model: '', year: '', engineType: '', motorOilViscosity: '', motorOilCapacity: '', transmissionFluidType: '', transmissionCapacity: '' });
 
-    useEffect(() => {
-        fetchSpecs();
-    }, []);
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const CAR_SPECS_COLLECTION = import.meta.env.VITE_APPWRITE_CAR_SPECS_COLLECTION_ID || 'car_specs';
 
     const fetchSpecs = async () => {
+        if (!DATABASE_ID) return;
         setLoading(true);
         try {
-            // This query requires a composite index in Firestore:
-            // car_specs (make: ASC, model: ASC, year: DESC)
-            const q = query(
-                collection(db, 'car_specs'),
-                orderBy('make', 'asc'),
-                orderBy('model', 'asc'),
-                orderBy('year', 'desc')
-            );
-
-            const querySnapshot = await getDocs(q);
-            const specsList = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            setSpecs(specsList);
-        } catch (error) {
-            console.error("=== FIREBASE ERROR FETCHING CAR SPECS ===");
-            console.error("Code:", error.code);
-            console.error("Message:", error.message);
-            console.dir(error);
-
-            if (error.message.includes('requires an index')) {
-                const indexUrl = error.message.split('it here: ')[1];
-                console.warn("COMPOSITE INDEX MISSING. Create it using this URL:");
-                console.warn(indexUrl);
-                toast.error("Database initialization required. Check console for index link.");
-            } else {
-                toast.error("Failed to load car specs");
-            }
-        } finally {
-            setLoading(false);
-        }
+            const response = await databases.listDocuments(DATABASE_ID, CAR_SPECS_COLLECTION, [Query.orderAsc('make'), Query.orderAsc('model'), Query.limit(100)]);
+            setSpecs(response.documents.map(doc => ({ id: doc.$id, ...doc })));
+        } catch (error) { toast.error("Technical registry failure"); }
+        finally { setLoading(false); }
     };
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
+    useEffect(() => { fetchSpecs(); }, [DATABASE_ID]);
 
-    const resetForm = () => {
-        setFormData({
-            make: '',
-            model: '',
-            year: '',
-            engineType: '',
-            motorOilViscosity: '',
-            motorOilCapacity: '',
-            transmissionFluidType: '',
-            transmissionCapacity: ''
-        });
-        setEditingId(null);
-        setShowForm(false);
-    };
+    const handleInputChange = (e) => { const { name, value } = e.target; setFormData(prev => ({ ...prev, [name]: value })); };
+    const resetForm = () => { setFormData({ make: '', model: '', year: '', engineType: '', motorOilViscosity: '', motorOilCapacity: '', transmissionFluidType: '', transmissionCapacity: '' }); setEditingId(null); setShowForm(false); };
 
     const handleEdit = (spec) => {
-        setFormData({
-            make: spec.make || '',
-            model: spec.model || '',
-            year: spec.year || '',
-            engineType: spec.engineType || '',
-            motorOilViscosity: spec.motorOilViscosity || '',
-            motorOilCapacity: spec.motorOilCapacity || '',
-            transmissionFluidType: spec.transmissionFluidType || '',
-            transmissionCapacity: spec.transmissionCapacity || ''
-        });
-        setEditingId(spec.id);
-        setShowForm(true);
+        setFormData({ make: spec.make || '', model: spec.model || '', year: spec.year || '', engineType: spec.engineType || '', motorOilViscosity: spec.motorOilViscosity || '', motorOilCapacity: spec.motorOilCapacity || '', transmissionFluidType: spec.transmissionFluidType || '', transmissionCapacity: spec.transmissionCapacity || '' });
+        setEditingId(spec.id); setShowForm(true);
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this specification?")) return;
-
+        if (!window.confirm("Purge vehicle technical data?")) return;
         try {
-            await deleteDoc(doc(db, 'car_specs', id));
-            toast.success("Specification deleted successfully");
-            fetchSpecs();
-        } catch (error) {
-            console.error("Error deleting spec:", error);
-            toast.error("Failed to delete specification");
-        }
+            await databases.deleteDocument(DATABASE_ID, CAR_SPECS_COLLECTION, id);
+            toast.success("Technical entry purged"); fetchSpecs();
+        } catch (error) { toast.error("Purge failure"); }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSubmitting(true);
-
-        // Convert capacities to numbers
-        const dataToSave = {
-            ...formData,
-            motorOilCapacity: parseFloat(formData.motorOilCapacity) || 0,
-            transmissionCapacity: parseFloat(formData.transmissionCapacity) || 0,
-            updatedAt: new Date()
-        };
-
+        const data = { ...formData, motorOilCapacity: parseFloat(formData.motorOilCapacity) || 0, transmissionCapacity: parseFloat(formData.transmissionCapacity) || 0 };
         try {
-            if (editingId) {
-                await updateDoc(doc(db, 'car_specs', editingId), dataToSave);
-                toast.success("Specification updated successfully");
-            } else {
-                await addDoc(collection(db, 'car_specs'), {
-                    ...dataToSave,
-                    createdAt: new Date()
-                });
-                toast.success("Specification added successfully");
-            }
-            resetForm();
-            fetchSpecs();
-        } catch (error) {
-            console.error("Error saving spec:", error);
-            toast.error("Failed to save specification");
-        } finally {
-            setSubmitting(false);
-        }
+            if (editingId) { await databases.updateDocument(DATABASE_ID, CAR_SPECS_COLLECTION, editingId, data); toast.success("Technical update deployed"); }
+            else { await databases.createDocument(DATABASE_ID, CAR_SPECS_COLLECTION, ID.unique(), data); toast.success("Technical entry secured"); }
+            resetForm(); fetchSpecs();
+        } catch (error) { toast.error("Deployment failure"); }
+        finally { setSubmitting(false); }
     };
 
-    const filteredSpecs = specs.filter(spec =>
-        `${spec.make} ${spec.model} ${spec.year}`.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredSpecs = specs.filter(spec => `${spec.make} ${spec.model} ${spec.year}`.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return (
-        <div className="min-h-screen bg-admin-bg font-sans p-4 md:p-8">
-            <div className="max-w-7xl mx-auto">
-                <AdminHeader title="Car Specifications" />
-
-                {/* Actions Bar */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10 mt-10">
-                    <div className="relative w-full md:w-96">
-                        <input
-                            type="text"
-                            placeholder="Search make, model, or year..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-12 pr-6 py-4 bg-white border border-gray-200 rounded-2xl text-black placeholder-gray-400 focus:ring-2 focus:ring-admin-accent focus:border-transparent transition-all outline-none shadow-sm font-bold text-sm"
-                        />
-                        <Search className="absolute left-4 top-4 h-5 w-5 text-gray-300" />
+        <div className="min-h-screen bg-gray-50 pb-20 font-Cairo text-gray-900">
+            <AdminHeader title="Technical Specifications" />
+            <main className="max-w-7xl mx-auto py-8 px-4">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+                    <div>
+                        <h2 className="text-3xl font-black uppercase italic text-black">Vehicle Matrix</h2>
+                        <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mt-1">Managing {specs.length} Validated Compatibility Nodes</p>
                     </div>
-
-                    <button
-                        onClick={() => setShowForm(true)}
-                        className="flex items-center gap-3 px-8 py-4 bg-admin-red hover:bg-admin-red-dark text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-admin-red/40 hover:scale-105 active:scale-95"
-                    >
-                        <Plus className="h-5 w-5" />
-                        Add New Specification
-                    </button>
+                    <button onClick={() => setShowForm(true)} className="bg-black text-white px-10 py-5 rounded-[2rem] font-black uppercase italic text-xs shadow-2xl flex items-center gap-3 hover:scale-[1.03] transition-all"><Plus size={18} /> Secure New Specification</button>
                 </div>
 
-                {/* Form Overlay */}
-                {showForm && (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
-                        <div className="bg-admin-card rounded-[2.5rem] shadow-admin w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-admin-border animate-in zoom-in-95 duration-300">
-                            <div className="p-10 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white/80 backdrop-blur-md z-10">
-                                <div>
-                                    <h2 className="text-2xl font-black text-black uppercase tracking-widest poppins">{editingId ? 'Edit Metrics' : 'New Configuration'}</h2>
-                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Define vehicle fluid capacities and types</p>
-                                </div>
-                                <button onClick={resetForm} className="p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-all text-gray-400 hover:text-black border border-gray-100">
-                                    <X className="h-6 w-6" />
-                                </button>
-                            </div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-black text-white rounded-2xl shadow-xl"><Car size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Models</p><h3 className="text-2xl font-black italic">{specs.length}</h3></div></div>
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-blue-50 text-blue-600 rounded-2xl border border-blue-100"><Droplets size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Fluids</p><h3 className="text-2xl font-black italic">Indexed</h3></div></div>
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-green-50 text-green-600 rounded-2xl border border-green-100"><Zap size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Uptime</p><h3 className="text-2xl font-black italic">100%</h3></div></div>
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-red-50 text-red-600 rounded-2xl border border-red-100"><Activity size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Registry</p><h3 className="text-2xl font-black italic">Clean</h3></div></div>
+                </div>
 
-                            <form onSubmit={handleSubmit} className="p-10 space-y-10">
-                                {/* Basic Info */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div>
-                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">Make</label>
-                                        <input
-                                            type="text"
-                                            name="make"
-                                            required
-                                            value={formData.make}
-                                            onChange={handleInputChange}
-                                            placeholder="Toyota"
-                                            className="w-full bg-white border border-gray-200 focus:ring-2 focus:ring-admin-accent rounded-xl px-5 py-4 text-black font-bold outline-none transition-all shadow-sm"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">Model</label>
-                                        <input
-                                            type="text"
-                                            name="model"
-                                            required
-                                            value={formData.model}
-                                            onChange={handleInputChange}
-                                            placeholder="Corolla"
-                                            className="w-full bg-[#ffffff05] border border-admin-border focus:ring-2 focus:ring-admin-accent rounded-xl px-5 py-4 text-white font-bold outline-none transition-all shadow-lg"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">Year</label>
-                                        <input
-                                            type="text"
-                                            name="year"
-                                            required
-                                            value={formData.year}
-                                            onChange={handleInputChange}
-                                            placeholder="2022"
-                                            className="w-full bg-[#ffffff05] border border-admin-border focus:ring-2 focus:ring-admin-accent rounded-xl px-5 py-4 text-white font-bold outline-none transition-all shadow-lg"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Engine & Fuel */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">Engine Variant</label>
-                                        <div className="relative">
-                                            <input
-                                                type="text"
-                                                name="engineType"
-                                                required
-                                                value={formData.engineType}
-                                                onChange={handleInputChange}
-                                                placeholder="1.8L Dual VVT-i"
-                                                className="w-full bg-white border border-gray-200 focus:ring-2 focus:ring-admin-accent rounded-xl px-5 py-4 pl-12 text-black font-bold outline-none transition-all shadow-sm"
-                                            />
-                                            <Fuel className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Motor Oil Specs */}
-                                <div className="bg-admin-accent/5 rounded-3xl p-8 border border-admin-accent/10 shadow-inner">
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <div className="bg-admin-accent/20 p-2 rounded-lg">
-                                            <Droplets className="h-5 w-5 text-admin-accent" />
-                                        </div>
-                                        <h3 className="text-[10px] font-black text-admin-accent uppercase tracking-widest">Motor Oil Calibration</h3>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2 px-1">Viscosity</label>
-                                            <input
-                                                type="text"
-                                                name="motorOilViscosity"
-                                                required
-                                                value={formData.motorOilViscosity}
-                                                onChange={handleInputChange}
-                                                placeholder="0W-20"
-                                                className="w-full bg-white border border-gray-100 focus:ring-2 focus:ring-admin-accent rounded-xl px-5 py-4 text-black font-bold outline-none transition-all shadow-sm"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2 px-1">Capacity (L)</label>
-                                            <input
-                                                type="number"
-                                                step="0.1"
-                                                name="motorOilCapacity"
-                                                required
-                                                value={formData.motorOilCapacity}
-                                                onChange={handleInputChange}
-                                                placeholder="4.2"
-                                                className="w-full bg-[#ffffff05] border border-[#ffffff1a] focus:ring-2 focus:ring-admin-accent rounded-xl px-5 py-4 text-white font-bold outline-none transition-all shadow-lg"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Transmission Specs */}
-                                <div className="bg-[#1e2d4d]/20 rounded-3xl p-8 border border-[#1e2d4d]/40 shadow-inner">
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <div className="bg-blue-600/20 p-2 rounded-lg">
-                                            <Settings className="h-5 w-5 text-blue-500" />
-                                        </div>
-                                        <h3 className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Drivetrain Metrics</h3>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2 px-1">Fluid Specification</label>
-                                            <input
-                                                type="text"
-                                                name="transmissionFluidType"
-                                                required
-                                                value={formData.transmissionFluidType}
-                                                onChange={handleInputChange}
-                                                placeholder="Toyota Genuine ATF WS"
-                                                className="w-full bg-white border border-gray-100 focus:ring-2 focus:ring-blue-500 rounded-xl px-5 py-4 text-black font-bold outline-none transition-all shadow-sm"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2 px-1">Capacity (L)</label>
-                                            <input
-                                                type="number"
-                                                step="0.1"
-                                                name="transmissionCapacity"
-                                                required
-                                                value={formData.transmissionCapacity}
-                                                onChange={handleInputChange}
-                                                placeholder="7.5"
-                                                className="w-full bg-[#ffffff05] border border-[#ffffff1a] focus:ring-2 focus:ring-blue-500 rounded-xl px-5 py-4 text-white font-bold outline-none transition-all shadow-lg"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-4 pt-4 sticky bottom-0 bg-admin-card py-6 border-t border-[#ffffff0d] z-20">
-                                    <button
-                                        type="button"
-                                        onClick={resetForm}
-                                        className="flex-1 px-8 py-4 bg-gray-50 hover:bg-gray-100 text-gray-400 hover:text-black rounded-xl transition-all font-black uppercase tracking-widest text-[10px] border border-gray-200"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={submitting}
-                                        className="flex-[2] px-8 py-4 bg-admin-red hover:bg-admin-red-dark text-white rounded-xl font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-3 shadow-lg shadow-admin-red/40 disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98]"
-                                    >
-                                        {submitting ? (
-                                            <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                        ) : (
-                                            <Save className="h-5 w-5" />
-                                        )}
-                                        {editingId ? 'Push Update' : 'Commit Registry'}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                <div className="bg-white rounded-[3.5rem] border shadow-sm overflow-hidden flex flex-col">
+                    <div className="p-10 border-b bg-gray-50/50 flex flex-col md:flex-row gap-6 justify-between items-center">
+                        <div className="relative w-full md:w-96"><Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400" size={20} /><input type="text" placeholder="FILTER BY MAKE, MODEL OR YEAR..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full pl-16 pr-8 py-5 bg-white border-2 rounded-[2rem] font-black text-xs italic outline-none focus:border-black transition-all shadow-inner" /></div>
+                        <div className="flex items-center gap-4"><div className="p-4 bg-red-600 text-white rounded-2xl shadow-xl"><Settings size={20} /></div><div><h4 className="text-lg font-black uppercase italic leading-none">Compatibility Registry</h4><p className="text-[10px] font-bold text-gray-400 uppercase italic mt-1">Live Technical Grid Broadcast</p></div></div>
                     </div>
-                )}
-
-                {/* Table Section */}
-                <div className="bg-white rounded-[2.5rem] shadow-sm overflow-hidden border border-gray-100 animate-in fade-in slide-in-from-bottom-6 duration-700">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest poppins">Vehicle Entity</th>
-                                    <th className="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest poppins">Lubricants</th>
-                                    <th className="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest poppins">Drivetrain</th>
-                                    <th className="px-10 py-6 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest poppins">Operations</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-[#ffffff05]">
-                                {loading ? (
-                                    <tr>
-                                        <td colSpan="4" className="px-10 py-24 text-center">
-                                            <div className="flex flex-col items-center gap-4">
-                                                <div className="h-12 w-12 border-4 border-admin-accent border-t-transparent rounded-full animate-spin text-admin-accent"></div>
-                                                <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">Filtering specs cache...</p>
-                                            </div>
-                                        </td>
+                            <thead className="bg-gray-50/50 text-[10px] font-black uppercase tracking-widest text-gray-400"><tr><th className="px-10 py-6">Vehicle Identity</th><th className="px-10 py-6">Lubricant Grid</th><th className="px-10 py-6">Drivetrain Hub</th><th className="px-10 py-6 text-right">Ops</th></tr></thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {loading && specs.length === 0 ? <tr><td colSpan="4" className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-black" size={40} /></td></tr> : filteredSpecs.map(spec => (
+                                    <tr key={spec.id} className="hover:bg-gray-50/50 transition-all group">
+                                        <td className="px-10 py-8"><div className="flex items-center gap-6"><div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center border-2 border-transparent group-hover:border-black transition-all group-hover:rotate-6 shadow-inner"><Car size={28} className="text-gray-400 group-hover:text-black transition-all" /></div><div><h4 className="font-black text-lg uppercase italic leading-none">{spec.make} {spec.model}</h4><div className="flex items-center gap-2 mt-2"><span className="bg-black text-white px-3 py-1 rounded-lg text-[9px] font-black italic">{spec.year}</span><span className="text-[10px] font-bold text-gray-400 uppercase italic">{spec.engineType}</span></div></div></div></td>
+                                        <td className="px-10 py-8"><div className="flex items-center gap-4 mb-2"><Droplets size={16} className="text-red-600" /><span className="font-black text-sm italic uppercase">{spec.motorOilViscosity}</span></div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{spec.motorOilCapacity} LITERS FLUID</p></td>
+                                        <td className="px-10 py-8"><div className="flex items-center gap-4 mb-2"><Settings size={16} className="text-blue-600" /><span className="font-black text-sm italic uppercase truncate max-w-[150px]">{spec.transmissionFluidType}</span></div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{spec.transmissionCapacity} LITERS CAPACITY</p></td>
+                                        <td className="px-10 py-8 text-right"><div className="flex justify-end gap-3"><button onClick={() => handleEdit(spec)} className="p-3 bg-white border-2 rounded-xl text-gray-400 hover:text-black hover:border-black transition-all shadow-sm"><Edit2 size={18} /></button><button onClick={() => handleDelete(spec.id)} className="p-3 bg-white border-2 rounded-xl text-red-600 hover:bg-red-600 hover:text-white transition-all shadow-sm"><Trash2 size={18} /></button></div></td>
                                     </tr>
-                                ) : filteredSpecs.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="4" className="px-10 py-24 text-center">
-                                            <div className="flex flex-col items-center gap-4">
-                                                <div className="bg-[#ffffff05] p-8 rounded-full shadow-inner border border-admin-border">
-                                                    <Car className="h-14 w-14 text-gray-800" />
-                                                </div>
-                                                <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">No matches in core registry</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    filteredSpecs.map((spec) => (
-                                        <tr key={spec.id} className="hover:bg-gray-50/50 transition-all group">
-                                            <td className="px-10 py-8">
-                                                <div className="flex items-center gap-6">
-                                                    <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 group-hover:border-admin-accent/30 transition-all group-hover:scale-105">
-                                                        <Car className="h-7 w-7 text-gray-400 group-hover:text-admin-accent transition-colors" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-black text-black text-base poppins leading-none mb-2">{spec.make} {spec.model}</p>
-                                                        <div className="flex items-center gap-3">
-                                                            <span className="text-[10px] font-black text-admin-accent bg-admin-accent/10 px-2.5 py-1 rounded-lg uppercase tracking-widest border border-admin-accent/20">{spec.year}</span>
-                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{spec.engineType}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-10 py-8">
-                                                <div className="flex items-center gap-3 mb-2">
-                                                    <div className="p-1.5 bg-admin-accent/10 rounded-lg">
-                                                        <Droplets className="h-4 w-4 text-admin-accent" />
-                                                    </div>
-                                                    <span className="font-black text-black poppins text-sm">{spec.motorOilViscosity}</span>
-                                                </div>
-                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{spec.motorOilCapacity} Liters Capacity</p>
-                                            </td>
-                                            <td className="px-10 py-8">
-                                                <div className="flex items-center gap-3 mb-2">
-                                                    <div className="p-1.5 bg-blue-600/10 rounded-lg">
-                                                        <Settings className="h-4 w-4 text-blue-500" />
-                                                    </div>
-                                                    <span className="font-black text-black poppins text-sm truncate max-w-[180px] inline-block">{spec.transmissionFluidType}</span>
-                                                </div>
-                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{spec.transmissionCapacity} Liters Capacity</p>
-                                            </td>
-                                            <td className="px-10 py-8 text-right">
-                                                <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
-                                                    <button
-                                                        onClick={() => handleEdit(spec)}
-                                                        className="p-3 bg-white text-gray-400 hover:text-admin-accent hover:bg-gray-50 rounded-2xl transition-all border border-gray-100 hover:border-admin-accent/20 shadow-sm"
-                                                        title="Edit Metrics"
-                                                    >
-                                                        <Edit2 className="h-4 w-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(spec.id)}
-                                                        className="p-3 bg-white text-gray-400 hover:text-admin-red hover:bg-red-50 rounded-2xl transition-all border border-gray-100 hover:border-admin-red/20 shadow-sm"
-                                                        title="Delete Entry"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
+                                ))}
                             </tbody>
                         </table>
                     </div>
                 </div>
-            </div>
+            </main>
+
+            {showForm && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-6 sm:p-12">
+                    <div className="bg-white rounded-[4rem] shadow-2xl w-full max-w-2xl max-h-full overflow-y-auto border-8 border-black animate-in zoom-in-95 duration-500">
+                        <div className="p-12 border-b flex justify-between items-center bg-gray-50/80 sticky top-0 z-10 backdrop-blur-md">
+                            <div><h3 className="text-2xl font-black uppercase italic">{editingId ? 'Modify Metrics' : 'Initialize Registry'}</h3><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Vehicle technical configuration bridge</p></div>
+                            <button onClick={resetForm} className="p-4 hover:bg-black hover:text-white rounded-2xl transition-all border-2 border-transparent hover:rotate-90"><X size={24} /></button>
+                        </div>
+                        <form onSubmit={handleSubmit} className="p-12 space-y-12">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                <div className="space-y-3"><label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest italic ml-1">Identity (Make)</label><input type="text" name="make" required value={formData.make} onChange={handleInputChange} placeholder="Toyota" className="w-full px-6 py-4 bg-gray-50 border-2 rounded-2xl font-black text-sm italic outline-none focus:border-red-600 transition-all font-mono shadow-inner" /></div>
+                                <div className="space-y-3"><label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest italic ml-1">Model Node</label><input type="text" name="model" required value={formData.model} onChange={handleInputChange} placeholder="Corolla" className="w-full px-6 py-4 bg-gray-50 border-2 rounded-2xl font-black text-sm italic outline-none focus:border-red-600 transition-all font-mono shadow-inner" /></div>
+                                <div className="space-y-3"><label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest italic ml-1">Cycle (Year)</label><input type="text" name="year" required value={formData.year} onChange={handleInputChange} placeholder="2022" className="w-full px-6 py-4 bg-gray-50 border-2 rounded-2xl font-black text-sm italic outline-none focus:border-red-600 transition-all font-mono shadow-inner" /></div>
+                            </div>
+                            <div className="space-y-3"><label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest italic ml-1">Engine Variant Portfolio</label><div className="relative"><Fuel className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300" size={20} /><input type="text" name="engineType" required value={formData.engineType} onChange={handleInputChange} placeholder="1.8L Dual VVT-i" className="w-full pl-16 pr-8 py-5 bg-gray-50 border-2 rounded-2xl font-black text-sm italic outline-none focus:border-red-600 transition-all font-mono shadow-inner" /></div></div>
+                            <div className="bg-red-50 p-10 rounded-[3rem] border-2 border-dashed border-red-100 space-y-8">
+                                <div className="flex items-center gap-3"><Droplets className="text-red-600" size={20} /><h4 className="text-[10px] font-black text-red-600 uppercase tracking-widest italic">Lubricant Calibration Hub</h4></div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-3"><label className="block text-[9px] font-black text-gray-400 uppercase italic">Viscosity Index</label><input type="text" name="motorOilViscosity" required value={formData.motorOilViscosity} onChange={handleInputChange} placeholder="0W-20" className="w-full px-6 py-4 bg-white border-2 rounded-2xl font-black text-base italic outline-none focus:border-red-600 transition-all font-mono" /></div>
+                                    <div className="space-y-3"><label className="block text-[9px] font-black text-gray-400 uppercase italic">Refill Capacity (L)</label><input type="number" step="0.1" name="motorOilCapacity" required value={formData.motorOilCapacity} onChange={handleInputChange} placeholder="4.2" className="w-full px-6 py-4 bg-white border-2 rounded-2xl font-black text-base italic outline-none focus:border-red-600 transition-all font-mono" /></div>
+                                </div>
+                            </div>
+                            <div className="bg-blue-50 p-10 rounded-[3rem] border-2 border-dashed border-blue-100 space-y-8">
+                                <div className="flex items-center gap-3"><Settings className="text-blue-600" size={20} /><h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest italic">Drivetrain Metric Node</h4></div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-3"><label className="block text-[9px] font-black text-gray-400 uppercase italic">Fluid Protocol</label><input type="text" name="transmissionFluidType" required value={formData.transmissionFluidType} onChange={handleInputChange} placeholder="Toyota ATF WS" className="w-full px-6 py-4 bg-white border-2 rounded-2xl font-black text-base italic outline-none focus:border-blue-600 transition-all font-mono" /></div>
+                                    <div className="space-y-3"><label className="block text-[9px] font-black text-gray-400 uppercase italic">Terminal Capacity (L)</label><input type="number" step="0.1" name="transmissionCapacity" required value={formData.transmissionCapacity} onChange={handleInputChange} placeholder="7.5" className="w-full px-6 py-4 bg-white border-2 rounded-2xl font-black text-base italic outline-none focus:border-blue-600 transition-all font-mono" /></div>
+                                </div>
+                            </div>
+                            <div className="flex gap-6 pt-6"><button type="button" onClick={resetForm} className="flex-1 py-5 border-4 border-black rounded-[2.5rem] font-black uppercase italic text-xs hover:bg-gray-50 transition-all">Cancel Node</button><button type="submit" disabled={submitting} className="flex-[2] bg-black text-white py-5 rounded-[2.5rem] font-black uppercase italic text-xs shadow-2xl hover:scale-[1.03] transition-all flex items-center justify-center gap-3">{submitting ? <Loader2 className="animate-spin" /> : <Save size={20} />} {editingId ? 'Deploy Update' : 'Initialize Registry'}</button></div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

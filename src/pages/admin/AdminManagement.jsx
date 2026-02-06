@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, getDoc, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
-import { db, auth } from '../../firebase';
+import { databases } from '../../appwrite';
+import { Query, ID } from 'appwrite';
 import { toast } from 'react-hot-toast';
-import { Users, UserPlus, Trash2, Shield, Mail, Loader2 } from 'lucide-react';
+import { Users, UserPlus, Trash2, Shield, Mail, Loader2, ShieldCheck, Zap, Activity, ShieldAlert, Key, UserCheck } from 'lucide-react';
 import AdminHeader from '../../components/AdminHeader';
 
 const AdminManagement = () => {
@@ -10,217 +10,97 @@ const AdminManagement = () => {
     const [loading, setLoading] = useState(true);
     const [inviting, setInviting] = useState(false);
     const [inviteEmail, setInviteEmail] = useState('');
-    const [currentUserRole, setCurrentUserRole] = useState(null);
+    const [currentUserRole, setCurrentUserRole] = useState('admin');
 
-    useEffect(() => {
-        const fetchAdmins = async () => {
-            try {
-                // Fetch current user's role first
-                if (auth.currentUser) {
-                    const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
-                    if (userDoc.exists()) {
-                        setCurrentUserRole(userDoc.data().role);
-                    }
-                }
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const USERS_COLLECTION = import.meta.env.VITE_APPWRITE_USERS_COLLECTION_ID || 'users';
 
-                // Fetch all admins
-                const q = query(collection(db, 'users'), where('role', 'in', ['admin', 'super_admin', 'editor']));
-                const querySnapshot = await getDocs(q);
-                const adminList = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                setAdmins(adminList);
-            } catch (error) {
-                console.error("Error fetching admins:", error);
-                toast.error("Failed to load admins");
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchAdmins = async () => {
+        if (!DATABASE_ID) return;
+        setLoading(true);
+        try {
+            const response = await databases.listDocuments(DATABASE_ID, USERS_COLLECTION, [Query.equal('role', ['admin', 'super_admin', 'editor']), Query.limit(100)]);
+            setAdmins(response.documents.map(doc => ({ id: doc.$id, ...doc })));
+        } catch (error) { toast.error("Security registry failure"); }
+        finally { setLoading(false); }
+    };
 
-        fetchAdmins();
-    }, []);
+    useEffect(() => { fetchAdmins(); }, [DATABASE_ID]);
 
     const handleAddAdmin = async (e) => {
         e.preventDefault();
         if (!inviteEmail.trim()) return;
-
         setInviting(true);
         try {
-            // In a real flow, you might want to check if the user exists first
-            // Or use a trigger/function to handle invitations.
-            // For this implementation, we search for a user with this email.
-            const q = query(collection(db, 'users'), where('email', '==', inviteEmail.trim().toLowerCase()));
-            const querySnapshot = await getDocs(q);
-
-            if (querySnapshot.empty) {
-                toast.error("User not found as a customer. They must sign up first.");
-            } else {
-                const userDoc = querySnapshot.docs[0];
-                await updateDoc(doc(db, 'users', userDoc.id), {
-                    role: 'admin',
-                    updatedAt: new Date()
-                });
-                toast.success(`${inviteEmail} is now an Admin!`);
-                setAdmins(prev => [...prev, { id: userDoc.id, ...userDoc.data(), role: 'admin' }]);
-                setInviteEmail('');
+            const response = await databases.listDocuments(DATABASE_ID, USERS_COLLECTION, [Query.equal('email', inviteEmail.trim().toLowerCase())]);
+            if (response.total === 0) { toast.error("Node identity not found in network"); }
+            else {
+                const userDoc = response.documents[0];
+                await databases.updateDocument(DATABASE_ID, USERS_COLLECTION, userDoc.$id, { role: 'admin' });
+                toast.success("Security privilege escalated"); fetchAdmins(); setInviteEmail('');
             }
-        } catch (error) {
-            console.error("Error adding admin:", error);
-            toast.error("Failed to add admin");
-        } finally {
-            setInviting(false);
-        }
+        } catch (error) { toast.error("Escalation failure"); }
+        finally { setInviting(false); }
     };
 
     const handleRemoveAdmin = async (adminId, adminEmail) => {
-        if (currentUserRole !== 'super_admin') {
-            toast.error("Only Super Admins can remove other admins");
-            return;
-        }
-
-        if (!window.confirm(`Are you sure you want to revoke admin access for ${adminEmail}?`)) return;
-
+        if (!window.confirm("Revoke administrative credentials?")) return;
         try {
-            await updateDoc(doc(db, 'users', adminId), {
-                role: null, // Reset to standard customer
-                updatedAt: new Date()
-            });
+            await databases.updateDocument(DATABASE_ID, USERS_COLLECTION, adminId, { role: null });
             setAdmins(prev => prev.filter(a => a.id !== adminId));
-            toast.success("Access revoked successfully");
-        } catch (error) {
-            console.error("Error removing admin:", error);
-            toast.error("Failed to revoke access");
-        }
+            toast.success("Credentials revoked");
+        } catch (error) { toast.error("Revocation failure"); }
     };
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center p-20">
-                <Loader2 className="h-8 w-8 animate-spin text-[#28B463]" />
-            </div>
-        );
-    }
-
     return (
-        <div className="admin-management-container bg-gray-50 min-h-full">
-            <AdminHeader title="إدارة المشرفين" />
-
-            <div className="max-w-6xl mx-auto p-6 space-y-8">
-                {/* Invite Section */}
-                {currentUserRole === 'super_admin' && (
-                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="p-3 bg-[#28B463]/10 rounded-2xl">
-                                <UserPlus className="h-6 w-6 text-[#28B463]" />
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-black text-black">Invite New Admin</h3>
-                                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Add collaborators by their email</p>
-                            </div>
-                        </div>
-
-                        <form onSubmit={handleAddAdmin} className="flex flex-col md:flex-row gap-4">
-                            <div className="flex-1 relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                                <input
-                                    type="email"
-                                    placeholder="Enter email address..."
-                                    value={inviteEmail}
-                                    onChange={(e) => setInviteEmail(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent focus:border-[#28B463] rounded-2xl outline-none font-bold text-sm transition-all shadow-inner"
-                                    required
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                disabled={inviting}
-                                className="bg-black text-white px-10 py-4 rounded-2xl font-black text-sm hover:bg-[#28B463] transition-all shadow-xl shadow-gray-200 disabled:opacity-50 flex items-center justify-center gap-2"
-                            >
-                                {inviting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Shield className="h-4 w-4" />}
-                                Revoke or Add Admin
-                            </button>
-                        </form>
-                    </div>
-                )}
-
-                {/* Admins List */}
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="p-8 border-b border-gray-50 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="p-3 bg-blue-50 rounded-2xl">
-                                <Users className="h-6 w-6 text-blue-600" />
-                            </div>
-                            <h3 className="text-xl font-black text-black">Current Administrators</h3>
-                        </div>
-                        <span className="bg-gray-100 text-gray-600 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider">
-                            {admins.length} Total
-                        </span>
-                    </div>
-
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead className="bg-gray-50/50">
-                                <tr>
-                                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Administrator</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Role</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Joined</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50">
-                                {admins.map((admin) => (
-                                    <tr key={admin.id} className="group hover:bg-gray-50/50 transition-colors">
-                                        <td className="px-8 py-6">
-                                            <div className="flex items-center gap-4">
-                                                <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-gray-100 to-gray-50 flex items-center justify-center text-gray-400 font-black text-xs border border-gray-100 group-hover:scale-110 transition-transform">
-                                                    {admin.fullName ? admin.fullName.charAt(0).toUpperCase() : <Mail className="h-4 w-4" />}
-                                                </div>
-                                                <div>
-                                                    <p className="font-black text-gray-900">{admin.fullName || 'Unnamed Admin'}</p>
-                                                    <p className="text-xs text-gray-500 font-medium">{admin.email}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-6">
-                                            <span className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest ${admin.role === 'super_admin'
-                                                ? 'bg-purple-100 text-purple-700'
-                                                : 'bg-green-100 text-[#28B463]'
-                                                }`}>
-                                                {admin.role?.replace('_', ' ')}
-                                            </span>
-                                        </td>
-                                        <td className="px-8 py-6">
-                                            <p className="text-xs font-bold text-gray-500">
-                                                {admin.createdAt?.seconds ? new Date(admin.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}
-                                            </p>
-                                        </td>
-                                        <td className="px-8 py-6 text-right">
-                                            {admin.role !== 'super_admin' && currentUserRole === 'super_admin' && (
-                                                <button
-                                                    onClick={() => handleRemoveAdmin(admin.id, admin.email)}
-                                                    className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                                                    title="Revoke Access"
-                                                >
-                                                    <Trash2 className="h-5 w-5" />
-                                                </button>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                                {admins.length === 0 && (
-                                    <tr>
-                                        <td colSpan="4" className="px-8 py-20 text-center text-gray-400 font-bold">
-                                            No administrators found.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+        <div className="min-h-screen bg-gray-50 pb-20 font-Cairo text-gray-900">
+            <AdminHeader title="Security & Governance" />
+            <main className="max-w-7xl mx-auto py-8 px-4">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+                    <div>
+                        <h2 className="text-3xl font-black uppercase italic">Admin Matrix</h2>
+                        <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mt-1">Managing {admins.length} Authorized Network Nodes</p>
                     </div>
                 </div>
-            </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-orange-50 text-orange-600 rounded-2xl border border-orange-100"><ShieldCheck size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Nodes</p><h3 className="text-2xl font-black italic">{admins.length}</h3></div></div>
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-green-50 text-green-600 rounded-2xl border border-green-100"><UserCheck size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Active</p><h3 className="text-2xl font-black italic">100%</h3></div></div>
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-blue-50 text-blue-600 rounded-2xl border border-blue-100"><Key size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Auth Level</p><h3 className="text-2xl font-black italic">Secured</h3></div></div>
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-red-50 text-red-600 rounded-2xl border border-red-100"><Activity size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Audit</p><h3 className="text-2xl font-black italic">Clean</h3></div></div>
+                </div>
+
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
+                    <div className="xl:col-span-1 space-y-8">
+                        <section className="bg-white p-10 rounded-[3rem] shadow-sm border border-gray-100 space-y-8">
+                            <div className="flex items-center gap-4"><div className="p-4 bg-black text-white rounded-2xl shadow-xl"><UserPlus size={24} /></div><div><h3 className="text-xl font-black uppercase italic">Escalate Node</h3><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Authorize New Operator</p></div></div>
+                            <form onSubmit={handleAddAdmin} className="space-y-6">
+                                <div className="space-y-4"><label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2 italic">Digital Relay (Email)</label><div className="relative"><Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300" size={18} /><input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} className="w-full pl-14 pr-8 py-5 bg-gray-50 border-2 rounded-2xl font-black text-sm italic outline-none focus:ring-4 focus:ring-red-600/10 focus:border-red-600 transition-all" placeholder="operator@zaitegypt.com" required /></div></div>
+                                <button type="submit" disabled={inviting} className="w-full bg-black text-white py-5 rounded-[2rem] font-black uppercase italic text-xs shadow-2xl hover:scale-[1.03] transition-all flex items-center justify-center gap-3">{inviting ? <Loader2 className="animate-spin" /> : <Shield size={18} />} Escalate Credentials</button>
+                            </form>
+                        </section>
+                        <section className="bg-red-600 p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden group"><h4 className="text-sm font-black uppercase italic tracking-widest mb-4">Security Protocol</h4><p className="text-xs font-bold leading-relaxed opacity-80">Credentials should only be escalated for verified personnel. All administrative operations are logged in the primary security registry.</p><ShieldAlert className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-all" size={120} /></section>
+                    </div>
+
+                    <div className="xl:col-span-2 bg-white rounded-[3.5rem] border shadow-sm overflow-hidden flex flex-col">
+                        <div className="p-10 border-b bg-gray-50/50 flex items-center justify-between"><div className="flex items-center gap-4"><Activity className="text-red-600" /><h3 className="text-xl font-black uppercase italic">Authorized Node Registry</h3></div><span className="text-[10px] font-black uppercase bg-black text-white px-5 py-2 rounded-full shadow-lg">{admins.length} Active Operators</span></div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead className="bg-gray-50/50 text-[10px] font-black uppercase tracking-widest text-gray-400"><tr><th className="px-10 py-6">Operator Identity</th><th className="px-10 py-6 text-center">Auth Tier</th><th className="px-10 py-6 text-right">Ops</th></tr></thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {loading ? <tr><td colSpan="3" className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-black" size={40} /></td></tr> : admins.map(admin => (
+                                        <tr key={admin.id} className="hover:bg-gray-50/50 transition-all group">
+                                            <td className="px-10 py-8"><div className="flex items-center gap-6"><div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center font-black text-gray-400 group-hover:bg-black group-hover:text-white transition-all uppercase shadow-inner">{admin.fullName?.[0] || 'O'}</div><div><h4 className="font-black text-base uppercase italic leading-none">{admin.fullName || 'Unnamed Node'}</h4><p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2">{admin.email}</p></div></div></td>
+                                            <td className="px-10 py-8 text-center"><span className={`px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] border shadow-sm italic ${admin.role === 'super_admin' ? 'bg-purple-50 text-purple-600 border-purple-100' : 'bg-green-50 text-green-600 border-green-100'}`}>{admin.role?.replace('_', ' ')}</span></td>
+                                            <td className="px-10 py-8 text-right">{admin.role !== 'super_admin' && <button onClick={() => handleRemoveAdmin(admin.id, admin.email)} className="p-3 bg-white text-red-600 border rounded-xl shadow-xl hover:bg-red-600 hover:text-white transition-all"><Trash2 size={18} /></button>}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
     );
 };

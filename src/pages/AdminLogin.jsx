@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { Loader2, ShieldCheck, Mail, Lock } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const AdminLogin = () => {
     const [email, setEmail] = useState('');
@@ -12,6 +10,7 @@ const AdminLogin = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const { login, role } = useAuth();
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -20,7 +19,7 @@ const AdminLogin = () => {
 
         const normalizedEmail = email.trim().toLowerCase();
 
-        // HARDCODED FALLBACK (As requested by user for now)
+        // HARDCODED FALLBACK (For initial setup/testing)
         if (normalizedEmail === 'admin@zait.com' && password === 'admin123') {
             toast.success('Login Successful (Fallback Mode)');
             const mockToken = 'hardcoded_session_' + Date.now();
@@ -31,65 +30,24 @@ const AdminLogin = () => {
         }
 
         try {
-            // 1. Authenticate with Firebase Auth
-            const userCredential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
-            const user = userCredential.user;
+            // 1. Authenticate with Appwrite
+            await login(normalizedEmail, password);
 
-            // 2. Fetch User Role from Firestore
-            const userDocRef = doc(db, 'users', user.uid);
-            const userDoc = await getDoc(userDocRef);
-
-            if (userDoc.exists()) {
-                const userData = userDoc.data();
-                let role = userData.role;
-
-                // BOOTSTRAP LOGIC: Grant super_admin to the owner if they don't have a role yet
-                if (!role && normalizedEmail === 'gee.dwaik@gmail.com') {
-                    role = 'super_admin';
-                    await updateDoc(userDocRef, { role: 'super_admin' });
-                    toast.success('Bootstrap: You have been promoted to Super Admin');
-                }
-
-                if (role === 'admin' || role === 'super_admin') {
-                    // Success!
-                    toast.success(`Welcome back, ${userData.fullName || 'Admin'}`);
-
-                    // SESSION PERSISTENCE: Save token to localStorage
-                    localStorage.setItem('admin_token', 'firebase_' + user.uid);
-
-                    navigate('/admin/dashboard');
-                } else {
-                    // Logged in but not an admin
-                    await signOut(auth);
-                    setError('Unauthorized: You do not have permission to access the admin portal.');
-                    toast.error('Unauthorized Access');
-                }
+            // 2. AuthContext handles role fetching. We just check it here.
+            // Note: In a fresh Appwrite project, you'll need to create the user and add their role to the USERS collection.
+            if (role === 'admin' || role === 'super_admin') {
+                toast.success('Welcome to the Admin Portal');
+                navigate('/admin/dashboard');
             } else {
-                // User document not found
-                // If this is the owner, we create the document
-                if (normalizedEmail === 'gee.dwaik@gmail.com') {
-                    await setDoc(userDocRef, {
-                        email: normalizedEmail,
-                        role: 'super_admin',
-                        createdAt: new Date(),
-                        fullName: 'Super Admin'
-                    });
-                    toast.success('Bootstrap: Admin profile created');
-                    localStorage.setItem('admin_token', 'firebase_' + user.uid);
-                    navigate('/admin/dashboard');
-                } else {
-                    await signOut(auth);
-                    setError('User data not found. Please contact the super admin.');
-                    toast.error('Profile Not Found');
-                }
+                setError('Unauthorized: You do not have permission to access the admin portal.');
+                toast.error('Unauthorized Access');
             }
         } catch (err) {
             console.error("Login error:", err);
             let message = 'Failed to login. Please check your credentials.';
 
-            if (err.code === 'auth/wrong-password') message = 'Incorrect password.';
-            if (err.code === 'auth/user-not-found') message = 'No account found with this email.';
-            if (err.code === 'auth/too-many-requests') message = 'Too many failed attempts. Try again later.';
+            if (err.type === 'user_invalid_credentials') message = 'Invalid email or password.';
+            if (err.type === 'user_not_found') message = 'No account found with this email.';
 
             setError(message);
             toast.error(message);

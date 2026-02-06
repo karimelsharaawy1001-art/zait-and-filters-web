@@ -1,15 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-    collection,
-    getDocs,
-    query,
-    orderBy,
-    limit,
-    where,
-    getCountFromServer
-} from 'firebase/firestore';
-import { db } from '../../firebase';
+import { databases } from '../../appwrite';
+import { Query } from 'appwrite';
 import { useStaticData } from '../../context/StaticDataContext';
 import {
     DollarSign,
@@ -20,7 +12,8 @@ import {
     AlertTriangle,
     TrendingUp,
     ArrowRight,
-    Plus
+    Plus,
+    Loader2
 } from 'lucide-react';
 import AdminHeader from '../../components/AdminHeader';
 
@@ -38,282 +31,143 @@ const Dashboard = () => {
     const [lowStockProducts, setLowStockProducts] = useState([]);
     const [recentOrders, setRecentOrders] = useState([]);
 
-    useEffect(() => {
-        fetchDashboardData();
-    }, []);
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const ORDERS_COLLECTION = import.meta.env.VITE_APPWRITE_ORDERS_COLLECTION_ID || 'orders';
+    const PRODUCTS_COLLECTION = import.meta.env.VITE_APPWRITE_PRODUCTS_COLLECTION_ID || 'products';
+    const USERS_COLLECTION = import.meta.env.VITE_APPWRITE_USERS_COLLECTION_ID || 'users';
 
     const fetchDashboardData = async () => {
+        if (!DATABASE_ID) return;
         setLoading(true);
         try {
-            // Parallel fetching for high-level stats (Targeted & Efficient)
-            const [ordersCountSnap, usersCountSnap, recentOrdersSnap, lowStockSnap] = await Promise.all([
-                getCountFromServer(collection(db, 'orders')),
-                getCountFromServer(collection(db, 'users')),
-                getDocs(query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(5))),
-                getDocs(query(collection(db, 'products'), where('stockQuantity', '<', 5), limit(5)))
+            const [ordersRes, usersRes, recentRes, lowStockRes, pendingRes] = await Promise.all([
+                databases.listDocuments(DATABASE_ID, ORDERS_COLLECTION, [Query.limit(1)]),
+                databases.listDocuments(DATABASE_ID, USERS_COLLECTION, [Query.limit(1)]),
+                databases.listDocuments(DATABASE_ID, ORDERS_COLLECTION, [Query.orderDesc('$createdAt'), Query.limit(5)]),
+                databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, [Query.lessThan('stockQuantity', 5), Query.limit(5)]),
+                databases.listDocuments(DATABASE_ID, ORDERS_COLLECTION, [Query.equal('status', 'Pending'), Query.limit(1)])
             ]);
 
-            // 1. Basic Stats
-            const totalOrders = ordersCountSnap.data().count;
-            const activeCustomers = usersCountSnap.data().count;
-            const productsInStock = isStaticLoaded ? staticProducts.length : 0;
-
-            // 2. Recent Orders
-            const recent = recentOrdersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setRecentOrders(recent);
-
-            // 3. Low Stock 
-            const low = lowStockSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setLowStockProducts(low);
-
-            // 4. Revenue & Pending (Approximation or focused query)
-            // Note: For full historic revenue, a stats document or cloud function is best.
-            // For now, we fetch pending orders only to get the count.
-            const pendingQuery = query(collection(db, 'orders'), where('status', '==', 'Pending'), limit(50));
-            const pendingSnap = await getDocs(pendingQuery);
-
-            // Approximation for total revenue (fetching only last 100 orders for current context)
-            const revenueQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(100));
-            const revenueSnap = await getDocs(revenueQuery);
+            // Proxy for revenue: Fetch last 100 orders and sum
+            const revenueRes = await databases.listDocuments(DATABASE_ID, ORDERS_COLLECTION, [
+                Query.orderDesc('$createdAt'),
+                Query.limit(100)
+            ]);
             let revenue = 0;
-            revenueSnap.forEach(doc => {
-                const data = doc.data();
-                if (data.status !== 'Cancelled') {
-                    revenue += data.total || 0;
-                }
+            revenueRes.documents.forEach(doc => {
+                if (doc.status !== 'Cancelled') revenue += (doc.total || 0);
             });
+
+            setRecentOrders(recentRes.documents.map(d => ({ id: d.$id, ...d })));
+            setLowStockProducts(lowStockRes.documents.map(d => ({ id: d.$id, ...d })));
 
             setStats({
-                totalRevenue: revenue, // Last 100 orders revenue as proxy
-                totalOrders,
-                activeCustomers,
-                productsInStock,
-                pendingOrders: pendingSnap.size
+                totalRevenue: revenue,
+                totalOrders: ordersRes.total,
+                activeCustomers: usersRes.total,
+                productsInStock: isStaticLoaded ? staticProducts.length : 0,
+                pendingOrders: pendingRes.total
             });
         } catch (error) {
-            console.error("Error fetching dashboard data:", error);
+            console.error("Dashboard Sync Error:", error);
         } finally {
             setLoading(false);
         }
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-admin-bg pb-20 font-sans">
-                <AdminHeader title="Dashboard" />
-                <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-center items-center min-h-[400px] flex-col gap-4">
-                        <div className="h-12 w-12 border-4 border-admin-accent border-t-transparent rounded-full animate-spin"></div>
-                        <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">Synchronizing control panel...</p>
-                    </div>
-                </main>
-            </div>
-        );
-    }
+    useEffect(() => {
+        fetchDashboardData();
+    }, [DATABASE_ID, isStaticLoaded, staticProducts.length]);
+
+    if (loading) return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center flex-col gap-4 font-Cairo">
+            <Loader2 className="animate-spin text-black w-12 h-12" />
+            <p className="font-black uppercase text-[10px] tracking-widest text-gray-400">Synchronizing Control Center...</p>
+        </div>
+    );
 
     return (
-        <div className="min-h-screen bg-admin-bg pb-20 font-sans">
+        <div className="min-h-screen bg-gray-50 pb-20 font-Cairo text-gray-900">
             <AdminHeader title="Dashboard" />
-
-            <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-                {/* Quick Actions - Top Right Corner */}
+            <main className="max-w-7xl mx-auto py-8 px-4">
                 <div className="flex justify-end mb-8">
-                    <button
-                        onClick={() => navigate('/admin/products/new')}
-                        className="admin-primary-btn px-8 py-4 rounded-xl flex items-center gap-2"
-                    >
-                        <Plus className="h-4.5 w-4.5" />
-                        Add New Product
-                    </button>
+                    <button onClick={() => navigate('/admin/products/new')} className="bg-black text-white px-8 py-4 rounded-2xl font-black uppercase text-xs flex items-center gap-2 shadow-lg hover:scale-105 transition-transform"><Plus size={18} /> New Product</button>
                 </div>
 
-                {/* 1. Stats Cards Row - Unified Carbon Grey */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                    {/* Total Revenue */}
-                    <div className="bg-white rounded-2xl p-7 flex flex-col gap-4 border border-admin-border shadow-sm hover:border-admin-accent/30 transition-all group">
-                        <div className="flex items-center justify-between">
-                            <div className="p-3.5 bg-green-500/10 text-green-500 rounded-xl group-hover:scale-110 transition-transform">
-                                <DollarSign className="h-7 w-7" />
-                            </div>
-                            <TrendingUp className="h-6 w-6 text-green-500" />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Revenue</p>
-                            <h3 className="text-3xl font-black text-black">
-                                {stats.totalRevenue.toLocaleString()} <span className="text-sm font-bold text-gray-500">EGP</span>
-                            </h3>
-                        </div>
+                    <div className="bg-white p-7 rounded-3xl border shadow-sm group">
+                        <div className="flex justify-between mb-4"><div className="p-3.5 bg-green-50 text-green-600 rounded-xl group-hover:bg-green-600 group-hover:text-white transition-all"><DollarSign size={28} /></div><TrendingUp className="text-green-600" /></div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Revenue (Last 100)</p>
+                        <h3 className="text-3xl font-black mt-1">{stats.totalRevenue.toLocaleString()} <span className="text-sm font-bold text-gray-400">EGP</span></h3>
                     </div>
-
-                    {/* Total Orders */}
-                    <div className="bg-white rounded-2xl p-7 flex flex-col gap-4 border border-admin-border shadow-sm hover:border-admin-accent/30 transition-all group">
-                        <div className="flex items-center justify-between">
-                            <div className="p-3.5 bg-blue-500/10 text-blue-500 rounded-xl group-hover:scale-110 transition-transform">
-                                <ShoppingCart className="h-7 w-7" />
-                            </div>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Orders</p>
-                            <h3 className="text-3xl font-black text-black">{stats.totalOrders}</h3>
-                        </div>
+                    <div className="bg-white p-7 rounded-3xl border shadow-sm group">
+                        <div className="flex justify-between mb-4"><div className="p-3.5 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all"><ShoppingCart size={28} /></div></div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Orders</p>
+                        <h3 className="text-3xl font-black mt-1">{stats.totalOrders}</h3>
                     </div>
-
-                    {/* Active Customers */}
-                    <div className="bg-white rounded-2xl p-7 flex flex-col gap-4 border border-admin-border shadow-sm hover:border-admin-accent/30 transition-all group">
-                        <div className="flex items-center justify-between">
-                            <div className="p-3.5 bg-admin-red/10 text-admin-red rounded-xl group-hover:scale-110 transition-transform">
-                                <Users className="h-7 w-7" />
-                            </div>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Customers</p>
-                            <h3 className="text-3xl font-black text-black">{stats.activeCustomers}</h3>
-                        </div>
+                    <div className="bg-white p-7 rounded-3xl border shadow-sm group">
+                        <div className="flex justify-between mb-4"><div className="p-3.5 bg-red-50 text-red-600 rounded-xl group-hover:bg-red-600 group-hover:text-white transition-all"><Users size={28} /></div></div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Digital Citizens</p>
+                        <h3 className="text-3xl font-black mt-1">{stats.activeCustomers}</h3>
                     </div>
-
-                    {/* Products in Stock */}
-                    <div className="bg-white rounded-2xl p-7 flex flex-col gap-4 border border-admin-border shadow-sm hover:border-admin-accent/30 transition-all group">
-                        <div className="flex items-center justify-between">
-                            <div className="p-3.5 bg-orange-500/10 text-orange-500 rounded-xl group-hover:scale-110 transition-transform">
-                                <Package className="h-7 w-7" />
-                            </div>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Products in Stock</p>
-                            <h3 className="text-3xl font-black text-black">{stats.productsInStock}</h3>
-                        </div>
+                    <div className="bg-white p-7 rounded-3xl border shadow-sm group">
+                        <div className="flex justify-between mb-4"><div className="p-3.5 bg-orange-50 text-orange-600 rounded-xl group-hover:bg-orange-600 group-hover:text-white transition-all"><Package size={28} /></div></div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Stock</p>
+                        <h3 className="text-3xl font-black mt-1">{stats.productsInStock}</h3>
                     </div>
                 </div>
 
-                {/* 2. Actionable Insights - Premium Modern */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-                    <div className="bg-white rounded-[32px] p-10 shadow-sm border border-admin-accent/10 flex flex-col gap-6 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-125 transition-transform duration-700">
-                            <Clock className="w-48 h-48" />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10 text-white">
+                    <div className="bg-black rounded-[40px] p-10 shadow-2xl relative overflow-hidden group">
+                        <Clock className="absolute right-0 bottom-0 opacity-10 w-64 h-64 -mb-10 -mr-10 group-hover:scale-110 transition-transform" />
+                        <div className="relative">
+                            <h4 className="text-[10px] font-black uppercase tracking-widest mb-2 opacity-60">Manifest Queue</h4>
+                            <div className="flex items-end gap-2 mb-6"><h3 className="text-7xl font-black italic">{stats.pendingOrders}</h3><p className="text-sm font-black uppercase opacity-60 mb-2">Pending</p></div>
+                            <p className="text-white/60 font-bold mb-8 max-w-xs">Critical threshold detected in order queue. Immediate processing required.</p>
+                            <button onClick={() => navigate('/admin/orders')} className="bg-white text-black px-10 py-4 rounded-2xl font-black uppercase italic text-xs hover:scale-105 transition-all flex items-center gap-2">Protocol Access <ArrowRight size={14} /></button>
                         </div>
-                        <div className="flex items-center gap-5">
-                            <div className="p-5 bg-admin-red text-white rounded-2xl shadow-xl shadow-admin-red/20 text-white">
-                                <Clock className="h-10 w-10" />
-                            </div>
-                            <div className="flex flex-col gap-1">
-                                <p className="text-[11px] font-black text-admin-red uppercase tracking-widest">Needs Attention</p>
-                                <h3 className="text-5xl font-black text-black">{stats.pendingOrders}</h3>
-                            </div>
-                        </div>
-                        <p className="text-base font-medium text-gray-500 max-w-sm">There are currently {stats.pendingOrders} pending orders awaiting your immediate processing.</p>
-                        <button
-                            onClick={() => navigate('/admin/orders')}
-                            className="admin-primary-btn !w-fit !px-8"
-                        >
-                            Process Orders
-                            <ArrowRight className="h-4.5 w-4.5" />
-                        </button>
                     </div>
-
-                    <div className="bg-white rounded-[32px] p-10 shadow-sm border border-admin-red/10 flex flex-col gap-6 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-125 transition-transform duration-700">
-                            <AlertTriangle className="w-48 h-48" />
-                        </div>
-                        <div className="flex items-center gap-5">
-                            <div className="p-5 bg-admin-red text-white rounded-2xl shadow-xl shadow-admin-red/20 text-white">
-                                <AlertTriangle className="h-10 w-10" />
-                            </div>
-                            <div className="flex flex-col gap-1">
-                                <p className="text-[11px] font-black text-admin-red uppercase tracking-widest">Stock Alert</p>
-                                <h3 className="text-5xl font-black text-black">{lowStockProducts.length}</h3>
-                            </div>
-                        </div>
-                        <div className="flex flex-col gap-2.5">
-                            {lowStockProducts.length === 0 ? (
-                                <p className="text-base font-medium text-gray-500">Excellent! All your products are currently well-stocked.</p>
-                            ) : (
-                                lowStockProducts.map(product => (
-                                    <div key={product.id} className="flex items-center justify-between bg-gray-50 border border-admin-border rounded-xl px-4 py-3">
-                                        <span className="text-sm font-bold text-black truncate max-w-[240px]">{product.name}</span>
-                                        <span className="text-[10px] font-black text-admin-red bg-admin-red/10 border border-admin-red/20 px-3 py-1.5 rounded-full">
-                                            {product.stockQuantity || 0} UNITS LEFT
-                                        </span>
+                    <div className="bg-red-600 rounded-[40px] p-10 shadow-2xl relative overflow-hidden group">
+                        <AlertTriangle className="absolute right-0 bottom-0 opacity-10 w-64 h-64 -mb-10 -mr-10 group-hover:scale-110 transition-transform" />
+                        <div className="relative">
+                            <h4 className="text-[10px] font-black uppercase tracking-widest mb-2 opacity-60">Stock Alarm</h4>
+                            <div className="flex items-end gap-2 mb-6"><h3 className="text-7xl font-black italic">{lowStockProducts.length}</h3><p className="text-sm font-black uppercase opacity-60 mb-2">Critical</p></div>
+                            <div className="space-y-2 mb-8">
+                                {lowStockProducts.map(p => (
+                                    <div key={p.id} className="bg-white/10 p-3 rounded-xl flex justify-between items-center text-xs font-black uppercase italic">
+                                        <span className="truncate">{p.name || p.nameEn}</span><span className="bg-white text-red-600 px-2 rounded-lg">{p.stockQuantity} UNIT</span>
                                     </div>
-                                ))
-                            )}
+                                ))}
+                            </div>
+                            <button onClick={() => navigate('/admin/products')} className="bg-white text-red-600 px-10 py-4 rounded-2xl font-black uppercase italic text-xs hover:scale-105 transition-all flex items-center gap-2">Stock Analysis <ArrowRight size={14} /></button>
                         </div>
-                        <button
-                            onClick={() => navigate('/admin/products')}
-                            className="admin-primary-btn !w-fit !px-8"
-                        >
-                            Manage Stock
-                            <ArrowRight className="h-4.5 w-4.5" />
-                        </button>
                     </div>
                 </div>
 
-                {/* 3. Recent Orders Table - High Contrast */}
-                <div className="bg-white rounded-3xl shadow-sm border border-admin-border overflow-hidden">
-                    <div className="px-10 py-8 border-b border-admin-border flex items-center justify-between">
-                        <h3 className="text-xl font-black text-black uppercase tracking-tight">Recent Orders</h3>
-                        <button
-                            onClick={() => navigate('/admin/orders')}
-                            className="text-admin-red hover:text-admin-red-dark font-black text-[11px] uppercase tracking-widest flex items-center gap-2 transition-colors"
-                        >
-                            View Order Log
-                            <ArrowRight className="h-4 w-4" />
-                        </button>
+                <div className="bg-white rounded-[40px] border shadow-sm overflow-hidden text-gray-900">
+                    <div className="p-10 border-b flex justify-between items-center bg-gray-50/50">
+                        <div><h3 className="text-xl font-black uppercase italic">Recent Transactions</h3><p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Live telemetry log</p></div>
+                        <button onClick={() => navigate('/admin/orders')} className="text-black font-black uppercase text-[10px] hover:text-red-600 transition-all flex items-center gap-2">Full Database <ArrowRight size={14} /></button>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead>
-                                <tr className="bg-gray-50">
-                                    <th className="px-10 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-admin-border">ID</th>
-                                    <th className="px-10 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-admin-border">Client</th>
-                                    <th className="px-10 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-admin-border">Revenue</th>
-                                    <th className="px-10 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-admin-border">Phase</th>
-                                    <th className="px-10 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-admin-border">Timestamp</th>
+                            <thead className="bg-gray-50/50 text-[10px] font-black uppercase text-gray-400 text-left">
+                                <tr>
+                                    <th className="px-10 py-6">ID</th><th className="px-10 py-6">Identity</th><th className="px-10 py-6">Revenue</th><th className="px-10 py-6">Phase</th><th className="px-10 py-6">Timeline</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-border-dark/50">
-                                {recentOrders.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="5" className="px-10 py-20 text-center text-silver-grey font-bold italic opacity-40 capitalize">
-                                            System quiet... No recent transaction activity.
+                            <tbody className="divide-y">
+                                {recentOrders.map(order => (
+                                    <tr key={order.id} onClick={() => navigate(`/admin/order/${order.id}`)} className="hover:bg-gray-50 cursor-pointer group transition-all">
+                                        <td className="px-10 py-6"><span className="text-sm font-black group-hover:text-red-600">#{order.id.slice(-6).toUpperCase()}</span></td>
+                                        <td className="px-10 py-6 font-bold text-gray-500 uppercase">{order.customer?.name || 'GUEST USER'}</td>
+                                        <td className="px-10 py-6 font-black">{order.total?.toLocaleString()} EGP</td>
+                                        <td className="px-10 py-6">
+                                            <span className={`px-4 py-2 rounded-full text-[9px] font-black uppercase border ${order.status === 'Pending' ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-green-50 text-green-600 border-green-100'}`}>{order.status}</span>
                                         </td>
+                                        <td className="px-10 py-6 font-bold text-gray-400">{new Date(order.$createdAt).toLocaleDateString()}</td>
                                     </tr>
-                                ) : (
-                                    recentOrders.map(order => (
-                                        <tr
-                                            key={order.id}
-                                            onClick={() => navigate(`/admin/order/${order.id}`)}
-                                            className="hover:bg-gray-50 transition-colors cursor-pointer group"
-                                        >
-                                            <td className="px-10 py-6">
-                                                <span className="text-sm font-black text-black group-hover:text-admin-red transition-colors">#{order.id.slice(-6).toUpperCase()}</span>
-                                            </td>
-                                            <td className="px-10 py-6">
-                                                <span className="text-sm font-bold text-gray-500">{order.customer?.name || 'GUEST USER'}</span>
-                                            </td>
-                                            <td className="px-10 py-6">
-                                                <span className="text-sm font-black text-black">{order.total?.toLocaleString()} EGP</span>
-                                            </td>
-                                            <td className="px-10 py-6">
-                                                <span className={`text-[9px] font-black uppercase tracking-[0.15em] px-4 py-2 rounded-full border
-                                                    ${order.status === 'Pending' ? 'bg-orange-50 text-orange-600 border-orange-100' : ''}
-                                                    ${order.status === 'Processing' ? 'bg-blue-50 text-blue-600 border-blue-100' : ''}
-                                                    ${order.status === 'Shipped' ? 'bg-purple-50 text-purple-600 border-purple-100' : ''}
-                                                    ${order.status === 'Delivered' ? 'bg-green-50 text-green-600 border-green-100' : ''}
-                                                    ${order.status === 'Cancelled' ? 'bg-red-50 text-admin-red border-red-100' : ''}
-                                                `}>
-                                                    {order.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-10 py-6">
-                                                <span className="text-sm font-bold text-gray-400">
-                                                    {order.createdAt?.seconds
-                                                        ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('en-GB')
-                                                        : 'N/A'}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
+                                ))}
                             </tbody>
                         </table>
                     </div>

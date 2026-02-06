@@ -1,25 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { databases } from '../../appwrite';
+import { ID, Query } from 'appwrite';
 import { toast } from 'react-hot-toast';
 import AdminHeader from '../../components/AdminHeader';
 import ImageUpload from '../../components/admin/ImageUpload';
-import { Trash2, Tag, Edit3, Loader2, Download } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Trash2, Tag, Edit3, Loader2, Download, Plus, Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 
 const ManageCategories = () => {
+    const navigate = useNavigate();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [exporting, setExporting] = useState(false);
     const [formData, setFormData] = useState({ name: '', imageUrl: '', subCategories: '' });
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const CATEGORIES_COLLECTION = import.meta.env.VITE_APPWRITE_CATEGORIES_COLLECTION_ID || 'categories';
+    const PRODUCTS_COLLECTION = import.meta.env.VITE_APPWRITE_PRODUCTS_COLLECTION_ID || 'products';
 
     const fetchCategories = async () => {
+        if (!DATABASE_ID) return;
+        setLoading(true);
         try {
-            const querySnapshot = await getDocs(collection(db, 'categories'));
-            setCategories(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+            const response = await databases.listDocuments(DATABASE_ID, CATEGORIES_COLLECTION, [Query.limit(100)]);
+            setCategories(response.documents.map(doc => ({ id: doc.$id, ...doc })));
         } catch (error) {
-            console.error("Error fetching categories:", error);
+            console.error(error);
         } finally {
             setLoading(false);
         }
@@ -27,75 +35,31 @@ const ManageCategories = () => {
 
     useEffect(() => {
         fetchCategories();
-    }, []);
+    }, [DATABASE_ID]);
 
-    const exportCategories = async (format = 'xlsx') => {
+    const exportCategories = async () => {
         setExporting(true);
         try {
-            // 1. Fetch Categories and Products (direct from Firestore using existing client SDK)
-            const [categoriesSnapshot, productsSnapshot] = await Promise.all([
-                getDocs(collection(db, 'categories')),
-                getDocs(collection(db, 'products'))
+            const [catsRes, prodsRes] = await Promise.all([
+                databases.listDocuments(DATABASE_ID, CATEGORIES_COLLECTION, [Query.limit(100)]),
+                databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, [Query.limit(100)])
             ]);
 
-            const cats = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            const prods = productsSnapshot.docs.map(doc => doc.data());
+            const exportData = catsRes.documents.map(cat => ({
+                'ID': cat.$id,
+                'Category': cat.name,
+                'Sub-Sectors': (cat.subCategories || []).map(s => typeof s === 'string' ? s : s.name).join(', '),
+                'Status': cat.isActive !== false ? 'Active' : 'Offline',
+                'Load': prodsRes.documents.filter(p => p.category === cat.name).length
+            }));
 
-            // 2. Prepare Export Data
-            const exportData = cats.map(cat => {
-                const subCatsList = cat.subCategories
-                    ? Array.isArray(cat.subCategories)
-                        ? cat.subCategories.map(sub => typeof sub === 'string' ? sub : (sub.name || 'Unnamed Sub')).join(', ')
-                        : cat.subCategories
-                    : '';
-
-                const productCount = prods.filter(p => p.category === cat.name).length;
-
-                return {
-                    'Category Name': cat.name || 'Unnamed',
-                    'Subcategories': subCatsList,
-                    'Active Status': cat.isActive !== false ? 'Active' : 'Hidden',
-                    'Product Count': productCount
-                };
-            });
-
-            if (exportData.length === 0) {
-                toast.error('No categories found to export');
-                return;
-            }
-
-            // 3. Generate File
-            const worksheet = XLSX.utils.json_to_sheet(exportData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Categories");
-
-            if (format === 'csv') {
-                const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
-                const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement("a");
-                const url = URL.createObjectURL(blob);
-                link.setAttribute("href", url);
-                link.setAttribute("download", `categories_export_${new Date().toISOString().split('T')[0]}.csv`);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } else {
-                // Default XLSX
-                const wscols = [
-                    { wch: 30 }, // Category Name
-                    { wch: 60 }, // Subcategories
-                    { wch: 15 }, // Active Status
-                    { wch: 15 }  // Product Count
-                ];
-                worksheet['!cols'] = wscols;
-                XLSX.writeFile(workbook, `categories_export_${new Date().toISOString().split('T')[0]}.xlsx`);
-            }
-
-            toast.success(`Categories exported as ${format.toUpperCase()} successfully`);
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Registry");
+            XLSX.writeFile(wb, `taxonomy_export_${new Date().toISOString().split('T')[0]}.xlsx`);
+            toast.success('Matrix exported');
         } catch (error) {
-            console.error("Export error:", error);
-            toast.error(`Export error: ${error.message}`);
+            toast.error('Export failure');
         } finally {
             setExporting(false);
         }
@@ -103,177 +67,83 @@ const ManageCategories = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (!formData.name) {
-            toast.error('Please enter a category name');
-            return;
-        }
-
-        if (!formData.imageUrl) {
-            toast.error('Please upload or provide an image URL for the category');
-            return;
-        }
-
+        if (!formData.name || !formData.imageUrl) return toast.error('Missing required metadata');
         try {
-            // Parse comma-separated subcategories into array
-            const subCategoriesArray = formData.subCategories
-                .split(',')
-                .map(sub => sub.trim())
-                .filter(sub => sub.length > 0);
-
-            await addDoc(collection(db, 'categories'), {
+            const subs = formData.subCategories.split(',').map(s => s.trim()).filter(Boolean);
+            await databases.createDocument(DATABASE_ID, CATEGORIES_COLLECTION, ID.unique(), {
                 name: formData.name,
                 imageUrl: formData.imageUrl,
-                subCategories: subCategoriesArray
+                subCategories: subs,
+                isActive: true
             });
             setFormData({ name: '', imageUrl: '', subCategories: '' });
-            fetchCategories(); // Refresh list
-            toast.success('Category added successfully!');
+            fetchCategories();
+            toast.success('Category committed');
         } catch (error) {
-            console.error("Error adding category:", error);
-            toast.error("Failed to add category");
+            toast.error('Sync failure');
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure?")) return;
+        if (!window.confirm("Purge category from matrix?")) return;
         try {
-            await deleteDoc(doc(db, 'categories', id));
+            await databases.deleteDocument(DATABASE_ID, CATEGORIES_COLLECTION, id);
             setCategories(categories.filter(c => c.id !== id));
+            toast.success("Resource deleted");
         } catch (error) {
-            console.error("Error deleting category:", error);
+            toast.error("Operation failed");
         }
     };
 
+    const filtered = categories.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
     return (
-        <div className="min-h-screen bg-admin-bg font-sans">
-            <AdminHeader title="Manage Categories" />
-
-            <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gray-50 pb-20 font-Cairo text-gray-900">
+            <AdminHeader title="Taxonomy Matrix" />
+            <main className="max-w-7xl mx-auto py-8 px-4">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Form Section */}
-                    <div className="bg-white p-8 rounded-3xl shadow-admin border border-admin-border h-fit">
-                        <h2 className="text-xl font-black text-black mb-6 uppercase tracking-widest poppins">Add New Category</h2>
+                    <section className="bg-white p-10 rounded-[2.5rem] border shadow-sm h-fit space-y-8">
+                        <div><h2 className="text-xl font-black uppercase italic">New Entry</h2><p className="text-xs text-gray-400 font-bold">Protocol for adding sectors</p></div>
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Category Name</label>
-                                <input
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-admin-border rounded-xl text-black placeholder-gray-400 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Category Image</label>
-                                <ImageUpload
-                                    onUploadComplete={(url) => setFormData(prev => ({ ...prev, imageUrl: url }))}
-                                    currentImage={formData.imageUrl}
-                                    folderPath="categories"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Subcategories</label>
-                                <input
-                                    type="text"
-                                    name="subCategories"
-                                    value={formData.subCategories}
-                                    onChange={e => setFormData({ ...formData, subCategories: e.target.value })}
-                                    placeholder="Engine Oil, Gear Oil, Transmission Oil"
-                                    className="w-full px-4 py-3 bg-gray-50 border border-admin-border rounded-xl text-black placeholder-gray-400 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm"
-                                />
-                                <p className="mt-2 text-[10px] text-gray-500 font-bold uppercase tracking-widest">Comma-separated values (e.g. 'Engine Oil, Gear Oil')</p>
-                            </div>
-                            <button
-                                type="submit"
-                                className="admin-primary-btn"
-                            >
-                                Add Category
-                            </button>
+                            <input placeholder="Sector Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full p-4 bg-gray-50 border rounded-2xl font-black" required />
+                            <ImageUpload currentImage={formData.imageUrl} onUploadComplete={url => setFormData({ ...formData, imageUrl: url })} folderPath="categories" />
+                            <textarea placeholder="Sub-Sectors (CSV Format)" value={formData.subCategories} onChange={e => setFormData({ ...formData, subCategories: e.target.value })} className="w-full p-4 bg-gray-50 border rounded-2xl font-bold min-h-[120px]" />
+                            <button type="submit" className="w-full bg-black text-white py-5 rounded-2xl font-black uppercase italic shadow-xl">Commit to Registry</button>
                         </form>
-                    </div>
+                    </section>
 
-                    {/* List Section */}
-                    <div className="lg:col-span-2 space-y-6">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-xl font-black text-black uppercase tracking-widest poppins">Existing Categories</h2>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => exportCategories('xlsx')}
-                                    disabled={exporting || loading}
-                                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-md disabled:opacity-50"
-                                >
-                                    {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                                    Excel
-                                </button>
-                                <button
-                                    onClick={() => exportCategories('csv')}
-                                    disabled={exporting || loading}
-                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-md disabled:opacity-50"
-                                >
-                                    {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                                    CSV
-                                </button>
+                    <section className="lg:col-span-2 space-y-8">
+                        <div className="flex justify-between items-center">
+                            <div><h2 className="text-xl font-black uppercase italic">Registry View</h2><p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Found {filtered.length} active nodes</p></div>
+                            <div className="flex gap-4">
+                                <div className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} /><input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Filter Matrix..." className="pl-10 pr-4 py-2 bg-white border rounded-xl text-xs font-bold" /></div>
+                                <button onClick={exportCategories} disabled={exporting} className="bg-green-600 text-white p-2 rounded-xl shadow-lg"><Download size={18} /></button>
                             </div>
                         </div>
 
-                        {loading ? (
-                            <div className="flex justify-center py-20">
-                                <Loader2 className="w-12 h-12 text-admin-accent animate-spin" />
-                            </div>
-                        ) : (
+                        {loading ? <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-black" size={40} /></div> : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                {categories.map(cat => (
-                                    <div key={cat.id} className="bg-white p-6 rounded-3xl shadow-admin border border-gray-100 group hover:bg-[#fcfcfc] transition-colors">
-                                        <div className="flex items-start space-x-5">
-                                            <img src={cat.imageUrl} alt={cat.name} className="w-20 h-20 object-cover rounded-2xl bg-gray-50 flex-shrink-0 border border-gray-100 shadow-sm" />
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="font-black text-black text-lg poppins mb-1 leading-tight">{cat.name}</h3>
-                                                {cat.subCategories && cat.subCategories.length > 0 && (
-                                                    <div className="mt-3">
-                                                        <div className="flex items-center gap-1 text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">
-                                                            <Tag className="h-3 w-3" />
-                                                            <span>Sub-Levels:</span>
-                                                        </div>
-                                                        <div className="flex flex-wrap gap-1.5">
-                                                            {cat.subCategories.map((sub, idx) => {
-                                                                const name = typeof sub === 'string' ? sub : sub.name;
-                                                                const hasImage = typeof sub !== 'string' && sub.imageUrl;
-                                                                return (
-                                                                    <span
-                                                                        key={idx}
-                                                                        className={`inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest rounded border transition-colors ${hasImage ? 'bg-green-500/10 text-green-600 border-green-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}
-                                                                    >
-                                                                        {hasImage && <div className="w-1.5 h-1.5 rounded-full bg-green-500" />}
-                                                                        {name}
-                                                                    </span>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </div>
-                                                )}
+                                {filtered.map(cat => (
+                                    <div key={cat.id} className="bg-white p-6 rounded-[2rem] border shadow-sm group relative overflow-hidden transition-all hover:border-black/20">
+                                        <div className="flex gap-4 items-start relative z-10">
+                                            <img src={cat.imageUrl} className="w-20 h-20 rounded-2xl object-cover border" alt={cat.name} />
+                                            <div className="flex-1">
+                                                <h3 className="font-black text-xl italic">{cat.name}</h3>
+                                                <div className="flex flex-wrap gap-1 mt-3">
+                                                    {(cat.subCategories || []).slice(0, 4).map((s, i) => <span key={i} className="text-[8px] font-black bg-gray-50 px-2 py-1 rounded-lg uppercase border">{typeof s === 'string' ? s : s.name}</span>)}
+                                                    {cat.subCategories?.length > 4 && <span className="text-[8px] font-black bg-black text-white px-2 py-1 rounded-lg uppercase">+{cat.subCategories.length - 4}</span>}
+                                                </div>
                                             </div>
-                                            <div className="flex flex-col gap-2 flex-shrink-0 translate-x-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all">
-                                                <Link
-                                                    to={`/admin/edit-category/${cat.id}`}
-                                                    className="p-3 bg-white hover:bg-gray-50 rounded-xl transition-all text-gray-400 hover:text-black border border-gray-100 shadow-sm"
-                                                >
-                                                    <Edit3 className="h-5 w-5" />
-                                                </Link>
-                                                <button
-                                                    onClick={() => handleDelete(cat.id)}
-                                                    className="p-3 bg-white hover:bg-red-50 rounded-xl transition-all text-gray-400 hover:text-red-600 border border-gray-100 shadow-sm"
-                                                >
-                                                    <Trash2 className="h-5 w-5" />
-                                                </button>
-                                            </div>
+                                        </div>
+                                        <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+                                            <button onClick={() => navigate(`/admin/edit-category/${cat.id}`)} className="p-3 bg-white text-black border rounded-xl shadow-xl hover:bg-black hover:text-white transition-all"><Edit3 size={18} /></button>
+                                            <button onClick={() => handleDelete(cat.id)} className="p-3 bg-white text-red-600 border rounded-xl shadow-xl hover:bg-red-600 hover:text-white transition-all"><Trash2 size={18} /></button>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         )}
-                    </div>
+                    </section>
                 </div>
             </main>
         </div>

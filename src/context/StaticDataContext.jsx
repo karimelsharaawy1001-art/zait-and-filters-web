@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
+import { databases } from '../appwrite';
+import { Query } from 'appwrite';
 
 const StaticDataContext = createContext();
 
@@ -20,13 +21,15 @@ export const StaticDataProvider = ({ children }) => {
         shipping_rates: [],
         isLoaded: false
     });
-    const [isQuotaExceeded, setIsQuotaExceeded] = useState(false);
+
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const PRODUCTS_COLLECTION = import.meta.env.VITE_APPWRITE_PRODUCTS_COLLECTION_ID;
 
     useEffect(() => {
         const loadAllStaticData = async () => {
             try {
                 const load = async (file) => {
-                    const version = new Date().getTime(); // Simple cache busting
+                    const version = new Date().getTime();
                     const r = await fetch(`/data/${file}?v=${version}`);
                     return r.ok ? await r.json() : [];
                 };
@@ -39,35 +42,33 @@ export const StaticDataProvider = ({ children }) => {
                     load('shipping-rates-db.json')
                 ]);
 
-                // HYBRID SYNC: Fetch "Fresh" data from Firestore to overlay on static
-                // This grabs the 300 most recently created/updated items to catch new imports immediately.
+                // SYNC: Fetch "Fresh" data from Appwrite to overlay on static
                 let mergedProducts = [...staticProd];
-                try {
-                    const { collection, getDocs, query, orderBy, limit, where } = await import('firebase/firestore');
-                    const { db } = await import('../firebase');
+                if (DATABASE_ID && PRODUCTS_COLLECTION) {
+                    try {
+                        const response = await databases.listDocuments(
+                            DATABASE_ID,
+                            PRODUCTS_COLLECTION,
+                            [
+                                Query.orderDesc('$updatedAt'),
+                                Query.limit(100)
+                            ]
+                        );
 
-                    // 1. Get Newest Imports
-                    // We check both createdAt (for new) and updatedAt (for edits)
-                    // But for simplicity/quota, let's just grab the last 300 items by creation/update.
-                    const q = query(
-                        collection(db, 'products'),
-                        orderBy('updatedAt', 'desc'),
-                        limit(300)
-                    );
+                        const freshItems = response.documents.map(d => ({
+                            id: d.$id,
+                            ...d
+                        }));
 
-                    const snapshot = await getDocs(q);
-                    const freshItems = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                        const productMap = new Map();
+                        staticProd.forEach(p => productMap.set(p.id, p));
+                        freshItems.forEach(p => productMap.set(p.id, p));
 
-                    // Merge: Create a Map for O(1) lookup
-                    // Priority: Fresh Firestore > Static JSON
-                    const productMap = new Map();
-                    staticProd.forEach(p => productMap.set(p.id, p));
-                    freshItems.forEach(p => productMap.set(p.id, p)); // Overwrite with fresh
-
-                    mergedProducts = Array.from(productMap.values());
-                    console.log(`🔄 Hybrid Merge: ${staticProd.length} Static + ${freshItems.length} Fresh = ${mergedProducts.length} Total`);
-                } catch (err) {
-                    console.warn("⚠️ Hybrid sync skipped (Quota/Network):", err);
+                        mergedProducts = Array.from(productMap.values());
+                        console.log(`🔄 Appwrite Sync: ${staticProd.length} Static + ${freshItems.length} Fresh = ${mergedProducts.length} Total`);
+                    } catch (err) {
+                        console.warn("⚠️ Appwrite sync failed:", err);
+                    }
                 }
 
                 setStaticData({
@@ -78,43 +79,20 @@ export const StaticDataProvider = ({ children }) => {
                     shipping_rates,
                     isLoaded: true
                 });
-                console.log(`🧊 Multi-Source Static DB Loaded (${mergedProducts.length} Products, ${cars.length} Cars)`);
             } catch (error) {
                 console.warn('⚠️ Static architecture degraded:', error);
             }
         };
 
         loadAllStaticData();
-    }, []);
-
-    /**
-     * Quota Shield: Global handler to silently divert traffic to static data on Firebase 429s.
-     */
-    const withFallback = async (firestoreFn, collectionName = 'products') => {
-        // If already in quota-exceeded mode, don't even try Firebase
-        if (isQuotaExceeded) return staticData[collectionName] || [];
-
-        try {
-            return await firestoreFn();
-        } catch (error) {
-            const isQuotaError = error.code === 'resource-exhausted' || error.message?.includes('429');
-            if (isQuotaError) {
-                setIsQuotaExceeded(true);
-                // Silent Failover: Site remains functional without error popups
-                // but we clear any stuck loading states in the consumer if needed.
-                return staticData[collectionName] || [];
-            }
-            throw error; // Let other errors bubble up
-        }
-    };
+    }, [DATABASE_ID, PRODUCTS_COLLECTION]);
 
     const value = {
         ...staticData,
-        staticProducts: staticData.products, // Legacy aliasing
+        staticProducts: staticData.products,
         isStaticLoaded: staticData.isLoaded,
-        isQuotaExceeded,
-        withFallback,
-        setIsQuotaExceeded
+        // Fallback placeholder for compatibility
+        withFallback: (fn, coll) => fn ? fn() : (staticData[coll] || [])
     };
 
     return (

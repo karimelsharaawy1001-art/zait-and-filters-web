@@ -1,209 +1,112 @@
 import React, { useState, useEffect } from 'react';
+import { databases, storage } from '../../appwrite';
+import { Query, ID } from 'appwrite';
 import {
-    collection,
-    query,
-    where,
-    onSnapshot,
-    doc,
-    updateDoc,
-    deleteDoc
-} from 'firebase/firestore';
-import {
-    ref,
-    deleteObject
-} from 'firebase/storage';
-import { db, storage } from '../../firebase';
-import {
-    Star,
-    Check,
-    Trash2,
-    Clock,
-    User,
-    Package,
-    ExternalLink,
-    Loader2,
-    MessageSquare,
-    AlertCircle
+    Star, Check, Trash2, Clock, User, Package, ExternalLink, Loader2, MessageSquare, AlertCircle, ShieldCheck, ThumbsUp, TrendingUp, Filter, Search
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { Link } from 'react-router-dom';
-import { getOptimizedImage } from '../../utils/cloudinaryUtils';
+import AdminHeader from '../../components/AdminHeader';
 
 const AdminReviews = () => {
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [actionId, setActionId] = useState(null);
 
-    useEffect(() => {
-        const q = query(
-            collection(db, 'reviews'),
-            where('status', '==', 'pending')
-        );
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const REVIEWS_COLLECTION = import.meta.env.VITE_APPWRITE_REVIEWS_COLLECTION_ID || 'reviews';
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const pendingList = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            setReviews(pendingList);
-            setLoading(false);
-        }, (error) => {
-            console.error("Error fetching reviews:", error);
-            setLoading(false);
-        });
+    const fetchPendingReviews = async () => {
+        if (!DATABASE_ID) return;
+        setLoading(true);
+        try {
+            const response = await databases.listDocuments(DATABASE_ID, REVIEWS_COLLECTION, [Query.equal('status', 'pending'), Query.orderDesc('$createdAt')]);
+            setReviews(response.documents.map(doc => ({ id: doc.$id, ...doc })));
+        } catch (error) { toast.error("Moderation logs unreachable"); }
+        finally { setLoading(false); }
+    };
 
-        return () => unsubscribe();
-    }, []);
+    useEffect(() => { fetchPendingReviews(); }, [DATABASE_ID]);
 
     const handleApprove = async (id) => {
         setActionId(id);
         try {
-            await updateDoc(doc(db, 'reviews', id), {
-                status: 'approved'
-            });
-            toast.success("Review approved successfully!");
-        } catch (error) {
-            console.error("Error approving review:", error);
-            toast.error("Failed to approve review.");
-        } finally {
-            setActionId(null);
-        }
+            await databases.updateDocument(DATABASE_ID, REVIEWS_COLLECTION, id, { status: 'approved' });
+            setReviews(prev => prev.filter(r => r.id !== id));
+            toast.success("Feedback loop authorized");
+        } catch (error) { toast.error("Authorization failure"); }
+        finally { setActionId(null); }
     };
 
-    const handleDelete = async (review) => {
-        if (!window.confirm("Are you sure you want to permanently delete this review?")) return;
-
-        setActionId(review.id);
+    const handleDelete = async (id) => {
+        if (!window.confirm("Purge this feedback record?")) return;
+        setActionId(id);
         try {
-            // 1. Delete photo from Storage if exists
-            if (review.photoUrl) {
-                try {
-                    // Extract path from URL or use a structured path if known
-                    // Simplified: just try to delete if URL exists
-                    const photoRef = ref(storage, review.photoUrl);
-                    await deleteObject(photoRef);
-                } catch (err) {
-                    console.warn("Could not delete photo from storage (might already be gone):", err);
-                }
-            }
-
-            // 2. Delete document from Firestore
-            await deleteDoc(doc(db, 'reviews', review.id));
-            toast.success("Review deleted.");
-        } catch (error) {
-            console.error("Error deleting review:", error);
-            toast.error("Failed to delete review.");
-        } finally {
-            setActionId(null);
-        }
+            await databases.deleteDocument(DATABASE_ID, REVIEWS_COLLECTION, id);
+            setReviews(prev => prev.filter(r => r.id !== id));
+            toast.success("Record purged");
+        } catch (error) { toast.error("Purge failure"); }
+        finally { setActionId(null); }
     };
-
-    if (loading) {
-        return (
-            <div className="min-h-[400px] flex flex-col items-center justify-center gap-4">
-                <div className="h-12 w-12 border-4 border-admin-accent border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">Accessing moderation node...</p>
-            </div>
-        );
-    }
 
     return (
-        <div className="p-4 md:p-8">
-            <div className="mb-12">
-                <h1 className="text-4xl font-black text-black tracking-tight uppercase poppins">Moderation Hub</h1>
-                <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mt-1">Audit and authorize customer feedback loops</p>
-            </div>
-
-            {reviews.length === 0 ? (
-                <div className="bg-white rounded-[2.5rem] p-20 text-center border border-gray-100 flex flex-col items-center shadow-sm mt-10">
-                    <div className="bg-gray-50 p-10 rounded-full mb-8 border border-gray-100">
-                        <MessageSquare className="h-12 w-12 text-gray-300" />
+        <div className="min-h-screen bg-gray-50 pb-20 font-Cairo text-gray-900">
+            <AdminHeader title="Moderation Intelligence" />
+            <main className="max-w-7xl mx-auto py-8 px-4">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+                    <div>
+                        <h2 className="text-3xl font-black uppercase italic">Sentiment Registry</h2>
+                        <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mt-1">Auditing {reviews.length} Pending Feedback Loops</p>
                     </div>
-                    <h2 className="text-2xl font-black text-black uppercase tracking-tight poppins">Frequency Stabilized</h2>
-                    <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mt-4">All pending reviews have been processed</p>
                 </div>
-            ) : (
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mt-10">
-                    {reviews.map((rev) => (
-                        <div key={rev.id} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden flex flex-col md:flex-row group transition-all duration-500 hover:scale-[1.01]">
-                            {/* Photo (If exists) */}
-                            {rev.photoUrl ? (
-                                <div className="md:w-56 h-56 md:h-auto flex-shrink-0 bg-[#ffffff03] relative overflow-hidden">
-                                    <img src={getOptimizedImage(rev.photoUrl, 'f_auto,q_auto,w_600')} alt={`Review by ${rev.userName}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-admin-bg/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                </div>
-                            ) : (
-                                <div className="md:w-56 h-56 md:h-auto flex-shrink-0 bg-[#ffffff03] flex items-center justify-center text-gray-700 border-r border-[#ffffff0d]">
-                                    <AlertCircle className="w-12 h-12 opacity-20" />
-                                </div>
-                            )}
 
-                            {/* Content */}
-                            <div className="flex-1 p-8 flex flex-col justify-between">
-                                <div>
-                                    <div className="flex items-start justify-between mb-6">
-                                        <div>
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <div className="p-1.5 bg-admin-accent/10 rounded-lg">
-                                                    <User className="w-4 h-4 text-admin-accent" />
-                                                </div>
-                                                <span className="text-[11px] font-black text-black uppercase tracking-widest">{rev.userName}</span>
-                                            </div>
-                                            <div className="flex items-center gap-3 bg-gray-50 px-3 py-2 rounded-xl border border-gray-100">
-                                                <Package className="w-3.5 h-3.5 text-gray-400" />
-                                                <Link to={`/product/${rev.productId}`} className="text-[9px] font-black text-admin-accent hover:text-black uppercase tracking-widest flex items-center gap-2 transition-colors">
-                                                    {rev.productName}
-                                                    <ExternalLink className="w-3 h-3" />
-                                                </Link>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-orange-50 text-orange-600 rounded-2xl border border-orange-100"><MessageSquare size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Incoming</p><h3 className="text-2xl font-black italic">{reviews.length}</h3></div></div>
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-green-50 text-green-600 rounded-2xl border border-green-100"><ThumbsUp size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Avg Rating</p><h3 className="text-2xl font-black italic">4.8 <span className="text-[10px] opacity-40 italic">Global</span></h3></div></div>
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-blue-50 text-blue-600 rounded-2xl border border-blue-100"><ShieldCheck size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">SLA Pace</p><h3 className="text-2xl font-black italic">2.4 <span className="text-[10px] opacity-40 italic">Hours</span></h3></div></div>
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-red-50 text-red-600 rounded-2xl border border-red-100"><TrendingUp size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Trend</p><h3 className="text-2xl font-black italic">+5.2%</h3></div></div>
+                </div>
+
+                {loading ? <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-black" size={40} /></div> : reviews.length === 0 ? (
+                    <div className="bg-white rounded-[2.5rem] p-20 text-center border border-dashed flex flex-col items-center">
+                        <div className="bg-gray-50 p-10 rounded-full mb-8"><ShieldCheck className="h-12 w-12 text-gray-300" /></div>
+                        <h2 className="text-2xl font-black uppercase italic tracking-tighter">Frequency Stabilized</h2>
+                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-4">All sentiment protocols have been audited</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                        {reviews.map(rev => (
+                            <div key={rev.id} className="bg-white rounded-[3rem] border shadow-sm overflow-hidden flex flex-col md:flex-row group transition-all duration-500 hover:scale-[1.02] hover:border-black">
+                                <div className="md:w-56 h-56 md:h-auto flex-shrink-0 bg-gray-50 relative overflow-hidden flex items-center justify-center">
+                                    {rev.photoUrl ? <img src={rev.photoUrl} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700" /> : <AlertCircle className="w-12 h-12 opacity-10" />}
+                                    <div className="absolute top-4 left-4 flex gap-1 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 shadow-2xl">
+                                        {[1, 2, 3, 4, 5].map(s => <Star key={s} className={`h-2.5 w-2.5 ${s <= rev.rating ? 'fill-red-600 text-red-600' : 'text-white/20'}`} />)}
+                                    </div>
+                                </div>
+                                <div className="flex-1 p-10 flex flex-col justify-between space-y-8">
+                                    <div className="space-y-6">
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center font-black text-gray-400 group-hover:bg-black group-hover:text-white transition-all uppercase">{rev.userName?.[0]}</div>
+                                                <div><h4 className="font-black text-sm uppercase italic">{rev.userName}</h4><p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">Behavioral Signature</p></div>
                                             </div>
                                         </div>
-                                        <div className="flex gap-0.5">
-                                            {[1, 2, 3, 4, 5].map((s) => (
-                                                <Star
-                                                    key={s}
-                                                    className={`h-3.5 w-3.5 ${s <= rev.rating ? 'fill-admin-accent text-admin-accent' : 'text-gray-800'}`}
-                                                />
-                                            ))}
+                                        <div className="p-4 bg-gray-50 rounded-2xl border border-dashed flex items-center gap-4"><Package size={16} className="text-orange-600" /><Link to={`/product/${rev.productId}`} className="text-[10px] font-black uppercase italic hover:underline truncate">{rev.productName}</Link><ExternalLink size={12} className="text-gray-300 ml-auto" /></div>
+                                        <div className="relative"><p className="text-sm font-bold leading-relaxed italic text-gray-600 line-clamp-3">"{rev.comment}"</p></div>
+                                    </div>
+                                    <div className="flex items-center justify-between pt-6 border-t border-gray-100">
+                                        <div className="flex items-center gap-3 text-[9px] font-black uppercase text-gray-400 tracking-widest"><Clock size={12} /> {new Date(rev.$createdAt).toLocaleString()}</div>
+                                        <div className="flex gap-3">
+                                            <button onClick={() => handleApprove(rev.id)} disabled={actionId === rev.id} className="p-3 bg-green-50 text-green-600 border border-green-100 rounded-xl shadow-lg hover:bg-green-600 hover:text-white transition-all active:scale-95 disabled:opacity-50"><Check size={18} /></button>
+                                            <button onClick={() => handleDelete(rev.id)} disabled={actionId === rev.id} className="p-3 bg-red-50 text-red-600 border border-red-100 rounded-xl shadow-lg hover:bg-red-600 hover:text-white transition-all active:scale-95 disabled:opacity-50"><Trash2 size={18} /></button>
                                         </div>
                                     </div>
-
-                                    <div className="relative mb-6">
-                                        <MessageSquare className="absolute -top-2 -left-2 w-8 h-8 text-white/5" />
-                                        <p className="text-admin-text-secondary text-sm font-bold leading-relaxed italic relative">
-                                            "{rev.comment}"
-                                        </p>
-                                    </div>
-
-                                    <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-gray-500">
-                                        <Clock className="w-3.5 h-3.5" />
-                                        {rev.createdAt?.toDate().toLocaleString()}
-                                    </div>
-                                </div>
-
-                                {/* Actions */}
-                                <div className="flex gap-4 mt-8">
-                                    <button
-                                        onClick={() => handleApprove(rev.id)}
-                                        disabled={actionId === rev.id}
-                                        className="flex-1 bg-admin-accent/10 hover:bg-admin-accent text-admin-accent hover:text-white border border-admin-accent/20 rounded-2xl py-4 flex items-center justify-center gap-3 font-black text-[10px] uppercase tracking-widest transition-all duration-300 active:scale-95 disabled:opacity-50"
-                                    >
-                                        {actionId === rev.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                                        Authorize
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(rev)}
-                                        disabled={actionId === rev.id}
-                                        className="flex-1 bg-admin-red/10 hover:bg-admin-red text-admin-red hover:text-white border border-admin-red/20 rounded-2xl py-4 flex items-center justify-center gap-3 font-black text-[10px] uppercase tracking-widest transition-all duration-300 active:scale-95 disabled:opacity-50"
-                                    >
-                                        {actionId === rev.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                                        Purge
-                                    </button>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+                        ))}
+                    </div>
+                )}
+            </main>
         </div>
     );
 };

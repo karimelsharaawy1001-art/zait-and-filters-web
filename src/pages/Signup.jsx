@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { auth, db } from '../firebase';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { setDoc, doc, serverTimestamp, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
 import { User, Mail, Lock, UserPlus, ArrowRight, AlertCircle } from 'lucide-react';
 import PhoneInputGroup from '../components/PhoneInputGroup';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 const Signup = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const { signup } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [formData, setFormData] = useState({
@@ -27,9 +26,11 @@ const Signup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setLoading(true);
 
         if (formData.password !== formData.confirmPassword) {
             setError('Passwords do not match.');
+            setLoading(false);
             return;
         }
 
@@ -40,24 +41,13 @@ const Signup = () => {
                 return;
             }
 
-            const formattedPhone = `+2${formData.phoneNumber}`;
+            // const formattedPhone = `+2${formData.phoneNumber}`;
 
-            const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-            const user = userCredential.user;
+            // Create user in Appwrite
+            await signup(formData.email, formData.password, formData.fullName);
 
-            await updateProfile(user, { displayName: formData.fullName });
-
-            // Create user doc in Firestore
-            await setDoc(doc(db, 'users', user.uid), {
-                fullName: formData.fullName,
-                email: formData.email,
-                phoneNumber: formattedPhone,
-                isAffiliate: false,
-                createdAt: serverTimestamp()
-            });
-
-            // Phase 3: Link historical guest orders
-            await linkGuestOrders(user.uid, formData.email, formattedPhone);
+            // Note: Guest order linking will need to be re-implemented for Appwrite Databases
+            // await linkGuestOrders(user.uid, formData.email, formattedPhone);
 
             navigate('/');
         } catch (err) {
@@ -65,49 +55,6 @@ const Signup = () => {
             setError(err.message || 'Failed to create account.');
         } finally {
             setLoading(false);
-        }
-    };
-    const linkGuestOrders = async (userId, email, phone) => {
-        try {
-            const ordersRef = collection(db, 'orders');
-            const batch = writeBatch(db);
-            let foundCount = 0;
-
-            // Query by phone
-            const qPhone = query(
-                ordersRef,
-                where('customerPhone', '==', phone),
-                where('userId', '==', 'guest')
-            );
-            const phoneSnap = await getDocs(qPhone);
-            phoneSnap.forEach((doc) => {
-                batch.update(doc.ref, { userId: userId });
-                foundCount++;
-            });
-
-            // Query by email (if exists)
-            if (email) {
-                const qEmail = query(
-                    ordersRef,
-                    where('customerEmail', '==', email),
-                    where('userId', '==', 'guest')
-                );
-                const emailSnap = await getDocs(qEmail);
-                emailSnap.forEach((doc) => {
-                    // Check if not already included in phone query
-                    if (!phoneSnap.docs.some(d => d.id === doc.id)) {
-                        batch.update(doc.ref, { userId: userId });
-                        foundCount++;
-                    }
-                });
-            }
-
-            if (foundCount > 0) {
-                await batch.commit();
-                console.log(`Linked ${foundCount} guest orders to new user account.`);
-            }
-        } catch (error) {
-            console.error("Error linking guest orders:", error);
         }
     };
 

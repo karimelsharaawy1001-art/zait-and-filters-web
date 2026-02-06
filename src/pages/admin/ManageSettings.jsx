@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../../firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { Save, Loader2, Globe, Phone, Mail, MapPin, Facebook, Instagram, MessageCircle } from 'lucide-react';
+import { databases } from '../../appwrite';
+import { Save, Loader2, Globe, Phone, Mail, MapPin, Facebook, Instagram, MessageCircle, Shield } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import AdminHeader from '../../components/AdminHeader';
 import ImageUpload from '../../components/admin/ImageUpload';
@@ -10,266 +9,89 @@ const ManageSettings = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [formData, setFormData] = useState({
-        siteName: '',
-        siteLogo: '',
-        footerDescription: '',
-        contactPhone: '',
-        contactEmail: '',
-        contactAddress: '',
-        facebookUrl: '',
-        instagramUrl: '',
-        whatsappNumber: ''
+        siteName: '', siteLogo: '', footerDescription: '',
+        contactPhone: '', contactEmail: '', contactAddress: '',
+        facebookUrl: '', instagramUrl: '', whatsappNumber: ''
     });
 
-    useEffect(() => {
-        fetchSettings();
-    }, []);
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const SETTINGS_COLLECTION = import.meta.env.VITE_APPWRITE_SETTINGS_COLLECTION_ID || 'settings';
+    const SETTINGS_DOC_ID = 'general';
 
     const fetchSettings = async () => {
+        if (!DATABASE_ID) return;
         setLoading(true);
         try {
-            const docRef = doc(db, 'settings', 'general');
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                setFormData(docSnap.data());
-            }
+            const docSnap = await databases.getDocument(DATABASE_ID, SETTINGS_COLLECTION, SETTINGS_DOC_ID);
+            setFormData(docSnap);
         } catch (error) {
-            console.error("Error fetching settings:", error);
+            console.error("Settings node initialized if missing");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
+    useEffect(() => {
+        fetchSettings();
+    }, [DATABASE_ID]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
         try {
-            await setDoc(doc(db, 'settings', 'general'), formData);
-            toast.success("Settings updated successfully!");
+            const payload = { ...formData };
+            delete payload.$id; delete payload.$collectionId; delete payload.$databaseId; delete payload.$createdAt; delete payload.$updatedAt; delete payload.$permissions;
+
+            try {
+                await databases.updateDocument(DATABASE_ID, SETTINGS_COLLECTION, SETTINGS_DOC_ID, payload);
+            } catch (err) {
+                // If update fails, document might not exist, try create (init)
+                await databases.createDocument(DATABASE_ID, SETTINGS_COLLECTION, SETTINGS_DOC_ID, payload);
+            }
+            toast.success("Node configuration synced");
         } catch (error) {
-            console.error("Error updating settings:", error);
-            toast.error("Error updating settings");
+            toast.error("Sync failure");
         } finally {
             setSaving(false);
         }
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4">
-                <div className="h-12 w-12 border-4 border-admin-accent border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">Synchronizing node configuration...</p>
-            </div>
-        );
-    }
+    if (loading) return <div className="p-20 text-center uppercase font-black text-[10px] text-gray-400 font-Cairo"><Loader2 className="animate-spin mx-auto mb-4" /> Routing Node Configuration...</div>;
 
     return (
-        <div className="min-h-screen bg-gray-50 font-sans pb-20 p-4 md:p-8 text-black">
-            <AdminHeader title="Global Settings" />
-
-            <form onSubmit={handleSubmit} className="max-w-5xl mx-auto mt-10 space-y-10">
-                {/* Site Identity */}
-                <div className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-gray-100 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <Globe className="h-32 w-32 text-black" />
-                    </div>
-
-                    <div className="flex items-center gap-4 mb-10 relative">
-                        <div className="p-3 bg-red-50 text-[#e31e24] rounded-2xl">
-                            <Globe className="h-6 w-6" />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-black text-black uppercase tracking-widest poppins">Site Identity</h2>
-                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Configure brand assets and core metadata</p>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10 relative">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Brand Name</label>
-                            <input
-                                type="text"
-                                name="siteName"
-                                value={formData.siteName}
-                                onChange={handleChange}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-bold text-black placeholder-gray-300"
-                                placeholder="e.g. ZAIT & FILTERS"
-                                required
-                            />
-                        </div>
+        <div className="min-h-screen bg-gray-50 pb-20 font-Cairo text-gray-900">
+            <AdminHeader title="Platform Intelligence" />
+            <form onSubmit={handleSubmit} className="max-w-5xl mx-auto py-8 px-4 space-y-10">
+                <section className="bg-white p-10 rounded-[2.5rem] border shadow-sm space-y-8">
+                    <div className="flex items-center gap-4 border-b pb-6"><Globe className="text-red-600" /><h2 className="text-xl font-black uppercase italic">Identity Protocol</h2></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                         <div className="space-y-4">
-                            <div className="flex justify-between items-center px-1">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Brand Logo</label>
-                                <span className="text-[9px] text-[#e31e24] font-black uppercase tracking-widest opacity-60">High-Res PNG Preferred</span>
-                            </div>
-                            <div className="bg-gray-50 border border-gray-200 rounded-[2rem] p-4">
-                                <ImageUpload
-                                    onUploadComplete={(url) => setFormData(prev => ({ ...prev, siteLogo: url }))}
-                                    currentImage={formData.siteLogo}
-                                    folderPath="settings"
-                                />
-                            </div>
-                            <input type="hidden" name="siteLogo" value={formData.siteLogo} />
+                            <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Brand Name</label><input value={formData.siteName} onChange={e => setFormData({ ...formData, siteName: e.target.value })} className="w-full p-4 bg-gray-50 border rounded-2xl font-black text-xl italic" required /></div>
+                            <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Mission Statement</label><textarea value={formData.footerDescription} onChange={e => setFormData({ ...formData, footerDescription: e.target.value })} className="w-full p-4 bg-gray-50 border rounded-2xl font-bold min-h-[140px]" /></div>
                         </div>
+                        <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400 ml-1 text-right block">Brand Mark (Logo)</label><ImageUpload currentImage={formData.siteLogo} onUploadComplete={url => setFormData({ ...formData, siteLogo: url })} folderPath="settings" /></div>
                     </div>
-                </div>
+                </section>
 
-                {/* Footer & Contact */}
-                <div className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-gray-100 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <MapPin className="h-32 w-32 text-black" />
+                <section className="bg-white p-10 rounded-[2.5rem] border shadow-sm space-y-8">
+                    <div className="flex items-center gap-4 border-b pb-6"><Shield className="text-red-600" /><h2 className="text-xl font-black uppercase italic">Terminal Endpoints</h2></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Digital Mail</label><div className="relative"><Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} /><input type="email" value={formData.contactEmail} onChange={e => setFormData({ ...formData, contactEmail: e.target.value })} className="w-full pl-12 p-4 bg-gray-50 border rounded-2xl font-black" /></div></div>
+                        <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Voice Protocol</label><div className="relative"><Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} /><input value={formData.contactPhone} onChange={e => setFormData({ ...formData, contactPhone: e.target.value })} className="w-full pl-12 p-4 bg-gray-50 border rounded-2xl font-black" /></div></div>
+                        <div className="md:col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Physical Node (Address)</label><div className="relative"><MapPin className="absolute left-4 top-5 text-gray-400" size={16} /><textarea value={formData.contactAddress} onChange={e => setFormData({ ...formData, contactAddress: e.target.value })} className="w-full pl-12 p-4 bg-gray-50 border rounded-2xl font-bold" /></div></div>
                     </div>
+                </section>
 
-                    <div className="flex items-center gap-4 mb-10 relative">
-                        <div className="p-3 bg-red-50 text-[#e31e24] rounded-2xl">
-                            <MapPin className="h-6 w-6" />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-black text-black uppercase tracking-widest poppins">Terminal Comms</h2>
-                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Manage public contact endpoints and footer content</p>
-                        </div>
+                <section className="bg-white p-10 rounded-[2.5rem] border shadow-sm space-y-8">
+                    <div className="flex items-center gap-4 border-b pb-6"><MessageCircle className="text-red-600" /><h2 className="text-xl font-black uppercase italic">Social Matrix</h2></div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Meta Entity</label><div className="relative"><Facebook className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} /><input value={formData.facebookUrl} onChange={e => setFormData({ ...formData, facebookUrl: e.target.value })} className="w-full pl-12 p-4 bg-gray-50 border rounded-2xl font-bold text-xs" /></div></div>
+                        <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Visual Stream</label><div className="relative"><Instagram className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} /><input value={formData.instagramUrl} onChange={e => setFormData({ ...formData, instagramUrl: e.target.value })} className="w-full pl-12 p-4 bg-gray-50 border rounded-2xl font-bold text-xs" /></div></div>
+                        <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Instant Relay</label><div className="relative"><MessageCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} /><input value={formData.whatsappNumber} onChange={e => setFormData({ ...formData, whatsappNumber: e.target.value })} className="w-full pl-12 p-4 bg-gray-50 border rounded-2xl font-black" /></div></div>
                     </div>
+                </section>
 
-                    <div className="space-y-10 relative">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Brand Manifesto (Footer About)</label>
-                            <textarea
-                                name="footerDescription"
-                                value={formData.footerDescription}
-                                onChange={handleChange}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-5 focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-bold text-black placeholder-gray-300 min-h-[120px]"
-                                placeholder="A concise mission statement for the footer..."
-                            ></textarea>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Voice Protocol (Phone)</label>
-                                <div className="relative">
-                                    <Phone className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
-                                    <input
-                                        type="text"
-                                        name="contactPhone"
-                                        value={formData.contactPhone}
-                                        onChange={handleChange}
-                                        className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 pl-14 focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-bold text-black placeholder-gray-300"
-                                        placeholder="+20 123 456 7890"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Digital Relay (Email)</label>
-                                <div className="relative">
-                                    <Mail className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
-                                    <input
-                                        type="email"
-                                        name="contactEmail"
-                                        value={formData.contactEmail}
-                                        onChange={handleChange}
-                                        className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 pl-14 focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-bold text-black placeholder-gray-300"
-                                        placeholder="ops@zaitandfilters.com"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="md:col-span-2 space-y-2">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Geographic Coordinates (Address)</label>
-                                <div className="relative">
-                                    <MapPin className="absolute left-5 top-5 h-4 w-4 text-gray-300" />
-                                    <textarea
-                                        name="contactAddress"
-                                        value={formData.contactAddress}
-                                        onChange={handleChange}
-                                        className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-5 pl-14 focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-bold text-black min-h-[80px] placeholder-gray-300"
-                                        placeholder="HQ Location, District, Cairo, Egypt"
-                                    ></textarea>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Social Media */}
-                <div className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-gray-100 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <Facebook className="h-32 w-32 text-black" />
-                    </div>
-
-                    <div className="flex items-center gap-4 mb-10 relative">
-                        <div className="p-3 bg-red-50 text-[#e31e24] rounded-2xl">
-                            <Facebook className="h-6 w-6" />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-black text-black uppercase tracking-widest poppins">Social Matrix</h2>
-                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Configure external social network linkages</p>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Meta Entity (Facebook URL)</label>
-                            <div className="relative">
-                                <Facebook className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
-                                <input
-                                    type="text"
-                                    name="facebookUrl"
-                                    value={formData.facebookUrl}
-                                    onChange={handleChange}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 pl-14 focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-bold text-black placeholder-gray-300"
-                                    placeholder="https://facebook.com/..."
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Visual Stream (Instagram URL)</label>
-                            <div className="relative">
-                                <Instagram className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
-                                <input
-                                    type="text"
-                                    name="instagramUrl"
-                                    value={formData.instagramUrl}
-                                    onChange={handleChange}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 pl-14 focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-bold text-black placeholder-gray-300"
-                                    placeholder="https://instagram.com/..."
-                                />
-                            </div>
-                        </div>
-
-                        <div className="relative space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Instant Relay (WhatsApp)</label>
-                            <div className="relative">
-                                <MessageCircle className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
-                                <input
-                                    type="text"
-                                    name="whatsappNumber"
-                                    value={formData.whatsappNumber}
-                                    onChange={handleChange}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 pl-14 focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-bold text-black placeholder-gray-300"
-                                    placeholder="e.g. 201234567890"
-                                />
-                            </div>
-                            <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest px-1 italic">Protocol: Country Code + Digit String (No symbols)</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex justify-end pt-10">
-                    <button
-                        type="submit"
-                        disabled={saving}
-                        className="admin-primary-btn !w-fit !px-12 !py-5"
-                    >
-                        {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-                        Synchronize Node Settings
-                    </button>
-                </div>
+                <div className="flex justify-end pt-10"><button type="submit" disabled={saving} className="bg-red-600 text-white px-16 py-6 rounded-3xl font-black uppercase italic shadow-2xl hover:scale-105 transition-all">{saving ? 'Syncing...' : 'Sync Configuration'}</button></div>
             </form>
         </div>
     );

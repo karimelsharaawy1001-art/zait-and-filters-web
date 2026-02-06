@@ -1,46 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
-import { safeLocalStorage } from '../utils/safeStorage';
+import { useAuth } from '../context/AuthContext';
 
 const ProtectedRoute = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [role, setRole] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [hasToken, setHasToken] = useState(!!safeLocalStorage.getItem('admin_token'));
-
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            if (currentUser) {
-                try {
-                    const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-                    if (userDoc.exists()) {
-                        const userRole = userDoc.data().role;
-                        setRole(userRole);
-
-                        // If Firebase says they are admin, ensure token is set for persistence persistence
-                        if (userRole === 'admin' || userRole === 'super_admin') {
-                            safeLocalStorage.setItem('admin_token', 'firebase_' + currentUser.uid);
-                            setHasToken(true);
-                        }
-                    }
-                } catch (error) {
-                    console.error("Error fetching user role:", error);
-                }
-                setUser(currentUser);
-            } else {
-                setUser(null);
-                setRole(null);
-                // If no Firebase user, check if we still have a valid session token
-                setHasToken(!!safeLocalStorage.getItem('admin_token'));
-            }
-            setLoading(false);
-        });
-
-        return () => unsubscribe();
-    }, []);
+    const { user, role, loading } = useAuth();
 
     if (loading) {
         return (
@@ -53,10 +16,10 @@ const ProtectedRoute = ({ children }) => {
         );
     }
 
-    // Strict check: Must have token OR be an active Firebase Admin
-    const isAuthenticated = hasToken || (user && (role === 'admin' || role === 'super_admin'));
+    // Strict check: Must be an admin or super_admin
+    const isAdmin = user && (role === 'admin' || role === 'super_admin');
 
-    if (!isAuthenticated) {
+    if (!isAdmin) {
         console.warn("Unauthorized access attempt to ProtectedRoute. Redirecting to login.");
         return <Navigate to="/admin/login" replace />;
     }

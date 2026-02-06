@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { databases } from '../../appwrite';
+import { Query } from 'appwrite';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Save, ArrowLeft, Loader2 } from 'lucide-react';
-import { parseYearRange } from '../../utils/productUtils';
+import { Save, ArrowLeft, Loader2, Package, Globe, Tag, ShieldCheck } from 'lucide-react';
 import AdminHeader from '../../components/AdminHeader';
 import ImageUpload from '../../components/admin/ImageUpload';
 
@@ -18,6 +17,7 @@ const EditProduct = () => {
     const [cars, setCars] = useState([]);
     const [carMakes, setCarMakes] = useState([]);
     const [filteredModels, setFilteredModels] = useState([]);
+
     const [formData, setFormData] = useState({
         name: '',
         nameEn: '',
@@ -30,512 +30,181 @@ const EditProduct = () => {
         countryOfOrigin: '',
         category: '',
         subcategory: '',
-        make: 'Toyota',
+        make: '',
         model: '',
-        yearRange: '',
         yearStart: '',
         yearEnd: '',
         warranty_months: '',
+        stockQuantity: 0,
         isActive: true,
-        isGenuine: false
+        isGenuine: false,
+        description: '',
+        descriptionEn: ''
     });
+
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const PRODUCTS_COLLECTION = import.meta.env.VITE_APPWRITE_PRODUCTS_COLLECTION_ID || 'products';
+    const CATEGORIES_COLLECTION = import.meta.env.VITE_APPWRITE_CATEGORIES_COLLECTION_ID || 'categories';
+    const CARS_COLLECTION = 'cars';
 
     useEffect(() => {
         const fetchData = async () => {
+            if (!DATABASE_ID) return;
             try {
-                // Fetch categories first
-                const categoriesSnapshot = await getDocs(collection(db, 'categories'));
-                const categoriesList = categoriesSnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
+                const [catRes, carsRes, productData] = await Promise.all([
+                    databases.listDocuments(DATABASE_ID, CATEGORIES_COLLECTION, [Query.limit(100)]),
+                    databases.listDocuments(DATABASE_ID, CARS_COLLECTION, [Query.limit(100)]).catch(() => ({ documents: [] })),
+                    databases.getDocument(DATABASE_ID, PRODUCTS_COLLECTION, id)
+                ]);
+
+                const categoriesList = catRes.documents.map(d => ({ id: d.$id, ...d }));
                 setCategories(categoriesList);
+                const carsList = carsRes.documents;
+                setCars(carsList);
+                setCarMakes([...new Set(carsList.map(c => c.make))].sort());
 
-                // Fetch product data
-                const productDoc = await getDoc(doc(db, 'products', id));
-                if (productDoc.exists()) {
-                    const productData = productDoc.data();
+                setFormData({
+                    ...productData,
+                    price: productData.price?.toString() || '',
+                    salePrice: productData.salePrice?.toString() || '',
+                    costPrice: productData.costPrice?.toString() || '',
+                    yearStart: productData.yearStart?.toString() || '',
+                    yearEnd: productData.yearEnd?.toString() || '',
+                    warranty_months: productData.warranty_months?.toString() || '',
+                    stockQuantity: productData.stockQuantity || 0,
+                    partBrand: productData.partBrand || productData.brand || ''
+                });
 
-                    // Handle subcategory - could be string or object {name, imageUrl}
-                    let subcategoryValue = productData.subcategory || productData.subCategory || '';
-                    if (typeof subcategoryValue === 'object' && subcategoryValue !== null) {
-                        subcategoryValue = subcategoryValue.name || '';
-                    }
+                const currentCategory = categoriesList.find(c => c.name === productData.category);
+                setSubCategories(currentCategory?.subCategories || []);
 
-                    setFormData({
-                        ...productData,
-                        nameEn: productData.nameEn || '',
-                        brandEn: productData.brandEn || '',
-                        price: productData.price?.toString() || '',
-                        salePrice: productData.salePrice?.toString() || '',
-                        costPrice: productData.costPrice?.toString() || '',
-                        partBrand: productData.partBrand || productData.brand || '',
-                        countryOfOrigin: productData.countryOfOrigin || productData.country || '',
-                        subcategory: subcategoryValue,
-                        yearRange: productData.yearRange || '',
-                        yearStart: productData.yearStart?.toString() || '',
-                        yearEnd: productData.yearEnd?.toString() || '',
-                        warranty_months: productData.warranty_months?.toString() || '',
-                        isActive: productData.isActive !== undefined ? productData.isActive : true,
-                        isGenuine: productData.isGenuine || false
-                    });
-
-                    // Set subcategories for the current category
-                    const currentCategory = categoriesList.find(c => c.name === productData.category);
-                    if (currentCategory) {
-                        // Normalize subcategories - handle both string and object formats
-                        const normalizedSubs = (currentCategory.subCategories || []).map(sub => {
-                            if (typeof sub === 'string') {
-                                return sub;
-                            } else if (typeof sub === 'object' && sub !== null) {
-                                return sub.name || '';
-                            }
-                            return '';
-                        }).filter(Boolean);
-                        setSubCategories(normalizedSubs);
-                    }
-
-                    // Fetch Cars & Set Initial Models
-                    const carsSnapshot = await getDocs(collection(db, 'cars'));
-                    const carsList = carsSnapshot.docs.map(doc => doc.data());
-                    setCars(carsList);
-
-                    const uniqueMakes = [...new Set(carsList.map(c => c.make))].sort();
-                    setCarMakes(uniqueMakes);
-
-                    if (productData.make) {
-                        const models = carsList
-                            .filter(car => car.make === productData.make)
-                            .map(car => car.model);
-                        setFilteredModels([...new Set(models)].sort());
-                    }
-                } else {
-                    toast.error('Product not found');
-                    navigate('/admin/products');
+                if (productData.make) {
+                    const models = carsList.filter(car => car.make === productData.make).map(car => car.model);
+                    setFilteredModels([...new Set(models)].sort());
                 }
             } catch (error) {
-                console.error("Error fetching data:", error);
+                console.error(error);
+                toast.error("Node not found");
+                navigate('/admin/products');
             } finally {
                 setLoading(false);
             }
         };
-
         fetchData();
-    }, [id, navigate]);
+    }, [id, DATABASE_ID]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
+        const val = type === 'checkbox' ? checked : value;
+        setFormData(prev => ({ ...prev, [name]: val }));
 
         if (name === 'category') {
             const selectedCat = categories.find(c => c.name === value);
-            // Normalize subcategories - handle both string and object formats
-            const normalizedSubs = selectedCat ? (selectedCat.subCategories || []).map(sub => {
-                if (typeof sub === 'string') {
-                    return sub;
-                } else if (typeof sub === 'object' && sub !== null) {
-                    return sub.name || '';
-                }
-                return '';
-            }).filter(Boolean) : [];
-            setSubCategories(normalizedSubs);
+            setSubCategories(selectedCat?.subCategories || []);
             setFormData(prev => ({ ...prev, subcategory: '' }));
         }
 
         if (name === 'make') {
-            const models = cars
-                .filter(car => car.make === value)
-                .map(car => car.model);
+            const models = cars.filter(car => car.make === value).map(car => car.model);
             setFilteredModels([...new Set(models)].sort());
             setFormData(prev => ({ ...prev, model: '' }));
-        }
-
-        // Auto-generate Year Display and Parse Range if entered in yearStart
-        if (name === 'yearStart' || name === 'yearEnd') {
-            setFormData(prev => {
-                const nextData = { ...prev, [name]: value };
-
-                // If it looks like a range (e.g. 2004-2013), parse it
-                if (String(value).includes('-') || String(value).includes('/')) {
-                    const { yearStart, yearEnd } = parseYearRange(value);
-                    if (yearStart) nextData.yearStart = yearStart.toString();
-                    if (yearEnd) nextData.yearEnd = yearEnd.toString();
-                }
-
-                if (nextData.yearStart && nextData.yearEnd) {
-                    nextData.yearRange = `${nextData.yearStart} - ${nextData.yearEnd}`;
-                } else if (nextData.yearStart) {
-                    nextData.yearRange = nextData.yearStart;
-                } else if (nextData.yearEnd) {
-                    nextData.yearRange = nextData.yearEnd;
-                }
-                return nextData;
-            });
         }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
-
         try {
-            await updateDoc(doc(db, 'products', id), {
+            const payload = {
                 ...formData,
-                make: formData.make?.toUpperCase().trim() || '',
-                model: formData.model?.toUpperCase().trim() || '',
-                brand: formData.partBrand || '', // Sync legacy brand field
-                nameEn: formData.nameEn || null,
-                brandEn: formData.brandEn || null,
-                price: Number(formData.price),
-                salePrice: formData.salePrice ? Number(formData.salePrice) : null,
-                costPrice: formData.costPrice ? Number(formData.costPrice) : null,
-                yearStart: formData.yearStart ? Number(formData.yearStart) : null,
-                yearEnd: formData.yearEnd ? Number(formData.yearEnd) : null,
-                warranty_months: formData.warranty_months ? Number(formData.warranty_months) : null,
-                isGenuine: formData.isGenuine || false,
-                updatedAt: new Date()
-            });
+                price: parseFloat(formData.price),
+                salePrice: formData.salePrice ? parseFloat(formData.salePrice) : null,
+                costPrice: formData.costPrice ? parseFloat(formData.costPrice) : null,
+                yearStart: formData.yearStart ? parseInt(formData.yearStart) : null,
+                yearEnd: formData.yearEnd ? parseInt(formData.yearEnd) : null,
+                warranty_months: formData.warranty_months ? parseInt(formData.warranty_months) : null,
+                stockQuantity: parseInt(formData.stockQuantity),
+                updatedAt: new Date().toISOString()
+            };
+            // Remove system fields before update
+            delete payload.$id;
+            delete payload.$collectionId;
+            delete payload.$databaseId;
+            delete payload.$createdAt;
+            delete payload.$permissions;
 
-            toast.success('Product updated successfully!');
+            await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, id, payload);
+            toast.success('Matrix updated');
             navigate('/admin/products');
         } catch (error) {
-            console.error('Error updating product:', error);
-            toast.error('Error updating product');
+            toast.error('Sync failure');
         } finally {
             setSaving(false);
         }
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
-            </div>
-        );
-    }
+    if (loading) return <div className="p-20 text-center uppercase font-black text-[10px] text-gray-400 font-Cairo"><Loader2 className="animate-spin mx-auto mb-4" /> Locating Node...</div>;
 
     return (
-        <div className="min-h-screen bg-admin-bg font-sans">
-            <AdminHeader title="Edit Product" />
-
-            <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                <div className="px-4 py-6 sm:px-0">
-                    <div className="mb-6">
-                        <button
-                            onClick={() => navigate('/admin/products')}
-                            className="flex items-center text-gray-400 hover:text-black font-bold transition-colors uppercase tracking-widest text-[10px]"
-                        >
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            Back to Management
-                        </button>
-                    </div>
-
-                    <div className="bg-white shadow-admin rounded-3xl p-8 max-w-2xl mx-auto border border-admin-border">
-                        <div className="flex items-center justify-between mb-8">
-                            <h2 className="text-xl font-black text-black uppercase tracking-widest poppins">Edit Product</h2>
-                            <div className="flex items-center">
-                                <label className="inline-flex items-center cursor-pointer group">
-                                    <input
-                                        type="checkbox"
-                                        name="isActive"
-                                        checked={formData.isActive}
-                                        onChange={handleChange}
-                                        className="sr-only peer"
-                                    />
-                                    <div className="relative w-14 h-7 bg-gray-600 rounded-full peer transition-all duration-300 peer-checked:bg-[#FF0000] peer-focus:ring-4 peer-focus:ring-red-500/20 shadow-lg peer-checked:shadow-red-500/40">
-                                        <div className="absolute top-0.5 start-0.5 bg-white rounded-full h-6 w-6 transition-all duration-300 peer-checked:translate-x-7 shadow-md"></div>
-                                    </div>
-                                    <span className={`ms-3 text-xs font-black uppercase tracking-widest transition-all duration-300 ${formData.isActive ? 'text-green-400' : 'text-gray-500'}`}>
-                                        {formData.isActive ? 'Active' : 'Inactive'}
-                                    </span>
-                                </label>
-                            </div>
+        <div className="min-h-screen bg-gray-50 pb-20 font-Cairo text-gray-900">
+            <AdminHeader title="Node Revision" />
+            <main className="max-w-5xl mx-auto py-8 px-4">
+                <button onClick={() => navigate('/admin/products')} className="flex items-center text-gray-400 font-black uppercase text-[10px] mb-8 gap-2"><ArrowLeft size={14} /> Return to Matrix</button>
+                <form onSubmit={handleSubmit} className="space-y-10">
+                    <section className="bg-white rounded-[2.5rem] p-10 border shadow-sm space-y-8">
+                        <div className="flex justify-between items-center bg-gray-50 p-6 rounded-3xl border">
+                            <div><h3 className="font-black uppercase italic">Node Status</h3><p className="text-xs text-gray-400 font-bold">Synchronizing with registry</p></div>
+                            <button type="button" onClick={() => setFormData({ ...formData, isActive: !formData.isActive })} className={`w-14 h-7 rounded-full relative transition-all ${formData.isActive ? 'bg-green-600' : 'bg-red-600'}`}><div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${formData.isActive ? 'left-8' : 'left-1'}`} /></button>
                         </div>
 
-                        {/* Genuine Badge Toggle */}
-                        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-2xl">
-                            <label className="inline-flex items-center cursor-pointer group w-full justify-between">
-                                <div>
-                                    <span className="text-sm font-black text-gray-900 uppercase tracking-widest">Show Genuine Badge</span>
-                                    <p className="text-xs text-gray-500 font-bold mt-1">Display "منتج أصلي" badge on product card</p>
-                                </div>
-                                <div className="flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        name="isGenuine"
-                                        checked={formData.isGenuine}
-                                        onChange={handleChange}
-                                        className="sr-only peer"
-                                    />
-                                    <div className="relative w-14 h-7 bg-gray-300 rounded-full peer transition-all duration-300 peer-checked:bg-green-500 peer-focus:ring-4 peer-focus:ring-green-500/20 shadow-lg peer-checked:shadow-green-500/40">
-                                        <div className="absolute top-0.5 start-0.5 bg-white rounded-full h-6 w-6 transition-all duration-300 peer-checked:translate-x-7 shadow-md"></div>
-                                    </div>
-                                    <span className={`ms-3 text-xs font-black uppercase tracking-widest transition-all duration-300 ${formData.isGenuine ? 'text-green-600' : 'text-gray-400'}`}>
-                                        {formData.isGenuine ? 'ON' : 'OFF'}
-                                    </span>
-                                </div>
-                            </label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400 flex items-center gap-2"><Globe size={12} /> Identity (AR)</label><input name="name" required value={formData.name} onChange={handleChange} className="w-full p-4 bg-gray-50 border rounded-2xl font-black text-right" dir="rtl" /></div>
+                            <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400 flex items-center gap-2"><Globe size={12} /> Identity (EN)</label><input name="nameEn" required value={formData.nameEn} onChange={handleChange} className="w-full p-4 bg-gray-50 border rounded-2xl font-black" /></div>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="grid grid-cols-2 gap-6">
-                                <div className="col-span-1">
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Product Name (Arabic)</label>
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        required
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        placeholder="اسم المنتج بالعربي"
-                                        className="w-full px-4 py-3 bg-gray-50 border border-admin-border rounded-xl text-black placeholder-gray-400 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm"
-                                    />
-                                </div>
-                                <div className="col-span-1">
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Product Name (English)</label>
-                                    <input
-                                        type="text"
-                                        name="nameEn"
-                                        value={formData.nameEn}
-                                        onChange={handleChange}
-                                        placeholder="Product name in English"
-                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
-                                    />
-                                </div>
-                            </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400">Unit Price</label><input type="number" name="price" required value={formData.price} onChange={handleChange} className="w-full p-4 bg-gray-50 border rounded-2xl font-black" /></div>
+                            <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400">Sale Level</label><input type="number" name="salePrice" value={formData.salePrice} onChange={handleChange} className="w-full p-4 bg-gray-50 border rounded-2xl font-black" /></div>
+                            <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400">Inventory</label><input type="number" name="stockQuantity" required value={formData.stockQuantity} onChange={handleChange} className="w-full p-4 bg-gray-50 border rounded-2xl font-black" /></div>
+                            <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400">Warranty</label><input type="number" name="warranty_months" value={formData.warranty_months} onChange={handleChange} className="w-full p-4 bg-gray-50 border rounded-2xl font-black" placeholder="Months" /></div>
+                        </div>
 
-                            <div className="grid grid-cols-2 gap-6">
-                                <div className="col-span-1">
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Part Brand (Arabic)</label>
-                                    <input
-                                        type="text"
-                                        name="partBrand"
-                                        value={formData.partBrand}
-                                        onChange={handleChange}
-                                        placeholder="ماركة القطعة بالعربي"
-                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
-                                    />
-                                </div>
-                                <div className="col-span-1">
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Part Brand (English)</label>
-                                    <input
-                                        type="text"
-                                        name="brandEn"
-                                        value={formData.brandEn}
-                                        onChange={handleChange}
-                                        placeholder="e.g. Castrol, Mobil"
-                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
-                                    />
-                                </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400 flex items-center gap-2"><Tag size={12} /> Sector</label>
+                                <select name="category" required value={formData.category} onChange={handleChange} className="w-full p-4 bg-gray-50 border rounded-2xl font-black">
+                                    <option value="">Select Category</option>{categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                                </select>
                             </div>
+                            <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400 flex items-center gap-2"><Tag size={12} /> Sub-Sector</label>
+                                <select name="subcategory" required value={formData.subcategory} onChange={handleChange} className="w-full p-4 bg-gray-50 border rounded-2xl font-black">
+                                    <option value="">Select Subcategory</option>{subCategories.map((s, i) => <option key={i} value={s.name || s}>{s.name || s}</option>)}
+                                </select>
+                            </div>
+                        </div>
+                    </section>
 
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Sell Price</label>
-                                    <input
-                                        type="number"
-                                        name="price"
-                                        required
-                                        value={formData.price}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Sale Price</label>
-                                    <input
-                                        type="number"
-                                        name="salePrice"
-                                        placeholder="Sale EGP"
-                                        value={formData.salePrice}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Cost Price</label>
-                                    <input
-                                        type="number"
-                                        name="costPrice"
-                                        placeholder="Buy EGP"
-                                        value={formData.costPrice}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Origin</label>
-                                    <input
-                                        type="text"
-                                        name="countryOfOrigin"
-                                        placeholder="e.g. Japan"
-                                        value={formData.countryOfOrigin}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Warranty (Months)</label>
-                                    <input
-                                        type="number"
-                                        name="warranty_months"
-                                        placeholder="e.g. 12"
-                                        value={formData.warranty_months}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
-                                    />
-                                </div>
-                            </div>
+                    <section className="bg-white rounded-[2.5rem] p-10 border shadow-sm space-y-8">
+                        <div className="flex items-center gap-4 border-b pb-4"><ShieldCheck className="text-red-600" /><h3 className="font-black uppercase italic">Technical Profile</h3></div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                            <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400">Brand Name</label><input name="partBrand" value={formData.partBrand} onChange={handleChange} className="w-full p-4 bg-gray-50 border rounded-2xl font-black" /></div>
+                            <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400">Origin</label><input name="countryOfOrigin" value={formData.countryOfOrigin} onChange={handleChange} className="w-full p-4 bg-gray-50 border rounded-2xl font-black" /></div>
+                            <div className="flex items-center gap-4 pt-8"><button type="button" onClick={() => setFormData({ ...formData, isGenuine: !formData.isGenuine })} className={`px-6 py-4 rounded-2xl text-[10px] font-black uppercase border transition-all ${formData.isGenuine ? 'bg-black text-white' : 'bg-gray-50 text-gray-400'}`}>Genuine Parts</button></div>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            <select name="make" value={formData.make} onChange={handleChange} className="w-full p-4 bg-gray-100 border rounded-2xl font-black uppercase text-xs"><option value="">Make</option>{carMakes.map(m => <option key={m} value={m}>{m}</option>)}</select>
+                            <select name="model" value={formData.model} onChange={handleChange} className="w-full p-4 bg-gray-100 border rounded-2xl font-black uppercase text-xs"><option value="">Model</option>{filteredModels.map(m => <option key={m} value={m}>{m}</option>)}</select>
+                            <input name="yearStart" value={formData.yearStart} onChange={handleChange} className="w-full p-4 bg-gray-50 border rounded-2xl font-black" placeholder="Year Start" />
+                            <input name="yearEnd" value={formData.yearEnd} onChange={handleChange} className="w-full p-4 bg-gray-50 border rounded-2xl font-black" placeholder="Year End" />
+                        </div>
+                    </section>
 
-                            <div className="grid grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Car Make</label>
-                                    <select
-                                        name="make"
-                                        value={formData.make}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-gray-50 border border-admin-border rounded-xl text-black focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm cursor-pointer"
-                                    >
-                                        <option value="" className="bg-admin-card">Select Make (Optional)</option>
-                                        {carMakes.map(make => (
-                                            <option key={make} value={make} className="bg-admin-card">{make}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Car Model</label>
-                                    <select
-                                        name="model"
-                                        disabled={!formData.make}
-                                        value={formData.model}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg disabled:opacity-30 cursor-pointer"
-                                    >
-                                        <option value="" className="bg-admin-card">Select Model (Optional)</option>
-                                        {filteredModels.map(model => (
-                                            <option key={model} value={model} className="bg-admin-card">{model}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
+                    <section className="bg-white rounded-[2.5rem] p-10 border shadow-sm space-y-8">
+                        <div className="flex items-center gap-4 border-b pb-4"><Package className="text-red-600" /><h3 className="font-black uppercase italic">Visual Sync</h3></div>
+                        <ImageUpload currentImage={formData.image} onUploadComplete={url => setFormData({ ...formData, image: url })} />
+                    </section>
 
-                            <div className="grid grid-cols-3 gap-6">
-                                <div className="col-span-1">
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Year Display</label>
-                                    <input
-                                        type="text"
-                                        name="yearRange"
-                                        disabled
-                                        placeholder="Calculated automatically..."
-                                        value={formData.yearRange}
-                                        className="w-full px-4 py-3 bg-gray-100 border border-admin-border rounded-xl text-gray-500 placeholder-gray-400 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm opacity-50 cursor-not-allowed"
-                                    />
-                                </div>
-                                <div className="col-span-1">
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Start Year</label>
-                                    <input
-                                        type="number"
-                                        name="yearStart"
-                                        placeholder="2015"
-                                        value={formData.yearStart}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
-                                    />
-                                </div>
-                                <div className="col-span-1">
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">End Year</label>
-                                    <input
-                                        type="number"
-                                        name="yearEnd"
-                                        placeholder="2020"
-                                        value={formData.yearEnd}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-[#ffffff05] border border-admin-border rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm shadow-lg"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Category</label>
-                                    <select
-                                        name="category"
-                                        required
-                                        value={formData.category}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-gray-50 border border-admin-border rounded-xl text-black focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm cursor-pointer"
-                                    >
-                                        <option value="" className="bg-admin-card">Select Category</option>
-                                        {categories.map(cat => (
-                                            <option key={cat.id} value={cat.name} className="bg-admin-card">{cat.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Sub-Category</label>
-                                    <select
-                                        name="subcategory"
-                                        required
-                                        value={formData.subcategory || ''}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-gray-50 border border-admin-border rounded-xl text-black focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold text-sm cursor-pointer"
-                                    >
-                                        <option value="" className="bg-admin-card">Select Subcategory</option>
-                                        {subCategories.map((sub, idx) => {
-                                            // Ensure we're rendering a string, not an object
-                                            const subValue = typeof sub === 'string' ? sub : (sub?.name || '');
-                                            return (
-                                                <option key={idx} value={subValue} className="bg-admin-card">
-                                                    {subValue}
-                                                </option>
-                                            );
-                                        })}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
-                                <ImageUpload
-                                    onUploadComplete={(url) => setFormData(prev => ({ ...prev, image: url }))}
-                                    currentImage={formData.image}
-                                    folderPath="products"
-                                />
-                                <input type="hidden" name="image" value={formData.image} required />
-                            </div>
-
-                            <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
-                                <button
-                                    type="button"
-                                    onClick={() => navigate('/admin/products')}
-                                    className="px-6 py-3 text-[10px] font-black text-admin-text-secondary uppercase tracking-widest hover:text-black transition-all"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={saving}
-                                    className="admin-primary-btn !w-fit !px-12"
-                                >
-                                    {saving ? (
-                                        <>
-                                            <Loader2 className="h-4 w-4 animate-spin text-white" />
-                                            Saving...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="h-4 w-4" />
-                                            Save Changes
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                    <div className="flex justify-end pt-10 border-t"><button type="submit" disabled={saving} className="bg-red-600 text-white px-16 py-6 rounded-3xl font-black uppercase italic shadow-2xl hover:scale-105 transition-all">{saving ? 'Syncing...' : 'Update Matrix Entry'}</button></div>
+                </form>
             </main>
         </div>
     );

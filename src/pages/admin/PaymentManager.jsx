@@ -1,309 +1,113 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../../firebase';
-import {
-    collection,
-    addDoc,
-    getDocs,
-    updateDoc,
-    deleteDoc,
-    doc,
-    query,
-    orderBy
-} from 'firebase/firestore';
-import {
-    CLOUDINARY_UPLOAD_URL,
-    CLOUDINARY_UPLOAD_PRESET
-} from '../../config/cloudinary';
+import { databases, storage } from '../../appwrite';
+import { Query, ID } from 'appwrite';
 import { toast } from 'react-hot-toast';
-import {
-    Plus,
-    Trash2,
-    Image as ImageIcon,
-    Loader2,
-    ToggleLeft,
-    ToggleRight,
-    AlertCircle
-} from 'lucide-react';
+import { Plus, Trash2, Image as ImageIcon, Loader2, ToggleLeft, ToggleRight, AlertCircle, Zap, Activity, ShieldCheck, Award, X } from 'lucide-react';
 import AdminHeader from '../../components/AdminHeader';
+import ImageUpload from '../../components/admin/ImageUpload';
 
 const PaymentManager = () => {
     const [methods, setMethods] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [name, setName] = useState('');
-    const [image, setImage] = useState(null);
-    const [preview, setPreview] = useState(null);
+    const [isAdding, setIsAdding] = useState(false);
+    const [formData, setFormData] = useState({ name: '', logoUrl: '', isActive: true, order: 0 });
 
-    useEffect(() => {
-        fetchMethods();
-    }, []);
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const PAYMENT_PARTNERS_COLLECTION = import.meta.env.VITE_APPWRITE_PAYMENT_PARTNERS_COLLECTION_ID || 'payment_methods';
 
     const fetchMethods = async () => {
+        if (!DATABASE_ID) return;
+        setLoading(true);
         try {
-            const q = query(collection(db, 'payment_methods'), orderBy('order', 'asc'));
-            const querySnapshot = await getDocs(q);
-            setMethods(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        } catch (error) {
-            console.error("Error fetching methods:", error);
-            toast.error("Failed to load payment methods");
-        } finally {
-            setLoading(false);
-        }
+            const response = await databases.listDocuments(DATABASE_ID, PAYMENT_PARTNERS_COLLECTION, [Query.orderAsc('order'), Query.limit(100)]);
+            setMethods(response.documents.map(doc => ({ id: doc.$id, ...doc })));
+        } catch (error) { toast.error("Partners registry unreachable"); }
+        finally { setLoading(false); }
     };
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            // Check size (500KB limit)
-            if (file.size > 500 * 1024) {
-                toast.error("الملف كبير جداً! يجب أن يكون أقل من 500 كيلوبايت");
-                e.target.value = null;
-                return;
-            }
-            setImage(file);
-            setPreview(URL.createObjectURL(file));
-        }
-    };
+    useEffect(() => { fetchMethods(); }, [DATABASE_ID]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (!name) {
-            toast.error("رجاءً أدخل اسم الشريك");
-            return;
-        }
-
-        if (!image) {
-            toast.error("رجاءً اختر صورة الشعار");
-            return;
-        }
-
-        console.log(">>> [1/4] Starting Cloudinary upload process...");
+        if (!formData.name || !formData.logoUrl) return toast.error("Missing required identity data");
         setSubmitting(true);
-
         try {
-            // Prepare Cloudinary FormData
-            const formData = new FormData();
-            formData.append('file', image);
-            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
-            console.log(">>> [2/4] Posting to Cloudinary...", CLOUDINARY_UPLOAD_URL);
-
-            const response = await fetch(CLOUDINARY_UPLOAD_URL, {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error("Cloudinary Response Error:", errorData);
-                throw new Error(errorData.error?.message || "Cloudinary upload failed");
-            }
-
-            const cloudinaryData = await response.json();
-            const logoUrl = cloudinaryData.secure_url;
-            console.log(">>> [3/4] Secure URL generated:", logoUrl);
-
-            console.log(">>> [4/4] Saving to Firestore...");
-            await addDoc(collection(db, 'payment_methods'), {
-                name,
-                logoUrl,
-                isActive: true,
-                order: methods.length,
-                createdAt: new Date().toISOString(),
-                cloudinaryId: cloudinaryData.public_id // Storing ID for potential future deletion
-            });
-
-            console.log(">>> ALL STEPS COMPLETED SUCCESSFULLY");
-            toast.success(`تمت إضافة ${name} بنجاح!`);
-
-            // Reset form
-            setName('');
-            setImage(null);
-            setPreview(null);
-            fetchMethods();
-        } catch (error) {
-            console.error("CRITICAL UPLOAD ERROR:", error);
-            toast.error(`فشل الرفع: ${error.message}`);
-        } finally {
-            setSubmitting(false);
-        }
+            await databases.createDocument(DATABASE_ID, PAYMENT_PARTNERS_COLLECTION, ID.unique(), { ...formData, order: methods.length });
+            toast.success("Partner identity secured");
+            fetchMethods(); setIsAdding(false); setFormData({ name: '', logoUrl: '', isActive: true, order: 0 });
+        } catch (error) { toast.error("Deployment failure"); }
+        finally { setSubmitting(false); }
     };
 
     const toggleStatus = async (method) => {
         try {
-            await updateDoc(doc(db, 'payment_methods', method.id), {
-                isActive: !method.isActive
-            });
-            fetchMethods();
-        } catch (error) {
-            toast.error("Update failed");
-        }
+            await databases.updateDocument(DATABASE_ID, PAYMENT_PARTNERS_COLLECTION, method.id, { isActive: !method.isActive });
+            setMethods(prev => prev.map(m => m.id === method.id ? { ...m, isActive: !method.isActive } : m));
+            toast.success("Protocol status synchronized");
+        } catch (error) { toast.error("Sync failure"); }
     };
 
-    const handleDelete = async (method) => {
-        if (!window.confirm(`هل تريد مسح ${method.name}؟`)) return;
+    const handleDelete = async (id) => {
+        if (!window.confirm("Purge partner identity?")) return;
+        setLoading(true);
         try {
-            await deleteDoc(doc(db, 'payment_methods', method.id));
-            toast.success("تم المسح بنجاح");
-            fetchMethods();
-        } catch (error) {
-            toast.error("فشل المسح");
-        }
+            await databases.deleteDocument(DATABASE_ID, PAYMENT_PARTNERS_COLLECTION, id);
+            setMethods(prev => prev.filter(m => m.id !== id));
+            toast.success("Partner purged from registry");
+        } catch (error) { toast.error("Purge failure"); }
+        finally { setLoading(false); }
     };
 
     return (
-        <div className="max-w-5xl mx-auto py-8 px-4 font-sans" dir="rtl">
-            <AdminHeader title="مدير شركاء الدفع والتقسيط (Cloudinary)" />
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-                {/* Form Section */}
-                <div className="lg:col-span-1">
-                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 sticky top-24">
-                        <h3 className="text-xl font-black text-gray-900 mb-8 flex items-center gap-3">
-                            <Plus className="h-6 w-6 text-orange-600" />
-                            إضافة شريك جديد
-                        </h3>
-
-                        <form onSubmit={handleSubmit} className="space-y-8">
-                            <div className="space-y-3">
-                                <label className="block text-[10px] font-black text-admin-text-secondary uppercase tracking-widest mr-1">اسم الشريك (Partner Name)</label>
-                                <input
-                                    type="text"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-orange-500/10 outline-none transition-all"
-                                    placeholder="مثلاً: فوري، فاليو..."
-                                    required
-                                />
-                            </div>
-
-                            <div className="space-y-4">
-                                <label className="block text-[10px] font-black text-admin-text-secondary uppercase tracking-widest mr-1">شعار الشريك (Logo)</label>
-                                <div className="relative group">
-                                    {preview ? (
-                                        <div className="relative h-44 w-full rounded-3xl overflow-hidden bg-gray-50 border-2 border-dashed border-gray-100 flex items-center justify-center p-6">
-                                            <img src={preview} alt="Preview" className="h-full w-full object-contain" />
-                                            <button
-                                                type="button"
-                                                onClick={() => { setImage(null); setPreview(null); }}
-                                                className="absolute top-4 left-4 bg-white/90 backdrop-blur shadow-xl text-red-500 p-2 rounded-full hover:bg-red-500 hover:text-white transition-all"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <label className="h-44 w-full rounded-3xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center text-gray-300 cursor-pointer hover:border-orange-200 hover:bg-orange-50/30 transition-all bg-gray-50/50 group">
-                                            <div className="bg-white p-4 rounded-full shadow-sm mb-3 group-hover:scale-110 transition-transform">
-                                                <ImageIcon className="h-8 w-8 text-admin-text-secondary" />
-                                            </div>
-                                            <span className="text-[11px] font-black uppercase tracking-widest">اختر ملف الشعار</span>
-                                            <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-                                        </label>
-                                    )}
-                                </div>
-                                <div className="flex items-start gap-3 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50">
-                                    <AlertCircle size={18} className="text-blue-500 flex-shrink-0 mt-0.5" />
-                                    <div>
-                                        <p className="text-[11px] font-bold text-blue-700 leading-relaxed">
-                                            المقاس المفضل: 200x100 بكسل<br />
-                                            الخلفية: شفافة (PNG)<br />
-                                            الحد الأقصى للملف: 500 كيلوبايت
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={submitting}
-                                className="w-full bg-gray-900 text-white font-black py-5 rounded-2xl flex items-center justify-center gap-3 hover:bg-black transition-all shadow-xl shadow-gray-200 disabled:opacity-50 active:scale-95"
-                            >
-                                {submitting ? (
-                                    <>
-                                        <Loader2 className="h-6 w-6 animate-spin" />
-                                        <span>جاري الرفع...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Plus className="h-6 w-6" />
-                                        <span>حفظ الشريك الجديد</span>
-                                    </>
-                                )}
-                            </button>
-                        </form>
+        <div className="min-h-screen bg-gray-50 pb-20 font-Cairo text-gray-900">
+            <AdminHeader title="Financial Partnerships" />
+            <main className="max-w-7xl mx-auto py-8 px-4">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+                    <div>
+                        <h2 className="text-3xl font-black uppercase italic">Partner Registry</h2>
+                        <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mt-1">Managing Strategic Financial Nodes (ValU, Fawry, etc.)</p>
                     </div>
-                </div>
-
-                {/* List Section */}
-                <div className="lg:col-span-2">
-                    {loading ? (
-                        <div className="flex flex-col items-center justify-center p-24 bg-white rounded-3xl border border-gray-100">
-                            <Loader2 className="h-12 w-12 animate-spin text-orange-600 mb-4" />
-                            <p className="text-sm font-bold text-admin-text-secondary">تحميل القائمة...</p>
-                        </div>
-                    ) : (
-                        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                            <div className="px-8 py-6 border-b border-gray-50 flex items-center justify-between">
-                                <h3 className="font-black text-gray-900">الشركاء الحاليين ({methods.length})</h3>
-                                <p className="text-[10px] text-admin-text-secondary font-bold uppercase tracking-widest">إدارة العرض والترتيب</p>
-                            </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-gray-50/50">
-                                        <tr>
-                                            <th className="px-8 py-4 text-right text-[10px] font-black text-admin-text-secondary uppercase tracking-widest">الشعار</th>
-                                            <th className="px-8 py-4 text-right text-[10px] font-black text-admin-text-secondary uppercase tracking-widest">اسم الشريك</th>
-                                            <th className="px-8 py-4 text-center text-[10px] font-black text-admin-text-secondary uppercase tracking-widest">الحالة</th>
-                                            <th className="px-8 py-4 text-left text-[10px] font-black text-admin-text-secondary uppercase tracking-widest">الإجراء</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-50">
-                                        {methods.map((method) => (
-                                            <tr key={method.id} className="hover:bg-gray-50/30 transition-colors group">
-                                                <td className="px-8 py-6">
-                                                    <div className="h-12 w-24 bg-white rounded-xl border border-gray-100 overflow-hidden p-2 flex items-center justify-center group-hover:shadow-sm transition-shadow">
-                                                        <img src={method.logoUrl} alt="" className="h-full w-auto object-contain" />
-                                                    </div>
-                                                </td>
-                                                <td className="px-8 py-6">
-                                                    <span className="font-bold text-gray-900">{method.name}</span>
-                                                </td>
-                                                <td className="px-8 py-6">
-                                                    <button
-                                                        onClick={() => toggleStatus(method)}
-                                                        className="flex items-center justify-center w-full transition-transform active:scale-90"
-                                                    >
-                                                        {method.isActive ? (
-                                                            <div className="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-1.5 rounded-full ring-1 ring-green-100">
-                                                                <ToggleRight className="h-5 w-5" />
-                                                                <span className="text-[10px] font-black uppercase">نشط</span>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="flex items-center gap-2 text-admin-text-secondary bg-gray-50 px-3 py-1.5 rounded-full ring-1 ring-gray-100">
-                                                                <ToggleLeft className="h-5 w-5" />
-                                                                <span className="text-[10px] font-black uppercase">معطل</span>
-                                                            </div>
-                                                        )}
-                                                    </button>
-                                                </td>
-                                                <td className="px-8 py-6 text-left">
-                                                    <button
-                                                        onClick={() => handleDelete(method)}
-                                                        className="p-3 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                                                    >
-                                                        <Trash2 size={20} />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                    {!isAdding && (
+                        <button onClick={() => { setIsAdding(true); setFormData(p => ({ ...p, order: methods.length })); }} className="bg-black text-white px-8 py-4 rounded-2xl font-black uppercase italic text-xs shadow-2xl flex items-center gap-2 hover:scale-105 transition-all"><Plus size={18} /> Secure New Partner</button>
                     )}
                 </div>
-            </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-orange-50 text-orange-600 rounded-2xl border border-orange-100"><Award size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Partners</p><h3 className="text-2xl font-black italic">{methods.length}</h3></div></div>
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-green-50 text-green-600 rounded-2xl border border-green-100"><Zap size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Active</p><h3 className="text-2xl font-black italic">{methods.filter(m => m.isActive).length}</h3></div></div>
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-blue-50 text-blue-600 rounded-2xl border border-blue-100"><ShieldCheck size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Network</p><h3 className="text-2xl font-black italic">Trusted</h3></div></div>
+                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-red-50 text-red-600 rounded-2xl border border-red-100"><Activity size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Uptime</p><h3 className="text-2xl font-black italic">99.9%</h3></div></div>
+                </div>
+
+                {isAdding && (
+                    <div className="bg-white p-12 rounded-[3.5rem] shadow-2xl mb-12 border-4 border-black max-w-2xl animate-in fade-in slide-in-from-top-4 duration-500">
+                        <div className="flex justify-between items-center mb-10"><h3 className="text-xl font-black uppercase italic tracking-widest">Register Strategic Partner</h3><button onClick={() => setIsAdding(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-all"><X /></button></div>
+                        <form onSubmit={handleSubmit} className="space-y-10">
+                            <div className="space-y-4"><label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] ml-2 italic">Corporate Identity (Name)</label><input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-8 py-5 bg-gray-50 border-2 rounded-2xl font-black text-lg italic outline-none focus:border-red-600 transition-all" placeholder="e.g. VALU INSTALLMENTS" required /></div>
+                            <div className="space-y-4"><div className="flex justify-between items-center px-2"><label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] italic">Visual Asset Overlay</label><span className="text-[9px] text-red-600 font-black uppercase italic">Transparent PNG Preferred</span></div><ImageUpload onUploadComplete={url => setFormData({ ...formData, logoUrl: url })} currentImage={formData.logoUrl} folderPath="partners" /></div>
+                            <div className="flex items-center gap-3 p-5 bg-gray-50 rounded-2xl border-2 border-dashed"><AlertCircle size={20} className="text-black opacity-40" /><p className="text-[10px] font-black text-gray-400 uppercase italic">Partner identities are displayed during checkout to facilitate trust and operational fluidity.</p></div>
+                            <button type="submit" disabled={submitting} className="w-full bg-black text-white py-6 rounded-[2.5rem] font-black uppercase italic text-xs shadow-2xl hover:scale-[1.03] transition-all flex items-center justify-center gap-4">{submitting ? <Loader2 className="animate-spin" /> : <Plus size={20} />} Commit Identity</button>
+                        </form>
+                    </div>
+                )}
+
+                <div className="bg-white rounded-[3.5rem] border shadow-sm overflow-hidden">
+                    <table className="w-full text-left">
+                        <thead className="bg-gray-50/50 text-[10px] font-black uppercase tracking-widest text-gray-400"><tr><th className="px-10 py-6">Visual Badge</th><th className="px-10 py-6">Corporate Entity</th><th className="px-10 py-6 text-center">Encryption Tier</th><th className="px-10 py-6 text-right">Ops</th></tr></thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {loading && methods.length === 0 ? <tr><td colSpan="4" className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-black" size={40} /></td></tr> : methods.map(method => (
+                                <tr key={method.id} className="hover:bg-gray-50/50 transition-all group">
+                                    <td className="px-10 py-8"><div className="w-32 h-20 bg-white rounded-3xl p-4 border-2 shadow-inner group-hover:scale-105 transition-all flex items-center justify-center"><img src={method.logoUrl} className="max-h-full max-w-full object-contain filter grayscale group-hover:grayscale-0 transition-all" /></div></td>
+                                    <td className="px-10 py-8"><h4 className="font-black text-base uppercase italic">{method.name}</h4><p className="text-[9px] font-black text-gray-400 uppercase italic mt-2 tracking-widest flex items-center gap-1"><ShieldCheck size={12} /> Verified Integration</p></td>
+                                    <td className="px-10 py-8 text-center"><button onClick={() => toggleStatus(method)} className={`px-6 py-2 rounded-full text-[9px] font-black uppercase border transition-all ${method.isActive ? 'bg-green-50 text-green-600 border-green-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}>{method.isActive ? 'Network Active' : 'Offline'}</button></td>
+                                    <td className="px-10 py-8 text-right"><button onClick={() => handleDelete(method.id)} className="p-4 bg-white text-red-600 border rounded-2xl shadow-xl hover:bg-red-600 hover:text-white transition-all"><Trash2 size={18} /></button></td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </main>
         </div>
     );
 };

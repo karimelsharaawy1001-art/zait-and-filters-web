@@ -1,30 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { databases } from '../../appwrite';
+import { ID, Query } from 'appwrite';
 import { toast } from 'react-hot-toast';
 import AdminHeader from '../../components/AdminHeader';
 import ImageUpload from '../../components/admin/ImageUpload';
-import { Trash2, Edit3, Search } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Trash2, Edit3, Search, Plus, Car, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const ManageCars = () => {
+    const navigate = useNavigate();
     const [cars, setCars] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [formData, setFormData] = useState({
-        make: '',
-        model: '',
-        yearStart: '',
-        yearEnd: '',
-        imageUrl: ''
-    });
+    const [formData, setFormData] = useState({ make: '', model: '', yearStart: '', yearEnd: '', imageUrl: '' });
+
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const CARS_COLLECTION = 'cars';
 
     const fetchCars = async () => {
+        if (!DATABASE_ID) return;
+        setLoading(true);
         try {
-            const querySnapshot = await getDocs(collection(db, 'cars'));
-            setCars(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+            const response = await databases.listDocuments(DATABASE_ID, CARS_COLLECTION, [Query.limit(100)]);
+            setCars(response.documents.map(doc => ({ id: doc.$id, ...doc })));
         } catch (error) {
-            console.error("Error fetching cars:", error);
+            console.error(error);
         } finally {
             setLoading(false);
         }
@@ -32,212 +32,99 @@ const ManageCars = () => {
 
     useEffect(() => {
         fetchCars();
-    }, []);
+    }, [DATABASE_ID]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await addDoc(collection(db, 'cars'), {
+            await databases.createDocument(DATABASE_ID, CARS_COLLECTION, ID.unique(), {
                 ...formData,
                 yearStart: Number(formData.yearStart),
                 yearEnd: Number(formData.yearEnd)
             });
             setFormData({ make: '', model: '', yearStart: '', yearEnd: '', imageUrl: '' });
             fetchCars();
-            toast.success("Car model added successfully");
+            toast.success("Vehicle registered");
         } catch (error) {
-            console.error("Error adding car:", error);
-            toast.error("Failed to add car");
+            toast.error("Sync failure");
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this car model?")) return;
+        if (!window.confirm("Purge vehicle from registry?")) return;
         try {
-            await deleteDoc(doc(db, 'cars', id));
+            await databases.deleteDocument(DATABASE_ID, CARS_COLLECTION, id);
             setCars(cars.filter(c => c.id !== id));
-            toast.success("Car model deleted successfully");
+            toast.success("Resource deleted");
         } catch (error) {
-            console.error("Error deleting car:", error);
-            toast.error("Failed to delete car");
+            toast.error("Operation failed");
         }
     };
 
-    const filteredAndSortedCars = cars
-        .filter(car =>
-            car.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            car.model.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        .sort((a, b) => {
-            const makeCompare = a.make.localeCompare(b.make);
-            if (makeCompare !== 0) return makeCompare;
-            return a.model.localeCompare(b.model);
-        });
+    const filtered = cars.filter(c =>
+        c.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.model.toLowerCase().includes(searchTerm.toLowerCase())
+    ).sort((a, b) => a.make.localeCompare(b.make) || a.model.localeCompare(b.model));
 
     return (
-        <div className="min-h-screen bg-admin-bg font-sans p-4 md:p-8">
-            <div className="max-w-7xl mx-auto">
-                <AdminHeader title="Manage Cars" />
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mt-10">
-                    {/* Form Section */}
-                    <div className="bg-admin-card p-8 rounded-[2rem] shadow-admin border border-admin-border h-fit sticky top-8">
-                        <div className="mb-8">
-                            <h2 className="text-xl font-black text-white uppercase tracking-widest poppins">Add Model</h2>
-                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Register new vehicle to database</p>
-                        </div>
-
+        <div className="min-h-screen bg-gray-50 pb-20 font-Cairo text-gray-900">
+            <AdminHeader title="Fleet Registry" />
+            <main className="max-w-7xl mx-auto py-8 px-4">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <section className="bg-white p-10 rounded-[2.5rem] border shadow-sm h-fit space-y-8">
+                        <div><h2 className="text-xl font-black uppercase italic">New Registration</h2><p className="text-xs text-gray-400 font-bold">Protocol for adding vehicles</p></div>
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">Make</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Toyota"
-                                        value={formData.make}
-                                        onChange={e => setFormData({ ...formData, make: e.target.value })}
-                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-xl px-4 py-3 text-sm text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold shadow-lg"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">Model</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Corolla"
-                                        value={formData.model}
-                                        onChange={e => setFormData({ ...formData, model: e.target.value })}
-                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-xl px-4 py-3 text-sm text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold shadow-lg"
-                                        required
-                                    />
-                                </div>
+                                <input placeholder="Make" value={formData.make} onChange={e => setFormData({ ...formData, make: e.target.value })} className="w-full p-4 bg-gray-50 border rounded-2xl font-black" required />
+                                <input placeholder="Model" value={formData.model} onChange={e => setFormData({ ...formData, model: e.target.value })} className="w-full p-4 bg-gray-50 border rounded-2xl font-black" required />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">Year Start</label>
-                                    <input
-                                        type="number"
-                                        placeholder="2010"
-                                        value={formData.yearStart}
-                                        onChange={e => setFormData({ ...formData, yearStart: e.target.value })}
-                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-xl px-4 py-3 text-sm text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold shadow-lg"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">Year End</label>
-                                    <input
-                                        type="number"
-                                        placeholder="2024"
-                                        value={formData.yearEnd}
-                                        onChange={e => setFormData({ ...formData, yearEnd: e.target.value })}
-                                        className="w-full bg-[#ffffff05] border border-admin-border rounded-xl px-4 py-3 text-sm text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all font-bold shadow-lg"
-                                    />
-                                </div>
+                                <input placeholder="Start Year" type="number" value={formData.yearStart} onChange={e => setFormData({ ...formData, yearStart: e.target.value })} className="w-full p-4 bg-gray-50 border rounded-2xl font-black" />
+                                <input placeholder="End Year" type="number" value={formData.yearEnd} onChange={e => setFormData({ ...formData, yearEnd: e.target.value })} className="w-full p-4 bg-gray-50 border rounded-2xl font-black" />
                             </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">Car Profile Image</label>
-                                <ImageUpload
-                                    onUploadComplete={(url) => setFormData(prev => ({ ...prev, imageUrl: url }))}
-                                    currentImage={formData.imageUrl}
-                                    folderPath="cars"
-                                />
-                                <input type="hidden" name="imageUrl" value={formData.imageUrl} required />
-                            </div>
-                            <button
-                                type="submit"
-                                className="admin-primary-btn"
-                            >
-                                Add Car Model
-                            </button>
+                            <ImageUpload currentImage={formData.imageUrl} onUploadComplete={url => setFormData({ ...formData, imageUrl: url })} folderPath="cars" />
+                            <button type="submit" className="w-full bg-black text-white py-5 rounded-2xl font-black uppercase italic shadow-xl">Commit to Fleet</button>
                         </form>
-                    </div>
+                    </section>
 
-                    {/* List Section */}
-                    <div className="lg:col-span-2">
-                        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div>
-                                <h2 className="text-xl font-black text-white uppercase tracking-widest poppins">Fleet Registry</h2>
-                                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Manage makes and models</p>
-                            </div>
-
-                            <div className="relative w-full md:w-64">
-                                <input
-                                    type="text"
-                                    placeholder="Search Make or Model..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full bg-admin-card border border-admin-border rounded-xl pl-10 pr-4 py-3 text-xs font-bold text-white focus:ring-2 focus:ring-admin-accent outline-none transition-all"
-                                />
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-                            </div>
+                    <section className="lg:col-span-2 space-y-8">
+                        <div className="flex justify-between items-center">
+                            <div><h2 className="text-xl font-black uppercase italic">Active Fleet</h2><p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Found {filtered.length} vehicle profiles</p></div>
+                            <div className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} /><input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Filter Fleet..." className="pl-10 pr-4 py-2 bg-white border rounded-xl text-xs font-bold" /></div>
                         </div>
 
-                        {loading ? (
-                            <div className="flex flex-col items-center justify-center py-24 gap-4">
-                                <div className="w-12 h-12 border-4 border-admin-accent border-t-transparent rounded-full animate-spin"></div>
-                                <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">Syncing fleet data...</p>
-                            </div>
-                        ) : (
-                            <div className="bg-admin-card rounded-[2rem] border border-admin-border overflow-hidden shadow-admin">
-                                <div className="grid grid-cols-12 gap-4 p-4 border-b border-admin-border bg-[#ffffff02]">
-                                    <div className="col-span-2 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Image</div>
-                                    <div className="col-span-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Make & Model</div>
-                                    <div className="col-span-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Year Range</div>
-                                    <div className="col-span-2 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">Actions</div>
-                                </div>
-
-                                <div className="divide-y divide-admin-border">
-                                    {filteredAndSortedCars.length > 0 ? filteredAndSortedCars.map(car => (
-                                        <div key={car.id} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-[#ffffff05] transition-all group">
-                                            <div className="col-span-2 flex justify-center">
-                                                <div className="w-12 h-12 bg-[#ffffff05] rounded-xl overflow-hidden border border-admin-border shadow-sm">
-                                                    <img src={car.imageUrl} alt={car.model} className="w-full h-full object-cover" />
-                                                </div>
-                                            </div>
-
-                                            <div className="col-span-4 min-w-0">
-                                                <h3 className="text-sm font-black text-white uppercase tracking-widest truncate">{car.make}</h3>
-                                                <p className="text-admin-accent text-xs font-bold truncate">{car.model}</p>
-                                            </div>
-
-                                            <div className="col-span-4">
-                                                <span className="px-3 py-1 bg-[#ffffff05] border border-admin-border rounded-lg text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                                    {car.yearStart} — {car.yearEnd}
-                                                </span>
-                                            </div>
-
-                                            <div className="col-span-2 flex justify-end gap-2">
-                                                <Link
-                                                    to={`/admin/edit-car/${car.id}`}
-                                                    className="p-2 bg-admin-accent/10 text-admin-accent hover:bg-admin-accent hover:text-white rounded-lg transition-all"
-                                                >
-                                                    <Edit3 className="h-4 w-4" />
-                                                </Link>
-                                                <button
-                                                    onClick={() => handleDelete(car.id)}
-                                                    className="p-2 bg-admin-red/10 text-admin-red hover:bg-admin-red hover:text-white rounded-lg transition-all"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )) : (
-                                        <div className="py-12 text-center">
-                                            <p className="text-gray-500 font-bold text-xs uppercase tracking-widest">No models found</p>
-                                        </div>
-                                    )}
+                        {loading ? <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-black" size={40} /></div> : (
+                            <div className="bg-white rounded-[2.5rem] border shadow-sm overflow-hidden">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left">
+                                        <thead className="bg-gray-50/50 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                            <tr>
+                                                <th className="px-8 py-6">Visual</th>
+                                                <th className="px-8 py-6">Composition</th>
+                                                <th className="px-8 py-6">Timeline</th>
+                                                <th className="px-8 py-6 text-right">Ops</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100">
+                                            {filtered.map(car => (
+                                                <tr key={car.id} className="hover:bg-gray-50/50 group transition-all">
+                                                    <td className="px-8 py-6"><img src={car.imageUrl || '/car-placeholder.png'} className="w-16 h-12 rounded-xl object-cover border" alt={car.model} /></td>
+                                                    <td className="px-8 py-6"><h3 className="font-black text-lg italic">{car.make}</h3><p className="text-[10px] font-bold text-gray-400 uppercase">{car.model}</p></td>
+                                                    <td className="px-8 py-6"><span className="px-3 py-1 bg-gray-100 rounded-lg text-[10px] font-black">{car.yearStart} — {car.yearEnd}</span></td>
+                                                    <td className="px-8 py-6 text-right flex justify-end gap-3 pt-8">
+                                                        <button onClick={() => navigate(`/admin/edit-car/${car.id}`)} className="p-3 bg-white text-black border rounded-xl shadow-xl hover:bg-black hover:text-white transition-all"><Edit3 size={16} /></button>
+                                                        <button onClick={() => handleDelete(car.id)} className="p-3 bg-white text-red-600 border rounded-xl shadow-xl hover:bg-red-600 hover:text-white transition-all"><Trash2 size={16} /></button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         )}
-
-                        <div className="mt-4 text-right">
-                            <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">
-                                Showing {filteredAndSortedCars.length} of {cars.length} Models
-                            </span>
-                        </div>
-                    </div>
+                    </section>
                 </div>
-            </div>
+            </main>
         </div>
     );
 };

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { auth } from '../firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, LogIn, ArrowRight, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const Login = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const { login } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [formData, setFormData] = useState({
@@ -25,7 +25,7 @@ const Login = () => {
         setLoading(true);
 
         try {
-            await signInWithEmailAndPassword(auth, formData.email, formData.password);
+            await login(formData.email, formData.password);
             navigate('/');
         } catch (err) {
             console.error("Login Error:", err);

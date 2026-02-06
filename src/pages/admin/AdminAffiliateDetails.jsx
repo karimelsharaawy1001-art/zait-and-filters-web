@@ -1,34 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-    doc,
-    getDoc,
-    collection,
-    query,
-    where,
-    getDocs,
-    orderBy,
-    addDoc,
-    updateDoc,
-    increment,
-    serverTimestamp
-} from 'firebase/firestore';
-import { db } from '../../firebase';
+import { databases } from '../../appwrite';
+import { Query, ID } from 'appwrite';
 import { toast } from 'react-hot-toast';
 import {
-    ArrowLeft,
-    User,
-    Mail,
-    Phone,
-    Wallet,
-    Clock,
-    TrendingUp,
-    CheckCircle2,
-    AlertCircle,
-    RotateCcw,
-    FileText,
-    ExternalLink,
-    PlusCircle
+    ArrowLeft, User, Mail, Phone, Wallet, Clock, TrendingUp, CheckCircle2, AlertCircle, RotateCcw, FileText, ExternalLink, PlusCircle, Loader2, ShieldCheck, Activity, Award, BarChart3, Receipt, Landmark
 } from 'lucide-react';
 import AdminHeader from '../../components/AdminHeader';
 
@@ -38,423 +14,175 @@ const AdminAffiliateDetails = () => {
     const [loading, setLoading] = useState(true);
     const [affiliate, setAffiliate] = useState(null);
     const [transactions, setTransactions] = useState([]);
-    const [stats, setStats] = useState({
-        totalEarned: 0,
-        pendingBalance: 0,
-        withdrawableBalance: 0,
-        paidOut: 0
-    });
+    const [stats, setStats] = useState({ totalEarned: 0, pendingBalance: 0, withdrawableBalance: 0, paidOut: 0 });
     const [showPayoutModal, setShowPayoutModal] = useState(false);
     const [payoutAmount, setPayoutAmount] = useState('');
     const [payoutLoading, setPayoutLoading] = useState(false);
 
-    useEffect(() => {
-        fetchData();
-    }, [id]);
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const AFFILIATES_COLLECTION = import.meta.env.VITE_APPWRITE_AFFILIATES_COLLECTION_ID || 'affiliates';
+    const AFF_TRANS_COLLECTION = import.meta.env.VITE_APPWRITE_AFFILIATE_TRANSACTIONS_COLLECTION_ID || 'affiliate_transactions';
+    const PAYOUTS_COLLECTION = import.meta.env.VITE_APPWRITE_PAYOUTS_COLLECTION_ID || 'payouts';
 
     const fetchData = async () => {
+        if (!DATABASE_ID || !AFFILIATES_COLLECTION) return;
         setLoading(true);
         try {
-            // 1. Fetch Affiliate Profile
-            const affSnap = await getDoc(doc(db, 'affiliates', id));
-            if (!affSnap.exists()) {
-                toast.error("Affiliate not found");
-                navigate('/admin/affiliates');
-                return;
-            }
-            const affData = affSnap.data();
-            setAffiliate(affData);
-
-            // 2. Fetch Transactions from subcollection
-            const transRef = collection(db, `affiliates/${id}/transactions`);
-            const q = query(transRef, orderBy('createdAt', 'desc'));
-            const transSnap = await getDocs(q);
-
-            const transList = transSnap.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-
-            // 3. Dynamic Calculation Engine (Phase 2)
-            let earned = 0;
-            let pending = 0;
-            let withdrawable = 0;
-            const now = new Date();
-
+            const affDoc = await databases.getDocument(DATABASE_ID, AFFILIATES_COLLECTION, id);
+            setAffiliate(affDoc);
+            const transRes = await databases.listDocuments(DATABASE_ID, AFF_TRANS_COLLECTION, [Query.equal('affiliateId', id), Query.orderDesc('$createdAt'), Query.limit(100)]);
+            const transList = transRes.documents.map(d => ({ id: d.$id, ...d }));
+            let earned = 0; let matureTotal = 0; const now = new Date();
             transList.forEach(tx => {
                 if (tx.status === 'void') return;
-
                 earned += tx.commission;
-
-                // Maturity check
-                const created = tx.createdAt?.toDate() || new Date();
+                const created = new Date(tx.$createdAt);
                 const diffDays = Math.floor((now - created) / (1000 * 60 * 60 * 24));
-
-                if (diffDays >= 14) {
-                    tx.maturityStatus = 'ready';
-                    // We need to subtract what's already paid from the aggregate withdrawable
-                    // But for per-transaction listing, it's 'ready'
-                } else {
-                    tx.maturityStatus = 'cooling';
-                    tx.daysLeft = 14 - diffDays;
-                }
+                if (diffDays >= 14) { tx.maturityStatus = 'ready'; matureTotal += tx.commission; }
+                else { tx.maturityStatus = 'cooling'; tx.daysLeft = 14 - diffDays; }
             });
-
-            // Calculate aggregate balances from profile (assuming totalPaid is tracked)
-            const totalPaid = affData.totalPaid || 0;
-
-            // Calculate withdrawable as confirmed commissions > 14 days - already paid
-            // For simplicity in this UI, we show the split
-            const matureTotal = transList
-                .filter(tx => tx.status !== 'void' && (Math.floor((now - (tx.createdAt?.toDate() || new Date())) / (1000 * 60 * 60 * 24))) >= 14)
-                .reduce((acc, tx) => acc + tx.commission, 0);
-
-            setStats({
-                totalEarned: affData.totalEarnings || 0,
-                pendingBalance: (affData.totalEarnings || 0) - matureTotal,
-                withdrawableBalance: Math.max(0, matureTotal - totalPaid),
-                paidOut: totalPaid
-            });
-
+            const totalPaid = affDoc.totalPaid || 0;
+            setStats({ totalEarned: affDoc.totalEarnings || 0, pendingBalance: (affDoc.totalEarnings || 0) - matureTotal, withdrawableBalance: Math.max(0, matureTotal - totalPaid), paidOut: totalPaid });
             setTransactions(transList);
-        } catch (error) {
-            console.error("Error fetching affiliate details:", error);
-        } finally {
-            setLoading(false);
-        }
+        } catch (error) { toast.error("Partnership intelligence failure"); }
+        finally { setLoading(false); }
     };
+
+    useEffect(() => { fetchData(); }, [id, DATABASE_ID]);
 
     const handleRecordPayout = async (e) => {
         e.preventDefault();
         const amount = parseFloat(payoutAmount);
-        if (isNaN(amount) || amount <= 0 || amount > stats.withdrawableBalance) {
-            toast.error("Invalid payout amount");
-            return;
-        }
-
+        if (isNaN(amount) || amount <= 0 || amount > stats.withdrawableBalance) { toast.error("Invalid quantum"); return; }
         setPayoutLoading(true);
         try {
-            // 1. Create payout record
-            await addDoc(collection(db, 'payouts'), {
-                affiliateId: id,
-                amount: amount,
-                method: affiliate.instaPayNumber ? 'InstaPay' : 'Mobile Wallet',
-                recipientInfo: affiliate.instaPayNumber || affiliate.walletNumber,
-                status: 'completed',
-                createdAt: serverTimestamp()
+            await databases.createDocument(DATABASE_ID, PAYOUTS_COLLECTION, ID.unique(), {
+                affiliateId: id, amount: amount, method: affiliate.instaPayNumber ? 'InstaPay' : 'Mobile Wallet', recipientInfo: affiliate.instaPayNumber || affiliate.walletNumber, status: 'completed', createdAt: new Date().toISOString()
             });
-
-            // 2. Update affiliate profile
-            await updateDoc(doc(db, 'affiliates', id), {
-                totalPaid: increment(amount)
-            });
-
-            setShowPayoutModal(false);
-            setPayoutAmount('');
-            fetchData(); // Refresh stats
-            toast.success("Payout recorded successfully");
-        } catch (error) {
-            console.error("Payout Error:", error);
-            toast.error("Failed to record payout");
-        } finally {
-            setPayoutLoading(false);
-        }
+            await databases.updateDocument(DATABASE_ID, AFFILIATES_COLLECTION, id, { totalPaid: (affiliate.totalPaid || 0) + amount });
+            setShowPayoutModal(false); setPayoutAmount(''); fetchData(); toast.success("Settlement committed");
+        } catch (error) { toast.error("Sync failure"); }
+        finally { setPayoutLoading(false); }
     };
 
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center py-20 bg-gray-50 flex-col gap-4">
-                <div className="h-12 w-12 border-4 border-admin-accent border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Accessing partner intel...</p>
-            </div>
-        );
-    }
+    if (loading) return <div className="p-20 text-center uppercase font-black text-[10px] text-gray-400 font-Cairo"><Loader2 className="animate-spin mx-auto mb-4" /> Analyzing Digital Footprint...</div>;
 
     return (
-        <div className="min-h-screen bg-gray-50 font-sans pb-20 p-4 md:p-8">
-            <AdminHeader title="Affiliate Profile" />
-
-            <main className="max-w-7xl mx-auto mt-10">
-                {/* Header & Actions */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-                    <button
-                        onClick={() => navigate('/admin/affiliates')}
-                        className="flex items-center text-gray-400 hover:text-black font-black uppercase tracking-widest text-[10px] transition-colors bg-white px-6 py-3 rounded-xl border border-gray-100 shadow-sm"
-                    >
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Return to Registry
-                    </button>
-                    <div className="flex items-center gap-4">
-                        <span className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest border ${affiliate.status === 'active' ? 'bg-admin-green/10 text-admin-green border-admin-green/20' : 'bg-admin-red/10 text-admin-red border-admin-red/20'}`}>
-                            Node Status: {affiliate.status}
-                        </span>
-                        <button
-                            onClick={() => setShowPayoutModal(true)}
-                            disabled={stats.withdrawableBalance <= 0}
-                            className="bg-admin-red hover:bg-admin-red-dark text-white font-black text-xs uppercase tracking-widest px-8 py-3 rounded-xl transition-all shadow-lg shadow-admin-red/40 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:grayscale flex items-center gap-3"
-                        >
-                            <PlusCircle className="h-5 w-5" />
-                            Provision Payout
-                        </button>
+        <div className="min-h-screen bg-gray-50 pb-20 font-Cairo text-gray-900">
+            <AdminHeader title={`Partnership Diagnostic: ${affiliate.referralCode}`} />
+            <main className="max-w-7xl mx-auto py-8 px-4">
+                <div className="flex justify-between items-center mb-8">
+                    <button onClick={() => navigate('/admin/affiliates')} className="bg-white px-6 py-3 rounded-xl border font-black uppercase italic text-[10px] shadow-sm flex items-center gap-2 hover:bg-black hover:text-white transition-all"><ArrowLeft size={14} /> Network Index</button>
+                    <div className="flex gap-4">
+                        <span className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase border shadow-sm ${affiliate.status === 'active' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-red-50 text-red-600 border-red-100'}`}>{affiliate.status === 'active' ? 'Operational' : 'Restricted'}</span>
+                        <button onClick={() => setShowPayoutModal(true)} disabled={stats.withdrawableBalance <= 100} className="bg-black text-white px-8 py-3 rounded-xl font-black uppercase italic text-xs shadow-2xl flex items-center gap-2 hover:scale-105 transition-all disabled:opacity-50"><Receipt size={16} /> Settle Assets</button>
                     </div>
                 </div>
 
-                {/* Profile and Info Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-                    {/* Profile Card */}
-                    <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-100 lg:col-span-1 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <User className="h-32 w-32 text-black" />
-                        </div>
-                        <div className="flex items-center gap-5 mb-10 relative">
-                            <div className="h-16 w-16 bg-gradient-to-br from-admin-red to-red-400 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-admin-red/20">
-                                <User className="h-8 w-8" />
-                            </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+                    <section className="bg-white p-10 rounded-[3rem] border shadow-sm space-y-8 flex flex-col justify-between">
+                        <div className="flex items-center gap-6">
+                            <div className="w-20 h-20 bg-gray-100 rounded-[2.5rem] flex items-center justify-center font-black text-3xl text-gray-400 group-hover:bg-black group-hover:text-white transition-all uppercase shadow-inner">{affiliate.fullName?.[0]}</div>
                             <div>
-                                <h2 className="text-xl font-black text-black leading-tight poppins">{affiliate.fullName}</h2>
-                                <p className="text-[10px] font-black text-admin-accent uppercase tracking-widest mt-1">Tier {affiliate.currentTier} Accredited Partner</p>
+                                <h2 className="text-2xl font-black uppercase italic tracking-tighter">{affiliate.fullName}</h2>
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mt-2 italic flex items-center gap-2">Tier {affiliate.currentTier} Strategist <Award size={10} className="text-orange-600" /></p>
                             </div>
                         </div>
+                        <div className="space-y-4">
+                            <div className="p-5 bg-gray-50 rounded-2xl border border-dashed"><p className="text-[10px] font-black text-gray-400 uppercase mb-2">Registry Relays</p><div className="space-y-2"><p className="text-sm font-black italic flex items-center gap-2 truncate"><Mail size={14} className="text-red-600" /> {affiliate.email}</p><p className="text-sm font-black italic flex items-center gap-2"><Phone size={14} className="text-red-600" /> {affiliate.phone || 'Silent'}</p></div></div>
+                            <div className="p-5 bg-black text-white rounded-2xl shadow-xl"><p className="text-[10px] font-black text-red-600 uppercase mb-3 text-center">Authorized Wallets</p><div className="grid grid-cols-2 gap-4">
+                                {affiliate.instaPayNumber ? <div className="text-center p-3 bg-white/10 rounded-xl"><p className="text-[8px] font-black uppercase opacity-50 mb-1">InstaPay</p><p className="text-[10px] font-black truncate">{affiliate.instaPayNumber}</p></div> : <div className="text-center p-3 opacity-20"><p className="text-[8px] font-black uppercase">NO IP LINK</p></div>}
+                                {affiliate.walletNumber ? <div className="text-center p-3 bg-white/10 rounded-xl"><p className="text-[8px] font-black uppercase opacity-50 mb-1">Mobile</p><p className="text-[10px] font-black truncate">{affiliate.walletNumber}</p></div> : <div className="text-center p-3 opacity-20"><p className="text-[8px] font-black uppercase">NO WALLET</p></div>}
+                            </div></div>
+                        </div>
+                    </section>
 
-                        <div className="space-y-6 relative">
-                            <div className="flex items-start gap-4 p-5 bg-gray-50 rounded-2xl border border-gray-100 hover:border-admin-accent/20 transition-all">
-                                <Mail className="h-5 w-5 text-gray-400 mt-1" />
-                                <div>
-                                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Secure Channel</p>
-                                    <p className="text-sm font-bold text-black">{affiliate.email || 'N/A'}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-4 p-5 bg-gray-50 rounded-2xl border border-gray-100 hover:border-admin-accent/20 transition-all">
-                                <Phone className="h-5 w-5 text-gray-400 mt-1" />
-                                <div>
-                                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Direct Comms</p>
-                                    <p className="text-sm font-bold text-black">{affiliate.phone || 'N/A'}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-4 p-5 bg-admin-accent/5 rounded-2xl border border-admin-accent/10 hover:border-admin-accent/30 transition-all">
-                                <Wallet className="h-5 w-5 text-admin-accent mt-1" />
-                                <div>
-                                    <p className="text-[9px] font-black text-admin-accent uppercase tracking-widest mb-2">Authenticated Wallets</p>
-                                    <div className="space-y-2">
-                                        {affiliate.instaPayNumber && (
-                                            <p className="text-xs font-black text-black flex items-center gap-2">
-                                                <span className="text-[9px] bg-admin-accent/10 text-admin-accent px-1.5 rounded">IP</span>
-                                                {affiliate.instaPayNumber}
-                                            </p>
-                                        )}
-                                        {affiliate.walletNumber && (
-                                            <p className="text-xs font-black text-black flex items-center gap-2">
-                                                <span className="text-[9px] bg-purple-100 text-purple-600 px-1.5 rounded">W</span>
-                                                {affiliate.walletNumber}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+                    <section className="lg:col-span-2 grid grid-cols-2 gap-8">
+                        <div className="bg-white p-10 rounded-[3rem] border shadow-sm relative overflow-hidden group hover:border-black transition-all">
+                            <div className="flex justify-between items-start"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Gross Intelligence</p><div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><TrendingUp size={20} /></div></div>
+                            <h3 className="text-4xl font-black italic mt-6">{stats.totalEarned.toLocaleString()} <span className="text-[10px] not-italic opacity-40">EGP</span></h3>
+                            <p className="text-[9px] font-bold text-gray-400 uppercase mt-4">Lifetime Generated Capital</p>
+                            <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] transition-all"><BarChart3 size={150} /></div>
                         </div>
-                    </div>
-
-                    {/* Financial Metrics */}
-                    <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-100 flex flex-col justify-between group hover:bg-gray-50 transition-all relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-6 opacity-5">
-                                <TrendingUp className="h-16 w-16 text-black" />
-                            </div>
-                            <div className="flex items-center justify-between mb-6 relative">
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Lifetime Yield</p>
-                                <div className="p-2 bg-blue-50 text-blue-500 rounded-lg">
-                                    <TrendingUp className="h-5 w-5" />
-                                </div>
-                            </div>
-                            <p className="text-3xl font-black text-black poppins relative">{stats.totalEarned.toLocaleString()} <span className="text-xs text-gray-400 tracking-widest uppercase ml-1">EGP</span></p>
-                            <p className="text-[9px] font-black text-gray-400 mt-4 uppercase tracking-widest relative">Aggregate gross commission flow</p>
+                        <div className="bg-white p-10 rounded-[3rem] border shadow-sm relative overflow-hidden group hover:border-black transition-all">
+                            <div className="flex justify-between items-start"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Maturity Pipeline</p><div className="p-2 bg-orange-50 text-orange-600 rounded-lg"><Clock size={20} /></div></div>
+                            <h3 className="text-4xl font-black italic mt-6">{stats.pendingBalance.toLocaleString()} <span className="text-[10px] not-italic opacity-40">EGP</span></h3>
+                            <p className="text-[9px] font-bold text-gray-400 uppercase mt-4">Assets in Cooling Cycle</p>
+                            <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] transition-all"><RotateCcw size={150} /></div>
                         </div>
-
-                        <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-100 flex flex-col justify-between group hover:bg-gray-50 transition-all relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-6 opacity-5">
-                                <Clock className="h-16 w-16 text-black" />
-                            </div>
-                            <div className="flex items-center justify-between mb-6 relative">
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Cooling Period</p>
-                                <div className="p-2 bg-admin-accent/10 rounded-lg">
-                                    <Clock className="h-5 w-5 text-admin-accent" />
-                                </div>
-                            </div>
-                            <p className="text-3xl font-black text-admin-accent poppins relative">{stats.pendingBalance.toLocaleString()} <span className="text-xs text-admin-accent/40 tracking-widest uppercase ml-1">EGP</span></p>
-                            <p className="text-[9px] font-black text-gray-400 mt-4 uppercase tracking-widest relative">Assets in anti-fraud maturity</p>
+                        <div className="bg-red-600 p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden scale-[1.02] transform transition-all hover:scale-105">
+                            <div className="flex justify-between items-start"><p className="text-[10px] font-black text-black/40 uppercase tracking-widest">Liquid Reserve</p><div className="p-2 bg-white/20 rounded-lg"><CheckCircle2 size={20} /></div></div>
+                            <h3 className="text-5xl font-black italic mt-6">{stats.withdrawableBalance.toLocaleString()} <span className="text-xs opacity-50 not-italic ml-2">EGP</span></h3>
+                            <p className="text-[9px] font-bold text-black/40 uppercase mt-6 font-black">Settlement Authorization Enabled</p>
+                            <div className="absolute -right-4 -bottom-4 opacity-[0.1]"><Landmark size={150} /></div>
                         </div>
-
-                        <div className="bg-[#00f2c30a] rounded-[2.5rem] p-8 shadow-admin border border-admin-green/20 flex flex-col justify-between group hover:bg-[#00f2c312] transition-all relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-6 opacity-5">
-                                <CheckCircle2 className="h-16 w-16 text-admin-green" />
-                            </div>
-                            <div className="flex items-center justify-between mb-6 relative">
-                                <p className="text-[10px] font-black text-admin-green uppercase tracking-widest">Liquid Assets</p>
-                                <div className="p-2 bg-admin-green/20 rounded-lg">
-                                    <CheckCircle2 className="h-5 w-5 text-admin-green" />
-                                </div>
-                            </div>
-                            <p className="text-3xl font-black text-admin-green poppins relative">{stats.withdrawableBalance.toLocaleString()} <span className="text-xs text-admin-green/40 tracking-widest uppercase ml-1">EGP</span></p>
-                            <p className="text-[9px] font-black text-admin-green/60 mt-4 uppercase tracking-widest relative">Cleared for immediate remittance</p>
+                        <div className="bg-black p-10 rounded-[3rem] text-white shadow-sm relative overflow-hidden group">
+                            <div className="flex justify-between items-start"><p className="text-[10px] font-black text-red-600 uppercase tracking-widest">Settled Assets</p><div className="p-2 bg-white/10 rounded-lg"><FileText size={20} /></div></div>
+                            <h3 className="text-4xl font-black italic mt-6">{stats.paidOut.toLocaleString()} <span className="text-[10px] not-italic opacity-40">EGP</span></h3>
+                            <p className="text-[9px] font-bold text-gray-500 uppercase mt-4">Transferred Registry Total</p>
+                            <div className="absolute -right-4 -bottom-4 opacity-[0.05]"><Activity size={150} /></div>
                         </div>
-
-                        <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-100 flex flex-col justify-between bg-gradient-to-br from-white to-gray-50 group transition-all relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-6 opacity-5">
-                                <FileText className="h-16 w-16 text-black" />
-                            </div>
-                            <div className="flex items-center justify-between mb-6 relative">
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Remitted</p>
-                                <div className="p-2 bg-gray-100 rounded-lg">
-                                    <FileText className="h-5 w-5 text-gray-400" />
-                                </div>
-                            </div>
-                            <p className="text-3xl font-black text-black poppins relative">{stats.paidOut.toLocaleString()} <span className="text-xs text-gray-400 tracking-widest uppercase ml-1">EGP</span></p>
-                            <p className="text-[9px] font-black text-gray-400 mt-4 uppercase tracking-widest relative">Confirmed payout distribution</p>
-                        </div>
-                    </div>
+                    </section>
                 </div>
 
-                {/* Referral History */}
-                <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="px-10 py-8 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
-                        <h3 className="text-lg font-black text-black uppercase tracking-widest poppins">Conversion Intel</h3>
-                        <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2">
-                                <span className="w-2.5 h-2.5 rounded-full bg-admin-accent"></span>
-                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Verification</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <span className="w-2.5 h-2.5 rounded-full bg-admin-green"></span>
-                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Synchronized</span>
-                            </div>
-                        </div>
-                    </div>
+                <div className="bg-white rounded-[3rem] border shadow-sm overflow-hidden">
+                    <div className="p-10 border-b bg-gray-50/50 flex items-center justify-between"><div className="flex items-center gap-4"><Receipt className="text-red-600" /><h3 className="text-xl font-black uppercase italic">Conversion Registry</h3></div><span className="text-[10px] font-black uppercase bg-black text-white px-5 py-2 rounded-full shadow-lg">{transactions.length} Trace Logs</span></div>
                     <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-[#ffffff01]">
-                                <tr className="text-left">
-                                    <th className="px-10 py-6 text-[10px] font-black text-gray-600 uppercase tracking-widest poppins">Trace ID</th>
-                                    <th className="px-10 py-6 text-[10px] font-black text-gray-600 uppercase tracking-widest poppins">Timestamp</th>
-                                    <th className="px-10 py-6 text-[10px] font-black text-gray-600 uppercase tracking-widest poppins">Maturity Status</th>
-                                    <th className="px-10 py-6 text-right text-[10px] font-black text-gray-600 uppercase tracking-widest poppins">Yield</th>
+                        <table className="w-full text-left">
+                            <thead className="bg-gray-50/50 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                <tr>
+                                    <th className="px-10 py-6">Operational ID</th>
+                                    <th className="px-10 py-6">Temporal Stamp</th>
+                                    <th className="px-10 py-6 text-center">Security State</th>
+                                    <th className="px-10 py-6 text-right">Yield Capital</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
-                                {transactions.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="4" className="px-10 py-24 text-center">
-                                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest italic">No conversion telemetry detected for this node</p>
+                                {transactions.map(tx => (
+                                    <tr key={tx.id} className="hover:bg-gray-50/50 transition-all group">
+                                        <td className="px-10 py-8">
+                                            <button onClick={() => navigate(`/admin/order/${tx.orderId}`)} className="flex items-center gap-3 group/btn">
+                                                <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center font-black text-[10px] group-hover/btn:bg-black group-hover/btn:text-white transition-all shadow-sm">#{tx.orderId.slice(-6).toUpperCase()}</div>
+                                                <span className="text-xs font-black uppercase italic group-hover/btn:underline flex items-center gap-1">Trace Order <ExternalLink size={10} /></span>
+                                            </button>
+                                        </td>
+                                        <td className="px-10 py-8">
+                                            <p className="text-sm font-black italic">{new Date(tx.$createdAt).toLocaleDateString()}</p>
+                                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">{new Date(tx.$createdAt).toLocaleTimeString()}</p>
+                                        </td>
+                                        <td className="px-10 py-8 text-center">
+                                            {tx.status === 'void' ? <span className="bg-red-50 text-red-600 px-5 py-2 rounded-xl text-[9px] font-black uppercase border border-red-100 italic shadow-sm">Terminated</span> :
+                                                tx.maturityStatus === 'ready' ? <span className="bg-green-50 text-green-600 px-5 py-2 rounded-xl text-[9px] font-black uppercase border border-green-100 italic shadow-sm">Matured</span> :
+                                                    <span className="bg-orange-50 text-orange-600 px-5 py-2 rounded-xl text-[9px] font-black uppercase border border-orange-100 italic shadow-sm">Cooling: {tx.daysLeft}d left</span>}
+                                        </td>
+                                        <td className="px-10 py-8 text-right">
+                                            <span className="text-lg font-black italic">{tx.commission?.toLocaleString()} <span className="text-[10px] not-italic opacity-40 ml-1">EGP</span></span>
                                         </td>
                                     </tr>
-                                ) : (
-                                    transactions.map(tx => (
-                                        <tr key={tx.id} className="hover:bg-gray-50 transition-colors group">
-                                            <td className="px-10 py-6">
-                                                <button
-                                                    onClick={() => navigate(`/admin/order/${tx.orderId}`)}
-                                                    className="flex items-center gap-2 text-sm font-black text-black hover:text-admin-accent transition-colors poppins"
-                                                >
-                                                    #{tx.orderId.slice(-6).toUpperCase()}
-                                                    <ExternalLink className="h-3 w-3 opacity-30 group-hover:opacity-100" />
-                                                </button>
-                                            </td>
-                                            <td className="px-10 py-6">
-                                                <p className="text-xs font-bold text-black uppercase tracking-tight">
-                                                    {tx.createdAt?.toDate().toLocaleDateString() || 'N/A'}
-                                                </p>
-                                                <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mt-1">{tx.createdAt?.toDate().toLocaleTimeString()}</p>
-                                            </td>
-                                            <td className="px-10 py-6">
-                                                {tx.status === 'void' ? (
-                                                    <span className="flex items-center gap-2 text-[9px] font-black text-admin-red bg-admin-red/10 px-3 py-1.5 rounded-lg uppercase tracking-widest w-fit border border-admin-red/20 shadow-lg shadow-admin-red/5">
-                                                        <RotateCcw className="h-3 w-3" />
-                                                        Distribution Terminated
-                                                    </span>
-                                                ) : tx.maturityStatus === 'ready' ? (
-                                                    <span className="flex items-center gap-2 text-[9px] font-black text-admin-green bg-admin-green/10 px-3 py-1.5 rounded-lg uppercase tracking-widest w-fit border border-admin-green/20 shadow-lg shadow-admin-green/5">
-                                                        <CheckCircle2 className="h-3 w-3" />
-                                                        Synced & Matured
-                                                    </span>
-                                                ) : (
-                                                    <span className="flex items-center gap-2 text-[9px] font-black text-admin-accent bg-admin-accent/10 px-3 py-1.5 rounded-lg uppercase tracking-widest w-fit border border-admin-accent/20 shadow-lg shadow-admin-accent/5">
-                                                        <Clock className="h-3 w-3" />
-                                                        Maturity: {tx.daysLeft} Cycles Remaining
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className="px-10 py-6 text-right">
-                                                <p className={`text-base font-black poppins ${tx.status === 'void' ? 'text-gray-300 line-through' : 'text-black'}`}>
-                                                    {tx.commission.toLocaleString()} <span className="text-[9px] text-gray-400 ml-1">EGP</span>
-                                                </p>
-                                                <p className="text-[9px] text-admin-accent font-black uppercase tracking-widest mt-1">{tx.commissionRate * 100}% Allocation</p>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
+                                ))}
                             </tbody>
                         </table>
                     </div>
                 </div>
             </main>
 
-            {/* Payout Modal */}
             {showPayoutModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowPayoutModal(false)}></div>
-                    <div className="bg-white rounded-[2.5rem] shadow-2xl relative w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-300 border border-gray-100">
-                        <div className="bg-admin-red hover:bg-admin-red-dark p-10 text-white relative">
-                            <h3 className="text-2xl font-black uppercase tracking-tight poppins">Remittance Order</h3>
-                            <p className="text-white/70 text-[10px] font-black uppercase tracking-widest mt-2">Provisioning funds for {affiliate.fullName.split(' ')[0]}</p>
-                            <div className="absolute -bottom-6 -right-6 opacity-20">
-                                <Wallet className="h-32 w-32" />
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowPayoutModal(false)}></div>
+                    <div className="bg-white rounded-[3.5rem] w-full max-w-lg relative overflow-hidden flex flex-col shadow-2xl border-4 border-black">
+                        <div className="bg-black p-12 text-white"><h3 className="text-2xl font-black uppercase italic tracking-wider">Settlement Provision</h3><p className="text-[10px] text-red-600 font-black uppercase tracking-[0.3em] mt-2">Financial Protocol Authorization</p></div>
+                        <form onSubmit={handleRecordPayout} className="p-12 space-y-10">
+                            <div className="bg-green-600 p-8 rounded-[2.5rem] text-white text-center shadow-inner relative overflow-hidden">
+                                <p className="text-[9px] font-black text-black/30 uppercase tracking-[0.2em] mb-4">Deployable Liquid Quantum</p>
+                                <p className="text-4xl font-black italic">{stats.withdrawableBalance.toLocaleString()} <span className="text-xs opacity-50 not-italic">EGP</span></p>
+                                <div className="absolute -right-4 bottom-0 opacity-10"><Wallet size={100} /></div>
                             </div>
-                        </div>
-                        <form onSubmit={handleRecordPayout} className="p-10 space-y-8">
-                            <div className="bg-admin-green/5 border border-admin-green/10 p-6 rounded-2xl shadow-inner group">
-                                <p className="text-[9px] font-black text-admin-green uppercase tracking-widest mb-1">Authenticated Liquidity</p>
-                                <p className="text-3xl font-black text-admin-green poppins group-hover:scale-105 transition-transform origin-left">{stats.withdrawableBalance.toLocaleString()} <span className="text-xs uppercase">EGP</span></p>
+                            <div className="space-y-4">
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Remittance Value</label>
+                                <div className="relative"><input type="number" required min="1" max={stats.withdrawableBalance} value={payoutAmount} onChange={e => setPayoutAmount(e.target.value)} className="w-full p-8 bg-gray-50 border-2 rounded-[2rem] font-black text-4xl italic outline-none focus:ring-4 focus:ring-red-600/10 focus:border-red-600 transition-all text-center" placeholder="0.00" /><span className="absolute right-8 top-1/2 -translate-y-1/2 text-xs font-black text-gray-300">EGP</span></div>
+                                <p className="text-[9px] text-gray-400 font-bold italic text-center">Funds will be remitited via: <span className="text-black">{affiliate.instaPayNumber ? 'InstaPay Secure Relay' : 'Mobile Digital Wallet'}</span></p>
                             </div>
-
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 px-1">Remittance Quantum</label>
-                                <div className="relative">
-                                    <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-gray-400 text-xs">EGP</span>
-                                    <input
-                                        type="number"
-                                        required
-                                        min="1"
-                                        max={stats.withdrawableBalance}
-                                        value={payoutAmount}
-                                        onChange={(e) => setPayoutAmount(e.target.value)}
-                                        className="w-full pl-16 pr-6 py-5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-admin-accent focus:outline-none transition-all font-black text-xl text-black placeholder-gray-300"
-                                        placeholder="0.00"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-4 pt-2">
-                                <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
-                                    <AlertCircle className="h-4 w-4 text-orange-500 mt-0.5 shrink-0" />
-                                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-relaxed">
-                                        Verify external distribution completion before committing to node ledger. Distribution is non-reversible.
-                                    </p>
-                                </div>
-                                <button
-                                    type="submit"
-                                    disabled={payoutLoading || !payoutAmount}
-                                    className="w-full bg-admin-red hover:bg-admin-red-dark text-white font-black py-5 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-admin-red/40 disabled:opacity-50 disabled:grayscale flex items-center justify-center gap-3 uppercase tracking-widest text-xs"
-                                >
-                                    {payoutLoading ? "Committing..." : "Authorize Distribution"}
-                                    {!payoutLoading && <CheckCircle2 className="h-5 w-5" />}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPayoutModal(false)}
-                                    className="w-full bg-transparent text-gray-400 font-black py-2 text-[10px] uppercase tracking-widest hover:text-black transition-all"
-                                >
-                                    Abort Operation
-                                </button>
-                            </div>
+                            <button type="submit" disabled={payoutLoading} className="w-full bg-red-600 text-white py-6 rounded-[2rem] font-black uppercase italic text-sm shadow-2xl hover:scale-[1.03] active:scale-95 transition-all flex items-center justify-center gap-3">{payoutLoading ? <Loader2 className="animate-spin" /> : <ShieldCheck size={20} />} {payoutLoading ? 'Committing Settlement...' : 'Authorize Remittance'}</button>
                         </form>
                     </div>
                 </div>
