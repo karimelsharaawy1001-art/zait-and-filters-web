@@ -31,16 +31,20 @@ const AdminLogin = () => {
 
         try {
             // 1. Authenticate with Appwrite
-            await login(normalizedEmail, password);
+            const sessionData = await login(normalizedEmail, password);
+            console.log("LOGIN SUCCESS, Session Data:", sessionData);
 
             // 2. AuthContext handles role fetching. We just check it here.
-            // Note: In a fresh Appwrite project, you'll need to create the user and add their role to the USERS collection.
-            if (role === 'admin' || role === 'super_admin') {
+            // Using the RETURNED role because state update 'role' might be async/stale
+            const currentRole = sessionData.role;
+
+            if (currentRole === 'admin' || currentRole === 'super_admin') {
                 toast.success('Welcome to the Admin Portal');
                 navigate('/admin/dashboard');
             } else {
+                console.error("LOGIN FAILED: Role mismatch. Expected admin, got:", currentRole);
                 setError('Unauthorized: You do not have permission to access the admin portal.');
-                toast.error('Unauthorized Access');
+                toast.error('Unauthorized Access: Role is ' + (currentRole || 'User'));
             }
         } catch (err) {
             console.error("Login error:", err);

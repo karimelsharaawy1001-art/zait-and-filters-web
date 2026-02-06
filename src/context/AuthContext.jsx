@@ -50,6 +50,7 @@ export const AuthProvider = ({ children }) => {
         setUser(sessionUser);
 
         // Fetch role after login
+        let fetchedRole = null;
         if (DATABASE_ID && USERS_COLLECTION) {
             const userDoc = await databases.listDocuments(
                 DATABASE_ID,
@@ -57,10 +58,11 @@ export const AuthProvider = ({ children }) => {
                 [Query.equal('userId', sessionUser.$id)]
             );
             if (userDoc.total > 0) {
-                setRole(userDoc.documents[0].role);
+                fetchedRole = userDoc.documents[0].role;
+                setRole(fetchedRole);
             }
         }
-        return sessionUser;
+        return { ...sessionUser, role: fetchedRole };
     };
 
     const signup = async (email, password, name) => {
