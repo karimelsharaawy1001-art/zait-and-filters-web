@@ -54,13 +54,13 @@ const GoogleAnalytics = () => {
 
         setTestStatus('checking');
         try {
-            const response = await axios.post('/api/products?action=check-seo', {
-                targetUrl: window.location.origin,
+            // Using the new isolated diagnostics endpoint
+            const response = await axios.post('/api/ga-check', {
                 tagName: 'google-analytics',
                 expectedValue: measurementId
             });
 
-            const status = response.data.status;
+            const { status, diagnostics } = response.data;
             setTestStatus(status);
             setLastChecked(new Date());
 
@@ -70,12 +70,15 @@ const GoogleAnalytics = () => {
                 toast.error('Configuration not found in database. Did you click Save?', { duration: 5000 });
             } else if (status === 'mismatch') {
                 toast.error('The current saved ID does not match what you entered. Click Save first.', { duration: 5000 });
+            } else if (status === 'api_error' || status === 'fatal_error') {
+                console.error("DIAGNOSTICS:", response.data);
+                toast.error(`Verification Failed: ${response.data.msg || response.data.error || 'Check console for details'}`);
             }
         } catch (error) {
             console.error("Error testing connection:", error);
             setTestStatus('error');
             const errorMsg = error.response?.data?.error || error.message;
-            toast.error(`Live test failed: ${errorMsg}`);
+            toast.error(`Network error: ${errorMsg}. Make sure you saved first.`);
         }
     };
 
