@@ -34,7 +34,8 @@ const Checkout = () => {
         governorate: '',
         city: '',
         paymentMethod: '',
-        currentMileage: ''
+        currentMileage: '',
+        notes: ''
     });
 
     const [savedAddresses, setSavedAddresses] = useState([]);
@@ -440,6 +441,7 @@ const Checkout = () => {
                 shipping_cost: Number(shipping) || 0,
                 total: Number(total) || 0,
                 currentMileage: formData.currentMileage || null,
+                notes: formData.notes || null,
                 promoCode: appliedPromo?.code || null,
                 promoId: appliedPromo?.id || null,
                 affiliateCode: (affRef || appliedPromo?.code) ? (affRef || appliedPromo.code) : null,
@@ -748,6 +750,20 @@ const Checkout = () => {
                                                     <label htmlFor="saveAddress" className="text-xs font-bold text-gray-600 cursor-pointer select-none">{t('saveAddress')}</label>
                                                 </div>
                                             )}
+
+                                            <div className="sm:col-span-2">
+                                                <label className={`block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ${isAr ? 'text-right' : 'text-left'}`}>
+                                                    {isAr ? 'ملاحظات الطلب (اختياري)' : 'Order Notes (Optional)'}
+                                                </label>
+                                                <textarea
+                                                    name="notes"
+                                                    rows={3}
+                                                    value={formData.notes}
+                                                    onChange={handleChange}
+                                                    className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-black placeholder-gray-500 focus:ring-2 focus:ring-[#28B463] outline-none transition-all ${isAr ? 'text-right' : 'text-left'}`}
+                                                    placeholder={isAr ? 'تعليمات خاصة للطلب...' : 'Special instructions for your order...'}
+                                                />
+                                            </div>
                                         </>
                                     )}
 

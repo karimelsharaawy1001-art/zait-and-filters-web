@@ -344,7 +344,14 @@ const AdminOrders = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-7 whitespace-nowrap text-base font-black text-black">
-                                                    {order.total?.toLocaleString()} <span className="text-[10px] text-gray-400">EGP</span>
+                                                    <div className="flex flex-col">
+                                                        <span>{order.total?.toLocaleString()} <span className="text-[10px] text-gray-400">EGP</span></span>
+                                                        {order.notes && (
+                                                            <span className="text-[9px] text-[#e31e24] font-bold uppercase tracking-widest mt-1 flex items-center gap-1">
+                                                                <AlertCircle className="w-2 h-2" /> Has Note
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 <td className="px-8 py-7 whitespace-nowrap">
                                                     <select
@@ -464,7 +471,8 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
         status: order.status || 'Pending',
         items: [...(order.items || [])],
         extraFees: order.extraFees || 0,
-        manualDiscount: order.manualDiscount || 0
+        manualDiscount: order.manualDiscount || 0,
+        notes: order.notes || ''
     });
     const [saving, setSaving] = useState(false);
     const [productSearch, setProductSearch] = useState('');
@@ -921,61 +929,66 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                                 placeholder="0.00"
                             />
                         </div>
-                        <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Manual Adjustment (EGP)</label>
-                            <input
-                                type="number"
-                                value={formData.manualDiscount}
-                                onChange={(e) => setFormData({ ...formData, manualDiscount: e.target.value })}
-                                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-black focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-black text-xs"
-                                placeholder="0.00"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Financial Summary: High Contrast */}
-                    <div className="bg-[#1A1A1A] rounded-[28px] p-8 text-white space-y-3 shrink-0 shadow-2xl relative overflow-hidden">
-                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-40">
-                            <span>Subtotal Matrix</span>
-                            <span>{newSubtotal} EGP</span>
-                        </div>
-                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-40">
-                            <span>Logistics + Surcharge</span>
-                            <span>+{(parseFloat(order.shipping_cost || 0) + parseFloat(formData.extraFees || 0))} EGP</span>
-                        </div>
-                        {order.discount > 0 && (
-                            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-[#e31e24]">
-                                <span>Promo Injection</span>
-                                <span>-{order.discount} EGP</span>
-                            </div>
-                        )}
-                        <div className="flex justify-between items-center pt-5 mt-2 border-t border-white/10 relative z-10">
-                            <span className="text-sm font-black uppercase tracking-[0.2em] poppins italic opacity-60">Terminal Total</span>
-                            <span className="text-3xl font-black text-white poppins tabular-nums transition-all">
-                                {newTotal} <span className="text-[12px] font-bold text-white/30 tracking-widest uppercase">EGP</span>
-                            </span>
-                        </div>
                     </div>
                 </div>
 
-                {/* Footer Actions */}
-                <div className="p-8 border-t border-gray-50 shrink-0 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
-                    <div className="flex gap-4">
-                        <button
-                            onClick={onClose}
-                            className="flex-1 px-6 py-4 rounded-2xl font-black text-gray-400 hover:text-black hover:bg-gray-50 transition-all uppercase tracking-[0.2em] text-[10px]"
-                        >
-                            Abort Changes
-                        </button>
-                        <button
-                            onClick={handleSave}
-                            disabled={saving}
-                            className="flex-[2] bg-[#1A1A1A] hover:bg-black text-white font-black py-4 rounded-[20px] shadow-2xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-4 uppercase tracking-[0.25em] text-[11px]"
-                        >
-                            {saving ? "Processing..." : "Commit Protocol"}
-                            {!saving && <Save className="h-5 w-5 text-[#e31e24]" />}
-                        </button>
+                {/* Order Notes Section */}
+                <div className="pt-4 border-t border-gray-50">
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <AlertCircle className="w-3 h-3" />
+                        Internal & Customer Notes
+                    </label>
+                    <textarea
+                        value={formData.notes}
+                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                        className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none transition-all font-bold text-xs"
+                        placeholder="Special instructions, delivery notes, or internal tracking details..."
+                        rows={3}
+                    />
+                </div>
+
+                {/* Financial Summary: High Contrast */}
+                <div className="bg-[#1A1A1A] rounded-[28px] p-8 text-white space-y-3 shrink-0 shadow-2xl relative overflow-hidden">
+                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-40">
+                        <span>Subtotal Matrix</span>
+                        <span>{newSubtotal} EGP</span>
                     </div>
+                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-40">
+                        <span>Logistics + Surcharge</span>
+                        <span>+{(parseFloat(order.shipping_cost || 0) + parseFloat(formData.extraFees || 0))} EGP</span>
+                    </div>
+                    {order.discount > 0 && (
+                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-[#e31e24]">
+                            <span>Promo Injection</span>
+                            <span>-{order.discount} EGP</span>
+                        </div>
+                    )}
+                    <div className="flex justify-between items-center pt-5 mt-2 border-t border-white/10 relative z-10">
+                        <span className="text-sm font-black uppercase tracking-[0.2em] poppins italic opacity-60">Terminal Total</span>
+                        <span className="text-3xl font-black text-white poppins tabular-nums transition-all">
+                            {newTotal} <span className="text-[12px] font-bold text-white/30 tracking-widest uppercase">EGP</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="p-8 border-t border-gray-50 shrink-0 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
+                <div className="flex gap-4">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 px-6 py-4 rounded-2xl font-black text-gray-400 hover:text-black hover:bg-gray-50 transition-all uppercase tracking-[0.2em] text-[10px]"
+                    >
+                        Abort Changes
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="flex-[2] bg-[#1A1A1A] hover:bg-black text-white font-black py-4 rounded-[20px] shadow-2xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-4 uppercase tracking-[0.25em] text-[11px]"
+                    >
+                        {saving ? "Processing..." : "Commit Protocol"}
+                        {!saving && <Save className="h-5 w-5 text-[#e31e24]" />}
+                    </button>
                 </div>
             </div>
         </div>
@@ -1012,7 +1025,8 @@ const CreateOrderModal = ({ onClose, onSave }) => {
         paymentStatus: 'Pending',
         status: 'Pending',
         manualDiscount: 0,
-        extraFees: 0
+        extraFees: 0,
+        notes: ''
     });
 
     // Product Search State
@@ -1273,6 +1287,7 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                     paymentMethod: orderData.paymentMethod,
                     paymentStatus: orderData.paymentStatus,
                     status: orderData.status,
+                    notes: orderData.notes || '',
                     orderNumber: nextNumber,
                     createdAt: serverTimestamp(),
                     isOpened: false,
@@ -1656,48 +1671,55 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                                 <span>{total.toFixed(2)} EGP</span>
                                             </div>
                                         </div>
+                                        <div className="mt-4">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Order Notes</label>
+                                            <textarea
+                                                value={orderData.notes}
+                                                onChange={(e) => setOrderData({ ...orderData, notes: e.target.value })}
+                                                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none focus:border-[#28B463]"
+                                                rows={2}
+                                                placeholder="Add specific instructions for this order..."
+                                </div>
                                     </div>
                                 </div>
+                    )}
+                            </div>
+
+                            {/* Footer Controls */}
+                            <div className="p-6 border-t border-gray-50 flex justify-between items-center bg-gray-50/50">
+                                <button
+                                    onClick={() => {
+                                        if (step > 1) setStep(step - 1);
+                                        else onClose();
+                                    }}
+                                    className="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-all text-xs uppercase tracking-widest"
+                                >
+                                    {step === 1 ? 'Cancel' : 'Back'}
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        if (step < 3) {
+                                            if (step === 1) {
+                                                if (!orderData.customer.name || !orderData.customer.governorate) {
+                                                    toast.error("Please provide Customer Name and Governorate");
+                                                    return;
+                                                }
+                                            }
+                                            setStep(step + 1);
+                                        } else {
+                                            handleSubmitOrder();
+                                        }
+                                    }}
+                                    disabled={loading}
+                                    className="px-8 py-3 bg-[#1A1A1A] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl disabled:opacity-50 flex items-center gap-2"
+                                >
+                                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : step === 3 ? 'Confirm Order' : 'Next Step'}
+                                </button>
                             </div>
                         </div>
-                    )}
-                </div>
-
-                {/* Footer Controls */}
-                <div className="p-6 border-t border-gray-50 flex justify-between items-center bg-gray-50/50">
-                    <button
-                        onClick={() => {
-                            if (step > 1) setStep(step - 1);
-                            else onClose();
-                        }}
-                        className="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-all text-xs uppercase tracking-widest"
-                    >
-                        {step === 1 ? 'Cancel' : 'Back'}
-                    </button>
-
-                    <button
-                        onClick={() => {
-                            if (step < 3) {
-                                if (step === 1) {
-                                    if (!orderData.customer.name || !orderData.customer.governorate) {
-                                        toast.error("Please provide Customer Name and Governorate");
-                                        return;
-                                    }
-                                }
-                                setStep(step + 1);
-                            } else {
-                                handleSubmitOrder();
-                            }
-                        }}
-                        disabled={loading}
-                        className="px-8 py-3 bg-[#1A1A1A] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl disabled:opacity-50 flex items-center gap-2"
-                    >
-                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : step === 3 ? 'Confirm Order' : 'Next Step'}
-                    </button>
-                </div>
             </div>
-        </div>
-    );
+                );
 };
 
-export default AdminOrders;
+                export default AdminOrders;
