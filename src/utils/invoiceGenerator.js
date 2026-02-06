@@ -46,13 +46,19 @@ export const generateInvoice = (order) => {
     doc.text(`${order.customer?.city || ''}, ${order.customer?.governorate || ''}`, margin, 80);
 
     // Table
-    const tableData = order.items.map((item, index) => [
-        index + 1,
-        `${item.name || item.nameEn || 'Product'}\n(${item.make} ${item.model})`, // Include Make and Model
-        item.quantity,
-        `${item.price} ${currency}`,
-        `${item.price * item.quantity} ${currency}`
-    ]);
+    const tableData = order.items.map((item, index) => {
+        const yearStr = (item.yearStart || item.yearEnd)
+            ? `(${item.yearStart}${item.yearEnd ? ` - ${item.yearEnd}` : ''})`
+            : (item.yearRange ? `(${item.yearRange})` : '');
+
+        return [
+            index + 1,
+            `${item.name || item.nameEn || 'Product'}\n(${item.make} ${item.model}) ${yearStr}`,
+            item.quantity,
+            `${item.price} ${currency}`,
+            `${item.price * item.quantity} ${currency}`
+        ];
+    });
 
     doc.autoTable({
         startY: 95,

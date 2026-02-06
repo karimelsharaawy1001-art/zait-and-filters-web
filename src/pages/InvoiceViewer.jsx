@@ -71,7 +71,7 @@ const InvoiceViewer = () => {
             </div>
 
             {/* A4 Paper Container */}
-            <div className="max-w-[210mm] mx-auto bg-white shadow-2xl print:shadow-none p-10 md:p-16 rounded-xl min-h-[297mm] flex flex-col relative overflow-hidden">
+            <div className="max-w-[210mm] mx-auto bg-white shadow-2xl print:shadow-none p-10 md:p-16 rounded-xl min-h-[297mm] flex flex-col relative overflow-hidden print-only-section">
 
                 {/* Decoration */}
                 <div className="absolute top-0 left-0 w-full h-2 bg-[#28B463] print:bg-[#28B463]"></div>
@@ -129,7 +129,10 @@ const InvoiceViewer = () => {
                                     <p className="font-bold text-sm text-black mb-1">{item.name}</p>
                                     <div className="flex gap-2 flex-wrap">
                                         <span className="text-[10px] font-bold bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded uppercase tracking-wider">{item.brand || 'أصلي'}</span>
-                                        <span className="text-[10px] font-bold bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded uppercase tracking-wider">{item.make} {item.model}</span>
+                                        <span className="text-[10px] font-bold bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                                            {item.make} {item.model}
+                                            {(item.yearStart || item.yearEnd) ? ` (${item.yearStart}${item.yearEnd ? ` - ${item.yearEnd}` : ''})` : (item.yearRange ? ` (${item.yearRange})` : '')}
+                                        </span>
                                         {(item.sku || item.partNumber) && <span className="text-[10px] font-medium text-gray-400 font-mono self-center">SKU: {item.sku || item.partNumber}</span>}
                                     </div>
                                 </td>
