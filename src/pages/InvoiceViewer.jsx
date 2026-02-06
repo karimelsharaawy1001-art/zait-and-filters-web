@@ -71,7 +71,7 @@ const InvoiceViewer = () => {
             </div>
 
             {/* A4 Paper Container */}
-            <div className="max-w-[210mm] mx-auto bg-white shadow-2xl print:shadow-none p-10 md:p-16 rounded-xl min-h-[297mm] flex flex-col relative overflow-hidden print-only-section">
+            <div className="max-w-[210mm] mx-auto bg-white shadow-2xl print:shadow-none p-10 md:p-12 rounded-xl min-h-[297mm] flex flex-col relative overflow-hidden print-only-section print:p-4 print:rounded-none">
 
                 {/* Decoration */}
                 <div className="absolute top-0 left-0 w-full h-2 bg-[#28B463] print:bg-[#28B463]"></div>
