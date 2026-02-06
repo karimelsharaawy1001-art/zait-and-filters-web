@@ -469,6 +469,7 @@ const AdminOrders = () => {
                         fetchOrders();
                     }}
                     cachedCustomers={allCustomersCache}
+                    orders={orders}
                 />
             )}
         </div>
@@ -1011,7 +1012,7 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
     );
 };
 
-const CreateOrderModal = ({ onClose, onSave, cachedCustomers = [] }) => {
+const CreateOrderModal = ({ onClose, onSave, cachedCustomers = [], orders = [] }) => {
     const {
         staticProducts,
         categories: staticCategories,
