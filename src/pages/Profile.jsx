@@ -239,8 +239,17 @@ const Profile = () => {
 
     const fetchShippingRates = async () => {
         try {
-            const ratesSnap = await getDocs(collection(db, 'shippingRates'));
-            setShippingRates(ratesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+            const querySnapshot = await getDocs(collection(db, 'shipping_rates'));
+            const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Safety sort
+            const sortedData = data.sort((a, b) => {
+                const govA = a?.governorate || '';
+                const govB = b?.governorate || '';
+                return govA.localeCompare(govB);
+            });
+
+            setShippingRates(sortedData);
         } catch (error) {
             console.error("Error fetching shipping rates:", error);
         }
