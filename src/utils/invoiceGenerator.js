@@ -35,6 +35,9 @@ export const generateInvoice = (order) => {
     doc.text(`Order #: ${order.orderNumber || order.id?.slice(-6).toUpperCase()}`, pageWidth - 70, 38);
     const dateStr = order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString('en-GB') : new Date(order.createdAt).toLocaleDateString('en-GB');
     doc.text(`Date: ${dateStr}`, pageWidth - 70, 43);
+    if (order.currentMileage) {
+        doc.text(`Mileage: ${order.currentMileage} KM`, pageWidth - 70, 48);
+    }
 
     // Bill To
     doc.line(margin, 55, pageWidth - margin, 55);

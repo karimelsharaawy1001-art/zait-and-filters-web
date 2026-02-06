@@ -13,7 +13,8 @@ import {
     runTransaction,
     setDoc,
     increment,
-    limit
+    limit,
+    arrayUnion
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { toast } from 'react-hot-toast';
@@ -43,7 +44,8 @@ import {
     ShieldCheck,
     AlertCircle,
     Printer,
-    Download
+    Download,
+    GaugeCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { generateInvoice } from '../utils/invoiceGenerator';
@@ -495,6 +497,7 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
         items: [...(order.items || [])],
         extraFees: order.extraFees || 0,
         manualDiscount: order.manualDiscount || 0,
+        currentMileage: order.currentMileage || '',
         notes: order.notes || ''
     });
     const [saving, setSaving] = useState(false);
@@ -1263,7 +1266,10 @@ const CreateOrderModal = ({ onClose, onSave, cachedCustomers = [], orders = [] }
                 paymentMethod: orderData.paymentMethod,
                 paymentStatus: orderData.paymentStatus,
                 status: orderData.status,
+                paymentStatus: orderData.paymentStatus,
+                status: orderData.status,
                 notes: orderData.notes || '',
+                currentMileage: orderData.currentMileage || null,
                 orderNumber: nextNumber,
                 createdAt: serverTimestamp(),
                 isOpened: false,
@@ -1279,6 +1285,20 @@ const CreateOrderModal = ({ onClose, onSave, cachedCustomers = [], orders = [] }
             }).catch(err => console.warn("Counter update failed (non-critical):", err));
 
             toast.success(`Order #${nextNumber} created successfully!`);
+
+            // BLIND UPDATE: Add to user history if customer ID exists
+            if (orderData.customer.id && orderData.customer.id !== 'manual_guest') {
+                const userRef = doc(db, 'users', orderData.customer.id);
+                updateDoc(userRef, {
+                    garage: arrayUnion({
+                        serviceDate: new Date(),
+                        mileage: orderData.currentMileage || 'N/A',
+                        items: orderData.items.map(i => i.name),
+                        orderId: orderRef.id
+                    })
+                }).catch(e => console.warn("History update failed:", e));
+            }
+
             onSave();
         } catch (error) {
             console.error("Failed to create order:", error);
@@ -1554,6 +1574,16 @@ const CreateOrderModal = ({ onClose, onSave, cachedCustomers = [], orders = [] }
                                 <div className="space-y-4">
                                     <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest">Configuration</h4>
                                     <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 space-y-4">
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Current Mileage (KM)</label>
+                                            <input
+                                                type="number"
+                                                value={orderData.currentMileage || ''}
+                                                onChange={(e) => setOrderData({ ...orderData, currentMileage: e.target.value })}
+                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
+                                                placeholder="e.g. 150000"
+                                            />
+                                        </div>
                                         <div>
                                             <label className="text-[10px] font-bold text-gray-400 uppercase">Payment</label>
                                             <select
