@@ -236,8 +236,8 @@ const Navbar = () => {
                                     <BookOpen className="h-4 w-4 text-[#28B463]" />
                                     {t('blog')}
                                 </Link>
-                                <Link to="/marketers" title={t('nav.marketers')} className="text-[#1A1A1A] hover:text-[#28B463] transition-colors p-1">
-                                    <Megaphone className="h-5 w-5 stroke-[2px]" />
+                                <Link to="/marketers" className="text-[14px] !text-[#1A1A1A] !font-bold uppercase tracking-widest transition-colors font-Cairo hover:!text-[#28B463] whitespace-nowrap">
+                                    المسوقين
                                 </Link>
                             </div>
 
@@ -463,7 +463,7 @@ const Navbar = () => {
                                 className={mobileNavLinkClass('/marketers')}
                             >
                                 <Megaphone className={`h-5 w-5 ${mobileIconClass('/marketers')}`} />
-                                {t('nav.marketers')}
+                                المسوقين
                             </Link>
 
                             <button

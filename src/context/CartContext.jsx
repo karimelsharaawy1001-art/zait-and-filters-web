@@ -38,59 +38,60 @@ export const CartProvider = ({ children }) => {
 
     const [currentStage, setCurrentStage] = useState('Cart Page');
 
-    // Synchronize with Local Storage and Firestore (for abandoned cart recovery)
+    // 1. Immediate Local Storage Sync
     useEffect(() => {
-        // SIGNIFICANTLY increase debounce to 60 seconds to save Firestore Quota
+        try {
+            safeLocalStorage.setItem('cartItems', JSON.stringify(cartItems));
+        } catch (error) {
+            console.error("Failed to save cart to local storage:", error);
+        }
+    }, [cartItems]);
+
+    // 2. Debounced Firestore Sync (Abandoned Cart Recovery)
+    useEffect(() => {
         const handler = setTimeout(() => {
             try {
-                const currentCartStr = JSON.stringify(cartItems);
-                const lastStoredCart = safeLocalStorage.getItem('cartItems');
+                if (cartItems.length === 0) return;
 
-                if (lastStoredCart !== currentCartStr) {
-                    safeLocalStorage.setItem('cartItems', currentCartStr);
-                }
+                const syncCart = async () => {
+                    try {
+                        const cartId = auth.currentUser ? auth.currentUser.uid : sessionId;
+                        const currentCartStr = JSON.stringify(cartItems);
 
-                // Only sync to Firestore if there are items AND something significant changed
-                if (cartItems.length > 0 && lastStoredCart !== currentCartStr) {
-                    const syncCart = async () => {
-                        try {
-                            const cartId = auth.currentUser ? auth.currentUser.uid : sessionId;
+                        // Check if we already synced this state
+                        const lastSyncedKey = `last_sync_${cartId}`;
+                        if (safeLocalStorage.getItem(lastSyncedKey) === currentCartStr) return;
 
-                            // Check if we already synced this exact state to avoid double-writes
-                            const lastSyncedKey = `last_sync_${cartId}`;
-                            if (safeLocalStorage.getItem(lastSyncedKey) === currentCartStr) return;
+                        const cartData = {
+                            sessionId: sessionId,
+                            uid: auth.currentUser?.uid || null,
+                            email: customerDetails.email || auth.currentUser?.email || null,
+                            customerName: customerDetails.name || auth.currentUser?.displayName || 'Guest',
+                            customerPhone: customerDetails.phone || null,
+                            items: cartItems,
+                            total: cartItems.reduce((sum, item) => sum + (getEffectivePrice(item) * item.quantity), 0),
+                            lastModified: serverTimestamp(),
+                            recovered: false,
+                            emailSent: false,
+                            lastStepReached: currentStage
+                        };
 
-                            const cartData = {
-                                sessionId: sessionId,
-                                uid: auth.currentUser?.uid || null,
-                                email: customerDetails.email || auth.currentUser?.email || null,
-                                customerName: customerDetails.name || auth.currentUser?.displayName || 'Guest',
-                                customerPhone: customerDetails.phone || null,
-                                items: cartItems,
-                                total: cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-                                lastModified: serverTimestamp(),
-                                recovered: false,
-                                emailSent: false,
-                                lastStepReached: currentStage
-                            };
-
-                            await setDoc(doc(db, 'abandoned_carts', cartId), cartData, { merge: true });
-                            safeLocalStorage.setItem(lastSyncedKey, currentCartStr);
-                            console.log("[QUOTA] Abandoned cart synced (Optimized)");
-                        } catch (err) {
-                            if (err.code === 'resource-exhausted') {
-                                console.warn("[QUOTA] Limit reached, skipping abandoned cart sync.");
-                            } else {
-                                console.error("Error syncing abandoned cart:", err);
-                            }
+                        await setDoc(doc(db, 'abandoned_carts', cartId), cartData, { merge: true });
+                        safeLocalStorage.setItem(lastSyncedKey, currentCartStr);
+                        console.log("[QUOTA] Abandoned cart synced (Optimized)");
+                    } catch (err) {
+                        if (err.code === 'resource-exhausted') {
+                            console.warn("[QUOTA] Limit reached, skipping abandoned cart sync.");
+                        } else {
+                            console.error("Error syncing abandoned cart:", err);
                         }
-                    };
-                    syncCart();
-                }
+                    }
+                };
+                syncCart();
             } catch (error) {
-                console.error("Failed to handle cart persistence:", error);
+                console.error("Failed to handle firestore persistence:", error);
             }
-        }, 60000); // 60-second debounce to save quota
+        }, 10000); // reduced to 10s for better recovery, but still debounced
 
         return () => clearTimeout(handler);
     }, [cartItems, currentStage, customerDetails, auth.currentUser, sessionId]);
@@ -103,24 +104,56 @@ export const CartProvider = ({ children }) => {
         setCustomerDetails(prev => ({ ...prev, ...info }));
     };
 
+    const parsePrice = (value) => {
+        if (value === undefined || value === null || value === '') return null;
+        const parsed = Number(value);
+        return isNaN(parsed) ? null : parsed;
+    };
+
     const addToCart = (product, quantity = 1) => {
+        // Sanitize Product Data on Entry
+        const safePrice = parsePrice(product.price) || 0;
+        let safeSalePrice = parsePrice(product.salePrice);
+
+        // Strict Rule: If salePrice is invalid (0) or not better than regular price, ignore it.
+        // This fixes the "User sees regular price" bug by ensuring falsey/bad sale prices are NULLED.
+        if (safeSalePrice !== null && (safeSalePrice <= 0 || safeSalePrice >= safePrice)) {
+            safeSalePrice = null;
+        }
+
+        const sanitizedProduct = {
+            ...product,
+            price: safePrice,
+            salePrice: safeSalePrice
+        };
+
         setCartItems((prevItems) => {
             const existingItem = prevItems.find((item) => item.id === product.id);
             if (existingItem) {
                 return prevItems.map((item) =>
                     item.id === product.id
-                        ? { ...item, quantity: item.quantity + quantity }
+                        ? {
+                            ...item,
+                            ...sanitizedProduct, // Overwrite with sanitized, fresh data
+                            quantity: item.quantity + quantity
+                        }
                         : item
                 );
             }
-            return [...prevItems, { ...product, quantity }];
+            return [...prevItems, { ...sanitizedProduct, quantity }];
         });
+    };
+
+    const getEffectivePrice = (item) => {
+        if (!item) return 0;
+        // Strictly use salePrice if it's a valid number and not null
+        return (item.salePrice !== null && item.salePrice !== undefined) ? Number(item.salePrice) : Number(item.price);
     };
 
     const updateQuantity = (id, newQuantity) => {
         if (newQuantity < 1) {
             removeFromCart(id);
-            // Dynamic import toast to avoid circular dependency or unnecessary load if not needed elsewhere
+            // Dynamic import to avoid circular dependency
             import('react-hot-toast').then(({ toast }) => {
                 toast.success('تم إزالة المنتج من السلة', {
                     icon: '🗑️',
@@ -145,7 +178,9 @@ export const CartProvider = ({ children }) => {
     };
 
     const getCartTotal = () => {
-        return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+        return cartItems.reduce((total, item) => {
+            return total + (getEffectivePrice(item) * item.quantity);
+        }, 0);
     };
 
     const getCartCount = () => {
@@ -162,6 +197,7 @@ export const CartProvider = ({ children }) => {
             clearCart,
             getCartTotal,
             getCartCount,
+            getEffectivePrice,
             updateCartStage,
             updateCustomerInfo,
             currentStage

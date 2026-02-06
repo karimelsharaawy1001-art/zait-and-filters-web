@@ -1,212 +1,140 @@
 import admin from 'firebase-admin';
+import axios from 'axios';
 
-// Initialize Firebase Admin
-if (!admin.apps.length) {
-    try {
-        if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-            const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-            admin.initializeApp({
-                credential: admin.credential.cert(serviceAccount)
-            });
-        } else {
-            admin.initializeApp();
-        }
-    } catch (error) {
-        console.error('Firebase Admin initialization failed:', error);
+// --- GLOBAL CACHE ---
+let globalProductCache = null;
+let lastCacheUpdate = 0;
+const CACHE_TTL = 30 * 60 * 1000; // 30 Minutes
+
+// --- HELPERS ---
+const sanitize = (v) => v ? String(v).replace(/^['"]|['"]$/g, '').trim() : '';
+
+function mapRestDoc(doc) {
+    if (!doc || !doc.fields) return null;
+    const data = { id: doc.name.split('/').pop() };
+    for (const [key, wrapper] of Object.entries(doc.fields)) {
+        if ('stringValue' in wrapper) data[key] = wrapper.stringValue;
+        else if ('integerValue' in wrapper) data[key] = parseInt(wrapper.integerValue);
+        else if ('doubleValue' in wrapper) data[key] = parseFloat(wrapper.doubleValue);
+        else if ('booleanValue' in wrapper) data[key] = wrapper.booleanValue;
+        else if ('arrayValue' in wrapper) data[key] = (wrapper.arrayValue.values || []).map(v => Object.values(v)[0]);
+        else data[key] = Object.values(wrapper)[0];
     }
+    return data;
 }
 
-const db = admin.firestore();
-
 export default async function handler(req, res) {
-    const { action, make, model, productId, category, brand } = req.query;
-    console.log(`[API/Products] Action: ${action}, Make: ${make}, Model: ${model}`);
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+
+    if (req.method === 'OPTIONS') return res.status(200).end();
+
+    const PROJECT_ID = sanitize(process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || 'zaitandfilters');
+    const REST_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+
+    const fetchAllProducts = async () => {
+        if (globalProductCache && (Date.now() - lastCacheUpdate < CACHE_TTL)) {
+            return globalProductCache;
+        }
+
+        try {
+            // OPTION A: Try to load from static JSON if it exists (Zero Quota Usage)
+            try {
+                const fs = await import('fs');
+                const path = await import('path');
+                const staticPath = path.join(process.cwd(), 'public', 'data', 'products-db.json');
+                if (fs.existsSync(staticPath)) {
+                    const data = JSON.parse(fs.readFileSync(staticPath, 'utf8'));
+                    const minimal = data.map(p => ({
+                        id: p.id,
+                        name: String(p.name || ''),
+                        nameEn: String(p.nameEn || ''),
+                        make: String(p.make || p.car_make || ''),
+                        model: String(p.model || p.car_model || ''),
+                        category: String(p.category || ''),
+                        subcategory: String(p.subcategory || ''),
+                        partBrand: String(p.partBrand || ''),
+                        price: p.price
+                    }));
+                    globalProductCache = minimal;
+                    lastCacheUpdate = Date.now();
+                    console.log(`Index loaded from STATIC FILE: ${minimal.length} products.`);
+                    return minimal;
+                }
+            } catch (staticErr) {
+                console.log("Static load skipped or failed:", staticErr.message);
+            }
+
+            // OPTION B: Fallback to Firestore REST API (Handles missing static file)
+            let allMinimalProducts = [];
+            let pageToken = null;
+            let pageCount = 0;
+
+            do {
+                const url = `${REST_URL}/products?pageSize=300${pageToken ? `&pageToken=${pageToken}` : ''}`;
+                const listRes = await axios.get(url, { timeout: 20000 });
+                const documents = listRes.data.documents || [];
+
+                const minimalPage = documents
+                    .map(mapRestDoc)
+                    .filter(p => p && p.isActive !== false)
+                    .map(p => ({
+                        id: p.id,
+                        name: String(p.name || ''),
+                        nameEn: String(p.nameEn || ''),
+                        make: String(p.make || p.car_make || ''),
+                        model: String(p.model || p.car_model || ''),
+                        category: String(p.category || ''),
+                        subcategory: String(p.subcategory || ''),
+                        partBrand: String(p.partBrand || ''),
+                        price: p.price
+                    }));
+
+                allMinimalProducts = allMinimalProducts.concat(minimalPage);
+                pageToken = listRes.data.nextPageToken;
+                pageCount++;
+            } while (pageToken);
+
+            globalProductCache = allMinimalProducts;
+            lastCacheUpdate = Date.now();
+            console.log(`Index Rebuilt from Firestore: ${allMinimalProducts.length} total products.`);
+            return allMinimalProducts;
+        } catch (e) {
+            console.error("Fetch Error:", e.message);
+            if (globalProductCache) return globalProductCache;
+            throw e;
+        }
+    };
 
     try {
-        const productsRef = db.collection('products');
-        let productsQuery = productsRef.where('isActive', '==', true);
+        const { action } = { ...req.query, ...req.body };
 
-        // 1. Inventory Metadata Actions
+        if (action === 'getIndex') {
+            try {
+                const index = await fetchAllProducts();
+                return res.status(200).json(index);
+            } catch (idxErr) {
+                if (idxErr.response && idxErr.response.status === 429) {
+                    return res.status(429).json({ error: "QUOTA_EXCEEDED" });
+                }
+                return res.status(500).json({ error: idxErr.message });
+            }
+        }
+
+        if (action === 'chat') {
+            return res.status(200).json({ response: "Ready", state: 'idle' });
+        }
+
         if (action === 'getMakes') {
-            try {
-                const snapshot = await productsQuery.get();
-                if (snapshot.empty) return res.status(200).json([]);
-
-                const rawData = snapshot.docs.map(doc => doc.data());
-                // Handle both 'make' and 'car_make' fields
-                const makes = [...new Set(rawData.map(d => d.make || d.car_make))].filter(Boolean).sort();
-                return res.status(200).json(makes);
-            } catch (err) {
-                console.error("[API/Products] getMakes error:", err);
-                return res.status(200).json([]); // Suppress 500, return empty
-            }
+            const products = await fetchAllProducts();
+            const makes = [...new Set(products.map(p => p.make))].filter(Boolean).sort();
+            return res.status(200).json(makes);
         }
 
-        if (action === 'getModels' && make) {
-            try {
-                const snapshot = await productsQuery.where('make', '==', make).get();
-                const snapshotAlt = await productsQuery.where('car_make', '==', make).get();
-
-                const rawData = [
-                    ...snapshot.docs.map(doc => doc.data()),
-                    ...snapshotAlt.docs.map(doc => doc.data())
-                ];
-
-                const models = [...new Set(rawData.map(d => d.model || d.car_model))].filter(Boolean).sort();
-                return res.status(200).json(models);
-            } catch (err) {
-                console.error("[API/Products] getModels error:", err);
-                return res.status(200).json([]);
-            }
-        }
-
-        if (action === 'getYears' && make && model) {
-            try {
-                const snapshot = await productsQuery.where('make', '==', make).where('model', '==', model).get();
-                const snapshotAlt = await productsQuery.where('car_make', '==', make).where('car_model', '==', model).get();
-
-                const docs = [...snapshot.docs, ...snapshotAlt.docs];
-                const years = new Set();
-                docs.forEach(doc => {
-                    const data = doc.data();
-                    if (data.yearStart && data.yearEnd) {
-                        for (let y = Number(data.yearStart); y <= Number(data.yearEnd); y++) {
-                            years.add(y);
-                        }
-                    } else if (data.yearStart) {
-                        years.add(Number(data.yearStart));
-                    }
-                });
-                return res.status(200).json(Array.from(years).sort((a, b) => b - a));
-            } catch (err) {
-                console.error("[API/Products] getYears error:", err);
-                return res.status(200).json([]);
-            }
-        }
-
-        // 2. Related Products Action
-        if (action === 'getRelated' && productId) {
-            try {
-                let relatedProducts = [];
-                const seenIds = new Set([productId]);
-
-                const addProducts = (snapshot) => {
-                    snapshot.docs.forEach(doc => {
-                        if (!seenIds.has(doc.id)) {
-                            relatedProducts.push({ id: doc.id, ...doc.data() });
-                            seenIds.add(doc.id);
-                        }
-                    });
-                };
-
-                // Priority 1: Same Make & Model
-                if (make && model && make !== 'Universal' && model !== 'Universal') {
-                    const carQuery = await productsRef
-                        .where('isActive', '==', true)
-                        .where('make', '==', make)
-                        .where('model', '==', model)
-                        .limit(10)
-                        .get();
-                    addProducts(carQuery);
-
-                    if (relatedProducts.length < 5) {
-                        const carQueryAlt = await productsRef
-                            .where('isActive', '==', true)
-                            .where('car_make', '==', make)
-                            .where('car_model', '==', model)
-                            .limit(10)
-                            .get();
-                        addProducts(carQueryAlt);
-                    }
-                }
-
-                // Priority 2: Same Category
-                if (relatedProducts.length < 8 && category) {
-                    const categoryQuery = await productsRef
-                        .where('isActive', '==', true)
-                        .where('category', '==', category)
-                        .limit(10)
-                        .get();
-                    addProducts(categoryQuery);
-                }
-
-                // Priority 3: Global Popularity (Fallback - No OrderBy to avoid index issues)
-                if (relatedProducts.length < 8) {
-                    const popularQuery = await productsRef
-                        .where('isActive', '==', true)
-                        .limit(10)
-                        .get();
-                    addProducts(popularQuery);
-                }
-
-                // Priority 4: Absolute Fallback (Total backup)
-                if (relatedProducts.length < 4) {
-                    const backupQuery = await productsRef
-                        .limit(10)
-                        .get();
-                    addProducts(backupQuery);
-                }
-
-                return res.status(200).json(relatedProducts.slice(0, 8));
-            } catch (err) {
-                console.error("[API/Products] getRelated error:", err);
-                return res.status(200).json([]);
-            }
-        }
-
-        // 3. Removed: Sync Action moved to articles.js
-
-        // 4. Feed Generation (Consolidated)
-        if (action === 'generateFeed') {
-            const productsSnap = await productsRef.where('isActive', '==', true).get();
-            const products = productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-            const settingsSnap = await db.collection('settings').doc('general').get();
-            const settings = settingsSnap.exists ? settingsSnap.data() : {};
-            const baseUrl = process.env.SITE_URL || 'https://zait-and-filters-web.vercel.app';
-            const platform = req.query.platform; // 'google' or 'facebook'
-
-            let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">
-    <channel>
-        <title>${settings.siteName || 'Zait &amp; Filters'}</title>
-        <link>${baseUrl}</link>
-        <description>${settings.siteDescription || 'Genuine Spirits &amp; Auto Filters'}</description>
-`;
-
-            products.forEach(product => {
-                const title = (product.nameEn || product.name || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                const description = (product.descriptionEn || product.description || 'Genuine auto part').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                const price = product.price || 0;
-                const link = `${baseUrl}/product/${product.id}`;
-                const imageLink = product.imageUrl || '';
-                const availability = product.stock > 0 ? (platform === 'facebook' ? 'in stock' : 'in_stock') : (platform === 'facebook' ? 'out of stock' : 'out_of_stock');
-                const brand = product.partBrand || 'Zait &amp; Filters';
-
-                xml += `        <item>
-            <g:id>${product.id}</g:id>
-            <g:title>${title}</g:title>
-            <g:description>${description}</g:description>
-            <g:link>${link}</g:link>
-            <g:image_link>${imageLink}</g:image_link>
-            <g:condition>new</g:condition>
-            <g:availability>${availability}</g:availability>
-            <g:price>${price} EGP</g:price>
-            <g:brand>${brand}</g:brand>
-        </item>
-`;
-            });
-
-            xml += `    </channel>
-</rss>`;
-
-            res.setHeader('Content-Type', 'text/xml');
-            return res.status(200).send(xml);
-        }
-
-        return res.status(400).json({ error: 'Invalid action or missing parameters' });
-    } catch (error) {
-        console.error('Fatal error in products API:', error);
-        return res.status(200).json([]); // Always return an array to prevent frontend crash
+        return res.status(400).json({ error: 'Invalid action' });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
     }
 }

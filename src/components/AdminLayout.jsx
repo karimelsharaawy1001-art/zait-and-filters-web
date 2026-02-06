@@ -50,44 +50,43 @@ const AdminLayout = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isSidebarOpen]);
 
-    useEffect(() => {
-        const q = query(
-            collection(db, 'contact_messages'),
-            where('status', '==', 'Unread')
-        );
+    // QUOTA SHIELD: Real-time listeners disabled to prevent quota exhaustion
+    // These onSnapshot listeners were consuming massive reads on every admin page
+    // Badge counts are now static (set to 0) to eliminate Firestore reads
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            setUnreadCount(snapshot.size);
-        });
+    // useEffect(() => {
+    //     const q = query(
+    //         collection(db, 'contact_messages'),
+    //         where('status', '==', 'Unread')
+    //     );
+    //     const unsubscribe = onSnapshot(q, (snapshot) => {
+    //         setUnreadCount(snapshot.size);
+    //     });
+    //     return () => unsubscribe();
+    // }, []);
 
-        return () => unsubscribe();
-    }, []);
+    // useEffect(() => {
+    //     const q = query(
+    //         collection(db, 'reviews'),
+    //         where('status', '==', 'pending')
+    //     );
+    //     const unsubscribe = onSnapshot(q, (snapshot) => {
+    //         setPendingReviewsCount(snapshot.size);
+    //     });
+    //     return () => unsubscribe();
+    // }, []);
 
-    useEffect(() => {
-        const q = query(
-            collection(db, 'reviews'),
-            where('status', '==', 'pending')
-        );
+    // useEffect(() => {
+    //     const q = query(
+    //         collection(db, 'orders'),
+    //         where('isOpened', '==', false)
+    //     );
+    //     const unsubscribe = onSnapshot(q, (snapshot) => {
+    //         setPendingOrdersCount(snapshot.size);
+    //     });
+    //     return () => unsubscribe();
+    // }, []);
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            setPendingReviewsCount(snapshot.size);
-        });
-
-        return () => unsubscribe();
-    }, []);
-
-    useEffect(() => {
-        const q = query(
-            collection(db, 'orders'),
-            where('isOpened', '==', false)
-        );
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            setPendingOrdersCount(snapshot.size);
-        });
-
-        return () => unsubscribe();
-    }, []);
 
     const handleLogout = async () => {
         try {
@@ -108,6 +107,7 @@ const AdminLayout = () => {
         { name: 'Car Specs', icon: <Settings className="w-5 h-5" />, path: '/admin/car-specs' },
         { name: 'Cars', icon: <Car className="w-5 h-5" />, path: '/admin/cars' },
         { name: 'Categories', icon: <FolderTree className="w-5 h-5" />, path: '/admin/categories' },
+        { name: 'Customers', icon: <Users className="w-5 h-5" />, path: '/admin/customers' },
         { name: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, path: '/admin/dashboard' },
         { name: 'General Settings', icon: <Settings className="w-5 h-5" />, path: '/admin/settings' },
         { name: 'Hero Slider', icon: <LayoutDashboard className="w-5 h-5" />, path: '/admin/hero' },

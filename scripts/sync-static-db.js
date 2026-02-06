@@ -58,6 +58,7 @@ async function syncAllData() {
         await syncCollection('categories', 'categories-db.json');
         await syncCollection('cars', 'cars-db.json');
         await syncCollection('brand_logos', 'brands-db.json');
+        await syncCollection('shipping_rates', 'shipping-rates-db.json');
 
         // EXTRA: Write to src/data/inventory.json for direct imports (Build-Time requirement)
         const SRC_DATA_DIR = path.join(__dirname, '../src/data');

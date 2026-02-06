@@ -7,9 +7,11 @@ import AdminHeader from '../../components/AdminHeader';
 import { Edit3, Trash2, Plus, Search, Filter, AlertTriangle, ArrowUpDown, ChevronLeft, ChevronRight, Eye, MoreVertical, CheckCircle, XCircle, TrendingUp, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BulkOperations from '../../components/admin/BulkOperations';
+import { useStaticData } from '../../context/StaticDataContext';
 
 const ManageProducts = () => {
     const navigate = useNavigate();
+    const { staticProducts: shieldProducts, categories: shieldCategories, cars: shieldCars, isStaticLoaded: isShieldLoaded } = useStaticData();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -42,21 +44,15 @@ const ManageProducts = () => {
 
     useEffect(() => {
         fetchProducts();
-        fetchCars();
-        fetchCategories();
     }, []);
 
-    const fetchCars = async () => {
-        try {
-            const querySnapshot = await getDocs(collection(db, 'cars'));
-            const carsList = querySnapshot.docs.map(doc => doc.data());
-            setCars(carsList);
-            const makes = [...new Set(carsList.map(car => car.make))];
+    useEffect(() => {
+        if (isShieldLoaded) {
+            setCars(shieldCars);
+            const makes = [...new Set(shieldCars.map(car => car.make))];
             setCarMakes(makes);
-        } catch (error) {
-            console.error("Error fetching cars:", error);
         }
-    };
+    }, [isShieldLoaded, shieldCars]);
 
     // Category -> Subcategory Sync
     useEffect(() => {
@@ -91,15 +87,11 @@ const ManageProducts = () => {
         }
     }, [makeFilter, cars]);
 
-    const fetchCategories = async () => {
-        try {
-            const querySnapshot = await getDocs(collection(db, 'categories'));
-            const list = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setAllCategories(list);
-        } catch (error) {
-            console.error("Error fetching categories:", error);
+    useEffect(() => {
+        if (isShieldLoaded) {
+            setAllCategories(shieldCategories);
         }
-    };
+    }, [isShieldLoaded, shieldCategories]);
 
     const [isLiveMode, setIsLiveMode] = useState(true);
     const [localData, setLocalData] = useState([]);
@@ -127,11 +119,11 @@ const ManageProducts = () => {
         let result = [...data];
 
         // 1. Filtering
-        if (categoryFilter !== 'All') result = result.filter(p => p.category === categoryFilter);
-        if (subcategoryFilter !== 'All') result = result.filter(p => p.subcategory === subcategoryFilter);
-        if (makeFilter !== 'All') result = result.filter(p => p.make === makeFilter);
-        if (modelFilter !== 'All') result = result.filter(p => p.model === modelFilter);
-        if (brandFilter !== 'All') result = result.filter(p => (p.partBrand || p.brand) === brandFilter);
+        if (categoryFilter !== 'All') result = result.filter(p => String(p.category).toLowerCase() === categoryFilter.toLowerCase());
+        if (subcategoryFilter !== 'All') result = result.filter(p => String(p.subcategory || p.subCategory).toLowerCase() === subcategoryFilter.toLowerCase());
+        if (makeFilter !== 'All') result = result.filter(p => String(p.make).toLowerCase() === makeFilter.toLowerCase());
+        if (modelFilter !== 'All') result = result.filter(p => String(p.model).toLowerCase() === modelFilter.toLowerCase());
+        if (brandFilter !== 'All') result = result.filter(p => String(p.partBrand || p.brand).toLowerCase() === brandFilter.toLowerCase());
         if (statusFilter === 'Active') result = result.filter(p => p.isActive);
         if (statusFilter === 'Inactive') result = result.filter(p => !p.isActive);
         if (yearFilter) result = result.filter(p => p.yearStart && p.yearEnd && parseInt(yearFilter) >= p.yearStart && parseInt(yearFilter) <= p.yearEnd);
@@ -140,7 +132,9 @@ const ManageProducts = () => {
             const lower = searchQuery.toLowerCase();
             result = result.filter(p =>
                 (p.name && p.name.toLowerCase().includes(lower)) ||
+                (p.nameEn && p.nameEn.toLowerCase().includes(lower)) ||
                 (p.partBrand && p.partBrand.toLowerCase().includes(lower)) ||
+                (p.brand && p.brand.toLowerCase().includes(lower)) ||
                 (p.partNumber && p.partNumber.toLowerCase().includes(lower))
             );
         }
@@ -174,14 +168,21 @@ const ManageProducts = () => {
         if (!skipCache && !isNext && !isPrev) {
             const cachedData = safeLocalStorage.getItem(cacheKey);
             if (cachedData) {
-                const parsed = JSON.parse(cachedData);
-                if ((Date.now() - parsed.timestamp) < 3600000) {
-                    setProducts(parsed.products);
-                    setTotalCount(parsed.totalCount);
-                    setLoading(false);
-                    return;
+                try {
+                    const parsed = JSON.parse(cachedData);
+                    if ((Date.now() - (parsed.timestamp || 0)) < 3600000) {
+                        setProducts(parsed.products || []);
+                        setTotalCount(parsed.totalCount || 0);
+                        setLoading(false);
+                        return;
+                    }
+                } catch (e) {
+                    safeLocalStorage.removeItem(cacheKey);
                 }
             }
+        } else if (skipCache) {
+            safeLocalStorage.removeByPrefix('admin_products_');
+            console.log('🧹 Cache cleared on Master Sync');
         }
 
         try {
@@ -263,11 +264,11 @@ const ManageProducts = () => {
         } catch (error) {
             console.error("Firestore Fetch Error:", error);
             if (error.code === 'resource-exhausted') {
-                toast.error('🔥 Quota Exceeded! Switching to Static Mode.');
-                setIsLiveMode(false); // Auto-switch to Static Mode
+                toast.error('🔥 Firebase Quota Exceeded! Reading from local cache...', { duration: 6000 });
                 processLocalData();
             } else {
-                toast.error(`Sync Error: ${error.message}`);
+                console.error("Firestore Detailed Error:", error);
+                toast.error(`Sync Error: ${error.code || 'Unknown'} - ${error.message.substring(0, 50)}...`);
                 setProducts([]);
             }
         } finally {
@@ -297,10 +298,23 @@ const ManageProducts = () => {
         }
     };
 
-    // Re-fetch on filter changes
+    // Search Debounce Implementation
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery);
+        }, 500); // 500ms delay
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [searchQuery]);
+
+    // Re-fetch on filter changes (Triggered by DEBOUNCED query now)
     useEffect(() => {
         fetchProducts();
-    }, [categoryFilter, subcategoryFilter, makeFilter, modelFilter, brandFilter, statusFilter, sortBy, searchQuery]);
+    }, [categoryFilter, subcategoryFilter, makeFilter, modelFilter, brandFilter, statusFilter, sortBy, debouncedSearchQuery]);
 
     useEffect(() => {
         fetchBrands();
@@ -334,6 +348,36 @@ const ManageProducts = () => {
             toast.error("Failed to update status");
         }
     };
+
+    const handleToggleGenuine = async (productId, currentStatus) => {
+        try {
+            await updateDoc(doc(db, 'products', productId), {
+                isGenuine: !currentStatus
+            });
+
+            const updatedProducts = products.map(p =>
+                p.id === productId ? { ...p, isGenuine: !currentStatus } : p
+            );
+            setProducts(updatedProducts);
+
+            // Update local cache mirror if in static mode
+            if (!isLiveMode) {
+                const updatedLocal = localData.map(p =>
+                    p.id === productId ? { ...p, isGenuine: !currentStatus } : p
+                );
+                setLocalData(updatedLocal);
+            }
+
+            // Invalidate admin product list caches
+            safeLocalStorage.removeByPrefix('admin_products_');
+
+            toast.success("Genuine badge updated");
+        } catch (error) {
+            console.error("Error toggling genuine status:", error);
+            toast.error("Failed to update genuine badge");
+        }
+    };
+
 
     const handleDelete = async (productId, productName) => {
         if (window.confirm(`Are you sure you want to delete "${productName}"?`)) {
@@ -425,6 +469,67 @@ const ManageProducts = () => {
         return 'text-red-600';
     };
 
+    const getFilteredExportData = async () => {
+        // Debug Toast
+        const debugMsg = [
+            isLiveMode ? 'Live' : 'Static',
+            categoryFilter !== 'All' ? `Cat:${categoryFilter}` : '',
+            brandFilter !== 'All' ? `Brand:${brandFilter}` : '',
+            searchQuery ? `Search:${searchQuery}` : ''
+        ].filter(Boolean).join(', ');
+        toast.success(`Exporting: ${debugMsg || 'All Data'}`);
+
+        if (!isLiveMode) {
+            // Static Mode Filtering
+            let result = [...localData];
+            if (categoryFilter !== 'All') result = result.filter(p => String(p.category).toLowerCase() === categoryFilter.toLowerCase());
+            if (subcategoryFilter !== 'All') result = result.filter(p => String(p.subcategory || p.subCategory).toLowerCase() === subcategoryFilter.toLowerCase());
+            if (makeFilter !== 'All') result = result.filter(p => String(p.make).toLowerCase() === makeFilter.toLowerCase());
+            if (modelFilter !== 'All') result = result.filter(p => String(p.model).toLowerCase() === modelFilter.toLowerCase());
+            if (brandFilter !== 'All') result = result.filter(p => String(p.partBrand || p.brand).toLowerCase() === brandFilter.toLowerCase());
+            if (statusFilter === 'Active') result = result.filter(p => p.isActive);
+            if (statusFilter === 'Inactive') result = result.filter(p => !p.isActive);
+            if (yearFilter) result = result.filter(p => p.yearStart && p.yearEnd && parseInt(yearFilter) >= p.yearStart && parseInt(yearFilter) <= p.yearEnd);
+
+            if (searchQuery) {
+                const lower = searchQuery.toLowerCase();
+                result = result.filter(p =>
+                    (p.name && p.name.toLowerCase().includes(lower)) ||
+                    (p.nameEn && p.nameEn.toLowerCase().includes(lower)) ||
+                    (p.partBrand && p.partBrand.toLowerCase().includes(lower)) ||
+                    (p.brand && p.brand.toLowerCase().includes(lower)) ||
+                    (p.partNumber && p.partNumber.toLowerCase().includes(lower))
+                );
+            }
+            return result;
+        } else {
+            // Live Mode Filtering
+            let qConstraints = [];
+            if (categoryFilter !== 'All') qConstraints.push(where('category', '==', categoryFilter));
+            if (subcategoryFilter !== 'All') qConstraints.push(where('subcategory', '==', subcategoryFilter));
+            if (makeFilter !== 'All') qConstraints.push(where('make', '==', makeFilter));
+            if (modelFilter !== 'All') qConstraints.push(where('model', '==', modelFilter));
+            if (brandFilter !== 'All') qConstraints.push(where('partBrand', '==', brandFilter));
+            if (statusFilter === 'Active') qConstraints.push(where('isActive', '==', true));
+            if (statusFilter === 'Inactive') qConstraints.push(where('isActive', '==', false));
+
+            if (searchQuery) {
+                const searchLower = searchQuery.toLowerCase();
+                qConstraints.push(where('name', '>=', searchLower));
+                qConstraints.push(where('name', '<=', searchLower + '\uf8ff'));
+            }
+
+            // Perform sorting client-side to avoid Firestore Index requirements for every filter combination
+            const q = query(collection(db, 'products'), ...qConstraints);
+            const snapshot = await getDocs(q);
+            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Sort by name A-Z by default for export
+            data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            return data;
+        }
+    };
+
 
     if (loading) {
         return (
@@ -440,6 +545,30 @@ const ManageProducts = () => {
     return (
         <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900">
             <AdminHeader title="Product Management" />
+
+            {/* STATIC MODE WARNING BANNER */}
+            {!isLiveMode && (
+                <div className="bg-yellow-100 border-b border-yellow-200 px-4 py-3">
+                    <div className="flex items-center justify-between max-w-7xl mx-auto">
+                        <div className="flex items-center gap-3">
+                            <AlertTriangle className="h-5 w-5 text-yellow-700" />
+                            <p className="text-sm font-bold text-yellow-800 uppercase tracking-tight">
+                                Static Mode Active: Viewing local backup. New imports won't show until you "Connect Live Sync".
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => {
+                                setIsLiveMode(true);
+                                fetchProducts(false, false, true);
+                            }}
+                            className="px-4 py-1 bg-yellow-800 text-white rounded-lg text-xs font-black uppercase tracking-widest hover:bg-yellow-900 transition-all"
+                        >
+                            Reconnect Live
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
 
                 {/* Header Section */}
@@ -490,11 +619,15 @@ const ManageProducts = () => {
                 </div>
 
                 {/* Bulk Import/Export */}
-                <BulkOperations onSuccess={() => {
-                    safeLocalStorage.removeByPrefix('admin_products_');
-                    fetchProducts(false, false, true);
-                    fetchBrands();
-                }} />
+                <BulkOperations
+                    validCars={cars}
+                    onSuccess={() => {
+                        safeLocalStorage.removeByPrefix('admin_products_');
+                        fetchProducts(false, false, true);
+                        fetchBrands();
+                    }}
+                    onExportFetch={getFilteredExportData}
+                />
 
                 {/* Filters Section - White Surface */}
                 <div className="bg-white rounded-[24px] shadow-sm border border-gray-200 p-8 mb-10 group/filters">
@@ -679,6 +812,7 @@ const ManageProducts = () => {
                                         <th className="px-4 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100 italic">Cost</th>
                                         <th className="px-4 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100 font-black">Sell</th>
                                         <th className="px-4 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100 text-center">Active</th>
+                                        <th className="px-4 py-5 text-left text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100 text-center">Genuine</th>
                                         <th className="px-4 py-5 text-right text-[11px] font-black text-black uppercase tracking-widest border-b border-gray-100">Actions</th>
                                     </tr>
                                 </thead>
@@ -743,6 +877,14 @@ const ManageProducts = () => {
                                                     className={`relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-all duration-300 ease-in-out focus:outline-none ${product.isActive !== false ? 'bg-green-500' : 'bg-gray-200'}`}
                                                 >
                                                     <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow transition duration-300 ease-in-out ${product.isActive !== false ? 'translate-x-7' : 'translate-x-0'}`} />
+                                                </button>
+                                            </td>
+                                            <td className="px-4 py-6 whitespace-nowrap text-center">
+                                                <button
+                                                    onClick={() => handleToggleGenuine(product.id, product.isGenuine)}
+                                                    className={`relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-all duration-300 ease-in-out focus:outline-none ${product.isGenuine ? 'bg-green-500' : 'bg-gray-200'}`}
+                                                >
+                                                    <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow transition duration-300 ease-in-out ${product.isGenuine ? 'translate-x-7' : 'translate-x-0'}`} />
                                                 </button>
                                             </td>
                                             <td className="px-4 py-6 whitespace-nowrap text-right">

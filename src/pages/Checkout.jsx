@@ -14,7 +14,7 @@ import PhoneInputGroup from '../components/PhoneInputGroup';
 import TrustPaymentSection from '../components/TrustPaymentSection';
 
 const Checkout = () => {
-    const { cartItems, getCartTotal, clearCart, updateCartStage, updateCustomerInfo } = useCart();
+    const { cartItems, getCartTotal, clearCart, updateCartStage, updateCustomerInfo, getEffectivePrice } = useCart();
     const { navigate } = useSafeNavigation();
     const { t, i18n } = useTranslation();
     const isAr = i18n.language === 'ar';
@@ -35,7 +35,8 @@ const Checkout = () => {
         governorate: '',
         city: '',
         paymentMethod: '',
-        currentMileage: ''
+        currentMileage: '',
+        notes: ''
     });
 
     const [savedAddresses, setSavedAddresses] = useState([]);
@@ -298,8 +299,7 @@ const Checkout = () => {
             const customerPhone = formData.phone;
             const customerEmail = formData.email || "customer@example.com";
 
-            // Call our Vercel serverless function instead of EasyKash directly
-            // This bypasses CORS and keeps API keys secure
+            // Call our Vercel serverless function (which constructs the Redirect URL)
             const response = await axios.post('/api/init-payment', {
                 amount: totalAmount,
                 orderId: orderId,
@@ -309,16 +309,25 @@ const Checkout = () => {
                 returnUrl: `${window.location.origin}/order-success?id=${orderId}`
             });
 
-            if (response.data && response.data.url) {
-                console.log("Redirecting to payment gateway:", response.data.url);
-                window.location.href = response.data.url;
+            const data = response.data;
+
+            if (data && data.url) {
+                console.log("Redirecting to EasyKash:", data.url);
+                window.location.href = data.url;
             } else {
-                console.error("Payment API response missing URL:", response.data);
-                throw new Error(t('onlinePaymentError') || "Could not generate payment link. Please try again or choose another method.");
+                console.error("Payment API response missing URL:", data);
+                throw new Error(t('onlinePaymentError') || "Could not generate payment link.");
             }
         } catch (error) {
             console.error("Payment initialization error:", error);
-            toast.error(t('onlinePaymentError'));
+            // Log full details for debugging
+            if (error.response) {
+                console.error("API Response Data:", error.response.data);
+                console.error("API Status:", error.response.status);
+            }
+
+            const msg = error.response?.data?.message || (typeof error.response?.data === 'string' ? error.response.data : "") || error.message || t('onlinePaymentError');
+            toast.error("Payment Error: " + msg);
         }
     };
 
@@ -374,7 +383,7 @@ const Checkout = () => {
                 id: item.id || 'unknown',
                 name: item.name || 'Unknown Product',
                 nameEn: item.nameEn || null,
-                price: Number(item.price) || 0,
+                price: Number(getEffectivePrice(item)) || 0,
                 quantity: Number(item.quantity) || 1,
                 image: item.image || null,
                 brand: item.brand || null,
@@ -433,6 +442,7 @@ const Checkout = () => {
                 shipping_cost: Number(shipping) || 0,
                 total: Number(total) || 0,
                 currentMileage: formData.currentMileage || null,
+                notes: formData.notes || null,
                 promoCode: appliedPromo?.code || null,
                 promoId: appliedPromo?.id || null,
                 affiliateCode: (affRef || appliedPromo?.code) ? (affRef || appliedPromo.code) : null,
@@ -741,21 +751,33 @@ const Checkout = () => {
                                                     <label htmlFor="saveAddress" className="text-xs font-bold text-gray-600 cursor-pointer select-none">{t('saveAddress')}</label>
                                                 </div>
                                             )}
+
+                                            <div className={`sm:col-span-2 bg-orange-50 p-4 rounded-xl border border-orange-100 flex items-start gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                                <div className="bg-orange-600 p-2 rounded-lg text-white">
+                                                    <MapPin className="h-4 w-4" />
+                                                </div>
+                                                <div className={isAr ? 'text-right' : 'text-left'}>
+                                                    <p className="text-xs font-black text-orange-900 leading-none mb-1">{t('shippingTo')}: {savedAddresses.find(a => a.id === selectedAddressId)?.label || 'Home'}</p>
+                                                    <p className="text-[10px] text-orange-600 font-bold">{formData.address}, {formData.city}, {formData.governorate}</p>
+                                                    <button type="button" onClick={() => handleAddressSelect('new')} className="mt-2 text-[10px] font-black uppercase tracking-widest text-orange-800 hover:underline">{t('changeAddress')}</button>
+                                                </div>
+                                            </div>
                                         </>
                                     )}
 
-                                    {auth.currentUser && selectedAddressId !== 'new' && (
-                                        <div className={`sm:col-span-2 bg-orange-50 p-4 rounded-xl border border-orange-100 flex items-start gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>
-                                            <div className="bg-orange-600 p-2 rounded-lg text-white">
-                                                <MapPin className="h-4 w-4" />
-                                            </div>
-                                            <div className={isAr ? 'text-right' : 'text-left'}>
-                                                <p className="text-xs font-black text-orange-900 leading-none mb-1">{t('shippingTo')}: {savedAddresses.find(a => a.id === selectedAddressId)?.label || 'Home'}</p>
-                                                <p className="text-[10px] text-orange-600 font-bold">{formData.address}, {formData.city}, {formData.governorate}</p>
-                                                <button type="button" onClick={() => handleAddressSelect('new')} className="mt-2 text-[10px] font-black uppercase tracking-widest text-orange-800 hover:underline">{t('changeAddress')}</button>
-                                            </div>
-                                        </div>
-                                    )}
+                                    <div className="sm:col-span-2">
+                                        <label className={`block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ${isAr ? 'text-right' : 'text-left'}`}>
+                                            {isAr ? 'ملاحظات الطلب (اختياري)' : 'Order Notes (Optional)'}
+                                        </label>
+                                        <textarea
+                                            name="notes"
+                                            rows={3}
+                                            value={formData.notes}
+                                            onChange={handleChange}
+                                            className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-black placeholder-gray-500 focus:ring-2 focus:ring-[#28B463] outline-none transition-all ${isAr ? 'text-right' : 'text-left'}`}
+                                            placeholder={isAr ? 'تعليمات خاصة للطلب...' : 'Special instructions for your order...'}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -1097,8 +1119,8 @@ const Checkout = () => {
                         </form>
                     </div>
                 </div>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 };
 

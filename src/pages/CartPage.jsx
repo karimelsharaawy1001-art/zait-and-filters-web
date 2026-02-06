@@ -11,7 +11,7 @@ import { getOptimizedImage } from '../utils/cloudinaryUtils';
 import SEO from '../components/SEO';
 
 const CartPage = () => {
-    const { cartItems, setCartItems, updateQuantity, removeFromCart, getCartTotal } = useCart();
+    const { cartItems, setCartItems, updateQuantity, removeFromCart, getCartTotal, getEffectivePrice } = useCart();
     const { searchParams } = useSafeNavigation();
     const { t, i18n } = useTranslation();
     const isAr = i18n.language === 'ar';
@@ -126,7 +126,7 @@ const CartPage = () => {
                                             </div>
                                         </div>
                                         <div className={`flex flex-col items-center sm:${isAr ? 'items-start' : 'items-end'} gap-2`}>
-                                            <span className="text-lg font-bold text-gray-900">{item.price * item.quantity} {t('currency')}</span>
+                                            <span className="text-lg font-bold text-gray-900">{getEffectivePrice(item) * item.quantity} {t('currency')}</span>
                                             <button
                                                 onClick={() => removeFromCart(item.id)}
                                                 className="text-red-500 hover:text-red-700 text-sm flex items-center mt-2"

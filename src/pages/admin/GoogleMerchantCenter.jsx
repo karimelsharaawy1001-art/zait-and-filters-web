@@ -9,7 +9,7 @@ const GoogleMerchantCenter = () => {
     const [merchantId, setMerchantId] = useState('');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const feedUrl = `${window.location.origin}/api/product-feed`;
+    const feedUrl = `${window.location.origin}/api/products?action=generateFeed`;
 
     useEffect(() => {
         const fetchData = async () => {

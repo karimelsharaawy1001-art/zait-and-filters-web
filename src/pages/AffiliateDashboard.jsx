@@ -318,22 +318,22 @@ const AffiliateDashboard = () => {
                         </h3>
                         <form onSubmit={handleUpdatePayout} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">{t('instaPay')}</label>
+                                <label className="block text-[10px] font-black text-gray-900 uppercase tracking-widest mb-2">{t('instaPay')}</label>
                                 <input
                                     type="text"
                                     value={payoutData.instaPayNumber}
                                     onChange={(e) => setPayoutData({ ...payoutData, instaPayNumber: e.target.value })}
-                                    className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:outline-none transition-all font-bold"
+                                    className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:outline-none transition-all font-bold text-black placeholder:text-gray-400"
                                     placeholder="username@instapay"
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">{t('mobileWallet')}</label>
+                                <label className="block text-[10px] font-black text-gray-900 uppercase tracking-widest mb-2">{t('mobileWallet')}</label>
                                 <input
                                     type="text"
                                     value={payoutData.walletNumber}
                                     onChange={(e) => setPayoutData({ ...payoutData, walletNumber: e.target.value })}
-                                    className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:outline-none transition-all font-bold"
+                                    className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:outline-none transition-all font-bold text-black placeholder:text-gray-400"
                                     placeholder="01xxxxxxxxx"
                                 />
                             </div>

@@ -54,10 +54,15 @@ const ProductGrid = ({ showFilters = true }) => {
 
     // ⚡ High-Performance Memoized Static Search Engine
     const filteredStaticProducts = useMemo(() => {
-        if (!isStaticLoaded && inventoryData.length === 0) return { results: [], total: 0 };
-
         console.log('⚡ Calculating Memoized Static Search');
-        let results = inventoryData.length > 0 ? [...inventoryData] : [...staticProducts];
+
+        // Data Priority: 1. Runtime-fetched staticProducts, 2. Bundled inventoryData
+        let results = [];
+        if (staticProducts && staticProducts.length > 0) {
+            results = [...staticProducts];
+        } else if (inventoryData && inventoryData.length > 0) {
+            results = [...inventoryData];
+        }
 
         // 1. Garage Filter
         if (isGarageFilterActive && activeCar?.make) {
@@ -128,6 +133,7 @@ const ProductGrid = ({ showFilters = true }) => {
         if (!isDebounced) setLoading(true);
         setIsFiltering(true);
         try {
+            // 1. Try Static/Context Data First (Now includes "Fresh" items from Context)
             if (isStaticLoaded || inventoryData.length > 0) {
                 const { results, total } = filteredStaticProducts;
                 setTotalProducts(total);
@@ -142,8 +148,7 @@ const ProductGrid = ({ showFilters = true }) => {
                 return;
             }
 
-            // Fallback Firestore logic (Shielded)
-            // FALLBACK: Traditional Firestore Query (for real-time or if static is missing)
+            // 2. Fallback Firestore logic (Shielded - Only if Context failed entirely)
             await withFallback(async () => {
                 let qConstraints = [where('isActive', '==', true)];
 
@@ -188,7 +193,7 @@ const ProductGrid = ({ showFilters = true }) => {
             });
         } catch (error) {
             console.error("Fetch Failure:", error);
-            toast.error("Shopping data sync error. Trying backup...");
+            toast.error("Shopping data sync error. using offline backup...");
         } finally {
             setLoading(false);
             setIsFiltering(false);

@@ -54,7 +54,7 @@ const GoogleAnalytics = () => {
 
         setTestStatus('checking');
         try {
-            const response = await axios.post('/api/check-seo', {
+            const response = await axios.post('/api/products?action=check-seo', {
                 targetUrl: window.location.origin,
                 tagName: 'google-analytics', // Special flag for our API
                 expectedValue: measurementId

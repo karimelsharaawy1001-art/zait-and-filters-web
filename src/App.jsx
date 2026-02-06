@@ -9,6 +9,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import GarageActiveIndicator from './components/GarageActiveIndicator';
 import ScrollToTop from './components/ScrollToTop';
+import ChatWidget from './components/ChatWidget';
 import { StaticDataProvider } from './context/StaticDataContext';
 import { SettingsProvider } from './context/SettingsContext';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -42,12 +43,14 @@ const Profile = React.lazy(() => import('./pages/Profile'));
 const AffiliateDashboard = React.lazy(() => import('./pages/AffiliateDashboard'));
 const AffiliateRegister = React.lazy(() => import('./pages/AffiliateRegister'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
+const InvoiceViewer = React.lazy(() => import('./pages/InvoiceViewer'));
 
 // Lazy Load Admin Pages
 const AdminLogin = React.lazy(() => import('./pages/AdminLogin'));
 const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard'));
 const AdminOrders = React.lazy(() => import('./pages/AdminOrders'));
 const ManageCategories = React.lazy(() => import('./pages/admin/ManageCategories'));
+const ManageCustomers = React.lazy(() => import('./pages/admin/ManageCustomers'));
 const AbandonedCarts = React.lazy(() => import('./pages/admin/AbandonedCarts'));
 const ManageCars = React.lazy(() => import('./pages/admin/ManageCars'));
 const AdminCarSpecs = React.lazy(() => import('./pages/admin/AdminCarSpecs'));
@@ -112,39 +115,58 @@ const PublicLayout = () => {
           reverseOrder={false}
           toastOptions={{
             duration: 5000,
-            style: {
-              background: '#fff',
-              color: '#000',
-              fontWeight: '600',
-              borderRadius: '16px',
-              padding: '12px 24px',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-            },
           }}
           containerStyle={{
-            top: 20,
+            top: 40,
+            zIndex: 99999
           }}
         >
           {(t) => (
             <div
-              onClick={() => toast.dismiss(t.id)}
-              className="cursor-pointer transition-all hover:scale-105 active:scale-95"
+              className={`${t.visible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+                } max-w-md w-full backdrop-blur-xl bg-white/95 border border-white/20 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] rounded-[1.5rem] pointer-events-auto flex items-center p-3.5 transition-all duration-300 ease-out font-Cairo`}
+              style={{
+                direction: i18n.language === 'ar' ? 'rtl' : 'ltr'
+              }}
             >
-              <div className="flex items-center gap-3">
-                {t.type === 'loading' ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#28B463] border-t-transparent" />
-                ) : t.icon ? (
-                  t.icon
-                ) : (
-                  <div className={`h-2 w-2 rounded-full ${t.type === 'success' ? 'bg-[#28B463]' : t.type === 'error' ? 'bg-[#EF4444]' : 'bg-gray-400'}`} />
-                )}
-                <div className="text-sm font-Cairo">
-                  {resolveValue(t.message, t)}
+              <div className="flex-1 flex items-center gap-3.5 min-w-0">
+                <div className="flex-shrink-0">
+                  {t.type === 'loading' ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-[#28B463] border-t-transparent" />
+                  ) : (
+                    <div className={`h-11 w-11 rounded-2xl flex items-center justify-center transition-transform hover:rotate-12 ${t.type === 'success' ? 'bg-[#28B463]/10 text-[#28B463]' : t.type === 'error' ? 'bg-[#EF4444]/10 text-[#EF4444]' : 'bg-gray-100 text-gray-400'}`}>
+                      {t.type === 'success' ? (
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : t.type === 'error' ? (
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      ) : (
+                        <div className="h-2 w-2 rounded-full bg-current" />
+                      )}
+                    </div>
+                  )}
                 </div>
-                {/* Visual close indicator */}
-                <div className="ml-2 text-gray-300 hover:text-gray-600 transition-colors">
-                  <X className="h-4 w-4 stroke-[3px]" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[14px] font-black text-gray-900 leading-tight truncate-2-lines">
+                    {resolveValue(t.message, t)}
+                  </p>
                 </div>
+              </div>
+
+              <div className={`flex items-center ${i18n.language === 'ar' ? 'mr-4 border-r pr-4' : 'ml-4 border-l pl-4'} border-gray-100/50`}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toast.dismiss(t.id);
+                  }}
+                  className="p-2.5 rounded-xl hover:bg-gray-50 text-gray-300 hover:text-red-500 transition-all duration-200 active:scale-90 group"
+                  aria-label="Close"
+                >
+                  <X className="h-4.5 w-4.5 stroke-[3px] group-hover:rotate-90 transition-transform duration-300" />
+                </button>
               </div>
             </div>
           )}
@@ -157,6 +179,7 @@ const PublicLayout = () => {
           <Outlet />
         </main>
         <Footer />
+        <ChatWidget />
       </div>
     );
   } catch (error) {
@@ -213,7 +236,10 @@ function App() {
           <ErrorBoundary>
             <React.Suspense fallback={<PageLoader />}>
               <Routes>
-                {/* 1. Admin Logic (Highest Priority) */}
+                {/* 1. Standalone Routes (No Layout) */}
+                <Route path="/print-invoice/:id" element={<InvoiceViewer />} />
+
+                {/* 2. Admin Logic (Highest Priority) */}
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route
                   path="/admin"
@@ -229,6 +255,7 @@ function App() {
                   <Route path="abandoned-carts" element={<AbandonedCarts />} />
                   <Route path="messages" element={<AdminMessages />} />
                   <Route path="categories" element={<ManageCategories />} />
+                  <Route path="customers" element={<ManageCustomers />} />
                   <Route path="reviews" element={<AdminReviews />} />
                   <Route path="car-specs" element={<AdminCarSpecs />} />
                   <Route path="cars" element={<ManageCars />} />

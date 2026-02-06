@@ -171,7 +171,7 @@ nav a:hover {
 /* Print Styles */
 @media screen {
     .print-only-section {
-        display: none !important;
+        display: block;
     }
 }
 
@@ -186,12 +186,6 @@ nav a:hover {
     .print-only-section {
         visibility: visible !important;
         display: block !important;
-        position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
-        width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
         background: white !important;
     }
 
@@ -212,7 +206,7 @@ nav a:hover {
 
     @page {
         size: A4;
-        margin: 0;
+        margin: 15mm;
     }
 }
 

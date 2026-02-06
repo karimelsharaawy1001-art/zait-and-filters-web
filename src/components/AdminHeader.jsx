@@ -26,7 +26,7 @@ const AdminHeader = ({ title }) => {
             localStorage.clear();
             sessionStorage.clear();
 
-            toast.success('Build triggered! Site will update in ~2 mins.', { id: toastId });
+            toast.success('🚀 Sync Request Sent! Site will rebuild & update in 2-3 minutes.', { id: toastId, duration: 8000 });
 
             // 3. Hard reload the page after a short delay
             setTimeout(() => {

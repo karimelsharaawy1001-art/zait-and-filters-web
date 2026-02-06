@@ -7,6 +7,8 @@ import { db, auth } from '../firebase';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 import { useCart } from '../context/CartContext';
+import { generateInvoice } from '../utils/invoiceGenerator';
+import { Download } from 'lucide-react';
 import { safeLocalStorage } from '../utils/safeStorage';
 
 const OrderSuccess = () => {
@@ -16,6 +18,7 @@ const OrderSuccess = () => {
     const { clearCart } = useCart();
     const [orderId, setOrderId] = useState(null);
     const [orderNumber, setOrderNumber] = useState(null);
+    const [fullOrder, setFullOrder] = useState(null);
     const [processing, setProcessing] = useState(true);
     const [isGuest, setIsGuest] = useState(false);
 
@@ -68,6 +71,7 @@ const OrderSuccess = () => {
 
                     setOrderId(result.id);
                     setOrderNumber(result.number);
+                    setFullOrder({ id: result.id, orderNumber: result.number, ...orderData, items: cartItems });
 
                     // Auto-sync with Mailchimp
                     try {
@@ -75,7 +79,7 @@ const OrderSuccess = () => {
                         const firstName = orderData.shippingAddress?.fullName?.split(' ')[0] || '';
                         const lastName = orderData.shippingAddress?.fullName?.split(' ').slice(1).join(' ') || '';
 
-                        await axios.post('/api/mailchimp-subscribe', {
+                        await axios.post('/api/products?action=subscribe', {
                             email: orderData.customerEmail,
                             firstName: firstName,
                             lastName: lastName
@@ -102,8 +106,10 @@ const OrderSuccess = () => {
                     if (urlOrderId) {
                         const orderSnap = await getDoc(doc(db, 'orders', urlOrderId));
                         if (orderSnap.exists()) {
+                            const data = orderSnap.data();
                             setOrderId(urlOrderId);
-                            setOrderNumber(orderSnap.data().orderNumber);
+                            setOrderNumber(data.orderNumber);
+                            setFullOrder({ id: urlOrderId, ...data });
                         }
                     }
                 }
@@ -190,6 +196,16 @@ const OrderSuccess = () => {
                         <Home className="h-6 w-6" />
                         {t('continueShopping')}
                     </Link>
+
+                    {fullOrder && (
+                        <button
+                            onClick={() => generateInvoice(fullOrder)}
+                            className="sm:col-span-2 flex items-center justify-center gap-3 bg-green-50 text-green-600 hover:bg-green-600 hover:text-white border-2 border-green-100 px-8 py-4 rounded-2xl font-black text-lg transition-all group shadow-sm"
+                        >
+                            <Download className="h-6 w-6 group-hover:scale-110 transition-transform" />
+                            {i18n.language === 'ar' ? 'تحميل الفاتورة' : 'Download Invoice (PDF)'}
+                        </button>
+                    )}
                 </div>
 
                 {isGuest && (

@@ -1,0 +1,162 @@
+[
+  {
+    "id": "1ggkekJjhK7g1gRyhsUm",
+    "name": "Minya",
+    "governorate": "القاهرة",
+    "cost": 90
+  },
+  {
+    "id": "9o2OGH5lOX1roU09mbJg",
+    "cost": 100,
+    "governorate": "كفر الشيخ"
+  },
+  {
+    "id": "BCTA8gzGjlvJfkm9EL63",
+    "governorate": "مرسى مطروح",
+    "cost": 150
+  },
+  {
+    "id": "BNuGiroQEvy4BGt3x5n5",
+    "cost": 100,
+    "name": "Sohag",
+    "governorate": "الدقهلية"
+  },
+  {
+    "id": "CyfnmcB3npr2tjnWmJFV",
+    "name": "New Valley",
+    "governorate": "دمياط",
+    "cost": 100
+  },
+  {
+    "id": "FFVL0iykCf91X4f74Ecj",
+    "cost": 100,
+    "governorate": "المنوفية",
+    "name": "Monufia"
+  },
+  {
+    "id": "HJrg0PrxezfwFGE130pv",
+    "cost": 100,
+    "governorate": "الغربية",
+    "name": "Beheira"
+  },
+  {
+    "id": "KF5GpXxF2fJCvcbdHlZD",
+    "governorate": "القليوبية",
+    "name": "Port Said",
+    "cost": 90
+  },
+  {
+    "id": "LiHGi4WlZtWnbjaOAtZG",
+    "name": "Qalyubia",
+    "cost": 100,
+    "governorate": "البحيرة"
+  },
+  {
+    "id": "LvkxYkbf9PwyBZyp8nVs",
+    "governorate": "الاسكندرية",
+    "name": "Beni Suef",
+    "cost": 90
+  },
+  {
+    "id": "MtLSQl233Dnqyq2tsG9J",
+    "governorate": "جنوب سيناء",
+    "cost": 150,
+    "name": "Giza"
+  },
+  {
+    "id": "SuHacNmzLPDjJsAmPtdr",
+    "name": "Gharbia",
+    "governorate": "شمال سيناء",
+    "cost": 150
+  },
+  {
+    "id": "UGPKSxvNXUh1ce0UF3je",
+    "cost": 150,
+    "name": "Aswan",
+    "governorate": "الوادي الجديد"
+  },
+  {
+    "id": "VPonIbcX8KKXoJxPLV0i",
+    "name": "Daqahlia",
+    "governorate": "البحر الاحمر",
+    "cost": 130
+  },
+  {
+    "id": "Wq533ysnZLP8NoDGi9SE",
+    "governorate": "الاقصر",
+    "cost": 130,
+    "name": "Matrouh"
+  },
+  {
+    "id": "XrgjUES0OgMbTn03Axm8",
+    "governorate": "اسوان",
+    "cost": 130,
+    "name": "Assiut"
+  },
+  {
+    "id": "ZJ7Ikc4EKZqpk4a9vCrV",
+    "cost": 120,
+    "governorate": "قنا",
+    "name": "Red Sea"
+  },
+  {
+    "id": "ZWo1AgOzITQGCFlHVbLl",
+    "name": "Suez",
+    "cost": 130,
+    "governorate": "سوهاج"
+  },
+  {
+    "id": "f32mBSG8G1k6Msmx76zA",
+    "governorate": "الجيزة",
+    "cost": 90,
+    "name": "South Sinai"
+  },
+  {
+    "id": "gpBxCFrvGXCuKuEyGXNZ",
+    "name": "Cairo",
+    "governorate": "اسيوط",
+    "cost": 100
+  },
+  {
+    "id": "k40UsaN1epnfOPqKcYJS",
+    "cost": 100,
+    "governorate": "المنيا",
+    "name": "Fayoum"
+  },
+  {
+    "id": "khbRJCraTmu9uLNJljb0",
+    "cost": 100,
+    "name": "Ismailia",
+    "governorate": "بني سويف"
+  },
+  {
+    "id": "lrUXtS6QPaqPoFvcHAu1",
+    "governorate": "الفيوم",
+    "cost": 100,
+    "name": "Alexandria"
+  },
+  {
+    "id": "rh9yKnXDWtWG8ZbNWKKu",
+    "governorate": "الشرقية",
+    "cost": 90,
+    "name": "North Sinai"
+  },
+  {
+    "id": "w2g8KNMA7tZSABwAHCjP",
+    "governorate": "بورسعيد",
+    "cost": 100,
+    "name": "Luxor"
+  },
+  {
+    "id": "w7DsFUaeV7Y0ydMnIqBB",
+    "cost": 100,
+    "name": "Kafr El Sheikh",
+    "governorate": "السويس"
+  },
+  {
+    "id": "y5PBd3lfEqpiYTAe8H54",
+    "governorate": "الاسماعيلية",
+    "cost": 100,
+    "name": "Sharqia"
+  }
+]

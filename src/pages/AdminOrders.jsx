@@ -1,24 +1,72 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, orderBy, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, where, addDoc } from 'firebase/firestore';
+import {
+    collection,
+    query,
+    orderBy,
+    getDocs,
+    doc,
+    updateDoc,
+    deleteDoc,
+    serverTimestamp,
+    where,
+    addDoc,
+    runTransaction,
+    setDoc,
+    increment,
+    limit
+} from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { toast } from 'react-hot-toast';
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import AdminHeader from '../components/AdminHeader';
-import { Eye, DollarSign, Edit2, CheckCircle, Search, Plus, Minus, Trash2, PlusCircle, Package, CreditCard, Clock, X, Save } from 'lucide-react';
+import {
+    Eye,
+    DollarSign,
+    Edit2,
+    CheckCircle,
+    Search,
+    Plus,
+    Minus,
+    Trash2,
+    PlusCircle,
+    Package,
+    CreditCard,
+    Clock,
+    X,
+    Save,
+    User,
+    MapPin,
+    UserPlus,
+    ChevronDown,
+    Loader2,
+    ShieldCheck,
+    AlertCircle,
+    Printer,
+    Download
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { generateInvoice } from '../utils/invoiceGenerator';
+import { useStaticData } from '../context/StaticDataContext';
+import { normalizeArabic } from '../utils/productUtils';
 
 const AdminOrders = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [editingOrder, setEditingOrder] = useState(null);
+    const [showCreateModal, setShowCreateModal] = useState(false);
     const [activeTab, setActiveTab] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
+    const [allCustomersCache, setAllCustomersCache] = useState([]);
     const navigate = useNavigate();
 
     const fetchOrders = async () => {
         try {
-            const q = query(collection(db, 'orders'), orderBy('orderNumber', 'desc'));
+            const q = query(
+                collection(db, 'orders'),
+                orderBy('orderNumber', 'desc'),
+                limit(50)
+            );
             const querySnapshot = await getDocs(q);
             const ordersList = querySnapshot.docs.map(doc => ({
                 id: doc.id,
@@ -27,14 +75,6 @@ const AdminOrders = () => {
             setOrders(ordersList);
         } catch (error) {
             console.error("Error fetching orders: ", error);
-            if (error.code === 'failed-precondition') {
-                const querySnapshot = await getDocs(collection(db, 'orders'));
-                const ordersList = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                setOrders(ordersList);
-            }
         } finally {
             setLoading(false);
         }
@@ -52,7 +92,18 @@ const AdminOrders = () => {
 
     useEffect(() => {
         fetchOrders();
+        fetchAllCustomers();
     }, []);
+
+    const fetchAllCustomers = async () => {
+        try {
+            const usersRef = collection(db, 'users');
+            const snap = await getDocs(usersRef);
+            setAllCustomersCache(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        } catch (error) {
+            console.error("Error fetching customers:", error);
+        }
+    };
 
     // PART 1: Quick Status Dropdown with Optimistic UI
     const handleStatusChange = async (orderId, newStatus) => {
@@ -201,9 +252,9 @@ const AdminOrders = () => {
 
             <main className="max-w-full mx-auto py-8 px-4 md:px-10">
                 <div className="">
-                    <div className="flex flex-col md:flex-row gap-6 mb-10">
+                    <div className="flex flex-col gap-4 mb-10">
                         {/* Status Filter Hub - White Surface */}
-                        <div className="flex-1 bg-white rounded-[24px] shadow-sm border border-gray-200 p-3 group/filters">
+                        <div className="bg-white rounded-[24px] shadow-sm border border-gray-200 p-3 group/filters">
                             <div className="flex gap-3 overflow-x-auto scrollbar-hide px-2 py-1">
                                 {statusTabs.map(tab => {
                                     const count = getStatusCount(tab);
@@ -230,16 +281,28 @@ const AdminOrders = () => {
                             </div>
                         </div>
 
-                        {/* Order Search - High Performance Input */}
-                        <div className="md:w-72 relative group/search">
-                            <input
-                                type="text"
-                                placeholder="Search Order Matrix..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-white border border-gray-200 rounded-2xl pl-12 pr-6 py-4.5 text-sm font-black shadow-sm text-black placeholder-gray-300 focus:ring-2 focus:ring-[#e31e24] outline-none transition-all group-hover/search:border-[#e31e24]/30"
-                            />
-                            <Search className="absolute left-4.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-gray-300 group-focus-within/search:text-[#e31e24] transition-colors" />
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            {/* Order Search - High Performance Input */}
+                            <div className="flex-1 relative group/search">
+                                <input
+                                    type="text"
+                                    placeholder="Search Order Matrix..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full bg-white border border-gray-200 rounded-2xl pl-12 pr-6 py-4.5 text-sm font-black shadow-sm text-black placeholder-gray-300 focus:ring-2 focus:ring-[#e31e24] outline-none transition-all group-hover/search:border-[#e31e24]/30"
+                                />
+                                <Search className="absolute left-4.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-gray-300 group-focus-within/search:text-[#e31e24] transition-colors" />
+                            </div>
+
+                            {/* New Order Button */}
+                            <button
+                                onClick={() => setShowCreateModal(true)}
+                                className="bg-[#28B463] text-white px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-[#28B463]/20 hover:bg-[#219653] transition-all flex items-center justify-center gap-2 whitespace-nowrap shrink-0"
+                            >
+                                <PlusCircle className="h-4 w-4" />
+                                <span className="hidden sm:inline">Create Manual Order</span>
+                                <span className="sm:hidden">New Order</span>
+                            </button>
                         </div>
                     </div>
 
@@ -292,7 +355,14 @@ const AdminOrders = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-7 whitespace-nowrap text-base font-black text-black">
-                                                    {order.total?.toLocaleString()} <span className="text-[10px] text-gray-400">EGP</span>
+                                                    <div className="flex flex-col">
+                                                        <span>{order.total?.toLocaleString()} <span className="text-[10px] text-gray-400">EGP</span></span>
+                                                        {order.notes && (
+                                                            <span className="text-[9px] text-[#e31e24] font-bold uppercase tracking-widest mt-1 flex items-center gap-1">
+                                                                <AlertCircle className="w-2 h-2" /> Has Note
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 <td className="px-8 py-7 whitespace-nowrap">
                                                     <select
@@ -343,6 +413,27 @@ const AdminOrders = () => {
                                                         >
                                                             <Eye className="w-5 h-5" />
                                                         </Link>
+
+                                                        {/* Print Invoice Button */}
+                                                        <button
+                                                            onClick={() => window.open(`/print-invoice/${order.id}`, '_blank')}
+                                                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-400 hover:text-[#e31e24]"
+                                                            title="Print Invoice"
+                                                        >
+                                                            <Printer className="w-5 h-5" />
+                                                        </button>
+
+                                                        {/* Download Invoice Button */}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                generateInvoice(order);
+                                                            }}
+                                                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-400 hover:text-[#28B463]"
+                                                            title="Download PDF Invoice"
+                                                        >
+                                                            <Download className="w-5 h-5" />
+                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -368,19 +459,42 @@ const AdminOrders = () => {
                     }}
                 />
             )}
+
+            {/* Create Order Modal */}
+            {showCreateModal && (
+                <CreateOrderModal
+                    onClose={() => setShowCreateModal(false)}
+                    onSave={() => {
+                        setShowCreateModal(false);
+                        fetchOrders();
+                    }}
+                    cachedCustomers={allCustomersCache}
+                />
+            )}
         </div>
     );
 };
 
 // PART 3: Pro-Grade Order Editor Modal
+
+// PART 3: Pro-Grade Order Editor Modal
 const EditOrderModal = ({ order, onClose, onSave }) => {
+    const {
+        staticProducts,
+        categories: staticCategories,
+        cars: staticCars,
+        brands: staticBrands,
+        isStaticLoaded
+    } = useStaticData();
+
     const [formData, setFormData] = useState({
         paymentMethod: order.paymentMethod || '',
         paymentStatus: order.paymentStatus || 'Pending',
         status: order.status || 'Pending',
         items: [...(order.items || [])],
         extraFees: order.extraFees || 0,
-        manualDiscount: order.manualDiscount || 0
+        manualDiscount: order.manualDiscount || 0,
+        notes: order.notes || ''
     });
     const [saving, setSaving] = useState(false);
     const [productSearch, setProductSearch] = useState('');
@@ -388,8 +502,6 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
     const [isSearching, setIsSearching] = useState(false);
 
     // Advanced Filtering States
-    const [categories, setCategories] = useState([]);
-    const [carOptions, setCarOptions] = useState([]);
     const [makes, setMakes] = useState([]);
     const [models, setModels] = useState([]);
     const [filterCategory, setFilterCategory] = useState('');
@@ -397,32 +509,18 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
     const [filterModel, setFilterModel] = useState('');
     const [filterYear, setFilterYear] = useState('');
 
-    // Fetch Search Metadata (Categories & Cars)
+    // Initialize Metadata from static context
     useEffect(() => {
-        const fetchMetadata = async () => {
-            try {
-                const [catsSnap, carsSnap] = await Promise.all([
-                    getDocs(collection(db, 'categories')),
-                    getDocs(collection(db, 'cars'))
-                ]);
-
-                const cats = catsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                const cars = carsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                setCategories(cats);
-                setCarOptions(cars);
-                setMakes([...new Set(cars.map(c => c.make))].sort());
-            } catch (error) {
-                console.error("Error fetching search metadata:", error);
-            }
-        };
-        fetchMetadata();
-    }, []);
+        if (isStaticLoaded) {
+            const uniqueMakes = [...new Set(staticCars.map(c => c.make))].sort();
+            setMakes(uniqueMakes);
+        }
+    }, [isStaticLoaded, staticCars]);
 
     // Dependent Dropdown: Update models when make changes
     useEffect(() => {
         if (filterMake) {
-            const makeModels = carOptions
+            const makeModels = staticCars
                 .filter(c => c.make === filterMake)
                 .map(c => c.model);
             setModels([...new Set(makeModels)].sort());
@@ -431,57 +529,42 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
             setModels([]);
             setFilterModel('');
         }
-    }, [filterMake, carOptions]);
+    }, [filterMake, staticCars]);
 
+    // Product Search
     const handleProductSearch = async (q) => {
         setProductSearch(q);
 
-        // We trigger search if there's a query OR if filters are active
-        if (q.length < 2 && !filterCategory && !filterMake && !filterYear) {
+        if (!q && !filterCategory && !filterMake && !filterYear) {
             setSearchResults([]);
             return;
         }
 
         setIsSearching(true);
-        try {
-            const productsRef = collection(db, 'products');
-            const qSnap = await getDocs(productsRef);
-            let all = qSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // Quota Shield: Filter LOCAL staticProducts instead of querying Firestore
+        const searchLower = normalizeArabic(q.toLowerCase());
 
-            // Apply Multi-Attribute Filter Matrix
-            const filtered = all.filter(p => {
-                const matchesQuery = !q ||
-                    p.name?.toLowerCase().includes(q.toLowerCase()) ||
-                    p.sku?.toLowerCase().includes(q.toLowerCase()) ||
-                    p.partNumber?.toLowerCase().includes(q.toLowerCase());
+        const filtered = staticProducts.filter(p => {
+            const nameMatch = !q || normalizeArabic(p.name?.toLowerCase() || '').includes(searchLower) ||
+                normalizeArabic(p.nameEn?.toLowerCase() || '').includes(searchLower) ||
+                p.sku?.toLowerCase().includes(searchLower) ||
+                p.partNumber?.toLowerCase().includes(searchLower);
 
-                const matchesCategory = !filterCategory || p.category === filterCategory;
+            const categoryMatch = !filterCategory || p.category === filterCategory;
+            const makeMatch = !filterMake || p.make === filterMake;
+            const modelMatch = !filterModel || p.model === filterModel;
+            const yearMatch = !filterYear || (
+                (!p.yearStart || Number(filterYear) >= Number(p.yearStart)) &&
+                (!p.yearEnd || Number(filterYear) <= Number(p.yearEnd))
+            );
 
-                // Car Filtering Logic
-                const matchesMake = !filterMake || p.make === filterMake;
-                const matchesModel = !filterModel || p.model === filterModel;
+            return nameMatch && categoryMatch && makeMatch && modelMatch && yearMatch;
+        }).slice(0, 30);
 
-                // Year Logic: Product must overlap with the requested year
-                const matchesYear = !filterYear || (
-                    (!p.yearStart || Number(filterYear) >= Number(p.yearStart)) &&
-                    (!p.yearEnd || Number(filterYear) <= Number(p.yearEnd))
-                );
-
-                return matchesQuery && matchesCategory && matchesMake && matchesModel && matchesYear;
-            }).slice(0, 10); // Show more results in modal
-
-            setSearchResults(filtered);
-        } catch (error) {
-            console.error("Search error:", error);
-        } finally {
-            setIsSearching(false);
-        }
+        setSearchResults(filtered);
+        setIsSearching(false);
     };
 
-    // Re-trigger search when filters change
-    useEffect(() => {
-        handleProductSearch(productSearch);
-    }, [filterCategory, filterMake, filterModel, filterYear]);
 
     const addProductToOrder = (product) => {
         const existing = formData.items.find(item => item.id === product.id);
@@ -493,13 +576,18 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                 )
             });
         } else {
+            // Use sale price if available, fallback to regular price
+            const activePrice = (product.salePrice !== null && product.salePrice !== undefined)
+                ? Number(product.salePrice)
+                : Number(product.price);
+
             setFormData({
                 ...formData,
                 items: [...formData.items, {
                     id: product.id,
                     name: product.name,
                     nameEn: product.nameEn || product.name,
-                    price: product.price,
+                    price: activePrice,
                     image: product.image || product.images?.[0] || '/placeholder.png',
                     brand: product.partBrand || product.brand || 'N/A',
                     category: product.category || 'N/A',
@@ -509,7 +597,8 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                     model: product.model || 'Universal',
                     yearStart: product.yearStart || '',
                     yearEnd: product.yearEnd || '',
-                    partNumber: product.partNumber || product.sku || 'N/A'
+                    partNumber: product.partNumber || product.sku || 'N/A',
+                    quantity: 1
                 }]
             });
         }
@@ -524,6 +613,18 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                 if (item.id === id) {
                     const newQty = Math.max(1, item.quantity + delta);
                     return { ...item, quantity: newQty };
+                }
+                return item;
+            })
+        });
+    };
+
+    const updateItemPrice = (id, newPrice) => {
+        setFormData({
+            ...formData,
+            items: formData.items.map(item => {
+                if (item.id === id) {
+                    return { ...item, price: newPrice };
                 }
                 return item;
             })
@@ -688,7 +789,7 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                                         className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-[10px] font-bold text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none"
                                     >
                                         <option value="">All Categories</option>
-                                        {categories.map(cat => (
+                                        {staticCategories.map(cat => (
                                             <option key={cat.id} value={cat.name}>{cat.name}</option>
                                         ))}
                                     </select>
@@ -758,8 +859,15 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                                                 </div>
                                                 <div className="min-w-0 flex-1">
                                                     <p className="text-xs font-black truncate text-black">{p.name}</p>
-                                                    <div className="flex gap-2 mt-0.5">
-                                                        <p className="text-[10px] text-[#e31e24] font-black uppercase tracking-widest">{p.price} EGP</p>
+                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                        {(p.salePrice !== null && p.salePrice !== undefined) ? (
+                                                            <>
+                                                                <p className="text-[10px] text-[#28B463] font-black uppercase tracking-widest">{p.salePrice} EGP</p>
+                                                                <p className="text-[9px] text-gray-400 line-through font-bold">{p.price} EGP</p>
+                                                            </>
+                                                        ) : (
+                                                            <p className="text-[10px] text-[#e31e24] font-black uppercase tracking-widest">{p.price} EGP</p>
+                                                        )}
                                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">| {p.partBrand || p.brand}</p>
                                                     </div>
                                                 </div>
@@ -781,8 +889,16 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-xs font-black truncate text-black uppercase tracking-tight poppins">{item.name}</p>
-                                        <div className="flex items-center gap-2 mt-0.5">
-                                            <p className="text-[10px] font-black text-[#e31e24] tracking-widest">{item.price} EGP</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <div className="relative group/price">
+                                                <input
+                                                    type="number"
+                                                    value={item.price}
+                                                    onChange={(e) => updateItemPrice(item.id, e.target.value)}
+                                                    className="w-24 px-2 py-1 bg-gray-100 border border-gray-100 rounded-lg text-[10px] font-black text-[#e31e24] focus:ring-1 focus:ring-[#e31e24] outline-none transition-all"
+                                                />
+                                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-bold text-gray-400 select-none pointer-events-none">EGP</span>
+                                            </div>
                                             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">| {item.brand || 'N/A'}</p>
                                         </div>
                                     </div>
@@ -817,40 +933,57 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                                 placeholder="0.00"
                             />
                         </div>
-                        <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Manual Adjustment (EGP)</label>
-                            <input
-                                type="number"
-                                value={formData.manualDiscount}
-                                onChange={(e) => setFormData({ ...formData, manualDiscount: e.target.value })}
-                                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-black focus:ring-2 focus:ring-[#e31e24] outline-none transition-all font-black text-xs"
-                                placeholder="0.00"
-                            />
-                        </div>
                     </div>
 
-                    {/* Financial Summary: High Contrast */}
-                    <div className="bg-[#1A1A1A] rounded-[28px] p-8 text-white space-y-3 shrink-0 shadow-2xl relative overflow-hidden">
-                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-40">
-                            <span>Subtotal Matrix</span>
-                            <span>{newSubtotal} EGP</span>
+                    {/* Order Notes Section */}
+                    <div className="pt-4 border-t border-gray-50">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <AlertCircle className="w-3 h-3" />
+                            Internal & Customer Notes
+                        </label>
+                        <textarea
+                            value={formData.notes}
+                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                            className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none transition-all font-bold text-xs"
+                            placeholder="Special instructions, delivery notes, or internal tracking details..."
+                            rows={3}
+                        />
+                    </div>
+                </div>
+
+                {/* Financial Summary: High Contrast */}
+                <div className="bg-[#1A1A1A] rounded-[28px] p-8 text-white space-y-3 shrink-0 shadow-2xl relative overflow-hidden">
+                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-40">
+                        <span>Subtotal Matrix</span>
+                        <span>{newSubtotal.toFixed(2)} EGP</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-60 text-green-400">
+                        <span>Logistics Cost</span>
+                        <span>+{parseFloat(order.shipping_cost || 0).toFixed(2)} EGP</span>
+                    </div>
+                    {parseFloat(formData.extraFees || 0) > 0 && (
+                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-60 text-blue-400">
+                            <span>Service Surcharge</span>
+                            <span>+{parseFloat(formData.extraFees || 0).toFixed(2)} EGP</span>
                         </div>
-                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-40">
-                            <span>Logistics + Surcharge</span>
-                            <span>+{(parseFloat(order.shipping_cost || 0) + parseFloat(formData.extraFees || 0))} EGP</span>
+                    )}
+                    {order.discount > 0 && (
+                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-[#e31e24] opacity-80">
+                            <span>Promo Injection</span>
+                            <span>-{parseFloat(order.discount || 0).toFixed(2)} EGP</span>
                         </div>
-                        {order.discount > 0 && (
-                            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-[#e31e24]">
-                                <span>Promo Injection</span>
-                                <span>-{order.discount} EGP</span>
-                            </div>
-                        )}
-                        <div className="flex justify-between items-center pt-5 mt-2 border-t border-white/10 relative z-10">
-                            <span className="text-sm font-black uppercase tracking-[0.2em] poppins italic opacity-60">Terminal Total</span>
-                            <span className="text-3xl font-black text-white poppins tabular-nums transition-all">
-                                {newTotal} <span className="text-[12px] font-bold text-white/30 tracking-widest uppercase">EGP</span>
-                            </span>
+                    )}
+                    {parseFloat(formData.manualDiscount || 0) > 0 && (
+                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-[#e31e24]">
+                            <span>Manual Override</span>
+                            <span>-{parseFloat(formData.manualDiscount || 0).toFixed(2)} EGP</span>
                         </div>
+                    )}
+                    <div className="flex justify-between items-center pt-5 mt-2 border-t border-white/10 relative z-10">
+                        <span className="text-sm font-black uppercase tracking-[0.2em] poppins italic opacity-60">Terminal Total</span>
+                        <span className="text-3xl font-black text-white poppins tabular-nums transition-all">
+                            {newTotal.toFixed(2)} <span className="text-[12px] font-bold text-white/30 tracking-widest uppercase">EGP</span>
+                        </span>
                     </div>
                 </div>
 
@@ -872,6 +1005,674 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                             {!saving && <Save className="h-5 w-5 text-[#e31e24]" />}
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const CreateOrderModal = ({ onClose, onSave, cachedCustomers = [] }) => {
+    const {
+        staticProducts,
+        categories: staticCategories,
+        cars: staticCars,
+        isStaticLoaded,
+        shipping_rates: staticShippingRates
+    } = useStaticData();
+
+    const [step, setStep] = useState(1); // 1: Customer, 2: Items, 3: Review
+    const [loading, setLoading] = useState(false);
+    const [customerMode, setCustomerMode] = useState('existing'); // 'existing' or 'new'
+
+    // Customer Search State
+    const [customerSearch, setCustomerSearch] = useState('');
+    const [customerResults, setCustomerResults] = useState([]);
+    const [searchingCustomers, setSearchingCustomers] = useState(false);
+
+    // Shipping Rates
+    const [shippingRates, setShippingRates] = useState([]);
+
+    // Form Data
+    const [orderData, setOrderData] = useState({
+        customer: {
+            id: null,
+            name: '',
+            phone: '',
+            secondaryPhone: '',
+            email: '',
+            address: '',
+            governorate: '',
+            city: ''
+        },
+        items: [],
+        paymentMethod: 'Cash on Delivery',
+        paymentStatus: 'Pending',
+        status: 'Pending',
+        manualDiscount: 0,
+        extraFees: 0,
+        notes: ''
+    });
+
+    // Product Search State
+    const [productSearch, setProductSearch] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearchingProducts, setIsSearchingProducts] = useState(false);
+
+    // Filters
+    const [makes, setMakes] = useState([]);
+    const [models, setModels] = useState([]);
+    const [filterCategory, setFilterCategory] = useState('');
+    const [filterMake, setFilterMake] = useState('');
+    const [filterModel, setFilterModel] = useState('');
+    const [filterYear, setFilterYear] = useState('');
+    const [allCustomers, setAllCustomers] = useState([]);
+
+    useEffect(() => {
+        if (isStaticLoaded && staticShippingRates) {
+            setShippingRates(staticShippingRates);
+        }
+        // Use cached customers from parent instead of fetching
+        setAllCustomers(cachedCustomers);
+    }, [isStaticLoaded, staticShippingRates, cachedCustomers]);
+
+    // Initialize Metadata from static context
+    useEffect(() => {
+        if (isStaticLoaded) {
+            const uniqueMakes = [...new Set(staticCars.map(c => c.make))].sort();
+            setMakes(uniqueMakes);
+        }
+    }, [isStaticLoaded, staticCars]);
+
+    // Product Filter Logic (Dependent Dropdowns)
+    useEffect(() => {
+        if (filterMake) {
+            const makeModels = staticCars
+                .filter(c => c.make === filterMake)
+                .map(c => c.model);
+            setModels([...new Set(makeModels)].sort());
+            setFilterModel('');
+        } else {
+            setModels([]);
+            setFilterModel('');
+        }
+    }, [filterMake, staticCars]);
+
+    // Customer Search - LOCAL (Robust Includes Search)
+    const handleCustomerSearch = (q) => {
+        setCustomerSearch(q);
+        if (!q.trim()) {
+            setCustomerResults([]);
+            return;
+        }
+
+        const searchLower = q.toLowerCase();
+        const filtered = allCustomers.filter(user => {
+            const matchesPhone = user.phoneNumber?.toLowerCase().includes(searchLower) || user.phone?.toLowerCase().includes(searchLower);
+            const matchesName = user.fullName?.toLowerCase().includes(searchLower) || user.name?.toLowerCase().includes(searchLower);
+            const matchesEmail = user.email?.toLowerCase().includes(searchLower);
+            return matchesPhone || matchesName || matchesEmail;
+        }).slice(0, 10);
+
+        setCustomerResults(filtered);
+    };
+
+    // Product Search Logic - LOCAL ONLY (Quota Shield)
+    const handleProductSearch = async (q) => {
+        setProductSearch(q);
+        if (!q && !filterCategory && !filterMake && !filterYear) {
+            setSearchResults([]);
+            return;
+        }
+
+        setIsSearchingProducts(true);
+        const searchLower = normalizeArabic(q.toLowerCase());
+
+        const filtered = staticProducts.filter(p => {
+            const matchesQuery = !q ||
+                normalizeArabic(p.name?.toLowerCase() || '').includes(searchLower) ||
+                normalizeArabic(p.nameEn?.toLowerCase() || '').includes(searchLower) ||
+                p.sku?.toLowerCase().includes(searchLower) ||
+                p.partNumber?.toLowerCase().includes(searchLower);
+
+            const matchesCategory = !filterCategory || p.category === filterCategory;
+            const matchesMake = !filterMake || p.make === filterMake;
+            const matchesModel = !filterModel || p.model === filterModel;
+            const matchesYear = !filterYear || (
+                (!p.yearStart || Number(filterYear) >= Number(p.yearStart)) &&
+                (!p.yearEnd || Number(filterYear) <= Number(p.yearEnd))
+            );
+
+            return matchesQuery && matchesCategory && matchesMake && matchesModel && matchesYear;
+        }).slice(0, 30);
+
+        setSearchResults(filtered);
+        setIsSearchingProducts(false);
+    };
+
+    // Re-trigger product search
+    useEffect(() => {
+        handleProductSearch(productSearch);
+    }, [filterCategory, filterMake, filterModel, filterYear]);
+
+    const addProduct = (product) => {
+        setOrderData(prev => {
+            const existing = prev.items.find(i => i.id === product.id);
+            if (existing) {
+                return {
+                    ...prev,
+                    items: prev.items.map(i => i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i)
+                };
+            }
+            // Use sale price if available, fallback to regular price
+            const activePrice = (product.salePrice !== null && product.salePrice !== undefined)
+                ? Number(product.salePrice)
+                : Number(product.price);
+
+            return {
+                ...prev,
+                items: [...prev.items, {
+                    id: product.id,
+                    name: product.name,
+                    nameEn: product.nameEn || product.name,
+                    price: activePrice,
+                    image: product.image || product.images?.[0] || '/placeholder.png',
+                    brand: product.partBrand || product.brand || 'N/A',
+                    partNumber: product.partNumber || product.sku || 'N/A',
+                    quantity: 1
+                }]
+            };
+        });
+        setProductSearch('');
+        setSearchResults([]);
+    };
+
+    const updateItemQty = (id, delta) => {
+        setOrderData(prev => ({
+            ...prev,
+            items: prev.items.map(i => {
+                if (i.id === id) return { ...i, quantity: Math.max(1, i.quantity + delta) };
+                return i;
+            })
+        }));
+    };
+
+    const updateItemPrice = (id, newPrice) => {
+        setOrderData(prev => ({
+            ...prev,
+            items: prev.items.map(i => {
+                if (i.id === id) return { ...i, price: newPrice };
+                return i;
+            })
+        }));
+    };
+
+    const removeItem = (id) => {
+        setOrderData(prev => ({ ...prev, items: prev.items.filter(i => i.id !== id) }));
+    };
+
+    const calculateTotals = () => {
+        const subtotal = orderData.items.reduce((acc, item) => acc + (parseFloat(item.price) * item.quantity), 0);
+        const shippingRate = shippingRates.find(r => r.governorate === orderData.customer.governorate);
+        const shipping = shippingRate ? Number(shippingRate.cost) : 0;
+        const total = subtotal + shipping + Number(orderData.extraFees) - Number(orderData.manualDiscount);
+        return { subtotal, shipping, total: Math.max(0, total) };
+    };
+
+    const handleSubmitOrder = async () => {
+        if (!orderData.customer.name || !orderData.customer.phone || !orderData.customer.governorate || !orderData.customer.address) {
+            toast.error("Please fill in all required customer details.");
+            return;
+        }
+        if (orderData.items.length === 0) {
+            toast.error("Please add at least one product.");
+            return;
+        }
+
+        setLoading(true);
+        const { subtotal, shipping, total } = calculateTotals();
+
+        try {
+            await runTransaction(db, async (tx) => {
+                const counterRef = doc(db, 'settings', 'counters');
+                const counterSnap = await tx.get(counterRef);
+
+                let nextNumber = 3501;
+                if (counterSnap.exists()) {
+                    nextNumber = (counterSnap.data().lastOrderNumber || 3500) + 1;
+                }
+
+                const orderRef = doc(collection(db, 'orders'));
+
+                const finalOrder = {
+                    customer: {
+                        name: orderData.customer.name,
+                        phone: orderData.customer.phone,
+                        secondaryPhone: orderData.customer.secondaryPhone,
+                        email: orderData.customer.email,
+                        address: orderData.customer.address,
+                        governorate: orderData.customer.governorate,
+                        city: orderData.customer.city
+                    },
+                    userId: orderData.customer.id || 'manual_guest',
+                    items: orderData.items,
+                    subtotal,
+                    shipping_cost: shipping,
+                    extraFees: Number(orderData.extraFees),
+                    manualDiscount: Number(orderData.manualDiscount),
+                    total,
+                    paymentMethod: orderData.paymentMethod,
+                    paymentStatus: orderData.paymentStatus,
+                    status: orderData.status,
+                    notes: orderData.notes || '',
+                    orderNumber: nextNumber,
+                    createdAt: serverTimestamp(),
+                    isOpened: false,
+                    source: 'admin_panel'
+                };
+
+                tx.set(orderRef, finalOrder);
+                tx.set(counterRef, { lastOrderNumber: nextNumber }, { merge: true });
+            });
+
+            toast.success("Order created successfully!");
+            onSave();
+        } catch (error) {
+            console.error("Failed to create order:", error);
+            toast.error("Failed to create order.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const { subtotal, shipping, total } = calculateTotals();
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose}></div>
+            <div className="bg-white rounded-[32px] shadow-2xl relative w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+                {/* Header */}
+                <div className="bg-[#1A1A1A] p-6 text-white flex justify-between items-center shrink-0">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[#28B463] flex items-center justify-center">
+                            <PlusCircle className="text-white h-5 w-5" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-black uppercase tracking-widest">Create Manual Order</h3>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em]">Administrator Terminal</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
+                        <X className="h-6 w-6" />
+                    </button>
+                </div>
+
+                {/* Body */}
+                <div className="flex-1 overflow-y-auto p-8">
+                    {/* Stepper */}
+                    <div className="flex items-center justify-center mb-8">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-colors ${step >= 1 ? 'bg-[#28B463] text-white' : 'bg-gray-100 text-gray-400'}`}>1</div>
+                        <div className={`w-16 h-1 bg-gray-100 mx-2 ${step >= 2 ? 'bg-[#28B463]' : ''}`}></div>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-colors ${step >= 2 ? 'bg-[#28B463] text-white' : 'bg-gray-100 text-gray-400'}`}>2</div>
+                        <div className={`w-16 h-1 bg-gray-100 mx-2 ${step >= 3 ? 'bg-[#28B463]' : ''}`}></div>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-colors ${step >= 3 ? 'bg-[#28B463] text-white' : 'bg-gray-100 text-gray-400'}`}>3</div>
+                    </div>
+
+                    {/* Step 1: Customer Details */}
+                    {step === 1 && (
+                        <div className="space-y-6 max-w-2xl mx-auto">
+                            <div className="flex bg-gray-100 p-1 rounded-2xl w-fit mx-auto mb-6">
+                                <button
+                                    onClick={() => setCustomerMode('existing')}
+                                    className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${customerMode === 'existing' ? 'bg-white shadow-lg text-black' : 'text-gray-400 hover:text-gray-600'}`}
+                                >
+                                    Existing Customer
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setCustomerMode('new');
+                                        setOrderData(prev => ({ ...prev, customer: { ...prev.customer, id: null, name: '', phone: '', secondaryPhone: '', email: '', address: '', governorate: '', city: '' } }));
+                                    }}
+                                    className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${customerMode === 'new' ? 'bg-white shadow-lg text-black' : 'text-gray-400 hover:text-gray-600'}`}
+                                >
+                                    New Customer
+                                </button>
+                            </div>
+
+                            {customerMode === 'existing' && (
+                                <div className="space-y-4">
+                                    <div className="relative">
+                                        <div className="flex items-center bg-gray-50 border border-gray-200 rounded-2xl p-4 focus-within:ring-2 ring-[#28B463]">
+                                            <Search className="h-5 w-5 text-gray-400 mr-3" />
+                                            <input
+                                                type="text"
+                                                placeholder="Search by Phone Number..."
+                                                value={customerSearch}
+                                                onChange={(e) => handleCustomerSearch(e.target.value)}
+                                                className="bg-transparent w-full text-sm font-bold text-black border-none outline-none placeholder-gray-400"
+                                            />
+                                            {searchingCustomers && <Loader2 className="h-4 w-4 animate-spin text-[#28B463]" />}
+                                        </div>
+                                    </div>
+
+                                    {/* Results */}
+                                    {customerResults.length > 0 && (
+                                        <div className="bg-white border border-gray-100 shadow-xl rounded-2xl max-h-60 overflow-y-auto">
+                                            {customerResults.map(user => (
+                                                <button
+                                                    key={user.id}
+                                                    onClick={() => {
+                                                        setOrderData(prev => ({
+                                                            ...prev,
+                                                            customer: {
+                                                                id: user.id || null,
+                                                                name: user.fullName || user.name || '',
+                                                                phone: user.phoneNumber || user.phone || '',
+                                                                email: user.email || '',
+                                                                address: user.address || '',
+                                                                governorate: user.governorate || '',
+                                                                city: user.city || ''
+                                                            }
+                                                        }));
+                                                        setCustomerSearch('');
+                                                        setCustomerResults([]);
+                                                    }}
+                                                    className="w-full text-left p-4 hover:bg-gray-50 border-b border-gray-50 last:border-0"
+                                                >
+                                                    <p className="font-black text-sm text-black">{user.fullName}</p>
+                                                    <p className="text-xs text-gray-400">{user.phoneNumber} • {user.email}</p>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Customer Form Fields */}
+                            <div className="space-y-4 bg-gray-50/50 p-6 rounded-[24px] border border-gray-100">
+                                <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Customer Details</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase">Full Name</label>
+                                        <input
+                                            type="text"
+                                            value={orderData.customer.name}
+                                            onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, name: e.target.value } })}
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase">Phone Number</label>
+                                        <input
+                                            type="text"
+                                            value={orderData.customer.phone}
+                                            onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, phone: e.target.value } })}
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase">Governorate</label>
+                                        <select
+                                            value={orderData.customer.governorate}
+                                            onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, governorate: e.target.value } })}
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
+                                        >
+                                            <option value="">Select...</option>
+                                            {shippingRates.map(r => (
+                                                <option key={r.id} value={r.governorate}>{r.governorate} (+{r.cost} EGP)</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase">City</label>
+                                        <input
+                                            type="text"
+                                            value={orderData.customer.city}
+                                            onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, city: e.target.value } })}
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
+                                        />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase">Detailed Address</label>
+                                        <textarea
+                                            value={orderData.customer.address}
+                                            onChange={(e) => setOrderData({ ...orderData, customer: { ...orderData.customer, address: e.target.value } })}
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:border-[#28B463]"
+                                            rows={2}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Step 2: Product Selection */}
+                    {step === 2 && (
+                        <div className="space-y-6">
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <select value={filterMake} onChange={e => setFilterMake(e.target.value)} className="bg-gray-50 border-gray-100 rounded-xl text-xs font-bold p-2.5">
+                                        <option value="">All Makes</option>
+                                        {makes.map(m => <option key={m} value={m}>{m}</option>)}
+                                    </select>
+                                    <select value={filterModel} onChange={e => setFilterModel(e.target.value)} disabled={!filterMake} className="bg-gray-50 border-gray-100 rounded-xl text-xs font-bold p-2.5 disabled:opacity-50">
+                                        <option value="">All Models</option>
+                                        {models.map(m => <option key={m} value={m}>{m}</option>)}
+                                    </select>
+                                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="bg-gray-50 border-gray-100 rounded-xl text-xs font-bold p-2.5">
+                                        <option value="">All Categories</option>
+                                        {staticCategories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                                    </select>
+                                    <input
+                                        type="number"
+                                        placeholder="Year"
+                                        value={filterYear}
+                                        onChange={e => setFilterYear(e.target.value)}
+                                        className="bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold p-2.5"
+                                    />
+                                </div>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Search products..."
+                                        value={productSearch}
+                                        onChange={e => handleProductSearch(e.target.value)}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:ring-2 focus:ring-[#28B463] outline-none"
+                                    />
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                    {searchResults.length > 0 && (
+                                        <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-gray-100 shadow-2xl rounded-2xl z-[50] max-h-60 overflow-y-auto">
+                                            {searchResults.map(p => (
+                                                <button
+                                                    key={p.id}
+                                                    onClick={() => addProduct(p)}
+                                                    className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 border-b border-gray-50 last:border-0"
+                                                >
+                                                    <img src={p.image || p.images?.[0] || '/placeholder.png'} className="w-10 h-10 rounded-lg object-cover" />
+                                                    <div className="text-left flex-1 min-w-0">
+                                                        <p className="text-xs font-black truncate text-black">{p.name}</p>
+                                                        <div className="flex items-center gap-2">
+                                                            {(p.salePrice !== null && p.salePrice !== undefined) ? (
+                                                                <>
+                                                                    <p className="text-[10px] text-[#28B463] font-black">{p.salePrice} EGP</p>
+                                                                    <p className="text-[9px] text-gray-400 line-through font-bold">{p.price} EGP</p>
+                                                                </>
+                                                            ) : (
+                                                                <p className="text-[10px] text-gray-400 font-bold">{p.price} EGP</p>
+                                                            )}
+                                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">| {p.partBrand || p.brand}</p>
+                                                        </div>
+                                                    </div>
+                                                    <PlusCircle className="h-5 w-5 text-[#28B463]" />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="bg-gray-50 rounded-[28px] p-4 border border-gray-100 min-h-[200px]">
+                                <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Selected Inventory ({orderData.items.length})</h4>
+                                <div className="space-y-3">
+                                    {orderData.items.map(item => (
+                                        <div key={item.id} className="flex items-center gap-4 bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
+                                            <img src={item.image} className="w-12 h-12 rounded-xl object-cover" />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-black truncate">{item.name}</p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <div className="relative w-fit">
+                                                        <input
+                                                            type="number"
+                                                            value={item.price}
+                                                            onChange={(e) => updateItemPrice(item.id, e.target.value)}
+                                                            className="w-24 px-2 py-1 bg-gray-50 border border-gray-100 rounded-lg text-[10px] font-black text-[#28B463] outline-none"
+                                                        />
+                                                    </div>
+                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">| {item.brand || 'N/A'}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center bg-gray-50 rounded-lg px-2">
+                                                <button onClick={() => updateItemQty(item.id, -1)} className="p-2 text-gray-500"><Minus className="h-3 w-3" /></button>
+                                                <span className="text-xs font-black mx-2">{item.quantity}</span>
+                                                <button onClick={() => updateItemQty(item.id, 1)} className="p-2 text-gray-500"><Plus className="h-3 w-3" /></button>
+                                            </div>
+                                            <button onClick={() => removeItem(item.id)} className="p-2 text-gray-400 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Step 3: Review */}
+                    {step === 3 && (
+                        <div className="space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-4">
+                                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest">Configuration</h4>
+                                    <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 space-y-4">
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Payment</label>
+                                            <select
+                                                value={orderData.paymentMethod}
+                                                onChange={(e) => setOrderData({ ...orderData, paymentMethod: e.target.value })}
+                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
+                                            >
+                                                <option value="Cash on Delivery">Cash on Delivery</option>
+                                                <option value="Credit Card">Credit Card</option>
+                                                <option value="InstaPay">InstaPay</option>
+                                                <option value="Wallet">Wallet</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Discount (EGP)</label>
+                                            <input
+                                                type="number"
+                                                value={orderData.manualDiscount}
+                                                onChange={(e) => setOrderData({ ...orderData, manualDiscount: e.target.value })}
+                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Extra Fees (EGP)</label>
+                                            <input
+                                                type="number"
+                                                value={orderData.extraFees}
+                                                onChange={(e) => setOrderData({ ...orderData, extraFees: e.target.value })}
+                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="mt-4">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase">Order Notes</label>
+                                        <textarea
+                                            value={orderData.notes}
+                                            onChange={(e) => setOrderData({ ...orderData, notes: e.target.value })}
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs font-bold mt-1 outline-none"
+                                            rows={2}
+                                            placeholder="Add instructions..."
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest">Totals</h4>
+                                    <div className="bg-[#1A1A1A] rounded-[28px] p-8 text-white space-y-4">
+                                        <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase">
+                                            <span>Subtotal</span>
+                                            <span>{subtotal.toFixed(2)} EGP</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase text-green-400">
+                                            <span>Shipping</span>
+                                            <span>+{shipping.toFixed(2)} EGP</span>
+                                        </div>
+                                        {Number(orderData.extraFees) > 0 && (
+                                            <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase text-blue-400">
+                                                <span>Extra Fees</span>
+                                                <span>+{Number(orderData.extraFees).toFixed(2)} EGP</span>
+                                            </div>
+                                        )}
+                                        {Number(orderData.manualDiscount) > 0 && (
+                                            <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase text-[#e31e24]">
+                                                <span>Manual Discount</span>
+                                                <span>-{Number(orderData.manualDiscount).toFixed(2)} EGP</span>
+                                            </div>
+                                        )}
+                                        <div className="border-t border-white/10 pt-4 mt-2">
+                                            <div className="flex justify-between items-center text-2xl font-black">
+                                                <span>TOTAL</span>
+                                                <span>{total.toFixed(2)} EGP</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Footer Controls */}
+                <div className="p-6 border-t border-gray-50 flex justify-between items-center bg-gray-50/50 shrink-0">
+                    <button
+                        onClick={() => {
+                            if (step > 1) setStep(step - 1);
+                            else onClose();
+                        }}
+                        className="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-all text-xs uppercase tracking-widest"
+                    >
+                        {step === 1 ? 'Cancel' : 'Back'}
+                    </button>
+
+                    <button
+                        onClick={() => {
+                            if (step < 3) {
+                                if (step === 1) {
+                                    if (!orderData.customer.name) {
+                                        toast.error("Customer Name is required");
+                                        return;
+                                    }
+                                    if (!orderData.customer.phone) {
+                                        toast.error("Phone Number is required");
+                                        return;
+                                    }
+                                    if (!orderData.customer.governorate) {
+                                        toast.error("Governorate is required for shipping calculation");
+                                        return;
+                                    }
+                                    if (!orderData.customer.address) {
+                                        toast.error("Detailed Address is required");
+                                        return;
+                                    }
+                                }
+                                setStep(step + 1);
+                            } else {
+                                handleSubmitOrder();
+                            }
+                        }}
+                        disabled={loading}
+                        className="px-8 py-3 bg-[#1A1A1A] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl disabled:opacity-50 flex items-center gap-2"
+                    >
+                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : step === 3 ? 'Confirm Order' : 'Next Step'}
+                    </button>
                 </div>
             </div>
         </div>
