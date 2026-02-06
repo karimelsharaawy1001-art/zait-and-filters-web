@@ -614,6 +614,18 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
         });
     };
 
+    const updateItemPrice = (id, newPrice) => {
+        setFormData({
+            ...formData,
+            items: formData.items.map(item => {
+                if (item.id === id) {
+                    return { ...item, price: newPrice };
+                }
+                return item;
+            })
+        });
+    };
+
     const removeItem = (id) => {
         setFormData({
             ...formData,
@@ -865,8 +877,16 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-xs font-black truncate text-black uppercase tracking-tight poppins">{item.name}</p>
-                                        <div className="flex items-center gap-2 mt-0.5">
-                                            <p className="text-[10px] font-black text-[#e31e24] tracking-widest">{item.price} EGP</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <div className="relative group/price">
+                                                <input
+                                                    type="number"
+                                                    value={item.price}
+                                                    onChange={(e) => updateItemPrice(item.id, e.target.value)}
+                                                    className="w-24 px-2 py-1 bg-gray-100 border border-gray-100 rounded-lg text-[10px] font-black text-[#e31e24] focus:ring-1 focus:ring-[#e31e24] outline-none transition-all"
+                                                />
+                                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-bold text-gray-400 select-none pointer-events-none">EGP</span>
+                                            </div>
                                             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">| {item.brand || 'N/A'}</p>
                                         </div>
                                     </div>
@@ -1175,12 +1195,22 @@ const CreateOrderModal = ({ onClose, onSave }) => {
         }));
     };
 
+    const updateItemPrice = (id, newPrice) => {
+        setOrderData(prev => ({
+            ...prev,
+            items: prev.items.map(i => {
+                if (i.id === id) return { ...i, price: newPrice };
+                return i;
+            })
+        }));
+    };
+
     const removeItem = (id) => {
         setOrderData(prev => ({ ...prev, items: prev.items.filter(i => i.id !== id) }));
     };
 
     const calculateTotals = () => {
-        const subtotal = orderData.items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+        const subtotal = orderData.items.reduce((acc, item) => acc + (parseFloat(item.price) * item.quantity), 0);
         const shippingRate = shippingRates.find(r => r.governorate === orderData.customer.governorate);
         const shipping = shippingRate ? Number(shippingRate.cost) : 0;
         const total = subtotal + shipping + Number(orderData.extraFees) - Number(orderData.manualDiscount);
@@ -1520,7 +1550,15 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                                 <img src={item.image} className="w-12 h-12 rounded-xl object-cover bg-gray-50" />
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-xs font-black truncate">{item.name}</p>
-                                                    <p className="text-[10px] text-gray-400 font-bold">{item.price} EGP</p>
+                                                    <div className="relative w-fit mt-1">
+                                                        <input
+                                                            type="number"
+                                                            value={item.price}
+                                                            onChange={(e) => updateItemPrice(item.id, e.target.value)}
+                                                            className="w-24 px-2 py-1 bg-gray-50 border border-gray-100 rounded-lg text-[10px] font-black text-[#28B463] focus:ring-1 focus:ring-[#28B463] outline-none transition-all"
+                                                        />
+                                                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-bold text-gray-400 select-none pointer-events-none">EGP</span>
+                                                    </div>
                                                 </div>
                                                 <div className="flex items-center bg-gray-50 rounded-lg px-2">
                                                     <button onClick={() => updateItemQty(item.id, -1)} className="p-2 text-gray-500 hover:text-black"><Minus className="h-3 w-3" /></button>
