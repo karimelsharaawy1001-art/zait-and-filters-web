@@ -469,6 +469,14 @@ const AdminOrders = () => {
 
 // PART 3: Pro-Grade Order Editor Modal
 const EditOrderModal = ({ order, onClose, onSave }) => {
+    const {
+        staticProducts,
+        categories: staticCategories,
+        cars: staticCars,
+        brands: staticBrands,
+        isStaticLoaded
+    } = useStaticData();
+
     const [formData, setFormData] = useState({
         paymentMethod: order.paymentMethod || '',
         paymentStatus: order.paymentStatus || 'Pending',
@@ -484,8 +492,6 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
     const [isSearching, setIsSearching] = useState(false);
 
     // Advanced Filtering States
-    const [categories, setCategories] = useState([]);
-    const [carOptions, setCarOptions] = useState([]);
     const [makes, setMakes] = useState([]);
     const [models, setModels] = useState([]);
     const [filterCategory, setFilterCategory] = useState('');
@@ -493,32 +499,18 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
     const [filterModel, setFilterModel] = useState('');
     const [filterYear, setFilterYear] = useState('');
 
-    // Fetch Search Metadata (Categories & Cars)
+    // Initialize Metadata from static context
     useEffect(() => {
-        const fetchMetadata = async () => {
-            try {
-                const [catsSnap, carsSnap] = await Promise.all([
-                    getDocs(collection(db, 'categories')),
-                    getDocs(collection(db, 'cars'))
-                ]);
-
-                const cats = catsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                const cars = carsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                setCategories(cats);
-                setCarOptions(cars);
-                setMakes([...new Set(cars.map(c => c.make))].sort());
-            } catch (error) {
-                console.error("Error fetching search metadata:", error);
-            }
-        };
-        fetchMetadata();
-    }, []);
+        if (isStaticLoaded) {
+            const uniqueMakes = [...new Set(staticCars.map(c => c.make))].sort();
+            setMakes(uniqueMakes);
+        }
+    }, [isStaticLoaded, staticCars]);
 
     // Dependent Dropdown: Update models when make changes
     useEffect(() => {
         if (filterMake) {
-            const makeModels = carOptions
+            const makeModels = staticCars
                 .filter(c => c.make === filterMake)
                 .map(c => c.model);
             setModels([...new Set(makeModels)].sort());
@@ -527,15 +519,7 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
             setModels([]);
             setFilterModel('');
         }
-    }, [filterMake, carOptions]);
-
-    const {
-        staticProducts,
-        categories: staticCategories,
-        cars: staticCars,
-        brands: staticBrands,
-        isStaticLoaded
-    } = useStaticData();
+    }, [filterMake, staticCars]);
 
     // Product Search
     const handleProductSearch = async (q) => {
@@ -571,19 +555,6 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
         setIsSearching(false);
     };
 
-    // Use effects for makes and models remain the same but use staticCars
-    useEffect(() => {
-        if (filterMake) {
-            const makeModels = staticCars
-                .filter(c => c.make === filterMake)
-                .map(c => c.model);
-            setModels([...new Set(makeModels)].sort());
-            setFilterModel('');
-        } else {
-            setModels([]);
-            setFilterModel('');
-        }
-    }, [filterMake, staticCars]);
 
     const addProductToOrder = (product) => {
         const existing = formData.items.find(item => item.id === product.id);
@@ -808,7 +779,7 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                                         className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-[10px] font-bold text-black focus:ring-2 focus:ring-[#1A1A1A] outline-none"
                                     >
                                         <option value="">All Categories</option>
-                                        {categories.map(cat => (
+                                        {staticCategories.map(cat => (
                                             <option key={cat.id} value={cat.name}>{cat.name}</option>
                                         ))}
                                     </select>
@@ -1019,6 +990,13 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
 };
 
 const CreateOrderModal = ({ onClose, onSave }) => {
+    const {
+        staticProducts,
+        categories: staticCategories,
+        cars: staticCars,
+        isStaticLoaded
+    } = useStaticData();
+
     const [step, setStep] = useState(1); // 1: Customer, 2: Items, 3: Review
     const [loading, setLoading] = useState(false);
     const [customerMode, setCustomerMode] = useState('existing'); // 'existing' or 'new'
@@ -1058,8 +1036,6 @@ const CreateOrderModal = ({ onClose, onSave }) => {
     const [isSearchingProducts, setIsSearchingProducts] = useState(false);
 
     // Filters
-    const [categories, setCategories] = useState([]);
-    const [carOptions, setCarOptions] = useState([]);
     const [makes, setMakes] = useState([]);
     const [models, setModels] = useState([]);
     const [filterCategory, setFilterCategory] = useState('');
@@ -1073,25 +1049,20 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                 // Fetch Shipping Rates
                 const ratesSnap = await getDocs(collection(db, 'shipping_rates'));
                 setShippingRates(ratesSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-
-                // Fetch Search Metadata
-                const [catsSnap, carsSnap] = await Promise.all([
-                    getDocs(collection(db, 'categories')),
-                    getDocs(collection(db, 'cars'))
-                ]);
-
-                const cats = catsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                const cars = carsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                setCategories(cats);
-                setCarOptions(cars);
-                setMakes([...new Set(cars.map(c => c.make))].sort());
             } catch (error) {
-                console.error("Error loading metadata:", error);
+                console.error("Error loading shipping rates:", error);
             }
         };
         fetchInitialData();
     }, []);
+
+    // Initialize Metadata from static context
+    useEffect(() => {
+        if (isStaticLoaded) {
+            const uniqueMakes = [...new Set(staticCars.map(c => c.make))].sort();
+            setMakes(uniqueMakes);
+        }
+    }, [isStaticLoaded, staticCars]);
 
     // Product Filter Logic (Dependent Dropdowns)
     useEffect(() => {
@@ -1137,13 +1108,6 @@ const CreateOrderModal = ({ onClose, onSave }) => {
         }
     };
 
-    const {
-        staticProducts,
-        categories: staticCategories,
-        cars: staticCars,
-        isStaticLoaded
-    } = useStaticData();
-
     // Product Search Logic - LOCAL ONLY (Quota Shield)
     const handleProductSearch = async (q) => {
         setProductSearch(q);
@@ -1176,14 +1140,6 @@ const CreateOrderModal = ({ onClose, onSave }) => {
         setSearchResults(filtered);
         setIsSearchingProducts(false);
     };
-
-    // Initialize Metadata from static context
-    useEffect(() => {
-        if (isStaticLoaded) {
-            const uniqueMakes = [...new Set(staticCars.map(c => c.make))].sort();
-            setMakes(uniqueMakes);
-        }
-    }, [isStaticLoaded, staticCars]);
 
     // Re-trigger product search
     useEffect(() => {
@@ -1496,7 +1452,7 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                     </select>
                                     <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="bg-gray-50 border-gray-100 rounded-xl text-xs font-bold p-2.5">
                                         <option value="">All Categories</option>
-                                        {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                                        {staticCategories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                                     </select>
                                     <input
                                         type="number"
