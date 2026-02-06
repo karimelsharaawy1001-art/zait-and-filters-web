@@ -945,22 +945,34 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                 <div className="bg-[#1A1A1A] rounded-[28px] p-8 text-white space-y-3 shrink-0 shadow-2xl relative overflow-hidden">
                     <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-40">
                         <span>Subtotal Matrix</span>
-                        <span>{newSubtotal} EGP</span>
+                        <span>{newSubtotal.toFixed(2)} EGP</span>
                     </div>
-                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-40">
-                        <span>Logistics + Surcharge</span>
-                        <span>+{(parseFloat(order.shipping_cost || 0) + parseFloat(formData.extraFees || 0))} EGP</span>
+                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-60 text-green-400">
+                        <span>Logistics Cost</span>
+                        <span>+{parseFloat(order.shipping_cost || 0).toFixed(2)} EGP</span>
                     </div>
+                    {parseFloat(formData.extraFees || 0) > 0 && (
+                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-60 text-blue-400">
+                            <span>Service Surcharge</span>
+                            <span>+{parseFloat(formData.extraFees || 0).toFixed(2)} EGP</span>
+                        </div>
+                    )}
                     {order.discount > 0 && (
-                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-[#e31e24]">
+                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-[#e31e24] opacity-80">
                             <span>Promo Injection</span>
-                            <span>-{order.discount} EGP</span>
+                            <span>-{parseFloat(order.discount || 0).toFixed(2)} EGP</span>
+                        </div>
+                    )}
+                    {parseFloat(formData.manualDiscount || 0) > 0 && (
+                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-[#e31e24]">
+                            <span>Manual Override</span>
+                            <span>-{parseFloat(formData.manualDiscount || 0).toFixed(2)} EGP</span>
                         </div>
                     )}
                     <div className="flex justify-between items-center pt-5 mt-2 border-t border-white/10 relative z-10">
                         <span className="text-sm font-black uppercase tracking-[0.2em] poppins italic opacity-60">Terminal Total</span>
                         <span className="text-3xl font-black text-white poppins tabular-nums transition-all">
-                            {newTotal} <span className="text-[12px] font-bold text-white/30 tracking-widest uppercase">EGP</span>
+                            {newTotal.toFixed(2)} <span className="text-[12px] font-bold text-white/30 tracking-widest uppercase">EGP</span>
                         </span>
                     </div>
                 </div>
@@ -1043,14 +1055,24 @@ const CreateOrderModal = ({ onClose, onSave }) => {
     const [filterModel, setFilterModel] = useState('');
     const [filterYear, setFilterYear] = useState('');
 
+    const [allCustomers, setAllCustomers] = useState([]);
+    const [isCustomersLoaded, setIsCustomersLoaded] = useState(false);
+
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
                 // Fetch Shipping Rates
                 const ratesSnap = await getDocs(collection(db, 'shipping_rates'));
                 setShippingRates(ratesSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+
+                // Fetch Users ONCE for local search (Quota Shield)
+                const usersRef = collection(db, 'users');
+                const usersSnap = await getDocs(usersRef);
+                const users = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                setAllCustomers(users);
+                setIsCustomersLoaded(true);
             } catch (error) {
-                console.error("Error loading shipping rates:", error);
+                console.error("Error loading initial data:", error);
             }
         };
         fetchInitialData();
@@ -1078,34 +1100,23 @@ const CreateOrderModal = ({ onClose, onSave }) => {
         }
     }, [filterMake, staticCars]);
 
-    // Customer Search 
-    const handleCustomerSearch = async (q) => {
+    // Customer Search - LOCAL ONLY
+    const handleCustomerSearch = (q) => {
         setCustomerSearch(q);
         if (q.length < 1) {
             setCustomerResults([]);
             return;
         }
 
-        setSearchingCustomers(true);
-        try {
-            const usersRef = collection(db, 'users');
-            const usersSnap = await getDocs(usersRef);
-            const allUsers = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const searchLower = q.toLowerCase();
+        const filtered = allCustomers.filter(user => {
+            const matchesPhone = user.phoneNumber?.toLowerCase().includes(searchLower);
+            const matchesName = user.fullName?.toLowerCase().includes(searchLower);
+            const matchesEmail = user.email?.toLowerCase().includes(searchLower);
+            return matchesPhone || matchesName || matchesEmail;
+        }).slice(0, 10);
 
-            const searchLower = q.toLowerCase();
-            const filtered = allUsers.filter(user => {
-                const matchesPhone = user.phoneNumber?.toLowerCase().includes(searchLower);
-                const matchesName = user.fullName?.toLowerCase().includes(searchLower);
-                const matchesEmail = user.email?.toLowerCase().includes(searchLower);
-                return matchesPhone || matchesName || matchesEmail;
-            }).slice(0, 10);
-
-            setCustomerResults(filtered);
-        } catch (error) {
-            console.error("Customer search error:", error);
-        } finally {
-            setSearchingCustomers(false);
-        }
+        setCustomerResults(filtered);
     };
 
     // Product Search Logic - LOCAL ONLY (Quota Shield)
@@ -1593,10 +1604,22 @@ const CreateOrderModal = ({ onClose, onSave }) => {
                                             <span>Subtotal</span>
                                             <span>{subtotal.toFixed(2)} EGP</span>
                                         </div>
-                                        <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase">
+                                        <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase text-green-400">
                                             <span>Shipping</span>
                                             <span>+{shipping.toFixed(2)} EGP</span>
                                         </div>
+                                        {Number(orderData.extraFees) > 0 && (
+                                            <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase text-blue-400">
+                                                <span>Extra Fees</span>
+                                                <span>+{Number(orderData.extraFees).toFixed(2)} EGP</span>
+                                            </div>
+                                        )}
+                                        {Number(orderData.manualDiscount) > 0 && (
+                                            <div className="flex justify-between items-center text-xs opacity-60 font-bold uppercase text-[#e31e24]">
+                                                <span>Manual Discount</span>
+                                                <span>-{Number(orderData.manualDiscount).toFixed(2)} EGP</span>
+                                            </div>
+                                        )}
                                         <div className="border-t border-white/10 pt-4 mt-2">
                                             <div className="flex justify-between items-center text-2xl font-black">
                                                 <span>TOTAL</span>

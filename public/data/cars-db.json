@@ -1,203 +1,203 @@
 [
   {
     "id": "0NC50wkGraAoaShcWCzY",
-    "yearEnd": 0,
-    "make": "MG",
     "yearStart": 0,
     "imageUrl": "https://resource.digitaldealer.com.au/image/11768755266c5752caa0a7558470633_600_400-f.png",
+    "make": "MG",
+    "yearEnd": 0,
     "model": "3"
   },
   {
     "id": "146mvyaX7EvBgULHhKgt",
     "yearEnd": 2022,
-    "model": "3008",
     "make": "PEUGEOT",
+    "model": "3008",
     "yearStart": 2008,
     "imageUrl": "https://m.atcdn.co.uk/vms/media/9b99c39ad7bf477d8361a403436c1809.jpg"
   },
   {
     "id": "1aGCZuBJLLsGjXaYcOe3",
+    "imageUrl": "https://cdn.wheel-size.com/thumbs/3e/6c/3e6cccfa26fddc8e4b51fdb00e518f96.jpg",
     "model": "MEGANE",
     "yearStart": 2003,
     "make": "RENAULT",
-    "imageUrl": "https://cdn.wheel-size.com/thumbs/3e/6c/3e6cccfa26fddc8e4b51fdb00e518f96.jpg",
     "yearEnd": 2023
   },
   {
     "id": "4KRgW1IJCnaB4FfKijMj",
-    "yearEnd": 2014,
+    "imageUrl": "https://carsguide-res.cloudinary.com/image/upload/e_trim:10,f_auto/c_scale,t_cg_base,w_678/v1/editorial/vhs/Ford-Mondeo.png",
     "model": "MONDEO",
     "yearStart": 2007,
-    "make": "FORD",
-    "imageUrl": "https://carsguide-res.cloudinary.com/image/upload/e_trim:10,f_auto/c_scale,t_cg_base,w_678/v1/editorial/vhs/Ford-Mondeo.png"
+    "yearEnd": 2014,
+    "make": "FORD"
   },
   {
     "id": "4XJ4gmtVbTk2VL5bYdQW",
+    "make": "HYUNDAI",
+    "yearStart": 2008,
     "yearEnd": 2023,
     "imageUrl": "https://cdn.hyundai.co.za/i20_Premium_thumbnail_png_1719915771.png",
-    "model": "i20",
-    "make": "HYUNDAI",
-    "yearStart": 2008
+    "model": "i20"
   },
   {
     "id": "5RbnSUCV2dCe7W5wN6qQ",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769275300/cars/iuvtoz4mcerfgdcng7uo.jpg",
-    "yearEnd": 2024,
-    "yearStart": 2005,
     "model": "F3",
-    "make": "BYD"
+    "make": "BYD",
+    "yearStart": 2005,
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769275300/cars/iuvtoz4mcerfgdcng7uo.jpg",
+    "yearEnd": 2024
   },
   {
     "id": "6RmODNrATatZdvCb5S6Q",
-    "yearStart": 2019,
     "model": "OCTAVIA A8",
-    "yearEnd": 2022,
     "make": "SKODA",
+    "yearStart": 2019,
+    "yearEnd": 2022,
     "imageUrl": "https://static.3d-baza.com/models/362680/ae99ede08e424c239b3246ff.jpg"
   },
   {
     "id": "7MTbPUPok9ovmr50pEz4",
-    "yearStart": 2000,
-    "make": "VOLKSWAGEN",
     "model": "PASSAT B",
+    "make": "VOLKSWAGEN",
+    "yearEnd": 2022,
     "imageUrl": "https://p.turbosquid.com/ts-thumb/PO/MoRvc4/1B/volkswagenpassatb8rline20181/jpg/1747222710/1920x1080/fit_q87/7ae8c133d7db3bb156e0f46ea53da60109fbaede/volkswagenpassatb8rline20181.jpg",
-    "yearEnd": 2022
-  },
-  {
-    "id": "7V0dgYcRlbPIBD2q5PBS",
-    "imageUrl": "https://cdn.wheel-size.com/automobile/body/peugeot-308-2021-2025-1731750691.6535933.jpg",
-    "yearEnd": 2021,
-    "model": "308",
-    "yearStart": 2007,
-    "make": "PEUGEOT"
-  },
-  {
-    "id": "7d2zRoQFewqjL1evsU98",
-    "yearEnd": 0,
-    "model": "ENVY",
-    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/4881/logo/mobile_listing_main_Envy-logo.png",
-    "make": "CHERY",
-    "yearStart": 0
-  },
-  {
-    "id": "8ARSm1qLPrtsgHT9V75K",
-    "yearEnd": 2017,
-    "model": "CRUZE",
-    "yearStart": 2009,
-    "make": "CHEVROLET",
-    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/2555/pictures/2916576/webp_mobile_listing_main_01.webp"
-  },
-  {
-    "id": "8xf8WERUKteha0ep26v2",
-    "imageUrl": "https://platform.cstatic-images.com/xxlarge/in/v2/stock_photos/fd0044a7-8195-4082-abec-401a25b6ae39/9a80c328-6c15-437c-befa-8b9c71706328.png",
-    "make": "TOYOTA",
-    "model": "COROLLA الجمل",
-    "yearEnd": 2007,
     "yearStart": 2000
   },
   {
+    "id": "7V0dgYcRlbPIBD2q5PBS",
+    "make": "PEUGEOT",
+    "imageUrl": "https://cdn.wheel-size.com/automobile/body/peugeot-308-2021-2025-1731750691.6535933.jpg",
+    "model": "308",
+    "yearEnd": 2021,
+    "yearStart": 2007
+  },
+  {
+    "id": "7d2zRoQFewqjL1evsU98",
+    "yearStart": 0,
+    "yearEnd": 0,
+    "model": "ENVY",
+    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/4881/logo/mobile_listing_main_Envy-logo.png",
+    "make": "CHERY"
+  },
+  {
+    "id": "8ARSm1qLPrtsgHT9V75K",
+    "model": "CRUZE",
+    "yearEnd": 2017,
+    "make": "CHEVROLET",
+    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/2555/pictures/2916576/webp_mobile_listing_main_01.webp",
+    "yearStart": 2009
+  },
+  {
+    "id": "8xf8WERUKteha0ep26v2",
+    "make": "TOYOTA",
+    "model": "COROLLA الجمل",
+    "yearStart": 2000,
+    "yearEnd": 2007,
+    "imageUrl": "https://platform.cstatic-images.com/xxlarge/in/v2/stock_photos/fd0044a7-8195-4082-abec-401a25b6ae39/9a80c328-6c15-437c-befa-8b9c71706328.png"
+  },
+  {
     "id": "9dzERSS0hDbgMeH4hHMr",
-    "model": "ACCENT HCI",
+    "imageUrl": "https://legion-images.hatla2ee.com/original_image/31f43112-e86f-4525-b78e-fc9fd0bf487f/full.png",
     "yearEnd": 2023,
     "yearStart": 2017,
-    "make": "HYUNDAI",
-    "imageUrl": "https://legion-images.hatla2ee.com/original_image/31f43112-e86f-4525-b78e-fc9fd0bf487f/full.png"
+    "model": "ACCENT HCI",
+    "make": "HYUNDAI"
   },
   {
     "id": "A94bKuoSrXKFHOmtNpZm",
+    "make": "SEAT",
     "yearStart": 2000,
     "imageUrl": "https://cdn.wheel-size.com/automobile/body/seat-toledo-1999-2004-1750085634.6200647.jpg",
-    "make": "SEAT",
     "yearEnd": 2019,
     "model": "TOLEDO"
   },
   {
     "id": "ANMPQsUdKuf1O94ZqpDJ",
-    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/12020/pictures/15967885/webp_mobile_listing_main_2022_Peugeot_5008_Exterior_01.webp",
-    "make": "PEUGEOT",
     "yearStart": 2009,
+    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/12020/pictures/15967885/webp_mobile_listing_main_2022_Peugeot_5008_Exterior_01.webp",
     "yearEnd": 2022,
+    "make": "PEUGEOT",
     "model": "5008"
   },
   {
     "id": "AbdsXWPumCbw3Qh04m4b",
     "yearStart": 0,
-    "imageUrl": "https://legion-images.hatla2ee.com/original_image/18717687-eee0-4984-a2de-1cdf6bea3782/medium.png",
     "make": "MG",
     "yearEnd": 0,
+    "imageUrl": "https://legion-images.hatla2ee.com/original_image/18717687-eee0-4984-a2de-1cdf6bea3782/medium.png",
     "model": "ZS"
   },
   {
     "id": "Aj6eqedD6Ky0XloINFN7",
-    "yearEnd": 2021,
-    "imageUrl": "https://cdn.wheel-size.com/thumbs/15/f5/15f526d266a640ba535f79608dd991bb.jpg",
     "yearStart": 2010,
+    "yearEnd": 2021,
     "make": "CHEVROLET",
+    "imageUrl": "https://cdn.wheel-size.com/thumbs/15/f5/15f526d266a640ba535f79608dd991bb.jpg",
     "model": "LANOS 2"
   },
   {
     "id": "AnHZFeqRcRxKfcL1KggW",
-    "model": "LANCER PUMA",
-    "make": "MITSUBISHI",
-    "yearStart": 2004,
     "imageUrl": "https://cdn.wheel-size.com/automobile/body/mitsubishi-lancer-2003-2010-1636609427.4858754.jpg",
+    "yearStart": 2004,
+    "make": "MITSUBISHI",
+    "model": "LANCER PUMA",
     "yearEnd": 2013
   },
   {
     "id": "AutW7WhGmKAYNDxRtRqC",
     "imageUrl": "https://lirp.cdn-website.com/cc512cba/dms3rep/multi/opt/Captiva-Tiger-Blue-640w.png",
+    "model": "CAPTIVA",
     "yearStart": 2006,
     "make": "CHEVROLET",
-    "yearEnd": 2023,
-    "model": "CAPTIVA"
+    "yearEnd": 2023
   },
   {
     "id": "BMAiWRFbmPtDpvIkKDdb",
     "model": "L3",
-    "imageUrl": "https://cdn.wheel-size.com/automobile/body/byd-l3-2016-2022-1705638158.234828.jpg",
-    "yearStart": 2015,
+    "yearEnd": 2022,
     "make": "BYD",
-    "yearEnd": 2022
+    "yearStart": 2015,
+    "imageUrl": "https://cdn.wheel-size.com/automobile/body/byd-l3-2016-2022-1705638158.234828.jpg"
   },
   {
     "id": "BqCeRD6IS4XoSwCySZXc",
-    "model": "TIGGO 7",
     "yearStart": null,
-    "updatedAt": "2026-01-26T22:17:12.667Z",
     "yearEnd": null,
     "make": "CHERY",
-    "imageUrl": "https://legion-images.hatla2ee.com/original_image/3abbd807-44b3-40fa-a9ba-3a7cc2bd6d47/large.jpg"
+    "imageUrl": "https://legion-images.hatla2ee.com/original_image/3abbd807-44b3-40fa-a9ba-3a7cc2bd6d47/large.jpg",
+    "model": "TIGGO 7",
+    "updatedAt": "2026-01-26T22:17:12.667Z"
   },
   {
     "id": "BrzwgEyiXN74SQlx0UYk",
-    "make": "VOLKSWAGEN",
-    "imageUrl": "https://platform.cstatic-images.com/xxlarge/in/v2/stock_photos/234ade87-6185-40fc-b2d7-c7b145ef76ff/66642842-a0b1-434a-b23e-0e7149bea384.png",
-    "yearStart": 2000,
+    "yearEnd": 2011,
     "model": "NEW BEETLE",
-    "yearEnd": 2011
+    "make": "VOLKSWAGEN",
+    "yearStart": 2000,
+    "imageUrl": "https://platform.cstatic-images.com/xxlarge/in/v2/stock_photos/234ade87-6185-40fc-b2d7-c7b145ef76ff/66642842-a0b1-434a-b23e-0e7149bea384.png"
   },
   {
     "id": "C38LoIapoe9HWZa3gPBL",
     "make": "CHERY",
-    "yearEnd": 2024,
-    "model": "ARRIZO",
     "imageUrl": "https://www.dubicars.com/images/2a1629/r_960x540/generations/generation_676508decbc0e_arrizo-5-fla.png?6",
-    "yearStart": 2017
+    "yearStart": 2017,
+    "model": "ARRIZO",
+    "yearEnd": 2024
   },
   {
     "id": "CMxDIvWGbIyWRIN7ZN1F",
-    "make": "HYUNDAI",
     "model": "NEW ACCENT",
-    "yearEnd": 2011,
+    "make": "HYUNDAI",
     "imageUrl": "https://platform.cstatic-images.com/in/v2/stock_photos/d748eaec-fbb4-4043-87e7-fccdfcf38ef0/a91af06f-5bc7-40e5-b35b-fa4c677d03fd.png",
-    "yearStart": 2006
+    "yearStart": 2006,
+    "yearEnd": 2011
   },
   {
     "id": "CbYU3zBfwEaIjDfiQOF5",
-    "model": "ACCENT RB",
+    "imageUrl": "https://legion-images.hatla2ee.com/original_image/66f54336-bbee-4f6e-9f1e-9708305b973a/medium.png",
     "yearStart": 2011,
     "make": "HYUNDAI",
-    "imageUrl": "https://legion-images.hatla2ee.com/original_image/66f54336-bbee-4f6e-9f1e-9708305b973a/medium.png",
+    "model": "ACCENT RB",
     "yearEnd": 2024
   },
   {
@@ -210,734 +210,734 @@
   },
   {
     "id": "DPD0PPUxzsdtKInZUosA",
-    "yearStart": 2013,
-    "yearEnd": 2022,
-    "model": "SENTRA",
     "make": "NISSAN",
+    "model": "SENTRA",
+    "yearEnd": 2022,
+    "yearStart": 2013,
     "imageUrl": "https://www-europe.nissan-cdn.net/content/dam/Nissan/eg/vehicles/sentra/product_code/product_version/overview/Sentra-1920x800-18-range.jpg.ximg.l_12_m.smart.jpg"
   },
   {
     "id": "DjEMYUwiJ4I6snXNuX9P",
-    "model": "SANDERO",
-    "yearStart": 2010,
-    "yearEnd": 2021,
     "imageUrl": "https://cdn.wheel-size.com/automobile/body/renault-sandero-2022-2024-1731389582.9501839.jpg",
-    "make": "RENAULT"
+    "yearEnd": 2021,
+    "model": "SANDERO",
+    "make": "RENAULT",
+    "yearStart": 2010
   },
   {
     "id": "EBNhkch87P4MOzblsXhw",
-    "yearStart": 2002,
-    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/4543/pictures/4020483/webp_mobile_listing_main_Chevrolet_Aveo_2017__1_.webp",
-    "make": "CHEVROLET",
+    "model": "AVEO",
     "yearEnd": 2021,
-    "model": "AVEO"
+    "make": "CHEVROLET",
+    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/4543/pictures/4020483/webp_mobile_listing_main_Chevrolet_Aveo_2017__1_.webp",
+    "yearStart": 2002
   },
   {
     "id": "EQxG9G9TwgfJoISiPiY8",
-    "yearEnd": 2010,
     "imageUrl": "https://media.elwatannews.com/media/img/mediaarc/large/1527689711631079848.jpg",
     "yearStart": 2000,
+    "yearEnd": 2010,
     "make": "SKODA",
     "model": "OCTAVIA A4"
   },
   {
     "id": "FFbnGnbNvM1M0LzZn2Tb",
-    "yearStart": 2005,
-    "make": "FORD",
-    "model": "FOCUS",
     "yearEnd": 2022,
+    "yearStart": 2005,
+    "model": "FOCUS",
+    "make": "FORD",
     "imageUrl": "https://images.hgmsites.net/med/2018-ford-focus-se-sedan-angular-front-exterior-view_100630255_m.jpg"
   },
   {
     "id": "FLT7YoVam83kRDPRMYnx",
-    "model": "ASTRA",
     "make": "OPEL",
+    "model": "ASTRA",
     "imageUrl": "https://adlerrentacar.com/tema/genel/uploads/araclar/opel-astra-1.png",
-    "yearStart": 2004,
-    "yearEnd": 2024
+    "yearEnd": 2024,
+    "yearStart": 2004
   },
   {
     "id": "FnAp5MJviYDxJnfdeHMk",
-    "yearEnd": 2025,
     "make": "MITSUBISHI",
+    "imageUrl": "https://legion-images.hatla2ee.com/original_image/cb2a3b4f-66d6-4cbe-bd21-fe9d4edf886c/full.png",
     "yearStart": 2016,
     "model": "ATTRAGE",
-    "imageUrl": "https://legion-images.hatla2ee.com/original_image/cb2a3b4f-66d6-4cbe-bd21-fe9d4edf886c/full.png"
+    "yearEnd": 2025
   },
   {
     "id": "G5kEfDidKHHk2jMjtRfj",
-    "model": "COROLLA جنوب أفريقي",
+    "imageUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/chrome/Expanded/White/2010TOY005a/2010TOY005a01.jpg",
     "yearStart": 2008,
-    "make": "TOYOTA",
     "yearEnd": 2013,
-    "imageUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/chrome/Expanded/White/2010TOY005a/2010TOY005a01.jpg"
+    "make": "TOYOTA",
+    "model": "COROLLA جنوب أفريقي"
   },
   {
     "id": "HE9GxPH82HeSdLCkqoQH",
-    "yearStart": 2020,
     "imageUrl": "https://legion-images.hatla2ee.com/original_image/8cdc0a0d-7cef-452f-a4c4-e1beb55cc291/large.jpg",
-    "yearEnd": 2022,
     "model": "TIGGO 3",
-    "make": "CHERY"
+    "yearStart": 2020,
+    "make": "CHERY",
+    "yearEnd": 2022
   },
   {
     "id": "HQ0xeDsa1ERPb6lMFdeJ",
-    "make": "MG",
     "yearEnd": 0,
     "yearStart": 0,
     "model": "5",
+    "make": "MG",
     "imageUrl": "https://legion-images.hatla2ee.com/original_image/7a3a3aaa-2a6b-4d9b-8e19-ee7d2b47cc3e/large.png"
   },
   {
     "id": "HnRv3lmspzUvkViSIeYV",
-    "yearEnd": 2023,
     "imageUrl": "https://ymimg1.b8cdn.com/uploads/car_model/7235/pictures/8304326/Hyundai_Elamtra_Exterior_01.jpg",
-    "yearStart": 2020,
     "model": "ELANTRA CN7",
+    "yearStart": 2020,
+    "yearEnd": 2023,
     "make": "HYUNDAI"
   },
   {
     "id": "JHDcArfVzOBzSuzhUiW9",
-    "yearStart": 2007,
     "model": "TIGUAN",
+    "yearEnd": 2022,
+    "yearStart": 2007,
     "make": "VOLKSWAGEN",
-    "imageUrl": "https://imgd.aeplcdn.com/1920x1080/n/cw/ec/53123/tiguan-exterior-right-front-three-quarter-5.jpeg?q=80&q=80",
-    "yearEnd": 2022
+    "imageUrl": "https://imgd.aeplcdn.com/1920x1080/n/cw/ec/53123/tiguan-exterior-right-front-three-quarter-5.jpeg?q=80&q=80"
   },
   {
     "id": "K4THfXtnBNDihN4cqmCr",
+    "model": "3",
     "yearEnd": 2026,
-    "make": "MAZDA",
-    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/8345/pictures/9006133/webp_mobile_listing_main_maz13977_m3_g25gt_sedan_front3-4_soulredcrystalmetallic_980x520_rgb.webp",
     "yearStart": 2003,
-    "model": "3"
+    "make": "MAZDA",
+    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/8345/pictures/9006133/webp_mobile_listing_main_maz13977_m3_g25gt_sedan_front3-4_soulredcrystalmetallic_980x520_rgb.webp"
   },
   {
     "id": "KbkraQ1NYsaJlRPxK47U",
+    "imageUrl": "https://scdn.autodoc.de/vehicles/800x287/17950.jpg",
     "yearStart": 2004,
-    "make": "KIA",
-    "yearEnd": 2009,
     "model": "CERATO LD",
-    "imageUrl": "https://scdn.autodoc.de/vehicles/800x287/17950.jpg"
+    "make": "KIA",
+    "yearEnd": 2009
   },
   {
     "id": "KxBCNRVRXy5sOPtAnS2r",
-    "yearStart": 0,
-    "make": "BMW",
-    "model": "216i",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769275167/cars/opmieuawtb67kmukhoux.jpg",
     "yearEnd": 0,
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769275167/cars/opmieuawtb67kmukhoux.jpg"
+    "make": "BMW",
+    "yearStart": 0,
+    "model": "216i"
   },
   {
     "id": "LGZdxk7S7gKTQqF0XKJm",
-    "model": "JUKE",
-    "yearStart": 2010,
-    "make": "NISSAN",
     "yearEnd": 2023,
-    "imageUrl": "https://www-europe.nissan-cdn.net/content/dam/Nissan/gb/vehicles/packshots/combined/juke/Acenta_Premium.webp"
+    "model": "JUKE",
+    "make": "NISSAN",
+    "imageUrl": "https://www-europe.nissan-cdn.net/content/dam/Nissan/gb/vehicles/packshots/combined/juke/Acenta_Premium.webp",
+    "yearStart": 2010
   },
   {
     "id": "LWWewEk7BASH74B2kDVG",
+    "imageUrl": "https://www.kia.com/content/dam/kwcms/kme/global/en/assets/vehicles/sportage/my26/discover/kia-sportage-hev-gtl-my26-1920x1080.png",
     "yearStart": 2005,
-    "make": "KIA",
     "model": "SPORTAGE",
-    "yearEnd": 2022,
-    "imageUrl": "https://www.kia.com/content/dam/kwcms/kme/global/en/assets/vehicles/sportage/my26/discover/kia-sportage-hev-gtl-my26-1920x1080.png"
+    "make": "KIA",
+    "yearEnd": 2022
   },
   {
     "id": "LgAkC7RzLtPigg0etYMP",
-    "make": "FORD",
     "yearEnd": 2022,
+    "imageUrl": "https://carsguide-res.cloudinary.com/image/upload/e_trim:10,f_auto/c_scale,t_cg_base,w_678/v1/editorial/ford-fiests2020-index-1.png",
     "yearStart": 2009,
     "model": "FIESTA",
-    "imageUrl": "https://carsguide-res.cloudinary.com/image/upload/e_trim:10,f_auto/c_scale,t_cg_base,w_678/v1/editorial/ford-fiests2020-index-1.png"
+    "make": "FORD"
   },
   {
     "id": "MJK8VwN6vksuamFJuUs1",
+    "yearEnd": 2022,
+    "model": "RIO",
     "imageUrl": "https://ymimg1.b8cdn.com/uploads/car_model/5424/pictures/4816139/01.jpg",
     "yearStart": 2005,
-    "make": "KIA",
-    "yearEnd": 2022,
-    "model": "RIO"
+    "make": "KIA"
   },
   {
     "id": "NmqkgQlFivv8kbQxyWXo",
-    "imageUrl": "https://elrizk.com/arabic/hyundai/i10/images/hw078412.png",
-    "yearStart": 2007,
-    "make": "HYUNDAI",
     "model": "i10",
-    "yearEnd": 2015
+    "yearEnd": 2015,
+    "make": "HYUNDAI",
+    "imageUrl": "https://elrizk.com/arabic/hyundai/i10/images/hw078412.png",
+    "yearStart": 2007
   },
   {
     "id": "NzwyMsdQFGpJ1qRDMqoD",
-    "imageUrl": "https://ymimg1.b8cdn.com/uploads/car_model/12512/pictures/15977448/Kia_Cerato_Exterior_01.jpg",
-    "yearEnd": 2022,
-    "model": "GRAND CERATO",
     "yearStart": 2018,
+    "yearEnd": 2022,
+    "imageUrl": "https://ymimg1.b8cdn.com/uploads/car_model/12512/pictures/15977448/Kia_Cerato_Exterior_01.jpg",
+    "model": "GRAND CERATO",
     "make": "KIA"
   },
   {
     "id": "Os8Q0ooSVloEhGUF5Eud",
-    "imageUrl": "https://m.atcdn.co.uk/vms/media/12ceb3bc253c4f799fdb80c37a2f185f.jpg",
-    "yearStart": 0,
     "model": "TIGGO 8",
+    "yearStart": 0,
+    "yearEnd": 0,
     "make": "CHERY",
-    "yearEnd": 0
+    "imageUrl": "https://m.atcdn.co.uk/vms/media/12ceb3bc253c4f799fdb80c37a2f185f.jpg"
   },
   {
     "id": "PFfyDiOJXBBhSgO1AR4m",
-    "make": "SUBARU",
-    "imageUrl": "https://platform.cstatic-images.com/in/v2/stock_photos/a10c984b-0621-4f88-b255-25764734435a/50cfbd87-cac7-45aa-baea-0d5ed3782642.png",
+    "yearEnd": 2023,
     "model": "IMPREZA",
-    "yearStart": 2000,
-    "yearEnd": 2023
+    "imageUrl": "https://platform.cstatic-images.com/in/v2/stock_photos/a10c984b-0621-4f88-b255-25764734435a/50cfbd87-cac7-45aa-baea-0d5ed3782642.png",
+    "make": "SUBARU",
+    "yearStart": 2000
   },
   {
     "id": "PL2mU05rI43E17ktgGtA",
+    "make": "KIA",
     "yearStart": 2009,
-    "imageUrl": "https://cdn.wheel-size.com/thumbs/d7/60/d7606f905ef45082dad70b60dee5dca9.jpg",
-    "yearEnd": 2013,
     "model": "CERATO TD",
-    "make": "KIA"
+    "yearEnd": 2013,
+    "imageUrl": "https://cdn.wheel-size.com/thumbs/d7/60/d7606f905ef45082dad70b60dee5dca9.jpg"
   },
   {
     "id": "PedOPwLPvdZU1xUCPOE3",
-    "yearStart": 2016,
-    "imageUrl": "https://stimg.cardekho.com/images/carexteriorimages/930x620/Skoda/Kodiaq/9930/1764935007679/front-left-side-47.jpg",
-    "make": "SKODA",
+    "yearEnd": 2022,
     "model": "KODIAQ",
-    "yearEnd": 2022
+    "yearStart": 2016,
+    "make": "SKODA",
+    "imageUrl": "https://stimg.cardekho.com/images/carexteriorimages/930x620/Skoda/Kodiaq/9930/1764935007679/front-left-side-47.jpg"
   },
   {
     "id": "RTMLKx25gowwjSy445p1",
-    "imageUrl": "https://ts3era.b-cdn.net/wp-content/uploads/2020/01/chevrolet-optra-2020-family-sedan-chevrolet-egypt.jpg",
     "yearEnd": 2023,
     "yearStart": 2004,
-    "make": "CHEVROLET",
-    "model": "OPTRA"
+    "imageUrl": "https://ts3era.b-cdn.net/wp-content/uploads/2020/01/chevrolet-optra-2020-family-sedan-chevrolet-egypt.jpg",
+    "model": "OPTRA",
+    "make": "CHEVROLET"
   },
   {
     "id": "Rry8LqH6V9yu7TgfzOXq",
-    "imageUrl": "https://nautoexpress.com/cdn/shop/collections/skoda-octavia-a5-1z-2005-2009-n-auto-express.png?v=1715599377",
-    "yearStart": 2005,
+    "make": "SKODA",
     "yearEnd": 2009,
+    "yearStart": 2005,
     "model": "OCTAVIA A5",
-    "make": "SKODA"
+    "imageUrl": "https://nautoexpress.com/cdn/shop/collections/skoda-octavia-a5-1z-2005-2009-n-auto-express.png?v=1715599377"
   },
   {
     "id": "S4uLHmtu3TKBNzwv1HtT",
-    "model": "NUBIRA 2",
     "imageUrl": "https://assets.adac.de/image/upload/v1/Autodatenbank/Fahrzeugbilder/im00935-1-daewoo-nubira.jpg",
-    "yearEnd": 0,
+    "model": "NUBIRA 2",
+    "yearStart": 0,
     "make": "DAEWOO",
-    "yearStart": 0
+    "yearEnd": 0
   },
   {
     "id": "S589eUItL14lEMafuuBM",
-    "model": "118i",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769275051/cars/snnxwj6aw6oevyebkqkx.jpg",
     "yearStart": 0,
+    "make": "BMW",
+    "model": "118i",
     "yearEnd": 0,
-    "make": "BMW"
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769275051/cars/snnxwj6aw6oevyebkqkx.jpg"
   },
   {
     "id": "SFmxHkEnibYuTvza5ZgP",
-    "yearEnd": 2016,
     "model": "IX35",
-    "make": "HYUNDAI",
+    "yearEnd": 2016,
+    "imageUrl": "https://elrizk.com/arabic/hyundai/ix35/images/hw078412.png",
     "yearStart": 2009,
-    "imageUrl": "https://elrizk.com/arabic/hyundai/ix35/images/hw078412.png"
+    "make": "HYUNDAI"
   },
   {
     "id": "SRFubS060hZquC6GeBOl",
     "model": "STEPWAY",
+    "yearStart": 2010,
     "yearEnd": 2021,
-    "imageUrl": "https://cdn.wheel-size.com/thumbs/e5/e0/e5e0107309ffbc46a057cf18897049fb.jpg",
     "make": "RENAULT",
-    "yearStart": 2010
+    "imageUrl": "https://cdn.wheel-size.com/thumbs/e5/e0/e5e0107309ffbc46a057cf18897049fb.jpg"
   },
   {
     "id": "Se5Xx1UXKpXtbRCt3UyF",
-    "yearEnd": 2016,
-    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/2298/logo/mobile_listing_main_10793_st1280_046.jpg",
-    "yearStart": 2004,
     "make": "VOLKSWAGEN",
-    "model": "PASSAT CC"
+    "yearEnd": 2016,
+    "yearStart": 2004,
+    "model": "PASSAT CC",
+    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/2298/logo/mobile_listing_main_10793_st1280_046.jpg"
   },
   {
     "id": "SfEQJtiFsnu8BPOK9pbl",
-    "make": "SSANGYONG",
-    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/13068/pictures/15987562/webp_listing_main_tivoli.webp",
     "yearStart": 0,
     "yearEnd": 0,
+    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/13068/pictures/15987562/webp_listing_main_tivoli.webp",
+    "make": "SSANGYONG",
     "model": "TIVOLY"
   },
   {
     "id": "T1tCg6CKo53nKB4cnG39",
-    "yearStart": 0,
-    "model": "GRAND TERIOS",
+    "make": "DAIHATSU",
     "imageUrl": "https://elrizk.com/daihatsu/Grand-Terios/img/exterior/01.jpg",
+    "yearStart": 0,
     "yearEnd": 0,
-    "make": "DAIHATSU"
+    "model": "GRAND TERIOS"
   },
   {
     "id": "TPZdtRJxh0RvCCiDo3Il",
-    "model": "218i",
     "yearStart": 0,
     "yearEnd": 0,
     "make": "BMW",
+    "model": "218i",
     "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769275219/cars/frepulvar4aqs3k4dqcb.jpg"
   },
   {
     "id": "VG6mS469Asntm0YhIsrm",
-    "make": "FIAT",
     "imageUrl": "https://ellaithy.com.eg/wp-content/uploads/2020/07/1717680491_316_128413_untitled1.png",
-    "yearStart": 2017,
+    "make": "FIAT",
+    "model": "TIPO",
     "yearEnd": 2024,
-    "model": "TIPO"
+    "yearStart": 2017
   },
   {
     "id": "VedSqmg2BLBY1MUSRmZB",
-    "make": "RENAULT",
-    "imageUrl": "https://cdn.wheel-size.com/automobile/body/renault-duster-2020-2023-1654598583.719422.jpg",
-    "yearStart": 2010,
     "model": "DUSTER",
-    "yearEnd": 2026
+    "imageUrl": "https://cdn.wheel-size.com/automobile/body/renault-duster-2020-2023-1654598583.719422.jpg",
+    "yearEnd": 2026,
+    "make": "RENAULT",
+    "yearStart": 2010
   },
   {
     "id": "WPcUAhkonzc8zUPr39Kj",
-    "yearStart": 2011,
-    "model": "508",
     "make": "PEUGEOT",
     "imageUrl": "https://www.peugeot-eg.com/content/dam/peugeot/master/b2c/our-range/showroom/new-508/mobile/508_GT_TRIM_M.jpg?imwidth=768",
-    "yearEnd": 2022
+    "yearStart": 2011,
+    "yearEnd": 2022,
+    "model": "508"
   },
   {
     "id": "WVIfsnij3uBH0kvPuJDj",
-    "make": "SKODA",
+    "imageUrl": "https://p.turbosquid.com/ts-thumb/Ck/dWtXGv/mF/1/jpg/1725869015/600x600/fit_q87/9b7fc935b84cd3fe66911bc6be461d78169f6652/1.jpg",
+    "yearEnd": 2020,
     "yearStart": 2014,
     "model": "OCTAVIA A7",
-    "yearEnd": 2020,
-    "imageUrl": "https://p.turbosquid.com/ts-thumb/Ck/dWtXGv/mF/1/jpg/1725869015/600x600/fit_q87/9b7fc935b84cd3fe66911bc6be461d78169f6652/1.jpg"
+    "make": "SKODA"
   },
   {
     "id": "XzThf7zgSp6phNyEidG7",
-    "yearEnd": 2018,
-    "imageUrl": "https://cdn.wheel-size.com/automobile/body/hyundai-verna-1999-2005-1696842998.8005257.jpg",
     "make": "HYUNDAI",
     "yearStart": 2000,
-    "model": "VERNA"
+    "model": "VERNA",
+    "imageUrl": "https://cdn.wheel-size.com/automobile/body/hyundai-verna-1999-2005-1696842998.8005257.jpg",
+    "yearEnd": 2018
   },
   {
     "id": "YAuqYkraw2SZmBR3a2qv",
     "imageUrl": "https://cdn-datak.motork.net/configurator-imgs/cars/it/800/OPEL/CORSA/43054_HATCHBACK-5-DOORS/opel-corsa-front-view.jpg",
-    "yearStart": 2002,
     "make": "OPEL",
     "model": "CORSA",
+    "yearStart": 2002,
     "yearEnd": 2024
   },
   {
     "id": "YDBCNdVU60QEdUrvYpFr",
-    "make": "NISSAN",
     "imageUrl": "https://www-europe.nissan-cdn.net/content/dam/Nissan/eg/vehicles/sunny/product_code/product_version/design/SUNNY-CAR.jpg.ximg.l_12_m.smart.jpg",
+    "make": "NISSAN",
     "yearStart": 2014,
-    "model": "SUNNY N17",
-    "yearEnd": 2024
+    "yearEnd": 2024,
+    "model": "SUNNY N17"
   },
   {
     "id": "YTCxwuw3lcsmI4bcAUy2",
-    "make": "RENAULT",
-    "yearEnd": 2008,
+    "model": "CLIO",
     "imageUrl": "https://img-ik.cars.co.za/news-site-za/images/2023/04/Renault-Clio-2024-1600-13.jpg?tr=w-1200,h-800",
-    "yearStart": 2000,
-    "model": "CLIO"
-  },
-  {
-    "id": "YmfWG0rt5WCYIYIhvmEE",
-    "make": "HYUNDAI",
-    "imageUrl": "https://mystrongad.com/Hyundai/Vehicles/Elantra/2018/CarCut/2018-hyundai-elantra-sport-electric-blue-metalliic.png",
-    "yearEnd": 2023,
-    "model": "ELANTRA",
+    "yearEnd": 2008,
+    "make": "RENAULT",
     "yearStart": 2000
   },
   {
+    "id": "YmfWG0rt5WCYIYIhvmEE",
+    "yearStart": 2000,
+    "model": "ELANTRA",
+    "make": "HYUNDAI",
+    "yearEnd": 2023,
+    "imageUrl": "https://mystrongad.com/Hyundai/Vehicles/Elantra/2018/CarCut/2018-hyundai-elantra-sport-electric-blue-metalliic.png"
+  },
+  {
     "id": "Znad08lHNOqYJt35HIyJ",
-    "model": "316i",
-    "yearStart": null,
     "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769275244/cars/egxlyebsryrz4vec6smf.jpg",
-    "yearEnd": null,
     "make": "BMW",
-    "updatedAt": "2026-01-24T17:20:47.513Z"
+    "yearStart": null,
+    "updatedAt": "2026-01-24T17:20:47.513Z",
+    "model": "316i",
+    "yearEnd": null
   },
   {
     "id": "a9JKcXIq6vnmn38ysc6A",
     "yearEnd": 2022,
-    "yearStart": 2010,
     "imageUrl": "https://renault.com.eg/fbapps/renaultegypt/CountriesData/Egypt/images/cars/LOGAN/newlogan/B76-Flame-Red.jpg",
+    "model": "LOGAN",
     "make": "RENAULT",
-    "model": "LOGAN"
+    "yearStart": 2010
   },
   {
     "id": "ah5OcnQH7lmTsZUqBjbz",
-    "make": "MG",
-    "model": "6",
-    "imageUrl": "https://www.mgmotorlatam.com/img/MG-6/MG-6-RED.png",
     "yearEnd": 0,
-    "yearStart": 0
+    "model": "6",
+    "make": "MG",
+    "yearStart": 0,
+    "imageUrl": "https://www.mgmotorlatam.com/img/MG-6/MG-6-RED.png"
   },
   {
     "id": "bHwpyHsNzxK4FcMSBPxc",
-    "make": "KIA",
-    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/4455/pictures/13944556/webp_mobile_listing_main_ext-3231303031.webp",
-    "yearStart": 2009,
     "model": "SOUL",
-    "yearEnd": 2019
+    "make": "KIA",
+    "yearEnd": 2019,
+    "yearStart": 2009,
+    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/4455/pictures/13944556/webp_mobile_listing_main_ext-3231303031.webp"
   },
   {
     "id": "cClTSkDnk1YL5i9Q1spt",
     "make": "CHERY",
-    "yearEnd": 2019,
-    "model": "TIGGO",
     "yearStart": 2005,
-    "imageUrl": "https://cheryauto.co.za/wp-content/themes/chery/library/images/tiggo-silver.png"
+    "imageUrl": "https://cheryauto.co.za/wp-content/themes/chery/library/images/tiggo-silver.png",
+    "model": "TIGGO",
+    "yearEnd": 2019
   },
   {
     "id": "eAxkJBsOfoWZZhEbC0Vz",
     "yearStart": 2006,
-    "make": "VOLKSWAGEN",
-    "yearEnd": 2019,
+    "imageUrl": "https://imgd.aeplcdn.com/1920x1080/cw/ec/17725/Volkswagen-Jetta-Right-Front-Three-Quarter-55817.jpg?v=201711021421&q=80&q=80",
     "model": "JETTA",
-    "imageUrl": "https://imgd.aeplcdn.com/1920x1080/cw/ec/17725/Volkswagen-Jetta-Right-Front-Three-Quarter-55817.jpg?v=201711021421&q=80&q=80"
+    "yearEnd": 2019,
+    "make": "VOLKSWAGEN"
   },
   {
     "id": "eTRmmmYxsBcd0kxOs0i8",
-    "yearStart": null,
     "make": "MG",
+    "model": "RX5",
     "updatedAt": "2026-01-24T17:28:58.401Z",
-    "imageUrl": "https://static.icartea.com/images/108521/r_960x540/generations/generation_65a66c258536e_white-base-ps--recovered.jpg",
+    "yearStart": null,
     "yearEnd": null,
-    "model": "RX5"
+    "imageUrl": "https://static.icartea.com/images/108521/r_960x540/generations/generation_65a66c258536e_white-base-ps--recovered.jpg"
   },
   {
     "id": "edomIc4PPzTIFigJxzKO",
-    "yearEnd": 2011,
-    "model": "MATRIX",
     "yearStart": 2000,
+    "imageUrl": "https://www.dubicars.com/images/d6bd5a/r_960x540/generations/generation_65313228b0777_white-base-ps-.jpg?6",
+    "model": "MATRIX",
     "make": "HYUNDAI",
-    "imageUrl": "https://www.dubicars.com/images/d6bd5a/r_960x540/generations/generation_65313228b0777_white-base-ps-.jpg?6"
+    "yearEnd": 2011
   },
   {
     "id": "efF5JuMHawU36mAPxb7L",
-    "yearEnd": 2022,
     "imageUrl": "https://www.seat.com/content/dam/public/seat-website/carworlds/ibiza-2025/car-range/seat-ibiza-pa-fr.png",
     "model": "IBIZA",
     "yearStart": 2003,
-    "make": "SEAT"
+    "make": "SEAT",
+    "yearEnd": 2022
   },
   {
     "id": "f47DBjgkmObRX4ly1JMH",
-    "yearEnd": 2022,
-    "model": "CAPTUR",
+    "imageUrl": "https://d1ek71enupal89.cloudfront.net/images/blocks_png/RENAULT/CAPTUR/5DR/24RenCap5drSilFL_800.jpg",
     "make": "RENAULT",
+    "yearEnd": 2022,
     "yearStart": 2013,
-    "imageUrl": "https://d1ek71enupal89.cloudfront.net/images/blocks_png/RENAULT/CAPTUR/5DR/24RenCap5drSilFL_800.jpg"
+    "model": "CAPTUR"
   },
   {
     "id": "fHQ9L9vCXE3tyLaILmWS",
-    "yearStart": 2000,
-    "make": "VOLKSWAGEN",
-    "model": "BORA",
     "yearEnd": 2007,
-    "imageUrl": "https://cdn.wheel-size.com/automobile/body/volkswagen-bora-1998-2005-1761551081.853011.jpg"
+    "model": "BORA",
+    "imageUrl": "https://cdn.wheel-size.com/automobile/body/volkswagen-bora-1998-2005-1761551081.853011.jpg",
+    "make": "VOLKSWAGEN",
+    "yearStart": 2000
   },
   {
     "id": "fP8l5jqGC0yrWiuVVjTF",
+    "imageUrl": "https://di-shared-assets.dealerinspire.com/legacy/rackspace/ldm-images/2019-Chevy-Spark-COLOR-Passion-Fruit.jpg",
+    "yearStart": 2005,
     "make": "CHEVROLET",
     "yearEnd": 2012,
-    "imageUrl": "https://di-shared-assets.dealerinspire.com/legacy/rackspace/ldm-images/2019-Chevy-Spark-COLOR-Passion-Fruit.jpg",
-    "model": "SPARK",
-    "yearStart": 2005
+    "model": "SPARK"
   },
   {
     "id": "fqAHipcNfzt607W3tzR1",
     "yearEnd": 2013,
-    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/2686/logo/mobile_listing_main_2686.jpg",
+    "yearStart": 2009,
     "model": "FANTASIA",
     "make": "SKODA",
-    "yearStart": 2009
+    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/2686/logo/mobile_listing_main_2686.jpg"
   },
   {
     "id": "gCPrZdJwiF3BjZM50f5j",
-    "model": "6",
     "yearStart": 2009,
     "imageUrl": "https://di-uploads-pod23.dealerinspire.com/medcentermazda/uploads/2020/05/14232_st1280_046-e1590097002979.png",
     "yearEnd": 2017,
+    "model": "6",
     "make": "MAZDA"
   },
   {
     "id": "gUv1A9rDfHPa17FjWeim",
+    "imageUrl": "https://resource.digitaldealer.com.au/image/20699831266972e82604502542736593_0_0.webp",
+    "yearStart": 2007,
     "make": "HYUNDAI",
     "yearEnd": 2024,
-    "imageUrl": "https://resource.digitaldealer.com.au/image/20699831266972e82604502542736593_0_0.webp",
-    "model": "i30",
-    "yearStart": 2007
+    "model": "i30"
   },
   {
     "id": "gka5SoyStSgGHOAyza0G",
-    "make": "VOLKSWAGEN",
-    "imageUrl": "https://imgd.aeplcdn.com/664x374/n/cw/ec/29628/polo-exterior-right-front-three-quarter-2.jpeg?q=80",
     "yearStart": 2001,
+    "imageUrl": "https://imgd.aeplcdn.com/664x374/n/cw/ec/29628/polo-exterior-right-front-three-quarter-2.jpeg?q=80",
     "yearEnd": 2017,
-    "model": "POLO"
+    "model": "POLO",
+    "make": "VOLKSWAGEN"
   },
   {
     "id": "hbkKrZ40wztOMBmaQHHH",
-    "make": "OPEL",
-    "yearEnd": 2024,
     "model": "INSIGNIA",
+    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/5577/logo/mobile_listing_main_01.png",
+    "yearEnd": 2024,
     "yearStart": 2013,
-    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/5577/logo/mobile_listing_main_01.png"
+    "make": "OPEL"
   },
   {
     "id": "ivP1V0xny53RJiLyrrbU",
-    "make": "SEAT",
-    "imageUrl": "https://www.seat.eg/content/dam/public/seat-website/myco/2225/models/new-leon/exterior-color/seat-leon-desire-red-colour-configuration.png",
-    "yearEnd": 2021,
+    "model": "LEON",
     "yearStart": 2000,
-    "model": "LEON"
+    "yearEnd": 2021,
+    "imageUrl": "https://www.seat.eg/content/dam/public/seat-website/myco/2225/models/new-leon/exterior-color/seat-leon-desire-red-colour-configuration.png",
+    "make": "SEAT"
   },
   {
     "id": "iviyzIWHotY8HXTekuDx",
-    "imageUrl": "https://cdn.wheel-size.com/automobile/body/opel-crossland-x-2017-2020-1750416735.146742.jpg",
-    "yearStart": 2017,
-    "make": "OPEL",
     "yearEnd": 2024,
-    "model": "CROSSLAND"
+    "model": "CROSSLAND",
+    "make": "OPEL",
+    "imageUrl": "https://cdn.wheel-size.com/automobile/body/opel-crossland-x-2017-2020-1750416735.146742.jpg",
+    "yearStart": 2017
   },
   {
     "id": "kLekRruSWnWoGXcdarXi",
+    "model": "GRAND i10",
     "make": "HYUNDAI",
-    "yearStart": 2013,
-    "imageUrl": "https://cdn.wheel-size.com/thumbs/37/77/3777d7cac76cfa4675a85fb1cd548af8.jpg",
     "yearEnd": 2020,
-    "model": "GRAND i10"
+    "imageUrl": "https://cdn.wheel-size.com/thumbs/37/77/3777d7cac76cfa4675a85fb1cd548af8.jpg",
+    "yearStart": 2013
   },
   {
     "id": "kuECnhN73tZz0rSkz4xH",
+    "imageUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/chrome/Expanded/White/2010TOY005a/2010TOY005a01.jpg",
     "model": "COROLLA خليجي",
     "make": "TOYOTA",
     "yearStart": 2008,
-    "yearEnd": 2013,
-    "imageUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/chrome/Expanded/White/2010TOY005a/2010TOY005a01.jpg"
+    "yearEnd": 2013
   },
   {
     "id": "kzrudHIQjNxSmFdmFqHu",
     "make": "DAIHATSU",
+    "yearStart": 0,
     "imageUrl": "https://ccarprice.com/products/Daihatsu_Terios_SVP.jpg",
-    "yearEnd": 0,
     "model": "TERIOS",
-    "yearStart": 0
+    "yearEnd": 0
   },
   {
     "id": "lcHzmyb5tXjtptrHqxAa",
-    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/12795/pictures/15982755/webp_mobile_listing_main_Kia-Picanto-signal-red.webp",
     "yearEnd": 2024,
     "updatedAt": "2026-01-24T19:20:18.494Z",
+    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/12795/pictures/15982755/webp_mobile_listing_main_Kia-Picanto-signal-red.webp",
     "yearStart": 2004,
     "model": "PICANTO",
     "make": "KIA"
   },
   {
     "id": "ljTJOx7FNhluBWxUaDF7",
+    "model": "IX20",
+    "make": "HYUNDAI",
     "yearStart": 2011,
     "imageUrl": "https://elrizk.com/arabic/hyundai/ix20/images/hw078412.png",
-    "make": "HYUNDAI",
-    "model": "IX20",
     "yearEnd": 2019
   },
   {
     "id": "m3i8uOHrw52IEqpqoFAz",
-    "yearStart": 0,
-    "yearEnd": 0,
     "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769274997/cars/zvtu6dykkptcxw5lxhka.jpg",
-    "model": "116i",
-    "make": "BMW"
+    "make": "BMW",
+    "yearEnd": 0,
+    "yearStart": 0,
+    "model": "116i"
   },
   {
     "id": "mLflvWauue6htjPB5N4n",
-    "make": "SKODA",
     "yearStart": 2012,
     "yearEnd": 2018,
     "imageUrl": "https://cdn.wheel-size.com/thumbs/fc/7b/fc7b79a05678a79d1d41946e92e798b9.jpg",
-    "model": "RAPID"
+    "model": "RAPID",
+    "make": "SKODA"
   },
   {
     "id": "mRn1JU7IsSuXG7YTH4XC",
-    "make": "MG",
+    "yearStart": 0,
     "imageUrl": "https://legion-images.hatla2ee.com/original_image/19df9184-0405-4781-a23c-df7569f7faa0/medium.png",
-    "yearEnd": 0,
     "model": "HS",
-    "yearStart": 0
+    "yearEnd": 0,
+    "make": "MG"
   },
   {
     "id": "mnndwtWGYlgOV5xNtusg",
-    "model": "COROLLA 12",
     "yearStart": 2018,
-    "imageUrl": "https://www.buyatoyota.com/sharpr/bat/assets/img/vehicle-info/Corolla/2023/hero_image_corolla.png",
     "make": "TOYOTA",
+    "model": "COROLLA 12",
+    "imageUrl": "https://www.buyatoyota.com/sharpr/bat/assets/img/vehicle-info/Corolla/2023/hero_image_corolla.png",
     "yearEnd": 2024
   },
   {
     "id": "oN6jIT2F44medAKkh8BY",
-    "make": "KIA",
     "yearEnd": 2018,
-    "imageUrl": "https://cdn.wheel-size.com/automobile/body/kia-cerato-k3-2019-2022-1727244232.6085236.jpg",
     "yearStart": 2014,
-    "model": "CERATO K3"
+    "imageUrl": "https://cdn.wheel-size.com/automobile/body/kia-cerato-k3-2019-2022-1727244232.6085236.jpg",
+    "model": "CERATO K3",
+    "make": "KIA"
   },
   {
     "id": "pUv8bib4DxIvEOLlo3sE",
-    "imageUrl": "https://toyota-indus.com/wp-content/uploads/2024/05/Super-White.png",
     "yearStart": 2006,
+    "imageUrl": "https://toyota-indus.com/wp-content/uploads/2024/05/Super-White.png",
     "make": "TOYOTA",
-    "model": "YARIS",
-    "yearEnd": 2019
+    "yearEnd": 2019,
+    "model": "YARIS"
   },
   {
     "id": "q0tVklwQnUhJ34pPN7SG",
-    "yearStart": 2017,
-    "model": "GRANDLAND",
+    "make": "OPEL",
     "imageUrl": "https://legion-images.hatla2ee.com/original_image/8b9e6a45-74d2-42aa-871a-9dd0d602d8dd/large.jpg",
+    "yearStart": 2017,
     "yearEnd": 2024,
-    "make": "OPEL"
+    "model": "GRANDLAND"
   },
   {
     "id": "qX0xMxeF8CoBLCqXhvgI",
-    "model": "CRETA",
-    "yearStart": 2016,
     "imageUrl": "https://ymimg1.b8cdn.com/uploads/car_model/12271/pictures/15973128/2023_Hyundai_Creta_Exterior_01.jpg",
+    "make": "HYUNDAI",
+    "yearStart": 2016,
     "yearEnd": 2024,
-    "make": "HYUNDAI"
+    "model": "CRETA"
   },
   {
     "id": "qqjc4cKjA158AEn5E2hC",
+    "imageUrl": "https://www.mitsubishi-motors-pr.ca/wp-content/uploads/2021/04/2022-mitsubishi-eclipse-cross-se-s-awc-red-diamond-front-34-view-lt-446ebd.png",
+    "yearEnd": 0,
     "yearStart": 0,
     "model": "ECLIPSE",
-    "make": "MITSUBISHI",
-    "imageUrl": "https://www.mitsubishi-motors-pr.ca/wp-content/uploads/2021/04/2022-mitsubishi-eclipse-cross-se-s-awc-red-diamond-front-34-view-lt-446ebd.png",
-    "yearEnd": 0
+    "make": "MITSUBISHI"
   },
   {
     "id": "quUsrvNe4XOm9ggaTLHn",
-    "make": "NISSAN",
+    "model": "SUNNY N16",
     "imageUrl": "https://cache3.pakwheels.com/system/car_generation_pictures/3044/original/Nissan-Sunny-2005.jpg?1444202253",
-    "yearEnd": 2013,
+    "make": "NISSAN",
     "yearStart": 2005,
-    "model": "SUNNY N16"
+    "yearEnd": 2013
   },
   {
     "id": "r3zc9R7w83ceSt21eAl2",
-    "yearStart": 2005,
-    "model": "TUCSON",
-    "make": "HYUNDAI",
     "imageUrl": "https://legion-images.hatla2ee.com/original_image/6cc08a5f-c9fb-4e33-8d74-e761172894db/medium.png",
-    "yearEnd": 2024
+    "make": "HYUNDAI",
+    "yearEnd": 2024,
+    "yearStart": 2005,
+    "model": "TUCSON"
   },
   {
     "id": "rEANnFxtWemT1eFhtCSJ",
     "make": "NISSAN",
-    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/2728/pictures/2779517/webp_mobile_listing_main_2014_Nissan_Tiida_Front.webp",
     "yearStart": 2004,
+    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/2728/pictures/2779517/webp_mobile_listing_main_2014_Nissan_Tiida_Front.webp",
     "model": "TIIDA",
     "yearEnd": 2022
   },
   {
     "id": "rKqmABLxsgKtxt4XMC4T",
-    "yearEnd": 2022,
-    "make": "RENAULT",
+    "model": "KADJAR",
     "imageUrl": "https://cdn.wheel-size.com/automobile/body/renault-kadjar-2018-2024-1729683527.805026.jpg",
+    "make": "RENAULT",
     "yearStart": 2015,
-    "model": "KADJAR"
+    "yearEnd": 2022
   },
   {
     "id": "rMBHz9Rml5vo60k8eQIH",
-    "make": "RENAULT",
-    "imageUrl": "https://imgd.aeplcdn.com/1920x1080/ec/42/B1/17815/img/ol/Renault-Fluence-Left-Side-View-48248.jpg?v=201711021421&q=80&q=80",
-    "yearStart": 2010,
     "yearEnd": 2019,
+    "yearStart": 2010,
+    "imageUrl": "https://imgd.aeplcdn.com/1920x1080/ec/42/B1/17815/img/ol/Renault-Fluence-Left-Side-View-48248.jpg?v=201711021421&q=80&q=80",
+    "make": "RENAULT",
     "model": "FLUENCE"
   },
   {
     "id": "rTAc28tiWFTwRHgYAs2M",
-    "yearEnd": 2011,
+    "model": "GETZ",
     "yearStart": 2005,
     "make": "HYUNDAI",
     "imageUrl": "https://imgd.aeplcdn.com/664x374/cw/cars/discontinued/hyundai/getz-2004-2007.jpg?q=80",
-    "model": "GETZ"
+    "yearEnd": 2011
   },
   {
     "id": "tUIeRDqufmA1UiV578pA",
-    "yearStart": 2000,
+    "imageUrl": "https://imgd.aeplcdn.com/1920x1080/n/cw/ec/198749/golf-gti-exterior-right-front-three-quarter-4.png?isig=0&q=80&q=80",
     "yearEnd": 2024,
     "model": "GOLD",
-    "imageUrl": "https://imgd.aeplcdn.com/1920x1080/n/cw/ec/198749/golf-gti-exterior-right-front-three-quarter-4.png?isig=0&q=80&q=80",
+    "yearStart": 2000,
     "make": "VOLKSWAGEN"
   },
   {
     "id": "tpDaja12hAunVn3e1ig3",
-    "imageUrl": "https://platform.cstatic-images.com/in/v2/stock_photos/29c77910-12cc-428b-a5f5-1ced093a57c3/ee217ed1-8f49-4828-8796-7c93b5daa220.png",
     "yearEnd": 2020,
     "yearStart": 2008,
-    "make": "MITSUBISHI",
-    "model": "LANCER SHARK"
+    "model": "LANCER SHARK",
+    "imageUrl": "https://platform.cstatic-images.com/in/v2/stock_photos/29c77910-12cc-428b-a5f5-1ced093a57c3/ee217ed1-8f49-4828-8796-7c93b5daa220.png",
+    "make": "MITSUBISHI"
   },
   {
     "id": "uuBjKdnAWe1z0Hu06G65",
-    "yearStart": 2013,
-    "yearEnd": 2025,
-    "make": "PEUGEOT",
     "model": "2008",
-    "imageUrl": "https://www.peugeot-eg.com/content/dam/peugeot/egypt/new-2008-fl/2008_GT_Mobile.jpg?imwidth=768"
+    "imageUrl": "https://www.peugeot-eg.com/content/dam/peugeot/egypt/new-2008-fl/2008_GT_Mobile.jpg?imwidth=768",
+    "yearEnd": 2025,
+    "yearStart": 2013,
+    "make": "PEUGEOT"
   },
   {
     "id": "xuZkVzRVNKqXTScbzygc",
-    "yearStart": 0,
     "yearEnd": 0,
-    "model": "GRANTA",
+    "imageUrl": "https://cloudfront-us-east-1.images.arcpublishing.com/crain/6J3OIB5CDZCNDIW57GJXOMKRYE.jpg",
+    "yearStart": 0,
     "make": "LADA",
-    "imageUrl": "https://cloudfront-us-east-1.images.arcpublishing.com/crain/6J3OIB5CDZCNDIW57GJXOMKRYE.jpg"
+    "model": "GRANTA"
   },
   {
     "id": "yaTUf5R2Z805ADsbA6LH",
-    "yearEnd": null,
-    "model": "120i",
-    "yearStart": null,
-    "updatedAt": "2026-01-24T17:19:59.088Z",
     "make": "BMW",
-    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769275196/cars/acyvyqam5zmlzc6p97s3.jpg"
+    "model": "120i",
+    "yearEnd": null,
+    "updatedAt": "2026-01-24T17:19:59.088Z",
+    "imageUrl": "https://res.cloudinary.com/dht6kx2jx/image/upload/v1769275196/cars/acyvyqam5zmlzc6p97s3.jpg",
+    "yearStart": null
   },
   {
     "id": "z2fKFP6FGKaCxS1Qd63l",
-    "model": "CEED",
-    "yearEnd": 2023,
     "make": "KIA",
+    "yearEnd": 2023,
+    "model": "CEED",
     "yearStart": 2012,
     "imageUrl": "https://www.dertour-reiseleitung.com/wp-content/uploads/kia_ceed.png"
   },
   {
     "id": "zUcpTXuyuX4wZPgYrTKX",
-    "make": "TOYOTA",
-    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/12264/logo/mobile_listing_main_2020_corolla_logo.png",
     "yearStart": 2013,
     "model": "COROLLA 11",
-    "yearEnd": 2019
+    "yearEnd": 2019,
+    "imageUrl": "https://ymimg1.b8cdn.com/resized/car_model/12264/logo/mobile_listing_main_2020_corolla_logo.png",
+    "make": "TOYOTA"
   },
   {
     "id": "zcPMEMZulWcH0bpD5cv5",
-    "make": "NISSAN",
     "yearEnd": 2024,
     "imageUrl": "https://www-europe.nissan-cdn.net/content/dam/Nissan/eg/vehicles/qashqai/Qashqainew/Configurator/N-Design-e-PWR.jpg",
-    "yearStart": 2007,
-    "model": "QASHQAI"
+    "make": "NISSAN",
+    "model": "QASHQAI",
+    "yearStart": 2007
   }
 ]
