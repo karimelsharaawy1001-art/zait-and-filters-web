@@ -19,7 +19,12 @@ import {
     Package,
     FileText,
     Download,
-    LogOut
+    LogOut,
+    Home,
+    Building,
+    Briefcase,
+    Building2,
+    Map
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useFilters } from '../context/FilterContext';
@@ -50,6 +55,19 @@ const Profile = () => {
     const [fetchingOrders, setFetchingOrders] = useState(false);
     const { t, i18n } = useTranslation();
     const { settings } = useSettings();
+    const isAr = i18n.language === 'ar';
+
+    // Address Book States
+    const [savedAddresses, setSavedAddresses] = useState([]);
+    const [fetchingAddresses, setFetchingAddresses] = useState(false);
+    const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+    const [shippingRates, setShippingRates] = useState([]);
+    const [newAddress, setNewAddress] = useState({
+        label: '',
+        governorate: '',
+        city: '',
+        detailedAddress: ''
+    });
 
     const handlePrint = () => {
         window.print();
@@ -59,6 +77,13 @@ const Profile = () => {
         fetchUserData();
         fetchGlobalCars();
     }, []);
+
+    useEffect(() => {
+        if (activeTab === 'addresses') {
+            fetchAddresses();
+            fetchShippingRates();
+        }
+    }, [activeTab]);
 
     useEffect(() => {
         if (activeTab === 'orders' && orders.length === 0) {
@@ -367,11 +392,60 @@ const Profile = () => {
 
                             {activeTab === 'addresses' && (
                                 <div className="space-y-6 animate-in fade-in duration-500">
-                                    <h3 className="text-2xl font-black text-gray-900">Address Book</h3>
-                                    <p className="text-gray-500">Manage your saved shipping addresses for faster checkout.</p>
-                                    <div className="p-8 border-2 border-dashed border-gray-100 rounded-[2rem] text-center">
-                                        <p className="text-gray-400 font-bold">Manage this during checkout for now.</p>
+                                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                                        <div>
+                                            <h3 className="text-2xl font-black text-gray-900">{isAr ? 'دفتر العناوين' : 'Address Book'}</h3>
+                                            <p className="text-gray-500 font-medium">{isAr ? 'إدارة عناوين الشحن الخاصة بك لعملية دفع أسرع.' : 'Manage your saved shipping addresses for faster checkout.'}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => setIsAddressModalOpen(true)}
+                                            className="flex items-center gap-2 bg-orange-600 text-white px-6 py-3 rounded-2xl font-black text-sm hover:bg-orange-700 transition-all shadow-xl shadow-orange-100"
+                                        >
+                                            <Plus className="h-4 w-4" />
+                                            {isAr ? 'إضافة عنوان جديد' : 'Add New Address'}
+                                        </button>
                                     </div>
+
+                                    {fetchingAddresses ? (
+                                        <div className="flex justify-center py-12">
+                                            <Loader2 className="h-10 w-10 animate-spin text-orange-600" />
+                                        </div>
+                                    ) : savedAddresses.length === 0 ? (
+                                        <div className="py-20 flex flex-col items-center justify-center text-center bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-200">
+                                            <div className="bg-white p-6 rounded-full shadow-lg mb-6">
+                                                <MapPin className="h-16 w-16 text-gray-300" />
+                                            </div>
+                                            <h4 className="text-xl font-black text-gray-900">{isAr ? 'لا يوجد عناوين' : 'No Addresses Yet'}</h4>
+                                            <p className="text-gray-500 mt-2 max-w-xs mx-auto">{isAr ? 'أضف عناوينك لسهولة الوصول إليها لاحقاً.' : 'Add your addresses for easy access during checkout.'}</p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            {savedAddresses.map((addr) => {
+                                                const Icon = addr.label?.toLowerCase() === 'home' || addr.labelAr === 'المنزل' ? Home :
+                                                    addr.label?.toLowerCase() === 'office' || addr.label?.toLowerCase() === 'work' || addr.labelAr === 'العمل' ? Building : MapPin;
+                                                return (
+                                                    <div key={addr.id} className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-gray-100 hover:border-orange-200 transition-all group relative overflow-hidden">
+                                                        <div className={`flex items-start gap-4 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                                            <div className="bg-orange-600 p-3 rounded-2xl text-white shadow-lg shadow-orange-100">
+                                                                <Icon className="h-5 w-5" />
+                                                            </div>
+                                                            <div className={`flex-1 min-w-0 ${isAr ? 'text-right' : 'text-left'}`}>
+                                                                <h4 className="text-lg font-black text-gray-900 truncate">{addr.label}</h4>
+                                                                <p className="text-sm font-bold text-orange-600 mt-1">{addr.city}, {addr.governorate}</p>
+                                                                <p className="text-sm text-gray-500 mt-2 font-medium leading-relaxed">{addr.detailedAddress}</p>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleDeleteAddress(addr.id)}
+                                                                className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                            >
+                                                                <Trash2 className="h-5 w-5" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
@@ -486,6 +560,99 @@ const Profile = () => {
                 </div>
             </div>
 
+            {/* Add Address Modal */}
+            {isAddressModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-white w-full max-w-xl rounded-[3rem] shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-300">
+                        <button
+                            onClick={() => setIsAddressModalOpen(false)}
+                            className="absolute top-8 right-8 p-3 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-2xl transition-all z-10"
+                        >
+                            <Trash2 className="h-6 w-6 rotate-45" />
+                        </button>
+
+                        <form onSubmit={handleAddAddress} className="p-10 space-y-8">
+                            <div className="space-y-2">
+                                <h3 className={`text-3xl font-black text-gray-900 ${isAr ? 'text-right' : ''}`}>
+                                    {isAr ? 'إضافة عنوان جديد' : 'Add New Address'}
+                                </h3>
+                                <p className={`text-gray-500 font-medium ${isAr ? 'text-right' : ''}`}>
+                                    {isAr ? 'أدخل تفاصيل العنوان الخاص بك للشحن.' : 'Enter your address details for shipping.'}
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="md:col-span-2 space-y-2">
+                                    <label className={`text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 ${isAr ? 'text-right block' : ''}`}>{isAr ? 'تسمية العنوان (مثال: المنزل، العمل)' : 'Address Label (e.g. Home, Work)'}</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        placeholder={isAr ? 'مثال: المنزل' : 'e.g. Home'}
+                                        value={newAddress.label}
+                                        onChange={(e) => setNewAddress(prev => ({ ...prev, label: e.target.value }))}
+                                        className={`w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-sm font-bold text-[#1A1A1A] placeholder:text-gray-400 focus:ring-2 focus:ring-orange-600 outline-none transition-all ${isAr ? 'text-right' : ''}`}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className={`text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 ${isAr ? 'text-right block' : ''}`}>{isAr ? 'المحافظة' : 'Governorate'}</label>
+                                    <select
+                                        required
+                                        value={newAddress.governorate}
+                                        onChange={(e) => setNewAddress(prev => ({ ...prev, governorate: e.target.value }))}
+                                        className={`w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-sm font-bold text-[#1A1A1A] focus:ring-2 focus:ring-orange-600 outline-none transition-all ${isAr ? 'text-right' : ''}`}
+                                    >
+                                        <option value="">{isAr ? 'اختر المحافظة' : 'Select Governorate'}</option>
+                                        {shippingRates.map(rate => (
+                                            <option key={rate.id} value={rate.governorate}>{rate.governorate}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className={`text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 ${isAr ? 'text-right block' : ''}`}>{isAr ? 'المدينة / المنطقة' : 'City / Area'}</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        placeholder={isAr ? 'مثال: المعادي' : 'e.g. Maadi'}
+                                        value={newAddress.city}
+                                        onChange={(e) => setNewAddress(prev => ({ ...prev, city: e.target.value }))}
+                                        className={`w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-sm font-bold text-[#1A1A1A] placeholder:text-gray-400 focus:ring-2 focus:ring-orange-600 outline-none transition-all ${isAr ? 'text-right' : ''}`}
+                                    />
+                                </div>
+
+                                <div className="md:col-span-2 space-y-2">
+                                    <label className={`text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 ${isAr ? 'text-right block' : ''}`}>{isAr ? 'العنوان بالتفصيل' : 'Detailed Address'}</label>
+                                    <textarea
+                                        required
+                                        rows={3}
+                                        placeholder={isAr ? 'المبنى، الشارع، الدور، الشقة...' : 'Building, Street, Floor, Apartment...'}
+                                        value={newAddress.detailedAddress}
+                                        onChange={(e) => setNewAddress(prev => ({ ...prev, detailedAddress: e.target.value }))}
+                                        className={`w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-sm font-bold text-[#1A1A1A] placeholder:text-gray-400 focus:ring-2 focus:ring-orange-600 outline-none transition-all ${isAr ? 'text-right' : ''}`}
+                                    />
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={saving}
+                                className="w-full bg-orange-600 text-white py-5 rounded-2xl font-black text-lg hover:bg-orange-700 active:scale-[0.98] transition-all shadow-xl shadow-orange-100 flex items-center justify-center gap-3 disabled:opacity-50"
+                            >
+                                {saving ? (
+                                    <Loader2 className="h-6 w-6 animate-spin" />
+                                ) : (
+                                    <>
+                                        <MapPin className="h-6 w-6" />
+                                        {isAr ? 'حفظ العنوان' : 'Save Address'}
+                                    </>
+                                )}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
             {/* Add Car Modal */}
             {isAddModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -588,7 +755,7 @@ const Profile = () => {
             <div className="print-only-section">
                 <MaintenanceReportTemplate
                     user={userData || auth.currentUser}
-                    orders={orders.filter(o => o.status?.toLowerCase() === 'delivered')}
+                    orders={orders.filter(o => o.status === 'Delivered' || o.status === 'Completed')}
                     siteName={settings.siteName || "Zait & Filters"}
                     logoUrl={settings.siteLogo}
                 />
