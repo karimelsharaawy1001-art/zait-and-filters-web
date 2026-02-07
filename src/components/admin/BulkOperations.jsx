@@ -216,9 +216,19 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
     };
 
     const runDataRepair = async () => {
-        if (!window.confirm('MASTER DATA REPAIR: This will analyze all 4000+ products and fix missing Car Makes, Models, and empty years by migrating them to the new system. It also fixes price formats. Proceed?')) return;
+        console.log("🚀 [REPAIR] Command Received. Initializing Diagnostics...");
+        console.log("📊 [REPAIR] Appwrite Config:", { DATABASE_ID, PRODUCTS_COLLECTION });
+        console.log("📦 [REPAIR] Static Products Count:", staticProducts?.length || 0);
+
+        if (!DATABASE_ID || !PRODUCTS_COLLECTION) {
+            toast.error("Critical: Appwrite environment variables are missing.");
+            return;
+        }
+
+        if (!window.confirm('MASTER DATA REPAIR: This will analyze your entire catalog and restore missing vehicle metadata. Proceed?')) return;
 
         setLoading(true);
+        const loadToast = toast.loading('Initializing Catalog Recovery...');
         setImportStatus('Scanning Matrix...');
 
         try {
@@ -242,6 +252,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 } else {
                     lastId = response.documents[response.documents.length - 1].$id;
                     setImportStatus(`Loaded ${allDocs.length} items...`);
+                    toast.loading(`Syncing Metadata: ${allDocs.length} items...`, { id: loadToast });
                 }
             }
 
@@ -326,16 +337,19 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 }
             }
 
-            toast.success(`Matrix restored! Fixed ${repairCount} inconsistencies.`, { duration: 5000 });
+            toast.success(`Recovery Complete! Fixed ${repairCount} entries.`, { id: loadToast, duration: 5000 });
             if (onSuccess) onSuccess();
         } catch (error) {
             console.error("Repair error:", error);
-            toast.error("Repair operation failed.");
+            toast.error("Recovery failed. Check console for details.", { id: loadToast });
         } finally {
             setLoading(false);
             setImportStatus('');
         }
     };
+
+    // Emergency Hook
+    window.REPAIR_MATRIX = runDataRepair;
 
     return (
         <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-6 font-admin">
@@ -360,19 +374,19 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     </label>
                 </div>
 
-                <button onClick={runDataRepair} disabled={loading} className="admin-btn-slim bg-orange-600 text-white hover:bg-orange-700 shadow-lg shadow-orange-600/10">
+                <button onClick={runDataRepair} disabled={loading} id="master-repair-btn" className={`admin-btn-slim bg-orange-600 text-white hover:bg-orange-700 shadow-lg shadow-orange-600/10 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}>
                     <TrendingUp size={14} /> Repair & Sync Matrix
                 </button>
 
                 {importStatus && (
-                    <div className="ml-auto flex items-center gap-2 bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100">
+                    <div className="ml-auto flex items-center gap-2 bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100 transition-all duration-300">
                         <Loader2 className="h-3 w-3 animate-spin text-orange-600" />
                         <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">{importStatus}</span>
                     </div>
                 )}
             </div>
             <p className="mt-2 text-[9px] text-slate-400 uppercase tracking-[0.2em] font-black italic">
-                Protocol: XLSX/XLS Support | Schema Normalization active | Legacy Fallback enabled
+                Advanced Protocol: $O(1)$ Matrix Lookup active | Non-blocking sync enabled | Global: window.REPAIR_MATRIX()
             </p>
         </div>
     );
