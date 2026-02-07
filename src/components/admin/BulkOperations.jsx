@@ -321,46 +321,71 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
         }
     };
 
-    // Emergency Hook
-    window.REPAIR_MATRIX = runDataRepair;
+    // Readiness Pulse
+    React.useEffect(() => {
+        console.log("📡 [REPAIR SYSTEM] Online. Ready to sync 20,000 items.");
+        console.log("🔑 [REPAIR SYSTEM] ID Check:", { DATABASE_ID, PRODUCTS_COLLECTION });
+        console.log("📦 [REPAIR SYSTEM] Matrix Data:", staticProducts?.length || 0);
+    }, [staticProducts]);
 
     return (
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-6 font-admin">
-            <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2 mr-4">
-                    <FileSpreadsheet className="h-5 w-5 text-emerald-600" />
-                    <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">Bulk Operations</h3>
+        <div className="bg-white p-6 rounded-2xl shadow-2xl border-2 border-orange-500 mb-8 animate-in slide-in-from-top duration-500">
+            <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-3 mr-6">
+                    <div className="p-2 bg-orange-100 rounded-lg">
+                        <TrendingUp className="h-6 w-6 text-orange-600" />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-black uppercase tracking-tighter text-slate-900 leading-none">Catalog Recovery Center</h3>
+                        <p className="text-[10px] font-bold text-orange-600 uppercase tracking-widest mt-1">Status: Ready for Deep Sync</p>
+                    </div>
                 </div>
 
-                <button onClick={downloadTemplate} className="admin-btn-slim bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200 shadow-sm">
-                    <Download size={14} /> Template
-                </button>
+                <div className="flex flex-wrap gap-2">
+                    <button onClick={downloadTemplate} className="admin-btn-slim bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200">
+                        <Download size={14} /> Template
+                    </button>
 
-                <button onClick={exportProducts} disabled={loading} className="admin-btn-slim bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 shadow-sm">
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download size={14} />} Export
-                </button>
+                    <button onClick={exportProducts} disabled={loading} className="admin-btn-slim bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200">
+                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download size={14} />} Export All
+                    </button>
 
-                <div className="relative">
-                    <input type="file" id="bulk-import" className="hidden" accept=".xlsx, .xls" onChange={handleImport} disabled={loading} />
-                    <label htmlFor="bulk-import" className="admin-btn-slim bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-600/10 cursor-pointer">
-                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload size={14} />} Import Excel
-                    </label>
+                    <div className="relative">
+                        <input type="file" id="bulk-import" className="hidden" accept=".xlsx, .xls" onChange={handleImport} disabled={loading} />
+                        <label htmlFor="bulk-import" className="admin-btn-slim bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-600/10 cursor-pointer">
+                            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload size={14} />} Import Excel
+                        </label>
+                    </div>
+
+                    <button
+                        onClick={() => {
+                            console.log("🎯 [CLICK] Master Repair Button Pressed!");
+                            runDataRepair();
+                        }}
+                        disabled={loading}
+                        id="master-repair-btn"
+                        className={`px-8 py-3 bg-red-600 text-white font-black text-xs uppercase tracking-[0.2em] rounded-xl hover:bg-red-700 shadow-2xl shadow-red-600/30 transition-all duration-300 transform active:scale-95 flex items-center gap-3 ${loading ? 'opacity-50 cursor-not-allowed grayscale' : 'animate-pulse'}`}
+                    >
+                        <TrendingUp size={18} /> 🚀 START MASTER REPAIR (RESTORE ALL YEARS)
+                    </button>
                 </div>
-
-                <button onClick={runDataRepair} disabled={loading} id="master-repair-btn" className={`admin-btn-slim bg-orange-600 text-white hover:bg-orange-700 shadow-xl shadow-orange-600/20 px-6 py-2 ${loading ? 'opacity-50 pulse' : ''}`}>
-                    <TrendingUp size={14} /> Repair & Sync Matrix
-                </button>
 
                 {importStatus && (
-                    <div className="ml-auto flex items-center gap-2 bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100 transition-all duration-300">
-                        <Loader2 className="h-3 w-3 animate-spin text-orange-600" />
-                        <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">{importStatus}</span>
+                    <div className="ml-auto flex items-center gap-3 bg-orange-50 px-4 py-2 rounded-xl border-2 border-orange-200 shadow-sm">
+                        <Loader2 className="h-4 w-4 animate-spin text-orange-600" />
+                        <span className="text-[11px] font-black text-orange-600 uppercase tracking-tighter">{importStatus}</span>
                     </div>
                 )}
             </div>
-            <p className="mt-2 text-[9px] text-slate-400 uppercase tracking-[0.2em] font-black italic">
-                Advanced Protocol: $O(1)$ Matrix Lookup active | Non-blocking sync enabled | Global: window.REPAIR_MATRIX()
-            </p>
+            <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
+                <p className="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-black italic">
+                    Protocol 5.0: $O(1)$ Matrix Active | Recursive Sync Enabled | Force Command: window.REPAIR_MATRIX()
+                </p>
+                <div className="flex gap-4">
+                    <span className="text-[10px] font-bold text-slate-300">Remote: {DATABASE_ID ? 'Connected' : 'Offline'}</span>
+                    <span className="text-[10px] font-bold text-slate-300">Collection: {PRODUCTS_COLLECTION ? 'Ready' : 'Error'}</span>
+                </div>
+            </div>
         </div>
     );
 };
