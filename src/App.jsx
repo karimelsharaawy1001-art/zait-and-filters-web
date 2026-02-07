@@ -13,6 +13,7 @@ import ChatWidget from './components/ChatWidget';
 import { StaticDataProvider } from './context/StaticDataContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { AuthProvider } from './context/AuthContext';
+import IntegrationsManager from './components/IntegrationsManager';
 import ErrorBoundary from './components/ErrorBoundary';
 import PageLoader from './components/PageLoader';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -229,6 +230,7 @@ const PageTracking = () => {
 function App() {
   return (
     <Router>
+      <IntegrationsManager />
       <PageTracking />
       <ReferralTracker />
       <ScrollToTop />

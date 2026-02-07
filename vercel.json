@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/google:id.html",
+      "destination": "/api/products?action=verify-google&file=google:id"
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "/api/products?action=generateSitemap"
     },

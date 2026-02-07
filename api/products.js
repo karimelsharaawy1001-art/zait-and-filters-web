@@ -104,6 +104,35 @@ export default async function handler(req, res) {
             }
         }
 
+        if (action === 'verify-google') {
+            const requestedFile = req.query.file; // e.g. "google12345"
+            try {
+                const endpoint = process.env.VITE_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1';
+                const projectId = process.env.VITE_APPWRITE_PROJECT_ID;
+                const databaseId = process.env.VITE_APPWRITE_DATABASE_ID;
+                const collectionId = process.env.VITE_APPWRITE_SETTINGS_COLLECTION_ID || 'settings';
+
+                const url = `${endpoint}/databases/${databaseId}/collections/${collectionId}/documents/integrations`;
+
+                const response = await axios.get(url, {
+                    headers: { 'X-Appwrite-Project': projectId }
+                });
+
+                const data = response.data;
+                const savedFileName = data.googleVerificationFileName || ''; // e.g. "google123456.html"
+                const savedContent = data.googleVerificationFileContent || '';
+
+                if (savedFileName.startsWith(requestedFile)) {
+                    res.setHeader('Content-Type', 'text/html');
+                    return res.status(200).send(savedContent);
+                }
+
+                return res.status(404).send('Not Found');
+            } catch (err) {
+                return res.status(500).send('Verification Service Error');
+            }
+        }
+
         // --- PRODUCT ACTIONS (Cached) ---
         const fetchAllProducts = async () => {
             if (globalProductCache && (Date.now() - lastCacheUpdate < CACHE_TTL)) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, ChevronLeft, Save, Copy, ExternalLink, Info, Search, AlertCircle } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, Save, Copy, ExternalLink, Info, Search, AlertCircle, FileText } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { databases } from '../../appwrite';
 import { toast } from 'react-hot-toast';
@@ -7,6 +7,8 @@ import axios from 'axios';
 
 const GoogleSearchConsole = () => {
     const [verificationCode, setVerificationCode] = useState('');
+    const [fileName, setFileName] = useState('');
+    const [fileContent, setFileContent] = useState('');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [testStatus, setTestStatus] = useState('untested'); // untested, checking, found, mismatch, not_found, error
@@ -22,9 +24,10 @@ const GoogleSearchConsole = () => {
             try {
                 const docSnap = await databases.getDocument(DATABASE_ID, SETTINGS_COLLECTION, DOC_ID);
                 setVerificationCode(docSnap.googleVerificationCode || '');
+                setFileName(docSnap.googleVerificationFileName || '');
+                setFileContent(docSnap.googleVerificationFileContent || '');
             } catch (error) {
                 console.error("Error fetching integrations:", error);
-                // If document not found, it will be created on first save
             } finally {
                 setLoading(false);
             }
@@ -37,9 +40,11 @@ const GoogleSearchConsole = () => {
         setSaving(true);
         try {
             await databases.updateDocument(DATABASE_ID, SETTINGS_COLLECTION, DOC_ID, {
-                googleVerificationCode: verificationCode
+                googleVerificationCode: verificationCode,
+                googleVerificationFileName: fileName,
+                googleVerificationFileContent: fileContent
             });
-            toast.success('Search Console verification code saved!');
+            toast.success('Search Console settings saved!');
             setTestStatus('untested'); // Reset status when saved
         } catch (error) {
             console.error("Error saving verification code:", error);
@@ -172,7 +177,7 @@ const GoogleSearchConsole = () => {
                     <section className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl shadow-gray-200/40">
                         <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
                             <Settings className="w-5 h-5 text-[#008a40]" />
-                            Configuration
+                            Method 1: Meta Tag (Current)
                         </h3>
                         <div className="space-y-4">
                             <label className="block text-sm font-black text-gray-700 uppercase tracking-widest">
@@ -190,8 +195,53 @@ const GoogleSearchConsole = () => {
                             <div className="p-4 bg-blue-50 rounded-2xl flex gap-3 border border-blue-100">
                                 <Info className="w-5 h-5 text-blue-600 shrink-0" />
                                 <p className="text-xs text-blue-800 leading-relaxed">
-                                    Only paste the code from the <strong>HTML Tag</strong> option (the part inside the <code>content="..."</code> attribute, or the full tag). Our system will handle the injection into the site's head automatically.
+                                    Paste the <code>content</code> value from the HTML Tag option. Our <code>IntegrationsManager</code> will inject this tag as soon as the site loads.
                                 </p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl shadow-gray-200/40">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <FileText className="w-5 h-5 text-[#008a40]" />
+                                Method 2: HTML File (Better for SPAs)
+                            </h3>
+                            <span className="px-3 py-1 bg-green-100 text-[#008a40] text-[10px] font-black uppercase tracking-widest rounded-full">Recommended Fallback</span>
+                        </div>
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="block text-[10px] font-black text-gray-700 uppercase tracking-widest">
+                                        Verification Filename
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={fileName}
+                                        onChange={(e) => setFileName(e.target.value)}
+                                        placeholder='e.g. google123456.html'
+                                        className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-[#008a40] focus:bg-white rounded-xl outline-none transition-all font-mono text-xs"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="block text-[10px] font-black text-gray-700 uppercase tracking-widest">
+                                        Verification Content
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={fileContent}
+                                        onChange={(e) => setFileContent(e.target.value)}
+                                        placeholder='e.g. google-site-verification: google123456.html'
+                                        className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-[#008a40] focus:bg-white rounded-xl outline-none transition-all font-mono text-xs"
+                                    />
+                                </div>
+                            </div>
+                            <div className="p-4 bg-[#008a40]/5 rounded-2xl flex gap-3 border border-[#008a40]/10">
+                                <AlertCircle className="w-5 h-5 text-[#008a40] shrink-0" />
+                                <div className="text-xs text-[#008a40] leading-relaxed font-medium">
+                                    <p className="mb-1 font-bold italic">Why use this?</p>
+                                    <p>React sites sometimes delay meta tag injection. The <strong>HTML File</strong> method is 100% reliable because we serve it directly from the server. Use this if Google can't "find" your site.</p>
+                                </div>
                             </div>
                         </div>
                     </section>
