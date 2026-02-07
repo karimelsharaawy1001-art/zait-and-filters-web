@@ -111,27 +111,41 @@ const Profile = () => {
                 [Query.limit(1000)]
             );
 
+            console.log('[Profile] Current User Email:', appwriteUser?.email);
+            console.log('[Profile] Total orders fetched:', response.documents.length);
+
             // Filter orders by matching email
             const userOrders = response.documents.filter(doc => {
+                let matchFound = false;
+
+                // 1. Check root level email
                 if (doc.email && doc.email.toLowerCase() === appwriteUser.email.toLowerCase()) {
-                    return true;
+                    console.log(`[Profile] Match found at root email for order ${doc.$id}`);
+                    matchFound = true;
                 }
 
-                if (doc.customerInfo) {
+                // 2. Check customerInfo JSON
+                if (!matchFound && doc.customerInfo) {
                     try {
                         const customerData = typeof doc.customerInfo === 'string'
                             ? JSON.parse(doc.customerInfo)
                             : doc.customerInfo;
 
+                        // Debug log for failing orders
+                        if (customerData.email && customerData.email.toLowerCase() !== appwriteUser.email.toLowerCase()) {
+                            console.log(`[Profile] Mismatch for order ${doc.$id}: Order email (${customerData.email}) !== User email (${appwriteUser.email})`);
+                        }
+
                         if (customerData.email && customerData.email.toLowerCase() === appwriteUser.email.toLowerCase()) {
-                            return true;
+                            console.log(`[Profile] Match found in customerInfo for order ${doc.$id}`);
+                            matchFound = true;
                         }
                     } catch (e) {
-                        console.warn('Could not parse customerInfo for order:', doc.$id);
+                        console.warn('[Profile] Could not parse customerInfo for order:', doc.$id, e);
                     }
                 }
 
-                return false;
+                return matchFound;
             });
 
             const ordersList = userOrders.map(doc => ({
