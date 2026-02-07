@@ -186,25 +186,29 @@ const AdminLayout = () => {
                                     : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}
                             `}
                         >
-                            <span className={`transition-all duration-200 ${isActive ? 'text-emerald-600' : 'text-slate-400 group-hover:text-slate-600'}`}>
-                                {React.cloneElement(item.icon, { className: 'w-4.5 h-4.5' })}
-                            </span>
-                            <span className="text-[13px] tracking-tight">
-                                {item.name}
-                            </span>
+                            {({ isActive }) => (
+                                <>
+                                    <span className={`transition-all duration-200 ${isActive ? 'text-emerald-600' : 'text-slate-400 group-hover:text-slate-600'}`}>
+                                        {React.cloneElement(item.icon, { className: 'w-4.5 h-4.5' })}
+                                    </span>
+                                    <span className="text-[13px] tracking-tight">
+                                        {item.name}
+                                    </span>
 
-                            <div className="ml-auto flex gap-1">
-                                {item.name === 'Orders' && pendingOrdersCount > 0 && (
-                                    <span className="bg-emerald-100 text-emerald-700 text-[9px] font-bold px-1.5 py-0.5 rounded-md border border-emerald-200">
-                                        {pendingOrdersCount}
-                                    </span>
-                                )}
-                                {item.name === 'Messages' && unreadCount > 0 && (
-                                    <span className="bg-slate-100 text-slate-700 text-[9px] font-bold px-1.5 py-0.5 rounded-md border border-slate-200">
-                                        {unreadCount}
-                                    </span>
-                                )}
-                            </div>
+                                    <div className="ml-auto flex gap-1">
+                                        {item.name === 'Orders' && pendingOrdersCount > 0 && (
+                                            <span className="bg-emerald-100 text-emerald-700 text-[9px] font-bold px-1.5 py-0.5 rounded-md border border-emerald-200">
+                                                {pendingOrdersCount}
+                                            </span>
+                                        )}
+                                        {item.name === 'Messages' && unreadCount > 0 && (
+                                            <span className="bg-slate-100 text-slate-700 text-[9px] font-bold px-1.5 py-0.5 rounded-md border border-slate-200">
+                                                {unreadCount}
+                                            </span>
+                                        )}
+                                    </div>
+                                </>
+                            )}
                         </NavLink>
                     ))}
                 </nav>

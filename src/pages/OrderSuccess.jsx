@@ -29,55 +29,123 @@ const OrderSuccess = () => {
     useEffect(() => {
         const createPendingOrder = async () => {
             try {
+                // Check if we have a pending order in local storage (from Checkout)
+                // Note: Checkout.jsx no longer sets 'pending_order' for offline payments in the same way,
+                // nor does it rely on 'pending_cart_items' for creation here.
+                // However, for ONLINE payments, we might still store pending data?
+                // Actually, Checkout.jsx handling for online payment still uses:
+                // safeLocalStorage.setItem('pending_order', JSON.stringify(orderData));
+                // safeLocalStorage.setItem('pending_cart_items', JSON.stringify(cartItems));
+                // BUT, the API /api/init-payment creates the order? No, usually it just gets a link.
+                // If the flow is: Checkout -> Init Payment -> Redirect -> Return to Success -> Create Order?
+                // OR Checkout -> Create Order (Pending) -> Init Payment -> Redirect -> Return to Success -> Update Order?
+                //
+                // Looking at Checkout.jsx:
+                // It calls `handleOnlinePayment`, which calls `/api/init-payment`.
+                // It DOES NOT create the document in Appwrite before redirecting for online payments?
+                // Wait, logic says: if (online) { handleOnlinePayment } else { createDocument }.
+                // AND handleOnlinePayment does NOT create the document.
+                // So for Online Payments, we rely on `OrderSuccess` to create it?
+                //
+                // Let's check `OrderSuccess.jsx` original logic.
+                // It checks `pendingOrderData`. If exists, it runs transaction to create order.
+                // So yes, for Online Payments, `OrderSuccess` CREATES the order.
+                // I need to replicate that logic for Appwrite.
+
                 const pendingOrderData = safeLocalStorage.getItem('pending_order');
                 const pendingCartItems = safeLocalStorage.getItem('pending_cart_items');
+
+                const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+                const ORDERS_COLLECTION = import.meta.env.VITE_APPWRITE_ORDERS_COLLECTION_ID || 'orders';
+                const SETTINGS_COLLECTION = 'settings';
+                const PRODUCTS_COLLECTION = import.meta.env.VITE_APPWRITE_PRODUCTS_COLLECTION_ID || 'products';
+                const ABANDONED_COLLECTION = import.meta.env.VITE_APPWRITE_ABANDONED_CARTS_COLLECTION_ID || 'abandoned_carts';
+                const PROMOS_COLLECTION = import.meta.env.VITE_APPWRITE_PROMO_CODES_COLLECTION_ID || 'promo_codes';
+
+                // Import Appwrite SDK if not globally available, but we use 'databases' from ../appwrite
+                const { databases } = await import('../appwrite');
+                const { ID } = await import('appwrite');
 
                 if (pendingOrderData) {
                     const orderData = JSON.parse(pendingOrderData);
                     const cartItems = pendingCartItems ? JSON.parse(pendingCartItems) : [];
 
-                    const result = await runTransaction(db, async (transaction) => {
-                        const counterRef = doc(db, 'settings', 'counters');
-                        const counterSnap = await transaction.get(counterRef);
-
-                        let nextNumber = 3501;
-                        if (counterSnap.exists()) {
-                            nextNumber = (counterSnap.data().lastOrderNumber || 3500) + 1;
-                        }
-
-                        const orderRef = doc(collection(db, 'orders'));
-                        orderData.paymentStatus = 'Paid';
-                        orderData.orderNumber = nextNumber;
-                        orderData.updatedAt = new Date();
-                        orderData.isOpened = false;
-
-                        transaction.set(orderRef, orderData);
-                        transaction.set(counterRef, { lastOrderNumber: nextNumber }, { merge: true });
-
-                        if (orderData.promoId) {
-                            transaction.update(doc(db, 'promo_codes', orderData.promoId), { usedCount: increment(1) });
-                        }
-
-                        cartItems.forEach(item => {
-                            transaction.update(doc(db, 'products', item.id), { soldCount: increment(item.quantity || 1) });
+                    // 1. Get Next Order Number
+                    let nextNumber = 3501;
+                    try {
+                        const counterDoc = await databases.getDocument(DATABASE_ID, SETTINGS_COLLECTION, 'counters');
+                        nextNumber = (counterDoc.lastOrderNumber || 3500) + 1;
+                        await databases.updateDocument(DATABASE_ID, SETTINGS_COLLECTION, 'counters', {
+                            lastOrderNumber: nextNumber
                         });
+                    } catch (e) {
+                        console.warn("Counter sync failed", e);
+                        nextNumber = parseInt(Date.now().toString().slice(-6));
+                    }
 
-                        return { id: orderRef.id, number: nextNumber };
-                    });
+                    // 2. Create Order in Appwrite
+                    const appwritePayload = {
+                        orderNumber: String(nextNumber),
+                        userId: auth.currentUser?.uid || 'guest',
+                        customerInfo: JSON.stringify(orderData.customer),
+                        items: JSON.stringify(cartItems),
+                        subtotal: orderData.subtotal,
+                        discount: orderData.discount,
+                        shippingCost: orderData.shipping_cost,
+                        total: orderData.total,
+                        paymentMethod: orderData.paymentMethod,
+                        paymentType: orderData.paymentType,
+                        paymentStatus: 'Paid', // Success page implies paid if it was online
+                        status: 'Pending',
+                        shippingAddress: JSON.stringify({ // Ensure accurate mapping
+                            address: orderData.customer?.address || '',
+                            governorate: orderData.customer?.governorate || '',
+                            city: orderData.customer?.city || ''
+                        }),
+                        currentMileage: orderData.currentMileage ? Number(orderData.currentMileage) : null,
+                        notes: orderData.notes,
+                        promoCode: orderData.promoCode,
+                        affiliateCode: orderData.affiliateCode,
+                        createdAt: new Date().toISOString()
+                    };
+
+                    const result = await databases.createDocument(DATABASE_ID, ORDERS_COLLECTION, ID.unique(), appwritePayload);
 
                     safeLocalStorage.removeItem('pending_order');
                     safeLocalStorage.removeItem('pending_cart_items');
                     clearCart();
 
-                    setOrderId(result.id);
-                    setOrderNumber(result.number);
-                    setFullOrder({ id: result.id, orderNumber: result.number, ...orderData, items: cartItems });
+                    setOrderId(result.$id);
+                    setOrderNumber(nextNumber);
+                    setFullOrder({ id: result.$id, orderNumber: nextNumber, ...orderData, items: cartItems });
 
-                    // Auto-sync with Mailchimp
+                    // Post-Order Updates (Background)
+                    try {
+                        if (orderData.promoId) {
+                            const promoDoc = await databases.getDocument(DATABASE_ID, PROMOS_COLLECTION, orderData.promoId);
+                            await databases.updateDocument(DATABASE_ID, PROMOS_COLLECTION, orderData.promoId, {
+                                usedCount: (promoDoc.usedCount || 0) + 1
+                            });
+                        }
+
+                        cartItems.forEach(async (item) => {
+                            if (item.id && item.id !== 'unknown') {
+                                try {
+                                    const pDoc = await databases.getDocument(DATABASE_ID, PRODUCTS_COLLECTION, item.id);
+                                    await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, item.id, {
+                                        soldCount: (pDoc.soldCount || 0) + item.quantity
+                                    });
+                                } catch (e) { console.warn("Failed to update stock/sold for", item.id); }
+                            }
+                        });
+                    } catch (e) { console.warn("Background updates failed", e); }
+
+
+                    // Auto-sync with Mailchimp (Keep existing axios logic)
                     try {
                         const { default: axios } = await import('axios');
-                        const firstName = orderData.shippingAddress?.fullName?.split(' ')[0] || '';
-                        const lastName = orderData.shippingAddress?.fullName?.split(' ').slice(1).join(' ') || '';
+                        const firstName = orderData.customer?.name?.split(' ')[0] || '';
+                        const lastName = orderData.customer?.name?.split(' ').slice(1).join(' ') || '';
 
                         await axios.post('/api/products?action=subscribe', {
                             email: orderData.customerEmail,
@@ -89,32 +157,42 @@ const OrderSuccess = () => {
                         // 3. Send Transactional Email via SendGrid
                         await axios.post('/api/send-order-email', {
                             order: {
-                                id: result.id,
+                                id: result.$id,
                                 total: orderData.total,
                                 items: cartItems,
-                                shippingAddress: orderData.shippingAddress,
-                                customerName: orderData.shippingAddress?.fullName || 'Customer',
+                                shippingAddress: orderData.customer, // Use customer obj as address placeholder
+                                customerName: orderData.customer?.name || 'Customer',
                                 customerEmail: orderData.customerEmail
                             }
                         });
                         console.log("Order confirmation email sent via SendGrid");
                     } catch (mcError) {
-                        console.error("Mailchimp auto-sync failed:", mcError);
+                        console.error("Mailchimp/Sendgrid auto-sync failed:", mcError);
                     }
                 } else {
+                    // Fetch existing order by ID (from URL)
                     const urlOrderId = searchParams.get('id');
                     if (urlOrderId) {
-                        const orderSnap = await getDoc(doc(db, 'orders', urlOrderId));
-                        if (orderSnap.exists()) {
-                            const data = orderSnap.data();
-                            setOrderId(urlOrderId);
-                            setOrderNumber(data.orderNumber);
-                            setFullOrder({ id: urlOrderId, ...data });
-                        }
+                        const doc = await databases.getDocument(DATABASE_ID, ORDERS_COLLECTION, urlOrderId);
+
+                        let parsedItems = [];
+                        try { parsedItems = JSON.parse(doc.items); } catch (e) { }
+
+                        let parsedCustomer = {};
+                        try { parsedCustomer = JSON.parse(doc.customerInfo); } catch (e) { }
+
+                        setOrderId(urlOrderId);
+                        setOrderNumber(doc.orderNumber);
+                        setFullOrder({
+                            id: urlOrderId,
+                            ...doc,
+                            items: parsedItems,
+                            customer: parsedCustomer
+                        });
                     }
                 }
             } catch (error) {
-                console.error("Error creating order:", error);
+                console.error("Error creating/fetching order:", error);
                 toast.error(t('orderError'));
             } finally {
                 setProcessing(false);

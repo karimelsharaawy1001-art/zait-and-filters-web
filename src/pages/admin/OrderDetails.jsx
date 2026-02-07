@@ -32,9 +32,43 @@ const OrderDetails = () => {
         setLoading(true);
         try {
             const data = await databases.getDocument(DATABASE_ID, ORDERS_COLLECTION, id);
-            setOrder({ id: data.$id, ...data });
+
+            let parsedItems = [];
+            try {
+                parsedItems = data.items ? (typeof data.items === 'string' ? JSON.parse(data.items) : data.items) : [];
+            } catch (e) {
+                console.warn("Failed to parse items", e);
+            }
+
+            let parsedCustomer = {};
+            try {
+                parsedCustomer = data.customerInfo ? (typeof data.customerInfo === 'string' ? JSON.parse(data.customerInfo) : data.customerInfo) : {};
+            } catch (e) {
+                console.warn("Failed to parse customer info", e);
+            }
+
+            let parsedAddress = {};
+            try {
+                parsedAddress = data.shippingAddress ? (typeof data.shippingAddress === 'string' ? JSON.parse(data.shippingAddress) : data.shippingAddress) : {};
+            } catch (e) {
+                console.warn("Failed to parse shipping address", e);
+            }
+
+            // Ensure we merge parsed data correctly. 
+            // Note: existing code uses order.customer.name. 
+            // Ensure parsedCustomer has the expected structure.
+
+            setOrder({
+                id: data.$id,
+                ...data,
+                items: parsedItems,
+                customer: parsedCustomer,
+                shippingAddress: parsedAddress
+            });
+
             if (data.isOpened === false) await databases.updateDocument(DATABASE_ID, ORDERS_COLLECTION, id, { isOpened: true });
         } catch (error) {
+            console.error(error);
             toast.error('Registry not found');
             navigate('/admin/orders');
         } finally {

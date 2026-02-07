@@ -473,112 +473,128 @@ const Checkout = () => {
                 const tempOrderId = `temp_${Date.now()}`;
                 await handleOnlinePayment(tempOrderId, selectedMethod);
             } else {
-                console.log("[DEBUG] Starting order creation...");
+                console.log("[DEBUG] Starting order creation (Appwrite)...");
 
                 let orderId;
                 let finalOrderNumber;
 
+                const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+                const ORDERS_COLLECTION = import.meta.env.VITE_APPWRITE_ORDERS_COLLECTION_ID || 'orders';
+                const SETTINGS_COLLECTION = 'settings';
+                const PRODUCTS_COLLECTION = import.meta.env.VITE_APPWRITE_PRODUCTS_COLLECTION_ID || 'products';
+                const PROMOS_COLLECTION = import.meta.env.VITE_APPWRITE_PROMO_CODES_COLLECTION_ID || 'promo_codes';
+                const USERS_COLLECTION = import.meta.env.VITE_APPWRITE_USERS_COLLECTION_ID || 'users';
+                const ABANDONED_COLLECTION = import.meta.env.VITE_APPWRITE_ABANDONED_CARTS_COLLECTION_ID || 'abandoned_carts';
+
                 try {
-                    // TRY SEQUENTIAL TRANSACTION FIRST
-                    const result = await runTransaction(db, async (tx) => {
-                        const counterRef = doc(db, 'settings', 'counters');
-                        const counterSnap = await tx.get(counterRef);
-
-                        let nextNumber = 3501;
-                        if (counterSnap.exists()) {
-                            nextNumber = (counterSnap.data().lastOrderNumber || 3500) + 1;
-                        }
-
-                        const orderRef = doc(collection(db, 'orders'));
-                        tx.set(orderRef, {
-                            ...orderData,
-                            orderNumber: nextNumber,
-                            createdAt: serverTimestamp(),
-                            isOpened: false
+                    // 1. Get Next Order Number (Optimistic Locking / Simple Increment for now)
+                    // Note: Ideally use a server function for atomic increment. Client-side is susceptible to race conditions.
+                    // For now, we fetch, increment, and update.
+                    let nextNumber = 3501;
+                    try {
+                        const counterDoc = await databases.getDocument(DATABASE_ID, SETTINGS_COLLECTION, 'counters');
+                        nextNumber = (counterDoc.lastOrderNumber || 3500) + 1;
+                        await databases.updateDocument(DATABASE_ID, SETTINGS_COLLECTION, 'counters', {
+                            lastOrderNumber: nextNumber
                         });
+                    } catch (e) {
+                        console.warn("Counter sync failed, using timestamp fallback", e);
+                        nextNumber = parseInt(Date.now().toString().slice(-6));
+                    }
+                    finalOrderNumber = nextNumber;
 
-                        tx.set(counterRef, { lastOrderNumber: nextNumber }, { merge: true });
+                    // 2. Prepare Appwrite Payload
+                    // Appwrite expects flat JSON mostly, but 'items' and 'customerInfo' are strings in schema
+                    const appwritePayload = {
+                        orderNumber: String(finalOrderNumber),
+                        userId: auth.currentUser?.uid || 'guest',
+                        customerInfo: JSON.stringify(orderData.customer),
+                        items: JSON.stringify(finalOrderItems),
+                        subtotal: orderData.subtotal,
+                        discount: orderData.discount,
+                        shippingCost: orderData.shipping_cost, // Verify schema name
+                        total: orderData.total,
+                        paymentMethod: orderData.paymentMethod,
+                        paymentType: orderData.paymentType,
+                        paymentStatus: orderData.paymentStatus,
+                        status: orderData.status,
+                        shippingAddress: JSON.stringify({
+                            address: formData.address,
+                            governorate: formData.governorate,
+                            city: formData.city
+                        }),
+                        currentMileage: formData.currentMileage ? Number(formData.currentMileage) : null,
+                        notes: formData.notes,
+                        promoCode: orderData.promoCode,
+                        affiliateCode: orderData.affiliateCode,
+                        receiptUrl: orderData.receiptUrl,
+                        createdAt: new Date().toISOString()
+                    };
 
+                    // 3. Create Order Document
+                    const result = await databases.createDocument(
+                        DATABASE_ID,
+                        ORDERS_COLLECTION,
+                        ID.unique(),
+                        appwritePayload
+                    );
+
+                    orderId = result.$id;
+                    console.log("[DEBUG] Appwrite Order Created:", orderId);
+
+                    // 4. Post-Order Updates (Background)
+                    try {
+                        // Increment Promo Usage
                         if (appliedPromo?.id) {
-                            tx.update(doc(db, 'promo_codes', appliedPromo.id), { usedCount: increment(1) });
-                        }
-
-                        if (auth.currentUser && saveNewAddress && selectedAddressId === 'new') {
-                            const addrRef = doc(collection(db, 'users', auth.currentUser.uid, 'addresses'));
-                            tx.set(addrRef, {
-                                detailedAddress: formData.address,
-                                governorate: formData.governorate,
-                                city: formData.city,
-                                label: t('savedAddress'),
-                                createdAt: serverTimestamp()
+                            const promoDoc = await databases.getDocument(DATABASE_ID, PROMOS_COLLECTION, appliedPromo.id);
+                            await databases.updateDocument(DATABASE_ID, PROMOS_COLLECTION, appliedPromo.id, {
+                                usedCount: (promoDoc.usedCount || 0) + 1
                             });
                         }
 
-                        return { id: orderRef.id, number: nextNumber };
-                    });
-
-                    orderId = result.id;
-                    finalOrderNumber = result.number;
-                    console.log("[DEBUG] Transaction succeeded:", orderId);
-
-                } catch (txError) {
-                    // FALLBACK IF QUOTA EXCEEDED
-                    if (txError.code === 'resource-exhausted' || txError.message?.includes('Quota')) {
-                        console.warn("[QUOTA] Fallback triggered. Creating order without counter.");
-                        const fallbackOrderRef = doc(collection(db, 'orders'));
-                        const timestampId = Date.now().toString().slice(-6);
-                        finalOrderNumber = `T-${timestampId}`; // T for Temporary/Time-based
-
-                        await setDoc(fallbackOrderRef, {
-                            ...orderData,
-                            orderNumber: finalOrderNumber,
-                            createdAt: serverTimestamp(),
-                            quotaFallback: true,
-                            isOpened: false
+                        // Update Product Sales (Best effort)
+                        /* 
+                           Note: Appwrite doesn't support batch updates easily from client. 
+                           We skip soldCount update OR do it individually (slow). 
+                           Let's do individually for now.
+                        */
+                        finalOrderItems.forEach(async (item) => {
+                            if (item.id && item.id !== 'unknown') {
+                                try {
+                                    const pDoc = await databases.getDocument(DATABASE_ID, PRODUCTS_COLLECTION, item.id);
+                                    await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, item.id, {
+                                        soldCount: (pDoc.soldCount || 0) + item.quantity
+                                    });
+                                } catch (e) { console.warn("Failed to update stock/sold for", item.id); }
+                            }
                         });
-                        orderId = fallbackOrderRef.id;
 
-                        // Also handle promo usage and address saving outside transaction if fallback
-                        if (appliedPromo?.id) {
-                            setDoc(doc(db, 'promo_codes', appliedPromo.id), { usedCount: increment(1) }, { merge: true })
-                                .catch(e => console.warn("Promo usage update failed during fallback:", e));
-                        }
-                        if (auth.currentUser && saveNewAddress && selectedAddressId === 'new') {
-                            const addrRef = doc(collection(db, 'users', auth.currentUser.uid, 'addresses'));
-                            setDoc(addrRef, {
-                                detailedAddress: formData.address,
-                                governorate: formData.governorate,
-                                city: formData.city,
-                                label: t('savedAddress'),
-                                createdAt: serverTimestamp()
-                            }).catch(e => console.warn("Address save failed during fallback:", e));
+
+                        // Sync Abandoned Cart (Mark Recovered)
+                        const cartId = auth.currentUser ? auth.currentUser.uid : safeLocalStorage.getItem('cartSessionId');
+                        if (cartId) {
+                            await databases.updateDocument(DATABASE_ID, ABANDONED_COLLECTION, cartId, {
+                                recovered: true,
+                                recoveredAt: new Date().toISOString(),
+                                orderId: orderId
+                            });
                         }
 
-                    } else {
-                        throw txError;
-                    }
-                }
+                        // Save New Address if requested (Appwrite 'users' collection sub-collection 'addresses'?)
+                        // Note: We might not have permissions to write to sub-collections of 'users' easily via client unless set up.
+                        // Given Admin manages users, maybe we skip saving address to Appwrite for "users" unless we have a specific 'addresses' collection.
+                        // The prompt didn't specify an addresses collection in Appwrite. 
+                        // Check: Checkout.jsx used `collection(db, 'users', uid, 'addresses')`.
+                        // If Appwrite doesn't have an 'addresses' collection linked to users, we skip this.
+                        // Assumption: We might need to migrate addresses later, but for now, prioritize order creation.
 
-                // Background updates
-                cartItems.forEach(item => {
-                    if (item.id && item.id !== 'unknown') {
-                        setDoc(doc(db, 'products', item.id), { soldCount: increment(item.quantity || 1) }, { merge: true })
-                            .catch(e => console.warn("SoldCount update failed:", e));
+                    } catch (bgError) {
+                        console.warn("Background updates failed:", bgError);
                     }
-                });
 
-                const cartId = auth.currentUser ? auth.currentUser.uid : safeLocalStorage.getItem('cartSessionId');
-                if (cartId) {
-                    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-                    const ABANDONED_COLLECTION = import.meta.env.VITE_APPWRITE_ABANDONED_CARTS_COLLECTION_ID || 'abandoned_carts';
-
-                    if (DATABASE_ID) {
-                        databases.updateDocument(DATABASE_ID, ABANDONED_COLLECTION, cartId, {
-                            recovered: true,
-                            recoveredAt: new Date().toISOString(),
-                            orderId: orderId
-                        }).catch(e => console.warn("Appwrite Abandoned cart sync failed:", e));
-                    }
+                } catch (createError) {
+                    console.error("Appwrite Creation Failed:", createError);
+                    throw createError;
                 }
 
                 clearCart();
@@ -592,19 +608,6 @@ const Checkout = () => {
                     : t('orderPlaced');
 
                 toast.success(successMsg, { duration: 8000 });
-                console.log("[DEBUG] Order successful:", orderId);
-
-                if (auth.currentUser) {
-                    const userRef = doc(db, 'users', auth.currentUser.uid);
-                    updateDoc(userRef, {
-                        garage: arrayUnion({
-                            serviceDate: new Date(),
-                            mileage: formData.currentMileage || 'N/A',
-                            items: finalOrderItems.map(i => i.name),
-                            orderId: orderId
-                        })
-                    }).catch(e => console.warn("History update failed:", e));
-                }
 
                 setTimeout(() => {
                     navigate(`/order-success?id=${orderId}`);

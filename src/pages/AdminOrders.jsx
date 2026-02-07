@@ -36,7 +36,28 @@ const AdminOrders = () => {
                 } catch (e) {
                     console.warn("Failed to parse customer info");
                 }
-                return { id: doc.$id, ...doc, customer: parsedCustomer };
+
+                let parsedItems = [];
+                try {
+                    parsedItems = doc.items ? (typeof doc.items === 'string' ? JSON.parse(doc.items) : doc.items) : [];
+                } catch (e) {
+                    console.warn("Failed to parse items");
+                }
+
+                let parsedAddress = {};
+                try {
+                    parsedAddress = doc.shippingAddress ? (typeof doc.shippingAddress === 'string' ? JSON.parse(doc.shippingAddress) : doc.shippingAddress) : {};
+                } catch (e) {
+                    console.warn("Failed to parse shipping address");
+                }
+
+                return {
+                    id: doc.$id,
+                    ...doc,
+                    customer: parsedCustomer,
+                    items: parsedItems,
+                    shippingAddress: parsedAddress
+                };
             }));
         } catch (error) {
             console.error(error);
