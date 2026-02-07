@@ -204,7 +204,10 @@ const ManageProducts = () => {
                             <thead className="bg-slate-50/50">
                                 <tr>
                                     <th className="text-left w-20">Visual</th>
-                                    <th className="text-left">Identity</th>
+                                    <th className="text-left">Product</th>
+                                    <th className="text-left">Brand</th>
+                                    <th className="text-left">Vehicle</th>
+                                    <th className="text-left">Year</th>
                                     <th className="text-left">Financials</th>
                                     <th className="text-left">Status</th>
                                     <th className="text-right">Actions</th>
@@ -222,7 +225,19 @@ const ManageProducts = () => {
                                         </td>
                                         <td>
                                             <p className="font-bold text-slate-900 text-[13px] leading-tight">{p.name}</p>
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">{p.brand} · {p.category}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">{p.partNumber || 'No SN'}</p>
+                                        </td>
+                                        <td>
+                                            <div className="inline-flex items-center px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[9px] font-black uppercase tracking-wider border border-slate-200">
+                                                {p.brand || p.partBrand || 'Generic'}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <p className="text-[11px] font-black text-slate-900 uppercase tracking-tight">{p.make}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{p.model}</p>
+                                        </td>
+                                        <td>
+                                            <p className="text-[10px] font-black text-slate-600 tabular-nums">{p.yearRange || `${p.yearStart || ''}-${p.yearEnd || ''}`}</p>
                                         </td>
                                         <td>
                                             <p className="font-bold text-slate-900 text-[13px] font-Cairo">{p.price} EGP</p>
