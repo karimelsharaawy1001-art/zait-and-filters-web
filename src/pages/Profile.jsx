@@ -730,6 +730,26 @@ const Profile = () => {
                                                                 </div>
                                                             ))}
                                                         </div>
+                                                        <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
+                                                            <div className={`flex justify-between items-center text-xs font-medium text-gray-500 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                                                <span>{t('subtotal')}</span>
+                                                                <span>{order.subtotal} {t('currency')}</span>
+                                                            </div>
+                                                            {(order.discount > 0 || order.manualDiscount > 0) && (
+                                                                <div className={`flex justify-between items-center text-xs font-medium text-green-600 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                                                    <span>{t('discount')}</span>
+                                                                    <span>-{order.discount || order.manualDiscount} {t('currency')}</span>
+                                                                </div>
+                                                            )}
+                                                            <div className={`flex justify-between items-center text-xs font-medium text-gray-500 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                                                <span>{t('shipping')}</span>
+                                                                <span>{order.shippingCost || 0} {t('currency')}</span>
+                                                            </div>
+                                                            <div className={`flex justify-between items-center text-sm font-black text-gray-900 pt-2 border-t border-gray-200 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                                                <span>{t('total')}</span>
+                                                                <span>{order.total} {t('currency')}</span>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ))}

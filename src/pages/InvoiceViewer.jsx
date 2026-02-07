@@ -185,7 +185,7 @@ const InvoiceViewer = () => {
                         </div>
                         <div className="flex justify-between text-sm text-gray-500 font-medium">
                             <span>الشحن</span>
-                            <span>{order.shipping_cost || 0} ج.م</span>
+                            <span>{order.shippingCost || 0} ج.م</span>
                         </div>
                         {(order.discount > 0 || order.manualDiscount > 0) && (
                             <div className="flex justify-between text-sm text-[#28B463] font-bold">
