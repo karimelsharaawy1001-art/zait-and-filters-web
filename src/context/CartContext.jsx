@@ -34,7 +34,10 @@ export const CartProvider = ({ children }) => {
     const [customerDetails, setCustomerDetails] = useState({
         email: '',
         phone: '',
-        name: ''
+        name: '',
+        address: '',
+        governorate: '',
+        city: ''
     });
 
     const [currentStage, setCurrentStage] = useState('Cart Page');
@@ -74,6 +77,9 @@ export const CartProvider = ({ children }) => {
                             email: customerDetails.email || auth.currentUser?.email || null,
                             customerName: customerDetails.name || auth.currentUser?.displayName || 'Guest',
                             customerPhone: customerDetails.phone || null,
+                            customerAddress: customerDetails.address || null,
+                            customerGovernorate: customerDetails.governorate || null,
+                            customerCity: customerDetails.city || null,
                             items: currentCartStr, // Appwrite expects string for large payloads
                             total: cartItems.reduce((sum, item) => sum + (getEffectivePrice(item) * item.quantity), 0),
                             lastModified: new Date().toISOString(),

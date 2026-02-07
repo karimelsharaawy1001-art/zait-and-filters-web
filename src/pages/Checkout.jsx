@@ -73,14 +73,16 @@ const Checkout = () => {
         }
     }, [user]);
 
-    // Sync customer info to CartContext for abandoned cart tracking
     useEffect(() => {
         updateCustomerInfo({
             name: formData.name,
             email: formData.email,
-            phone: formData.phone
+            phone: formData.phone,
+            address: formData.address,
+            governorate: formData.governorate,
+            city: formData.city
         });
-    }, [formData.name, formData.email, formData.phone]);
+    }, [formData.name, formData.email, formData.phone, formData.address, formData.governorate, formData.city]);
 
     // Track when user reaches payment selection
     useEffect(() => {

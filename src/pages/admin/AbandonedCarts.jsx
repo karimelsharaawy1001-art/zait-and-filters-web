@@ -94,7 +94,9 @@ const AbandonedCarts = () => {
                     name: cart.customerName || 'Guest',
                     phone: cart.customerPhone || '',
                     email: cart.email || '',
-                    address: '', governorate: '', city: ''
+                    address: cart.customerAddress || '',
+                    governorate: cart.customerGovernorate || '',
+                    city: cart.customerCity || ''
                 }),
                 items: typeof cart.items === 'string' ? cart.items : JSON.stringify(cart.items),
                 subtotal: cart.total,
@@ -105,7 +107,11 @@ const AbandonedCarts = () => {
                 paymentType: 'offline',
                 paymentStatus: 'Pending',
                 status: 'Processing',
-                shippingAddress: JSON.stringify({ address: '', governorate: '', city: '' }),
+                shippingAddress: JSON.stringify({
+                    address: cart.customerAddress || '',
+                    governorate: cart.customerGovernorate || '',
+                    city: cart.customerCity || ''
+                }),
                 createdAt: new Date().toISOString(),
                 notes: `Manually converted from Abandoned Cart ${cart.id}`
             };

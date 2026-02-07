@@ -87,13 +87,13 @@ const OrderSuccess = () => {
                                 const abandonedDoc = await databases.getDocument(DATABASE_ID, ABANDONED_COLLECTION, cartId);
                                 if (abandonedDoc && !abandonedDoc.recovered) {
                                     orderData = {
-                                        customer: JSON.parse(abandonedDoc.items ? "{}" : "{}"), // Placeholder, we need customer info
-                                        // Wait, abandonedDoc schema has customerName, customerPhone, email, items
                                         customer: {
                                             name: abandonedDoc.customerName,
                                             phone: abandonedDoc.customerPhone,
                                             email: abandonedDoc.email,
-                                            address: '', governorate: '', city: '' // Minimal recovery
+                                            address: abandonedDoc.customerAddress || '',
+                                            governorate: abandonedDoc.customerGovernorate || '',
+                                            city: abandonedDoc.customerCity || ''
                                         },
                                         subtotal: abandonedDoc.total,
                                         discount: 0,
