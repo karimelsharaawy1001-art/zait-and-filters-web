@@ -82,7 +82,7 @@ const ManageCustomers = () => {
     const openViewModal = async (customer) => {
         setSelectedCustomer(customer); setSelectedCustomerOrders([]); setShowViewModal(true); setFetchingOrders(true);
         try {
-            const response = await databases.listDocuments(DATABASE_ID, ORDERS_COLLECTION, [Query.equal('userId', customer.id), Query.orderDesc('$createdAt')]);
+            const response = await databases.listDocuments(DATABASE_ID, ORDERS_COLLECTION, [Query.equal('$id', customer.id), Query.orderDesc('$createdAt')]);
             setSelectedCustomerOrders(response.documents.map(d => ({ id: d.$id, ...d })));
         } catch (e) { toast.error("History fetch failure"); }
         finally { setFetchingOrders(false); }

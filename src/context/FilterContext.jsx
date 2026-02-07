@@ -37,7 +37,7 @@ export const FilterProvider = ({ children }) => {
                     const response = await databases.listDocuments(
                         DATABASE_ID,
                         USERS_COLLECTION,
-                        [Query.equal('userId', user.$id)]
+                        [Query.equal('email', user.email)]
                     );
 
                     if (response.total > 0) {

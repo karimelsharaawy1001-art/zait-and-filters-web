@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
                         const userDoc = await databases.listDocuments(
                             DATABASE_ID,
                             USERS_COLLECTION,
-                            [Query.equal('userId', sessionUser.$id)]
+                            [Query.equal('email', sessionUser.email)]
                         );
                         if (userDoc.total > 0) {
                             setRole(userDoc.documents[0].role);
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
             const userDoc = await databases.listDocuments(
                 DATABASE_ID,
                 USERS_COLLECTION,
-                [Query.equal('userId', sessionUser.$id)]
+                [Query.equal('email', sessionUser.email)]
             );
             if (userDoc.total > 0) {
                 fetchedRole = userDoc.documents[0].role;
