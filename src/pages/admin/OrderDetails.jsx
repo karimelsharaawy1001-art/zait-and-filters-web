@@ -297,6 +297,25 @@ const OrderDetails = () => {
         finally { setUpdating(false); }
     };
 
+    const handleDeleteOrder = async () => {
+        if (!window.confirm(`Are you sure you want to permanently delete order #${order.orderNumber || order.id}? This action cannot be undone.`)) return;
+
+        setUpdating(true);
+        try {
+            toast.loading("Purging protocol...");
+            await databases.deleteDocument(DATABASE_ID, ORDERS_COLLECTION, id);
+            toast.dismiss();
+            toast.success("Order deleted successfully");
+            navigate('/admin/orders');
+        } catch (error) {
+            toast.dismiss();
+            console.error("Purge failure:", error);
+            toast.error("Failed to delete order");
+        } finally {
+            setUpdating(false);
+        }
+    };
+
     if (loading) return <div className="p-20 text-center text-gray-400 font-medium flex flex-col items-center"><Loader2 className="animate-spin mb-4" /> Loading Order Details...</div>;
 
     const currentItems = enrichedItems.length > 0 ? enrichedItems : order.items;
@@ -351,10 +370,18 @@ const OrderDetails = () => {
                         </button>
                         <button
                             onClick={() => toast.success("Invoice download feature coming soon!")}
-                            className="bg-gray-900 text-white px-4 py-2 rounded-lg font-semibold shadow-md hover:bg-black flex items-center gap-2 transition-all"
+                            className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-semibold shadow-sm hover:bg-gray-200 flex items-center gap-2 transition-all"
                         >
                             <ShoppingBag size={16} />
                             Invoice
+                        </button>
+                        <button
+                            onClick={handleDeleteOrder}
+                            disabled={updating}
+                            className="bg-red-50 text-red-600 border border-red-100 px-4 py-2 rounded-lg font-semibold shadow-sm hover:bg-red-600 hover:text-white flex items-center gap-2 transition-all disabled:opacity-50"
+                        >
+                            <Trash2 size={16} />
+                            Delete
                         </button>
                     </div>
                 </div>

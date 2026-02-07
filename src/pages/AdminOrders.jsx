@@ -5,8 +5,7 @@ import { toast } from 'react-hot-toast';
 import { useNavigate, Link } from 'react-router-dom';
 import AdminHeader from '../components/AdminHeader';
 import {
-    Eye, DollarSign, Edit2, Search, PlusCircle, Package, CreditCard, Clock, X, Save,
-    User, MapPin, Loader2, Printer, Download, Filter, ArrowUpRight, CheckCircle2, AlertCircle
+    User, MapPin, Loader2, Printer, Download, Filter, ArrowUpRight, CheckCircle2, AlertCircle, Trash2
 } from 'lucide-react';
 import { generateInvoice } from '../utils/invoiceGenerator';
 import { useStaticData } from '../context/StaticDataContext';
@@ -104,6 +103,22 @@ const AdminOrders = () => {
             toast.success("Payment verified");
         } catch (error) {
             toast.error("Verification failed");
+        }
+    };
+
+    const handleDeleteOrder = async (orderId, orderNumber) => {
+        if (!window.confirm(`Are you sure you want to permanently delete order #${orderNumber}? This action cannot be undone.`)) return;
+
+        try {
+            toast.loading("Deleting protocol...");
+            await databases.deleteDocument(DATABASE_ID, ORDERS_COLLECTION, orderId);
+            setOrders(prev => prev.filter(o => o.id !== orderId));
+            toast.dismiss();
+            toast.success(`Protocol #${orderNumber} purged successfully`);
+        } catch (error) {
+            toast.dismiss();
+            console.error("Purge failure:", error);
+            toast.error("Failed to delete order");
         }
     };
 
@@ -226,6 +241,13 @@ const AdminOrders = () => {
                                                     </Link>
                                                     <button onClick={() => generateInvoice(order)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all" title="Print Invoice">
                                                         <Printer size={14} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteOrder(order.id, order.orderNumber)}
+                                                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                        title="Delete Order"
+                                                    >
+                                                        <Trash2 size={14} />
                                                     </button>
                                                 </div>
                                             </td>
