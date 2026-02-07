@@ -66,9 +66,55 @@ const OrderSuccess = () => {
                 const { databases } = await import('../appwrite');
                 const { ID } = await import('appwrite');
 
+                let orderData = null;
+                let cartItems = [];
+                let usedFallback = false;
+
                 if (pendingOrderData) {
-                    const orderData = JSON.parse(pendingOrderData);
-                    const cartItems = pendingCartItems ? JSON.parse(pendingCartItems) : [];
+                    orderData = JSON.parse(pendingOrderData);
+                    cartItems = pendingCartItems ? JSON.parse(pendingCartItems) : [];
+                } else {
+                    // FALLBACK: Try to recover from Abandoned Carts if this looks like a return from a payment gateway
+                    const urlOrderId = searchParams.get('id');
+                    const isEasyKashReturn = searchParams.get('order') || searchParams.get('reference'); // Typical EasyKash return params
+
+                    if (!urlOrderId || (urlOrderId && urlOrderId.startsWith('temp_')) || isEasyKashReturn) {
+                        console.log("[RECOVERY] Attempting fallback recovery from abandoned carts...");
+                        const cartId = auth.currentUser ? auth.currentUser.uid : safeLocalStorage.getItem('cartSessionId');
+
+                        if (cartId) {
+                            try {
+                                const abandonedDoc = await databases.getDocument(DATABASE_ID, ABANDONED_COLLECTION, cartId);
+                                if (abandonedDoc && !abandonedDoc.recovered) {
+                                    orderData = {
+                                        customer: JSON.parse(abandonedDoc.items ? "{}" : "{}"), // Placeholder, we need customer info
+                                        // Wait, abandonedDoc schema has customerName, customerPhone, email, items
+                                        customer: {
+                                            name: abandonedDoc.customerName,
+                                            phone: abandonedDoc.customerPhone,
+                                            email: abandonedDoc.email,
+                                            address: '', governorate: '', city: '' // Minimal recovery
+                                        },
+                                        subtotal: abandonedDoc.total,
+                                        discount: 0,
+                                        shipping_cost: 0,
+                                        total: abandonedDoc.total,
+                                        paymentMethod: 'EasyKash / Online',
+                                        paymentType: 'online',
+                                        notes: 'Recovered from abandoned cart'
+                                    };
+                                    cartItems = JSON.parse(abandonedDoc.items || '[]');
+                                    usedFallback = true;
+                                    console.log("[RECOVERY] Successfully mapped abandoned cart for recovery.");
+                                }
+                            } catch (e) {
+                                console.warn("[RECOVERY] Abandoned cart not found or inaccessible:", e);
+                            }
+                        }
+                    }
+                }
+
+                if (orderData) {
 
                     // 1. Get Next Order Number
                     let nextNumber = 3501;
@@ -121,6 +167,16 @@ const OrderSuccess = () => {
 
                     // Post-Order Updates (Background)
                     try {
+                        // Mark abandoned cart as recovered
+                        const cartId = auth.currentUser ? auth.currentUser.uid : (safeLocalStorage.getItem('cartSessionId') || orderData.sessionId);
+                        if (cartId) {
+                            await databases.updateDocument(DATABASE_ID, ABANDONED_COLLECTION, cartId, {
+                                recovered: true,
+                                recoveredAt: new Date().toISOString(),
+                                orderId: result.$id
+                            });
+                        }
+
                         if (orderData.promoId) {
                             const promoDoc = await databases.getDocument(DATABASE_ID, PROMOS_COLLECTION, orderData.promoId);
                             await databases.updateDocument(DATABASE_ID, PROMOS_COLLECTION, orderData.promoId, {
