@@ -10,7 +10,7 @@ import BulkOperations from '../../components/admin/BulkOperations';
 
 const ManageProducts = () => {
     const navigate = useNavigate();
-    const { staticProducts, categories: shieldCategories, cars: shieldCars, isStaticLoaded } = useStaticData();
+    const { staticProducts, rawStaticProducts, categories: shieldCategories, cars: shieldCars, isStaticLoaded } = useStaticData();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -120,7 +120,7 @@ const ManageProducts = () => {
                     </button>
                 </div>
 
-                <BulkOperations onSuccess={fetchProducts} onExportFetch={handleExportFetch} staticProducts={staticProducts} />
+                <BulkOperations onSuccess={fetchProducts} onExportFetch={handleExportFetch} staticProducts={rawStaticProducts} />
 
                 <div className="admin-card-compact p-4 flex flex-wrap gap-4 items-end mb-6">
                     <div className="flex-1 min-w-[280px]">

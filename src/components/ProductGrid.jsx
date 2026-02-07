@@ -69,8 +69,8 @@ const ProductGrid = ({ showFilters = true }) => {
             const cMake = activeCar.make.toUpperCase();
             const cModel = (activeCar.model || '').toUpperCase();
             results = results.filter(p => {
-                const pMake = (p.make || p.car_make || '').toUpperCase();
-                const pModel = (p.model || p.car_model || '').toUpperCase();
+                const pMake = (p.make || p.carMake || p.car_make || '').toUpperCase();
+                const pModel = (p.model || p.carModel || p.car_model || '').toUpperCase();
                 const isUniversal = !pMake || pMake === 'UNIVERSAL' || pMake === 'GENERAL' ||
                     p.category === 'إكسسوارات وعناية' || p.category === 'إضافة للموتور و البنزين';
                 if (isUniversal) return true;
@@ -87,7 +87,11 @@ const ProductGrid = ({ showFilters = true }) => {
             if (filters.model) results = results.filter(p => p.model === filters.model);
             if (filters.year) {
                 const yearNum = parseInt(filters.year);
-                results = results.filter(p => p.yearStart <= yearNum && p.yearEnd >= yearNum);
+                results = results.filter(p => {
+                    const start = Number(p.yearStart);
+                    const end = Number(p.yearEnd) || start; // Default to start year if end missing
+                    return start <= yearNum && end >= yearNum;
+                });
             }
         }
 
@@ -253,8 +257,8 @@ const ProductGrid = ({ showFilters = true }) => {
             }
 
             // Group Models by Make (from products)
-            const productMake = product.make || product.car_make;
-            const productModel = product.model || product.car_model;
+            const productMake = product.make || product.carMake || product.car_make;
+            const productModel = product.model || product.carModel || product.car_model;
             if (productMake) {
                 if (!makes[productMake]) makes[productMake] = new Set();
                 if (productModel) makes[productMake].add(productModel);

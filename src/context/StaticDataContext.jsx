@@ -15,6 +15,7 @@ export const useStaticData = () => {
 export const StaticDataProvider = ({ children }) => {
     const [staticData, setStaticData] = useState({
         products: [],
+        rawStaticProducts: [], // Added for repair reference
         categories: [],
         cars: [],
         brands: [],
@@ -51,7 +52,7 @@ export const StaticDataProvider = ({ children }) => {
                             PRODUCTS_COLLECTION,
                             [
                                 Query.orderDesc('$updatedAt'),
-                                Query.limit(100)
+                                Query.limit(5000) // Increased for full catalog sync
                             ]
                         );
 
@@ -73,6 +74,7 @@ export const StaticDataProvider = ({ children }) => {
 
                 setStaticData({
                     products: mergedProducts,
+                    rawStaticProducts: staticProd,
                     categories,
                     cars,
                     brands,
@@ -90,6 +92,7 @@ export const StaticDataProvider = ({ children }) => {
     const value = {
         ...staticData,
         staticProducts: staticData.products,
+        rawStaticProducts: staticData.rawStaticProducts, // Expose raw for repair
         isStaticLoaded: staticData.isLoaded,
         // Fallback placeholder for compatibility
         withFallback: (fn, coll) => fn ? fn() : (staticData[coll] || [])

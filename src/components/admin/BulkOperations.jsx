@@ -238,21 +238,33 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 // Find matching product in reference data (JSON)
                 const ref = staticProducts.find(r => r.id === doc.$id || r.$id === doc.$id);
 
-                // 1. Restore missing Year Data from Reference
+                // 1. Restore missing Data from Reference (JSON Backup)
                 if (ref) {
+                    // Fill New Schema (Preparation)
                     if (ref.yearStart && !doc.yearStart) updates.yearStart = Number(ref.yearStart);
                     if (ref.yearEnd && !doc.yearEnd) updates.yearEnd = Number(ref.yearEnd);
                     if (ref.yearRange && !doc.yearRange) updates.yearRange = String(ref.yearRange);
-
                     if (ref.make && !doc.make) updates.make = String(ref.make).toUpperCase();
                     if (ref.model && !doc.model) updates.model = String(ref.model).toUpperCase();
                     if ((ref.brand || ref.partBrand) && !doc.brand) updates.brand = String(ref.brand || ref.partBrand);
+
+                    // Fill Legacy Schema (Active in Appwrite)
+                    if ((ref.make || ref.carMake) && !doc.carMake) updates.carMake = String(ref.make || ref.carMake).toUpperCase();
+                    if ((ref.model || ref.carModel) && !doc.carModel) updates.carModel = String(ref.model || ref.carModel).toUpperCase();
+                    if ((ref.yearRange || ref.carYear) && !doc.carYear) updates.carYear = String(ref.yearRange || ref.carYear);
+                    if ((ref.brand || ref.partBrand) && !doc.partBrand) updates.partBrand = String(ref.brand || ref.partBrand);
                 }
 
-                // 2. Legacy Field Migration (carMake/carModel)
+                // 2. Internal Synchronization (Cross-fill)
                 if (doc.carMake && !doc.make && !updates.make) updates.make = doc.carMake;
                 if (doc.carModel && !doc.model && !updates.model) updates.model = doc.carModel;
                 if (doc.carYear && !doc.yearRange && !updates.yearRange) updates.yearRange = doc.carYear;
+                if (doc.make && !doc.carMake && !updates.carMake) updates.carMake = doc.make;
+                if (doc.model && !doc.carModel && !updates.carModel) updates.carModel = doc.model;
+                if (doc.yearRange && !doc.carYear && !updates.carYear) updates.carYear = doc.yearRange;
+
+                // 3. Ensure Active
+                if (doc.isActive === undefined || doc.isActive === null) updates.isActive = true;
 
                 // 3. Year Range Parsing (if still needed)
                 const rangeToParse = updates.yearRange || doc.yearRange || doc.carYear;

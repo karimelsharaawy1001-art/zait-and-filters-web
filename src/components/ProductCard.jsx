@@ -124,9 +124,7 @@ const ProductCard = ({ product, isCompact = false }) => {
                                 {i18n.language === 'ar' ? 'البراند' : 'Brand'}
                             </span>
                             <span className={`${isCompact ? 'text-[9px]' : 'text-[10px]'} leading-tight text-[#000000] font-black font-Cairo truncate w-full`}>
-                                {i18n.language === 'en'
-                                    ? (product.brandEn || product.partBrand || product.brand)
-                                    : (product.partBrand || product.brand || 'No Brand')}
+                                {product.brand || product.partBrand || product.brandEn || 'No Brand'}
                             </span>
                         </div>
 
@@ -136,14 +134,13 @@ const ProductCard = ({ product, isCompact = false }) => {
                                 {i18n.language === 'ar' ? 'الموديل' : 'Model'}
                             </span>
                             <div className="flex flex-col items-end w-full">
-                                <span className={`${isCompact ? 'text-[9px]' : 'text-[10px]'} leading-tight text-[#000000] font-black font-Cairo w-full line-clamp-2`} title={product.carModel || `${product.make} ${product.model}`}>
-                                    {product.carModel || `${product.make} ${product.model}` || 'Universal'}
+                                <span className={`${isCompact ? 'text-[9px]' : 'text-[10px]'} leading-tight text-[#000000] font-black font-Cairo w-full line-clamp-2`} title={product.model || product.car_model || product.carModel || 'Universal'}>
+                                    {(product.make || product.carMake || product.car_make) ? `${product.make || product.carMake || product.car_make} ${product.model || product.carModel || product.car_model || ''}` : 'Universal'}
                                 </span>
-                                {(product.yearRange || product.yearStart || product.yearEnd) && (
+                                {(product.yearRange || product.yearStart || product.yearEnd || product.carYear) && (
                                     <span className={`${isCompact ? 'text-[7px]' : 'text-[8px]'} leading-tight text-[#000000] font-bold font-Cairo mt-0.5 truncate w-full`}>
-                                        {product.yearRange ||
-                                            (product.yearStart && product.yearEnd ? `${product.yearStart}-${product.yearEnd}` :
-                                                product.yearStart || product.yearEnd || '')}
+                                        {product.yearRange || product.carYear ||
+                                            (product.yearStart ? (product.yearEnd && product.yearEnd !== product.yearStart ? `${product.yearStart}-${product.yearEnd}` : product.yearStart) : '')}
                                     </span>
                                 )}
                             </div>
