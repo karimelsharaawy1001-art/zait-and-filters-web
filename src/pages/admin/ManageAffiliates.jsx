@@ -44,7 +44,7 @@ const ManageAffiliates = () => {
             if (newStatus === 'active') {
                 const affiliateDoc = affiliates.find(a => a.id === id);
                 if (affiliateDoc && !affiliateDoc.referralCode) {
-                    const rawName = affiliateDoc.fullName || affiliateDoc.userName || 'PARTNER';
+                    const rawName = affiliateDoc.name || affiliateDoc.userName || 'PARTNER';
                     const englishName = rawName.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
                     let baseCode = englishName.length >= 3 ? englishName.substring(0, 8) : id.substring(0, 6).toUpperCase();
                     let generatedCode = ''; let isUnique = false; let attempts = 0;
@@ -83,7 +83,7 @@ const ManageAffiliates = () => {
 
     const filteredAffiliates = affiliates.filter(aff => {
         const search = searchTerm.toLowerCase();
-        return (aff.referralCode || '').toLowerCase().includes(search) || (aff.fullName || '').toLowerCase().includes(search) || (aff.email || '').toLowerCase().includes(search);
+        return (aff.referralCode || '').toLowerCase().includes(search) || (aff.name || '').toLowerCase().includes(search) || (aff.email || '').toLowerCase().includes(search);
     });
 
     return (
@@ -126,10 +126,10 @@ const ManageAffiliates = () => {
                                 <tr key={aff.id} className="hover:bg-gray-50/50 group transition-all">
                                     <td className="px-8 py-6">
                                         <div className="flex items-center gap-5">
-                                            <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center font-black text-gray-400 group-hover:bg-black group-hover:text-white transition-all uppercase">{aff.fullName?.[0]}</div>
+                                            <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center font-black text-gray-400 group-hover:bg-black group-hover:text-white transition-all uppercase">{aff.name?.[0]}</div>
                                             <div>
                                                 <h4 className="font-black text-base uppercase italic">{aff.referralCode || 'PROSPECT'}</h4>
-                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">{aff.fullName || 'UNRESOLVED IDENTITY'}</p>
+                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">{aff.name || 'UNRESOLVED IDENTITY'}</p>
                                             </div>
                                         </div>
                                     </td>
