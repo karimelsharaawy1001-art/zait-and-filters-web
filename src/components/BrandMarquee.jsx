@@ -1,22 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
+import { databases } from '../appwrite';
+import { Query } from 'appwrite';
 
 const BrandMarquee = () => {
     const [brands, setBrands] = useState([]);
 
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const BRANDS_COLLECTION = import.meta.env.VITE_APPWRITE_BRANDS_COLLECTION_ID || 'brands';
+
     useEffect(() => {
         const fetchBrands = async () => {
+            if (!DATABASE_ID) return;
             try {
-                const querySnapshot = await getDocs(collection(db, 'brand_logos'));
-                const list = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                setBrands(list);
+                const response = await databases.listDocuments(DATABASE_ID, BRANDS_COLLECTION, [Query.limit(100)]);
+                setBrands(response.documents);
             } catch (error) {
                 console.error("Error fetching brand logos:", error);
             }
         };
         fetchBrands();
-    }, []);
+    }, [DATABASE_ID]);
 
     if (brands.length === 0) return null;
 
@@ -33,7 +35,7 @@ const BrandMarquee = () => {
                 {displayBrands.map((brand, idx) => (
                     <div key={`${brand.id}-${idx}`} className="brands-marquee-item">
                         <img
-                            src={brand.imageUrl}
+                            src={brand.logo || brand.imageUrl}
                             alt={brand.name}
                             className="brands-marquee-img"
                             loading="lazy"

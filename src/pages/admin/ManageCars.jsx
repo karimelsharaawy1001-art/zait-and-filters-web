@@ -108,9 +108,13 @@ const ManageCars = () => {
                                         <tbody className="divide-y divide-gray-100">
                                             {filtered.map(car => (
                                                 <tr key={car.id} className="hover:bg-gray-50/50 group transition-all">
-                                                    <td className="px-8 py-6"><img src={car.imageUrl || '/car-placeholder.png'} className="w-16 h-12 rounded-xl object-cover border" alt={car.model} /></td>
+                                                    <td className="px-8 py-6"><img src={car.imageUrl || car.image || '/car-placeholder.png'} className="w-16 h-12 rounded-xl object-cover border" alt={car.model} /></td>
                                                     <td className="px-8 py-6"><h3 className="font-black text-lg italic">{car.make}</h3><p className="text-[10px] font-bold text-gray-400 uppercase">{car.model}</p></td>
-                                                    <td className="px-8 py-6"><span className="px-3 py-1 bg-gray-100 rounded-lg text-[10px] font-black">{car.yearStart} — {car.yearEnd}</span></td>
+                                                    <td className="px-8 py-6">
+                                                        <span className="px-3 py-1 bg-gray-100 rounded-lg text-[10px] font-black">
+                                                            {car.yearStart ? `${car.yearStart} — ${car.yearEnd || 'Present'}` : (car.year || 'Unknown')}
+                                                        </span>
+                                                    </td>
                                                     <td className="px-8 py-6 text-right flex justify-end gap-3 pt-8">
                                                         <button onClick={() => navigate(`/admin/edit-car/${car.id}`)} className="p-3 bg-white text-black border rounded-xl shadow-xl hover:bg-black hover:text-white transition-all"><Edit3 size={16} /></button>
                                                         <button onClick={() => handleDelete(car.id)} className="p-3 bg-white text-red-600 border rounded-xl shadow-xl hover:bg-red-600 hover:text-white transition-all"><Trash2 size={16} /></button>

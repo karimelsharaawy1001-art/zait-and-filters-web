@@ -13,7 +13,7 @@ const ManageCategories = () => {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [exporting, setExporting] = useState(false);
-    const [formData, setFormData] = useState({ name: '', imageUrl: '', subCategories: '' });
+    const [formData, setFormData] = useState({ name: '', image: '', subCategories: '' });
     const [searchQuery, setSearchQuery] = useState('');
 
     const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
@@ -25,7 +25,17 @@ const ManageCategories = () => {
         setLoading(true);
         try {
             const response = await databases.listDocuments(DATABASE_ID, CATEGORIES_COLLECTION, [Query.limit(100)]);
-            setCategories(response.documents.map(doc => ({ id: doc.$id, ...doc })));
+            setCategories(response.documents.map(doc => {
+                let subs = [];
+                if (typeof doc.subcategories === 'string') {
+                    subs = doc.subcategories.split(',').filter(Boolean);
+                } else if (Array.isArray(doc.subcategories)) {
+                    subs = doc.subcategories;
+                } else if (Array.isArray(doc.subCategories)) {
+                    subs = doc.subCategories;
+                }
+                return { id: doc.$id, ...doc, subCategories: subs };
+            }));
         } catch (error) {
             console.error(error);
         } finally {
@@ -67,16 +77,16 @@ const ManageCategories = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.name || !formData.imageUrl) return toast.error('Missing required metadata');
+        if (!formData.name || (!formData.image && !formData.imageUrl)) return toast.error('Missing required metadata');
         try {
             const subs = formData.subCategories.split(',').map(s => s.trim()).filter(Boolean);
             await databases.createDocument(DATABASE_ID, CATEGORIES_COLLECTION, ID.unique(), {
                 name: formData.name,
-                imageUrl: formData.imageUrl,
-                subCategories: subs,
+                image: formData.image || formData.imageUrl,
+                subcategories: subs.join(','),
                 isActive: true
             });
-            setFormData({ name: '', imageUrl: '', subCategories: '' });
+            setFormData({ name: '', image: '', subCategories: '' });
             fetchCategories();
             toast.success('Category committed');
         } catch (error) {
@@ -106,7 +116,7 @@ const ManageCategories = () => {
                         <div><h2 className="text-xl font-black uppercase italic">New Entry</h2><p className="text-xs text-gray-400 font-bold">Protocol for adding sectors</p></div>
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <input placeholder="Sector Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full p-4 bg-gray-50 border rounded-2xl font-black" required />
-                            <ImageUpload currentImage={formData.imageUrl} onUploadComplete={url => setFormData({ ...formData, imageUrl: url })} folderPath="categories" />
+                            <ImageUpload currentImage={formData.image || formData.imageUrl} onUploadComplete={url => setFormData({ ...formData, image: url })} folderPath="categories" />
                             <textarea placeholder="Sub-Sectors (CSV Format)" value={formData.subCategories} onChange={e => setFormData({ ...formData, subCategories: e.target.value })} className="w-full p-4 bg-gray-50 border rounded-2xl font-bold min-h-[120px]" />
                             <button type="submit" className="w-full bg-black text-white py-5 rounded-2xl font-black uppercase italic shadow-xl">Commit to Registry</button>
                         </form>
@@ -126,7 +136,7 @@ const ManageCategories = () => {
                                 {filtered.map(cat => (
                                     <div key={cat.id} className="bg-white p-6 rounded-[2rem] border shadow-sm group relative overflow-hidden transition-all hover:border-black/20">
                                         <div className="flex gap-4 items-start relative z-10">
-                                            <img src={cat.imageUrl} className="w-20 h-20 rounded-2xl object-cover border" alt={cat.name} />
+                                            <img src={cat.image || cat.imageUrl} className="w-20 h-20 rounded-2xl object-cover border" alt={cat.name} />
                                             <div className="flex-1">
                                                 <h3 className="font-black text-xl italic">{cat.name}</h3>
                                                 <div className="flex flex-wrap gap-1 mt-3">

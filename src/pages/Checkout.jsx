@@ -10,6 +10,8 @@ import { useSafeNavigation } from '../utils/safeNavigation';
 import axios from 'axios';
 import { safeStorage } from '../utils/storage';
 import { Loader2, ShieldCheck, Banknote, CreditCard, Ticket, CheckCircle2, AlertCircle, MapPin, Plus, User, Mail, Smartphone, Trash2, Home, Briefcase, Building, Map } from 'lucide-react';
+import { databases } from '../appwrite';
+import { Query } from 'appwrite';
 import PhoneInputGroup from '../components/PhoneInputGroup';
 import TrustPaymentSection from '../components/TrustPaymentSection';
 
@@ -134,16 +136,19 @@ const Checkout = () => {
     }, [formData.paymentMethod]);
 
     const fetchPaymentMethods = async () => {
+        const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+        const COLLECTION_ID = import.meta.env.VITE_APPWRITE_PAYMENT_CONFIGS_COLLECTION_ID || 'payment_configs';
         try {
             setFetchingMethods(true);
-            const q = query(collection(db, 'payment_configs'), where('isActive', '==', true));
-            const querySnapshot = await getDocs(q);
-            const methods = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
+                Query.equal('isActive', true)
+            ]);
+            const methods = response.documents;
 
             setActiveMethods(Array.isArray(methods) ? methods : []);
 
             if (methods && methods.length > 0) {
-                setFormData(prev => ({ ...prev, paymentMethod: methods[0].id }));
+                setFormData(prev => ({ ...prev, paymentMethod: methods[0].$id }));
             }
         } catch (error) {
             console.error("Error fetching payment methods:", error);
@@ -153,9 +158,10 @@ const Checkout = () => {
     };
 
     const fetchShippingRates = async () => {
+        const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
         try {
-            const querySnapshot = await getDocs(collection(db, 'shipping_rates'));
-            const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const response = await databases.listDocuments(DATABASE_ID, 'shipping_rates', [Query.limit(100)]);
+            const data = response.documents;
 
             // Safety sort: ensure governorate exists before calling localeCompare
             const sortedData = data.sort((a, b) => {
@@ -237,7 +243,7 @@ const Checkout = () => {
                 return { valid: false, message: t('promoAddMore', { val: promo.minOrderValue - getCartTotal() }) };
 
             case 'payment_method_shipping': {
-                const selectedMethod = activeMethods.find(m => m.id === formData.paymentMethod);
+                const selectedMethod = activeMethods.find(m => m.$id === formData.paymentMethod);
                 if (selectedMethod?.type === promo.requiredPaymentMethod) {
                     return { valid: true, message: t('promoPaymentShipping') };
                 }
@@ -275,7 +281,7 @@ const Checkout = () => {
                 finalShipping = 0;
             }
             if (appliedPromo.type === 'payment_method_shipping') {
-                const selectedMethod = activeMethods.find(m => m.id === formData.paymentMethod);
+                const selectedMethod = activeMethods.find(m => m.$id === formData.paymentMethod);
                 if (selectedMethod?.type === appliedPromo.requiredPaymentMethod) {
                     finalShipping = 0;
                 }
@@ -377,7 +383,7 @@ const Checkout = () => {
 
             const formattedPhone = `+2${formData.phone}`;
             const affRef = safeLocalStorage.getItem('affiliate_ref');
-            const selectedMethod = activeMethods.find(m => m.id === formData.paymentMethod);
+            const selectedMethod = activeMethods.find(m => m.$id === formData.paymentMethod);
 
             const finalOrderItems = cartItems.map(item => ({
                 id: item.id || 'unknown',
@@ -610,7 +616,7 @@ const Checkout = () => {
         }
     };
 
-    const isOnline = activeMethods.find(m => m.id === formData.paymentMethod)?.type === 'online';
+    const isOnline = activeMethods.find(m => m.$id === formData.paymentMethod)?.type === 'online';
 
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

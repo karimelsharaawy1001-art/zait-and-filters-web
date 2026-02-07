@@ -1,9 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useFilters } from '../context/FilterContext';
-import { useTranslation } from 'react-i18next';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
+import { databases } from '../appwrite';
+import { Query } from 'appwrite';
 
 const CategoryThumbnails = () => {
     const { t, i18n } = useTranslation();
@@ -11,18 +7,21 @@ const CategoryThumbnails = () => {
     const { updateFilter } = useFilters();
     const [categories, setCategories] = useState([]);
 
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const CATEGORIES_COLLECTION = import.meta.env.VITE_APPWRITE_CATEGORIES_COLLECTION_ID || 'categories';
+
     useEffect(() => {
         const fetchCategories = async () => {
+            if (!DATABASE_ID) return;
             try {
-                const querySnapshot = await getDocs(collection(db, 'categories'));
-                const list = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                setCategories(list);
+                const response = await databases.listDocuments(DATABASE_ID, CATEGORIES_COLLECTION, [Query.limit(100)]);
+                setCategories(response.documents);
             } catch (error) {
                 console.error("Error fetching categories", error);
             }
         };
         fetchCategories();
-    }, []);
+    }, [DATABASE_ID]);
 
     const handleCategoryClick = (categoryId) => {
         navigate(`/category/${categoryId}`);
@@ -48,7 +47,7 @@ const CategoryThumbnails = () => {
                         >
                             {/* Background Image */}
                             <img
-                                src={cat.imageUrl}
+                                src={cat.image || cat.imageUrl}
                                 alt={cat.name}
                                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                                 loading="lazy"
