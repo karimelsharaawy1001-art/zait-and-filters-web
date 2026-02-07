@@ -16,6 +16,9 @@ const ManageProducts = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('All');
     const [brandFilter, setBrandFilter] = useState('All');
+    const [makeFilter, setMakeFilter] = useState('All');
+    const [modelFilter, setModelFilter] = useState('All');
+    const [yearFilter, setYearFilter] = useState('All');
     const [statusFilter, setStatusFilter] = useState('All');
     const [sortBy, setSortBy] = useState('$createdAt-desc');
 
@@ -39,6 +42,9 @@ const ManageProducts = () => {
 
             if (categoryFilter !== 'All') queries.push(Query.equal('category', categoryFilter));
             if (brandFilter !== 'All') queries.push(Query.equal('brand', brandFilter));
+            if (makeFilter !== 'All') queries.push(Query.equal('make', makeFilter));
+            if (modelFilter !== 'All') queries.push(Query.equal('model', modelFilter));
+            if (yearFilter !== 'All') queries.push(Query.equal('yearRange', yearFilter));
             if (statusFilter === 'Active') queries.push(Query.equal('isActive', true));
             if (statusFilter === 'Inactive') queries.push(Query.equal('isActive', false));
             if (searchQuery) queries.push(Query.contains('name', searchQuery));
@@ -59,7 +65,7 @@ const ManageProducts = () => {
 
     useEffect(() => {
         fetchProducts();
-    }, [categoryFilter, brandFilter, statusFilter, sortBy, searchQuery, currentPage]);
+    }, [categoryFilter, brandFilter, makeFilter, modelFilter, yearFilter, statusFilter, sortBy, searchQuery, currentPage]);
 
     const handleToggleActive = async (productId, currentStatus) => {
         try {
@@ -146,6 +152,52 @@ const ManageProducts = () => {
                     </div>
                 </div>
 
+                {/* Advanced Vehicle Filters */}
+                <div className="admin-card-compact p-4 flex flex-wrap gap-4 items-end mb-6 bg-slate-900 text-white border-none shadow-xl">
+                    <div className="flex-1 min-w-[150px]">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 block">Vehicle Make</label>
+                        <select
+                            value={makeFilter}
+                            onChange={e => { setMakeFilter(e.target.value); setModelFilter('All'); }}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/10 rounded-lg text-xs font-bold uppercase outline-none focus:ring-1 focus:ring-emerald-500 transition-all text-white"
+                        >
+                            <option value="All" className="text-slate-900">All Makes</option>
+                            {[...new Set(shieldCars.map(c => c.make))].sort().map(m => (
+                                <option key={m} value={m} className="text-slate-900">{m}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="flex-1 min-w-[150px]">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 block">Model</label>
+                        <select
+                            value={modelFilter}
+                            onChange={e => setModelFilter(e.target.value)}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/10 rounded-lg text-xs font-bold uppercase outline-none focus:ring-1 focus:ring-emerald-500 transition-all text-white"
+                        >
+                            <option value="All" className="text-slate-900">All Models</option>
+                            {shieldCars
+                                .filter(c => makeFilter === 'All' || c.make === makeFilter)
+                                .map(c => <option key={c.id} value={c.model} className="text-slate-900">{c.model}</option>)
+                            }
+                        </select>
+                    </div>
+                    <div className="w-32">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 block">Year</label>
+                        <input
+                            value={yearFilter === 'All' ? '' : yearFilter}
+                            onChange={e => setYearFilter(e.target.value || 'All')}
+                            placeholder="e.g. 2015"
+                            className="w-full px-3 py-2 bg-white/10 border border-white/10 rounded-lg text-xs font-bold uppercase outline-none focus:ring-1 focus:ring-emerald-500 transition-all text-white placeholder:text-white/20"
+                        />
+                    </div>
+                    <button
+                        onClick={() => { setMakeFilter('All'); setModelFilter('All'); setYearFilter('All'); setCategoryFilter('All'); setBrandFilter('All'); setStatusFilter('All'); setSearchQuery(''); }}
+                        className="px-4 py-2 bg-white/10 hover:bg-white/20 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all"
+                    >
+                        Reset Matrix
+                    </button>
+                </div>
+
                 <div className="admin-card-compact overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full admin-table-dense">
@@ -181,9 +233,12 @@ const ManageProducts = () => {
                                             )}
                                         </td>
                                         <td>
-                                            <button onClick={() => handleToggleActive(p.id, p.isActive)} className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[9px] font-bold uppercase border transition-all ${p.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
-                                                <div className={`w-1.5 h-1.5 rounded-full ${p.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`} />
-                                                {p.isActive ? 'Active' : 'Offline'}
+                                            <button
+                                                onClick={() => handleToggleActive(p.id, p.isActive)}
+                                                className={`group/status relative flex items-center justify-between gap-3 min-w-[100px] px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300 ${p.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-600 hover:text-white hover:border-emerald-600' : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-900 hover:text-white hover:border-slate-900'}`}
+                                            >
+                                                <span>{p.isActive ? 'Active' : 'Offline'}</span>
+                                                <div className={`w-2 h-2 rounded-full shadow-sm transition-all duration-300 ${p.isActive ? 'bg-emerald-500 group-hover/status:bg-white animate-pulse' : 'bg-slate-300 group-hover/status:bg-white'}`} />
                                             </button>
                                         </td>
                                         <td className="text-right">
