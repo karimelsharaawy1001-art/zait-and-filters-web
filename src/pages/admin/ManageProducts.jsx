@@ -233,12 +233,12 @@ const ManageProducts = () => {
                                             </div>
                                         </td>
                                         <td>
-                                            <p className="text-[11px] font-black text-slate-900 uppercase tracking-tight">{p.make || p.carMake || '-'}</p>
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{p.model || p.carModel || '-'}</p>
+                                            <p className="text-[11px] font-black text-slate-900 uppercase tracking-tight">{p.make || p.carMake || p.car_make || '-'}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{p.model || p.carModel || p.car_model || '-'}</p>
                                         </td>
                                         <td>
                                             <p className="text-[10px] font-black text-slate-600 tabular-nums">
-                                                {p.yearRange || p.carYear || (p.yearStart ? (p.yearEnd && p.yearEnd !== p.yearStart ? `${p.yearStart}-${p.yearEnd}` : p.yearStart) : '-')}
+                                                {p.yearRange || p.carYear || (p.yearStart ? (p.yearEnd && p.yearEnd !== p.yearStart ? `${p.yearStart}-${p.yearEnd}` : p.yearStart) : (p.yearEnd || '-'))}
                                             </p>
                                         </td>
                                         <td>
