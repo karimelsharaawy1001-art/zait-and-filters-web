@@ -524,10 +524,12 @@ const Checkout = () => {
                             city: formData.city
                         }),
                         currentMileage: formData.currentMileage ? Number(formData.currentMileage) : null,
-                        notes: formData.notes,
+                        notes: orderData.receiptUrl
+                            ? `${formData.notes || ''}\n\n[Receipt URL]: ${orderData.receiptUrl}`.trim()
+                            : formData.notes,
                         promoCode: orderData.promoCode,
                         affiliateCode: orderData.affiliateCode,
-                        receiptUrl: orderData.receiptUrl,
+                        // receiptUrl removed due to schema limit
                         createdAt: new Date().toISOString()
                     };
 
