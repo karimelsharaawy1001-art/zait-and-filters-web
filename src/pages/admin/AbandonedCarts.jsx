@@ -13,6 +13,7 @@ const AbandonedCarts = () => {
     const [selectedCart, setSelectedCart] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [filter, setFilter] = useState('all');
+    const [converting, setConverting] = useState(false);
 
     const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
     const ABANDONED_COLLECTION = import.meta.env.VITE_APPWRITE_ABANDONED_CARTS_COLLECTION_ID || 'abandoned_carts';
@@ -62,6 +63,74 @@ const AbandonedCarts = () => {
         if (!phone) return toast.error("Node silent (No Phone)");
         const message = `أهلاً يا بطل! 👋 بنفكرك إنك سيبت قطع أصلية في سلتك في Zait & Filters. محتاج أي مساعدة عشان تكمل شروتك؟`;
         window.open(`https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+    };
+
+    const handleConvertToOrder = async (cart) => {
+        if (!window.confirm("Convert this abandoned cart into a formal order? This will mark it as recovered.")) return;
+
+        setConverting(true);
+        const ORDERS_COLLECTION = import.meta.env.VITE_APPWRITE_ORDERS_COLLECTION_ID || 'orders';
+        const SETTINGS_COLLECTION = 'settings';
+
+        try {
+            // 1. Get Next Order Number
+            let nextNumber = 3501;
+            try {
+                const counterDoc = await databases.getDocument(DATABASE_ID, SETTINGS_COLLECTION, 'counters');
+                nextNumber = (counterDoc.lastOrderNumber || 3500) + 1;
+                await databases.updateDocument(DATABASE_ID, SETTINGS_COLLECTION, 'counters', {
+                    lastOrderNumber: nextNumber
+                });
+            } catch (e) {
+                console.warn("Counter sync failed", e);
+                nextNumber = parseInt(Date.now().toString().slice(-6));
+            }
+
+            // 2. Prepare Order Payload
+            const appwritePayload = {
+                orderNumber: String(nextNumber),
+                userId: cart.uid || 'guest',
+                customerInfo: JSON.stringify({
+                    name: cart.customerName || 'Guest',
+                    phone: cart.customerPhone || '',
+                    email: cart.email || '',
+                    address: '', governorate: '', city: ''
+                }),
+                items: typeof cart.items === 'string' ? cart.items : JSON.stringify(cart.items),
+                subtotal: cart.total,
+                discount: 0,
+                shippingCost: 0,
+                total: cart.total,
+                paymentMethod: 'Manual Recovery',
+                paymentType: 'offline',
+                paymentStatus: 'Pending',
+                status: 'Processing',
+                shippingAddress: JSON.stringify({ address: '', governorate: '', city: '' }),
+                createdAt: new Date().toISOString(),
+                notes: `Manually converted from Abandoned Cart ${cart.id}`
+            };
+
+            // 3. Create Order
+            const result = await databases.createDocument(DATABASE_ID, ORDERS_COLLECTION, ID.unique(), appwritePayload);
+
+            // 4. Mark Cart as Recovered
+            await databases.updateDocument(DATABASE_ID, ABANDONED_COLLECTION, cart.id, {
+                recovered: true,
+                recoveredAt: new Date().toISOString(),
+                orderId: result.$id
+            });
+
+            toast.success("Operational chain restored: Order created successfully!");
+
+            // Update local state
+            setCarts(prev => prev.map(c => c.id === cart.id ? { ...c, recovered: true, orderId: result.$id } : c));
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error("Conversion failed:", error);
+            toast.error("Protocol failure: Could not convert cart to order.");
+        } finally {
+            setConverting(false);
+        }
     };
 
     return (
@@ -192,7 +261,17 @@ const AbandonedCarts = () => {
                                     </div>
                                 </section>
                             </div>
-                            <div className="p-4 border-t border-slate-100 bg-slate-50 flex gap-3 shrink-0">
+                            <div className="p-4 border-t border-slate-100 bg-slate-50 flex flex-wrap gap-3 shrink-0">
+                                {!selectedCart.recovered && (
+                                    <button
+                                        onClick={() => handleConvertToOrder(selectedCart)}
+                                        disabled={converting}
+                                        className="w-full bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl py-3 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-100 flex items-center justify-center gap-2 mb-2 transition-all active:scale-95 disabled:opacity-50"
+                                    >
+                                        {converting ? <Loader2 className="animate-spin" size={14} /> : <CheckCircle2 size={14} />}
+                                        Convert to Successful Order
+                                    </button>
+                                )}
                                 <button onClick={() => openWhatsApp(selectedCart.customerPhone)} className="flex-1 admin-btn-slim bg-slate-900 text-white hover:bg-slate-800 justify-center py-3 text-[10px] uppercase shadow-lg shadow-slate-900/10">
                                     <MessageCircle size={14} /> WhatsApp Link
                                 </button>
