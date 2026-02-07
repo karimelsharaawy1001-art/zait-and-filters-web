@@ -248,14 +248,22 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
             setImportStatus(`Repairing ${allDocs.length} entries...`);
             let repairCount = 0;
 
+            console.log(`🏗️ Building Reference Matrix for ${staticProducts.length} items...`);
+            const refMap = new Map();
+            staticProducts.forEach(r => {
+                const sid = String(r.id || r.$id || '').trim();
+                if (sid) refMap.set(sid, r);
+            });
+            console.log(`✅ Matrix Ready. Starting Repair Loop...`);
+
             for (let i = 0; i < allDocs.length; i++) {
                 const doc = allDocs[i];
                 const updates = {};
 
-                // Find matching product in reference data (JSON) - handle both id and $id
-                const ref = staticProducts.find(r => (r.id || r.$id) === doc.$id);
+                // Find matching product in reference data (JSON) - O(1) Lookup
+                const ref = refMap.get(String(doc.$id).trim());
 
-                if (i % 50 === 0) console.log(`🔍 Repair Scan [${i}/${allDocs.length}]: ${doc.name} (${doc.$id}) | Found Ref: ${!!ref}`);
+                if (i % 100 === 0) console.log(`🔍 Repair Scan [${i}/${allDocs.length}]: ${doc.name} | Ref Found: ${!!ref}`);
 
                 // 1. Restore missing Data from Reference (JSON Backup)
                 if (ref) {
@@ -284,7 +292,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
 
                 // 3. Ensure Active & Type Fixes
                 if (doc.isActive === undefined || doc.isActive === null) updates.isActive = true;
-                if (typeof doc.isActive === 'string') updates.isActive = parseBoolean(doc.isActive);
+                if (typeof doc.isActive === 'string') updates.isActive = (doc.isActive.toLowerCase() === 'true');
 
                 // 4. Year Range Parsing (if still needed)
                 const rangeToParse = updates.yearRange || doc.yearRange || doc.carYear;
@@ -306,16 +314,14 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     try {
                         await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, doc.$id, updates);
                         repairCount++;
-                        // Small throttle every 5 updates for safety on large datasets
-                        if (repairCount % 5 === 0) {
-                            await new Promise(r => setTimeout(r, 20));
-                        }
+                        // Sync throttle
+                        if (repairCount % 20 === 0) await new Promise(r => setTimeout(r, 10));
                     } catch (err) {
                         console.error(`Repair failed for ${doc.$id}:`, err);
                     }
                 }
 
-                if (i % 20 === 0) {
+                if (i % 50 === 0) {
                     setImportStatus(`Repairing: ${i + 1} / ${allDocs.length} (Fixed: ${repairCount})`);
                 }
             }
