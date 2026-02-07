@@ -81,7 +81,7 @@ const Profile = () => {
     useEffect(() => {
         fetchUserData();
         fetchGlobalCars();
-    }, []);
+    }, [appwriteUser]);
 
     useEffect(() => {
         if (activeTab === 'addresses') {
@@ -173,6 +173,17 @@ const Profile = () => {
     };
 
     const fetchUserData = async () => {
+        if (appwriteUser) {
+            setUserData({
+                fullName: appwriteUser.name,
+                email: appwriteUser.email,
+                phoneNumber: appwriteUser.phone,
+            });
+            setLoading(false);
+            return;
+        }
+
+        // Legacy Firestore Fallback
         if (!auth.currentUser) return;
         try {
             const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
