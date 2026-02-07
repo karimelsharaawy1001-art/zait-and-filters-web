@@ -216,30 +216,29 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
     };
 
     const runDataRepair = async () => {
+        // SUPER DEBUG 1: Immediate Alert to verify button click
+        alert("REPAIR COMMAND INITIATED. Check console and toasts.");
+
         console.log("🚀 [REPAIR] Command Received. Initializing Diagnostics...");
         console.log("📊 [REPAIR] Appwrite Config:", { DATABASE_ID, PRODUCTS_COLLECTION });
         console.log("📦 [REPAIR] Static Products Count:", staticProducts?.length || 0);
 
         if (!DATABASE_ID || !PRODUCTS_COLLECTION) {
-            toast.error("Critical: Appwrite environment variables are missing.");
+            toast.error("Critical: Appwrite settings not detected in .env");
             return;
         }
 
-        if (!window.confirm('MASTER DATA REPAIR: This will analyze your entire catalog and restore missing vehicle metadata. Proceed?')) return;
-
         setLoading(true);
-        const loadToast = toast.loading('Initializing Catalog Recovery...');
-        setImportStatus('Scanning Matrix...');
+        const loadToast = toast.loading('Phase 1: Fetching Remote Catalog...', {
+            style: { minWidth: '300px', fontWeight: 'bold' }
+        });
 
         try {
-            // Appwrite doesn't have offset for large lists easily without cursor, 
-            // but we'll fetch in batches of 100
             let allDocs = [];
             let lastId = null;
             let hasMore = true;
 
-            toast('Fetching catalog metadata...', { icon: '📡' });
-
+            // Step 1: Exhaustive Fetch
             while (hasMore) {
                 const queries = [Query.limit(100)];
                 if (lastId) queries.push(Query.after(lastId));
@@ -247,38 +246,40 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, queries);
                 allDocs = [...allDocs, ...response.documents];
 
-                if (response.documents.length < 100) {
+                if (response.documents.length < 100 || allDocs.length >= 30000) {
                     hasMore = false;
                 } else {
                     lastId = response.documents[response.documents.length - 1].$id;
-                    setImportStatus(`Loaded ${allDocs.length} items...`);
-                    toast.loading(`Syncing Metadata: ${allDocs.length} items...`, { id: loadToast });
+                    setImportStatus(`Gathering: ${allDocs.length}`);
+                    toast.loading(`Syncing Catalog: ${allDocs.length} items...`, { id: loadToast });
                 }
             }
 
-            setImportStatus(`Repairing ${allDocs.length} entries...`);
+            console.log(`✅ [REPAIR] Fetch Complete. ${allDocs.length} items found.`);
+            toast.loading(`Phase 2: Repairing Data...`, { id: loadToast });
+
             let repairCount = 0;
-
-            console.log(`🏗️ Building Reference Matrix for ${staticProducts.length} items...`);
             const refMap = new Map();
-            staticProducts.forEach(r => {
-                const sid = String(r.id || r.$id || '').trim();
-                if (sid) refMap.set(sid, r);
-            });
-            console.log(`✅ Matrix Ready. Starting Repair Loop...`);
+            if (Array.isArray(staticProducts)) {
+                staticProducts.forEach(r => {
+                    const sid = String(r?.id || r?.productID || r?.$id || '').trim();
+                    if (sid) refMap.set(sid, r);
+                });
+            }
 
+            // Step 2: Repair Loop
             for (let i = 0; i < allDocs.length; i++) {
                 const doc = allDocs[i];
                 const updates = {};
-
-                // Find matching product in reference data (JSON) - O(1) Lookup
                 const ref = refMap.get(String(doc.$id).trim());
 
-                if (i % 100 === 0) console.log(`🔍 Repair Scan [${i}/${allDocs.length}]: ${doc.name} | Ref Found: ${!!ref}`);
+                if (i % 50 === 0) {
+                    console.log(`🔨 [REPAIR] Scan: ${i}/${allDocs.length} | Repairs: ${repairCount}`);
+                    setImportStatus(`Fixed: ${repairCount} / ${allDocs.length}`);
+                    toast.loading(`Scanning Matrix: ${i + 1} / ${allDocs.length}...`, { id: loadToast });
+                }
 
-                // 1. Restore missing Data from Reference (JSON Backup)
                 if (ref) {
-                    // Fill New Schema (Preparation) - Aggressive fill if null/undefined/empty
                     if (ref.yearStart && !doc.yearStart) updates.yearStart = Number(ref.yearStart);
                     if (ref.yearEnd && !doc.yearEnd) updates.yearEnd = Number(ref.yearEnd);
                     if (ref.yearRange && (!doc.yearRange || doc.yearRange === '-')) updates.yearRange = String(ref.yearRange);
@@ -286,62 +287,34 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     if (ref.model && !doc.model) updates.model = String(ref.model).toUpperCase();
                     if ((ref.brand || ref.partBrand) && !doc.brand) updates.brand = String(ref.brand || ref.partBrand);
 
-                    // Fill Legacy Schema (Active in Appwrite)
+                    // Legacy Schema Sync
                     if ((ref.make || ref.carMake) && (!doc.carMake || doc.carMake === '-')) updates.carMake = String(ref.make || ref.carMake).toUpperCase();
                     if ((ref.model || ref.carModel) && (!doc.carModel || doc.carModel === '-')) updates.carModel = String(ref.model || ref.carModel).toUpperCase();
                     if ((ref.yearRange || ref.carYear) && (!doc.carYear || doc.carYear === '-')) updates.carYear = String(ref.yearRange || ref.carYear);
-                    if ((ref.brand || ref.partBrand) && (!doc.partBrand || doc.partBrand === '-')) updates.partBrand = String(ref.brand || ref.partBrand);
                 }
 
-                // 2. Internal Synchronization (Cross-fill from Legacy to New)
                 if (doc.carMake && (!doc.make || doc.make === '-') && !updates.make) updates.make = doc.carMake.toUpperCase();
                 if (doc.carModel && (!doc.model || doc.model === '-') && !updates.model) updates.model = doc.carModel.toUpperCase();
-                if (doc.carYear && (!doc.yearRange || doc.yearRange === '-') && !updates.yearRange) updates.yearRange = doc.carYear;
-                if (doc.make && (!doc.carMake || doc.carMake === '-') && !updates.carMake) updates.carMake = doc.make.toUpperCase();
-                if (doc.model && (!doc.carModel || doc.carModel === '-') && !updates.carModel) updates.carModel = doc.model.toUpperCase();
-                if (doc.yearRange && (!doc.carYear || doc.carYear === '-') && !updates.carYear) updates.carYear = doc.yearRange;
 
-                // 3. Ensure Active & Type Fixes
                 if (doc.isActive === undefined || doc.isActive === null) updates.isActive = true;
-                if (typeof doc.isActive === 'string') updates.isActive = (doc.isActive.toLowerCase() === 'true');
-
-                // 4. Year Range Parsing (if still needed)
-                const rangeToParse = updates.yearRange || doc.yearRange || doc.carYear;
-                if (rangeToParse && (!doc.yearStart || !doc.yearEnd)) {
-                    const { yearStart, yearEnd } = parseYearRange(rangeToParse);
-                    if (yearStart && !doc.yearStart) updates.yearStart = yearStart;
-                    if (yearEnd && !doc.yearEnd) updates.yearEnd = yearEnd;
-                }
-
-                // 5. Brand Normalization
-                if (doc.partBrand && !doc.brand && !updates.brand) updates.brand = doc.partBrand;
-                if (doc.brand && !doc.partBrand && !updates.partBrand) updates.partBrand = doc.brand;
-
-                // 6. Data Types
-                if (typeof doc.price === 'string') updates.price = Number(doc.price) || 0;
-                if (typeof doc.costPrice === 'string') updates.costPrice = Number(doc.costPrice) || 0;
 
                 if (Object.keys(updates).length > 0) {
                     try {
                         await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, doc.$id, updates);
                         repairCount++;
-                        // Sync throttle
                         if (repairCount % 20 === 0) await new Promise(r => setTimeout(r, 10));
                     } catch (err) {
                         console.error(`Repair failed for ${doc.$id}:`, err);
                     }
                 }
-
-                if (i % 50 === 0) {
-                    setImportStatus(`Repairing: ${i + 1} / ${allDocs.length} (Fixed: ${repairCount})`);
-                }
             }
 
-            toast.success(`Recovery Complete! Fixed ${repairCount} entries.`, { id: loadToast, duration: 5000 });
+            toast.success(`Success! Fixed ${repairCount} entries.`, { id: loadToast, duration: 5000 });
             if (onSuccess) onSuccess();
         } catch (error) {
-            console.error("Repair error:", error);
-            toast.error("Recovery failed. Check console for details.", { id: loadToast });
+            console.error("❌ [REPAIR] Failure:", error);
+            alert("REPAIR FAILED: " + error.message);
+            toast.error("Recovery failed. Check console.", { id: loadToast });
         } finally {
             setLoading(false);
             setImportStatus('');
@@ -374,7 +347,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     </label>
                 </div>
 
-                <button onClick={runDataRepair} disabled={loading} id="master-repair-btn" className={`admin-btn-slim bg-orange-600 text-white hover:bg-orange-700 shadow-lg shadow-orange-600/10 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                <button onClick={runDataRepair} disabled={loading} id="master-repair-btn" className={`admin-btn-slim bg-orange-600 text-white hover:bg-orange-700 shadow-xl shadow-orange-600/20 px-6 py-2 ${loading ? 'opacity-50 pulse' : ''}`}>
                     <TrendingUp size={14} /> Repair & Sync Matrix
                 </button>
 
