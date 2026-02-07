@@ -133,6 +133,51 @@ export default async function handler(req, res) {
             }
         }
 
+        if (action === 'generateSitemap') {
+            try {
+                const products = await fetchAllProducts();
+                const baseUrl = 'https://zaitandfilters.com';
+                const today = new Date().toISOString().split('T')[0];
+
+                let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url><loc>${baseUrl}/</loc><lastmod>${today}</lastmod><priority>1.0</priority></url>
+    <url><loc>${baseUrl}/shop</loc><lastmod>${today}</lastmod><priority>0.9</priority></url>
+    <url><loc>${baseUrl}/blog</loc><lastmod>${today}</lastmod><priority>0.8</priority></url>
+    <url><loc>${baseUrl}/contact-us</loc><lastmod>${today}</lastmod><priority>0.5</priority></url>
+    <url><loc>${baseUrl}/policy</loc><lastmod>${today}</lastmod><priority>0.3</priority></url>`;
+
+                // Dynamic Products
+                products.forEach(p => {
+                    xml += `\n    <url><loc>${baseUrl}/product/${p.id}</loc><lastmod>${today}</lastmod><priority>0.7</priority></url>`;
+                });
+
+                xml += `\n</urlset>`;
+
+                res.setHeader('Content-Type', 'text/xml');
+                return res.status(200).send(xml);
+            } catch (err) {
+                return res.status(500).send('Sitemap Generation Error');
+            }
+        }
+
+        if (action === 'ping-sitemap') {
+            const sitemapUrl = 'https://zaitandfilters.com/sitemap.xml';
+            try {
+                const googlePing = `https://www.google.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`;
+                const bingPing = `https://www.bing.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`;
+
+                await Promise.allSettled([
+                    axios.get(googlePing, { timeout: 5000 }),
+                    axios.get(bingPing, { timeout: 5000 })
+                ]);
+
+                return res.status(200).json({ status: 'success', msg: 'Sitemap pinged to Google and Bing' });
+            } catch (err) {
+                return res.status(500).json({ status: 'error', msg: 'Failed to ping search engines' });
+            }
+        }
+
         // --- PRODUCT ACTIONS (Cached) ---
         const fetchAllProducts = async () => {
             if (globalProductCache && (Date.now() - lastCacheUpdate < CACHE_TTL)) {

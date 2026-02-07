@@ -12,6 +12,7 @@ const GoogleSearchConsole = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [testStatus, setTestStatus] = useState('untested'); // untested, checking, found, mismatch, not_found, error
+    const [pinging, setPinging] = useState(false);
     const [lastChecked, setLastChecked] = useState(null);
 
     const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
@@ -51,6 +52,23 @@ const GoogleSearchConsole = () => {
             toast.error('Failed to save settings');
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handlePingSitemap = async () => {
+        setPinging(true);
+        try {
+            const response = await axios.get('/api/products?action=ping-sitemap');
+            if (response.data.status === 'success') {
+                toast.success('Sitemap submitted successfully!');
+            } else {
+                toast.error('Failed to submit sitemap.');
+            }
+        } catch (error) {
+            console.error("Error pinging sitemap:", error);
+            toast.error('Failed to submit sitemap');
+        } finally {
+            setPinging(false);
         }
     };
 
@@ -242,6 +260,48 @@ const GoogleSearchConsole = () => {
                                     <p className="mb-1 font-bold italic">Why use this?</p>
                                     <p>React sites sometimes delay meta tag injection. The <strong>HTML File</strong> method is 100% reliable because we serve it directly from the server. Use this if Google can't "find" your site.</p>
                                 </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl shadow-gray-200/40">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <Search className="w-5 h-5 text-[#008a40]" />
+                                Sitemap Management
+                            </h3>
+                        </div>
+                        <div className="space-y-6">
+                            <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                    <div>
+                                        <p className="text-sm font-black text-gray-900 uppercase tracking-widest mb-1">Your Sitemap URL</p>
+                                        <code className="text-xs text-blue-600 font-mono">https://zaitandfilters.com/sitemap.xml</code>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <a
+                                            href="https://zaitandfilters.com/sitemap.xml"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm flex items-center gap-2"
+                                        >
+                                            <ExternalLink className="w-3 h-3" /> Preview
+                                        </a>
+                                        <button
+                                            onClick={handlePingSitemap}
+                                            disabled={pinging}
+                                            className="px-4 py-2 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all shadow-sm disabled:opacity-50"
+                                        >
+                                            {pinging ? 'Submitting...' : 'Submit to Google'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="p-4 bg-blue-50 rounded-2xl flex gap-3 border border-blue-100">
+                                <Info className="w-5 h-5 text-blue-600 shrink-0" />
+                                <p className="text-xs text-blue-800 leading-relaxed">
+                                    Submitting your sitemap helps search engines discover your new products faster. You should do this whenever you add a large number of regular products or categories.
+                                </p>
                             </div>
                         </div>
                     </section>
