@@ -221,7 +221,7 @@ const OrderHistory = () => {
                                     <div>
                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t('date')}</p>
                                         <p className="text-sm font-bold text-gray-700">
-                                            {order.createdAt ? new Date(order.createdAt).toLocaleDateString(isAr ? 'ar-EG' : 'en-US') : 'N/A'}
+                                            {(order.$createdAt || order.createdAt) ? new Date(order.$createdAt || order.createdAt).toLocaleDateString(isAr ? 'ar-EG' : 'en-US') : 'N/A'}
                                         </p>
                                     </div>
                                     <div>

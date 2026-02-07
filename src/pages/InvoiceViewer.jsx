@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { databases } from '../appwrite'; // Import Appwrite
 import { useSettings } from '../context/SettingsContext';
 import { Loader2, Printer, Download } from 'lucide-react';
 
@@ -14,10 +13,38 @@ const InvoiceViewer = () => {
     useEffect(() => {
         const fetchOrder = async () => {
             try {
-                const docRef = doc(db, 'orders', id);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    setOrder({ id: docSnap.id, ...docSnap.data() });
+                const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+                const ORDERS_COLLECTION = import.meta.env.VITE_APPWRITE_ORDERS_COLLECTION_ID;
+
+                const doc = await databases.getDocument(
+                    DATABASE_ID,
+                    ORDERS_COLLECTION,
+                    id
+                );
+
+                if (doc) {
+                    // Parse items if string
+                    let parsedItems = [];
+                    try {
+                        parsedItems = typeof doc.items === 'string' ? JSON.parse(doc.items) : doc.items;
+                    } catch (e) {
+                        console.error("Error parsing items:", e);
+                    }
+
+                    // Parse customerInfo if string
+                    let parsedCustomer = {};
+                    try {
+                        parsedCustomer = typeof doc.customerInfo === 'string' ? JSON.parse(doc.customerInfo) : doc.customerInfo;
+                    } catch (e) {
+                        console.error("Error parsing customerInfo:", e);
+                    }
+
+                    setOrder({
+                        id: doc.$id,
+                        ...doc,
+                        items: Array.isArray(parsedItems) ? parsedItems : [],
+                        customer: parsedCustomer
+                    });
                 } else {
                     console.error("No such order!");
                 }
@@ -53,8 +80,8 @@ const InvoiceViewer = () => {
         </div>
     );
 
-    const date = order.createdAt?.seconds
-        ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('en-GB')
+    const date = (order.$createdAt || order.createdAt)
+        ? new Date(order.$createdAt || order.createdAt).toLocaleDateString('en-GB')
         : new Date().toLocaleDateString('en-GB');
 
     return (

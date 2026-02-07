@@ -630,9 +630,9 @@ const Profile = () => {
                                                                 <p className="text-sm font-black text-gray-900">#{order.orderNumber || order.id.slice(-6).toUpperCase()}</p>
                                                             </div>
                                                             <div>
-                                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Date</p>
+                                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t('date')}</p>
                                                                 <p className="text-sm font-bold text-gray-700">
-                                                                    {order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}
+                                                                    {(order.$createdAt || order.createdAt) ? new Date(order.$createdAt || order.createdAt).toLocaleDateString(isAr ? 'ar-EG' : 'en-US') : 'N/A'}
                                                                 </p>
                                                             </div>
                                                             {order.currentMileage && (
@@ -716,6 +716,13 @@ const Profile = () => {
                                                                         <p className="text-[10px] text-gray-500 font-medium">
                                                                             {item.partBrand || item.brand} • {item.quantity} Qty
                                                                         </p>
+                                                                        {(item.make || item.model) && (
+                                                                            <p className="text-[10px] text-gray-400">
+                                                                                {item.make} {item.model}
+                                                                                {(item.yearStart || item.yearEnd) ? ` (${item.yearStart}${item.yearEnd ? ` - ${item.yearEnd}` : ''})` : (item.yearRange ? ` (${item.yearRange})` : '')}
+                                                                            </p>
+                                                                        )}
+
                                                                     </div>
                                                                     <div className="text-right">
                                                                         <p className="text-sm font-black text-gray-900">{item.price} EGP</p>
