@@ -23,174 +23,78 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
 
     const log = (msg) => {
         console.log(`[REPAIR] ${msg}`);
-        setUiLogs(prev => [msg, ...prev].slice(0, 8));
+        setUiLogs(prev => [msg, ...prev].slice(0, 10));
     };
 
     const downloadTemplate = () => {
-        const sampleData = [
-            {
-                name: "فلتر زيت",
-                activeStatus: "TRUE",
-                isGenuine: "TRUE",
-                category: "Maintenance",
-                subcategory: "Filters",
-                carMake: "Toyota",
-                carModel: "Corolla",
-                yearRange: "2015-2023",
-                partBrand: "Genuine",
-                countryOfOrigin: "Japan",
-                costPrice: 200,
-                sellPrice: 350,
-                salePrice: "",
-                warranty: "None",
-                description: "High quality oil filter",
-                imageUrl: "https://example.com/filter.jpg",
-                partNumber: "90915-YZZE1",
-                compatibility: "1.6L Engine"
-            }
-        ];
-
-        const worksheet = XLSX.utils.json_to_sheet(sampleData, { header: headers });
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Products Template");
-        XLSX.writeFile(workbook, "products_template_v2.xlsx");
+        const sampleData = [{
+            name: "فلتر زيت",
+            activeStatus: "TRUE",
+            category: "Maintenance",
+            carMake: "Toyota",
+            carModel: "Corolla",
+            yearRange: "2015-2023"
+        }];
+        const ws = XLSX.utils.json_to_sheet(sampleData, { header: headers });
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Template");
+        XLSX.writeFile(wb, "products_template.xlsx");
     };
 
     const exportProducts = async () => {
         setLoading(true);
         try {
-            let rawData = [];
-            if (onExportFetch) {
-                rawData = await onExportFetch();
-            } else {
-                toast('Exporting ALL products', { icon: 'ℹ️' });
-                let allDocs = [];
-                let lastId = null;
-                let hasMore = true;
-
-                while (hasMore) {
-                    const queries = [Query.limit(100)];
-                    if (lastId) queries.push(Query.after(lastId));
-                    const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, queries);
-                    allDocs = [...allDocs, ...response.documents];
-                    if (response.documents.length < 100) {
-                        hasMore = false;
-                    } else {
-                        lastId = response.documents[response.documents.length - 1].$id;
-                        setImportStatus(`Gathering export data: ${allDocs.length}...`);
-                    }
-                }
-                rawData = allDocs.map(d => ({ id: d.$id, ...d }));
+            let allDocs = [];
+            let lastId = null;
+            let hasMore = true;
+            while (hasMore) {
+                const queries = [Query.limit(100)];
+                if (lastId) queries.push(Query.after(lastId));
+                const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, queries);
+                allDocs = [...allDocs, ...response.documents];
+                if (response.documents.length < 100) hasMore = false;
+                else lastId = response.documents[response.documents.length - 1].$id;
             }
-
-            const products = rawData.map(data => ({
-                productID: data.id || data.$id,
-                name: data.name || '',
-                activeStatus: data.isActive ? 'TRUE' : 'FALSE',
-                isGenuine: data.isGenuine ? 'TRUE' : 'FALSE',
-                category: data.category || '',
-                subcategory: data.subcategory || data.subCategory || '',
-                carMake: data.make || '',
-                carModel: data.model || '',
-                yearRange: data.yearRange || (data.yearStart && data.yearEnd ? `${data.yearStart}-${data.yearEnd}` : ''),
-                partBrand: data.partBrand || data.brand || '',
-                countryOfOrigin: data.countryOfOrigin || data.country || '',
-                costPrice: data.costPrice || 0,
-                sellPrice: data.price || 0,
-                salePrice: data.salePrice || '',
-                warranty: data.warranty || (data.warranty_months ? `${data.warranty_months} Months` : ''),
-                description: data.description || '',
-                imageUrl: data.image || data.images || '',
-                partNumber: data.partNumber || '',
-                compatibility: data.compatibility || ''
-            }));
-
-            const worksheet = XLSX.utils.json_to_sheet(products, { header: headers });
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
-            XLSX.writeFile(workbook, `products_backup_${new Date().toISOString().split('T')[0]}.xlsx`);
-        } catch (error) {
-            console.error("Export error:", error);
-            toast.error("Export failed");
-        } finally {
-            setLoading(false);
-            setImportStatus('');
-        }
-    };
-
-    const parseBoolean = (val) => {
-        if (typeof val === 'boolean') return val;
-        if (typeof val === 'string') {
-            return val.toUpperCase() === 'TRUE' || val === '1' || val.toLowerCase() === 'yes';
-        }
-        return !!val;
+            const ws = XLSX.utils.json_to_sheet(allDocs.map(d => ({ productID: d.$id, ...d })), { header: headers });
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Products");
+            XLSX.writeFile(wb, `products_export_${new Date().toISOString().split('T')[0]}.xlsx`);
+        } catch (err) { toast.error("Export failed"); }
+        finally { setLoading(false); }
     };
 
     const handleImport = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
         setLoading(true);
-        setImportStatus('Reading file...');
         const reader = new FileReader();
         reader.onload = async (event) => {
             try {
                 const data = new Uint8Array(event.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
                 const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                if (jsonData.length === 0) {
-                    toast.error("The file is empty");
-                    setLoading(false);
-                    return;
+                for (const row of jsonData) {
+                    const dataToUpdate = {
+                        name: String(row.name || '').trim(),
+                        category: String(row.category || '').trim(),
+                        make: String(row.carMake || '').toUpperCase().trim(),
+                        model: String(row.carModel || '').toUpperCase().trim(),
+                        isActive: true
+                    };
+                    if (row.productID) {
+                        await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, String(row.productID).trim(), dataToUpdate);
+                    }
                 }
-                setImportStatus(`Syncing ${jsonData.length} products...`);
-                let successCount = 0;
-                for (let i = 0; i < jsonData.length; i++) {
-                    const row = jsonData[i];
-                    try {
-                        const dataToUpdate = {
-                            name: String(row.name || '').trim(),
-                            category: String(row.category || 'Uncategorized').trim(),
-                            subcategory: String(row.subcategory || '').trim(),
-                            make: String(row.carMake || '').toUpperCase().trim(),
-                            model: String(row.carModel || '').toUpperCase().trim(),
-                            partBrand: String(row.partBrand || '').trim(),
-                            brand: String(row.partBrand || '').trim(),
-                            countryOfOrigin: String(row.countryOfOrigin || '').trim(),
-                            costPrice: Number(row.costPrice) || 0,
-                            price: Number(row.sellPrice) || 0,
-                            description: String(row.description || '').trim(),
-                            image: String(row.imageUrl || '').trim(),
-                            partNumber: String(row.partNumber || '').trim(),
-                            compatibility: String(row.compatibility || '').trim(),
-                            isActive: parseBoolean(row.activeStatus),
-                            isGenuine: parseBoolean(row.isGenuine)
-                        };
-                        if (row.yearRange) {
-                            dataToUpdate.yearRange = String(row.yearRange).trim();
-                            const { yearStart, yearEnd } = parseYearRange(row.yearRange);
-                            if (yearStart) dataToUpdate.yearStart = yearStart;
-                            if (yearEnd) dataToUpdate.yearEnd = yearEnd;
-                        }
-                        if (row.productID) {
-                            await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, String(row.productID).trim(), dataToUpdate);
-                        } else {
-                            await databases.createDocument(DATABASE_ID, PRODUCTS_COLLECTION, ID.unique(), dataToUpdate);
-                        }
-                        successCount++;
-                    } catch (err) { console.error(err); }
-                    if (i % 10 === 0) setImportStatus(`Progress: ${i + 1}/${jsonData.length}`);
-                }
-                toast.success(`Synced ${successCount} items!`);
-                if (onSuccess) onSuccess();
-            } catch (error) { toast.error("Import failure"); }
-            finally { setLoading(false); setImportStatus(''); }
+                toast.success("Import Complete");
+            } catch (err) { toast.error("Import failure"); }
+            finally { setLoading(false); }
         };
         reader.readAsArrayBuffer(file);
     };
 
     const runDataRepair = async () => {
-        log("🚀 STARTING GLOBAL RECOVERY...");
-        toast.loading('Initializing Catalog Scan...', { id: 'repair-toast' });
+        log("🚀 GLOBAL RECOVERY STARTED (NUCLEAR MODE)...");
+        toast.loading('Force Syncing 20,000 items...', { id: 'repair-toast' });
 
         try {
             setLoading(true);
@@ -198,21 +102,21 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
             let lastId = null;
             let hasMore = true;
 
+            log("🛰️ Phase 1: Exhaustive Catalog Fetch...");
             while (hasMore) {
                 const queries = [Query.limit(100)];
                 if (lastId) queries.push(Query.after(lastId));
                 const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, queries);
                 allDocs = [...allDocs, ...response.documents];
-                if (response.documents.length < 100 || allDocs.length >= 30000) {
+                if (response.documents.length < 100 || allDocs.length >= 35000) {
                     hasMore = false;
                 } else {
                     lastId = response.documents[response.documents.length - 1].$id;
-                    setImportStatus(`Syncing: ${allDocs.length}`);
-                    toast.loading(`Gathering Catalog: ${allDocs.length} items...`, { id: 'repair-toast' });
+                    setImportStatus(`Gathering: ${allDocs.length}`);
                 }
             }
 
-            log(`🛰️ Fetched ${allDocs.length} records.`);
+            log(`🛰️ Fetched ${allDocs.length} records. Building Reference Matrix...`);
             const refMap = new Map();
             if (Array.isArray(staticProducts)) {
                 staticProducts.forEach(r => {
@@ -222,15 +126,13 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
             }
 
             let repairCount = 0;
+            log("🔨 Phase 2: Repairing Metadata In-Place...");
             for (let i = 0; i < allDocs.length; i++) {
                 const doc = allDocs[i];
                 const updates = {};
                 const ref = refMap.get(String(doc.$id).trim());
 
-                if (i % 50 === 0) {
-                    setImportStatus(`Fixing: ${i + 1}/${allDocs.length}`);
-                    toast.loading(`Repairing: ${i + 1}/${allDocs.length}...`, { id: 'repair-toast' });
-                }
+                if (i % 50 === 0) setImportStatus(`Repairs: ${repairCount} | Progress: ${i + 1}/${allDocs.length}`);
 
                 if (ref) {
                     if (ref.yearStart && !doc.yearStart) updates.yearStart = Number(ref.yearStart);
@@ -253,105 +155,103 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                         await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, doc.$id, updates);
                         repairCount++;
                         if (repairCount % 20 === 0) await new Promise(r => setTimeout(r, 10));
-                    } catch (e) { console.error(e); }
+                    } catch (e) { }
                 }
             }
 
-            log(`🏆 SUCCESS: ${repairCount} fixes.`);
-            toast.success(`Repair Complete! Fixed ${repairCount} items.`, { id: 'repair-toast', duration: 8000 });
+            log(`🏆 SUCCESS: Applied ${repairCount} fixes to ${allDocs.length} items.`);
+            toast.success(`Complete! Fixed ${repairCount} items.`, { id: 'repair-toast', duration: 10000 });
         } catch (error) {
-            log(`❌ FATAL: ${error.message}`);
-            toast.error(`Error: ${error.message}`, { id: 'repair-toast' });
+            log(`❌ FATAL ERROR: ${error.message}`);
+            toast.error(`System Failure: ${error.message}`, { id: 'repair-toast' });
         } finally {
             setLoading(false);
             setImportStatus('');
+            if (onSuccess) onSuccess();
         }
     };
 
     useEffect(() => {
-        const btn = btnRef.current;
-        if (btn) {
-            const clickHandler = () => {
-                if (!loading) {
-                    log("🎯 CLICK DETECTED (DOM LEVEL)");
-                    runDataRepair();
-                }
-            };
-            btn.addEventListener('click', clickHandler);
-            return () => btn.removeEventListener('click', clickHandler);
-        }
+        const globalHandler = (e) => {
+            if (e.target && (e.target.id === 'master-repair-btn' || e.target.closest('#master-repair-btn'))) {
+                log("🎯 GLOBAL INTERCEPT TRIGGERED!");
+                if (!loading) runDataRepair();
+                else log("⚠️ Action ignored: Sync currently running.");
+            }
+        };
+        window.addEventListener('click', globalHandler, true);
+        return () => window.removeEventListener('click', globalHandler, true);
     }, [loading]);
 
     window.REPAIR_MATRIX = runDataRepair;
 
     return (
-        <div className="bg-white p-6 rounded-3xl shadow-2xl border-4 border-orange-500 mb-10 relative z-50 overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-100 rounded-full -mr-16 -mt-16 opacity-50" />
+        <div className="bg-white p-8 rounded-[2.5rem] shadow-[0_35px_60px_-15px_rgba(220,38,38,0.2)] border-8 border-red-600 mb-12 relative z-[9999] overflow-hidden transform-gpu">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/5 rounded-full -mr-32 -mt-32 blur-3xl" />
 
-            <div className="flex flex-wrap items-center gap-6 relative z-10">
-                <div className="flex items-center gap-4 mr-4">
-                    <div className="p-4 bg-orange-600 rounded-2xl shadow-xl shadow-orange-600/20">
-                        <TrendingUp className="h-8 w-8 text-white" />
+            <div className="flex flex-wrap items-center justify-between gap-8 relative z-10">
+                <div className="flex items-center gap-6">
+                    <div className="p-5 bg-red-600 rounded-[2rem] shadow-2xl shadow-red-600/40 animate-pulse">
+                        <TrendingUp className="h-10 w-10 text-white" />
                     </div>
                     <div>
-                        <h3 className="text-xl font-black uppercase tracking-tighter text-slate-900 leading-none">Catalog Recovery Center</h3>
-                        <p className="text-[10px] font-bold text-orange-600 uppercase tracking-widest mt-2">Protocol v5.2 | Full Recovery Mode</p>
+                        <h3 className="text-2xl font-black uppercase tracking-tighter text-slate-900 leading-none">Catalog Recovery Node</h3>
+                        <p className="text-xs font-bold text-red-600 uppercase tracking-[0.3em] mt-3">EMERGENCY PROTOCOL v5.3 | ACTIVE</p>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-3">
-                    <button onClick={downloadTemplate} className="admin-btn-slim bg-slate-100 text-slate-700 hover:bg-slate-200 border-none px-5 py-2.5">
-                        <Download size={14} /> Template
+                <div className="flex flex-wrap gap-4">
+                    <button onClick={downloadTemplate} className="px-6 py-3 bg-slate-100 text-slate-700 font-bold rounded-2xl hover:bg-slate-200 transition-all">
+                        Template
                     </button>
-
-                    <button onClick={exportProducts} disabled={loading} className="admin-btn-slim bg-blue-100 text-blue-800 hover:bg-blue-200 border-none px-5 py-2.5">
-                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download size={14} />} Export All
-                    </button>
-
-                    <div className="relative">
-                        <input type="file" id="bulk-import-restore" className="hidden" accept=".xlsx, .xls" onChange={handleImport} disabled={loading} />
-                        <label htmlFor="bulk-import-restore" className="admin-btn-slim bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-600/10 cursor-pointer px-5 py-2.5">
-                            <Upload size={14} /> Import Excel
-                        </label>
-                    </div>
 
                     <button
-                        ref={btnRef}
+                        id="master-repair-btn"
                         disabled={loading}
-                        className={`px-12 py-5 bg-red-600 text-white font-black text-sm uppercase tracking-[0.2em] rounded-2xl hover:bg-red-700 shadow-2xl transition-all duration-300 transform active:scale-95 flex items-center gap-4 cursor-pointer relative z-[100] ${loading ? 'opacity-50' : 'animate-pulse'}`}
+                        className={`px-14 py-8 bg-red-600 text-white font-black text-lg uppercase tracking-[0.25em] rounded-3xl hover:bg-red-700 shadow-[0_20px_40px_-10px_rgba(220,38,38,0.5)] transition-all duration-300 transform active:scale-90 flex items-center gap-6 cursor-pointer relative z-[100] ${loading ? 'opacity-50 grayscale' : 'animate-bounce'}`}
                     >
-                        <TrendingUp size={24} /> 🚀 START MASTER REPAIR
+                        <TrendingUp size={32} /> START MASTER REPAIR
                     </button>
                 </div>
-
-                {importStatus && (
-                    <div className="ml-auto flex items-center gap-4 bg-red-50 px-6 py-4 rounded-3xl border-2 border-red-200 shadow-2xl">
-                        <Loader2 className="h-6 w-6 animate-spin text-red-600" />
-                        <span className="text-sm font-black text-red-600 uppercase tracking-tighter">{importStatus}</span>
-                    </div>
-                )}
             </div>
 
-            {uiLogs.length > 0 && (
-                <div className="mt-8 p-5 bg-slate-900 rounded-2xl border border-slate-800 shadow-inner">
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">Live Telemetry</span>
-                    </div>
-                    {uiLogs.map((logMsg, i) => (
-                        <div key={i} className="text-[11px] text-slate-300 py-1.5 border-b border-white/5 last:border-0 font-mono">
-                            <span className="text-slate-500 mr-3">[{new Date().toLocaleTimeString()}]</span> {logMsg}
-                        </div>
-                    ))}
+            {importStatus && (
+                <div className="mt-8 flex items-center gap-4 bg-red-600 text-white px-8 py-5 rounded-[2rem] shadow-2xl animate-pulse">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                    <span className="text-lg font-black uppercase tracking-tighter">{importStatus}</span>
                 </div>
             )}
 
-            <div className="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center text-[10px] font-bold text-slate-400">
-                <div className="flex gap-4">
-                    <span className="uppercase tracking-widest px-2 py-0.5 bg-slate-100 rounded">Remote: {DATABASE_ID ? 'CONNECTED' : 'OFFLINE'}</span>
-                    <span className="uppercase tracking-widest px-2 py-0.5 bg-slate-100 rounded">Matrix: {staticProducts?.length || 0} ITEMS</span>
+            <div className="mt-8 p-6 bg-slate-900 rounded-[2rem] border border-slate-800 shadow-2xl shadow-inner overflow-hidden">
+                <div className="flex items-center justify-between mb-4 px-2">
+                    <div className="flex items-center gap-3">
+                        <div className="h-3 w-3 rounded-full bg-red-500 animate-ping" />
+                        <span className="text-xs text-red-500 font-black uppercase tracking-widest">System Telemetry Log</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 font-mono italic">zait-os core diagnostics active</span>
                 </div>
-                <span className="text-orange-500 font-black">CONSOLE: window.REPAIR_MATRIX()</span>
+                <div className="space-y-2">
+                    {uiLogs.length === 0 ? (
+                        <div className="text-[11px] text-slate-600 font-mono py-2 italic px-2">Waiting for trigger command...</div>
+                    ) : (
+                        uiLogs.map((logMsg, i) => (
+                            <div key={i} className="text-[11px] text-slate-300 py-2 border-b border-white/5 last:border-0 font-mono flex items-start gap-4 hover:bg-white/5 rounded px-2 transition-colors">
+                                <span className="text-slate-600 flex-shrink-0">[{new Date().toLocaleTimeString()}]</span>
+                                <span className={`${logMsg.includes('❌') ? 'text-red-400' : logMsg.includes('🏆') ? 'text-emerald-400' : ''}`}>{logMsg}</span>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center text-[10px] font-black text-slate-400">
+                <div className="flex gap-6 uppercase tracking-[0.2em]">
+                    <span className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500" /> Remote: {DATABASE_ID ? 'CONNECTED' : 'OFFLINE'}</span>
+                    <span className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500" /> Catalog: {staticProducts?.length || 0} ITEMS</span>
+                </div>
+                <div className="bg-orange-50 text-orange-600 px-4 py-1.5 rounded-full shadow-sm hover:bg-orange-100 transition-colors">
+                    EMERGENCY OVERRIDE: window.REPAIR_MATRIX()
+                </div>
             </div>
         </div>
     );
