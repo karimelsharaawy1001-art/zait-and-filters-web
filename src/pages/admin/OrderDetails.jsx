@@ -79,7 +79,16 @@ const OrderDetails = () => {
                 const enriched = await Promise.all(order.items.map(async (item) => {
                     try {
                         const productData = await databases.getDocument(DATABASE_ID, PRODUCTS_COLLECTION, item.id);
-                        return { ...item, brand: productData.brand || item.brand, category: productData.category || item.category, sku: productData.sku || item.sku };
+                        return {
+                            ...item,
+                            brand: productData.brand || item.brand,
+                            category: productData.category || item.category,
+                            sku: productData.sku || item.sku,
+                            // Enrich vehicle data
+                            carMake: productData.make || productData.carMake || item.make || item.carMake,
+                            carModel: productData.model || productData.carModel || item.model || item.carModel,
+                            yearRange: productData.yearRange || (productData.yearStart && productData.yearEnd ? `${productData.yearStart}-${productData.yearEnd}` : null) || item.yearRange || item.year
+                        };
                     } catch { return item; }
                 }));
                 setEnrichedItems(enriched);
@@ -212,9 +221,13 @@ const OrderDetails = () => {
                                                         </div>
                                                         <div>
                                                             <p className="font-bold text-gray-900">{item.name}</p>
-                                                            <p className="text-xs text-gray-500 mt-0.5">
-                                                                {item.brand} • {item.carMake} {item.carModel}
+                                                            <p className="text-xs text-gray-500 mt-0.5 font-medium">
+                                                                <span className="text-gray-700">{item.brand}</span>
                                                             </p>
+                                                            <div className="text-xs text-blue-600 mt-1 flex flex-wrap gap-1 font-semibold bg-blue-50 px-2 py-0.5 rounded w-fit">
+                                                                {item.carMake || item.make || 'Universal'} {item.carModel || item.model}
+                                                                {(item.yearRange || item.year) && <span className="text-blue-400">|</span>} {item.yearRange || item.year}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </td>
