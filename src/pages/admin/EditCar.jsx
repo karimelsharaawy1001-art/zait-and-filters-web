@@ -45,6 +45,9 @@ const EditCar = () => {
                 model: formData.model.trim(),
                 yearStart: formData.yearStart ? Number(formData.yearStart) : null,
                 yearEnd: formData.yearEnd ? Number(formData.yearEnd) : null,
+                year: formData.yearStart && formData.yearEnd
+                    ? `${formData.yearStart}-${formData.yearEnd}`
+                    : (formData.yearStart || formData.yearEnd || 'N/A'),
                 imageUrl: formData.imageUrl || '',
                 image: formData.imageUrl || '' // Dual-mapping for schema compatibility
             };
