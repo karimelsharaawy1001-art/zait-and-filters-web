@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useFilters } from '../context/FilterContext';
+import { useTranslation } from 'react-i18next';
 import { databases } from '../appwrite';
 import { Query } from 'appwrite';
 
