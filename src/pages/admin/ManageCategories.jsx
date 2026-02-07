@@ -26,13 +26,12 @@ const ManageCategories = () => {
         try {
             const response = await databases.listDocuments(DATABASE_ID, CATEGORIES_COLLECTION, [Query.limit(100)]);
             setCategories(response.documents.map(doc => {
+                const subStr = doc.subcategories || doc.subCategories || '';
                 let subs = [];
-                if (typeof doc.subcategories === 'string') {
-                    subs = doc.subcategories.split(',').filter(Boolean);
-                } else if (Array.isArray(doc.subcategories)) {
-                    subs = doc.subcategories;
-                } else if (Array.isArray(doc.subCategories)) {
-                    subs = doc.subCategories;
+                if (typeof subStr === 'string') {
+                    subs = subStr.split(',').filter(Boolean);
+                } else if (Array.isArray(subStr)) {
+                    subs = subStr.map(s => typeof s === 'string' ? s : s.name);
                 }
                 return { id: doc.$id, ...doc, subCategories: subs };
             }));
@@ -145,7 +144,7 @@ const ManageCategories = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+                                        <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0 z-50">
                                             <button onClick={() => navigate(`/admin/edit-category/${cat.id}`)} className="p-3 bg-white text-black border rounded-xl shadow-xl hover:bg-black hover:text-white transition-all"><Edit3 size={18} /></button>
                                             <button onClick={() => handleDelete(cat.id)} className="p-3 bg-white text-red-600 border rounded-xl shadow-xl hover:bg-red-600 hover:text-white transition-all"><Trash2 size={18} /></button>
                                         </div>

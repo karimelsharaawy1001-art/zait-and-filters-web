@@ -56,44 +56,40 @@ export default async function handler(req, res) {
         const REST_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 
         if (action === 'check-seo') {
-            const tagName = body.tagName || req.query.tagName;
+            const tagName = body.tagName || req.query.tagName || 'google-site-verification';
             const expectedValue = body.expectedValue || req.query.expectedValue;
+            const targetUrl = body.targetUrl || req.query.targetUrl;
+
+            if (!targetUrl) return res.status(400).json({ error: 'targetUrl is required' });
 
             try {
-                // Use native fetch for maximum stability in serverless
-                const settingsUrl = `${REST_URL}/settings/integrations${API_KEY ? `?key=${API_KEY}` : ''}`;
-                const fetchRes = await fetch(settingsUrl);
+                // Fetch the actual homepage to see if the tag is injected
+                const siteRes = await axios.get(targetUrl, {
+                    timeout: 8000,
+                    headers: { 'User-Agent': 'ZaitFilters-SEO-Bot/1.0' }
+                });
+                const html = siteRes.data;
 
-                if (!fetchRes.ok) {
-                    if (fetchRes.status === 404) {
-                        return res.status(200).json({ status: 'not_found', v: 'v5-rest' });
-                    }
-                    const errText = await fetchRes.text();
-                    return res.status(500).json({
-                        error: 'Firestore API Error',
-                        status: fetchRes.status,
-                        msg: errText,
-                        projectId: PROJECT_ID,
-                        hasKey: !!API_KEY
-                    });
+                // Regex to find the meta tag regardless of attribute order
+                const regex = new RegExp(`<meta[^>]*name=["']${tagName}["'][^>]*content=["']([^"']*)["']`, 'i');
+                const altRegex = new RegExp(`<meta[^>]*content=["']([^"']*)["'][^>]*name=["']${tagName}["']`, 'i');
+
+                const match = html.match(regex) || html.match(altRegex);
+
+                if (!match) {
+                    return res.status(200).json({ status: 'not_found' });
                 }
 
-                const data = await fetchRes.json();
-                const settings = mapRestDoc(data) || {};
-
-                if (tagName === 'google-analytics') {
-                    const savedId = settings.googleAnalyticsId;
-                    if (!savedId) return res.status(200).json({ status: 'not_found', v: 'v5-rest' });
-                    if (expectedValue && savedId !== expectedValue) return res.status(200).json({ status: 'mismatch', v: 'v5-rest' });
-                    return res.status(200).json({ status: 'found', v: 'v5-rest' });
+                const foundValue = match[1];
+                if (expectedValue && foundValue !== expectedValue) {
+                    return res.status(200).json({ status: 'mismatch', found: foundValue });
                 }
 
-                return res.status(200).json({ status: 'unsupported_tag', received: tagName });
-            } catch (innerErr) {
-                return res.status(500).json({
-                    error: 'Inner Fetch Failure',
-                    msg: innerErr.message,
-                    stack: innerErr.stack
+                return res.status(200).json({ status: 'found' });
+            } catch (err) {
+                return res.status(200).json({
+                    status: 'error',
+                    msg: `Failed to fetch site: ${err.message}`
                 });
             }
         }

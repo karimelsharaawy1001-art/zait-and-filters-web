@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import { db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { databases } from '../appwrite';
 
 /**
  * SEO Component to manage page-level metadata including Open Graph tags
@@ -120,16 +119,17 @@ const SEO = ({ title, description, keywords, image, url, type = 'website', schem
         };
     }, [schema]);
 
-    // Dynamic Integrations Head Logic (Search Console, etc)
     useEffect(() => {
-        // QUOTA SHIELD: Replaced onSnapshot with one-time fetch
         const fetchIntegrations = async () => {
-            try {
-                const docSnap = await doc(db, 'settings', 'integrations');
-                const snapshot = await getDoc(docSnap);
-                if (snapshot.exists()) {
-                    const data = snapshot.data();
+            const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+            const SETTINGS_COLLECTION = import.meta.env.VITE_APPWRITE_SETTINGS_COLLECTION_ID || 'settings';
+            const DOC_ID = 'integrations';
 
+            if (!DATABASE_ID) return;
+
+            try {
+                const data = await databases.getDocument(DATABASE_ID, SETTINGS_COLLECTION, DOC_ID);
+                if (data) {
                     // 1. Google Site Verification
                     if (data.googleVerificationCode) {
                         let googleMeta = document.querySelector('meta[name="google-site-verification"]');

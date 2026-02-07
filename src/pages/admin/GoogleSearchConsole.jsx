@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle2, ChevronLeft, Save, Copy, ExternalLink, Info, Search, AlertCircle } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
-import { db } from '../../firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { databases } from '../../appwrite';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 
@@ -13,29 +12,33 @@ const GoogleSearchConsole = () => {
     const [testStatus, setTestStatus] = useState('untested'); // untested, checking, found, mismatch, not_found, error
     const [lastChecked, setLastChecked] = useState(null);
 
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const SETTINGS_COLLECTION = import.meta.env.VITE_APPWRITE_SETTINGS_COLLECTION_ID || 'settings';
+    const DOC_ID = 'integrations';
+
     useEffect(() => {
         const fetchData = async () => {
+            if (!DATABASE_ID) return;
             try {
-                const docRef = doc(db, 'settings', 'integrations');
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    setVerificationCode(docSnap.data().googleVerificationCode || '');
-                }
+                const docSnap = await databases.getDocument(DATABASE_ID, SETTINGS_COLLECTION, DOC_ID);
+                setVerificationCode(docSnap.googleVerificationCode || '');
             } catch (error) {
                 console.error("Error fetching integrations:", error);
+                // If document not found, it will be created on first save
             } finally {
                 setLoading(false);
             }
         };
         fetchData();
-    }, []);
+    }, [DATABASE_ID]);
 
     const handleSave = async () => {
+        if (!DATABASE_ID) return;
         setSaving(true);
         try {
-            await setDoc(doc(db, 'settings', 'integrations'), {
+            await databases.updateDocument(DATABASE_ID, SETTINGS_COLLECTION, DOC_ID, {
                 googleVerificationCode: verificationCode
-            }, { merge: true });
+            });
             toast.success('Search Console verification code saved!');
             setTestStatus('untested'); // Reset status when saved
         } catch (error) {

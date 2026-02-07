@@ -23,7 +23,13 @@ const EditCategory = () => {
             if (!DATABASE_ID) return;
             try {
                 const doc = await databases.getDocument(DATABASE_ID, CATEGORIES_COLLECTION, id);
-                const subs = (doc.subCategories || []).map(s => typeof s === 'string' ? { name: s, imageUrl: '' } : s);
+                const subStr = doc.subcategories || doc.subCategories || '';
+                let subs = [];
+                if (typeof subStr === 'string') {
+                    subs = subStr.split(',').filter(Boolean).map(s => ({ name: s, imageUrl: '' }));
+                } else if (Array.isArray(subStr)) {
+                    subs = subStr.map(s => typeof s === 'string' ? { name: s, imageUrl: '' } : s);
+                }
                 setFormData({ ...doc, subCategories: subs });
             } catch (error) {
                 toast.error('Node not found');
@@ -39,8 +45,13 @@ const EditCategory = () => {
         e.preventDefault();
         setSaving(true);
         try {
-            const payload = { ...formData };
-            delete payload.$id; delete payload.$collectionId; delete payload.$databaseId; delete payload.$createdAt; delete payload.$updatedAt; delete payload.$permissions;
+            const subsString = formData.subCategories.map(s => s.name).join(',');
+            const payload = {
+                name: formData.name,
+                image: formData.image || formData.imageUrl,
+                subcategories: subsString,
+                isActive: formData.isActive !== false
+            };
             await databases.updateDocument(DATABASE_ID, CATEGORIES_COLLECTION, id, payload);
             toast.success('Taxonomy updated');
             navigate('/admin/categories');

@@ -1,51 +1,53 @@
 export default async function handler(req, res) {
     // 1. CORS Headers
     res.setHeader('Access-Control-Allow-Credentials', true);
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Origin', '*');
+    res.setHeader('Access-Control-Methods', 'GET,POST,OPTIONS');
+    res.setHeader('Access-Control-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') return res.status(200).end();
 
     try {
         // 2. Environment Variables
-        const projectId = process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || 'zaitandfilters';
-        const apiKey = process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || '';
+        const endpoint = process.env.VITE_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1';
+        const projectId = process.env.VITE_APPWRITE_PROJECT_ID;
+        const databaseId = process.env.VITE_APPWRITE_DATABASE_ID;
+        const collectionId = process.env.VITE_APPWRITE_SETTINGS_COLLECTION_ID || 'settings';
 
         // 3. Request Data
         const params = req.method === 'GET' ? req.query : req.body;
         const tagName = params.tagName || 'google-analytics';
         const expectedValue = params.expectedValue;
 
-        // 4. Verification Logic
-        const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/settings/integrations${apiKey ? `?key=${apiKey}` : ''}`;
+        // 4. Verification Logic (Appwrite REST API)
+        const url = `${endpoint}/databases/${databaseId}/collections/${collectionId}/documents/integrations`;
 
-        console.log(`[GA-CHECK] Checking settings at: ${url.replace(apiKey, 'REDACTED')}`);
+        console.log(`[GA-CHECK] Checking Appwrite at: ${url}`);
 
-        const response = await fetch(url);
+        const response = await fetch(url, {
+            headers: {
+                'X-Appwrite-Project': projectId
+            }
+        });
 
         if (!response.ok) {
             const status = response.status;
             const text = await response.text();
 
-            // Return detailed diagnostic info
             return res.status(200).json({
                 status: 'api_error',
                 httpStatus: status,
                 msg: text,
                 diagnostics: {
                     projectId,
-                    hasApiKey: !!apiKey,
-                    method: req.method
+                    databaseId,
+                    collectionId
                 }
             });
         }
 
         const data = await response.json();
-
-        // Manual parsing of Firestore REST format
-        const fields = data.fields || {};
-        const savedId = fields.googleAnalyticsId?.stringValue;
+        const savedId = data.googleAnalyticsId;
 
         if (!savedId) {
             return res.status(200).json({ status: 'not_found' });
