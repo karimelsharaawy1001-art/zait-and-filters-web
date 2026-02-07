@@ -154,8 +154,7 @@ const OrderSuccess = () => {
                             if (existingOrder.status === 'Awaiting Online Payment') {
                                 await databases.updateDocument(DATABASE_ID, ORDERS_COLLECTION, urlOrderId, {
                                     paymentStatus: 'Paid',
-                                    status: 'Pending',
-                                    updatedAt: new Date().toISOString()
+                                    status: 'Pending'
                                 });
                                 console.log("[SUCCESS] Order status updated to Paid.");
                             }

@@ -228,8 +228,7 @@ const OrderDetails = () => {
         setUpdating(true);
         try {
             await databases.updateDocument(DATABASE_ID, ORDERS_COLLECTION, id, {
-                paymentStatus: newStatus,
-                updatedAt: new Date().toISOString()
+                paymentStatus: newStatus
             });
             setOrder(prev => ({ ...prev, paymentStatus: newStatus }));
             toast.success(`Payment status updated to: ${newStatus}`);
@@ -271,8 +270,7 @@ const OrderDetails = () => {
                     address: editForm.customerAddress || '',
                     city: editForm.customerCity || '',
                     governorate: editForm.customerGovernorate || ''
-                }),
-                updatedAt: new Date().toISOString()
+                })
             };
 
             // Safely map fields that might or might not exist in the Appwrite Schema
