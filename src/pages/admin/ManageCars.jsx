@@ -23,7 +23,10 @@ const ManageCars = () => {
         if (!DATABASE_ID) return;
         setLoading(true);
         try {
-            const response = await databases.listDocuments(DATABASE_ID, CARS_COLLECTION, [Query.limit(100)]);
+            const response = await databases.listDocuments(DATABASE_ID, CARS_COLLECTION, [
+                Query.limit(5000),
+                Query.orderDesc('$createdAt')
+            ]);
             const docs = response.documents.map(doc => ({ id: doc.$id, ...doc }));
             setCars(docs);
 
