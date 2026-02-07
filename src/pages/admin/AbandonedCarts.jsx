@@ -23,7 +23,22 @@ const AbandonedCarts = () => {
         try {
             const response = databases.listDocuments(DATABASE_ID, ABANDONED_COLLECTION, [Query.orderDesc('lastModified'), Query.limit(100)]);
             response.then(res => {
-                setCarts(res.documents.map(doc => ({ id: doc.$id, ...doc, lastModified: new Date(doc.lastModified) })));
+                setCarts(res.documents.map(doc => {
+                    let items = doc.items;
+                    if (typeof items === 'string') {
+                        try {
+                            items = JSON.parse(items);
+                        } catch (e) {
+                            items = [];
+                        }
+                    }
+                    return {
+                        id: doc.$id,
+                        ...doc,
+                        items: items,
+                        lastModified: new Date(doc.lastModified)
+                    };
+                }));
                 setLoading(false);
             }).catch(() => { toast.error("Conversion logs unreachable"); setLoading(false); });
         } catch (error) { setLoading(false); }

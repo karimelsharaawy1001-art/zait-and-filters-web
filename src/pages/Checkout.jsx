@@ -569,11 +569,16 @@ const Checkout = () => {
 
                 const cartId = auth.currentUser ? auth.currentUser.uid : safeLocalStorage.getItem('cartSessionId');
                 if (cartId) {
-                    setDoc(doc(db, 'abandoned_carts', cartId), {
-                        recovered: true,
-                        recoveredAt: serverTimestamp(),
-                        orderId: orderId
-                    }, { merge: true }).catch(e => console.warn("Abandoned cart sync failed:", e));
+                    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+                    const ABANDONED_COLLECTION = import.meta.env.VITE_APPWRITE_ABANDONED_CARTS_COLLECTION_ID || 'abandoned_carts';
+
+                    if (DATABASE_ID) {
+                        databases.updateDocument(DATABASE_ID, ABANDONED_COLLECTION, cartId, {
+                            recovered: true,
+                            recoveredAt: new Date().toISOString(),
+                            orderId: orderId
+                        }).catch(e => console.warn("Appwrite Abandoned cart sync failed:", e));
+                    }
                 }
 
                 clearCart();

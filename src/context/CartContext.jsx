@@ -47,13 +47,18 @@ export const CartProvider = ({ children }) => {
         }
     }, [cartItems]);
 
-    // 2. Debounced Firestore Sync (Abandoned Cart Recovery)
+    // 2. Debounced Appwrite Sync (Abandoned Cart Recovery)
     useEffect(() => {
         const handler = setTimeout(() => {
             try {
                 if (cartItems.length === 0) return;
 
                 const syncCart = async () => {
+                    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+                    const ABANDONED_COLLECTION = import.meta.env.VITE_APPWRITE_ABANDONED_CARTS_COLLECTION_ID || 'abandoned_carts';
+
+                    if (!DATABASE_ID) return;
+
                     try {
                         const cartId = auth.currentUser ? auth.currentUser.uid : sessionId;
                         const currentCartStr = JSON.stringify(cartItems);
@@ -68,30 +73,37 @@ export const CartProvider = ({ children }) => {
                             email: customerDetails.email || auth.currentUser?.email || null,
                             customerName: customerDetails.name || auth.currentUser?.displayName || 'Guest',
                             customerPhone: customerDetails.phone || null,
-                            items: cartItems,
+                            items: currentCartStr, // Appwrite expects string for large payloads
                             total: cartItems.reduce((sum, item) => sum + (getEffectivePrice(item) * item.quantity), 0),
-                            lastModified: serverTimestamp(),
+                            lastModified: new Date().toISOString(),
                             recovered: false,
                             emailSent: false,
                             lastStepReached: currentStage
                         };
 
-                        await setDoc(doc(db, 'abandoned_carts', cartId), cartData, { merge: true });
-                        safeLocalStorage.setItem(lastSyncedKey, currentCartStr);
-                        console.log("[QUOTA] Abandoned cart synced (Optimized)");
-                    } catch (err) {
-                        if (err.code === 'resource-exhausted') {
-                            console.warn("[QUOTA] Limit reached, skipping abandoned cart sync.");
-                        } else {
-                            console.error("Error syncing abandoned cart:", err);
+                        try {
+                            // Try updating first
+                            await databases.updateDocument(DATABASE_ID, ABANDONED_COLLECTION, cartId, cartData);
+                        } catch (err) {
+                            if (err.code === 404) {
+                                // Create if not exists
+                                await databases.createDocument(DATABASE_ID, ABANDONED_COLLECTION, cartId, cartData);
+                            } else {
+                                throw err;
+                            }
                         }
+
+                        safeLocalStorage.setItem(lastSyncedKey, currentCartStr);
+                        console.log("[QUOTA] Abandoned cart synced to Appwrite");
+                    } catch (err) {
+                        console.error("Error syncing abandoned cart to Appwrite:", err);
                     }
                 };
                 syncCart();
             } catch (error) {
-                console.error("Failed to handle firestore persistence:", error);
+                console.error("Failed to handle Appwrite persistence:", error);
             }
-        }, 10000); // reduced to 10s for better recovery, but still debounced
+        }, 10000);
 
         return () => clearTimeout(handler);
     }, [cartItems, currentStage, customerDetails, auth.currentUser, sessionId]);
