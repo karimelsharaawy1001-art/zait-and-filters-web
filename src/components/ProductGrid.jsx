@@ -84,13 +84,13 @@ const ProductGrid = ({ showFilters = true }) => {
                 return isCarMatch && isYearMatch;
             });
         } else {
-            if (filters.make) results = results.filter(p => p.make === filters.make);
-            if (filters.model) results = results.filter(p => p.model === filters.model);
+            if (filters.make) results = results.filter(p => (p.make || p.carMake || p.car_make) === filters.make);
+            if (filters.model) results = results.filter(p => (p.model || p.carModel || p.car_model) === filters.model);
             if (filters.year) {
                 const yearNum = parseInt(filters.year);
                 results = results.filter(p => {
-                    const start = Number(p.yearStart);
-                    const end = Number(p.yearEnd) || start; // Default to start year if end missing
+                    const start = Number(p.yearStart || parseYearRange(p.yearRange || p.carYear || '').yearStart);
+                    const end = Number(p.yearEnd || parseYearRange(p.yearRange || p.carYear || '').yearEnd) || start;
                     return start <= yearNum && end >= yearNum;
                 });
             }

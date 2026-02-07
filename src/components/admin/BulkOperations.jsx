@@ -252,15 +252,17 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 const doc = allDocs[i];
                 const updates = {};
 
-                // Find matching product in reference data (JSON)
-                const ref = staticProducts.find(r => r.id === doc.$id || r.$id === doc.$id);
+                // Find matching product in reference data (JSON) - handle both id and $id
+                const ref = staticProducts.find(r => (r.id || r.$id) === doc.$id);
+
+                if (i === 0) console.log("🔍 Repair Debug: First Doc ID", doc.$id, "Found Ref?", !!ref);
 
                 // 1. Restore missing Data from Reference (JSON Backup)
                 if (ref) {
-                    // Fill New Schema (Preparation)
+                    // Fill New Schema (Preparation) - Aggressive fill if null/undefined/empty
                     if (ref.yearStart && !doc.yearStart) updates.yearStart = Number(ref.yearStart);
                     if (ref.yearEnd && !doc.yearEnd) updates.yearEnd = Number(ref.yearEnd);
-                    if (ref.yearRange && !doc.yearRange) updates.yearRange = String(ref.yearRange);
+                    if (ref.yearRange && (!doc.yearRange || doc.yearRange === '-')) updates.yearRange = String(ref.yearRange);
                     if (ref.make && !doc.make) updates.make = String(ref.make).toUpperCase();
                     if (ref.model && !doc.model) updates.model = String(ref.model).toUpperCase();
                     if ((ref.brand || ref.partBrand) && !doc.brand) updates.brand = String(ref.brand || ref.partBrand);
@@ -268,7 +270,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     // Fill Legacy Schema (Active in Appwrite)
                     if ((ref.make || ref.carMake) && !doc.carMake) updates.carMake = String(ref.make || ref.carMake).toUpperCase();
                     if ((ref.model || ref.carModel) && !doc.carModel) updates.carModel = String(ref.model || ref.carModel).toUpperCase();
-                    if ((ref.yearRange || ref.carYear) && !doc.carYear) updates.carYear = String(ref.yearRange || ref.carYear);
+                    if ((ref.yearRange || ref.carYear) && (!doc.carYear || doc.carYear === '-')) updates.carYear = String(ref.yearRange || ref.carYear);
                     if ((ref.brand || ref.partBrand) && !doc.partBrand) updates.partBrand = String(ref.brand || ref.partBrand);
                 }
 
@@ -304,6 +306,10 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     try {
                         await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, doc.$id, updates);
                         repairCount++;
+                        // Small throttle every 10 updates to prevent rate limit
+                        if (repairCount % 10 === 0) {
+                            await new Promise(r => setTimeout(r, 50));
+                        }
                     } catch (err) {
                         console.error(`Repair failed for ${doc.$id}:`, err);
                     }
