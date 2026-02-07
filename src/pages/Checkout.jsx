@@ -525,7 +525,7 @@ const Checkout = () => {
                     governorate: formData.governorate,
                     city: formData.city
                 }),
-                kilometers: formData.currentMileage ? Number(formData.currentMileage) : null,
+                currentMileage: formData.currentMileage ? Number(formData.currentMileage) : null,
                 notes: orderData.receiptUrl
                     ? `${formData.notes || ''}\n\n[Receipt URL]: ${orderData.receiptUrl}`.trim()
                     : formData.notes,

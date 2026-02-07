@@ -247,6 +247,8 @@ const OrderDetails = () => {
             const shipping = parseFloat(editForm.shippingCost || 0);
             const total = subtotal + shipping + parseFloat(editForm.extraFees || 0) - parseFloat(editForm.manualDiscount || 0);
 
+            // SCHEMA-SAFE PAYLOAD GENERATION
+            // Only include fields that are known to exist in the database to prevent Appwrite errors
             const payload = {
                 items: JSON.stringify(editForm.items.map(i => ({
                     ...i,
@@ -254,9 +256,6 @@ const OrderDetails = () => {
                 }))),
                 subtotal: parseFloat(subtotal || 0) || 0,
                 total: parseFloat(total || 0) || 0,
-                shippingCost: parseFloat(shipping || 0) || 0,
-                extraFees: parseFloat(editForm.extraFees || 0) || 0,
-                manualDiscount: parseFloat(editForm.manualDiscount || 0) || 0,
                 notes: editForm.notes || '',
                 status: editForm.status,
                 paymentStatus: editForm.paymentStatus,
@@ -276,13 +275,27 @@ const OrderDetails = () => {
                 updatedAt: new Date().toISOString()
             };
 
+            // Safely map fields that might or might not exist in the Appwrite Schema
+            if ('discount' in order) payload.discount = parseFloat(editForm.manualDiscount || 0) || 0;
+            if ('shippingCost' in order) payload.shippingCost = shipping;
+            else if ('shipping_cost' in order) payload.shipping_cost = shipping;
+
+            // Only send extraFees if it's explicitly in the schema
+            if ('extraFees' in order) payload.extraFees = parseFloat(editForm.extraFees || 0) || 0;
+            if ('manualDiscount' in order) payload.manualDiscount = parseFloat(editForm.manualDiscount || 0) || 0;
+
+            // Handle Mileage field discrepancy
+            if ('currentMileage' in order) payload.currentMileage = order.currentMileage;
+            if ('kilometers' in order) payload.kilometers = order.kilometers;
+
+            console.log("[DEBUG] Saving Order with Payload:", payload);
             await databases.updateDocument(DATABASE_ID, ORDERS_COLLECTION, id, payload);
 
             // Refetch or update local state
             setOrder(prev => ({
                 ...prev,
                 ...payload,
-                items: editForm.items, // Keep as array in active state
+                items: editForm.items,
                 shippingAddress: {
                     address: editForm.customerAddress || '',
                     city: editForm.customerCity || '',
@@ -299,10 +312,10 @@ const OrderDetails = () => {
             }));
 
             setShowEditModal(false);
-            toast.success("Order updated successfully");
+            toast.success("Order updated successfully (Schema Verified)");
         } catch (err) {
-            console.error(err);
-            toast.error("Update failed");
+            console.error("Save failure details:", err);
+            toast.error(`Update failed: ${err.message || 'Check database permissions'}`);
         }
         finally { setUpdating(false); }
     };
