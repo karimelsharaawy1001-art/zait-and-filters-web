@@ -141,11 +141,11 @@ const GoogleSearchConsole = () => {
                         }`} />
                     <span className="text-sm font-black uppercase tracking-widest">
                         Live Status: {
-                            testStatus === 'found' ? 'Directly Connected' :
+                            testStatus === 'found' ? 'Connection Verified' :
                                 testStatus === 'not_found' ? 'Tag Not Found' :
                                     testStatus === 'mismatch' ? 'Code Mismatch' :
-                                        testStatus === 'error' ? 'Verification Error' :
-                                            testStatus === 'checking' ? 'Verifying...' : 'Not Tested'
+                                        testStatus === 'error' ? 'Connection Error' :
+                                            testStatus === 'checking' ? 'Scanning Site...' : 'Not Tested'
                         }
                     </span>
                 </div>
@@ -155,6 +155,16 @@ const GoogleSearchConsole = () => {
                     </span>
                 )}
             </div>
+
+            {window.location.hostname === 'localhost' && (
+                <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="text-sm text-amber-800 leading-relaxed">
+                        <p className="font-bold mb-1 uppercase tracking-tight">Testing on Localhost</p>
+                        <p>The "Test Connection" tool checks your <strong>live website</strong>. If you are using Localhost, the backend cannot see your local tags. Please <strong>Save Configuration</strong> and check your live site after deploying.</p>
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column: Configuration */}
