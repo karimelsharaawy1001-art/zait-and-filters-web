@@ -37,21 +37,55 @@ const OrderDetails = () => {
     });
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
+    const [searchFilters, setSearchFilters] = useState({
+        make: '',
+        model: '',
+        year: '',
+        category: '',
+        subcategory: ''
+    });
 
-    // Search for products when term changes
+    // Extract unique filter values
+    const filterOptions = React.useMemo(() => {
+        if (!staticProducts) return { makes: [], models: [], years: [], categories: [], subcategories: [] };
+
+        const makes = [...new Set(staticProducts.map(p => p.make || p.carMake).filter(Boolean))].sort();
+        const models = [...new Set(staticProducts.map(p => p.model || p.carModel).filter(Boolean))].sort();
+        const years = [...new Set(staticProducts.flatMap(p => {
+            if (p.yearRange) return p.yearRange.split('-').map(y => y.trim());
+            if (p.year) return p.year.toString().split(',').map(y => y.trim());
+            return [];
+        }).filter(Boolean))].sort((a, b) => b - a);
+        const categories = [...new Set(staticProducts.map(p => p.category).filter(Boolean))].sort();
+        const subcategories = [...new Set(staticProducts.map(p => p.subcategory).filter(Boolean))].sort();
+
+        return { makes, models, years, categories, subcategories };
+    }, [staticProducts]);
+
+    // Search for products when term or filters change
     useEffect(() => {
-        if (searchTerm.length > 1 && staticProducts) {
-            const lower = searchTerm.toLowerCase();
-            const results = staticProducts.filter(p =>
-                p.name.toLowerCase().includes(lower) ||
-                (p.sku && p.sku.toLowerCase().includes(lower)) ||
-                (p.brand && p.brand.toLowerCase().includes(lower))
-            ).slice(0, 5);
-            setSearchResults(results);
-        } else {
-            setSearchResults([]);
-        }
-    }, [searchTerm, staticProducts]);
+        if (!staticProducts) return;
+
+        const results = staticProducts.filter(p => {
+            const matchesSearch = !searchTerm || (
+                p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (p.sku && p.sku.toLowerCase().includes(searchTerm.toLowerCase()))
+            );
+
+            const matchesMake = !searchFilters.make || (p.make === searchFilters.make || p.carMake === searchFilters.make);
+            const matchesModel = !searchFilters.model || (p.model === searchFilters.model || p.carModel === searchFilters.model);
+            const matchesYear = !searchFilters.year || (
+                (p.yearRange && p.yearRange.includes(searchFilters.year)) ||
+                (p.year && p.year.toString().includes(searchFilters.year))
+            );
+            const matchesCategory = !searchFilters.category || p.category === searchFilters.category;
+            const matchesSubcategory = !searchFilters.subcategory || p.subcategory === searchFilters.subcategory;
+
+            return matchesSearch && matchesMake && matchesModel && matchesYear && matchesCategory && matchesSubcategory;
+        }).slice(0, 10);
+
+        setSearchResults(results);
+    }, [searchTerm, searchFilters, staticProducts]);
 
     const handleAddItem = (product) => {
         setEditForm(prev => {
@@ -594,23 +628,73 @@ const OrderDetails = () => {
                                         <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
                                             <Package size={14} className="text-blue-500" /> Order Items ({editForm.items.length})
                                         </h4>
-                                        <div className="relative w-64">
-                                            <div className="flex items-center gap-2 border border-gray-200 bg-white px-3 py-1.5 rounded-full focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-300 transition-all">
-                                                <Search size={14} className="text-gray-400" />
-                                                <input
-                                                    type="text"
-                                                    placeholder="Add product..."
-                                                    value={searchTerm}
-                                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                                    className="w-full bg-transparent border-none outline-none text-xs placeholder-gray-400 text-gray-800"
-                                                />
+                                        <div className="space-y-3">
+                                            <div className="relative">
+                                                <div className="flex items-center gap-2 border border-gray-200 bg-white px-3 py-2 rounded-xl focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-300 transition-all">
+                                                    <Search size={14} className="text-gray-400" />
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Add product..."
+                                                        value={searchTerm}
+                                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                                        className="w-full bg-transparent border-none outline-none text-xs placeholder-gray-400 text-gray-800"
+                                                    />
+                                                </div>
                                             </div>
-                                            {searchResults.length > 0 && (
-                                                <div className="absolute top-10 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-2xl z-20 max-h-60 overflow-y-auto">
+
+                                            {/* Advanced Filters */}
+                                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                                <select
+                                                    value={searchFilters.make}
+                                                    onChange={(e) => setSearchFilters(prev => ({ ...prev, make: e.target.value }))}
+                                                    className="bg-gray-50 border border-gray-100 text-[10px] p-1.5 rounded-lg font-medium outline-none focus:ring-1 focus:ring-blue-100"
+                                                >
+                                                    <option value="">Make</option>
+                                                    {filterOptions.makes.map(m => <option key={m} value={m}>{m}</option>)}
+                                                </select>
+                                                <select
+                                                    value={searchFilters.model}
+                                                    onChange={(e) => setSearchFilters(prev => ({ ...prev, model: e.target.value }))}
+                                                    className="bg-gray-50 border border-gray-100 text-[10px] p-1.5 rounded-lg font-medium outline-none focus:ring-1 focus:ring-blue-100"
+                                                >
+                                                    <option value="">Model</option>
+                                                    {filterOptions.models.map(m => <option key={m} value={m}>{m}</option>)}
+                                                </select>
+                                                <select
+                                                    value={searchFilters.year}
+                                                    onChange={(e) => setSearchFilters(prev => ({ ...prev, year: e.target.value }))}
+                                                    className="bg-gray-50 border border-gray-100 text-[10px] p-1.5 rounded-lg font-medium outline-none focus:ring-1 focus:ring-blue-100"
+                                                >
+                                                    <option value="">Year</option>
+                                                    {filterOptions.years.map(y => <option key={y} value={y}>{y}</option>)}
+                                                </select>
+                                                <select
+                                                    value={searchFilters.category}
+                                                    onChange={(e) => setSearchFilters(prev => ({ ...prev, category: e.target.value }))}
+                                                    className="bg-gray-50 border border-gray-100 text-[10px] p-1.5 rounded-lg font-medium outline-none focus:ring-1 focus:ring-blue-100"
+                                                >
+                                                    <option value="">Cat</option>
+                                                    {filterOptions.categories.map(c => <option key={c} value={c}>{c}</option>)}
+                                                </select>
+                                                <select
+                                                    value={searchFilters.subcategory}
+                                                    onChange={(e) => setSearchFilters(prev => ({ ...prev, subcategory: e.target.value }))}
+                                                    className="bg-gray-50 border border-gray-100 text-[10px] p-1.5 rounded-lg font-medium outline-none focus:ring-1 focus:ring-blue-100"
+                                                >
+                                                    <option value="">Sub</option>
+                                                    {filterOptions.subcategories.map(s => <option key={s} value={s}>{s}</option>)}
+                                                </select>
+                                            </div>
+
+                                            {searchResults.length > 0 && (searchTerm || Object.values(searchFilters).some(v => v)) && (
+                                                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl z-30 max-h-60 overflow-y-auto">
                                                     {searchResults.map(p => (
                                                         <button
                                                             key={p.id}
-                                                            onClick={() => handleAddItem(p)}
+                                                            onClick={() => {
+                                                                handleAddItem(p);
+                                                                setSearchFilters({ make: '', model: '', year: '', category: '', subcategory: '' });
+                                                            }}
                                                             className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center justify-between group border-b border-gray-50 last:border-0"
                                                         >
                                                             <div>
