@@ -192,10 +192,93 @@ const BulkOperations = ({ onSuccess, onExportFetch }) => {
             } finally {
                 setLoading(false);
                 setImportStatus('');
-                e.target.value = '';
+                if (e.target) e.target.value = '';
             }
         };
         reader.readAsArrayBuffer(file);
+    };
+
+    const runDataRepair = async () => {
+        if (!window.confirm('MASTER DATA REPAIR: This will analyze all 4000+ products and fix missing Car Makes, Models, and empty years by migrating them to the new system. It also fixes price formats. Proceed?')) return;
+
+        setLoading(true);
+        setImportStatus('Scanning Matrix...');
+
+        try {
+            // Appwrite doesn't have offset for large lists easily without cursor, 
+            // but we'll fetch in batches of 100
+            let allDocs = [];
+            let lastId = null;
+            let hasMore = true;
+
+            toast('Fetching catalog metadata...', { icon: '📡' });
+
+            while (hasMore) {
+                const queries = [Query.limit(100)];
+                if (lastId) queries.push(Query.after(lastId));
+
+                const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, queries);
+                allDocs = [...allDocs, ...response.documents];
+
+                if (response.documents.length < 100) {
+                    hasMore = false;
+                } else {
+                    lastId = response.documents[response.documents.length - 1].$id;
+                    setImportStatus(`Loaded ${allDocs.length} items...`);
+                }
+            }
+
+            setImportStatus(`Repairing ${allDocs.length} entries...`);
+            let repairCount = 0;
+
+            for (let i = 0; i < allDocs.length; i++) {
+                const doc = allDocs[i];
+                const updates = {};
+
+                // 1. Vehicle Normalization
+                if (doc.carMake && !doc.make) updates.make = doc.carMake;
+                if (doc.carModel && !doc.model) updates.model = doc.carModel;
+                if (doc.carYear && !doc.yearRange) updates.yearRange = doc.carYear;
+
+                // 2. Year Range Parsing (if needed)
+                if (updates.yearRange && (!doc.yearStart || !doc.yearEnd)) {
+                    const { yearStart, yearEnd } = parseYearRange(updates.yearRange);
+                    if (yearStart) updates.yearStart = yearStart;
+                    if (yearEnd) updates.yearEnd = yearEnd;
+                }
+
+                // 3. Brand Normalization
+                if (doc.partBrand && !doc.brand) updates.brand = doc.partBrand;
+                if (doc.brand && !doc.partBrand) updates.partBrand = doc.brand;
+
+                // 4. Data Types (Fixing strings that should be numbers)
+                if (typeof doc.price === 'string') updates.price = Number(doc.price) || 0;
+                if (typeof doc.costPrice === 'string') updates.costPrice = Number(doc.costPrice) || 0;
+                if (typeof doc.isActive === 'string') updates.isActive = parseBoolean(doc.isActive);
+
+                if (Object.keys(updates).length > 0) {
+                    try {
+                        await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, doc.$id, updates);
+                        repairCount++;
+                    } catch (err) {
+                        console.error(`Repair failed for ${doc.$id}:`, err);
+                    }
+                }
+
+                if (i % 10 === 0) {
+                    setImportStatus(`Repairing: ${i + 1} / ${allDocs.length}`);
+                }
+            }
+
+            toast.success(`Matrix restored! Fixed ${repairCount} inconsistencies.`, { duration: 5000 });
+            if (onSuccess) onSuccess();
+        } catch (error) {
+            console.error("Repair error:", error);
+            toast.error("Repair operation failed.");
+        } finally {
+            setLoading(false);
+            setImportStatus('');
+        }
     };
 
     return (
@@ -221,6 +304,10 @@ const BulkOperations = ({ onSuccess, onExportFetch }) => {
                     </label>
                 </div>
 
+                <button onClick={runDataRepair} disabled={loading} className="admin-btn-slim bg-orange-600 text-white hover:bg-orange-700 shadow-lg shadow-orange-600/10">
+                    <TrendingUp size={14} /> Repair & Sync Matrix
+                </button>
+
                 {importStatus && (
                     <div className="ml-auto flex items-center gap-2 bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100">
                         <Loader2 className="h-3 w-3 animate-spin text-orange-600" />
@@ -229,7 +316,7 @@ const BulkOperations = ({ onSuccess, onExportFetch }) => {
                 )}
             </div>
             <p className="mt-2 text-[9px] text-slate-400 uppercase tracking-[0.2em] font-black italic">
-                Protocol: XLSX/XLS Support | Sequential Sync | Payload Validation Active
+                Protocol: XLSX/XLS Support | Schema Normalization active | Legacy Fallback enabled
             </p>
         </div>
     );

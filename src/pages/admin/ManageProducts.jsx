@@ -233,11 +233,11 @@ const ManageProducts = () => {
                                             </div>
                                         </td>
                                         <td>
-                                            <p className="text-[11px] font-black text-slate-900 uppercase tracking-tight">{p.make}</p>
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{p.model}</p>
+                                            <p className="text-[11px] font-black text-slate-900 uppercase tracking-tight">{p.make || p.carMake || '-'}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{p.model || p.carModel || '-'}</p>
                                         </td>
                                         <td>
-                                            <p className="text-[10px] font-black text-slate-600 tabular-nums">{p.yearRange || `${p.yearStart || ''}-${p.yearEnd || ''}`}</p>
+                                            <p className="text-[10px] font-black text-slate-600 tabular-nums">{p.yearRange || p.carYear || (p.yearStart && p.yearEnd ? `${p.yearStart}-${p.yearEnd}` : '-')}</p>
                                         </td>
                                         <td>
                                             <p className="font-bold text-slate-900 text-[13px] font-Cairo">{p.price} EGP</p>
