@@ -51,10 +51,33 @@ const AffiliateRegister = () => {
             let activeUser = user;
 
             // 1. Create Firebase Auth User (If not logged in)
+            // 1. Create Firebase Auth User (If not logged in)
             if (!activeUser) {
-                const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-                activeUser = userCredential.user;
-                await updateProfile(activeUser, { displayName: formData.fullName });
+                try {
+                    const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+                    activeUser = userCredential.user;
+                    await updateProfile(activeUser, { displayName: formData.fullName });
+                } catch (createError) {
+                    if (createError.code === 'auth/email-already-in-use') {
+                        // User exists, try to log them in
+                        try {
+                            const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
+                            activeUser = userCredential.user;
+                            // Update name just in case
+                            if (formData.fullName) {
+                                await updateProfile(activeUser, { displayName: formData.fullName });
+                            }
+                        } catch (loginError) {
+                            if (loginError.code === 'auth/wrong-password') {
+                                throw new Error('هذا البريد الإلكتروني مسجل بالفعل ولكن كلمة المرور غير صحيحة.');
+                            } else {
+                                throw loginError;
+                            }
+                        }
+                    } else {
+                        throw createError;
+                    }
+                }
             }
 
             // 2. Auto-generate Robust & Unique Referral Code
