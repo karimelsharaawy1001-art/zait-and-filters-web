@@ -11,6 +11,76 @@ import { generateInvoice } from '../utils/invoiceGenerator';
 import { Download } from 'lucide-react';
 import { safeLocalStorage } from '../utils/safeStorage';
 
+const runPostOrderActions = async (order, databases, DATABASE_ID, PRODUCTS_COLLECTION, PROMOS_COLLECTION, ABANDONED_COLLECTION) => {
+    try {
+        console.log("[POST-ORDER] Starting automated actions for order:", order.id);
+
+        // 1. Mark abandoned cart as recovered
+        const cartId = auth.currentUser ? auth.currentUser.uid : (safeLocalStorage.getItem('cartSessionId') || order.sessionId);
+        if (cartId) {
+            await databases.updateDocument(DATABASE_ID, ABANDONED_COLLECTION, cartId, {
+                recovered: true,
+                recoveredAt: new Date().toISOString(),
+                orderId: order.id
+            });
+            console.log("[POST-ORDER] Abandoned cart marked as recovered.");
+        }
+
+        // 2. Increment Promo Usage
+        if (order.promoId) {
+            try {
+                const promoDoc = await databases.getDocument(DATABASE_ID, PROMOS_COLLECTION, order.promoId);
+                await databases.updateDocument(DATABASE_ID, PROMOS_COLLECTION, order.promoId, {
+                    usedCount: (promoDoc.usedCount || 0) + 1
+                });
+                console.log("[POST-ORDER] Promo usage incremented.");
+            } catch (e) { console.warn("Promo update failed", e); }
+        }
+
+        // 3. Update Product Sales
+        const items = Array.isArray(order.items) ? order.items : [];
+        items.forEach(async (item) => {
+            if (item.id && item.id !== 'unknown') {
+                try {
+                    const pDoc = await databases.getDocument(DATABASE_ID, PRODUCTS_COLLECTION, item.id);
+                    await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, item.id, {
+                        soldCount: (pDoc.soldCount || 0) + item.quantity
+                    });
+                } catch (e) { console.warn("Stock update failed for", item.id); }
+            }
+        });
+
+        // 4. Automated Sync (Mailchimp & SendGrid)
+        try {
+            const { default: axios } = await import('axios');
+            const firstName = order.customer?.name?.split(' ')[0] || '';
+            const lastName = order.customer?.name?.split(' ').slice(1).join(' ') || '';
+            const customerEmail = order.customer?.email || order.customerEmail;
+
+            if (customerEmail) {
+                await axios.post('/api/products?action=subscribe', {
+                    email: customerEmail,
+                    firstName: firstName,
+                    lastName: lastName
+                });
+
+                await axios.post('/api/send-order-email', {
+                    order: {
+                        id: order.id,
+                        total: order.total,
+                        items: items,
+                        shippingAddress: order.customer,
+                        customerName: order.customer?.name || 'Customer',
+                        customerEmail: customerEmail
+                    }
+                });
+                console.log("[POST-ORDER] Emails sent.");
+            }
+        } catch (e) { console.error("Email sync failed", e); }
+
+    } catch (e) { console.warn("Post-order actions failed", e); }
+};
+
 const OrderSuccess = () => {
     const [searchParams] = useSearchParams();
     const { t, i18n } = useTranslation();
@@ -70,47 +140,85 @@ const OrderSuccess = () => {
                 let cartItems = [];
                 let usedFallback = false;
 
+                const urlOrderId = searchParams.get('id');
+                const isEasyKashReturn = searchParams.get('order') || searchParams.get('reference');
+
+                // 1. Try to fetch existing order first (since we now create it BEFORE redirect)
+                if (urlOrderId && !urlOrderId.startsWith('temp_')) {
+                    try {
+                        const existingOrder = await databases.getDocument(DATABASE_ID, ORDERS_COLLECTION, urlOrderId);
+                        if (existingOrder) {
+                            console.log("[SUCCESS] Found existing order:", urlOrderId, "Status:", existingOrder.status);
+
+                            // If it's awaiting payment, update it
+                            if (existingOrder.status === 'Awaiting Online Payment') {
+                                await databases.updateDocument(DATABASE_ID, ORDERS_COLLECTION, urlOrderId, {
+                                    paymentStatus: 'Paid',
+                                    status: 'Pending',
+                                    updatedAt: new Date().toISOString()
+                                });
+                                console.log("[SUCCESS] Order status updated to Paid.");
+                            }
+
+                            // Setup state for UI
+                            let parsedItems = [];
+                            try { parsedItems = JSON.parse(existingOrder.items); } catch (e) { }
+                            let parsedCustomer = {};
+                            try { parsedCustomer = JSON.parse(existingOrder.customerInfo); } catch (e) { }
+
+                            setOrderId(urlOrderId);
+                            setOrderNumber(existingOrder.orderNumber);
+                            const orderForUI = { id: urlOrderId, ...existingOrder, items: parsedItems, customer: parsedCustomer };
+                            setFullOrder(orderForUI);
+
+                            // Proceed to post-order updates
+                            await runPostOrderActions(orderForUI, databases, DATABASE_ID, PRODUCTS_COLLECTION, PROMOS_COLLECTION, ABANDONED_COLLECTION);
+
+                            safeLocalStorage.removeItem('pending_order');
+                            safeLocalStorage.removeItem('pending_cart_items');
+                            clearCart();
+                            setProcessing(false);
+                            return; // EXIT: Unified path handled
+                        }
+                    } catch (e) {
+                        console.warn("[SUCCESS] Order not found or error fetching:", urlOrderId, e);
+                    }
+                }
+
+                // 2. FALLBACK/LEGACY PATH: Create from pendingOrderData or Abandoned Cart
                 if (pendingOrderData) {
                     orderData = JSON.parse(pendingOrderData);
                     cartItems = pendingCartItems ? JSON.parse(pendingCartItems) : [];
-                } else {
-                    // FALLBACK: Try to recover from Abandoned Carts if this looks like a return from a payment gateway
-                    const urlOrderId = searchParams.get('id');
-                    const isEasyKashReturn = searchParams.get('order') || searchParams.get('reference'); // Typical EasyKash return params
+                } else if (!urlOrderId || (urlOrderId && urlOrderId.startsWith('temp_')) || isEasyKashReturn) {
+                    console.log("[RECOVERY] Attempting fallback recovery from abandoned carts...");
+                    const cartId = auth.currentUser ? auth.currentUser.uid : safeLocalStorage.getItem('cartSessionId');
 
-                    if (!urlOrderId || (urlOrderId && urlOrderId.startsWith('temp_')) || isEasyKashReturn) {
-                        console.log("[RECOVERY] Attempting fallback recovery from abandoned carts...");
-                        const cartId = auth.currentUser ? auth.currentUser.uid : safeLocalStorage.getItem('cartSessionId');
-
-                        if (cartId) {
-                            try {
-                                const abandonedDoc = await databases.getDocument(DATABASE_ID, ABANDONED_COLLECTION, cartId);
-                                if (abandonedDoc && !abandonedDoc.recovered) {
-                                    orderData = {
-                                        customer: {
-                                            name: abandonedDoc.customerName,
-                                            phone: abandonedDoc.customerPhone,
-                                            email: abandonedDoc.email,
-                                            address: abandonedDoc.customerAddress || '',
-                                            governorate: abandonedDoc.customerGovernorate || '',
-                                            city: abandonedDoc.customerCity || ''
-                                        },
-                                        subtotal: abandonedDoc.total,
-                                        discount: 0,
-                                        shipping_cost: 0,
-                                        total: abandonedDoc.total,
-                                        paymentMethod: 'EasyKash / Online',
-                                        paymentType: 'online',
-                                        notes: 'Recovered from abandoned cart'
-                                    };
-                                    cartItems = JSON.parse(abandonedDoc.items || '[]');
-                                    usedFallback = true;
-                                    console.log("[RECOVERY] Successfully mapped abandoned cart for recovery.");
-                                }
-                            } catch (e) {
-                                console.warn("[RECOVERY] Abandoned cart not found or inaccessible:", e);
+                    if (cartId) {
+                        try {
+                            const abandonedDoc = await databases.getDocument(DATABASE_ID, ABANDONED_COLLECTION, cartId);
+                            if (abandonedDoc && !abandonedDoc.recovered) {
+                                orderData = {
+                                    customer: {
+                                        name: abandonedDoc.customerName,
+                                        phone: abandonedDoc.customerPhone,
+                                        email: abandonedDoc.email,
+                                        address: abandonedDoc.customerAddress || '',
+                                        governorate: abandonedDoc.customerGovernorate || '',
+                                        city: abandonedDoc.customerCity || ''
+                                    },
+                                    subtotal: abandonedDoc.total,
+                                    discount: 0,
+                                    shipping_cost: 0,
+                                    total: abandonedDoc.total,
+                                    paymentMethod: 'EasyKash / Online',
+                                    paymentType: 'online',
+                                    notes: 'Recovered from abandoned cart'
+                                };
+                                cartItems = JSON.parse(abandonedDoc.items || '[]');
+                                usedFallback = true;
+                                console.log("[RECOVERY] Successfully mapped abandoned cart for recovery.");
                             }
-                        }
+                        } catch (e) { console.warn("[RECOVERY] Abandoned cart failure:", e); }
                     }
                 }
 
@@ -165,66 +273,7 @@ const OrderSuccess = () => {
                     setOrderNumber(nextNumber);
                     setFullOrder({ id: result.$id, orderNumber: nextNumber, ...orderData, items: cartItems });
 
-                    // Post-Order Updates (Background)
-                    try {
-                        // Mark abandoned cart as recovered
-                        const cartId = auth.currentUser ? auth.currentUser.uid : (safeLocalStorage.getItem('cartSessionId') || orderData.sessionId);
-                        if (cartId) {
-                            await databases.updateDocument(DATABASE_ID, ABANDONED_COLLECTION, cartId, {
-                                recovered: true,
-                                recoveredAt: new Date().toISOString(),
-                                orderId: result.$id
-                            });
-                        }
-
-                        if (orderData.promoId) {
-                            const promoDoc = await databases.getDocument(DATABASE_ID, PROMOS_COLLECTION, orderData.promoId);
-                            await databases.updateDocument(DATABASE_ID, PROMOS_COLLECTION, orderData.promoId, {
-                                usedCount: (promoDoc.usedCount || 0) + 1
-                            });
-                        }
-
-                        cartItems.forEach(async (item) => {
-                            if (item.id && item.id !== 'unknown') {
-                                try {
-                                    const pDoc = await databases.getDocument(DATABASE_ID, PRODUCTS_COLLECTION, item.id);
-                                    await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, item.id, {
-                                        soldCount: (pDoc.soldCount || 0) + item.quantity
-                                    });
-                                } catch (e) { console.warn("Failed to update stock/sold for", item.id); }
-                            }
-                        });
-                    } catch (e) { console.warn("Background updates failed", e); }
-
-
-                    // Auto-sync with Mailchimp (Keep existing axios logic)
-                    try {
-                        const { default: axios } = await import('axios');
-                        const firstName = orderData.customer?.name?.split(' ')[0] || '';
-                        const lastName = orderData.customer?.name?.split(' ').slice(1).join(' ') || '';
-
-                        await axios.post('/api/products?action=subscribe', {
-                            email: orderData.customerEmail,
-                            firstName: firstName,
-                            lastName: lastName
-                        });
-                        console.log("Customer synced with Mailchimp");
-
-                        // 3. Send Transactional Email via SendGrid
-                        await axios.post('/api/send-order-email', {
-                            order: {
-                                id: result.$id,
-                                total: orderData.total,
-                                items: cartItems,
-                                shippingAddress: orderData.customer, // Use customer obj as address placeholder
-                                customerName: orderData.customer?.name || 'Customer',
-                                customerEmail: orderData.customerEmail
-                            }
-                        });
-                        console.log("Order confirmation email sent via SendGrid");
-                    } catch (mcError) {
-                        console.error("Mailchimp/Sendgrid auto-sync failed:", mcError);
-                    }
+                    await runPostOrderActions({ id: result.$id, ...orderData, items: cartItems }, databases, DATABASE_ID, PRODUCTS_COLLECTION, PROMOS_COLLECTION, ABANDONED_COLLECTION);
                 } else {
                     // Fetch existing order by ID (from URL)
                     const urlOrderId = searchParams.get('id');

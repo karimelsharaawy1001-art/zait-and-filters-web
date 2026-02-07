@@ -480,141 +480,118 @@ const Checkout = () => {
                 return value;
             }));
 
+            const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+            const ORDERS_COLLECTION = import.meta.env.VITE_APPWRITE_ORDERS_COLLECTION_ID || 'orders';
+            const SETTINGS_COLLECTION = 'settings';
+            const PRODUCTS_COLLECTION = import.meta.env.VITE_APPWRITE_PRODUCTS_COLLECTION_ID || 'products';
+            const PROMOS_COLLECTION = import.meta.env.VITE_APPWRITE_PROMO_CODES_COLLECTION_ID || 'promo_codes';
+            const ABANDONED_COLLECTION = import.meta.env.VITE_APPWRITE_ABANDONED_CARTS_COLLECTION_ID || 'abandoned_carts';
+
+            console.log("[DEBUG] Starting order creation (Appwrite)...");
+
+            let orderId;
+            let finalOrderNumber;
+
+            // 1. Get Next Order Number
+            let nextNumber = 3501;
+            try {
+                const counterDoc = await databases.getDocument(DATABASE_ID, SETTINGS_COLLECTION, 'counters');
+                nextNumber = (counterDoc.lastOrderNumber || 3500) + 1;
+                await databases.updateDocument(DATABASE_ID, SETTINGS_COLLECTION, 'counters', {
+                    lastOrderNumber: nextNumber
+                });
+            } catch (e) {
+                console.warn("Counter sync failed, using timestamp fallback", e);
+                nextNumber = parseInt(Date.now().toString().slice(-6));
+            }
+            finalOrderNumber = nextNumber;
+
+            // 2. Prepare Appwrite Payload
+            const appwritePayload = {
+                orderNumber: String(finalOrderNumber),
+                userId: user?.$id || auth.currentUser?.uid || 'guest',
+                customerInfo: JSON.stringify(orderData.customer),
+                items: JSON.stringify(finalOrderItems),
+                subtotal: orderData.subtotal,
+                discount: orderData.discount,
+                shippingCost: orderData.shipping_cost,
+                total: orderData.total,
+                paymentMethod: orderData.paymentMethod,
+                paymentType: orderData.paymentType,
+                paymentStatus: selectedMethod?.type === 'online' ? 'Awaiting Payment' : orderData.paymentStatus,
+                status: selectedMethod?.type === 'online' ? 'Awaiting Online Payment' : orderData.status,
+                shippingAddress: JSON.stringify({
+                    address: formData.address,
+                    governorate: formData.governorate,
+                    city: formData.city
+                }),
+                kilometers: formData.currentMileage ? Number(formData.currentMileage) : null,
+                notes: orderData.receiptUrl
+                    ? `${formData.notes || ''}\n\n[Receipt URL]: ${orderData.receiptUrl}`.trim()
+                    : formData.notes,
+                promoCode: orderData.promoCode,
+                affiliateCode: orderData.affiliateCode,
+                createdAt: new Date().toISOString()
+            };
+
+            // 3. Create Order Document
+            const result = await databases.createDocument(
+                DATABASE_ID,
+                ORDERS_COLLECTION,
+                ID.unique(),
+                appwritePayload
+            );
+
+            orderId = result.$id;
+            console.log("[DEBUG] Appwrite Order Created:", orderId);
+
             if (selectedMethod?.type === 'online') {
-                console.log("[DEBUG] Online payment path selected");
+                console.log("[DEBUG] Online payment path selected. Redirecting with orderId:", orderId);
                 toast.loading("Initiating payment gateway...");
                 safeLocalStorage.setItem('pending_order', JSON.stringify(orderData));
                 safeLocalStorage.setItem('pending_cart_items', JSON.stringify(cartItems));
-                const tempOrderId = `temp_${Date.now()}`;
-                await handleOnlinePayment(tempOrderId, selectedMethod);
+                await handleOnlinePayment(orderId, selectedMethod);
             } else {
-                console.log("[DEBUG] Starting order creation (Appwrite)...");
+                // ... post-order updates for offline payments ...
 
-                let orderId;
-                let finalOrderNumber;
+            }
 
-                const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-                const ORDERS_COLLECTION = import.meta.env.VITE_APPWRITE_ORDERS_COLLECTION_ID || 'orders';
-                const SETTINGS_COLLECTION = 'settings';
-                const PRODUCTS_COLLECTION = import.meta.env.VITE_APPWRITE_PRODUCTS_COLLECTION_ID || 'products';
-                const PROMOS_COLLECTION = import.meta.env.VITE_APPWRITE_PROMO_CODES_COLLECTION_ID || 'promo_codes';
-                const USERS_COLLECTION = import.meta.env.VITE_APPWRITE_USERS_COLLECTION_ID || 'users';
-                const ABANDONED_COLLECTION = import.meta.env.VITE_APPWRITE_ABANDONED_CARTS_COLLECTION_ID || 'abandoned_carts';
-
-                try {
-                    // 1. Get Next Order Number (Optimistic Locking / Simple Increment for now)
-                    // Note: Ideally use a server function for atomic increment. Client-side is susceptible to race conditions.
-                    // For now, we fetch, increment, and update.
-                    let nextNumber = 3501;
-                    try {
-                        const counterDoc = await databases.getDocument(DATABASE_ID, SETTINGS_COLLECTION, 'counters');
-                        nextNumber = (counterDoc.lastOrderNumber || 3500) + 1;
-                        await databases.updateDocument(DATABASE_ID, SETTINGS_COLLECTION, 'counters', {
-                            lastOrderNumber: nextNumber
-                        });
-                    } catch (e) {
-                        console.warn("Counter sync failed, using timestamp fallback", e);
-                        nextNumber = parseInt(Date.now().toString().slice(-6));
-                    }
-                    finalOrderNumber = nextNumber;
-
-
-                    // 2. Prepare Appwrite Payload
-                    // Appwrite expects flat JSON mostly, but 'items' and 'customerInfo' are strings in schema
-                    const appwritePayload = {
-                        orderNumber: String(finalOrderNumber),
-                        userId: user?.$id || auth.currentUser?.uid || 'guest',
-                        customerInfo: JSON.stringify(orderData.customer),
-                        items: JSON.stringify(finalOrderItems),
-                        subtotal: orderData.subtotal,
-                        discount: orderData.discount,
-                        shippingCost: orderData.shipping_cost, // Verify schema name
-                        total: orderData.total,
-                        paymentMethod: orderData.paymentMethod,
-                        paymentType: orderData.paymentType,
-                        paymentStatus: orderData.paymentStatus,
-                        status: orderData.status,
-                        shippingAddress: JSON.stringify({
-                            address: formData.address,
-                            governorate: formData.governorate,
-                            city: formData.city
-                        }),
-                        kilometers: formData.currentMileage ? Number(formData.currentMileage) : null,
-                        notes: orderData.receiptUrl
-                            ? `${formData.notes || ''}\n\n[Receipt URL]: ${orderData.receiptUrl}`.trim()
-                            : formData.notes,
-                        promoCode: orderData.promoCode,
-                        affiliateCode: orderData.affiliateCode,
-                        // receiptUrl removed due to schema limit
-                        createdAt: new Date().toISOString()
-                    };
-
-                    // 3. Create Order Document
-                    const result = await databases.createDocument(
-                        DATABASE_ID,
-                        ORDERS_COLLECTION,
-                        ID.unique(),
-                        appwritePayload
-                    );
-
-                    orderId = result.$id;
-                    console.log("[DEBUG] Appwrite Order Created:", orderId);
-
-                    // 4. Post-Order Updates (Background)
-                    try {
-                        // Increment Promo Usage
-                        if (appliedPromo?.id) {
-                            const promoDoc = await databases.getDocument(DATABASE_ID, PROMOS_COLLECTION, appliedPromo.id);
-                            await databases.updateDocument(DATABASE_ID, PROMOS_COLLECTION, appliedPromo.id, {
-                                usedCount: (promoDoc.usedCount || 0) + 1
-                            });
-                        }
-
-                        // Update Product Sales (Best effort)
-                        /* 
-                           Note: Appwrite doesn't support batch updates easily from client. 
-                           We skip soldCount update OR do it individually (slow). 
-                           Let's do individually for now.
-                        */
-                        finalOrderItems.forEach(async (item) => {
-                            if (item.id && item.id !== 'unknown') {
-                                try {
-                                    const pDoc = await databases.getDocument(DATABASE_ID, PRODUCTS_COLLECTION, item.id);
-                                    await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, item.id, {
-                                        soldCount: (pDoc.soldCount || 0) + item.quantity
-                                    });
-                                } catch (e) { console.warn("Failed to update stock/sold for", item.id); }
-                            }
-                        });
-
-
-                        // Sync Abandoned Cart (Mark Recovered)
-                        const cartId = auth.currentUser ? auth.currentUser.uid : safeLocalStorage.getItem('cartSessionId');
-                        if (cartId) {
-                            await databases.updateDocument(DATABASE_ID, ABANDONED_COLLECTION, cartId, {
-                                recovered: true,
-                                recoveredAt: new Date().toISOString(),
-                                orderId: orderId
-                            });
-                        }
-
-                        // Save New Address if requested (Appwrite 'users' collection sub-collection 'addresses'?)
-                        // Note: We might not have permissions to write to sub-collections of 'users' easily via client unless set up.
-                        // Given Admin manages users, maybe we skip saving address to Appwrite for "users" unless we have a specific 'addresses' collection.
-                        // The prompt didn't specify an addresses collection in Appwrite. 
-                        // Check: Checkout.jsx used `collection(db, 'users', uid, 'addresses')`.
-                        // If Appwrite doesn't have an 'addresses' collection linked to users, we skip this.
-                        // Assumption: We might need to migrate addresses later, but for now, prioritize order creation.
-
-                    } catch (bgError) {
-                        console.warn("Background updates failed:", bgError);
-                    }
-
-                } catch (createError) {
-                    console.error("Appwrite Creation Failed:", createError);
-                    throw createError;
+            // 4. Post-Order Updates (Common for both online/offline, but usually background)
+            try {
+                // Increment Promo Usage
+                if (appliedPromo?.id) {
+                    const promoDoc = await databases.getDocument(DATABASE_ID, PROMOS_COLLECTION, appliedPromo.id);
+                    await databases.updateDocument(DATABASE_ID, PROMOS_COLLECTION, appliedPromo.id, {
+                        usedCount: (promoDoc.usedCount || 0) + 1
+                    });
                 }
 
+                // Update Product Sales
+                finalOrderItems.forEach(async (item) => {
+                    if (item.id && item.id !== 'unknown') {
+                        try {
+                            const pDoc = await databases.getDocument(DATABASE_ID, PRODUCTS_COLLECTION, item.id);
+                            await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, item.id, {
+                                soldCount: (pDoc.soldCount || 0) + item.quantity
+                            });
+                        } catch (e) { console.warn("Failed to update stock/sold for", item.id); }
+                    }
+                });
+
+                // Sync Abandoned Cart (Mark Recovered)
+                const cartId = auth.currentUser ? auth.currentUser.uid : safeLocalStorage.getItem('cartSessionId');
+                if (cartId) {
+                    await databases.updateDocument(DATABASE_ID, ABANDONED_COLLECTION, cartId, {
+                        recovered: true,
+                        recoveredAt: new Date().toISOString(),
+                        orderId: orderId
+                    });
+                }
+            } catch (bgError) {
+                console.warn("Background updates failed:", bgError);
+            }
+
+            if (selectedMethod?.type !== 'online') {
                 clearCart();
                 clearTimeout(timeoutId);
 
