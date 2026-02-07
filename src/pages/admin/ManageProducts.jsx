@@ -6,6 +6,7 @@ import AdminHeader from '../../components/AdminHeader';
 import { Edit3, Trash2, Plus, Search, Filter, AlertTriangle, ChevronLeft, ChevronRight, Eye, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useStaticData } from '../../context/StaticDataContext';
+import BulkOperations from '../../components/admin/BulkOperations';
 
 const ManageProducts = () => {
     const navigate = useNavigate();
@@ -82,6 +83,23 @@ const ManageProducts = () => {
         }
     };
 
+    const handleExportFetch = async () => {
+        if (!DATABASE_ID || !PRODUCTS_COLLECTION) return [];
+        try {
+            const queries = [Query.limit(5000)];
+            if (categoryFilter !== 'All') queries.push(Query.equal('category', categoryFilter));
+            if (brandFilter !== 'All') queries.push(Query.equal('brand', brandFilter));
+            if (statusFilter === 'Active') queries.push(Query.equal('isActive', true));
+            if (statusFilter === 'Inactive') queries.push(Query.equal('isActive', false));
+
+            const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, queries);
+            return response.documents;
+        } catch (error) {
+            console.error("Export fetch failure:", error);
+            return [];
+        }
+    };
+
     return (
         <div className="min-h-screen bg-slate-50 pb-20 font-admin text-slate-900">
             <AdminHeader title="Inventory Matrix" />
@@ -95,6 +113,8 @@ const ManageProducts = () => {
                         <Plus size={14} /> New Entry
                     </button>
                 </div>
+
+                <BulkOperations onSuccess={fetchProducts} onExportFetch={handleExportFetch} />
 
                 <div className="admin-card-compact p-4 flex flex-wrap gap-4 items-end mb-6">
                     <div className="flex-1 min-w-[280px]">

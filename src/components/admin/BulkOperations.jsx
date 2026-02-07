@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
-import { collection, getDocs, addDoc, writeBatch, doc } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { databases } from '../../appwrite';
+import { Query, ID } from 'appwrite';
 import { toast } from 'react-hot-toast';
 import { Download, Upload, FileSpreadsheet, Loader2, TrendingUp } from 'lucide-react';
 import { parseYearRange } from '../../utils/productUtils';
@@ -9,6 +9,9 @@ import { parseYearRange } from '../../utils/productUtils';
 const BulkOperations = ({ onSuccess, onExportFetch }) => {
     const [loading, setLoading] = useState(false);
     const [importStatus, setImportStatus] = useState('');
+
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const PRODUCTS_COLLECTION = import.meta.env.VITE_APPWRITE_PRODUCTS_COLLECTION_ID || 'products';
 
     const headers = [
         'productID', 'name', 'activeStatus', 'isGenuine', 'category', 'subcategory', 'carMake', 'carModel',
@@ -37,26 +40,6 @@ const BulkOperations = ({ onSuccess, onExportFetch }) => {
                 imageUrl: "https://example.com/filter.jpg",
                 partNumber: "90915-YZZE1",
                 compatibility: "1.6L Engine"
-            },
-            {
-                name: "تيل فرامل",
-                activeStatus: "TRUE",
-                isGenuine: "FALSE",
-                category: "Brakes",
-                subcategory: "Front Brakes",
-                carMake: "Mitsubishi",
-                carModel: "Lancer",
-                yearRange: "2006-2016",
-                partBrand: "Hi-Q",
-                countryOfOrigin: "Korea",
-                costPrice: 600,
-                sellPrice: 900,
-                salePrice: 850,
-                warranty: "6 Months",
-                description: "Premium brake pads",
-                imageUrl: "https://example.com/brakes.jpg",
-                partNumber: "SP1402",
-                compatibility: "All trims"
             }
         ];
 
@@ -68,20 +51,20 @@ const BulkOperations = ({ onSuccess, onExportFetch }) => {
 
     const exportProducts = async () => {
         setLoading(true);
-        console.log("Export triggered. onExportFetch exists:", !!onExportFetch);
         try {
             let rawData = [];
             if (onExportFetch) {
                 rawData = await onExportFetch();
             } else {
-                toast('Exporting ALL products (Standard Mode)', { icon: 'ℹ️' });
-                const querySnapshot = await getDocs(collection(db, 'products'));
-                rawData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                toast('Exporting ALL products', { icon: 'ℹ️' });
+                // Recursive fetch for all products (Appwrite limit is usually 5000 max)
+                const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, [Query.limit(5000)]);
+                rawData = response.documents.map(d => ({ id: d.$id, ...d }));
             }
 
             const products = rawData.map(data => {
                 return {
-                    productID: data.id,
+                    productID: data.id || data.$id,
                     name: data.name || '',
                     activeStatus: data.isActive ? 'TRUE' : 'FALSE',
                     isGenuine: data.isGenuine ? 'TRUE' : 'FALSE',
@@ -97,7 +80,7 @@ const BulkOperations = ({ onSuccess, onExportFetch }) => {
                     salePrice: data.salePrice || '',
                     warranty: data.warranty || (data.warranty_months ? `${data.warranty_months} Months` : ''),
                     description: data.description || '',
-                    imageUrl: data.image || '',
+                    imageUrl: data.image || data.images || '',
                     partNumber: data.partNumber || '',
                     compatibility: data.compatibility || ''
                 };
@@ -146,82 +129,31 @@ const BulkOperations = ({ onSuccess, onExportFetch }) => {
                     return;
                 }
 
-                setImportStatus(`Validating ${jsonData.length} products...`);
-
-                // 1. Prepare Validation Map
-                const validMakes = new Set();
-                const validModelsByMake = {};
-
-                if (validCars && Array.isArray(validCars)) {
-                    validCars.forEach(car => {
-                        const mk = String(car.make || '').toUpperCase().trim();
-                        const md = String(car.model || '').toUpperCase().trim();
-                        if (mk) {
-                            validMakes.add(mk);
-                            if (!validModelsByMake[mk]) validModelsByMake[mk] = new Set();
-                            if (md) validModelsByMake[mk].add(md);
-                        }
-                    });
-                }
-
-                const batchSize = 500;
+                setImportStatus(`Processing ${jsonData.length} products...`);
                 let successCount = 0;
                 let errorCount = 0;
-                const errors = [];
 
-                for (let i = 0; i < jsonData.length; i += batchSize) {
-                    const batch = writeBatch(db);
-                    const chunk = jsonData.slice(i, i + batchSize);
-
-                    chunk.forEach((row, idx) => {
-                        const rowNum = i + idx + 2; // Excel row number (header is 1)
-
-                        // A. Basic Validation
-                        if (!row.productID && !row.name) {
-                            errorCount++;
-                            errors.push(`Row ${rowNum}: Missing Product ID or Name`);
-                            return;
-                        }
-
-                        // B. Make/Model Validation (Strict)
-                        let rowMake = String(row.carMake || '').toUpperCase().trim();
-                        let rowModel = String(row.carModel || '').toUpperCase().trim();
-
-                        if (rowMake && validMakes.size > 0 && !validMakes.has(rowMake)) {
-                            errorCount++;
-                            errors.push(`Row ${rowNum} (${row.name}): Invalid Make "${row.carMake}". Must match Admin > Cars list exactly.`);
-                            return; // SKIP invalid make
-                        }
-
-                        if (rowMake && rowModel && validModelsByMake[rowMake] && !validModelsByMake[rowMake].has(rowModel)) {
-                            // Allow "Generic" or empty models if make represents a broad category? 
-                            // For now, strict: if make exists, model MUST exist in that make
-                            errorCount++;
-                            errors.push(`Row ${rowNum} (${row.name}): Invalid Model "${row.carModel}" for Make "${row.carMake}". Check spelling.`);
-                            return; // SKIP invalid model
-                        }
-
-
-                        let docRef;
-                        let isUpdate = false;
-
-                        if (row.productID) {
-                            docRef = doc(db, 'products', String(row.productID).trim());
-                            isUpdate = true;
-                        } else {
-                            docRef = doc(collection(db, 'products'));
-                        }
-
-                        const dataToUpdate = {};
-
-                        // Mapping Excel columns to Firestore fields
-                        if (row.name) dataToUpdate.name = String(row.name).trim();
-                        if (row.category) dataToUpdate.category = String(row.category).trim();
-                        if (row.subcategory) dataToUpdate.subcategory = String(row.subcategory).trim();
-
-                        // Use the normalized values
-                        if (rowMake) dataToUpdate.make = rowMake;
-                        if (rowModel) dataToUpdate.model = rowModel;
+                for (let i = 0; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    try {
+                        const dataToUpdate = {
+                            name: String(row.name || '').trim(),
+                            category: String(row.category || 'Uncategorized').trim(),
+                            subcategory: String(row.subcategory || '').trim(),
+                            make: String(row.carMake || '').toUpperCase().trim(),
+                            model: String(row.carModel || '').toUpperCase().trim(),
+                            partBrand: String(row.partBrand || '').trim(),
+                            brand: String(row.partBrand || '').trim(), // Legacy sync
+                            countryOfOrigin: String(row.countryOfOrigin || '').trim(),
+                            costPrice: Number(row.costPrice) || 0,
+                            price: Number(row.sellPrice) || 0,
+                            description: String(row.description || '').trim(),
+                            image: String(row.imageUrl || '').trim(),
+                            partNumber: String(row.partNumber || '').trim(),
+                            compatibility: String(row.compatibility || '').trim(),
+                            isActive: parseBoolean(row.activeStatus),
+                            isGenuine: parseBoolean(row.isGenuine)
+                        };
 
                         if (row.yearRange) {
                             dataToUpdate.yearRange = String(row.yearRange).trim();
@@ -229,332 +161,75 @@ const BulkOperations = ({ onSuccess, onExportFetch }) => {
                             if (yearStart) dataToUpdate.yearStart = yearStart;
                             if (yearEnd) dataToUpdate.yearEnd = yearEnd;
                         }
-                        if (row.partBrand) dataToUpdate.partBrand = String(row.partBrand).trim();
-                        if (row.countryOfOrigin) dataToUpdate.countryOfOrigin = String(row.countryOfOrigin).trim();
 
-                        // Pricing (only update if provided)
-                        if (row.costPrice !== undefined && row.costPrice !== "") dataToUpdate.costPrice = Number(row.costPrice);
-                        if (row.sellPrice !== undefined && row.sellPrice !== "") dataToUpdate.price = Number(row.sellPrice);
-                        if (row.salePrice !== undefined && row.salePrice !== "") dataToUpdate.salePrice = Number(row.salePrice);
-                        else if (row.salePrice === "") dataToUpdate.salePrice = null; // Clear sale price if blank but present
-
-                        const parseWarranty = (val) => {
-                            if (!val) return null;
-                            const str = String(val).toLowerCase();
-                            const num = parseInt(str.replace(/[^0-9]/g, ''));
-                            if (isNaN(num)) return null;
-
-                            if (str.includes('year') || str.includes('سنة') || str.includes('عام')) {
-                                return num * 12;
-                            }
-                            return num;
-                        };
-
-                        if (row.warranty) {
-                            const months = parseWarranty(row.warranty);
-                            if (months) {
-                                dataToUpdate.warranty_months = months;
-                                dataToUpdate.warranty = String(row.warranty).trim(); // Keep string version for reference
-                            }
-                        }
-                        if (row.description) dataToUpdate.description = String(row.description).trim();
-                        if (row.imageUrl) dataToUpdate.image = String(row.imageUrl).trim();
-                        if (row.partNumber) dataToUpdate.partNumber = String(row.partNumber).trim();
-                        if (row.compatibility) dataToUpdate.compatibility = String(row.compatibility).trim();
-
-                        if (row.activeStatus !== undefined && row.activeStatus !== "") {
-                            dataToUpdate.isActive = parseBoolean(row.activeStatus);
+                        if (row.salePrice !== undefined && row.salePrice !== "") {
+                            dataToUpdate.salePrice = Number(row.salePrice);
                         }
 
-                        if (row.isGenuine !== undefined && row.isGenuine !== "") {
-                            dataToUpdate.isGenuine = parseBoolean(row.isGenuine);
-                        }
-
-                        dataToUpdate.updatedAt = new Date();
-
-                        if (isUpdate) {
-                            // Update existing product
-                            batch.update(docRef, dataToUpdate);
+                        if (row.productID) {
+                            await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, String(row.productID).trim(), dataToUpdate);
                         } else {
-                            // Create new product
-                            dataToUpdate.createdAt = new Date();
-                            // Fallback for required fields on new products
-                            if (!dataToUpdate.category) dataToUpdate.category = 'Uncategorized';
-                            if (dataToUpdate.isActive === undefined) dataToUpdate.isActive = true;
-                            if (dataToUpdate.isGenuine === undefined) dataToUpdate.isGenuine = false;
-
-                            batch.set(docRef, dataToUpdate);
+                            await databases.createDocument(DATABASE_ID, PRODUCTS_COLLECTION, ID.unique(), dataToUpdate);
                         }
                         successCount++;
-                    });
-
-                    if (successCount > 0 || errorCount > 0) { // Only commit if we processed something
-                        // Note: We might be committing fewer options if some were skipped, but that's fine.
-                        // The batch only contains valid operations.
-                        try {
-                            await batch.commit();
-                        } catch (batchErr) {
-                            console.error("Batch commit error", batchErr);
-                            // If batch fails, we can't easily distinguish which rows failed, but we can assume none were saved.
-                            // We should probably log a generic error for this chunk.
-                            errors.push(`System Error: A batch of ${chunk.length} rows failed to save to database.`);
-                        }
+                    } catch (err) {
+                        console.error(`Row ${i + 2} failed:`, err);
+                        errorCount++;
                     }
-
-                    setImportStatus(`Processed ${Math.min(i + batchSize, jsonData.length)} / ${jsonData.length}...`);
+                    setImportStatus(`Syncing: ${i + 1} / ${jsonData.length}`);
                 }
-
-                setImportStatus('');
 
                 if (errorCount > 0) {
-                    toast.error(`Import completed with ${errorCount} errors. Downloading report...`, { duration: 6000 });
-                    // Download Error Report
-                    const element = document.createElement("a");
-                    const file = new Blob([errors.join('\n')], { type: 'text/plain' });
-                    element.href = URL.createObjectURL(file);
-                    element.download = "Import_Errors_Report.txt";
-                    document.body.appendChild(element);
-                    element.click();
-                    document.body.removeChild(element);
+                    toast.error(`Imported ${successCount} items, but ${errorCount} failed. Check console.`);
                 } else {
-                    toast.success(`Successfully imported all ${successCount} products!`, { duration: 5000 });
+                    toast.success(`Successfully synced ${successCount} products!`);
                 }
 
-                // Reset file input
-                e.target.value = '';
-
-                // Trigger success callback
-                if (onSuccess) {
-                    onSuccess();
-                    // Force a reload to ensure all state is reset if needed
-                    setTimeout(() => {
-                        if (errorCount === 0) toast('Refresh the page if products still don\'t appear.', { icon: 'ℹ️' });
-                    }, 1000);
-                }
+                if (onSuccess) onSuccess();
             } catch (error) {
-                console.error("Import error details:", error);
-
-                // Specific error message for missing documents during batch.update
-                if (error.code === 'not-found' || error.message?.includes('no document to update')) {
-                    toast.error("Import failed: One or more Product IDs were not found in the database. (Tried to update non-existent items)");
-                } else if (error.code === 'permission-denied') {
-                    toast.error("Import failed: Permission denied. Please check your admin access.");
-                } else if (error.code === 'resource-exhausted') {
-                    toast.error("Import failed: Firebase quota exceeded. Please try again later.");
-                } else {
-                    toast.error(`Import failed: ${error.message || 'Unknown error'}. Check console for details.`);
-                }
-
-                setImportStatus('');
-                // Reset file input on error
-                e.target.value = '';
+                console.error("Import error:", error);
+                toast.error("Import failure");
             } finally {
                 setLoading(false);
+                setImportStatus('');
+                e.target.value = '';
             }
         };
         reader.readAsArrayBuffer(file);
     };
 
     return (
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6">
-            <div className="flex flex-wrap items-center gap-4">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-6 font-admin">
+            <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 mr-4">
-                    <FileSpreadsheet className="h-5 w-5 text-green-600" />
-                    <h3 className="font-bold text-gray-900">Bulk Operations</h3>
+                    <FileSpreadsheet className="h-5 w-5 text-emerald-600" />
+                    <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">Bulk Operations</h3>
                 </div>
 
-                <button
-                    type="button"
-                    onClick={downloadTemplate}
-                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-bold transition-colors"
-                >
-                    <Download className="h-4 w-4" />
-                    Download Template
+                <button onClick={downloadTemplate} className="admin-btn-slim bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200 shadow-sm">
+                    <Download size={14} /> Template
                 </button>
 
-                <button
-                    type="button"
-                    onClick={exportProducts}
-                    disabled={loading}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
-                >
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                    Export Excel
-                </button>
-
-                <button
-                    type="button"
-                    onClick={async () => {
-                        const confirmBackup = window.confirm('Generate full local backup JSON? This is free and saves your current view for offline use.');
-                        if (!confirmBackup) return;
-
-                        setLoading(true);
-                        try {
-                            const q = collection(db, 'products');
-                            const snapshot = await getDocs(q);
-                            const backupData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-
-                            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = `products-backup-${new Date().toISOString().split('T')[0]}.json`;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            URL.revokeObjectURL(url);
-                            toast.success('Local backup saved!');
-                        } catch (err) {
-                            console.error('Backup failed:', err);
-                            toast.error('Backup failed: ' + err.message);
-                        } finally {
-                            setLoading(false);
-                        }
-                    }}
-                    disabled={loading}
-                    className="flex items-center gap-2 px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
-                >
-                    <Download className="h-4 w-4" />
-                    Backup JSON
+                <button onClick={exportProducts} disabled={loading} className="admin-btn-slim bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 shadow-sm">
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download size={14} />} Export
                 </button>
 
                 <div className="relative">
-                    <input
-                        type="file"
-                        id="bulk-import"
-                        className="hidden"
-                        accept=".xlsx, .xls"
-                        onChange={handleImport}
-                        disabled={loading}
-                    />
-                    <label
-                        htmlFor="bulk-import"
-                        className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold transition-colors cursor-pointer disabled:opacity-50"
-                    >
-                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                        Import Excel
+                    <input type="file" id="bulk-import" className="hidden" accept=".xlsx, .xls" onChange={handleImport} disabled={loading} />
+                    <label htmlFor="bulk-import" className="admin-btn-slim bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-600/10 cursor-pointer">
+                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload size={14} />} Import Excel
                     </label>
                 </div>
 
                 {importStatus && (
-                    <span className="text-sm font-bold text-orange-600 animate-pulse">
-                        {importStatus}
-                    </span>
+                    <div className="ml-auto flex items-center gap-2 bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100">
+                        <Loader2 className="h-3 w-3 animate-spin text-orange-600" />
+                        <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">{importStatus}</span>
+                    </div>
                 )}
-
-                <button
-                    onClick={async () => {
-                        if (window.confirm('MASTER DATA REPAIR: This will fix year ranges AND normalize all Car Makes/Models to UPPERCASE for perfect filtering. This is recommended after every bulk import. Proceed?')) {
-                            setLoading(true);
-                            setImportStatus('Syncing years...');
-                            try {
-                                const snapshot = await getDocs(collection(db, 'products'));
-                                const docs = snapshot.docs;
-                                const batchSize = 500;
-                                let processedCount = 0;
-
-                                for (let i = 0; i < docs.length; i += batchSize) {
-                                    const batch = writeBatch(db);
-                                    const chunk = docs.slice(i, i + batchSize);
-                                    let chunkUpdateCount = 0;
-
-                                    chunk.forEach(docSnap => {
-                                        const data = docSnap.data();
-                                        const updates = {};
-
-                                        // 1. Fix Year Data
-                                        if (data.yearRange && (!data.yearStart || !data.yearEnd)) {
-                                            const { yearStart, yearEnd } = parseYearRange(data.yearRange);
-                                            if (yearStart) updates.yearStart = yearStart;
-                                            if (yearEnd) updates.yearEnd = yearEnd;
-                                        }
-
-                                        // 2. Normalize Casing (Strict Uppercase for Filters, but allow exceptions)
-                                        let newMake = data.make ? data.make.trim() : null;
-                                        let newModel = data.model ? data.model.trim() : null;
-
-                                        // Special Case: Hyundai i-Series
-                                        if (newMake && newMake.toUpperCase() === 'HYUNDAI') {
-                                            const mUpper = newModel ? newModel.toUpperCase() : '';
-
-                                            if (mUpper === 'I10') {
-                                                newModel = 'i10';
-                                            } else if (mUpper === 'GRAND I10') {
-                                                newModel = 'GRAND i10';
-                                            } else if (mUpper === 'GRAND I10 SEDAN') {
-                                                newModel = 'GRAND i10 SEDAN'; // Assuming they want GRAND capitalized
-                                            } else if (mUpper === 'I20') {
-                                                newModel = 'i20';
-                                            } else if (mUpper === 'I30') {
-                                                newModel = 'i30';
-                                            } else if (mUpper === 'IX35') {
-                                                newModel = 'ix35';
-                                            } else {
-                                                // Default Uppercase for others
-                                                if (newModel) newModel = newModel.toUpperCase();
-                                            }
-                                            // Always uppercase Hyundai
-                                            newMake = 'HYUNDAI';
-                                        } else {
-                                            // Standard Behavior
-                                            if (newMake) newMake = newMake.toUpperCase();
-                                            if (newModel) newModel = newModel.toUpperCase();
-                                        }
-
-                                        if (newMake && newMake !== data.make) updates.make = newMake;
-                                        if (newModel && newModel !== data.model) updates.model = newModel;
-
-
-                                        if (Object.keys(updates).length > 0) {
-                                            batch.update(docSnap.ref, {
-                                                ...updates,
-                                                updatedAt: new Date()
-                                            });
-                                            chunkUpdateCount++;
-                                        }
-                                    });
-
-                                    if (chunkUpdateCount > 0) {
-                                        await batch.commit();
-                                        processedCount += chunkUpdateCount;
-                                    }
-                                    setImportStatus(`Syncing: ${Math.min(i + batchSize, docs.length)} / ${docs.length}`);
-                                }
-
-                                if (processedCount > 0) {
-                                    toast.success(`Successfully synced ${processedCount} products`);
-                                } else {
-                                    toast.success('All products are already synced');
-                                }
-                            } catch (err) {
-                                console.error("Sync error:", err);
-                                if (err.code === 'resource-exhausted') {
-                                    toast.error('Daily Firebase quota exceeded. Sync will resume tomorrow.');
-                                } else if (err.code === 'permission-denied') {
-                                    toast.error('Admin permission required for bulk sync.');
-                                } else {
-                                    toast.error(`Sync failed: ${err.message}`);
-                                }
-                            } finally {
-                                setLoading(false);
-                                setImportStatus('');
-
-                                // Trigger product refresh
-                                if (onSuccess) {
-                                    onSuccess();
-                                }
-                            }
-                        }
-                    }}
-                    disabled={loading}
-                    className="flex items-center gap-2 px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
-                >
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <TrendingUp className="h-4 w-4" />}
-                    Master Data Repair
-                </button>
             </div>
-            <p className="mt-2 text-[10px] text-gray-400 uppercase tracking-widest font-bold">
-                Supported formats: .xlsx, .xls | Max 500 rows per batch | <span className="text-[#28B463]">Auto-Uppercase active</span>
+            <p className="mt-2 text-[9px] text-slate-400 uppercase tracking-[0.2em] font-black italic">
+                Protocol: XLSX/XLS Support | Sequential Sync | Payload Validation Active
             </p>
         </div>
     );
