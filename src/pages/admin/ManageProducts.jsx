@@ -120,7 +120,7 @@ const ManageProducts = () => {
                     </button>
                 </div>
 
-                <BulkOperations onSuccess={fetchProducts} onExportFetch={handleExportFetch} />
+                <BulkOperations onSuccess={fetchProducts} onExportFetch={handleExportFetch} staticProducts={staticProducts} />
 
                 <div className="admin-card-compact p-4 flex flex-wrap gap-4 items-end mb-6">
                     <div className="flex-1 min-w-[280px]">
@@ -237,7 +237,9 @@ const ManageProducts = () => {
                                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{p.model || p.carModel || '-'}</p>
                                         </td>
                                         <td>
-                                            <p className="text-[10px] font-black text-slate-600 tabular-nums">{p.yearRange || p.carYear || (p.yearStart && p.yearEnd ? `${p.yearStart}-${p.yearEnd}` : '-')}</p>
+                                            <p className="text-[10px] font-black text-slate-600 tabular-nums">
+                                                {p.yearRange || p.carYear || (p.yearStart ? (p.yearEnd && p.yearEnd !== p.yearStart ? `${p.yearStart}-${p.yearEnd}` : p.yearStart) : '-')}
+                                            </p>
                                         </td>
                                         <td>
                                             <p className="font-bold text-slate-900 text-[13px] font-Cairo">{p.price} EGP</p>

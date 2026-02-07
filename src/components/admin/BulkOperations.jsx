@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 import { Download, Upload, FileSpreadsheet, Loader2, TrendingUp } from 'lucide-react';
 import { parseYearRange } from '../../utils/productUtils';
 
-const BulkOperations = ({ onSuccess, onExportFetch }) => {
+const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
     const [loading, setLoading] = useState(false);
     const [importStatus, setImportStatus] = useState('');
 
@@ -235,23 +235,38 @@ const BulkOperations = ({ onSuccess, onExportFetch }) => {
                 const doc = allDocs[i];
                 const updates = {};
 
-                // 1. Vehicle Normalization
-                if (doc.carMake && !doc.make) updates.make = doc.carMake;
-                if (doc.carModel && !doc.model) updates.model = doc.carModel;
-                if (doc.carYear && !doc.yearRange) updates.yearRange = doc.carYear;
+                // Find matching product in reference data (JSON)
+                const ref = staticProducts.find(r => r.id === doc.$id || r.$id === doc.$id);
 
-                // 2. Year Range Parsing (if needed)
-                if (updates.yearRange && (!doc.yearStart || !doc.yearEnd)) {
-                    const { yearStart, yearEnd } = parseYearRange(updates.yearRange);
-                    if (yearStart) updates.yearStart = yearStart;
-                    if (yearEnd) updates.yearEnd = yearEnd;
+                // 1. Restore missing Year Data from Reference
+                if (ref) {
+                    if (ref.yearStart && !doc.yearStart) updates.yearStart = Number(ref.yearStart);
+                    if (ref.yearEnd && !doc.yearEnd) updates.yearEnd = Number(ref.yearEnd);
+                    if (ref.yearRange && !doc.yearRange) updates.yearRange = String(ref.yearRange);
+
+                    if (ref.make && !doc.make) updates.make = String(ref.make).toUpperCase();
+                    if (ref.model && !doc.model) updates.model = String(ref.model).toUpperCase();
+                    if ((ref.brand || ref.partBrand) && !doc.brand) updates.brand = String(ref.brand || ref.partBrand);
                 }
 
-                // 3. Brand Normalization
-                if (doc.partBrand && !doc.brand) updates.brand = doc.partBrand;
+                // 2. Legacy Field Migration (carMake/carModel)
+                if (doc.carMake && !doc.make && !updates.make) updates.make = doc.carMake;
+                if (doc.carModel && !doc.model && !updates.model) updates.model = doc.carModel;
+                if (doc.carYear && !doc.yearRange && !updates.yearRange) updates.yearRange = doc.carYear;
+
+                // 3. Year Range Parsing (if still needed)
+                const rangeToParse = updates.yearRange || doc.yearRange || doc.carYear;
+                if (rangeToParse && (!doc.yearStart || !doc.yearEnd)) {
+                    const { yearStart, yearEnd } = parseYearRange(rangeToParse);
+                    if (yearStart && !doc.yearStart) updates.yearStart = yearStart;
+                    if (yearEnd && !doc.yearEnd) updates.yearEnd = yearEnd;
+                }
+
+                // 4. Brand Normalization
+                if (doc.partBrand && !doc.brand && !updates.brand) updates.brand = doc.partBrand;
                 if (doc.brand && !doc.partBrand) updates.partBrand = doc.brand;
 
-                // 4. Data Types (Fixing strings that should be numbers)
+                // 5. Data Types
                 if (typeof doc.price === 'string') updates.price = Number(doc.price) || 0;
                 if (typeof doc.costPrice === 'string') updates.costPrice = Number(doc.costPrice) || 0;
                 if (typeof doc.isActive === 'string') updates.isActive = parseBoolean(doc.isActive);
@@ -265,7 +280,7 @@ const BulkOperations = ({ onSuccess, onExportFetch }) => {
                     }
                 }
 
-                if (i % 10 === 0) {
+                if (i % 25 === 0) {
                     setImportStatus(`Repairing: ${i + 1} / ${allDocs.length}`);
                 }
             }
