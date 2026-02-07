@@ -503,11 +503,15 @@ const Checkout = () => {
                     }
                     finalOrderNumber = nextNumber;
 
+
                     // 2. Prepare Appwrite Payload
                     // Appwrite expects flat JSON mostly, but 'items' and 'customerInfo' are strings in schema
                     const appwritePayload = {
                         orderNumber: String(finalOrderNumber),
                         userId: auth.currentUser?.uid || 'guest',
+                        email: formData.email || null,
+                        name: formData.name || 'Guest',
+                        phone: formattedPhone || '',
                         customerInfo: JSON.stringify(orderData.customer),
                         items: JSON.stringify(finalOrderItems),
                         subtotal: orderData.subtotal,

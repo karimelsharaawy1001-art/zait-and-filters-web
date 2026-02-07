@@ -1,65 +1,109 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { db, auth } from '../firebase';
-import { onAuthStateChanged } from 'firebase/auth';
 import { Package, Clock, ChevronRight, Printer, Download, Edit2, Save, X, Loader2 } from 'lucide-react';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { generateInvoice } from '../utils/invoiceGenerator';
 import { useTranslation } from 'react-i18next';
 import { getOptimizedImage } from '../utils/cloudinaryUtils';
+import { useAuth } from '../context/AuthContext';
+import { databases } from '../appwrite';
+import { Query } from 'appwrite';
 
 const OrderHistory = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState(null);
     const [editingMileage, setEditingMileage] = useState(null); // ID of order being edited
     const [mileageValue, setMileageValue] = useState('');
     const [updating, setUpdating] = useState(false);
     const navigate = useNavigate();
     const { t, i18n } = useTranslation();
     const isAr = i18n.language === 'ar';
+    const { user } = useAuth();
+
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const ORDERS_COLLECTION = import.meta.env.VITE_APPWRITE_ORDERS_COLLECTION_ID;
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            if (currentUser) {
-                setUser(currentUser);
-                fetchOrders(currentUser.uid);
-            } else {
-                setLoading(false);
-            }
-        });
-        return () => unsubscribe();
-    }, []);
+        if (user) {
+            console.log('[OrderHistory] User logged in:', user);
+            console.log('[OrderHistory] User email:', user.email);
+            fetchOrders();
+        } else {
+            console.log('[OrderHistory] No user logged in');
+            setLoading(false);
+        }
+    }, [user]);
 
-    const fetchOrders = async (userId) => {
+    const fetchOrders = async () => {
         try {
-            const q = query(
-                collection(db, 'orders'),
-                where('userId', '==', userId),
-                orderBy('orderNumber', 'desc')
+            if (!DATABASE_ID || !ORDERS_COLLECTION) {
+                console.error('Missing Appwrite configuration');
+                setLoading(false);
+                return;
+            }
+
+            console.log('[OrderHistory] Fetching orders for user:', user.email);
+            console.log('[OrderHistory] Database ID:', DATABASE_ID);
+            console.log('[OrderHistory] Collection ID:', ORDERS_COLLECTION);
+
+
+            // Fetch all orders (no email filter to avoid index requirement)
+            const response = await databases.listDocuments(
+                DATABASE_ID,
+                ORDERS_COLLECTION,
+                [Query.limit(1000)]
             );
-            const querySnapshot = await getDocs(q);
-            const ordersList = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+
+            console.log('[OrderHistory] Total documents in collection:', response.total);
+
+            // Filter orders client-side by matching email
+            const userOrders = response.documents.filter(doc => {
+                // Check if email field exists at root level
+                if (doc.email && doc.email.toLowerCase() === user.email.toLowerCase()) {
+                    return true;
+                }
+
+                // Check customerInfo JSON for email
+                if (doc.customerInfo) {
+                    try {
+                        const customerData = typeof doc.customerInfo === 'string'
+                            ? JSON.parse(doc.customerInfo)
+                            : doc.customerInfo;
+
+                        if (customerData.email && customerData.email.toLowerCase() === user.email.toLowerCase()) {
+                            return true;
+                        }
+                    } catch (e) {
+                        console.warn('[OrderHistory] Could not parse customerInfo for order:', doc.$id);
+                    }
+                }
+
+                return false;
+            });
+
+            console.log('[OrderHistory] Filtered orders for user:', userOrders.length);
+
+            const ordersList = userOrders.map(doc => ({
+                id: doc.$id,
+                ...doc
+            })).sort((a, b) => {
+                const numA = parseInt(a.orderNumber) || 0;
+                const numB = parseInt(b.orderNumber) || 0;
+                return numB - numA;
+            });
+
+
+            console.log('[OrderHistory] Processed orders:', ordersList);
             setOrders(ordersList);
         } catch (error) {
-            console.error("Error fetching orders:", error);
-            if (error.code === 'failed-precondition') {
-                const q = query(
-                    collection(db, 'orders'),
-                    where('userId', '==', userId)
-                );
-                const querySnapshot = await getDocs(q);
-                const ordersList = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                })).sort((a, b) => (b.orderNumber || 0) - (a.orderNumber || 0));
-                setOrders(ordersList);
-            }
+            console.error("[OrderHistory] Error fetching orders:", error);
+            console.error("[OrderHistory] Error details:", {
+                message: error.message,
+                code: error.code,
+                type: error.type
+            });
+
+            toast.error(isAr ? 'فشل تحميل الطلبات' : 'Failed to load orders');
         } finally {
             setLoading(false);
         }
@@ -93,11 +137,15 @@ const OrderHistory = () => {
     const handleUpdateMileage = async (orderId) => {
         setUpdating(true);
         try {
-            const orderRef = doc(db, 'orders', orderId);
-            await updateDoc(orderRef, {
-                currentMileage: mileageValue,
-                updatedAt: serverTimestamp()
-            });
+            await databases.updateDocument(
+                DATABASE_ID,
+                ORDERS_COLLECTION,
+                orderId,
+                {
+                    currentMileage: mileageValue,
+                    updatedAt: new Date().toISOString()
+                }
+            );
             setOrders(prev => prev.map(o => o.id === orderId ? { ...o, currentMileage: mileageValue } : o));
             setEditingMileage(null);
             toast.success(isAr ? 'تم تحديث العداد بنجاح!' : 'Mileage updated successfully!');
@@ -157,7 +205,7 @@ const OrderHistory = () => {
                                     <div>
                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t('date')}</p>
                                         <p className="text-sm font-bold text-gray-700">
-                                            {order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000).toLocaleDateString(isAr ? 'ar-EG' : 'en-US') : 'N/A'}
+                                            {order.createdAt ? new Date(order.createdAt).toLocaleDateString(isAr ? 'ar-EG' : 'en-US') : 'N/A'}
                                         </p>
                                     </div>
                                     <div>

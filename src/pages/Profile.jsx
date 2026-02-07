@@ -3,6 +3,9 @@ import { auth, db } from '../firebase';
 import { doc, getDoc, updateDoc, collection, getDocs, arrayUnion, arrayRemove, query, where, orderBy, addDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { toast } from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
+import { databases } from '../appwrite';
+import { Query } from 'appwrite';
 import {
     User,
     MapPin,
@@ -57,6 +60,7 @@ const Profile = () => {
     const { t, i18n } = useTranslation();
     const { settings } = useSettings();
     const isAr = i18n.language === 'ar';
+    const { user: appwriteUser } = useAuth(); // Add Appwrite user
 
     // Address Book States
     const [savedAddresses, setSavedAddresses] = useState([]);
@@ -93,34 +97,56 @@ const Profile = () => {
     }, [activeTab, orders.length]);
 
     const fetchOrders = async () => {
-        if (!auth.currentUser) return;
+        if (!appwriteUser?.email) return;
+
         setFetchingOrders(true);
         try {
-            const q = query(
-                collection(db, 'orders'),
-                where('userId', '==', auth.currentUser.uid),
-                orderBy('createdAt', 'desc')
+            const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+            const ORDERS_COLLECTION = import.meta.env.VITE_APPWRITE_ORDERS_COLLECTION_ID;
+
+            // Fetch all orders and filter client-side
+            const response = await databases.listDocuments(
+                DATABASE_ID,
+                ORDERS_COLLECTION,
+                [Query.limit(1000)]
             );
-            const querySnapshot = await getDocs(q);
-            const ordersList = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+
+            // Filter orders by matching email
+            const userOrders = response.documents.filter(doc => {
+                if (doc.email && doc.email.toLowerCase() === appwriteUser.email.toLowerCase()) {
+                    return true;
+                }
+
+                if (doc.customerInfo) {
+                    try {
+                        const customerData = typeof doc.customerInfo === 'string'
+                            ? JSON.parse(doc.customerInfo)
+                            : doc.customerInfo;
+
+                        if (customerData.email && customerData.email.toLowerCase() === appwriteUser.email.toLowerCase()) {
+                            return true;
+                        }
+                    } catch (e) {
+                        console.warn('Could not parse customerInfo for order:', doc.$id);
+                    }
+                }
+
+                return false;
+            });
+
+            const ordersList = userOrders.map(doc => ({
+                id: doc.$id,
+                ...doc
+            })).sort((a, b) => {
+                const numA = parseInt(a.orderNumber) || 0;
+                const numB = parseInt(b.orderNumber) || 0;
+                return numB - numA;
+            });
+
             setOrders(ordersList);
         } catch (error) {
             console.error("Error fetching orders:", error);
-            if (error.code === 'failed-precondition') {
-                const q = query(
-                    collection(db, 'orders'),
-                    where('userId', '==', auth.currentUser.uid)
-                );
-                const querySnapshot = await getDocs(q);
-                const ordersList = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                })).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-                setOrders(ordersList);
-            }
+            toast.error(isAr ? 'فشل تحميل الطلبات' : 'Failed to load orders');
         } finally {
             setFetchingOrders(false);
         }
