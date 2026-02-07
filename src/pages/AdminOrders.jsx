@@ -29,7 +29,15 @@ const AdminOrders = () => {
         setLoading(true);
         try {
             const response = await databases.listDocuments(DATABASE_ID, ORDERS_COLLECTION, [Query.orderDesc('$createdAt'), Query.limit(100)]);
-            setOrders(response.documents.map(doc => ({ id: doc.$id, ...doc })));
+            setOrders(response.documents.map(doc => {
+                let parsedCustomer = {};
+                try {
+                    parsedCustomer = doc.customerInfo ? (typeof doc.customerInfo === 'string' ? JSON.parse(doc.customerInfo) : doc.customerInfo) : {};
+                } catch (e) {
+                    console.warn("Failed to parse customer info");
+                }
+                return { id: doc.$id, ...doc, customer: parsedCustomer };
+            }));
         } catch (error) {
             console.error(error);
         } finally {
@@ -157,9 +165,9 @@ const AdminOrders = () => {
                                         </td>
                                         <td className="px-8 py-6 text-center">
                                             <select value={order.status} onChange={e => handleStatusChange(order.id, e.target.value)} className={`text-[10px] font-black uppercase italic px-6 py-3 rounded-2xl border-2 shadow-sm transition-all outline-none ${order.status === 'Delivered' ? 'bg-green-50 text-green-600 border-green-200' :
-                                                    order.status === 'Cancelled' ? 'bg-red-50 text-red-600 border-red-200' :
-                                                        order.status === 'Processing' ? 'bg-blue-50 text-blue-600 border-blue-200' :
-                                                            'bg-orange-50 text-orange-600 border-orange-200'
+                                                order.status === 'Cancelled' ? 'bg-red-50 text-red-600 border-red-200' :
+                                                    order.status === 'Processing' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                                                        'bg-orange-50 text-orange-600 border-orange-200'
                                                 }`}>
                                                 {statusTabs.map(s => s !== 'All' && <option key={s} value={s}>{s}</option>)}
                                             </select>

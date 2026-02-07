@@ -82,8 +82,12 @@ const ManageCustomers = () => {
     const openViewModal = async (customer) => {
         setSelectedCustomer(customer); setSelectedCustomerOrders([]); setShowViewModal(true); setFetchingOrders(true);
         try {
-            const response = await databases.listDocuments(DATABASE_ID, ORDERS_COLLECTION, [Query.equal('$id', customer.id), Query.orderDesc('$createdAt')]);
-            setSelectedCustomerOrders(response.documents.map(d => ({ id: d.$id, ...d })));
+            const response = await databases.listDocuments(DATABASE_ID, ORDERS_COLLECTION, [Query.equal('userId', customer.id), Query.orderDesc('$createdAt')]);
+            setSelectedCustomerOrders(response.documents.map(d => {
+                let parsedCustomer = {};
+                try { parsedCustomer = d.customerInfo ? (typeof d.customerInfo === 'string' ? JSON.parse(d.customerInfo) : d.customerInfo) : {}; } catch (e) { console.warn("Failed to parse customer info"); }
+                return { id: d.$id, ...d, customer: parsedCustomer };
+            }));
         } catch (e) { toast.error("History fetch failure"); }
         finally { setFetchingOrders(false); }
     };

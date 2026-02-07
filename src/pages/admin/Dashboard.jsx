@@ -44,7 +44,7 @@ const Dashboard = () => {
                 databases.listDocuments(DATABASE_ID, ORDERS_COLLECTION, [Query.limit(1)]),
                 databases.listDocuments(DATABASE_ID, USERS_COLLECTION, [Query.limit(1)]),
                 databases.listDocuments(DATABASE_ID, ORDERS_COLLECTION, [Query.orderDesc('$createdAt'), Query.limit(5)]),
-                databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, [Query.lessThan('stockQuantity', 5), Query.limit(5)]),
+                databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, [Query.lessThan('stock', 5), Query.limit(5)]),
                 databases.listDocuments(DATABASE_ID, ORDERS_COLLECTION, [Query.equal('status', 'Pending'), Query.limit(1)])
             ]);
 
@@ -135,7 +135,7 @@ const Dashboard = () => {
                             <div className="space-y-2 mb-8">
                                 {lowStockProducts.map(p => (
                                     <div key={p.id} className="bg-white/10 p-3 rounded-xl flex justify-between items-center text-xs font-black uppercase italic">
-                                        <span className="truncate">{p.name || p.nameEn}</span><span className="bg-white text-red-600 px-2 rounded-lg">{p.stockQuantity} UNIT</span>
+                                        <span className="truncate">{p.name || p.nameAr}</span><span className="bg-white text-red-600 px-2 rounded-lg">{p.stock} UNIT</span>
                                     </div>
                                 ))}
                             </div>

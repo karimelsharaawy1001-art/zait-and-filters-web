@@ -37,7 +37,7 @@ const ManageProducts = () => {
             ];
 
             if (categoryFilter !== 'All') queries.push(Query.equal('category', categoryFilter));
-            if (brandFilter !== 'All') queries.push(Query.equal('partBrand', brandFilter));
+            if (brandFilter !== 'All') queries.push(Query.equal('brand', brandFilter));
             if (statusFilter === 'Active') queries.push(Query.equal('isActive', true));
             if (statusFilter === 'Inactive') queries.push(Query.equal('isActive', false));
             if (searchQuery) queries.push(Query.contains('name', searchQuery));
@@ -122,9 +122,9 @@ const ManageProducts = () => {
                                     <tr><td colSpan="5" className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-black" size={40} /></td></tr>
                                 ) : products.map(p => (
                                     <tr key={p.id} className="hover:bg-gray-50/50 transition-all group">
-                                        <td className="px-8 py-6"><img src={p.image || '/placeholder.png'} className="w-16 h-16 rounded-xl object-cover border" /></td>
-                                        <td className="px-8 py-6"><p className="font-black text-lg italic">{p.name}</p><p className="text-[10px] font-bold text-gray-400 uppercase">{p.partBrand} | {p.category}</p></td>
-                                        <td className="px-8 py-6 font-black text-lg">{p.price} EGP{p.stockQuantity < 5 && <p className="text-[9px] text-red-600 uppercase mt-1 flex items-center gap-1"><AlertTriangle size={10} /> Critical Stock: {p.stockQuantity}</p>}</td>
+                                        <td className="px-8 py-6"><img src={p.images || p.image || '/placeholder.png'} className="w-16 h-16 rounded-xl object-cover border" /></td>
+                                        <td className="px-8 py-6"><p className="font-black text-lg italic">{p.name}</p><p className="text-[10px] font-bold text-gray-400 uppercase">{p.brand} | {p.category}</p></td>
+                                        <td className="px-8 py-6 font-black text-lg">{p.price} EGP{p.stock < 5 && <p className="text-[9px] text-red-600 uppercase mt-1 flex items-center gap-1"><AlertTriangle size={10} /> Critical Stock: {p.stock}</p>}</td>
                                         <td className="px-8 py-6">
                                             <button onClick={() => handleToggleActive(p.id, p.isActive)} className={`flex items-center gap-2 px-4 py-2 rounded-full text-[9px] font-black uppercase border transition-all ${p.isActive ? 'bg-green-50 text-green-600 border-green-200' : 'bg-red-50 text-red-600 border-red-200'}`}>
                                                 {p.isActive ? <CheckCircle size={12} /> : <XCircle size={12} />} {p.isActive ? 'Active' : 'Offline'}
