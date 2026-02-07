@@ -164,21 +164,20 @@ const AffiliateRegister = () => {
                     // Firebase UIDs are alphanumeric.
 
                     await databases.createDocument(DATABASE_ID, AFFILIATES_COLLECTION, activeUser.uid, {
-                        fullName: formData.fullName,
+                        name: formData.fullName,
                         email: formData.email,
                         phone: formData.phone,
                         referralCode: referralCode,
                         linkedPromoCode: referralCode,
-                        commissionRate: 0.05,
-                        commissionPercentage: 5,
+                        commissionPercentage: 5.0,
                         currentTier: 1,
                         referralCount: 0,
                         totalEarnings: 0.0,
-                        pendingBalance: 0.0,
+                        unpaidEarnings: 0.0,
                         instaPayNumber: formData.instaPayNumber,
                         walletNumber: formData.walletNumber,
                         status: 'pending',
-                        createdAt: new Date().toISOString()
+                        userId: activeUser.uid
                     }).catch(e => console.error("Appwrite Affiliate Sync Error:", e));
 
                     const { ID } = await import('appwrite');
