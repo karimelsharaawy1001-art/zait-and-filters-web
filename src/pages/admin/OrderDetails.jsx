@@ -250,23 +250,28 @@ const OrderDetails = () => {
             const payload = {
                 items: JSON.stringify(editForm.items.map(i => ({
                     ...i,
-                    discount: parseFloat(i.discount || 0)
+                    discount: parseFloat(i.discount || 0) || 0
                 }))),
-                subtotal,
-                total,
-                shippingCost: shipping,
-                extraFees: parseFloat(editForm.extraFees || 0),
-                manualDiscount: parseFloat(editForm.manualDiscount || 0),
-                notes: editForm.notes,
+                subtotal: parseFloat(subtotal || 0) || 0,
+                total: parseFloat(total || 0) || 0,
+                shippingCost: parseFloat(shipping || 0) || 0,
+                extraFees: parseFloat(editForm.extraFees || 0) || 0,
+                manualDiscount: parseFloat(editForm.manualDiscount || 0) || 0,
+                notes: editForm.notes || '',
                 status: editForm.status,
                 paymentStatus: editForm.paymentStatus,
                 customerInfo: JSON.stringify({
-                    name: editForm.customerName,
-                    email: editForm.customerEmail,
-                    phone: editForm.customerPhone,
-                    city: editForm.customerCity,
-                    governorate: editForm.customerGovernorate,
-                    address: editForm.customerAddress
+                    name: editForm.customerName || '',
+                    email: editForm.customerEmail || '',
+                    phone: editForm.customerPhone || '',
+                    city: editForm.customerCity || '',
+                    governorate: editForm.customerGovernorate || '',
+                    address: editForm.customerAddress || ''
+                }),
+                shippingAddress: JSON.stringify({
+                    address: editForm.customerAddress || '',
+                    city: editForm.customerCity || '',
+                    governorate: editForm.customerGovernorate || ''
                 }),
                 updatedAt: new Date().toISOString()
             };
@@ -278,13 +283,18 @@ const OrderDetails = () => {
                 ...prev,
                 ...payload,
                 items: editForm.items, // Keep as array in active state
+                shippingAddress: {
+                    address: editForm.customerAddress || '',
+                    city: editForm.customerCity || '',
+                    governorate: editForm.customerGovernorate || ''
+                },
                 customer: {
-                    name: editForm.customerName,
-                    email: editForm.customerEmail,
-                    phone: editForm.customerPhone,
-                    city: editForm.customerCity,
-                    governorate: editForm.customerGovernorate,
-                    address: editForm.customerAddress
+                    name: editForm.customerName || '',
+                    email: editForm.customerEmail || '',
+                    phone: editForm.customerPhone || '',
+                    city: editForm.customerCity || '',
+                    governorate: editForm.customerGovernorate || '',
+                    address: editForm.customerAddress || ''
                 }
             }));
 
