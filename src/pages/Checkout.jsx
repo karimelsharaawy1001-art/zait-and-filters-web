@@ -509,9 +509,6 @@ const Checkout = () => {
                     const appwritePayload = {
                         orderNumber: String(finalOrderNumber),
                         userId: auth.currentUser?.uid || 'guest',
-                        email: formData.email || null,
-                        name: formData.name || 'Guest',
-                        phone: formattedPhone || '',
                         customerInfo: JSON.stringify(orderData.customer),
                         items: JSON.stringify(finalOrderItems),
                         subtotal: orderData.subtotal,
