@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { db, auth } from '../firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { safeLocalStorage } from '../utils/safeStorage';
+import { databases } from '../appwrite';
 
 const CartContext = createContext();
 
