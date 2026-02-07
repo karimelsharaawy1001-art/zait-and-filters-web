@@ -60,7 +60,7 @@ const Profile = () => {
     const { t, i18n } = useTranslation();
     const { settings } = useSettings();
     const isAr = i18n.language === 'ar';
-    const { user: appwriteUser } = useAuth(); // Add Appwrite user
+    const { user: appwriteUser, logout } = useAuth(); // Add logout to hook
 
     // Address Book States
     const [savedAddresses, setSavedAddresses] = useState([]);
@@ -399,7 +399,7 @@ const Profile = () => {
                                     <button
                                         onClick={async () => {
                                             try {
-                                                await signOut(auth);
+                                                await logout();
                                                 window.location.href = '/';
                                             } catch (error) {
                                                 console.error("Logout Error:", error);
