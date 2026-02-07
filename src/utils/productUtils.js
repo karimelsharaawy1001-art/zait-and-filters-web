@@ -196,8 +196,9 @@ export const getSearchableText = (p) => {
         p.partNumber || '',
         p.partBrand || p.brand || '',
         p.brandEn || '',
-        p.make || p.car_make || '',
+        p.make || p.car_make || p.carMake || '',
         p.model || p.car_model || p.carModel || '',
+        p.yearRange || p.carYear || '',
         p.category || '',
         p.subcategory || ''
     ];

@@ -64,7 +64,8 @@ const ProductGrid = ({ showFilters = true }) => {
             results = [...inventoryData];
         }
 
-        // 1. Garage Filter
+        // 0. Global Filter: Only show active products
+        results = results.filter(p => p.isActive !== false && p.isActive !== 'false' && p.isActive !== 0 && p.isActive !== '0');
         if (isGarageFilterActive && activeCar?.make) {
             const cMake = activeCar.make.toUpperCase();
             const cModel = (activeCar.model || '').toUpperCase();

@@ -57,9 +57,26 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 rawData = await onExportFetch();
             } else {
                 toast('Exporting ALL products', { icon: 'ℹ️' });
-                // Recursive fetch for all products (Appwrite limit is usually 5000 max)
-                const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, [Query.limit(5000)]);
-                rawData = response.documents.map(d => ({ id: d.$id, ...d }));
+                // Recursive deep fetch for all products (Handles 20,000+ items)
+                let allDocs = [];
+                let lastId = null;
+                let hasMore = true;
+
+                while (hasMore) {
+                    const queries = [Query.limit(100)];
+                    if (lastId) queries.push(Query.after(lastId));
+
+                    const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, queries);
+                    allDocs = [...allDocs, ...response.documents];
+
+                    if (response.documents.length < 100) {
+                        hasMore = false;
+                    } else {
+                        lastId = response.documents[response.documents.length - 1].$id;
+                        setImportStatus(`Gathering export data: ${allDocs.length}...`);
+                    }
+                }
+                rawData = allDocs.map(d => ({ id: d.$id, ...d }));
             }
 
             const products = rawData.map(data => {

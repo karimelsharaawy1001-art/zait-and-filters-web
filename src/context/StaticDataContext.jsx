@@ -43,32 +43,54 @@ export const StaticDataProvider = ({ children }) => {
                     load('shipping-rates-db.json')
                 ]);
 
-                // SYNC: Fetch "Fresh" data from Appwrite to overlay on static
+                // SYNC: Fetch "Deep Fresh" data from Appwrite to overlay on static (Handles 20,000+ items)
                 let mergedProducts = [...staticProd];
                 if (DATABASE_ID && PRODUCTS_COLLECTION) {
                     try {
-                        const response = await databases.listDocuments(
-                            DATABASE_ID,
-                            PRODUCTS_COLLECTION,
-                            [
-                                Query.orderDesc('$updatedAt'),
-                                Query.limit(5000) // Increased for full catalog sync
-                            ]
-                        );
+                        let freshItems = [];
+                        let lastId = null;
+                        let hasMore = true;
+                        let pageCount = 0;
 
-                        const freshItems = response.documents.map(d => ({
-                            id: d.$id,
-                            ...d
-                        }));
+                        while (hasMore) {
+                            pageCount++;
+                            const queries = [Query.limit(100)];
+                            if (lastId) queries.push(Query.after(lastId));
+
+                            const response = await databases.listDocuments(
+                                DATABASE_ID,
+                                PRODUCTS_COLLECTION,
+                                queries
+                            );
+
+                            const batch = response.documents.map(d => ({
+                                id: d.$id,
+                                ...d
+                            }));
+                            freshItems = [...freshItems, ...batch];
+
+                            if (response.documents.length < 100 || freshItems.length >= 20000) {
+                                hasMore = false;
+                            } else {
+                                lastId = response.documents[response.documents.length - 1].$id;
+                            }
+
+                            // Log progress every 500 items to avoid console spam
+                            if (freshItems.length % 500 === 0) {
+                                console.log(`📡 Fetching Catalog: ${freshItems.length} items synced...`);
+                            }
+                        }
 
                         const productMap = new Map();
+                        // 1. Load static baseline
                         staticProd.forEach(p => productMap.set(p.id, p));
+                        // 2. Overlay deep fresh data (overwrites static matches, adds new ones)
                         freshItems.forEach(p => productMap.set(p.id, p));
 
                         mergedProducts = Array.from(productMap.values());
-                        console.log(`🔄 Appwrite Sync: ${staticProd.length} Static + ${freshItems.length} Fresh = ${mergedProducts.length} Total`);
+                        console.log(`✅ Deep Sync Complete: ${staticProd.length} Static + ${freshItems.length} Appwrite = ${mergedProducts.length} Total`);
                     } catch (err) {
-                        console.warn("⚠️ Appwrite sync failed:", err);
+                        console.warn("⚠️ Appwrite deep sync failed:", err);
                     }
                 }
 
