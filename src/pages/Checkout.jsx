@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext'; // Added Appwrite useAuth
 import { safeLocalStorage } from '../utils/safeStorage';
 import { collection, addDoc, doc, writeBatch, increment, getDoc, getDocs, query, where, limit, runTransaction, setDoc, serverTimestamp, arrayUnion, updateDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
@@ -17,6 +18,7 @@ import TrustPaymentSection from '../components/TrustPaymentSection';
 
 const Checkout = () => {
     const { cartItems, getCartTotal, clearCart, updateCartStage, updateCustomerInfo, getEffectivePrice } = useCart();
+    const { user } = useAuth(); // Get Appwrite user
     const { navigate } = useSafeNavigation();
     const { t, i18n } = useTranslation();
     const isAr = i18n.language === 'ar';
@@ -55,10 +57,21 @@ const Checkout = () => {
         updateCartStage('Shipping Info');
         fetchPaymentMethods();
         fetchShippingRates();
-        if (auth.currentUser) {
+        if (user) {
+            // Pre-fill form with Appwrite user data
+            setFormData(prev => ({
+                ...prev,
+                name: user.name || '',
+                email: user.email || '',
+                phone: user.phone || ''
+            }));
+            // Fetch addresses from Appwrite if implemented, otherwise skip or migrate legacy address logic
+            // For now, we'll keep legacy Firebase address fetch if auth.currentUser exists as fallback? 
+            // Better to rely on Appwrite user data for basic info.
+        } else if (auth.currentUser) {
             fetchUserProfileAndAddresses();
         }
-    }, []);
+    }, [user]);
 
     // Sync customer info to CartContext for abandoned cart tracking
     useEffect(() => {
@@ -508,7 +521,7 @@ const Checkout = () => {
                     // Appwrite expects flat JSON mostly, but 'items' and 'customerInfo' are strings in schema
                     const appwritePayload = {
                         orderNumber: String(finalOrderNumber),
-                        userId: auth.currentUser?.uid || 'guest',
+                        userId: user?.$id || auth.currentUser?.uid || 'guest',
                         customerInfo: JSON.stringify(orderData.customer),
                         items: JSON.stringify(finalOrderItems),
                         subtotal: orderData.subtotal,

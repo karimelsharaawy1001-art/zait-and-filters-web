@@ -114,17 +114,23 @@ const Profile = () => {
             console.log('[Profile] Current User Email:', appwriteUser?.email);
             console.log('[Profile] Total orders fetched:', response.documents.length);
 
-            // Filter orders by matching email
+            // Filter orders by matching userId OR email
             const userOrders = response.documents.filter(doc => {
                 let matchFound = false;
 
-                // 1. Check root level email
-                if (doc.email && doc.email.toLowerCase() === appwriteUser.email.toLowerCase()) {
+                // 1. Check userId (Best Match)
+                if (doc.userId && doc.userId === appwriteUser.$id) {
+                    console.log(`[Profile] Match found by userId for order ${doc.$id}`);
+                    matchFound = true;
+                }
+
+                // 2. Check root level email
+                if (!matchFound && doc.email && doc.email.toLowerCase() === appwriteUser.email.toLowerCase()) {
                     console.log(`[Profile] Match found at root email for order ${doc.$id}`);
                     matchFound = true;
                 }
 
-                // 2. Check customerInfo JSON
+                // 3. Check customerInfo JSON
                 if (!matchFound && doc.customerInfo) {
                     try {
                         const customerData = typeof doc.customerInfo === 'string'
@@ -133,7 +139,7 @@ const Profile = () => {
 
                         // Debug log for failing orders
                         if (customerData.email && customerData.email.toLowerCase() !== appwriteUser.email.toLowerCase()) {
-                            console.log(`[Profile] Mismatch for order ${doc.$id}: Order email (${customerData.email}) !== User email (${appwriteUser.email})`);
+                            console.log(`[Profile] Email mismatch for order ${doc.$id}: Order (${customerData.email}) vs User (${appwriteUser.email})`);
                         }
 
                         if (customerData.email && customerData.email.toLowerCase() === appwriteUser.email.toLowerCase()) {

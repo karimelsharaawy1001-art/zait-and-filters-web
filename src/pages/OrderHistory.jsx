@@ -56,14 +56,21 @@ const OrderHistory = () => {
 
             console.log('[OrderHistory] Total documents in collection:', response.total);
 
-            // Filter orders client-side by matching email
+            // Filter orders client-side by matching userId OR email
             const userOrders = response.documents.filter(doc => {
-                // Check if email field exists at root level
-                if (doc.email && doc.email.toLowerCase() === user.email.toLowerCase()) {
+                // 1. Check userId (Best Match)
+                if (doc.userId && doc.userId === user.$id) {
+                    console.log(`[OrderHistory] Match found by userId for order ${doc.$id}`);
                     return true;
                 }
 
-                // Check customerInfo JSON for email
+                // 2. Check root level email
+                if (doc.email && doc.email.toLowerCase() === user.email.toLowerCase()) {
+                    console.log(`[OrderHistory] Match found by root email for order ${doc.$id}`);
+                    return true;
+                }
+
+                // 3. Check customerInfo JSON
                 if (doc.customerInfo) {
                     try {
                         const customerData = typeof doc.customerInfo === 'string'
@@ -71,6 +78,7 @@ const OrderHistory = () => {
                             : doc.customerInfo;
 
                         if (customerData.email && customerData.email.toLowerCase() === user.email.toLowerCase()) {
+                            console.log(`[OrderHistory] Match found by customerInfo email for order ${doc.$id}`);
                             return true;
                         }
                     } catch (e) {
@@ -80,8 +88,6 @@ const OrderHistory = () => {
 
                 return false;
             });
-
-            console.log('[OrderHistory] Filtered orders for user:', userOrders.length);
 
             const ordersList = userOrders.map(doc => ({
                 id: doc.$id,
