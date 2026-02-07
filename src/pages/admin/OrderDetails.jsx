@@ -4,7 +4,7 @@ import { Query, ID } from 'appwrite';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-    Loader2, ArrowLeft, Edit2, Clock, Package, User, MapPin, CreditCard, AlertCircle, X, Search, PlusCircle, Minus, Plus, Trash2, Save, ShoppingBag, Truck, Gift, CheckCircle2, DollarSign
+    Loader2, ArrowLeft, Edit2, Clock, Package, User, MapPin, CreditCard, AlertCircle, X, Search, PlusCircle, Minus, Plus, Trash2, Save, ShoppingBag, Truck, Gift, CheckCircle2, DollarSign, FileImage
 } from 'lucide-react';
 import AdminHeader from '../../components/AdminHeader';
 import { useStaticData } from '../../context/StaticDataContext';
@@ -106,6 +106,19 @@ const OrderDetails = () => {
         finally { setUpdating(false); }
     };
 
+    const handlePaymentStatusUpdate = async (newStatus) => {
+        setUpdating(true);
+        try {
+            await databases.updateDocument(DATABASE_ID, ORDERS_COLLECTION, id, {
+                paymentStatus: newStatus,
+                updatedAt: new Date().toISOString()
+            });
+            setOrder(prev => ({ ...prev, paymentStatus: newStatus }));
+            toast.success(`Payment status: ${newStatus}`);
+        } catch (err) { toast.error("Payment update failed"); }
+        finally { setUpdating(false); }
+    };
+
     const handleSaveEdit = async () => {
         setUpdating(true);
         try {
@@ -161,9 +174,12 @@ const OrderDetails = () => {
                                                 <div><h4 className="text-xl font-black italic uppercase">{item.name}</h4><p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">SKU identifier: {item.sku || item.id}</p></div>
                                                 <div className="text-right"><p className="text-2xl font-black">{item.price} <span className="text-xs text-gray-400 opacity-50 not-italic">EGP</span></p><p className="text-[10px] font-black py-1 px-3 bg-gray-100 rounded-lg inline-block mt-2">X {item.quantity}</p></div>
                                             </div>
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                                                 <div className="p-4 bg-gray-50 rounded-2xl border border-dashed text-center"><p className="text-[9px] text-gray-400 font-black uppercase mb-1">Brand</p><p className="text-xs font-black uppercase">{item.brand || 'Universal'}</p></div>
                                                 <div className="p-4 bg-gray-50 rounded-2xl border border-dashed text-center"><p className="text-[9px] text-gray-400 font-black uppercase mb-1">Category</p><p className="text-xs font-black uppercase">{item.category || 'Maintenance'}</p></div>
+                                                <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 text-center"><p className="text-[9px] text-blue-400 font-black uppercase mb-1">Make</p><p className="text-xs font-black uppercase text-blue-600">{item.carMake || item.make || 'Universal'}</p></div>
+                                                <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 text-center"><p className="text-[9px] text-blue-400 font-black uppercase mb-1">Model</p><p className="text-xs font-black uppercase text-blue-600">{item.carModel || item.model || 'All'}</p></div>
+                                                <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 text-center"><p className="text-[9px] text-blue-400 font-black uppercase mb-1">Year</p><p className="text-xs font-black uppercase text-blue-600">{item.year || 'Any'}</p></div>
                                                 <div className="p-4 bg-orange-50 font-black text-orange-600 rounded-2xl border border-orange-100 text-center"><p className="text-[9px] uppercase mb-1">Unit Subtotal</p><p className="text-xs">{(item.price * item.quantity).toLocaleString()} EGP</p></div>
                                             </div>
                                         </div>
@@ -191,8 +207,34 @@ const OrderDetails = () => {
                             <div className="flex items-center gap-4 border-b pb-4"><CreditCard className="text-red-600" /><h3 className="font-black uppercase italic">Flow Diagnostics</h3></div>
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center"><span className="text-xs font-bold text-gray-400 uppercase">Protocol</span><span className="text-xs font-black uppercase bg-gray-100 px-4 py-2 rounded-xl">{order.paymentMethod}</span></div>
-                                <div className="flex justify-between items-center"><span className="text-xs font-bold text-gray-400 uppercase">Verification</span><span className={`text-xs font-black uppercase px-4 py-2 rounded-xl border ${order.paymentStatus === 'Paid' ? 'bg-green-50 text-green-600 border-green-200' : 'bg-orange-50 text-orange-600 border-orange-200'}`}>{order.paymentStatus}</span></div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-xs font-bold text-gray-400 uppercase">Verification</span>
+                                    <select
+                                        value={order.paymentStatus}
+                                        onChange={e => handlePaymentStatusUpdate(e.target.value)}
+                                        disabled={updating}
+                                        className={`text-xs font-black uppercase px-4 py-2 rounded-xl border cursor-pointer outline-none transition-all ${order.paymentStatus === 'Paid' ? 'bg-green-50 text-green-600 border-green-200' : 'bg-orange-50 text-orange-600 border-orange-200'}`}
+                                    >
+                                        <option value="Pending">Pending</option>
+                                        <option value="Paid">Paid</option>
+                                    </select>
+                                </div>
                             </div>
+                        </section>
+
+                        <section className="bg-white p-8 rounded-[2.5rem] border shadow-sm space-y-6">
+                            <div className="flex items-center gap-4 border-b pb-4"><FileImage className="text-red-600" /><h3 className="font-black uppercase italic">Payment Proof</h3></div>
+                            {(() => {
+                                const receiptMatch = order.notes?.match(/\[Receipt URL\]:\s*(.+)/);
+                                const receiptUrl = receiptMatch ? receiptMatch[1].trim() : null;
+                                return receiptUrl ? (
+                                    <div className="p-4 bg-gray-50 rounded-2xl border">
+                                        <img src={receiptUrl} alt="Payment Receipt" className="w-full h-auto rounded-xl shadow-lg" />
+                                    </div>
+                                ) : (
+                                    <div className="p-5 bg-gray-50 rounded-2xl text-xs font-bold text-gray-400 italic text-center">No proof of payment uploaded</div>
+                                );
+                            })()}
                         </section>
 
                         <section className="bg-white p-8 rounded-[2.5rem] border shadow-sm space-y-4">
