@@ -7,6 +7,7 @@ import LanguageSwitcher from './LanguageSwitcher';
 import { Link, useLocation } from 'react-router-dom';
 import { useSafeNavigation } from '../utils/safeNavigation';
 import { useSettings } from '../context/SettingsContext';
+import { useAuth } from '../context/AuthContext'; // Import Appwrite Auth
 import { auth, db } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { collection, query, where, getDocs, limit as firestoreLimit, orderBy } from 'firebase/firestore';
@@ -63,6 +64,11 @@ const Navbar = () => {
     const cartCount = getCartCount();
     const { navigate } = useSafeNavigation();
     const location = useLocation();
+    const { user, logout } = useAuth(); // Use Appwrite Auth
+
+    // Remove local state and effect for Firebase auth
+    // const [user, setUser] = useState(null); 
+    // useEffect(() => ... )
 
     const [suggestions, setSuggestions] = useState([]);
     const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
@@ -149,7 +155,8 @@ const Navbar = () => {
 
     const handleLogout = async () => {
         try {
-            await signOut(auth);
+            await logout(); // Use Appwrite logout
+            // await signOut(auth); // Keep Firebase signout if needed for cleanup, but Appwrite is primary
             toast.success('Logged out successfully');
             navigate('/login');
         } catch (error) {
@@ -312,9 +319,18 @@ const Navbar = () => {
                                 </span>
                             </button>
 
-                            <Link to="/profile" className="p-1 force-black">
+                            <button
+                                onClick={() => {
+                                    if (user) {
+                                        navigate('/profile');
+                                    } else {
+                                        navigate('/login');
+                                    }
+                                }}
+                                className="p-1 force-black"
+                            >
                                 <User className="h-6 w-6 stroke-[3px]" />
-                            </Link>
+                            </button>
 
                             <LanguageSwitcher />
                         </div>
@@ -360,9 +376,18 @@ const Navbar = () => {
                                 >
                                     <Car className="h-6 w-6 stroke-[3px]" />
                                 </button>
-                                <Link to="/profile" className="p-1.5 force-black active:bg-gray-100 rounded-full transition-colors">
+                                <button
+                                    onClick={() => {
+                                        if (user) {
+                                            navigate('/profile');
+                                        } else {
+                                            navigate('/login');
+                                        }
+                                    }}
+                                    className="p-1.5 force-black active:bg-gray-100 rounded-full transition-colors"
+                                >
                                     <User className="h-6 w-6 stroke-[3px]" />
-                                </Link>
+                                </button>
                                 <Link to="/cart" className="p-1.5 relative force-black active:bg-gray-100 rounded-full transition-colors">
                                     <ShoppingCart className="h-6 w-6 stroke-[3px]" />
                                     {cartCount > 0 && (
