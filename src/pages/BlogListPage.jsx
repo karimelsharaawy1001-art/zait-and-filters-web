@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
+import { databases } from '../appwrite';
+import { Query } from 'appwrite';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Calendar, User, ArrowRight, Loader2 } from 'lucide-react';
@@ -17,15 +17,24 @@ const BlogListPage = () => {
     useEffect(() => {
         const fetchPosts = async () => {
             try {
-                // We fetch all and filter in-memory to avoid requiring a composite index 
-                // for (where('isActive') + orderBy('createdAt')).
-                // This is also the most reliable "sync" method with the Admin Dashboard.
-                const q = query(collection(db, 'blog_posts'), orderBy('createdAt', 'desc'));
-                const querySnapshot = await getDocs(q);
+                const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+                const BLOG_COLLECTION = import.meta.env.VITE_APPWRITE_BLOG_COLLECTION_ID || 'blog_posts';
 
-                const list = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
+                if (!DATABASE_ID || !BLOG_COLLECTION) {
+                    console.error('Missing Appwrite configuration');
+                    setLoading(false);
+                    return;
+                }
+
+                const response = await databases.listDocuments(DATABASE_ID, BLOG_COLLECTION, [
+                    Query.orderDesc('$createdAt'),
+                    Query.limit(100)
+                ]);
+
+                const list = response.documents.map(doc => ({
+                    id: doc.$id,
+                    ...doc,
+                    createdAt: doc.$createdAt // Map Appwrite's $createdAt
                 }));
 
                 // Filter for published posts only
@@ -107,7 +116,7 @@ const BlogListPage = () => {
                                     <div className={`flex items-center gap-4 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 ${isAr ? 'flex-row-reverse' : ''}`}>
                                         <div className="flex items-center gap-1.5">
                                             <Calendar className="h-3 w-3" />
-                                            {post.createdAt?.toDate().toLocaleDateString(isAr ? 'ar-EG' : 'en-US')}
+                                            {new Date(post.createdAt).toLocaleDateString(isAr ? 'ar-EG' : 'en-US')}
                                         </div>
                                         <div className="flex items-center gap-1.5 text-orange-600/60">
                                             <User className="h-3 w-3" />
