@@ -84,8 +84,14 @@ const ProductGrid = ({ showFilters = true }) => {
                 return isCarMatch && isYearMatch;
             });
         } else {
-            if (filters.make) results = results.filter(p => (p.make || p.carMake || p.car_make) === filters.make);
-            if (filters.model) results = results.filter(p => (p.model || p.carModel || p.car_model) === filters.model);
+            if (filters.make) {
+                const fMake = filters.make.toUpperCase();
+                results = results.filter(p => (p.make || p.carMake || p.car_make || '').toUpperCase() === fMake);
+            }
+            if (filters.model) {
+                const fModel = filters.model.toUpperCase();
+                results = results.filter(p => (p.model || p.carModel || p.car_model || '').toUpperCase() === fModel);
+            }
             if (filters.year) {
                 const yearNum = parseInt(filters.year);
                 results = results.filter(p => {

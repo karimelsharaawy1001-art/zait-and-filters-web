@@ -89,6 +89,15 @@ export const StaticDataProvider = ({ children }) => {
 
                         mergedProducts = Array.from(productMap.values());
                         console.log(`✅ Deep Sync Complete: ${staticProd.length} Static + ${freshItems.length} Appwrite = ${mergedProducts.length} Total`);
+
+                        // Global Debug Hook
+                        window.__CATALOG_DEBUG__ = {
+                            staticCount: staticProd.length,
+                            appwriteCount: freshItems.length,
+                            totalMerged: mergedProducts.length,
+                            firstItem: mergedProducts[0],
+                            lastSync: new Date().toISOString()
+                        };
                     } catch (err) {
                         console.warn("⚠️ Appwrite deep sync failed:", err);
                     }

@@ -255,7 +255,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 // Find matching product in reference data (JSON) - handle both id and $id
                 const ref = staticProducts.find(r => (r.id || r.$id) === doc.$id);
 
-                if (i === 0) console.log("🔍 Repair Debug: First Doc ID", doc.$id, "Found Ref?", !!ref);
+                if (i % 50 === 0) console.log(`🔍 Repair Scan [${i}/${allDocs.length}]: ${doc.name} (${doc.$id}) | Found Ref: ${!!ref}`);
 
                 // 1. Restore missing Data from Reference (JSON Backup)
                 if (ref) {
@@ -268,24 +268,25 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     if ((ref.brand || ref.partBrand) && !doc.brand) updates.brand = String(ref.brand || ref.partBrand);
 
                     // Fill Legacy Schema (Active in Appwrite)
-                    if ((ref.make || ref.carMake) && !doc.carMake) updates.carMake = String(ref.make || ref.carMake).toUpperCase();
-                    if ((ref.model || ref.carModel) && !doc.carModel) updates.carModel = String(ref.model || ref.carModel).toUpperCase();
+                    if ((ref.make || ref.carMake) && (!doc.carMake || doc.carMake === '-')) updates.carMake = String(ref.make || ref.carMake).toUpperCase();
+                    if ((ref.model || ref.carModel) && (!doc.carModel || doc.carModel === '-')) updates.carModel = String(ref.model || ref.carModel).toUpperCase();
                     if ((ref.yearRange || ref.carYear) && (!doc.carYear || doc.carYear === '-')) updates.carYear = String(ref.yearRange || ref.carYear);
-                    if ((ref.brand || ref.partBrand) && !doc.partBrand) updates.partBrand = String(ref.brand || ref.partBrand);
+                    if ((ref.brand || ref.partBrand) && (!doc.partBrand || doc.partBrand === '-')) updates.partBrand = String(ref.brand || ref.partBrand);
                 }
 
-                // 2. Internal Synchronization (Cross-fill)
-                if (doc.carMake && !doc.make && !updates.make) updates.make = doc.carMake;
-                if (doc.carModel && !doc.model && !updates.model) updates.model = doc.carModel;
-                if (doc.carYear && !doc.yearRange && !updates.yearRange) updates.yearRange = doc.carYear;
-                if (doc.make && !doc.carMake && !updates.carMake) updates.carMake = doc.make;
-                if (doc.model && !doc.carModel && !updates.carModel) updates.carModel = doc.model;
-                if (doc.yearRange && !doc.carYear && !updates.carYear) updates.carYear = doc.yearRange;
+                // 2. Internal Synchronization (Cross-fill from Legacy to New)
+                if (doc.carMake && (!doc.make || doc.make === '-') && !updates.make) updates.make = doc.carMake.toUpperCase();
+                if (doc.carModel && (!doc.model || doc.model === '-') && !updates.model) updates.model = doc.carModel.toUpperCase();
+                if (doc.carYear && (!doc.yearRange || doc.yearRange === '-') && !updates.yearRange) updates.yearRange = doc.carYear;
+                if (doc.make && (!doc.carMake || doc.carMake === '-') && !updates.carMake) updates.carMake = doc.make.toUpperCase();
+                if (doc.model && (!doc.carModel || doc.carModel === '-') && !updates.carModel) updates.carModel = doc.model.toUpperCase();
+                if (doc.yearRange && (!doc.carYear || doc.carYear === '-') && !updates.carYear) updates.carYear = doc.yearRange;
 
-                // 3. Ensure Active
+                // 3. Ensure Active & Type Fixes
                 if (doc.isActive === undefined || doc.isActive === null) updates.isActive = true;
+                if (typeof doc.isActive === 'string') updates.isActive = parseBoolean(doc.isActive);
 
-                // 3. Year Range Parsing (if still needed)
+                // 4. Year Range Parsing (if still needed)
                 const rangeToParse = updates.yearRange || doc.yearRange || doc.carYear;
                 if (rangeToParse && (!doc.yearStart || !doc.yearEnd)) {
                     const { yearStart, yearEnd } = parseYearRange(rangeToParse);
@@ -293,30 +294,29 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     if (yearEnd && !doc.yearEnd) updates.yearEnd = yearEnd;
                 }
 
-                // 4. Brand Normalization
+                // 5. Brand Normalization
                 if (doc.partBrand && !doc.brand && !updates.brand) updates.brand = doc.partBrand;
-                if (doc.brand && !doc.partBrand) updates.partBrand = doc.brand;
+                if (doc.brand && !doc.partBrand && !updates.partBrand) updates.partBrand = doc.brand;
 
-                // 5. Data Types
+                // 6. Data Types
                 if (typeof doc.price === 'string') updates.price = Number(doc.price) || 0;
                 if (typeof doc.costPrice === 'string') updates.costPrice = Number(doc.costPrice) || 0;
-                if (typeof doc.isActive === 'string') updates.isActive = parseBoolean(doc.isActive);
 
                 if (Object.keys(updates).length > 0) {
                     try {
                         await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, doc.$id, updates);
                         repairCount++;
-                        // Small throttle every 10 updates to prevent rate limit
-                        if (repairCount % 10 === 0) {
-                            await new Promise(r => setTimeout(r, 50));
+                        // Small throttle every 5 updates for safety on large datasets
+                        if (repairCount % 5 === 0) {
+                            await new Promise(r => setTimeout(r, 20));
                         }
                     } catch (err) {
                         console.error(`Repair failed for ${doc.$id}:`, err);
                     }
                 }
 
-                if (i % 25 === 0) {
-                    setImportStatus(`Repairing: ${i + 1} / ${allDocs.length}`);
+                if (i % 20 === 0) {
+                    setImportStatus(`Repairing: ${i + 1} / ${allDocs.length} (Fixed: ${repairCount})`);
                 }
             }
 
