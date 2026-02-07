@@ -159,45 +159,45 @@ const AbandonedCarts = () => {
                     <div className="overflow-x-auto">
                         <table className="w-full admin-table-dense">
                             <thead className="bg-slate-50/50">
-                                <tr>
-                                    <th className="text-left">Consignee Potential</th>
-                                    <th className="text-left">Cart Telemetry</th>
-                                    <th className="text-left">Last Protocol</th>
-                                    <th className="text-center">Security State</th>
-                                    <th className="text-right">Actions</th>
+                                <tr className="border-b border-slate-100">
+                                    <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-tighter text-slate-400 italic">Consignee Potential</th>
+                                    <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-tighter text-slate-400 italic">Cart Telemetry</th>
+                                    <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-tighter text-slate-400 italic">Last Protocol</th>
+                                    <th className="text-center py-4 px-6 text-[10px] font-black uppercase tracking-tighter text-slate-400 italic">Security State</th>
+                                    <th className="text-right py-4 px-6 text-[10px] font-black uppercase tracking-tighter text-slate-400 italic">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-50">
+                            <tbody className="divide-y divide-slate-100">
                                 {loading ? <tr><td colSpan="5" className="p-16 text-center text-slate-400"><Loader2 className="animate-spin mx-auto mb-3" size={32} /><p className="text-[10px] font-bold uppercase tracking-widest">Accessing Logs...</p></td></tr> : filteredCarts.map(cart => (
                                     <tr key={cart.id} className="hover:bg-slate-50/50 group transition-all">
-                                        <td>
+                                        <td className="py-4 px-6">
                                             <div className="flex flex-col gap-1">
-                                                <span className="text-[13px] font-bold text-slate-900 flex items-center gap-2 italic">{cart.customerName || 'Anonymous Node'}</span>
+                                                <span className="text-[14px] font-black text-slate-900 group-hover:text-emerald-600 transition-colors uppercase italic tracking-tighter">{cart.customerName || 'Anonymous Node'}</span>
                                                 <div className="flex items-center gap-3">
-                                                    {cart.customerPhone && <span className="text-[10px] font-medium text-slate-400 flex items-center gap-1.5"><Phone size={10} /> {cart.customerPhone}</span>}
-                                                    {cart.email && <span className="text-[10px] font-medium text-slate-400 flex items-center gap-1.5"><Mail size={10} /> {cart.email}</span>}
+                                                    {cart.customerPhone && <span className="text-[10px] font-black text-slate-400 flex items-center gap-1.5 uppercase"><Phone size={10} className="text-slate-300" /> {cart.customerPhone}</span>}
+                                                    {cart.email && <span className="text-[10px] font-black text-slate-400 flex items-center gap-1.5 uppercase"><Mail size={10} className="text-slate-300" /> {cart.email}</span>}
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td className="py-4 px-6">
                                             <div className="flex flex-col gap-0.5">
-                                                <span className="text-[14px] font-bold text-slate-900">{cart.total?.toLocaleString()} <span className="text-[10px] text-slate-400 font-medium">EGP</span></span>
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{cart.items?.length || 0} Payload Units</span>
+                                                <span className="text-[16px] font-black text-slate-900 italic tracking-tighter">{cart.total?.toLocaleString()} <span className="text-[9px] text-slate-400 font-bold uppercase ml-0.5">EGP</span></span>
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{cart.items?.length || 0} Payload Units</span>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td className="py-4 px-6">
                                             <div className="flex flex-col gap-1.5">
                                                 {getStageBadge(cart.lastStepReached)}
-                                                <span className="text-[9px] font-bold text-slate-400 uppercase flex items-center gap-1.5"><Clock size={10} /> {cart.lastModified.toLocaleString()}</span>
+                                                <span className="text-[9px] font-black text-slate-400 uppercase flex items-center gap-1.5 tracking-wider"><Clock size={10} className="text-slate-300" /> {cart.lastModified.toLocaleString()}</span>
                                             </div>
                                         </td>
-                                        <td className="text-center">
+                                        <td className="py-4 px-6 text-center">
                                             {cart.recovered ? (
-                                                <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-md text-[9px] font-bold uppercase border border-emerald-100">Recovered</span>
+                                                <span className="px-3 py-1 bg-emerald-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 border border-emerald-400">Recovered</span>
                                             ) : cart.emailSent ? (
-                                                <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[9px] font-bold uppercase border border-blue-100">Reminded</span>
+                                                <span className="px-3 py-1 bg-blue-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 border border-blue-400">Reminded</span>
                                             ) : (
-                                                <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded-md text-[9px] font-bold uppercase border border-slate-200">Dormant</span>
+                                                <span className="px-3 py-1 bg-white text-slate-400 rounded-lg text-[9px] font-black uppercase tracking-widest border border-slate-200">Dormant</span>
                                             )}
                                         </td>
                                         <td className="text-right">
@@ -241,26 +241,47 @@ const AbandonedCarts = () => {
                                     </div>
                                 </section>
                                 <section className="space-y-4">
-                                    <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                                        <Zap size={14} className="text-amber-500" />
-                                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Payload Registry</h4>
+                                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                                        <div className="flex items-center gap-2">
+                                            <Zap size={14} className="text-amber-500" />
+                                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Payload Registry</h4>
+                                        </div>
+                                        <span className="text-[9px] font-black text-slate-300 uppercase">{selectedCart.items?.length || 0} Nodes</span>
                                     </div>
-                                    <div className="grid grid-cols-1 gap-2">
+                                    <div className="grid grid-cols-1 gap-2.5">
                                         {selectedCart.items?.map((item, i) => (
-                                            <div key={i} className="bg-white p-3 rounded-xl border border-slate-100 flex gap-4 items-center group hover:bg-slate-50 transition-all">
-                                                <div className="w-12 h-12 rounded-lg overflow-hidden border border-slate-100 flex-shrink-0">
-                                                    <img src={item.image} className="w-full h-full object-cover" />
+                                            <div key={i} className="bg-slate-50/50 p-3.5 rounded-2xl border border-slate-100 flex gap-4 items-center group hover:bg-white hover:shadow-md hover:border-slate-200 transition-all duration-300">
+                                                <div className="w-16 h-16 rounded-xl overflow-hidden border border-slate-200 bg-white flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+                                                    <img src={item.image} className="w-full h-full object-cover" alt={item.name} />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <h5 className="text-[11px] font-bold text-slate-900 truncate uppercase">{item.name}</h5>
-                                                    <div className="flex gap-2 mt-0.5">
-                                                        <span className="text-[8px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded uppercase border border-emerald-100">{item.brand || 'Generic'}</span>
-                                                        <span className="text-[8px] font-bold text-slate-400 uppercase">{item.category}</span>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <h5 className="text-[12px] font-black text-slate-900 truncate uppercase tracking-tight">{item.name}</h5>
                                                     </div>
-                                                    <p className="text-[8px] font-bold text-slate-400 uppercase mt-1">Quantity: {item.quantity}</p>
+
+                                                    {/* Car Spec Telemetry */}
+                                                    <div className="flex flex-wrap gap-1.5 items-center">
+                                                        {(item.make || item.model) && (
+                                                            <div className="flex items-center gap-1 px-2 py-0.5 bg-slate-900 text-white rounded-md text-[8px] font-black uppercase tracking-wider">
+                                                                {item.make} {item.model}
+                                                            </div>
+                                                        )}
+                                                        {(item.yearStart || item.yearEnd || item.yearRange) && (
+                                                            <div className="flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-500 rounded-md text-[8px] font-black uppercase border border-slate-200">
+                                                                <Clock size={8} /> {item.yearRange || `${item.yearStart}${item.yearEnd ? `-${item.yearEnd}` : ''}`}
+                                                            </div>
+                                                        )}
+                                                        <span className="text-[8px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded uppercase border border-emerald-100">{item.brand || 'Generic'}</span>
+                                                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">{item.category}</span>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-4 mt-2">
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase">Quantity: <span className="text-slate-900">{item.quantity}</span></p>
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase">Unit: <span className="text-slate-900">{item.price?.toLocaleString()} EGP</span></p>
+                                                    </div>
                                                 </div>
-                                                <div className="text-right">
-                                                    <p className="text-xs font-bold text-slate-900">{item.price?.toLocaleString()} <span className="text-[8px] font-medium text-slate-400 uppercase ml-0.5">EGP</span></p>
+                                                <div className="text-right pl-2">
+                                                    <p className="text-[13px] font-black text-slate-900">{(item.price * item.quantity).toLocaleString()} <span className="text-[9px] text-slate-400 font-medium">EGP</span></p>
                                                 </div>
                                             </div>
                                         ))}
