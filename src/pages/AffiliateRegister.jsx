@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth, db } from '../firebase';
+import { databases } from '../appwrite';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut } from 'firebase/auth';
 import { setDoc, doc, collection, addDoc, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
 import { Users, Mail, Lock, User, Wallet, Phone, ArrowRight, AlertCircle, Sparkles, LogOut, TrendingUp, Clock, ShieldCheck, CheckCircle2, LayoutDashboard, Rocket, LogIn } from 'lucide-react';
@@ -146,9 +147,56 @@ const AffiliateRegister = () => {
                 pendingBalance: 0,
                 instaPayNumber: formData.instaPayNumber,
                 walletNumber: formData.walletNumber,
-                status: 'active',
+                status: 'pending', // Pending admin approval
                 createdAt: serverTimestamp()
             });
+
+            // 6. Dual-Write to Appwrite (For Admin Panel Visibility)
+            try {
+                const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+                const AFFILIATES_COLLECTION = import.meta.env.VITE_APPWRITE_AFFILIATES_COLLECTION_ID || 'affiliates';
+                const PROMO_CODES_COLLECTION = import.meta.env.VITE_APPWRITE_PROMO_CODES_COLLECTION_ID || 'promo_codes';
+
+                if (DATABASE_ID) {
+                    // Ensure ID is valid for Appwrite (replace non-alphanumeric with underscore, max 36 chars)
+                    // But since we use Firebase UID which is shorter, it should be fine.  
+                    // Let's use the same ID logic: valid Appwrite ID chars are a-z, A-Z, 0-9, _, . and -
+                    // Firebase UIDs are alphanumeric.
+
+                    await databases.createDocument(DATABASE_ID, AFFILIATES_COLLECTION, activeUser.uid, {
+                        fullName: formData.fullName,
+                        email: formData.email,
+                        phone: formData.phone,
+                        referralCode: referralCode,
+                        linkedPromoCode: referralCode,
+                        commissionRate: 0.05,
+                        commissionPercentage: 5,
+                        currentTier: 1,
+                        referralCount: 0,
+                        totalEarnings: 0.0,
+                        pendingBalance: 0.0,
+                        instaPayNumber: formData.instaPayNumber,
+                        walletNumber: formData.walletNumber,
+                        status: 'pending',
+                        createdAt: new Date().toISOString()
+                    }).catch(e => console.error("Appwrite Affiliate Sync Error:", e));
+
+                    const { ID } = await import('appwrite');
+                    await databases.createDocument(DATABASE_ID, PROMO_CODES_COLLECTION, ID.unique(), {
+                        code: referralCode,
+                        type: 'discount',
+                        value: 5,
+                        isPercentage: true,
+                        isActive: true,
+                        affiliateId: activeUser.uid,
+                        usageLimit: 10000,
+                        usedCount: 0,
+                        createdAt: new Date().toISOString()
+                    }).catch(e => console.error("Appwrite Promo Sync Error:", e));
+                }
+            } catch (appwriteError) {
+                console.error("Appwrite Sync Failed (Non-blocking):", appwriteError);
+            }
 
             navigate('/affiliate-dashboard');
         } catch (err) {
