@@ -58,38 +58,48 @@ export default async function handler(req, res) {
         if (action === 'check-seo') {
             const tagName = body.tagName || req.query.tagName || 'google-site-verification';
             const expectedValue = body.expectedValue || req.query.expectedValue;
-            const targetUrl = body.targetUrl || req.query.targetUrl;
-
-            if (!targetUrl) return res.status(400).json({ error: 'targetUrl is required' });
 
             try {
-                // Fetch the actual homepage to see if the tag is injected
-                const siteRes = await axios.get(targetUrl, {
-                    timeout: 8000,
-                    headers: { 'User-Agent': 'ZaitFilters-SEO-Bot/1.0' }
+                const endpoint = process.env.VITE_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1';
+                const projectId = process.env.VITE_APPWRITE_PROJECT_ID;
+                const databaseId = process.env.VITE_APPWRITE_DATABASE_ID;
+                const collectionId = process.env.VITE_APPWRITE_SETTINGS_COLLECTION_ID || 'settings';
+
+                const url = `${endpoint}/databases/${databaseId}/collections/${collectionId}/documents/integrations`;
+
+                const response = await axios.get(url, {
+                    headers: { 'X-Appwrite-Project': projectId }
                 });
-                const html = siteRes.data;
 
-                // Regex to find the meta tag regardless of attribute order
-                const regex = new RegExp(`<meta[^>]*name=["']${tagName}["'][^>]*content=["']([^"']*)["']`, 'i');
-                const altRegex = new RegExp(`<meta[^>]*content=["']([^"']*)["'][^>]*name=["']${tagName}["']`, 'i');
+                const data = response.data;
 
-                const match = html.match(regex) || html.match(altRegex);
+                // Map tag names to Appwrite fields
+                const tagMap = {
+                    'google-site-verification': 'googleVerificationCode',
+                    'facebook-pixel': 'facebookPixelId',
+                    'google-analytics': 'googleAnalyticsId'
+                };
 
-                if (!match) {
-                    return res.status(200).json({ status: 'not_found' });
+                const fieldName = tagMap[tagName];
+                if (!fieldName) return res.status(200).json({ status: 'unsupported_tag' });
+
+                let savedValue = data[fieldName];
+                if (!savedValue) return res.status(200).json({ status: 'not_found' });
+
+                // Clean saved value if it's a full tag (mirroring SEO.jsx logic)
+                if (tagName === 'google-site-verification' && savedValue.includes('content="')) {
+                    savedValue = savedValue.split('content="')[1].split('"')[0];
                 }
 
-                const foundValue = match[1];
-                if (expectedValue && foundValue !== expectedValue) {
-                    return res.status(200).json({ status: 'mismatch', found: foundValue });
+                if (expectedValue && savedValue !== expectedValue) {
+                    return res.status(200).json({ status: 'mismatch', found: savedValue });
                 }
 
                 return res.status(200).json({ status: 'found' });
             } catch (err) {
                 return res.status(200).json({
                     status: 'error',
-                    msg: `Failed to fetch site: ${err.message}`
+                    msg: `Appwrite Error: ${err.response?.data?.message || err.message}`
                 });
             }
         }
