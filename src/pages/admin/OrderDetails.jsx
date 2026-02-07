@@ -4,7 +4,7 @@ import { Query, ID } from 'appwrite';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-    Loader2, ArrowLeft, Edit2, Clock, Package, User, MapPin, CreditCard, AlertCircle, X, Search, PlusCircle, Minus, Plus, Trash2, Save, ShoppingBag, Truck, Gift, CheckCircle2, DollarSign, FileImage, Phone, Calendar
+    Loader2, ArrowLeft, Edit2, Clock, Package, User, MapPin, CreditCard, AlertCircle, X, Search, PlusCircle, Minus, Plus, Trash2, Save, ShoppingBag, Truck, Gift, CheckCircle2, DollarSign, FileImage, Phone, Calendar, ChevronDown
 } from 'lucide-react';
 import AdminHeader from '../../components/AdminHeader';
 import { useStaticData } from '../../context/StaticDataContext';
@@ -19,7 +19,88 @@ const OrderDetails = () => {
     const [enrichedItems, setEnrichedItems] = useState([]);
     const [updating, setUpdating] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [editForm, setEditForm] = useState({ paymentStatus: '', paymentMethod: '', status: '', items: [], extraFees: 0, manualDiscount: 0, notes: '' });
+    const [editForm, setEditForm] = useState({
+        paymentStatus: '',
+        paymentMethod: '',
+        status: '',
+        items: [],
+        extraFees: 0,
+        manualDiscount: 0,
+        notes: '',
+        shippingCost: 0,
+        customerName: '',
+        customerEmail: '',
+        customerPhone: '',
+        customerCity: '',
+        customerGovernorate: '',
+        customerAddress: ''
+    });
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+
+    // Search for products when term changes
+    useEffect(() => {
+        if (searchTerm.length > 1 && staticProducts) {
+            const lower = searchTerm.toLowerCase();
+            const results = staticProducts.filter(p =>
+                p.name.toLowerCase().includes(lower) ||
+                (p.sku && p.sku.toLowerCase().includes(lower)) ||
+                (p.brand && p.brand.toLowerCase().includes(lower))
+            ).slice(0, 5);
+            setSearchResults(results);
+        } else {
+            setSearchResults([]);
+        }
+    }, [searchTerm, staticProducts]);
+
+    const handleAddItem = (product) => {
+        setEditForm(prev => {
+            const exists = prev.items.find(i => i.id === product.id);
+            if (exists) {
+                return {
+                    ...prev,
+                    items: prev.items.map(i => i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i)
+                };
+            }
+            return {
+                ...prev,
+                items: [...prev.items, {
+                    id: product.id,
+                    name: product.name,
+                    price: parseFloat(product.price) || 0,
+                    quantity: 1,
+                    image: product.images ? product.images[0] : (product.image || ''),
+                    sku: product.sku || '',
+                    brand: product.brand || 'Generic',
+                    carMake: product.make || product.carMake || '',
+                    carModel: product.model || product.carModel || '',
+                    carMake: product.make || product.carMake || '',
+                    carModel: product.model || product.carModel || '',
+                    year: product.year || '',
+                    discount: 0
+                }]
+            };
+        });
+        setSearchTerm('');
+        setSearchResults([]);
+        toast.success("Item added");
+    };
+
+    const handleUpdateItem = (index, field, value) => {
+        setEditForm(prev => {
+            const newItems = [...prev.items];
+            newItems[index] = { ...newItems[index], [field]: parseFloat(value) || 0 };
+            return { ...prev, items: newItems };
+        });
+    };
+
+    const handleRemoveItem = (index) => {
+        setEditForm(prev => {
+            const newItems = [...prev.items];
+            newItems.splice(index, 1);
+            return { ...prev, items: newItems };
+        });
+    };
 
     const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
     const ORDERS_COLLECTION = import.meta.env.VITE_APPWRITE_ORDERS_COLLECTION_ID || 'orders';
@@ -126,17 +207,59 @@ const OrderDetails = () => {
         setUpdating(true);
         try {
             // Recalculate totals
-            const subtotal = editForm.items.reduce((acc, i) => acc + (parseFloat(i.price) * i.quantity), 0);
-            // Use shippingCost (camelCase) consistent with DB
-            const shipping = parseFloat(order.shippingCost || 0);
-            const total = subtotal + shipping + parseFloat(editForm.extraFees || 0) - parseFloat(order.discount || 0) - parseFloat(editForm.manualDiscount || 0);
+            const itemSubtotal = editForm.items.reduce((acc, i) => acc + (parseFloat(i.price) * i.quantity), 0);
+            const itemDiscount = editForm.items.reduce((acc, i) => acc + (parseFloat(i.discount || 0)), 0);
+            const subtotal = itemSubtotal - itemDiscount;
+            const shipping = parseFloat(editForm.shippingCost || 0);
+            const total = subtotal + shipping + parseFloat(editForm.extraFees || 0) - parseFloat(editForm.manualDiscount || 0);
 
-            const payload = { ...editForm, subtotal, total, updatedAt: new Date().toISOString() };
+            const payload = {
+                items: JSON.stringify(editForm.items.map(i => ({
+                    ...i,
+                    discount: parseFloat(i.discount || 0)
+                }))),
+                subtotal,
+                total,
+                shippingCost: shipping,
+                extraFees: parseFloat(editForm.extraFees || 0),
+                manualDiscount: parseFloat(editForm.manualDiscount || 0),
+                notes: editForm.notes,
+                status: editForm.status,
+                paymentStatus: editForm.paymentStatus,
+                customerInfo: JSON.stringify({
+                    name: editForm.customerName,
+                    email: editForm.customerEmail,
+                    phone: editForm.customerPhone,
+                    city: editForm.customerCity,
+                    governorate: editForm.customerGovernorate,
+                    address: editForm.customerAddress
+                }),
+                updatedAt: new Date().toISOString()
+            };
+
             await databases.updateDocument(DATABASE_ID, ORDERS_COLLECTION, id, payload);
-            setOrder(prev => ({ ...prev, ...payload }));
+
+            // Refetch or update local state
+            setOrder(prev => ({
+                ...prev,
+                ...payload,
+                items: editForm.items, // Keep as array in active state
+                customer: {
+                    name: editForm.customerName,
+                    email: editForm.customerEmail,
+                    phone: editForm.customerPhone,
+                    city: editForm.customerCity,
+                    governorate: editForm.customerGovernorate,
+                    address: editForm.customerAddress
+                }
+            }));
+
             setShowEditModal(false);
             toast.success("Order updated successfully");
-        } catch (err) { toast.error("Update failed"); }
+        } catch (err) {
+            console.error(err);
+            toast.error("Update failed");
+        }
         finally { setUpdating(false); }
     };
 
@@ -172,7 +295,21 @@ const OrderDetails = () => {
                     </button>
                     <div className="flex gap-3">
                         <button
-                            onClick={() => { setEditForm({ ...order }); setShowEditModal(true); }}
+                            onClick={() => {
+                                setEditForm({
+                                    ...order,
+                                    shippingCost: order.shippingCost || order.shipping_cost || 0,
+                                    customerName: order.customer?.name || '',
+                                    customerEmail: order.customer?.email || '',
+                                    customerPhone: order.customer?.phone || '',
+                                    customerCity: order.customer?.city || '',
+                                    customerGovernorate: order.customer?.governorate || '',
+                                    customerAddress: order.customer?.address || '',
+                                    // Ensure items is an array
+                                    items: Array.isArray(order.items) ? order.items : []
+                                });
+                                setShowEditModal(true);
+                            }}
                             className="bg-white border text-gray-700 px-4 py-2 rounded-lg font-semibold shadow-sm hover:bg-gray-50 flex items-center gap-2 transition-all"
                         >
                             <Edit2 size={16} />
@@ -397,71 +534,329 @@ const OrderDetails = () => {
                     </div>
                 </div>
 
-                {/* Edit Modal (Simply styled) */}
+                {/* Edit Modal */}
                 {showEditModal && (
-                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowEditModal(false)}></div>
-                        <div className="bg-white rounded-2xl w-full max-w-2xl relative overflow-hidden flex flex-col max-h-[90vh] shadow-xl">
-                            <div className="bg-gray-900 px-6 py-4 text-white flex justify-between items-center">
-                                <h3 className="text-lg font-bold">Edit Order Details</h3>
-                                <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-white transition-colors"><X size={20} /></button>
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+                            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                                <h3 className="text-lg font-bold text-gray-900">Edit Order Details</h3>
+                                <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-gray-600">
+                                    <X size={20} />
+                                </button>
                             </div>
 
-                            <div className="p-6 overflow-y-auto space-y-6">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Status</label>
-                                        <select value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })} className="w-full p-2 border rounded-lg text-sm bg-gray-50">
-                                            {['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map(s => <option key={s} value={s}>{s}</option>)}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Payment</label>
-                                        <select value={editForm.paymentStatus} onChange={e => setEditForm({ ...editForm, paymentStatus: e.target.value })} className="w-full p-2 border rounded-lg text-sm bg-gray-50">
-                                            {['Pending', 'Paid', 'Failed'].map(s => <option key={s} value={s}>{s}</option>)}
-                                        </select>
-                                    </div>
-                                </div>
+                            <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-thin scrollbar-thumb-gray-200">
 
-                                <div className="space-y-4">
-                                    <h4 className="font-bold text-sm text-gray-900 border-b pb-2">Items</h4>
-                                    {editForm.items.map((item, i) => (
-                                        <div key={i} className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                                            <img src={item.image} className="w-12 h-12 rounded bg-white object-cover border" />
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-bold text-sm truncate">{item.name}</p>
-                                                <p className="text-xs text-gray-500">{item.price} EGP</p>
+                                {/* Section 1: Core Status */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Order Status</label>
+                                        <div className="relative">
+                                            <select
+                                                value={editForm.status}
+                                                onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                                                className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-sm font-semibold appearance-none shadow-sm focus:ring-2 focus:ring-blue-100 outline-none"
+                                            >
+                                                <option value="Pending">Pending</option>
+                                                <option value="Processing">Processing</option>
+                                                <option value="Shipped">Shipped</option>
+                                                <option value="Delivered">Delivered</option>
+                                                <option value="Cancelled">Cancelled</option>
+                                            </select>
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                                <ChevronDown size={14} />
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <button onClick={() => { const u = [...editForm.items]; u[i].quantity = Math.max(1, u[i].quantity - 1); setEditForm({ ...editForm, items: u }); }} className="p-1 hover:bg-gray-200 rounded"><Minus size={14} /></button>
-                                                <span className="font-mono font-bold text-sm w-6 text-center">{item.quantity}</span>
-                                                <button onClick={() => { const u = [...editForm.items]; u[i].quantity += 1; setEditForm({ ...editForm, items: u }); }} className="p-1 hover:bg-gray-200 rounded"><Plus size={14} /></button>
-                                            </div>
-                                            <button onClick={() => setEditForm({ ...editForm, items: editForm.items.filter((_, idx) => idx !== i) })} className="text-red-500 hover:text-red-700 p-2"><Trash2 size={16} /></button>
                                         </div>
-                                    ))}
+                                    </div>
+                                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Payment Status</label>
+                                        <div className="relative">
+                                            <select
+                                                value={editForm.paymentStatus}
+                                                onChange={(e) => setEditForm({ ...editForm, paymentStatus: e.target.value })}
+                                                className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-sm font-semibold appearance-none shadow-sm focus:ring-2 focus:ring-blue-100 outline-none"
+                                            >
+                                                <option value="Pending">Pending</option>
+                                                <option value="Paid">Paid</option>
+                                                <option value="Failed">Failed</option>
+                                                <option value="Refunded">Refunded</option>
+                                            </select>
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                                <ChevronDown size={14} />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Extra Fees</label>
-                                        <input type="number" value={editForm.extraFees} onChange={e => setEditForm({ ...editForm, extraFees: e.target.value })} className="w-full p-2 border rounded-lg text-sm bg-gray-50" />
+                                {/* Section 2: Items Section */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                                            <Package size={14} className="text-blue-500" /> Order Items ({editForm.items.length})
+                                        </h4>
+                                        <div className="relative w-64">
+                                            <div className="flex items-center gap-2 border border-gray-200 bg-white px-3 py-1.5 rounded-full focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-300 transition-all">
+                                                <Search size={14} className="text-gray-400" />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Add product..."
+                                                    value={searchTerm}
+                                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                                    className="w-full bg-transparent border-none outline-none text-xs placeholder-gray-400 text-gray-800"
+                                                />
+                                            </div>
+                                            {searchResults.length > 0 && (
+                                                <div className="absolute top-10 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-2xl z-20 max-h-60 overflow-y-auto">
+                                                    {searchResults.map(p => (
+                                                        <button
+                                                            key={p.id}
+                                                            onClick={() => handleAddItem(p)}
+                                                            className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center justify-between group border-b border-gray-50 last:border-0"
+                                                        >
+                                                            <div>
+                                                                <p className="font-bold text-gray-900 text-[13px]">{p.name}</p>
+                                                                <p className="text-[11px] text-gray-500">{p.brand} • {p.price} EGP</p>
+                                                            </div>
+                                                            <PlusCircle size={14} className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Manual Discount</label>
-                                        <input type="number" value={editForm.manualDiscount} onChange={e => setEditForm({ ...editForm, manualDiscount: e.target.value })} className="w-full p-2 border rounded-lg text-sm bg-gray-50" />
+
+                                    <div className="space-y-3">
+                                        {editForm.items.map((item, index) => (
+                                            <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white border border-gray-100 p-3 rounded-xl shadow-sm hover:border-gray-200 transition-colors">
+                                                <div className="h-10 w-10 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
+                                                    <img src={item.image} alt="" className="w-full h-full object-cover" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-bold text-gray-900 text-[13px] truncate">{item.name}</p>
+                                                    <p className="text-[11px] text-gray-400 flex items-center gap-1">
+                                                        {item.sku} {item.brand && `• ${item.brand}`}
+                                                    </p>
+                                                </div>
+                                                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] font-bold text-gray-400 uppercase px-1">Price</span>
+                                                        <input
+                                                            type="number"
+                                                            value={item.price}
+                                                            onChange={(e) => handleUpdateItem(index, 'price', e.target.value)}
+                                                            className="w-20 bg-gray-50 border-none px-2 py-1 rounded text-xs font-bold text-gray-700 focus:ring-1 focus:ring-blue-100"
+                                                        />
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] font-bold text-gray-400 uppercase px-1 text-center">Qty</span>
+                                                        <div className="flex items-center bg-gray-100 rounded-lg px-1 py-0.5">
+                                                            <button onClick={() => handleUpdateItem(index, 'quantity', Math.max(1, item.quantity - 1))} className="p-1 hover:text-blue-600"><Minus size={10} /></button>
+                                                            <span className="w-6 text-center text-xs font-bold">{item.quantity}</span>
+                                                            <button onClick={() => handleUpdateItem(index, 'quantity', item.quantity + 1)} className="p-1 hover:text-blue-600"><Plus size={10} /></button>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] font-bold text-green-500 uppercase px-1">Discount</span>
+                                                        <input
+                                                            type="number"
+                                                            placeholder="0"
+                                                            value={item.discount || ''}
+                                                            onChange={(e) => {
+                                                                const newItems = [...editForm.items];
+                                                                newItems[index] = { ...newItems[index], discount: parseFloat(e.target.value) || 0 };
+                                                                setEditForm({ ...editForm, items: newItems });
+                                                            }}
+                                                            className="w-16 bg-green-50 border-none px-2 py-1 rounded text-xs font-bold text-green-700 placeholder-green-300 focus:ring-1 focus:ring-green-100"
+                                                        />
+                                                    </div>
+                                                    <div className="flex flex-col items-end">
+                                                        <span className="text-[9px] font-bold text-gray-400 uppercase px-1">Total</span>
+                                                        <span className="text-[13px] font-black text-gray-900 px-1">
+                                                            {((item.price * item.quantity) - (item.discount || 0)).toLocaleString()}
+                                                        </span>
+                                                    </div>
+                                                    <button onClick={() => handleRemoveItem(index)} className="p-2 text-gray-300 hover:text-red-500 transition-colors">
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Notes</label>
-                                    <textarea value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} rows={3} className="w-full p-3 border rounded-lg text-sm bg-gray-50" />
+                                {/* Section 3: Customer & Shipping */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-4">
+                                        <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                                            <User size={14} className="text-blue-500" /> Customer Information
+                                        </h4>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="col-span-2">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Full Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={editForm.customerName}
+                                                    onChange={(e) => setEditForm({ ...editForm, customerName: e.target.value })}
+                                                    className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-xs font-medium"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Phone</label>
+                                                <input
+                                                    type="text"
+                                                    value={editForm.customerPhone}
+                                                    onChange={(e) => setEditForm({ ...editForm, customerPhone: e.target.value })}
+                                                    className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-xs font-medium"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Email</label>
+                                                <input
+                                                    type="email"
+                                                    value={editForm.customerEmail}
+                                                    onChange={(e) => setEditForm({ ...editForm, customerEmail: e.target.value })}
+                                                    className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-xs font-medium"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                                            <MapPin size={14} className="text-blue-500" /> Shipping Address
+                                        </h4>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Governorate</label>
+                                                <input
+                                                    type="text"
+                                                    value={editForm.customerGovernorate}
+                                                    onChange={(e) => setEditForm({ ...editForm, customerGovernorate: e.target.value })}
+                                                    className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-xs font-medium"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">City</label>
+                                                <input
+                                                    type="text"
+                                                    value={editForm.customerCity}
+                                                    onChange={(e) => setEditForm({ ...editForm, customerCity: e.target.value })}
+                                                    className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-xs font-medium"
+                                                />
+                                            </div>
+                                            <div className="col-span-2">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Street / Details</label>
+                                                <textarea
+                                                    value={editForm.customerAddress}
+                                                    onChange={(e) => setEditForm({ ...editForm, customerAddress: e.target.value })}
+                                                    className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-xs font-medium h-16 resize-none"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+
+                                {/* Section 4: Notes & Summary */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-gray-100">
+                                    <div className="space-y-4">
+                                        <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                                            <FileImage size={14} className="text-blue-500" /> Internal Notes
+                                        </h4>
+                                        <textarea
+                                            value={editForm.notes}
+                                            onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-xs font-medium h-32 resize-none focus:ring-2 focus:ring-blue-100 outline-none"
+                                            placeholder="Write admin-only notes here..."
+                                        />
+                                    </div>
+
+                                    <div className="bg-gray-900 rounded-2xl p-6 text-white space-y-4 shadow-xl">
+                                        <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-800 pb-2">Financial Summary</h4>
+
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between items-center text-xs opacity-70">
+                                                <span>Items Subtotal</span>
+                                                <span className="font-bold">
+                                                    {(editForm.items?.reduce((acc, item) => acc + (item.price * item.quantity), 0) || 0).toLocaleString()} EGP
+                                                </span>
+                                            </div>
+                                            {editForm.items?.some(i => i.discount > 0) && (
+                                                <div className="flex justify-between items-center text-xs text-green-400">
+                                                    <span>Item Discounts</span>
+                                                    <span className="font-bold">
+                                                        -{(editForm.items?.reduce((acc, item) => acc + (parseFloat(item.discount || 0)), 0) || 0).toLocaleString()} EGP
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <div className="flex justify-between items-center text-xs">
+                                                <span className="opacity-70">Shipping Cost</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] text-gray-500">Edit:</span>
+                                                    <input
+                                                        type="number"
+                                                        value={editForm.shippingCost}
+                                                        onChange={(e) => setEditForm({ ...editForm, shippingCost: e.target.value })}
+                                                        className="w-20 bg-gray-800 border-none px-2 py-1 rounded text-right text-xs font-bold focus:ring-1 focus:ring-blue-500"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-between items-center text-xs">
+                                                <span className="opacity-70">Extra Fees</span>
+                                                <input
+                                                    type="number"
+                                                    value={editForm.extraFees}
+                                                    onChange={(e) => setEditForm({ ...editForm, extraFees: e.target.value })}
+                                                    className="w-20 bg-gray-800 border-none px-2 py-1 rounded text-right text-xs font-bold focus:ring-1 focus:ring-blue-500"
+                                                />
+                                            </div>
+                                            <div className="flex justify-between items-center text-xs text-green-400">
+                                                <span>Coupon/Total Discount</span>
+                                                <input
+                                                    type="number"
+                                                    value={editForm.manualDiscount}
+                                                    onChange={(e) => setEditForm({ ...editForm, manualDiscount: e.target.value })}
+                                                    className="w-20 bg-green-900 border-none px-2 py-1 rounded text-right text-xs font-bold text-green-300 focus:ring-1 focus:ring-green-500"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="border-t border-gray-800 pt-4 flex justify-between items-end">
+                                            <div>
+                                                <span className="text-[10px] font-bold text-gray-500 uppercase block">Grand Total</span>
+                                                <span className="text-2xl font-black text-white leading-none">
+                                                    {((editForm.items?.reduce((acc, item) => acc + (item.price * item.quantity) - (item.discount || 0), 0) || 0) +
+                                                        parseFloat(editForm.shippingCost || 0) +
+                                                        parseFloat(editForm.extraFees || 0) -
+                                                        parseFloat(editForm.manualDiscount || 0)).toLocaleString()} <span className="text-xs font-normal opacity-50">EGP</span>
+                                                </span>
+                                            </div>
+                                            <div className="text-[10px] text-gray-500 italic">
+                                                Final amount to collect
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
 
-                            <div className="p-6 border-t bg-gray-50 flex justify-end gap-3">
-                                <button onClick={() => setShowEditModal(false)} className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
-                                <button onClick={handleSaveEdit} className="px-6 py-2 text-sm font-bold bg-gray-900 text-white rounded-lg hover:bg-black shadow-lg">Save Changes</button>
+                            <div className="p-4 bg-white border-t border-gray-100 flex justify-between items-center">
+                                <p className="text-[10px] text-gray-400 italic px-2">Changes are live upon saving.</p>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setShowEditModal(false)}
+                                        className="px-5 py-2 rounded-xl font-bold text-gray-400 hover:bg-gray-100 transition-colors text-sm"
+                                    >
+                                        Discard
+                                    </button>
+                                    <button
+                                        onClick={handleSaveEdit}
+                                        disabled={updating}
+                                        className="px-8 py-2.5 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                    >
+                                        {updating ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                                        Save Changes
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
