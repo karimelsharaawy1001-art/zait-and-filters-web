@@ -40,17 +40,24 @@ const EditCar = () => {
         e.preventDefault();
         setSaving(true);
         try {
+            const yearStr = formData.yearStart && formData.yearEnd
+                ? `${formData.yearStart}-${formData.yearEnd}`
+                : (formData.yearStart || formData.yearEnd || 'N/A');
+
+            // Find valid attributes from the current formData (which came from docSnap)
+            const validKeys = Object.keys(formData).filter(k => !k.startsWith('$') && k !== 'id');
+
             const payload = {
                 make: formData.make.trim(),
                 model: formData.model.trim(),
-                yearStart: formData.yearStart ? Number(formData.yearStart) : null,
-                yearEnd: formData.yearEnd ? Number(formData.yearEnd) : null,
-                year: formData.yearStart && formData.yearEnd
-                    ? `${formData.yearStart}-${formData.yearEnd}`
-                    : (formData.yearStart || formData.yearEnd || 'N/A'),
-                imageUrl: formData.imageUrl || '',
-                image: formData.imageUrl || '' // Dual-mapping for schema compatibility
+                year: yearStr
             };
+
+            // Only update fields that actually exist in the document
+            if (validKeys.includes('yearStart')) payload.yearStart = formData.yearStart ? Number(formData.yearStart) : null;
+            if (validKeys.includes('yearEnd')) payload.yearEnd = formData.yearEnd ? Number(formData.yearEnd) : null;
+            if (validKeys.includes('imageUrl')) payload.imageUrl = formData.imageUrl || '';
+            if (validKeys.includes('image')) payload.image = formData.imageUrl || '';
 
             await databases.updateDocument(DATABASE_ID, CARS_COLLECTION, id, payload);
             toast.success('Fleet registry updated');

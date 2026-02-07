@@ -14,6 +14,7 @@ const ManageCars = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [formData, setFormData] = useState({ make: '', model: '', yearStart: '', yearEnd: '', imageUrl: '' });
     const [submitting, setSubmitting] = useState(false);
+    const [schemaFields, setSchemaFields] = useState([]); // Detective mode: find valid attributes
 
     const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
     const CARS_COLLECTION = 'cars';
@@ -23,7 +24,15 @@ const ManageCars = () => {
         setLoading(true);
         try {
             const response = await databases.listDocuments(DATABASE_ID, CARS_COLLECTION, [Query.limit(100)]);
-            setCars(response.documents.map(doc => ({ id: doc.$id, ...doc })));
+            const docs = response.documents.map(doc => ({ id: doc.$id, ...doc }));
+            setCars(docs);
+
+            // Detect schema from first doc if available
+            if (docs.length > 0) {
+                const fields = Object.keys(docs[0]).filter(k => !k.startsWith('$'));
+                setSchemaFields(fields);
+                console.log("[DEBUG] Detected Cars Schema Fields:", fields);
+            }
         } catch (error) {
             console.error(error);
         } finally {
@@ -39,18 +48,30 @@ const ManageCars = () => {
         e.preventDefault();
         setSubmitting(true);
         try {
+            const yearStr = formData.yearStart && formData.yearEnd
+                ? `${formData.yearStart}-${formData.yearEnd}`
+                : (formData.yearStart || formData.yearEnd || 'N/A');
+
+            // Build payload only with strictly known or highly likely fields
             const payload = {
                 make: formData.make.trim(),
                 model: formData.model.trim(),
-                yearStart: formData.yearStart ? Number(formData.yearStart) : null,
-                yearEnd: formData.yearEnd ? Number(formData.yearEnd) : null,
-                year: formData.yearStart && formData.yearEnd
-                    ? `${formData.yearStart}-${formData.yearEnd}`
-                    : (formData.yearStart || formData.yearEnd || 'N/A'),
-                imageUrl: formData.imageUrl || '',
-                image: formData.imageUrl || '' // Dual-mapping for schema compatibility
+                year: yearStr // Mandatory as per previous error
             };
 
+            // Schema Detective: only add fields we've seen in the existing docs
+            if (schemaFields.length > 0) {
+                if (schemaFields.includes('yearStart')) payload.yearStart = formData.yearStart ? Number(formData.yearStart) : null;
+                if (schemaFields.includes('yearEnd')) payload.yearEnd = formData.yearEnd ? Number(formData.yearEnd) : null;
+                if (schemaFields.includes('imageUrl')) payload.imageUrl = formData.imageUrl || '';
+                if (schemaFields.includes('image')) payload.image = formData.imageUrl || '';
+            } else {
+                // Fallback for empty collection: send the absolute minimum + image guess
+                payload.imageUrl = formData.imageUrl || '';
+                payload.image = formData.imageUrl || '';
+            }
+
+            console.log("[DEBUG] Committing to Fleet with Payload:", payload);
             await databases.createDocument(DATABASE_ID, CARS_COLLECTION, ID.unique(), payload);
             setFormData({ make: '', model: '', yearStart: '', yearEnd: '', imageUrl: '' });
             fetchCars();
