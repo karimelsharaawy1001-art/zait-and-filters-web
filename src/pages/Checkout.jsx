@@ -781,7 +781,7 @@ const Checkout = () => {
                                             >
                                                 <option value="">{t('selectGovernorate')}</option>
                                                 {(shippingRates || []).map(rate => (
-                                                    <option key={rate.id} value={rate.governorate}>{rate.governorate}</option>
+                                                    <option key={rate.$id} value={rate.governorate}>{rate.governorate}</option>
                                                 ))}
                                             </select>
                                         </div>
@@ -963,17 +963,17 @@ const Checkout = () => {
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             {activeMethods.map((method) => (
                                                 <label
-                                                    key={method.id}
-                                                    className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${isAr ? 'flex-row-reverse text-right' : 'text-left'} ${formData.paymentMethod === method.id ? 'border-orange-600 bg-orange-50 shadow-md' : 'border-gray-100 bg-white hover:border-orange-200'}`}
+                                                    key={method.$id}
+                                                    className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${isAr ? 'flex-row-reverse text-right' : 'text-left'} ${formData.paymentMethod === method.$id ? 'border-orange-600 bg-orange-50 shadow-md' : 'border-gray-100 bg-white hover:border-orange-200'}`}
                                                 >
-                                                    <input type="radio" name="paymentMethod" value={method.id} checked={formData.paymentMethod === method.id} onChange={handleChange} className="hidden" />
-                                                    <div className={`p-2 rounded-lg ${formData.paymentMethod === method.id ? 'bg-orange-600 text-white' : 'bg-gray-100 text-gray-500'}`}>
-                                                        {method.type === 'online' ? <CreditCard className="h-5 w-5" /> : method.id === 'instapay' ? <Smartphone className="h-5 w-5" /> : <Banknote className="h-5 w-5" />}
+                                                    <input type="radio" name="paymentMethod" value={method.$id} checked={formData.paymentMethod === method.$id} onChange={handleChange} className="hidden" />
+                                                    <div className={`p-2 rounded-lg ${formData.paymentMethod === method.$id ? 'bg-orange-600 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                                                        {method.type === 'online' ? <CreditCard className="h-5 w-5" /> : method.$id === 'instapay' ? <Smartphone className="h-5 w-5" /> : <Banknote className="h-5 w-5" />}
                                                     </div>
                                                     <div>
-                                                        <p className={`text-sm font-bold ${formData.paymentMethod === method.id ? 'text-orange-900' : 'text-gray-700'}`}>
+                                                        <p className={`text-sm font-bold ${formData.paymentMethod === method.$id ? 'text-orange-900' : 'text-gray-700'}`}>
                                                             {(() => {
-                                                                if (method.id === 'easykash' && (method.name === 'Credit Card (EasyKash)' || !method.nameAr)) {
+                                                                if (method.$id === 'easykash' && (method.name === 'Credit Card (EasyKash)' || !method.nameAr)) {
                                                                     return isAr ? 'الدفع عن طريق الفيزا و شركات التقسيط' : 'Pay via Card or Installments';
                                                                 }
                                                                 return isAr ? (method.nameAr || method.name) : method.name;
@@ -1102,7 +1102,7 @@ const Checkout = () => {
                                                         <div className="flex justify-center">
                                                             <div className="bg-orange-50 px-6 py-2 rounded-lg border border-orange-100">
                                                                 <p className="text-xl font-black text-orange-600 font-mono tracking-wider">
-                                                                    {activeMethods.find(m => m.id === 'wallet')?.number || '010XXXXXXXX'}
+                                                                    {activeMethods.find(m => m.$id === 'wallet')?.number || '010XXXXXXXX'}
                                                                 </p>
                                                             </div>
                                                         </div>
