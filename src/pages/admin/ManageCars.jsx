@@ -13,6 +13,7 @@ const ManageCars = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [formData, setFormData] = useState({ make: '', model: '', yearStart: '', yearEnd: '', imageUrl: '' });
+    const [submitting, setSubmitting] = useState(false);
 
     const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
     const CARS_COLLECTION = 'cars';
@@ -36,17 +37,26 @@ const ManageCars = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitting(true);
         try {
-            await databases.createDocument(DATABASE_ID, CARS_COLLECTION, ID.unique(), {
-                ...formData,
-                yearStart: Number(formData.yearStart),
-                yearEnd: Number(formData.yearEnd)
-            });
+            const payload = {
+                make: formData.make.trim(),
+                model: formData.model.trim(),
+                yearStart: formData.yearStart ? Number(formData.yearStart) : null,
+                yearEnd: formData.yearEnd ? Number(formData.yearEnd) : null,
+                imageUrl: formData.imageUrl || '',
+                image: formData.imageUrl || '' // Dual-mapping for schema compatibility
+            };
+
+            await databases.createDocument(DATABASE_ID, CARS_COLLECTION, ID.unique(), payload);
             setFormData({ make: '', model: '', yearStart: '', yearEnd: '', imageUrl: '' });
             fetchCars();
-            toast.success("Vehicle registered");
+            toast.success("Vehicle registered successfully");
         } catch (error) {
-            toast.error("Sync failure");
+            console.error("[FLEET_SYNC_ERROR]", error);
+            toast.error(`Sync failure: ${error.message || 'Check database schema'}`);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -101,7 +111,13 @@ const ManageCars = () => {
                                 <label className="admin-text-subtle ml-1">Fleet Visual (Image)</label>
                                 <ImageUpload currentImage={formData.imageUrl} onUploadComplete={url => setFormData({ ...formData, imageUrl: url })} folderPath="cars" />
                             </div>
-                            <button type="submit" className="w-full admin-btn-slim bg-slate-900 text-white hover:bg-slate-800 justify-center py-3 text-xs uppercase shadow-lg shadow-slate-900/10">Commit to Fleet</button>
+                            <button
+                                type="submit"
+                                disabled={submitting}
+                                className="w-full admin-btn-slim bg-slate-900 text-white hover:bg-slate-800 justify-center py-3 text-xs uppercase shadow-lg shadow-slate-900/10 disabled:opacity-50"
+                            >
+                                {submitting ? <Loader2 className="animate-spin" size={16} /> : 'Commit to Fleet'}
+                            </button>
                         </form>
                     </section>
 

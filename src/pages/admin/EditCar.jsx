@@ -41,12 +41,13 @@ const EditCar = () => {
         setSaving(true);
         try {
             const payload = {
-                ...formData,
+                make: formData.make.trim(),
+                model: formData.model.trim(),
                 yearStart: formData.yearStart ? Number(formData.yearStart) : null,
                 yearEnd: formData.yearEnd ? Number(formData.yearEnd) : null,
-                updatedAt: new Date().toISOString()
+                imageUrl: formData.imageUrl || '',
+                image: formData.imageUrl || '' // Dual-mapping for schema compatibility
             };
-            delete payload.$id; delete payload.$collectionId; delete payload.$databaseId; delete payload.$createdAt; delete payload.$updatedAt; delete payload.$permissions;
 
             await databases.updateDocument(DATABASE_ID, CARS_COLLECTION, id, payload);
             toast.success('Fleet registry updated');
