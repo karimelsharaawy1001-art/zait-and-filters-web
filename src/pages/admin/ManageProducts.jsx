@@ -83,56 +83,98 @@ const ManageProducts = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20 font-Cairo text-gray-900">
+        <div className="min-h-screen bg-slate-50 pb-20 font-admin text-slate-900">
             <AdminHeader title="Inventory Matrix" />
-            <div className="max-w-7xl mx-auto py-8 px-4">
-                <div className="flex justify-between items-center mb-10">
+            <div className="max-w-7xl mx-auto py-6 px-4 md:px-8">
+                <div className="flex justify-between items-center mb-6">
                     <div>
-                        <h2 className="text-3xl font-black uppercase italic">Inventory Control</h2>
-                        <p className="text-sm font-bold text-gray-500">Managing {totalCount} active items</p>
+                        <h2 className="text-lg font-bold text-slate-900">Inventory Control</h2>
+                        <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Telemetry: {totalCount} active resources</p>
                     </div>
-                    <button onClick={() => navigate('/admin/products/new')} className="bg-black text-white px-8 py-4 rounded-2xl font-black uppercase text-xs flex items-center gap-2 shadow-xl hover:scale-105 transition-transform"><Plus size={18} /> New Entry</button>
+                    <button onClick={() => navigate('/admin/products/new')} className="admin-btn-slim bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-900/10">
+                        <Plus size={14} /> New Entry
+                    </button>
                 </div>
 
-                <div className="bg-white rounded-[2.5rem] p-8 border shadow-sm mb-10 flex flex-wrap gap-6 items-end">
-                    <div className="flex-1 min-w-[300px] space-y-2">
-                        <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Universal Search</label>
-                        <div className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} /><input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search node name, ID, or brand..." className="w-full pl-12 pr-4 py-4 bg-gray-50 border rounded-2xl font-bold outline-none focus:ring-2 focus:ring-black" /></div>
+                <div className="admin-card-compact p-4 flex flex-wrap gap-4 items-end mb-6">
+                    <div className="flex-1 min-w-[280px]">
+                        <label className="admin-text-subtle ml-1 mb-1.5 block">Universal Search</label>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                            <input
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                placeholder="Search node ID, name, or brand..."
+                                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium outline-none focus:ring-1 focus:ring-slate-900 transition-all"
+                            />
+                        </div>
                     </div>
-                    <div className="w-48 space-y-2">
-                        <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Category</label>
-                        <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} className="w-full p-4 bg-gray-50 border rounded-2xl font-black text-xs uppercase"><option value="All">All Sectors</option>{shieldCategories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}</select>
+                    <div className="w-40">
+                        <label className="admin-text-subtle ml-1 mb-1.5 block">Sector</label>
+                        <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold uppercase outline-none focus:ring-1 focus:ring-slate-900 transition-all">
+                            <option value="All">All Sectors</option>
+                            {shieldCategories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                        </select>
                     </div>
-                    <div className="w-48 space-y-2">
-                        <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Status</label>
-                        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="w-full p-4 bg-gray-50 border rounded-2xl font-black text-xs uppercase"><option value="All">All Status</option><option value="Active">Active</option><option value="Inactive">Offline</option></select>
+                    <div className="w-40">
+                        <label className="admin-text-subtle ml-1 mb-1.5 block">Status</label>
+                        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold uppercase outline-none focus:ring-1 focus:ring-slate-900 transition-all">
+                            <option value="All">All Status</option>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Offline</option>
+                        </select>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-[2.5rem] border shadow-sm overflow-hidden">
+                <div className="admin-card-compact overflow-hidden">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead className="bg-gray-50/50 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        <table className="w-full admin-table-dense">
+                            <thead className="bg-slate-50/50">
                                 <tr>
-                                    <th className="px-8 py-6">Visual</th><th className="px-8 py-6">Identity</th><th className="px-8 py-6">Financials</th><th className="px-8 py-6">Status</th><th className="px-8 py-6 text-right">Ops</th>
+                                    <th className="text-left w-20">Visual</th>
+                                    <th className="text-left">Identity</th>
+                                    <th className="text-left">Financials</th>
+                                    <th className="text-left">Status</th>
+                                    <th className="text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100">
+                            <tbody className="divide-y divide-slate-50">
                                 {loading ? (
-                                    <tr><td colSpan="5" className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-black" size={40} /></td></tr>
+                                    <tr><td colSpan="5" className="p-16 text-center"><Loader2 className="animate-spin mx-auto text-slate-400" size={32} /></td></tr>
                                 ) : products.map(p => (
-                                    <tr key={p.id} className="hover:bg-gray-50/50 transition-all group">
-                                        <td className="px-8 py-6"><img src={p.images || p.image || '/placeholder.png'} className="w-16 h-16 rounded-xl object-cover border" /></td>
-                                        <td className="px-8 py-6"><p className="font-black text-lg italic">{p.name}</p><p className="text-[10px] font-bold text-gray-400 uppercase">{p.brand} | {p.category}</p></td>
-                                        <td className="px-8 py-6 font-black text-lg">{p.price} EGP{p.stock < 5 && <p className="text-[9px] text-red-600 uppercase mt-1 flex items-center gap-1"><AlertTriangle size={10} /> Critical Stock: {p.stock}</p>}</td>
-                                        <td className="px-8 py-6">
-                                            <button onClick={() => handleToggleActive(p.id, p.isActive)} className={`flex items-center gap-2 px-4 py-2 rounded-full text-[9px] font-black uppercase border transition-all ${p.isActive ? 'bg-green-50 text-green-600 border-green-200' : 'bg-red-50 text-red-600 border-red-200'}`}>
-                                                {p.isActive ? <CheckCircle size={12} /> : <XCircle size={12} />} {p.isActive ? 'Active' : 'Offline'}
+                                    <tr key={p.id} className="hover:bg-slate-50/50 transition-all group">
+                                        <td>
+                                            <div className="w-12 h-12 rounded-lg overflow-hidden border border-slate-100 flex-shrink-0">
+                                                <img src={p.images || p.image || '/placeholder.png'} className="w-full h-full object-cover" />
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <p className="font-bold text-slate-900 text-[13px] leading-tight">{p.name}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">{p.brand} · {p.category}</p>
+                                        </td>
+                                        <td>
+                                            <p className="font-bold text-slate-900 text-[13px] font-Cairo">{p.price} EGP</p>
+                                            {p.stock < 5 && (
+                                                <p className="text-[9px] text-amber-600 font-bold uppercase mt-0.5 flex items-center gap-1">
+                                                    <AlertTriangle size={10} /> Stock: {p.stock}
+                                                </p>
+                                            )}
+                                        </td>
+                                        <td>
+                                            <button onClick={() => handleToggleActive(p.id, p.isActive)} className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[9px] font-bold uppercase border transition-all ${p.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
+                                                <div className={`w-1.5 h-1.5 rounded-full ${p.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                                                {p.isActive ? 'Active' : 'Offline'}
                                             </button>
                                         </td>
-                                        <td className="px-8 py-6 text-right flex justify-end gap-3 pt-12">
-                                            <button onClick={() => navigate(`/admin/products/edit/${p.id}`)} className="p-2 text-gray-400 hover:text-blue-600 transition-all"><Edit3 size={18} /></button>
-                                            <button onClick={() => handleDelete(p.id, p.name)} className="p-2 text-gray-400 hover:text-red-600 transition-all"><Trash2 size={18} /></button>
+                                        <td className="text-right">
+                                            <div className="flex justify-end gap-1">
+                                                <button onClick={() => navigate(`/admin/products/edit/${p.id}`)} className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" title="Edit">
+                                                    <Edit3 size={14} />
+                                                </button>
+                                                <button onClick={() => handleDelete(p.id, p.name)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Delete">
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -140,10 +182,14 @@ const ManageProducts = () => {
                         </table>
                     </div>
 
-                    <div className="bg-gray-50/50 p-6 flex justify-between items-center border-t">
-                        <button disabled={currentPage === 1} onClick={() => setCurrentPage(prev => prev - 1)} className="p-2 rounded-xl bg-white border shadow-sm disabled:opacity-30"><ChevronLeft size={20} /></button>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Page {currentPage} of {Math.ceil(totalCount / pageSize)}</p>
-                        <button disabled={currentPage >= Math.ceil(totalCount / pageSize)} onClick={() => setCurrentPage(prev => prev + 1)} className="p-2 rounded-xl bg-white border shadow-sm disabled:opacity-30"><ChevronRight size={20} /></button>
+                    <div className="bg-slate-50/50 p-4 flex justify-between items-center border-t border-slate-100">
+                        <button disabled={currentPage === 1} onClick={() => setCurrentPage(prev => prev - 1)} className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-all shadow-sm">
+                            <ChevronLeft size={16} />
+                        </button>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Node {currentPage} of {Math.ceil(totalCount / pageSize)}</p>
+                        <button disabled={currentPage >= Math.ceil(totalCount / pageSize)} onClick={() => setCurrentPage(prev => prev + 1)} className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-all shadow-sm">
+                            <ChevronRight size={16} />
+                        </button>
                     </div>
                 </div>
             </div>

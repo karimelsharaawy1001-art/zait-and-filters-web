@@ -2,24 +2,31 @@
 @import "tailwindcss";
 
 @theme {
-    /* ADMIN PANEL THEME TOKENS */
-    --color-admin-bg: #f9fafb;
+    /* ADMIN PANEL THEME TOKENS - Refined for Professionalism */
+    --color-admin-bg: #f8fafc;
+    /* slate-50 */
     --color-admin-card: #ffffff;
-    --color-admin-border: #e5e7eb;
-    --color-admin-red: #28B463;
-    --color-admin-red-dark: #219653;
-    --color-admin-accent: #FF8C00;
-    --color-admin-green: #28B463;
-    --color-admin-text-primary: #1A1A1A;
-    --color-admin-text-secondary: #6b7280;
+    --color-admin-border: #f1f5f9;
+    /* slate-100 */
+    --color-admin-primary: #0f172a;
+    /* slate-900 */
+    --color-admin-secondary: #64748b;
+    /* slate-500 */
+    --color-admin-accent: #10b981;
+    /* emerald-500 */
+    --color-admin-danger: #ef4444;
+    /* red-500 */
+
+    /* TYPOGRAPHY */
+    --font-admin: "Inter", "Cairo", sans-serif;
 
     /* ANIMATIONS */
-    --animate-fade-in-up: fade-in-up 0.6s ease-out forwards;
+    --animate-fade-in-up: fade-in-up 0.4s ease-out forwards;
 
     @keyframes fade-in-up {
         from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(10px);
         }
 
         to {
@@ -27,6 +34,27 @@
             transform: translateY(0);
         }
     }
+}
+
+/* COMPACT UTILITIES */
+.admin-card-compact {
+    @apply bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300;
+}
+
+.admin-btn-slim {
+    @apply px-4 py-2 rounded-lg font-medium text-xs transition-all active:scale-95 flex items-center gap-2;
+}
+
+.admin-text-subtle {
+    @apply text-slate-500 font-medium text-[11px] uppercase tracking-wider;
+}
+
+.admin-table-dense td {
+    @apply py-3 px-6;
+}
+
+.admin-table-dense th {
+    @apply py-3 px-6 text-[10px] font-semibold uppercase tracking-wider text-slate-400;
 }
 
 :root {

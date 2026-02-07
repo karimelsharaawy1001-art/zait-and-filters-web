@@ -93,60 +93,77 @@ const ManageCustomers = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20 font-Cairo text-gray-900">
+        <div className="min-h-screen bg-slate-50 pb-20 font-admin text-slate-900">
             <AdminHeader title="Customer Intelligence" />
-            <main className="max-w-7xl mx-auto py-8 px-4">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+            <main className="max-w-7xl mx-auto py-6 px-4 md:px-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                     <div>
-                        <h2 className="text-3xl font-black uppercase italic">Identity Registry</h2>
-                        <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mt-1">Managing {totalCount} Neural Nodes</p>
+                        <h2 className="text-lg font-bold text-slate-900">Identity Registry</h2>
+                        <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider mt-0.5">Oversight: {totalCount} Neural Nodes</p>
                     </div>
-                    <button onClick={() => { setFormData({ fullName: '', email: '', phoneNumber: '', secondaryPhone: '', address: '', isAffiliate: false, isBlocked: false }); setShowAddModal(true); }} className="bg-black text-white px-10 py-5 rounded-2xl font-black uppercase italic text-xs shadow-2xl hover:scale-105 transition-all flex items-center gap-2"><UserPlus size={18} /> Register Profile</button>
+                    <button onClick={() => { setFormData({ fullName: '', email: '', phoneNumber: '', secondaryPhone: '', address: '', isAffiliate: false, isBlocked: false }); setShowAddModal(true); }} className="admin-btn-slim bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-900/10"><UserPlus size={14} /> Register Profile</button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-blue-50 text-blue-600 rounded-2xl"><Activity size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Active Nodes</p><p className="text-2xl font-black italic">{customers.filter(c => !c.isBlocked).length}</p></div></div>
-                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-red-50 text-red-600 rounded-2xl"><ShieldAlert size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Terminated</p><p className="text-2xl font-black italic">{customers.filter(c => c.isBlocked).length}</p></div></div>
-                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-green-50 text-green-600 rounded-2xl"><Award size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">Affiliates</p><p className="text-2xl font-black italic">{customers.filter(c => c.isAffiliate).length}</p></div></div>
-                    <div className="bg-white p-8 rounded-[2rem] border shadow-sm flex items-center gap-6"><div className="p-4 bg-orange-50 text-orange-600 rounded-2xl"><TrendingUp size={24} /></div><div><p className="text-[10px] font-black text-gray-400 uppercase">New Protocols</p><p className="text-2xl font-black italic">+12%</p></div></div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                    <div className="admin-card-compact p-5 flex items-center gap-4">
+                        <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg"><Activity size={20} /></div>
+                        <div><p className="admin-text-subtle">Active Nodes</p><p className="text-xl font-bold text-slate-900">{customers.filter(c => !c.isBlocked).length}</p></div>
+                    </div>
+                    <div className="admin-card-compact p-5 flex items-center gap-4">
+                        <div className="p-2.5 bg-red-50 text-red-600 rounded-lg"><ShieldAlert size={20} /></div>
+                        <div><p className="admin-text-subtle">Terminated</p><p className="text-xl font-bold text-slate-900">{customers.filter(c => c.isBlocked).length}</p></div>
+                    </div>
+                    <div className="admin-card-compact p-5 flex items-center gap-4">
+                        <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-lg"><Award size={20} /></div>
+                        <div><p className="admin-text-subtle">Affiliates</p><p className="text-xl font-bold text-slate-900">{customers.filter(c => c.isAffiliate).length}</p></div>
+                    </div>
+                    <div className="admin-card-compact p-5 flex items-center gap-4">
+                        <div className="p-2.5 bg-amber-50 text-amber-600 rounded-lg"><TrendingUp size={20} /></div>
+                        <div><p className="admin-text-subtle">Velocity</p><p className="text-xl font-bold text-slate-900">+12.5%</p></div>
+                    </div>
                 </div>
 
-                <div className="bg-white p-4 rounded-3xl border shadow-sm mb-10 relative"><Search className="absolute left-8 top-1/2 -translate-y-1/2 text-gray-300" /><input value={searchQuery} onChange={handleSearch} placeholder="Search matrix by name, email, or digital signature..." className="w-full pl-16 pr-6 py-5 bg-gray-50/50 rounded-2xl font-black italic outline-none focus:ring-2 focus:ring-black transition-all" /></div>
+                <div className="admin-card-compact p-3 mb-6 relative">
+                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    <input value={searchQuery} onChange={handleSearch} placeholder="Search matrix by name, email, or digital signature..." className="w-full pl-12 pr-6 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:ring-1 focus:ring-slate-900 transition-all" />
+                </div>
 
-                <div className="bg-white rounded-[2.5rem] border shadow-sm overflow-hidden">
+                <div className="admin-card-compact overflow-hidden">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead className="bg-gray-50/50 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        <table className="w-full admin-table-dense">
+                            <thead className="bg-slate-50/50">
                                 <tr>
-                                    <th className="px-8 py-6">Customer Profile</th>
-                                    <th className="px-8 py-6">Registry Intel</th>
-                                    <th className="px-8 py-6 text-center">Security State</th>
-                                    <th className="px-8 py-6">Initialization</th>
-                                    <th className="px-8 py-6 text-right">Ops</th>
+                                    <th className="text-left">Customer Profile</th>
+                                    <th className="text-left">Registry Intel</th>
+                                    <th className="text-center">Security State</th>
+                                    <th className="text-left">Initialization</th>
+                                    <th className="text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {loading ? <tr><td colSpan="5" className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-black" size={40} /></td></tr> : filteredCustomers.map(customer => (
-                                    <tr key={customer.id} className="hover:bg-gray-50/50 group transition-all">
-                                        <td className="px-8 py-6">
-                                            <div className="flex items-center gap-5">
-                                                <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center font-black text-gray-400 group-hover:bg-black group-hover:text-white transition-all uppercase">{customer.fullName?.[0]}</div>
-                                                <div><h4 className="font-black text-sm uppercase italic">{customer.fullName}</h4><p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">ID: {customer.id}</p></div>
+                            <tbody className="divide-y divide-slate-50">
+                                {loading ? <tr><td colSpan="5" className="p-16 text-center"><Loader2 className="animate-spin mx-auto text-slate-400" size={32} /></td></tr> : filteredCustomers.map(customer => (
+                                    <tr key={customer.id} className="hover:bg-slate-50/50 group transition-all">
+                                        <td>
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center font-bold text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all text-xs">{customer.fullName?.[0]}</div>
+                                                <div><h4 className="text-[13px] font-bold text-slate-900 leading-tight">{customer.fullName}</h4><p className="text-[10px] text-slate-400 font-medium">Node: {customer.id.slice(-6).toUpperCase()}</p></div>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6 flex flex-col gap-2">
-                                            <span className="text-[11px] font-black uppercase text-gray-500 flex items-center gap-2"><Mail size={12} />{customer.email}</span>
-                                            <span className="text-[11px] font-black uppercase text-gray-500 flex items-center gap-2"><Phone size={12} />{customer.phoneNumber || 'Node silent'}</span>
+                                        <td>
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-[11px] font-medium text-slate-600 flex items-center gap-1.5"><Mail size={10} className="text-slate-400" />{customer.email}</span>
+                                                <span className="text-[11px] font-medium text-slate-600 flex items-center gap-1.5"><Phone size={10} className="text-slate-400" />{customer.phoneNumber || 'Silent'}</span>
+                                            </div>
                                         </td>
-                                        <td className="px-8 py-6 text-center">
-                                            <button onClick={() => handleToggleBlock(customer.id, customer.isBlocked, customer.fullName)} className={`px-5 py-2 rounded-full text-[9px] font-black uppercase border transition-all ${customer.isBlocked ? 'bg-red-50 text-red-600 border-red-100' : 'bg-green-50 text-green-600 border-green-100'}`}>{customer.isBlocked ? 'Restricted' : 'Authenticated'}</button>
+                                        <td className="text-center">
+                                            <button onClick={() => handleToggleBlock(customer.id, customer.isBlocked, customer.fullName)} className={`px-2.5 py-1 rounded-md text-[9px] font-bold uppercase border transition-all ${customer.isBlocked ? 'bg-red-50 text-red-600 border-red-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>{customer.isBlocked ? 'Restricted' : 'Authenticated'}</button>
                                         </td>
-                                        <td className="px-8 py-6 text-sm font-bold text-gray-400 font-mono">{new Date(customer.$createdAt).toLocaleDateString()}</td>
-                                        <td className="px-8 py-6 text-right">
-                                            <div className="flex justify-end gap-3 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all">
-                                                <button onClick={() => openViewModal(customer)} className="p-3 bg-white text-black border rounded-xl shadow-xl hover:bg-black hover:text-white transition-all"><Eye size={18} /></button>
-                                                <button onClick={() => { setSelectedCustomer(customer); setFormData({ ...customer }); setShowEditModal(true); }} className="p-3 bg-white text-black border rounded-xl shadow-xl hover:bg-black hover:text-white transition-all"><Edit3 size={18} /></button>
-                                                <button onClick={() => handleDelete(customer.id, customer.fullName)} className="p-3 bg-white text-red-600 border rounded-xl shadow-xl hover:bg-red-600 hover:text-white transition-all"><Trash2 size={18} /></button>
+                                        <td><span className="text-[11px] font-medium text-slate-400">{new Date(customer.$createdAt).toLocaleDateString()}</span></td>
+                                        <td className="text-right">
+                                            <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-all">
+                                                <button onClick={() => openViewModal(customer)} className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all" title="View Intelligence"><Eye size={14} /></button>
+                                                <button onClick={() => { setSelectedCustomer(customer); setFormData({ ...customer }); setShowEditModal(true); }} className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" title="Modify Record"><Edit3 size={14} /></button>
+                                                <button onClick={() => handleDelete(customer.id, customer.fullName)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Purge Record"><Trash2 size={14} /></button>
                                             </div>
                                         </td>
                                     </tr>

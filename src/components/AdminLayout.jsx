@@ -124,132 +124,109 @@ const AdminLayout = () => {
     ];
 
     return (
-        <div className="admin-theme-container flex h-screen bg-gray-50 font-sans overflow-hidden relative">
+        <div className="admin-theme-container flex h-screen bg-slate-50 font-admin overflow-hidden relative">
             {/* Mobile Hamburger Header */}
-            <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-50 flex items-center justify-between px-4 shadow-sm">
+            <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-slate-200 z-50 flex items-center justify-between px-4">
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => setIsSidebarOpen(true)}
-                        className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="p-1.5 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
                     >
-                        <LayoutDashboard className="w-6 h-6" />
+                        <LayoutDashboard className="w-5 h-5" />
                     </button>
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-[#28B463] rounded-lg flex items-center justify-center text-white">
-                            <Box className="w-5 h-5 text-white" />
+                        <div className="w-7 h-7 bg-emerald-600 rounded-lg flex items-center justify-center">
+                            <Box className="w-4 h-4 text-white" />
                         </div>
-                        <h2 className="text-sm font-black text-black leading-tight tracking-tight">Admin</h2>
+                        <h2 className="text-xs font-bold text-slate-900 tracking-tight">Admin Console</h2>
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
-                    <button onClick={handleLogout} className="p-2 text-red-500">
-                        <LogOut className="w-5 h-5" />
-                    </button>
-                </div>
+                <button onClick={handleLogout} className="p-1.5 text-slate-400 hover:text-red-500 transition-colors">
+                    <LogOut className="w-4 h-4" />
+                </button>
             </header>
 
-            {/* Mobile Overlay / Backdrop */}
+            {/* Mobile Overlay */}
             {isSidebarOpen && (
                 <div
-                    className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] transition-opacity duration-300"
+                    className="lg:hidden fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[60] transition-opacity duration-300"
                     onClick={() => setIsSidebarOpen(false)}
                 />
             )}
 
-            {/* Sidebar - Clean White Style */}
+            {/* Sidebar - Pro SaaS Style */}
             <aside
                 ref={sidebarRef}
                 className={`
-                    fixed lg:relative inset-y-0 left-0 w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 shadow-sm z-[70] transition-transform duration-300 transform
+                    fixed lg:relative inset-y-0 left-0 w-60 bg-white border-r border-slate-200 flex flex-col flex-shrink-0 z-[70] transition-transform duration-300 transform
                     ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 `}
             >
-                <div className="p-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-[#28B463] rounded-lg flex items-center justify-center shadow-lg shadow-[#28B463]/20">
-                                <Box className="text-white w-6 h-6" />
-                            </div>
-                            <div>
-                                <h2 className="text-lg font-black text-black leading-tight tracking-tight">Z&F Admin</h2>
-                                <p className="text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">Management</p>
-                            </div>
+                <div className="p-5">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center shadow-sm shadow-emerald-500/20">
+                            <Box className="text-white w-5 h-5" />
                         </div>
-                        {/* Mobile Close Button */}
-                        <button
-                            onClick={() => setIsSidebarOpen(false)}
-                            className="lg:hidden p-2 text-gray-400 hover:text-black"
-                        >
-                            <ChevronRight className={`w-6 h-6 transform rotate-180 transition-transform ${isSidebarOpen ? 'rotate-0' : ''}`} />
-                        </button>
+                        <div>
+                            <h2 className="text-sm font-bold text-slate-900 tracking-tight leading-none mb-1">Z&F Admin</h2>
+                            <p className="text-[9px] uppercase font-bold text-slate-400 tracking-widest">v2.0 Managed</p>
+                        </div>
                     </div>
-                    <div className="mt-6 border-b border-gray-100"></div>
                 </div>
 
-                <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto pt-2 scrollbar-thin scrollbar-thumb-[#28B463]/20">
+                <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto custom-scrollbar">
                     {navItems.map((item) => (
                         <NavLink
                             key={item.path}
                             to={item.path}
                             className={({ isActive }) => `
-                                flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 group
+                                flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group
                                 ${isActive
-                                    ? 'bg-[#28B463]/10 text-[#28B463] shadow-sm transform translate-x-1'
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-black'}
+                                    ? 'bg-slate-50 text-emerald-600 font-semibold'
+                                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}
                             `}
                         >
-                            {({ isActive }) => (
-                                <>
-                                    <div className="flex items-center gap-3">
-                                        <span className={`transition-all duration-300 ${isActive ? 'text-[#28B463] scale-110' : 'text-gray-400 group-hover:text-black group-hover:scale-110'}`}>
-                                            {item.icon}
-                                        </span>
-                                        <span className={`text-sm font-semibold tracking-wide transition-all ${isActive ? 'translate-x-1' : 'group-hover:translate-x-1'}`}>
-                                            {item.name}
-                                        </span>
-                                        {item.name === 'Orders' && pendingOrdersCount > 0 && (
-                                            <span className="ml-auto bg-[#e31e24] text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse shadow-sm border border-white/20">
-                                                {pendingOrdersCount}
-                                            </span>
-                                        )}
-                                        {item.name === 'Messages' && unreadCount > 0 && (
-                                            <span className="ml-auto bg-[#28B463] text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse shadow-sm border border-white/20">
-                                                {unreadCount}
-                                            </span>
-                                        )}
-                                        {item.name === 'Reviews' && pendingReviewsCount > 0 && (
-                                            <span className="ml-auto bg-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse shadow-sm border border-white/20">
-                                                {pendingReviewsCount}
-                                            </span>
-                                        )}
-                                    </div>
-                                    {isActive && (
-                                        <div className="w-1 h-5 bg-[#28B463] rounded-full"></div>
-                                    )}
-                                </>
-                            )}
+                            <span className={`transition-all duration-200 ${isActive ? 'text-emerald-600' : 'text-slate-400 group-hover:text-slate-600'}`}>
+                                {React.cloneElement(item.icon, { className: 'w-4.5 h-4.5' })}
+                            </span>
+                            <span className="text-[13px] tracking-tight">
+                                {item.name}
+                            </span>
+
+                            <div className="ml-auto flex gap-1">
+                                {item.name === 'Orders' && pendingOrdersCount > 0 && (
+                                    <span className="bg-emerald-100 text-emerald-700 text-[9px] font-bold px-1.5 py-0.5 rounded-md border border-emerald-200">
+                                        {pendingOrdersCount}
+                                    </span>
+                                )}
+                                {item.name === 'Messages' && unreadCount > 0 && (
+                                    <span className="bg-slate-100 text-slate-700 text-[9px] font-bold px-1.5 py-0.5 rounded-md border border-slate-200">
+                                        {unreadCount}
+                                    </span>
+                                )}
+                            </div>
                         </NavLink>
                     ))}
                 </nav>
 
-                <div className="p-4 border-t border-gray-100 mt-auto bg-gray-50/50">
-                    <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-[#28B463] hover:bg-green-50 rounded-xl transition-all duration-300 font-bold text-sm group"
-                    >
-                        <LogOut className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-                        <span>Logout</span>
-                    </button>
-
-                    <div className="mt-4 px-4 py-3 bg-white rounded-2xl flex items-center gap-3 border border-gray-200">
-                        <div className="w-8 h-8 rounded-full bg-[#28B463] flex items-center justify-center text-white font-black text-xs shadow-lg shadow-[#28B463]/20">
+                <div className="p-4 bg-slate-50/50 border-t border-slate-100">
+                    <div className="flex items-center gap-3 p-2 bg-white rounded-lg border border-slate-200 shadow-sm mb-3">
+                        <div className="w-7 h-7 rounded-lg bg-slate-900 flex items-center justify-center text-white text-[10px] font-bold">
                             AD
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs font-black text-black truncate">Administrator</p>
-                            <p className="text-[10px] text-gray-500 truncate font-medium">{auth.currentUser?.email}</p>
+                            <p className="text-[11px] font-bold text-slate-900 truncate">Administrator</p>
+                            <p className="text-[9px] text-slate-500 truncate">{auth.currentUser?.email}</p>
                         </div>
                     </div>
+
+                    <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 font-bold text-[11px] uppercase tracking-wider"
+                    >
+                        <LogOut className="w-3.5 h-3.5" />
+                        <span>Sign Out</span>
+                    </button>
                 </div>
             </aside>
 

@@ -96,108 +96,137 @@ const ManagePromoCodes = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20 font-Cairo text-gray-900">
+        <div className="min-h-screen bg-slate-50 pb-20 font-admin text-slate-900">
             <AdminHeader title="Promotion Engine" />
-            <main className="max-w-7xl mx-auto py-8 px-4">
-                <div className="flex justify-between items-center mb-10">
+            <main className="max-w-7xl mx-auto py-6 px-4 md:px-8">
+                <div className="flex justify-between items-center mb-6">
                     <div>
-                        <h2 className="text-3xl font-black uppercase italic">Campaign Registry</h2>
-                        <p className="text-sm font-bold text-gray-500">Managing {codes.length} active protocols</p>
+                        <h2 className="text-lg font-bold text-slate-900">Campaign Registry</h2>
+                        <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider mt-0.5">Monitoring: {codes.length} active protocols</p>
                     </div>
                     {!showAddForm && (
-                        <button onClick={() => setShowAddForm(true)} className="bg-black text-white px-10 py-5 rounded-2xl font-black uppercase italic text-xs flex items-center gap-2 shadow-2xl hover:scale-105 transition-all"><Plus size={18} /> New Campaign</button>
+                        <button onClick={() => setShowAddForm(true)} className="admin-btn-slim bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-900/10">
+                            <Plus size={14} /> New Campaign
+                        </button>
                     )}
                 </div>
 
                 {showAddForm && (
-                    <section className="bg-white p-10 rounded-[2.5rem] border shadow-sm mb-12 space-y-8 animate-in fade-in slide-in-from-top-4">
-                        <div className="flex justify-between items-center border-b pb-6">
-                            <div><h3 className="text-xl font-black uppercase italic">Protocol Configuration</h3><p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Define logic constraints and rewards</p></div>
-                            <button onClick={() => setShowAddForm(false)} className="p-3 bg-gray-50 text-gray-400 rounded-xl hover:bg-black hover:text-white transition-all"><X size={20} /></button>
+                    <section className="admin-card-compact p-6 mb-8 space-y-6 animate-in fade-in slide-in-from-top-4">
+                        <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+                            <div>
+                                <h3 className="text-sm font-bold text-slate-900">Protocol Configuration</h3>
+                                <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider mt-0.5">Define logic constraints and rewards</p>
+                            </div>
+                            <button onClick={() => setShowAddForm(false)} className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"><X size={16} /></button>
                         </div>
-                        <form onSubmit={handleAdd} className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div className="space-y-6">
-                                <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Registry Code</label><input value={formData.code} onChange={e => setFormData({ ...formData, code: e.target.value })} className="w-full p-4 bg-gray-50 border rounded-2xl font-black text-xl italic" placeholder="SUMMER25" required /></div>
-                                <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Strategy Type</label>
-                                    <select value={formData.type} onChange={e => setFormData({ ...formData, type: e.target.value })} className="w-full p-4 bg-gray-50 border rounded-2xl font-black text-xs uppercase italic">
+                        <form onSubmit={handleAdd} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="admin-text-subtle ml-1">Registry Code</label>
+                                    <input value={formData.code} onChange={e => setFormData({ ...formData, code: e.target.value })} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold italic outline-none focus:ring-1 focus:ring-slate-900 transition-all" placeholder="SUMMER25" required />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="admin-text-subtle ml-1">Strategy Type</label>
+                                    <select value={formData.type} onChange={e => setFormData({ ...formData, type: e.target.value })} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold uppercase outline-none focus:ring-1 focus:ring-slate-900 transition-all">
                                         {PROMO_TYPES.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                                     </select>
                                 </div>
-                                <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Global Limit</label><input type="number" value={formData.usageLimit} onChange={e => setFormData({ ...formData, usageLimit: e.target.value })} className="w-full p-4 bg-gray-50 border rounded-2xl font-black" required /></div>
+                                <div className="space-y-1.5">
+                                    <label className="admin-text-subtle ml-1">Global Limit</label>
+                                    <input type="number" value={formData.usageLimit} onChange={e => setFormData({ ...formData, usageLimit: e.target.value })} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium outline-none focus:ring-1 focus:ring-slate-900 transition-all" required />
+                                </div>
                             </div>
-                            <div className="space-y-6 bg-gray-50 p-8 rounded-[2rem] border border-dashed border-gray-200">
-                                <h4 className="text-[10px] font-black uppercase text-red-600 block mb-2 tracking-widest">Logic Constraints</h4>
+                            <div className="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                <h4 className="text-[9px] font-bold uppercase text-amber-600 block mb-1 tracking-widest">Logic Constraints</h4>
                                 {formData.type === 'discount' && (
-                                    <div className="space-y-6">
-                                        <div className="flex gap-4">
-                                            <input type="number" placeholder="Value" value={formData.value} onChange={e => setFormData({ ...formData, value: e.target.value })} className="flex-1 p-4 bg-white border rounded-xl font-black" required />
-                                            <button type="button" onClick={() => setFormData({ ...formData, isPercentage: !formData.isPercentage })} className={`px-4 rounded-xl font-black text-xs ${formData.isPercentage ? 'bg-black text-white' : 'bg-white border text-black'}`}>{formData.isPercentage ? '%' : 'EGP'}</button>
+                                    <div className="space-y-4">
+                                        <div className="flex gap-2">
+                                            <input type="number" placeholder="Value" value={formData.value} onChange={e => setFormData({ ...formData, value: e.target.value })} className="flex-1 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold outline-none focus:ring-1 focus:ring-slate-900" required />
+                                            <button type="button" onClick={() => setFormData({ ...formData, isPercentage: !formData.isPercentage })} className={`px-4 rounded-lg font-bold text-[10px] transition-all ${formData.isPercentage ? 'bg-slate-900 text-white' : 'bg-white border text-slate-600'}`}>{formData.isPercentage ? '%' : 'EGP'}</button>
                                         </div>
-                                        <input type="number" placeholder="Min. Order Value" value={formData.minOrderValue} onChange={e => setFormData({ ...formData, minOrderValue: e.target.value })} className="w-full p-4 bg-white border rounded-xl font-black" />
+                                        <input type="number" placeholder="Min. Order Value" value={formData.minOrderValue} onChange={e => setFormData({ ...formData, minOrderValue: e.target.value })} className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium outline-none focus:ring-1 focus:ring-slate-900" />
                                     </div>
                                 )}
                                 {formData.type === 'free_shipping_threshold' && (
-                                    <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400">Grant delivery for subtotal &gt;=</label><input type="number" value={formData.minOrderValue} onChange={e => setFormData({ ...formData, minOrderValue: e.target.value })} className="w-full p-4 bg-white border rounded-xl font-black text-xl text-red-600" required /></div>
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-bold uppercase text-slate-400">Grant delivery for subtotal &gt;=</label>
+                                        <input type="number" value={formData.minOrderValue} onChange={e => setFormData({ ...formData, minOrderValue: e.target.value })} className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-lg font-bold text-slate-900" required />
+                                    </div>
                                 )}
                                 {formData.type === 'payment_method_shipping' && (
-                                    <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-400">Exclusive Reward for</label>
-                                        <select value={formData.requiredPaymentMethod} onChange={e => setFormData({ ...formData, requiredPaymentMethod: e.target.value })} className="w-full p-4 bg-white border rounded-xl font-black text-xs uppercase">
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-bold uppercase text-slate-400">Exclusive Reward for</label>
+                                        <select value={formData.requiredPaymentMethod} onChange={e => setFormData({ ...formData, requiredPaymentMethod: e.target.value })} className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-[10px] font-bold uppercase">
                                             <option value="online">Online Gateway Only</option>
                                             <option value="cod">Cash on Delivery</option>
                                         </select>
                                     </div>
                                 )}
                                 {formData.type === 'product_gift' && (
-                                    <div className="space-y-4">
-                                        <select value={formData.targetProductId} onChange={e => setFormData({ ...formData, targetProductId: e.target.value })} className="w-full p-4 bg-white border rounded-xl font-black text-[10px] uppercase"><option value="">Select Trigger SKU</option>{products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
-                                        <select value={formData.giftProductId} onChange={e => setFormData({ ...formData, giftProductId: e.target.value })} className="w-full p-4 bg-white border rounded-xl font-black text-[10px] uppercase"><option value="">Select Reward SKU</option>{products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
+                                    <div className="space-y-3">
+                                        <select value={formData.targetProductId} onChange={e => setFormData({ ...formData, targetProductId: e.target.value })} className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-[10px] font-bold uppercase">
+                                            <option value="">Select Trigger SKU</option>
+                                            {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                        </select>
+                                        <select value={formData.giftProductId} onChange={e => setFormData({ ...formData, giftProductId: e.target.value })} className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-[10px] font-bold uppercase">
+                                            <option value="">Select Reward SKU</option>
+                                            {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                        </select>
                                     </div>
                                 )}
                             </div>
-                            <div className="flex flex-col justify-end space-y-6">
-                                <div className="bg-black text-white p-6 rounded-[2rem] shadow-2xl space-y-2">
-                                    <h5 className="text-[8px] font-black uppercase text-red-600 tracking-widest">Projection</h5>
-                                    <p className="text-xs font-bold leading-relaxed italic opacity-80">
+                            <div className="flex flex-col justify-end space-y-4">
+                                <div className="bg-slate-900 text-white p-4 rounded-xl shadow-lg space-y-1.5">
+                                    <h5 className="text-[8px] font-bold uppercase text-emerald-400 tracking-widest">Projection</h5>
+                                    <p className="text-[11px] font-medium leading-relaxed italic opacity-80">
                                         {formData.type === 'discount' && `Incentivize with ${formData.value}${formData.isPercentage ? '%' : ' EGP'} reduction ${formData.minOrderValue > 0 ? `for orders above ${formData.minOrderValue} EGP` : ''}.`}
                                         {formData.type === 'free_shipping_threshold' && `Universal delivery grant for all orders surpassing ${formData.minOrderValue} EGP.`}
                                         {formData.type === 'payment_method_shipping' && `Optimize ${formData.requiredPaymentMethod} conversion by zeroing delivery fees.`}
                                         {formData.type === 'product_gift' && `Complementary asset injection strategy for target high-value SKU.`}
                                     </p>
                                 </div>
-                                <button type="submit" disabled={actionLoading} className="bg-red-600 text-white py-5 rounded-2xl font-black uppercase italic shadow-2xl hover:scale-105 transition-all">{actionLoading ? 'Deploying...' : 'Launch Protocol'}</button>
+                                <button type="submit" disabled={actionLoading} className="w-full admin-btn-slim bg-slate-900 text-white hover:bg-slate-800 justify-center py-3 text-xs uppercase shadow-lg shadow-slate-900/10">
+                                    {actionLoading ? 'Deploying...' : 'Launch Protocol'}
+                                </button>
                             </div>
                         </form>
                     </section>
                 )}
 
-                <div className="bg-white rounded-[2.5rem] border shadow-sm overflow-hidden">
-                    {loading ? <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-black" size={40} /></div> : (
+                <div className="admin-card-compact overflow-hidden">
+                    {loading ? (
+                        <div className="p-16 text-center text-slate-400">
+                            <Loader2 className="animate-spin mx-auto mb-3" size={32} />
+                            <p className="text-xs font-medium uppercase tracking-widest">Accessing Logs...</p>
+                        </div>
+                    ) : (
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                                <thead className="bg-gray-50/50 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                            <table className="w-full admin-table-dense">
+                                <thead className="bg-slate-50/50">
                                     <tr>
-                                        <th className="px-8 py-6">Code & Core</th>
-                                        <th className="px-8 py-6">Strategy Profile</th>
-                                        <th className="px-8 py-6 text-center">Velocity (Usage)</th>
-                                        <th className="px-8 py-6 text-center">Phase</th>
-                                        <th className="px-8 py-6 text-right">Ops</th>
+                                        <th className="text-left">Code & Core</th>
+                                        <th className="text-left">Strategy Profile</th>
+                                        <th className="text-center">Velocity (Usage)</th>
+                                        <th className="text-center">Phase</th>
+                                        <th className="text-right">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100">
+                                <tbody className="divide-y divide-slate-50">
                                     {codes.map(promo => (
-                                        <tr key={promo.id} className="hover:bg-gray-50/50 group transition-all">
-                                            <td className="px-8 py-6">
+                                        <tr key={promo.id} className="hover:bg-slate-50/50 group transition-all">
+                                            <td>
                                                 <div className="flex flex-col gap-1">
-                                                    <span className="text-lg font-black text-black italic tracking-wider p-2 bg-gray-50 border rounded-xl inline-block w-fit">{promo.code}</span>
-                                                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest ml-1">{new Date(promo.$createdAt).toLocaleDateString()}</span>
+                                                    <span className="text-[13px] font-bold text-slate-900 italic tracking-wider px-2 py-1 bg-slate-50 border border-slate-100 rounded-md inline-block w-fit">{promo.code}</span>
+                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{new Date(promo.$createdAt).toLocaleDateString()}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-6">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="p-3 bg-red-50 text-red-600 rounded-xl border border-red-100">{PROMO_TYPES.find(t => t.id === promo.type)?.icon || <Tag size={20} />}</div>
+                                            <td>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-slate-100 text-slate-500 rounded-lg group-hover:bg-slate-900 group-hover:text-white transition-all">{PROMO_TYPES.find(t => t.id === promo.type)?.icon || <Tag size={16} />}</div>
                                                     <div>
-                                                        <h4 className="font-black text-xs uppercase italic">{PROMO_TYPES.find(t => t.id === promo.type)?.name}</h4>
-                                                        <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">
+                                                        <h4 className="text-[12px] font-bold text-slate-800 leading-tight">{PROMO_TYPES.find(t => t.id === promo.type)?.name}</h4>
+                                                        <p className="text-[10px] text-slate-400 font-medium mt-0.5">
                                                             {promo.type === 'discount' && `${promo.value}${promo.isPercentage ? '%' : ' EGP'} Off ${promo.minOrderValue > 0 ? `(Orders > ${promo.minOrderValue})` : ''}`}
                                                             {promo.type === 'free_shipping_threshold' && `Free Shipping > ${promo.minOrderValue} EGP`}
                                                             {promo.type === 'payment_method_shipping' && `Gateway: ${promo.requiredPaymentMethod.toUpperCase()}`}
@@ -206,19 +235,19 @@ const ManagePromoCodes = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-6 text-center">
-                                                <div className="inline-flex flex-col items-center gap-2">
-                                                    <div className="flex items-center gap-2 font-black text-xs uppercase"><span className="text-red-600">{promo.usedCount}</span><span className="text-gray-300">/</span><span>{promo.usageLimit}</span></div>
-                                                    <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden border"><div className="h-full bg-red-600 transition-all" style={{ width: `${Math.min((promo.usedCount / promo.usageLimit) * 100, 100)}%` }} /></div>
+                                            <td>
+                                                <div className="flex flex-col items-center gap-1.5">
+                                                    <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase"><span className="text-slate-900">{promo.usedCount}</span><span className="text-slate-300">/</span><span className="text-slate-400">{promo.usageLimit}</span></div>
+                                                    <div className="w-20 h-1 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-slate-900 transition-all" style={{ width: `${Math.min((promo.usedCount / promo.usageLimit) * 100, 100)}%` }} /></div>
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-6 text-center">
-                                                <button onClick={() => handleToggleStatus(promo)} className={`px-4 py-2 rounded-full text-[9px] font-black uppercase border transition-all ${promo.isActive ? 'bg-green-50 text-green-600 border-green-200' : 'bg-red-50 text-red-600 border-red-200'}`}>
-                                                    {promo.isActive ? <CheckCircle size={10} className="inline mr-1" /> : <XCircle size={10} className="inline mr-1" />} {promo.isActive ? 'Active' : 'Offline'}
+                                            <td className="text-center">
+                                                <button onClick={() => handleToggleStatus(promo)} className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase border transition-all ${promo.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
+                                                    {promo.isActive ? 'Active' : 'Offline'}
                                                 </button>
                                             </td>
-                                            <td className="px-8 py-6 text-right">
-                                                <button onClick={() => handleDelete(promo.id)} className="p-3 bg-white text-gray-400 border rounded-xl shadow-xl hover:text-red-600 hover:border-red-600 transition-all opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0"><Trash2 size={18} /></button>
+                                            <td className="text-right">
+                                                <button onClick={() => handleDelete(promo.id)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={14} /></button>
                                             </td>
                                         </tr>
                                     ))}

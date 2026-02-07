@@ -107,46 +107,85 @@ const ManageCategories = () => {
     const filtered = categories.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20 font-Cairo text-gray-900">
+        <div className="min-h-screen bg-slate-50 pb-20 font-admin text-slate-900">
             <AdminHeader title="Taxonomy Matrix" />
-            <main className="max-w-7xl mx-auto py-8 px-4">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <section className="bg-white p-10 rounded-[2.5rem] border shadow-sm h-fit space-y-8">
-                        <div><h2 className="text-xl font-black uppercase italic">New Entry</h2><p className="text-xs text-gray-400 font-bold">Protocol for adding sectors</p></div>
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <input placeholder="Sector Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full p-4 bg-gray-50 border rounded-2xl font-black" required />
-                            <ImageUpload currentImage={formData.image || formData.imageUrl} onUploadComplete={url => setFormData({ ...formData, image: url })} folderPath="categories" />
-                            <textarea placeholder="Sub-Sectors (CSV Format)" value={formData.subCategories} onChange={e => setFormData({ ...formData, subCategories: e.target.value })} className="w-full p-4 bg-gray-50 border rounded-2xl font-bold min-h-[120px]" />
-                            <button type="submit" className="w-full bg-black text-white py-5 rounded-2xl font-black uppercase italic shadow-xl">Commit to Registry</button>
+            <main className="max-w-7xl mx-auto py-6 px-4 md:px-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <section className="admin-card-compact p-5 h-fit space-y-5">
+                        <div className="border-b border-slate-100 pb-3">
+                            <h2 className="text-sm font-bold text-slate-900">New Category</h2>
+                            <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Define new product sector</p>
+                        </div>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="space-y-1.5">
+                                <label className="admin-text-subtle ml-1">Sector Name</label>
+                                <input placeholder="e.g. Filters" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium outline-none focus:ring-1 focus:ring-slate-900 transition-all" required />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="admin-text-subtle ml-1">Universal Asset (Image)</label>
+                                <ImageUpload currentImage={formData.image || formData.imageUrl} onUploadComplete={url => setFormData({ ...formData, image: url })} folderPath="categories" />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="admin-text-subtle ml-1">Sub-Sectors (CSV)</label>
+                                <textarea placeholder="Sub1, Sub2, Sub3..." value={formData.subCategories} onChange={e => setFormData({ ...formData, subCategories: e.target.value })} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium min-h-[100px] outline-none focus:ring-1 focus:ring-slate-900 transition-all" />
+                            </div>
+                            <button type="submit" className="w-full admin-btn-slim bg-slate-900 text-white hover:bg-slate-800 justify-center py-3 text-xs uppercase shadow-lg shadow-slate-900/10">Commit to Registry</button>
                         </form>
                     </section>
 
-                    <section className="lg:col-span-2 space-y-8">
+                    <section className="lg:col-span-2 space-y-6">
                         <div className="flex justify-between items-center">
-                            <div><h2 className="text-xl font-black uppercase italic">Registry View</h2><p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Found {filtered.length} active nodes</p></div>
-                            <div className="flex gap-4">
-                                <div className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} /><input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Filter Matrix..." className="pl-10 pr-4 py-2 bg-white border rounded-xl text-xs font-bold" /></div>
-                                <button onClick={exportCategories} disabled={exporting} className="bg-green-600 text-white p-2 rounded-xl shadow-lg"><Download size={18} /></button>
+                            <div>
+                                <h2 className="text-sm font-bold text-slate-900">Registry View</h2>
+                                <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider mt-0.5">Telemetry: {filtered.length} nodes active</p>
+                            </div>
+                            <div className="flex gap-3">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                                    <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Filter Matrix..." className="pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:ring-1 focus:ring-slate-900" />
+                                </div>
+                                <button onClick={exportCategories} disabled={exporting} className="p-2 bg-emerald-50 text-emerald-600 rounded-lg border border-emerald-100 hover:bg-emerald-100 transition-all shadow-sm" title="Export Ledger">
+                                    <Download size={14} />
+                                </button>
                             </div>
                         </div>
 
-                        {loading ? <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-black" size={40} /></div> : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        {loading ? (
+                            <div className="p-16 text-center text-slate-400">
+                                <Loader2 className="animate-spin mx-auto mb-3" size={32} />
+                                <p className="text-xs font-medium uppercase tracking-widest">Accessing Logs...</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {filtered.map(cat => (
-                                    <div key={cat.id} className="bg-white p-6 rounded-[2rem] border shadow-sm group relative overflow-hidden transition-all hover:border-black/20">
+                                    <div key={cat.id} className="admin-card-compact p-4 group relative overflow-hidden transition-all">
                                         <div className="flex gap-4 items-start relative z-10">
-                                            <img src={cat.image || cat.imageUrl} className="w-20 h-20 rounded-2xl object-cover border" alt={cat.name} />
+                                            <div className="w-16 h-16 rounded-xl overflow-hidden border border-slate-100 flex-shrink-0">
+                                                <img src={cat.image || cat.imageUrl} className="w-full h-full object-cover" alt={cat.name} />
+                                            </div>
                                             <div className="flex-1">
-                                                <h3 className="font-black text-xl italic">{cat.name}</h3>
-                                                <div className="flex flex-wrap gap-1 mt-3">
-                                                    {(cat.subCategories || []).slice(0, 4).map((s, i) => <span key={i} className="text-[8px] font-black bg-gray-50 px-2 py-1 rounded-lg uppercase border">{typeof s === 'string' ? s : s.name}</span>)}
-                                                    {cat.subCategories?.length > 4 && <span className="text-[8px] font-black bg-black text-white px-2 py-1 rounded-lg uppercase">+{cat.subCategories.length - 4}</span>}
+                                                <h3 className="font-bold text-slate-900 text-sm">{cat.name}</h3>
+                                                <div className="flex flex-wrap gap-1 mt-2">
+                                                    {(cat.subCategories || []).slice(0, 4).map((s, i) => (
+                                                        <span key={i} className="text-[8px] font-bold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-100 uppercase">
+                                                            {typeof s === 'string' ? s : s.name}
+                                                        </span>
+                                                    ))}
+                                                    {cat.subCategories?.length > 4 && (
+                                                        <span className="text-[8px] font-bold bg-slate-900 text-white px-1.5 py-0.5 rounded-md uppercase">
+                                                            +{cat.subCategories.length - 4}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0 z-50">
-                                            <button onClick={() => navigate(`/admin/edit-category/${cat.id}`)} className="p-3 bg-white text-black border rounded-xl shadow-xl hover:bg-black hover:text-white transition-all"><Edit3 size={18} /></button>
-                                            <button onClick={() => handleDelete(cat.id)} className="p-3 bg-white text-red-600 border rounded-xl shadow-xl hover:bg-red-600 hover:text-white transition-all"><Trash2 size={18} /></button>
+                                        <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-20">
+                                            <button onClick={() => navigate(`/admin/edit-category/${cat.id}`)} className="p-1.5 bg-white text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg border border-slate-100 shadow-sm transition-all" title="Edit">
+                                                <Edit3 size={12} />
+                                            </button>
+                                            <button onClick={() => handleDelete(cat.id)} className="p-1.5 bg-white text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg border border-slate-100 shadow-sm transition-all" title="Delete">
+                                                <Trash2 size={12} />
+                                            </button>
                                         </div>
                                     </div>
                                 ))}

@@ -40,20 +40,23 @@ const AdminHeader = ({ title }) => {
     };
 
     return (
-        <header className="bg-white border-b border-gray-200 sticky top-0 md:top-0 lg:sticky lg:top-0 z-30">
-            <div className="max-w-full mx-auto py-4 sm:py-5 px-4 md:px-10 flex flex-col xs:flex-row justify-between items-center gap-3">
-                <h1 className="text-lg sm:text-2xl font-black text-[#000000] tracking-tight font-Cairo italic uppercase text-center xs:text-left">{title}</h1>
+        <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
+            <div className="max-w-full mx-auto py-3 px-4 md:px-8 flex flex-row justify-between items-center gap-4">
+                <div className="flex flex-col">
+                    <h1 className="text-sm md:text-lg font-bold text-slate-900 tracking-tight">{title}</h1>
+                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest hidden md:block">System Node / {title}</p>
+                </div>
 
                 <button
                     onClick={handleSync}
                     disabled={isSyncing}
-                    className={`w-full xs:w-auto flex items-center justify-center gap-2 px-6 py-4 xs:py-3 rounded-2xl font-black text-[10px] xs:text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-500/20 ${isSyncing
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                    className={`admin-btn-slim shadow-sm ${isSyncing
+                        ? 'bg-slate-50 text-slate-400 cursor-not-allowed border border-slate-100'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/10 hover:shadow-emerald-500/20'
                         }`}
                 >
-                    <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                    {isSyncing ? 'Syncing...' : 'Sync to Live'}
+                    <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                    <span className="hidden xs:inline">{isSyncing ? 'Syncing...' : 'Publish to Live'}</span>
                 </button>
             </div>
         </header>
