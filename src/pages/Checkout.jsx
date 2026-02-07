@@ -11,7 +11,7 @@ import axios from 'axios';
 import { safeStorage } from '../utils/storage';
 import { Loader2, ShieldCheck, Banknote, CreditCard, Ticket, CheckCircle2, AlertCircle, MapPin, Plus, User, Mail, Smartphone, Trash2, Home, Briefcase, Building, Map } from 'lucide-react';
 import { databases } from '../appwrite';
-import { Query } from 'appwrite';
+import { Query, ID } from 'appwrite';
 import PhoneInputGroup from '../components/PhoneInputGroup';
 import TrustPaymentSection from '../components/TrustPaymentSection';
 
