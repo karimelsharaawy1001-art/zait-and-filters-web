@@ -154,10 +154,20 @@ const Profile = () => {
                 return matchFound;
             });
 
-            const ordersList = userOrders.map(doc => ({
-                id: doc.$id,
-                ...doc
-            })).sort((a, b) => {
+            const ordersList = userOrders.map(doc => {
+                let parsedItems = [];
+                try {
+                    parsedItems = typeof doc.items === 'string' ? JSON.parse(doc.items) : doc.items;
+                } catch (e) {
+                    console.error("Error parsing items for order:", doc.$id, e);
+                }
+
+                return {
+                    id: doc.$id,
+                    ...doc,
+                    items: Array.isArray(parsedItems) ? parsedItems : []
+                };
+            }).sort((a, b) => {
                 const numA = parseInt(a.orderNumber) || 0;
                 const numB = parseInt(b.orderNumber) || 0;
                 return numB - numA;
