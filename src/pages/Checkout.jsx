@@ -692,9 +692,19 @@ const Checkout = () => {
                                     <span>{t('subtotal')}</span>
                                     <span className="font-bold">{subtotal.toLocaleString()} EGP</span>
                                 </div>
-                                <div className="flex justify-between text-sm text-gray-600">
+                                <div className="flex justify-between items-center text-sm text-gray-600">
                                     <span>{t('shipping')}</span>
-                                    <span className="font-bold">{shipping === 0 ? <span className="text-green-600">{t('free')}</span> : `${shipping} EGP`}</span>
+                                    <span className="font-bold">
+                                        {!formData.governorate ? (
+                                            <span className="text-orange-600 text-[10px] font-black uppercase italic tracking-wider bg-orange-50 px-2 py-0.5 rounded-lg border border-orange-100 flex items-center gap-1 animate-pulse">
+                                                <Map size={10} strokeWidth={3} /> {t('selectGovForShipping')}
+                                            </span>
+                                        ) : shipping === 0 ? (
+                                            <span className="text-green-600">{t('free')}</span>
+                                        ) : (
+                                            `${shipping} EGP`
+                                        )}
+                                    </span>
                                 </div>
                                 {discount > 0 && (
                                     <div className="flex justify-between text-sm text-green-600 font-bold">
