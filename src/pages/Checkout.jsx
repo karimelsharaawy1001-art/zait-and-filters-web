@@ -26,7 +26,7 @@ const Checkout = () => {
     const [fetchingMethods, setFetchingMethods] = useState(true);
     const [activeMethods, setActiveMethods] = useState([]);
     const [shippingRates, setShippingRates] = useState([]);
-    const [shippingCost, setShippingCost] = useState(0);
+    const [shippingCost, setShippingCost] = useState(null);
     const [appliedPromo, setAppliedPromo] = useState(null);
     const [promoInput, setPromoInput] = useState('');
     const [promoLoading, setPromoLoading] = useState(false);
@@ -123,7 +123,7 @@ const Checkout = () => {
                 governorate: '',
                 city: ''
             }));
-            setShippingCost(0);
+            setShippingCost(null);
             return;
         }
 
@@ -135,8 +135,10 @@ const Checkout = () => {
             city: addr.city
         }));
 
-        const rate = shippingRates.find(r => r.governorate === addr.governorate);
-        setShippingCost(rate ? rate.cost : 0);
+        const rate = (shippingRates || []).find(r =>
+            r.governorate?.trim() === addr.governorate?.trim()
+        );
+        setShippingCost(rate ? (Number(rate.cost) || 0) : null);
     };
 
     useEffect(() => {
@@ -204,7 +206,7 @@ const Checkout = () => {
             const selectedRate = (shippingRates || []).find(r =>
                 r.governorate?.trim() === value?.trim()
             );
-            setShippingCost(selectedRate ? (Number(selectedRate.cost) || 0) : 0);
+            setShippingCost(selectedRate ? (Number(selectedRate.cost) || 0) : null);
         }
     };
 
@@ -311,12 +313,13 @@ const Checkout = () => {
         return {
             subtotal: Number(subtotal) || 0,
             discount: Number(discount) || 0,
-            shipping: Number(finalShipping) || 0,
-            total: Math.max(0, (subtotal - discount + finalShipping))
+            shipping: finalShipping === null ? 0 : Number(finalShipping),
+            total: Math.max(0, (subtotal - discount + (finalShipping || 0))),
+            isShippingCalculated: finalShipping !== null
         };
     };
 
-    const { subtotal, discount, shipping, total } = calculateTotals();
+    const { subtotal, discount, shipping, total, isShippingCalculated } = calculateTotals();
 
     const handleOnlinePayment = async (orderId, methodConfig) => {
         try {
@@ -695,14 +698,14 @@ const Checkout = () => {
                                 <div className="flex justify-between items-center text-sm text-gray-600">
                                     <span>{t('shipping')}</span>
                                     <span className="font-bold">
-                                        {!formData.governorate ? (
+                                        {!isShippingCalculated ? (
                                             <span className="text-orange-600 text-[10px] font-black uppercase italic tracking-wider bg-orange-50 px-2 py-0.5 rounded-lg border border-orange-100 flex items-center gap-1 animate-pulse">
                                                 <Map size={10} strokeWidth={3} /> {t('selectGovForShipping')}
                                             </span>
                                         ) : shipping === 0 ? (
-                                            <span className="text-green-600">{t('free')}</span>
+                                            <span className="text-green-600 font-black italic">{t('free')}</span>
                                         ) : (
-                                            `${shipping} EGP`
+                                            `${shipping.toLocaleString()} EGP`
                                         )}
                                     </span>
                                 </div>
