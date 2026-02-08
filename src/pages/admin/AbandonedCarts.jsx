@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { databases } from '../../appwrite';
-import { Query, ID } from 'appwrite';
+import { db } from '../../firebase';
+import { collection, query, orderBy, limit, getDocs, doc, updateDoc, getDoc, setDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
 import {
     ShoppingBag, User, Phone, Mail, Clock, CheckCircle2, AlertCircle, Eye, Send, MessageCircle, X, Loader2, Filter, ExternalLink, Zap, MousePointer2, CreditCard
 } from 'lucide-react';
@@ -15,35 +15,61 @@ const AbandonedCarts = () => {
     const [filter, setFilter] = useState('all');
     const [converting, setConverting] = useState(false);
 
-    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-    const ABANDONED_COLLECTION = import.meta.env.VITE_APPWRITE_ABANDONED_CARTS_COLLECTION_ID || 'abandoned_carts';
-
     useEffect(() => {
-        if (!DATABASE_ID) return;
-        setLoading(true);
-        try {
-            const response = databases.listDocuments(DATABASE_ID, ABANDONED_COLLECTION, [Query.orderDesc('lastModified'), Query.limit(100)]);
-            response.then(res => {
-                setCarts(res.documents.map(doc => {
-                    let items = doc.items;
+        const fetchAbandonedCarts = async () => {
+            setLoading(true);
+            try {
+                const cartsRef = collection(db, 'carts'); // Assuming 'carts' is the collection name in Firestore
+                // Note: You might need to adjust the query if you only want abandoned ones (e.g., waiting > X time)
+                // For now, listing all recently modified carts
+                const q = query(cartsRef, orderBy('lastModified', 'desc'), limit(100));
+
+                const querySnapshot = await getDocs(q);
+                const fetchedCarts = querySnapshot.docs.map(doc => {
+                    const data = doc.data();
+
+                    // Handle potential nested objects vs JSON strings for compatibility
+                    let items = data.items;
                     if (typeof items === 'string') {
                         try {
                             items = JSON.parse(items);
                         } catch (e) {
                             items = [];
                         }
+                    } else if (!Array.isArray(items)) {
+                        items = [];
                     }
+
+                    // Parse Last Modified
+                    let lastModifiedDate = new Date();
+                    if (data.lastModified && data.lastModified.seconds) {
+                        lastModifiedDate = new Date(data.lastModified.seconds * 1000);
+                    } else if (data.updatedAt) {
+                        lastModifiedDate = new Date(data.updatedAt);
+                    }
+
                     return {
-                        id: doc.$id,
-                        ...doc,
+                        id: doc.id,
+                        ...data,
                         items: items,
-                        lastModified: new Date(doc.lastModified)
+                        lastModified: lastModifiedDate
                     };
-                }));
+                });
+
+                // Filter out empty carts or active ones if necessary? 
+                // For "Abandoned", usually checks if updated > 1 hour ago and status != completed
+                // Adapting strictly to previous logic which just listed all from collection
+                setCarts(fetchedCarts);
+            } catch (error) {
+                console.error("Error fetching abandoned carts:", error);
+                toast.error("Failed to load abandoned carts.");
+            } finally {
                 setLoading(false);
-            }).catch(() => { toast.error("Conversion logs unreachable"); setLoading(false); });
-        } catch (error) { setLoading(false); }
-    }, [DATABASE_ID]);
+            }
+        };
+
+        fetchAbandonedCarts();
+    }, []);
 
     const filteredCarts = carts.filter(cart => {
         if (filter === 'all') return true;
@@ -69,67 +95,71 @@ const AbandonedCarts = () => {
         if (!window.confirm("Convert this abandoned cart into a formal order? This will mark it as recovered.")) return;
 
         setConverting(true);
-        const ORDERS_COLLECTION = import.meta.env.VITE_APPWRITE_ORDERS_COLLECTION_ID || 'orders';
-        const SETTINGS_COLLECTION = 'settings';
 
         try {
-            // 1. Get Next Order Number
+            // 1. Get Next Order Number using Transaction
             let nextNumber = 3501;
-            try {
-                const counterDoc = await databases.getDocument(DATABASE_ID, SETTINGS_COLLECTION, 'counters');
-                nextNumber = (counterDoc.lastOrderNumber || 3500) + 1;
-                await databases.updateDocument(DATABASE_ID, SETTINGS_COLLECTION, 'counters', {
-                    lastOrderNumber: nextNumber
-                });
-            } catch (e) {
-                console.warn("Counter sync failed", e);
-                nextNumber = parseInt(Date.now().toString().slice(-6));
-            }
+            const counterRef = doc(db, 'settings', 'counters');
+
+            await runTransaction(db, async (transaction) => {
+                const counterDoc = await transaction.get(counterRef);
+                if (!counterDoc.exists()) {
+                    transaction.set(counterRef, { lastOrderNumber: 3500 });
+                    nextNumber = 3501;
+                } else {
+                    const currentLast = counterDoc.data().lastOrderNumber || 3500;
+                    nextNumber = currentLast + 1;
+                    transaction.update(counterRef, { lastOrderNumber: nextNumber });
+                }
+            });
 
             // 2. Prepare Order Payload
-            const appwritePayload = {
+            const orderPayload = {
                 orderNumber: String(nextNumber),
                 userId: cart.uid || 'guest',
-                customerInfo: JSON.stringify({
+                customerInfo: {
                     name: cart.customerName || 'Guest',
                     phone: cart.customerPhone || '',
                     email: cart.email || '',
                     address: cart.customerAddress || '',
                     governorate: cart.customerGovernorate || '',
                     city: cart.customerCity || ''
-                }),
-                items: typeof cart.items === 'string' ? cart.items : JSON.stringify(cart.items),
-                subtotal: cart.total,
+                },
+                items: cart.items, // Firestore supports arrays/objects natively
+                subtotal: cart.total || 0,
                 discount: 0,
                 shippingCost: 0,
-                total: cart.total,
+                total: cart.total || 0,
                 paymentMethod: 'Manual Recovery',
                 paymentType: 'offline',
                 paymentStatus: 'Pending',
                 status: 'Processing',
-                shippingAddress: JSON.stringify({
+                shippingAddress: {
                     address: cart.customerAddress || '',
                     governorate: cart.customerGovernorate || '',
                     city: cart.customerCity || ''
-                }),
-                createdAt: new Date().toISOString(),
+                },
+                createdAt: new Date().toISOString(), // Use ISO string for consistency or serverTimestamp()
                 notes: `Manually converted from Abandoned Cart ${cart.id}`
             };
 
             // 3. Create Order
-            const result = await databases.createDocument(DATABASE_ID, ORDERS_COLLECTION, ID.unique(), appwritePayload);
+            const ordersRef = collection(db, 'orders'); // Using 'orders' collection
+            const newOrderRef = doc(ordersRef); // Generate ID automatically
+            await setDoc(newOrderRef, orderPayload);
 
             // 4. Mark Cart as Recovered
-            await databases.updateDocument(DATABASE_ID, ABANDONED_COLLECTION, cart.id, {
+            const cartRef = doc(db, 'carts', cart.id);
+            await updateDoc(cartRef, {
                 recovered: true,
                 recoveredAt: new Date().toISOString(),
-                orderId: result.$id
+                orderId: newOrderRef.id
             });
 
             toast.success("Operational chain restored: Order created successfully!");
 
             // Update local state
-            setCarts(prev => prev.map(c => c.id === cart.id ? { ...c, recovered: true, orderId: result.$id } : c));
+            setCarts(prev => prev.map(c => c.id === cart.id ? { ...c, recovered: true, orderId: newOrderRef.id } : c));
             setIsModalOpen(false);
         } catch (error) {
             console.error("Conversion failed:", error);
