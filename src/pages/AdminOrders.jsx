@@ -112,14 +112,27 @@ const AdminOrders = () => {
             };
 
             const [fbOrders, awOrders] = await Promise.all([
-                fetchFirebaseOrders(),
-                fetchAppwriteOrders()
+                fetchFirebaseOrders().catch(err => {
+                    console.error("Firebase fetch error:", err);
+                    toast.error("Firebase sync failure");
+                    return [];
+                }),
+                fetchAppwriteOrders().catch(err => {
+                    console.error("Appwrite fetch error:", err);
+                    toast.error("Appwrite sync failure: " + err.message);
+                    return [];
+                })
             ]);
+
+            console.log(`[AdminOrders] Fetched ${fbOrders.length} from Firebase, ${awOrders.length} from Appwrite`);
 
             // Combine and sort by createdAt desc
             const combinedOrders = [...fbOrders, ...awOrders].sort((a, b) => b.createdAt - a.createdAt);
 
             setOrders(combinedOrders);
+            if (combinedOrders.length === 0) {
+                console.warn("[AdminOrders] No orders found in either source");
+            }
         } catch (error) {
             console.error("Error fetching orders:", error);
             toast.error("Failed to load orders");
@@ -251,7 +264,12 @@ const AdminOrders = () => {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                     <div>
                         <h2 className="text-lg font-bold text-slate-900">Order Registry</h2>
-                        <p className="text-[11px] font-medium text-slate-400 uppercase tracking-widest mt-0.5">Oversight Feed: {orders.length} Active Protocols</p>
+                        <p className="text-[11px] font-medium text-slate-400 uppercase tracking-widest mt-0.5">
+                            Oversight Feed: {orders.length} Protocols
+                            <span className="ml-2 text-slate-300">
+                                ({orders.filter(o => o.source === 'firebase').length} FB | {orders.filter(o => o.source === 'appwrite').length} AW)
+                            </span>
+                        </p>
                     </div>
                     <div className="flex gap-3 w-full md:w-auto">
                         <div className="relative flex-1 md:w-72">
