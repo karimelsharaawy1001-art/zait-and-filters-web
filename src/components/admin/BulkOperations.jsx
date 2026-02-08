@@ -14,7 +14,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
     const PRODUCTS_COLLECTION = import.meta.env.VITE_APPWRITE_PRODUCTS_COLLECTION_ID || 'products';
 
     const headers = [
-        'productID', 'name', 'activeStatus', 'isGenuine', 'category', 'subcategory', 'carMake', 'carModel',
+        'productID', 'name', 'nameEn', 'activeStatus', 'isGenuine', 'category', 'subcategory', 'carMake', 'carModel',
         'yearStart', 'yearEnd', 'partBrand', 'countryOfOrigin', 'costPrice', 'sellPrice',
         'salePrice', 'warranty', 'description', 'imageUrl', 'partNumber', 'compatibility'
     ];
@@ -24,10 +24,13 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
         setUiLogs(prev => [msg, ...prev].slice(0, 15));
     };
 
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
     const downloadTemplate = () => {
         try {
             const sampleData = [{
                 name: "فلتر زيت",
+                nameEn: "Oil Filter",
                 activeStatus: "TRUE",
                 category: "Maintenance",
                 carMake: "Toyota",
@@ -54,7 +57,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
 
         setLoading(true);
         log(`📂 Loading File: ${file.name}`);
-        setImportStatus('Parsing Binary Matrix...');
+        setImportStatus('Initializing Matrix...');
 
         const reader = new FileReader();
         reader.onload = async (event) => {
@@ -72,11 +75,13 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     const count = i + 1;
 
                     try {
-                        setImportStatus(`Committing Row: ${count}/${jsonData.length}`);
+                        setImportStatus(`Steady-Sync: ${count}/${jsonData.length}`);
 
-                        // Robust Data Mapping
+                        // Align Mapping with Schema (Required nameAr)
                         const p = {
                             name: String(row.name || '').trim(),
+                            nameAr: String(row.name || '').trim(), // REQUIRED by schema
+                            nameEn: String(row.nameEn || row.name_en || '').trim(),
                             category: String(row.category || '').trim(),
                             subcategory: String(row.subcategory || '').trim(),
                             make: String(row.carMake || '').toUpperCase().trim(),
@@ -108,20 +113,28 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                             p.createdAt = new Date().toISOString();
                             await databases.createDocument(DATABASE_ID, PRODUCTS_COLLECTION, ID.unique(), p);
                         }
+
                         success++;
                         if (success % 10 === 0) log(`🔹 Synchronized ${success} items...`);
+
+                        // 🚦 Rate Limit Throttling: Sleep 150ms between rows
+                        await sleep(150);
+
                     } catch (err) {
                         fail++;
                         log(`🚨 Row ${count} Failed: ${err.message}`);
+                        // If we hit a rate limit, sleep longer
+                        if (err.message.includes('rate limit')) {
+                            log("🚦 Rate limit hit. Cooling down for 5 seconds...");
+                            await sleep(5000);
+                        }
                     }
                 }
 
                 log(`🏆 FINAL SYNC: ${success} SUCCESS | ${fail} FAILURES`);
                 toast.success(`Import Finished. ${success} items added to Registry.`, { duration: 5000 });
 
-                // Clear input so user can re-upload if needed
                 e.target.value = '';
-
                 if (onSuccess) onSuccess();
             } catch (err) {
                 log(`❌ FATAL CRASH: ${err.message}`);
@@ -152,7 +165,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 if (response.documents.length < 100 || allDocs.length >= 35000) hasMore = false;
                 else {
                     lastId = response.documents[response.documents.length - 1].$id;
-                    setImportStatus(`Mapping: ${allDocs.length}`);
+                    setImportStatus(`Scanning: ${allDocs.length}`);
                 }
             }
 
@@ -184,9 +197,13 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 if (doc.carMake && !doc.make) updates.make = doc.carMake.toUpperCase();
                 if (doc.isActive === undefined) updates.isActive = true;
 
+                // Critical: Ensure nameAr exists if it's missing in some old records
+                if (!doc.nameAr && doc.name) updates.nameAr = doc.name;
+
                 if (Object.keys(updates).length > 0) {
                     await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, doc.$id, updates);
                     repairs++;
+                    await sleep(100); // Small throttle for repair too
                 }
             }
             log(`✅ AUDIT COMPLETE. Recalibrated ${repairs} entries.`);
@@ -219,7 +236,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     </div>
                     <div>
                         <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 leading-none">Management Hub</h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Core Registry v5.6 | Resilient Mode</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Core Registry v5.7 | Steady-Sync Mode</p>
                     </div>
                 </div>
 
@@ -266,8 +283,8 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
             </div>
 
             {importStatus && (
-                <div className="mt-4 flex items-center gap-3 bg-slate-900 text-white p-3 rounded-2xl text-[11px] font-black uppercase tracking-widest animate-pulse border-l-4 border-red-500">
-                    <Loader2 className="h-4 w-4 animate-spin text-red-500" />
+                <div className="mt-4 flex items-center gap-3 bg-slate-900 text-white p-3 rounded-2xl text-[11px] font-black uppercase tracking-widest animate-pulse border-l-4 border-emerald-500">
+                    <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />
                     {importStatus}
                 </div>
             )}
@@ -281,12 +298,12 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 </div>
                 <div className="space-y-1 max-h-24 overflow-y-auto custom-scrollbar">
                     {uiLogs.length === 0 ? (
-                        <p className="text-[10px] text-slate-400 italic">Waiting for Command Input...</p>
+                        <p className="text-[10px] text-slate-400 italic">Steady-Sync Core Online...</p>
                     ) : (
                         uiLogs.map((logMsg, i) => (
                             <div key={i} className="text-[10px] text-slate-600 font-mono flex items-start gap-4 hover:bg-white rounded py-0.5 px-1 border-b border-slate-100 last:border-0">
                                 <span className="text-slate-300 flex-shrink-0">[{new Date().toLocaleTimeString()}]</span>
-                                <span className={logMsg.includes('🚨') || logMsg.includes('❌') ? 'text-red-500 font-bold' : logMsg.includes('🏆') ? 'text-emerald-600 font-bold' : ''}>{logMsg}</span>
+                                <span className={logMsg.includes('🚨') || logMsg.includes('❌') ? 'text-red-500 font-bold' : logMsg.includes('🏆') || logMsg.includes('✅') ? 'text-emerald-600 font-bold' : ''}>{logMsg}</span>
                             </div>
                         ))
                     )}
