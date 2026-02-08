@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, getDocs, query, orderBy, limit, startAfter } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit, startAfter, getDoc, doc, where } from 'firebase/firestore';
 
 const StaticDataContext = createContext();
 
@@ -26,15 +26,29 @@ export const StaticDataProvider = ({ children }) => {
     useEffect(() => {
         const loadAllStaticData = async () => {
             try {
-                // 1. Load Static JSON Baselines (Fast Initial Render)
-                const load = async (file) => {
+                // 1. Fetch Dynamic Registry URL from Firestore (1 Read)
+                let dynamicRegistryUrl = null;
+                try {
+                    const catalogRef = doc(db, 'settings', 'catalog');
+                    const catalogSnap = await getDoc(catalogRef);
+                    if (catalogSnap.exists()) {
+                        dynamicRegistryUrl = catalogSnap.data().registryUrl;
+                        console.log("📂 Dynamic Registry Found:", dynamicRegistryUrl);
+                    }
+                } catch (e) {
+                    console.warn("⚠️ Could not fetch dynamic registry URL:", e);
+                }
+
+                // 2. Load Static JSON Baselines (Fast Initial Render)
+                const load = async (file, externalUrl = null) => {
                     const version = new Date().getTime();
-                    const r = await fetch(`/data/${file}?v=${version}`);
+                    const url = externalUrl || `/data/${file}?v=${version}`;
+                    const r = await fetch(url);
                     return r.ok ? await r.json() : [];
                 };
 
                 const [staticProd, categories, cars, brands, shipping_rates] = await Promise.all([
-                    load('products-db.json'),
+                    load('products-db.json', dynamicRegistryUrl),
                     load('categories-db.json'),
                     load('cars-db.json'),
                     load('brands-db.json'),
@@ -51,17 +65,31 @@ export const StaticDataProvider = ({ children }) => {
                     isLoaded: true
                 });
 
-                // 2. BACKGROUND SYNC: Firestore (Non-blocking)
+                // 2. BACKGROUND SYNC: Firestore Delta Fetch (Quota Friendly)
                 setTimeout(async () => {
                     try {
-                        console.log("🔄 Firestore Sync: Initializing Full Catalog...");
-                        const productsRef = collection(db, 'products');
+                        // Find latest timestamp in static data to use as baseline
+                        let baselineDate = new Date(0);
+                        staticProd.forEach(p => {
+                            if (p.updatedAt) {
+                                const d = new Date(p.updatedAt);
+                                if (d > baselineDate) baselineDate = d;
+                            }
+                        });
 
-                        // Simple full fetch for now - Firestore handles scaling better
-                        const snapshot = await getDocs(productsRef);
+                        console.log(`🔄 Firestore Sync: Fetching updates after ${baselineDate.toISOString()}...`);
+
+                        const productsRef = collection(db, 'products');
+                        // Use query to only get items updated since our static baseline
+                        const q = query(
+                            productsRef,
+                            where('updatedAt', '>', baselineDate)
+                        );
+
+                        const snapshot = await getDocs(q);
                         const freshItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                        console.log(`📡 Firestore Sync: ${freshItems.length} items loaded.`);
+                        console.log(`📡 Firestore Sync: ${freshItems.length} new/updated items loaded.`);
 
                         if (freshItems.length > 0) {
                             // Merge with static data

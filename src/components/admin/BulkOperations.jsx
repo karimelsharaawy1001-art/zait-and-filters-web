@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { db } from '../../firebase';
-import { writeBatch, doc, serverTimestamp } from 'firebase/firestore';
+import { writeBatch, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
-import { Download, Upload, Loader2, TrendingUp, AlertCircle, RefreshCcw } from 'lucide-react';
+import { Download, Upload, Loader2, TrendingUp, AlertCircle, RefreshCcw, Database } from 'lucide-react';
+import axios from 'axios';
 
 /*
     🔥 MIGRATION: Firestore Batch Import (High Performance)
@@ -157,6 +158,88 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
         reader.readAsArrayBuffer(file);
     };
 
+    const handleStaticUpload = async (e) => {
+        if (loading) return;
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setLoading(true);
+        log(`📂 Preparing Static Registry: ${file.name}`);
+        setImportStatus('Building optimized JSON pack...');
+
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            try {
+                const data = new Uint8Array(event.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+
+                const processedProducts = jsonData.map(row => ({
+                    id: (row.productID && String(row.productID).length > 5) ? String(row.productID).trim() : `p-${Math.random().toString(36).substr(2, 9)}`,
+                    name: String(row.name || '').trim(),
+                    nameAr: String(row.nameAr || row.name || '').trim(),
+                    description: String(row.description || '').trim(),
+                    descriptionAr: String(row.descriptionAr || row.description || '').trim(),
+                    price: Number(row.sellPrice || row.price || 0),
+                    salePrice: row.salePrice ? Number(row.salePrice) : null,
+                    category: String(row.category || '').trim(),
+                    subcategory: String(row.subcategory || '').trim(),
+                    brand: String(row.partBrand || row.brand || '').trim(),
+                    partBrand: String(row.partBrand || row.brand || '').trim(),
+                    images: String(row.imageUrl || row.images || row.image || '').trim(),
+                    stock: Number(row.stock || row.stockQuantity || 0),
+                    stockQuantity: Number(row.stock || row.stockQuantity || 0),
+                    carMake: String(row.carMake || row.make || '').toUpperCase().trim(),
+                    carModel: String(row.carModel || row.model || '').toUpperCase().trim(),
+                    carYear: row.carYear ? String(row.carYear) : (row.yearStart ? `${row.yearStart}-${row.yearEnd || 'Cur'}` : null),
+                    featured: false,
+                    isActive: String(row.activeStatus).toLowerCase() !== 'false',
+                    countryOfOrigin: String(row.countryOfOrigin || '').trim(),
+                    warranty_months: Number(row.warranty_months || 0),
+                    partNumber: String(row.partNumber || '').trim(),
+                    updatedAt: new Date().toISOString()
+                })).filter(p => p.name);
+
+                log(`📦 JSON ready: ${processedProducts.length} items. Uploading to Cloudinary...`);
+
+                // Convert to Blob for Cloudinary
+                const jsonBlob = new Blob([JSON.stringify(processedProducts)], { type: 'application/json' });
+                const formData = new FormData();
+                formData.append('file', jsonBlob);
+                formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'zaitandfilters_preset');
+                formData.append('resource_type', 'raw');
+                formData.append('public_id', `registry_${new Date().getTime()}`);
+
+                const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dht6kx2jx';
+                const uploadRes = await axios.post(`https://api.cloudinary.com/v1_1/${cloudName}/raw/upload`, formData);
+
+                const registryUrl = uploadRes.data.secure_url;
+                log(`✅ Cloudinary Sync OK: ${registryUrl}`);
+
+                // Update Firestore settings
+                await setDoc(doc(db, 'settings', 'catalog'), {
+                    registryUrl: registryUrl,
+                    lastUpdated: serverTimestamp(),
+                    itemCount: processedProducts.length,
+                    source: 'static_upload'
+                });
+
+                log(`🏆 REGISTRY UPDATED: Website will now load ${processedProducts.length} items from CDN.`);
+                toast.success('Static Catalog Updated Successfully!', { duration: 5000 });
+
+                setTimeout(() => window.location.reload(), 2000);
+
+            } catch (err) {
+                log(`❌ SYNC ERROR: ${err.message}`);
+                toast.error("Cloudinary/Firestore sync failed");
+            } finally {
+                setLoading(false);
+                setImportStatus('');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    };
+
     return (
         <div className="bg-white p-6 rounded-3xl shadow-xl border-2 border-slate-100 mb-8 relative z-[100]">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-6 relative z-10">
@@ -191,7 +274,24 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                             htmlFor="bulk-import-final"
                             className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all text-xs cursor-pointer shadow-lg shadow-emerald-600/20"
                         >
-                            <Upload size={14} /> Import Excel
+                            <Upload size={14} /> Import to Firestore
+                        </label>
+                    </div>
+
+                    <div className="relative">
+                        <input
+                            type="file"
+                            id="static-registry-sync"
+                            className="hidden"
+                            accept=".xlsx, .xls"
+                            onChange={handleStaticUpload}
+                            disabled={loading}
+                        />
+                        <label
+                            htmlFor="static-registry-sync"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all text-xs cursor-pointer shadow-lg shadow-indigo-600/20"
+                        >
+                            <Database size={14} /> Static Sync (FREE)
                         </label>
                     </div>
 
