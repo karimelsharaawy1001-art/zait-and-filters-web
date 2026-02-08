@@ -134,8 +134,8 @@ const TrustPaymentSection = ({ method, onReceiptUpload, isUploading }) => {
                         </div>
                     )}
 
-                    {/* If payment link exists, show Pay Now button instead of upload */}
-                    {currentMethodConfig.paymentLink ? (
+                    {/* If payment link exists, show Pay Now button */}
+                    {currentMethodConfig.paymentLink && (
                         <div className="mt-4">
                             <a
                                 href={currentMethodConfig.paymentLink}
@@ -152,35 +152,43 @@ const TrustPaymentSection = ({ method, onReceiptUpload, isUploading }) => {
                                 {isAr ? 'سيتم فتح صفحة الدفع في نافذة جديدة' : 'Payment page will open in a new window'}
                             </p>
                         </div>
-                    ) : (
-                        <div className="mt-2">
-                            <label className="block w-full cursor-pointer group">
-                                <input
-                                    type="file"
-                                    className="hidden"
-                                    accept="image/*"
-                                    onChange={handleFileUpload}
-                                    disabled={uploadProgress}
-                                />
-                                <div className={`p-8 border-2 border-dashed rounded-2xl flex flex-col items-center gap-3 transition-all ${uploadedFile ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-orange-400 hover:bg-orange-50'}`}>
-                                    {uploadProgress ? (
-                                        <Loader2 className="animate-spin text-orange-500" size={32} />
-                                    ) : uploadedFile ? (
-                                        <CheckCircle2 className="text-green-600" size={32} />
-                                    ) : (
-                                        <UploadCloud className="text-gray-400 group-hover:text-orange-500 transition-colors" size={32} />
-                                    )}
-
-                                    <div className="text-center">
-                                        <p className={`text-sm font-bold ${uploadedFile ? 'text-green-700' : 'text-gray-600'}`}>
-                                            {uploadedFile ? (isAr ? 'تم استلام الإيصال' : 'Receipt Attached') : (isAr ? 'اضغط لرفع صورة التحويل' : 'Click to upload receipt')}
-                                        </p>
-                                        {!uploadedFile && <p className="text-[10px] text-gray-400 mt-1">{isAr ? 'أو اسحب وأفلت هنا' : 'or drag and drop here'}</p>}
-                                    </div>
-                                </div>
-                            </label>
-                        </div>
                     )}
+
+                    {/* Always show upload section for manual payment methods */}
+                    <div className="mt-4">
+                        {currentMethodConfig.paymentLink && (
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className="flex-1 h-px bg-gray-200"></div>
+                                <span className="text-xs font-bold text-gray-400 uppercase">{isAr ? 'أو' : 'OR'}</span>
+                                <div className="flex-1 h-px bg-gray-200"></div>
+                            </div>
+                        )}
+                        <label className="block w-full cursor-pointer group">
+                            <input
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={handleFileUpload}
+                                disabled={uploadProgress}
+                            />
+                            <div className={`p-8 border-2 border-dashed rounded-2xl flex flex-col items-center gap-3 transition-all ${uploadedFile ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-orange-400 hover:bg-orange-50'}`}>
+                                {uploadProgress ? (
+                                    <Loader2 className="animate-spin text-orange-500" size={32} />
+                                ) : uploadedFile ? (
+                                    <CheckCircle2 className="text-green-600" size={32} />
+                                ) : (
+                                    <UploadCloud className="text-gray-400 group-hover:text-orange-500 transition-colors" size={32} />
+                                )}
+
+                                <div className="text-center">
+                                    <p className={`text-sm font-bold ${uploadedFile ? 'text-green-700' : 'text-gray-600'}`}>
+                                        {uploadedFile ? (isAr ? 'تم استلام الإيصال' : 'Receipt Attached') : (isAr ? 'اضغط لرفع صورة التحويل' : 'Click to upload receipt')}
+                                    </p>
+                                    {!uploadedFile && <p className="text-[10px] text-gray-400 mt-1">{isAr ? 'أو اسحب وأفلت هنا' : 'or drag and drop here'}</p>}
+                                </div>
+                            </div>
+                        </label>
+                    </div>
                 </div>
             </div>
         );
