@@ -249,7 +249,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     </div>
                     <div>
                         <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 leading-none">Management Hub</h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Registry v7.0 | Firestore Batch Mode 🔥</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Registry v7.1 | Dynamic Sync 🚀</p>
                     </div>
                 </div>
 
