@@ -4,6 +4,11 @@
 
 We are migrating directly from your static data files to bypass Firebase quota limits.
 
+### 🚨 CRITICAL BLOCKERS (ACTION REQUIRED)
+
+1.  **Firebase Quota Exhausted**: The database is disabled for the day. **Action**: Upgrade to **Blaze Plan** in Firebase Console.
+2.  **Appwrite Data Locked**: API is blocked. **Action**: Manually export `orders.json` and upload it here.
+
 ### Current Status
 
 **1. Products Migration** 🔄 **RUNNING**

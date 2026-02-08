@@ -367,7 +367,7 @@ const AdminOrders = () => {
                                                 <div className="flex flex-col">
                                                     <span className="text-[13px] font-bold text-slate-900">#{order.orderNumber || order.id.slice(-6).toUpperCase()}</span>
                                                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">
-                                                        {new Date(order.createdAt).toLocaleDateString('en-GB')}
+                                                        {new Date(order.createdAt).toLocaleDateString('en-GB')} | {new Date(order.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                                                     </span>
                                                 </div>
                                             </td>

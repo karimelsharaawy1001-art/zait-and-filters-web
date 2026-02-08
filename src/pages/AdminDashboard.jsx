@@ -138,6 +138,9 @@ const AdminDashboard = () => {
                                     <div>
                                         <p className="text-sm font-black">#{order.id.slice(-6).toUpperCase()}</p>
                                         <p className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">{order.customer?.name || 'Guest User'}</p>
+                                        <p className="text-[8px] text-gray-400 font-medium">
+                                            {order.$createdAt ? new Date(order.$createdAt).toLocaleDateString('en-GB') + ' | ' + new Date(order.$createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                        </p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-sm font-black">{order.total} EGP</p>

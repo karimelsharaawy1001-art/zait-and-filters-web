@@ -1,0 +1,27 @@
+[
+    {
+        "id": "sample-123456",
+        "orderNumber": "1001-LEGACY",
+        "status": "Delivered",
+        "total": 1250,
+        "source": "static",
+        "customer": {
+            "name": "Zait & Filters Sample",
+            "email": "sample@zaitandfilters.com",
+            "phone": "01000000000"
+        },
+        "items": [
+            {
+                "id": "item-1",
+                "name": "Legacy Part Example",
+                "price": 625,
+                "quantity": 2
+            }
+        ],
+        "shippingAddress": {
+            "city": "Cairo",
+            "address": "Proof of Work Street"
+        },
+        "createdAt": "2024-01-01T12:00:00.000Z"
+    }
+]

@@ -555,7 +555,10 @@ const OrderDetails = () => {
                                     </div>
                                     <div className="pt-2 text-xs text-gray-400 flex items-center gap-1">
                                         <Clock size={12} />
-                                        Created: {new Date(order.createdAt?.seconds ? order.createdAt.seconds * 1000 : order.createdAt).toLocaleString()}
+                                        Created: {(() => {
+                                            const date = new Date(order.createdAt?.seconds ? order.createdAt.seconds * 1000 : order.createdAt);
+                                            return `${date.toLocaleDateString('en-GB')} | ${date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+                                        })()}
                                     </div>
                                 </div>
                             </div>

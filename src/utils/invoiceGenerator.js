@@ -33,8 +33,9 @@ export const generateInvoice = (order) => {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.text(`Order #: ${order.orderNumber || order.id?.slice(-6).toUpperCase()}`, pageWidth - 70, 38);
-    const dateStr = order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString('en-GB') : new Date(order.createdAt).toLocaleDateString('en-GB');
-    doc.text(`Date: ${dateStr}`, pageWidth - 70, 43);
+    const date = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
+    const dateStr = `${date.toLocaleDateString('en-GB')} ${date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+    doc.text(`Date/Time: ${dateStr}`, pageWidth - 70, 43);
     if (order.currentMileage) {
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(227, 30, 36); // Red color for emphasis
