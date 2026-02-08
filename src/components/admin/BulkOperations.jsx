@@ -14,7 +14,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
     const PRODUCTS_COLLECTION = import.meta.env.VITE_APPWRITE_PRODUCTS_COLLECTION_ID || 'products';
 
     const headers = [
-        'productID', 'name', 'nameEn', 'activeStatus', 'isGenuine', 'category', 'subcategory', 'carMake', 'carModel',
+        'productID', 'name', 'activeStatus', 'isGenuine', 'category', 'subcategory', 'carMake', 'carModel',
         'yearStart', 'yearEnd', 'partBrand', 'countryOfOrigin', 'costPrice', 'sellPrice',
         'salePrice', 'warranty', 'description', 'imageUrl', 'partNumber', 'compatibility'
     ];
@@ -30,7 +30,6 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
         try {
             const sampleData = [{
                 name: "فلتر زيت",
-                nameEn: "Oil Filter",
                 activeStatus: "TRUE",
                 category: "Maintenance",
                 carMake: "Toyota",
@@ -80,12 +79,12 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
 
                     while (!committed && retryCount < 5) {
                         try {
-                            setImportStatus(`Slow-Sync: ${count}/${jsonData.length}`);
+                            setImportStatus(`Slow-Sync v5.9: ${count}/${jsonData.length}`);
 
+                            // 🛑 Final Schema Alignment: Removed 'nameEn' (Unknown Attribute)
                             const p = {
                                 name: String(row.name || '').trim(),
-                                nameAr: String(row.name || '').trim(),
-                                nameEn: String(row.nameEn || row.name_en || '').trim(),
+                                nameAr: String(row.name || '').trim(), // REQUIRED
                                 category: String(row.category || '').trim(),
                                 subcategory: String(row.subcategory || '').trim(),
                                 make: String(row.carMake || '').toUpperCase().trim(),
@@ -122,20 +121,20 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                             committed = true;
                             if (success % 10 === 0) log(`🔹 Synchronized ${success} items...`);
 
-                            // 🐢 Slow-Sync v5.8 Target: 500ms delay
+                            // 🐢 Slow-Sync Base Delay
                             await sleep(500);
 
                         } catch (err) {
                             const errorMsg = err.message || '';
                             if (errorMsg.toLowerCase().includes('rate limit') || errorMsg.includes('429')) {
                                 retryCount++;
-                                log(`🚦 Rate Limit Hit (Row ${count}). Cooling down 10s... (Attempt ${retryCount})`);
+                                log(`🚦 Rate Limit Hit (Row ${count}). Cooling down 10s...`);
                                 setImportStatus(`🚦 COOLING DOWN: ${count}/${jsonData.length}`);
                                 await sleep(10000);
                             } else {
                                 fail++;
                                 log(`🚨 Row ${count} Failed: ${errorMsg}`);
-                                committed = true; // Don't retry logic errors
+                                committed = true;
                             }
                         }
                     }
@@ -211,9 +210,9 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     try {
                         await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, doc.$id, updates);
                         repairs++;
-                        await sleep(300); // Steady repair pace
+                        await sleep(400);
                     } catch (e) {
-                        if (e.message.includes('rate limit')) await sleep(5000);
+                        if (e.message.includes('rate limit')) await sleep(8000);
                     }
                 }
             }
@@ -247,7 +246,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     </div>
                     <div>
                         <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 leading-none">Management Hub</h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Core Registry v5.8 | Slow-Sync Mode</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Core Registry v5.9 | Clean-Sync Mode</p>
                     </div>
                 </div>
 
@@ -309,7 +308,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 </div>
                 <div className="space-y-1 max-h-24 overflow-y-auto custom-scrollbar">
                     {uiLogs.length === 0 ? (
-                        <p className="text-[10px] text-slate-400 italic">Slow-Sync Protocol Active...</p>
+                        <p className="text-[10px] text-slate-400 italic">Clean-Sync Protocol v5.9 Active...</p>
                     ) : (
                         uiLogs.map((logMsg, i) => (
                             <div key={i} className="text-[10px] text-slate-600 font-mono flex items-start gap-4 hover:bg-white rounded py-0.5 px-1 border-b border-slate-100 last:border-0">
