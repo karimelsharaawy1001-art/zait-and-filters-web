@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { db, storage } from '../firebase';
+import { db } from '../firebase';
 import { collection, getDocs, getDoc, doc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Lock, Loader2, UploadCloud, CheckCircle2, Copy, Activity } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
@@ -66,10 +65,26 @@ const TrustPaymentSection = ({ method, onReceiptUpload, isUploading }) => {
             setUploadProgress(true);
             if (isUploading) isUploading(true);
 
-            // Upload to Firebase Storage
-            const storageRef = ref(storage, `receipts/${Date.now()}_${file.name}`);
-            const snapshot = await uploadBytes(storageRef, file);
-            const downloadURL = await getDownloadURL(snapshot.ref);
+            // Upload to Cloudinary
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
+            formData.append('folder', 'receipts');
+
+            const response = await fetch(
+                `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+
+            const data = await response.json();
+            const downloadURL = data.secure_url;
 
             setUploadedFile(file.name);
             if (onReceiptUpload) onReceiptUpload(downloadURL);
