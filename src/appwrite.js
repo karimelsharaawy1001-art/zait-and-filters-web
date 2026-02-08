@@ -1,11 +1,12 @@
-// [DEPRECATED] THIS FILE IS SCHEDULED FOR DELETION
-// WE ARE MIGRATING BACK TO FIREBASE
-// DO NOT USE THIS FILE FOR NEW CODE
+import { Client, Account, Databases, Storage } from 'appwrite';
 
-export const client = null;
-export const account = null;
-export const databases = null;
-export const storage = null;
-export const auth = null;
+const client = new Client()
+    .setEndpoint(import.meta.env.VITE_APPWRITE_ENDPOINT)
+    .setProject(import.meta.env.VITE_APPWRITE_PROJECT_ID);
 
-console.warn("⚠️ WARNING: Attempted to use deprecated Appwrite SDK. Please use Firebase SDK instead.");
+export const account = new Account(client);
+export const databases = new Databases(client);
+export const storage = new Storage(client);
+export { client };
+
+export const auth = account; // Alias for auth since it's commonly used this way in some parts of the code

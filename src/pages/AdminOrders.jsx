@@ -12,6 +12,9 @@ import { generateInvoice } from '../utils/invoiceGenerator';
 import { useStaticData } from '../context/StaticDataContext';
 import { normalizeArabic } from '../utils/productUtils';
 
+import { databases } from '../appwrite';
+import { Query } from 'appwrite';
+
 const AdminOrders = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -19,47 +22,104 @@ const AdminOrders = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const navigate = useNavigate();
 
+    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+    const ORDERS_COLLECTION = import.meta.env.VITE_APPWRITE_ORDERS_COLLECTION_ID || 'orders';
+
     const fetchOrders = async () => {
         setLoading(true);
         try {
-            const ordersRef = collection(db, 'orders');
-            const q = query(ordersRef, orderBy('createdAt', 'desc'), limit(100));
+            // 1. Fetch from Firebase
+            const fetchFirebaseOrders = async () => {
+                const ordersRef = collection(db, 'orders');
+                const q = query(ordersRef, orderBy('createdAt', 'desc'), limit(100));
+                const querySnapshot = await getDocs(q);
+                return querySnapshot.docs.map(doc => {
+                    const data = doc.data();
 
-            const querySnapshot = await getDocs(q);
-            const fetchedOrders = querySnapshot.docs.map(doc => {
-                const data = doc.data();
+                    // Normalize customer data (check both 'customer' and 'customerInfo')
+                    let customer = {};
+                    const rawCustomer = data.customer || data.customerInfo;
+                    if (typeof rawCustomer === 'string') {
+                        try { customer = JSON.parse(rawCustomer); } catch (e) { }
+                    } else {
+                        customer = rawCustomer || {};
+                    }
 
-                let parsedCustomer = {};
-                if (typeof data.customerInfo === 'string') {
-                    try { parsedCustomer = JSON.parse(data.customerInfo); } catch (e) { }
-                } else {
-                    parsedCustomer = data.customerInfo || {};
+                    let parsedItems = [];
+                    if (typeof data.items === 'string') {
+                        try { parsedItems = JSON.parse(data.items); } catch (e) { }
+                    } else if (Array.isArray(data.items)) {
+                        parsedItems = data.items;
+                    }
+
+                    let parsedAddress = {};
+                    const rawAddress = data.shippingAddress || customer.address; // Fallback to customer address if shippingAddress missing
+                    if (typeof rawAddress === 'string') {
+                        try { parsedAddress = JSON.parse(rawAddress); } catch (e) { }
+                    } else {
+                        parsedAddress = rawAddress || {};
+                    }
+
+                    return {
+                        id: doc.id,
+                        ...data,
+                        source: 'firebase',
+                        customer,
+                        items: parsedItems,
+                        shippingAddress: parsedAddress,
+                        createdAt: data.createdAt?.seconds ? data.createdAt.seconds * 1000 : (data.createdAt ? new Date(data.createdAt).getTime() : Date.now())
+                    };
+                });
+            };
+
+            // 2. Fetch from Appwrite
+            const fetchAppwriteOrders = async () => {
+                if (!DATABASE_ID) return [];
+                try {
+                    const response = await databases.listDocuments(DATABASE_ID, ORDERS_COLLECTION, [
+                        Query.orderDesc('$createdAt'),
+                        Query.limit(100)
+                    ]);
+                    return response.documents.map(doc => {
+                        let customer = {};
+                        const rawCustomer = doc.customer || doc.customerInfo;
+                        if (typeof rawCustomer === 'string') {
+                            try { customer = JSON.parse(rawCustomer); } catch (e) { }
+                        } else {
+                            customer = rawCustomer || {};
+                        }
+
+                        let items = [];
+                        if (typeof doc.items === 'string') {
+                            try { items = JSON.parse(doc.items); } catch (e) { }
+                        } else if (Array.isArray(doc.items)) {
+                            items = doc.items;
+                        }
+
+                        return {
+                            id: doc.$id,
+                            ...doc,
+                            source: 'appwrite',
+                            customer,
+                            items: items,
+                            createdAt: new Date(doc.$createdAt).getTime()
+                        };
+                    });
+                } catch (err) {
+                    console.error("Appwrite fetch error:", err);
+                    return [];
                 }
+            };
 
-                let parsedItems = [];
-                if (typeof data.items === 'string') {
-                    try { parsedItems = JSON.parse(data.items); } catch (e) { }
-                } else if (Array.isArray(data.items)) {
-                    parsedItems = data.items;
-                }
+            const [fbOrders, awOrders] = await Promise.all([
+                fetchFirebaseOrders(),
+                fetchAppwriteOrders()
+            ]);
 
-                let parsedAddress = {};
-                if (typeof data.shippingAddress === 'string') {
-                    try { parsedAddress = JSON.parse(data.shippingAddress); } catch (e) { }
-                } else {
-                    parsedAddress = data.shippingAddress || {};
-                }
+            // Combine and sort by createdAt desc
+            const combinedOrders = [...fbOrders, ...awOrders].sort((a, b) => b.createdAt - a.createdAt);
 
-                return {
-                    id: doc.id,
-                    ...data,
-                    customer: parsedCustomer,
-                    items: parsedItems,
-                    shippingAddress: parsedAddress
-                };
-            });
-
-            setOrders(fetchedOrders);
+            setOrders(combinedOrders);
         } catch (error) {
             console.error("Error fetching orders:", error);
             toast.error("Failed to load orders");
@@ -71,15 +131,23 @@ const AdminOrders = () => {
     useEffect(() => { fetchOrders(); }, []);
 
     const handleStatusChange = async (orderId, newStatus) => {
+        const targetOrder = orders.find(o => o.id === orderId);
+        if (!targetOrder) return;
+
         try {
-            const orderRef = doc(db, 'orders', orderId);
-            await updateDoc(orderRef, { status: newStatus });
+            if (targetOrder.source === 'firebase') {
+                const orderRef = doc(db, 'orders', orderId);
+                await updateDoc(orderRef, { status: newStatus });
+            } else {
+                await databases.updateDocument(DATABASE_ID, ORDERS_COLLECTION, orderId, { status: newStatus });
+            }
+
             setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
             toast.success(`Protocol updated to ${newStatus}`);
 
-            // Affiliate commission logic if Delivered
-            const targetOrder = orders.find(o => o.id === orderId);
+            // Affiliate commission logic if Delivered (Firebase only for simplicity, or if affiliate exists in data)
             if (newStatus === 'Delivered' && targetOrder?.affiliateCode) {
+                // ... (existing affiliate logic)
                 try {
                     const affiliatesRef = collection(db, 'affiliates');
                     const qAff = query(affiliatesRef, where('referralCode', '==', targetOrder.affiliateCode));
@@ -126,9 +194,16 @@ const AdminOrders = () => {
     };
 
     const handleMarkPaid = async (orderId) => {
+        const targetOrder = orders.find(o => o.id === orderId);
+        if (!targetOrder) return;
+
         try {
-            const orderRef = doc(db, 'orders', orderId);
-            await updateDoc(orderRef, { paymentStatus: 'Paid' });
+            if (targetOrder.source === 'firebase') {
+                const orderRef = doc(db, 'orders', orderId);
+                await updateDoc(orderRef, { paymentStatus: 'Paid' });
+            } else {
+                await databases.updateDocument(DATABASE_ID, ORDERS_COLLECTION, orderId, { paymentStatus: 'Paid' });
+            }
             setOrders(prev => prev.map(o => o.id === orderId ? { ...o, paymentStatus: 'Paid' } : o));
             toast.success("Payment verified");
         } catch (error) {
@@ -138,11 +213,18 @@ const AdminOrders = () => {
     };
 
     const handleDeleteOrder = async (orderId, orderNumber) => {
+        const targetOrder = orders.find(o => o.id === orderId);
+        if (!targetOrder) return;
+
         if (!window.confirm(`Are you sure you want to permanently delete order #${orderNumber}? This action cannot be undone.`)) return;
 
         try {
             toast.loading("Deleting protocol...");
-            await deleteDoc(doc(db, 'orders', orderId));
+            if (targetOrder.source === 'firebase') {
+                await deleteDoc(doc(db, 'orders', orderId));
+            } else {
+                await databases.deleteDocument(DATABASE_ID, ORDERS_COLLECTION, orderId);
+            }
             setOrders(prev => prev.filter(o => o.id !== orderId));
             toast.dismiss();
             toast.success(`Protocol #${orderNumber} purged successfully`);
@@ -227,7 +309,7 @@ const AdminOrders = () => {
                                                 <div className="flex flex-col">
                                                     <span className="text-[13px] font-bold text-slate-900">#{order.orderNumber || order.id.slice(-6).toUpperCase()}</span>
                                                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">
-                                                        {(order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000) : new Date(order.createdAt)).toLocaleDateString('en-GB')}
+                                                        {new Date(order.createdAt).toLocaleDateString('en-GB')}
                                                     </span>
                                                 </div>
                                             </td>
