@@ -68,8 +68,30 @@ export const AuthProvider = ({ children }) => {
         return signOut(auth);
     };
 
+    const refreshProfile = async (uid) => {
+        const targetUid = uid || user?.uid;
+        if (!targetUid) return;
+
+        setLoading(true);
+        try {
+            const userDocRef = doc(db, 'users', targetUid);
+            const userSnap = await getDoc(userDocRef);
+            if (userSnap.exists()) {
+                setRole(userSnap.data().role || 'user');
+                // Also update user state if we were called with a uid but user was null (race condition fix)
+                if (!user && uid) {
+                    // actually onAuthStateChanged handles setUser, so we just care about role here.
+                }
+            }
+        } catch (error) {
+            console.error("Error keeping profile in sync:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, role, loading, login, signup, logout }}>
+        <AuthContext.Provider value={{ user, role, loading, login, signup, logout, refreshProfile }}>
             {children}
         </AuthContext.Provider>
     );

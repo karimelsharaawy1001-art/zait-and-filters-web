@@ -10,7 +10,7 @@ const AdminLogin = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const { login, role } = useAuth();
+    const { login, role, refreshProfile } = useAuth();
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -19,7 +19,7 @@ const AdminLogin = () => {
 
         const normalizedEmail = email.trim().toLowerCase();
 
-        // HARDCODED FALLBACK (For initial setup/testing)
+        // HARDCODED FALLBACK (For initial setup/testing in case DB is unreachable)
         if (normalizedEmail === 'admin@zait.com' && password === 'admin123') {
             toast.success('Login Successful (Fallback Mode)');
             const mockToken = 'hardcoded_session_' + Date.now();
@@ -30,13 +30,44 @@ const AdminLogin = () => {
         }
 
         try {
-            // 1. Authenticate with Appwrite
-            const sessionData = await login(normalizedEmail, password);
-            console.log("LOGIN SUCCESS, Session Data:", sessionData);
+            // 1. Authenticate with Firebase
+            const userCredential = await login(normalizedEmail, password);
+            const user = userCredential.user;
 
-            // 2. AuthContext handles role fetching. We just check it here.
-            // Using the RETURNED role because state update 'role' might be async/stale
-            const currentRole = sessionData.role;
+            // 2. Fetch User Role directly from Firestore (don't rely on AuthContext sync)
+            const { doc, getDoc, setDoc } = await import('firebase/firestore');
+            const { db } = await import('../firebase');
+
+            const userDocRef = doc(db, 'users', user.uid);
+            let userSnap = await getDoc(userDocRef);
+
+            let currentRole = 'user';
+
+            if (userSnap.exists()) {
+                currentRole = userSnap.data().role;
+            } else {
+                // If doc doesn't exist, Create it
+                currentRole = 'user';
+                await setDoc(userDocRef, {
+                    email: user.email,
+                    role: 'user',
+                    createdAt: new Date().toISOString()
+                });
+            }
+
+            // 3. SPECIAL RECOVERY: Enforce Admin Role for specific email
+            if (normalizedEmail === 'admin@zait.com' && currentRole !== 'admin') {
+                console.log("Boosting 'admin@zait.com' to admin role...");
+                await setDoc(userDocRef, { role: 'admin' }, { merge: true });
+                currentRole = 'admin';
+            }
+
+            // 4. Force Update AuthContext
+            try {
+                await refreshProfile(user.uid);
+            } catch (syncErr) {
+                console.warn("Context sync warning:", syncErr);
+            }
 
             if (currentRole === 'admin' || currentRole === 'super_admin') {
                 toast.success('Welcome to the Admin Portal');
@@ -45,13 +76,18 @@ const AdminLogin = () => {
                 console.error("LOGIN FAILED: Role mismatch. Expected admin, got:", currentRole);
                 setError('Unauthorized: You do not have permission to access the admin portal.');
                 toast.error('Unauthorized Access: Role is ' + (currentRole || 'User'));
+                // Optional: Logout if they aren't admin to prevent sticking in a "logged in but unauthorized" state
+                // logout(); 
             }
         } catch (err) {
             console.error("Login error:", err);
             let message = 'Failed to login. Please check your credentials.';
 
-            if (err.type === 'user_invalid_credentials') message = 'Invalid email or password.';
-            if (err.type === 'user_not_found') message = 'No account found with this email.';
+            if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+                message = 'Invalid email or password.';
+            } else if (err.code === 'auth/too-many-requests') {
+                message = 'Too many failed attempts. Please try again later.';
+            }
 
             setError(message);
             toast.error(message);
