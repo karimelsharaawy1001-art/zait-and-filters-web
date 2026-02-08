@@ -5,6 +5,14 @@ import { Query, ID } from 'appwrite';
 import { toast } from 'react-hot-toast';
 import { Download, Upload, Loader2, TrendingUp, AlertCircle, RefreshCcw } from 'lucide-react';
 
+/*
+- [ ] Sync Protocol v6.1: Minimal Schema Alignment (Strict)
+    - [x] Determine exact 18 allowed fields from direct audit
+    - [/] Remove countryOfOrigin, costPrice, warranty, partNumber, compatibility
+    - [/] Stick to: name, nameAr, desc, price, category, brand, images, stock, carMake, carModel, carYear
+    - [ ] Final verification of 4,000+ item sync success
+*/
+
 const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
     const [loading, setLoading] = useState(false);
     const [importStatus, setImportStatus] = useState('');
@@ -15,8 +23,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
 
     const headers = [
         'productID', 'name', 'activeStatus', 'isGenuine', 'category', 'subcategory', 'carMake', 'carModel',
-        'yearStart', 'yearEnd', 'partBrand', 'countryOfOrigin', 'costPrice', 'sellPrice',
-        'salePrice', 'warranty', 'description', 'imageUrl', 'partNumber', 'compatibility'
+        'carYear', 'partBrand', 'sellPrice', 'salePrice', 'description', 'imageUrl', 'stock'
     ];
 
     const log = (msg) => {
@@ -29,19 +36,20 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
     const downloadTemplate = () => {
         try {
             const sampleData = [{
-                name: "فلتر زيت",
+                name: "Product Name / اسم المنتج",
                 activeStatus: "TRUE",
-                category: "Maintenance",
-                carMake: "Toyota",
-                carModel: "Corolla",
-                yearStart: 2015,
-                yearEnd: 2023
+                category: "Category Name",
+                carMake: "Vehicle Brand",
+                carModel: "Vehicle Model",
+                carYear: "2015-2023",
+                sellPrice: 1000,
+                stock: 10
             }];
             const ws = XLSX.utils.json_to_sheet(sampleData, { header: headers });
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Template");
-            XLSX.writeFile(wb, "products_template.xlsx");
-            log("✅ Template downloaded.");
+            XLSX.writeFile(wb, "products_template_v6.1.xlsx");
+            log("✅ Template v6.1 downloaded.");
         } catch (e) {
             log(`❌ Template error: ${e.message}`);
         }
@@ -57,7 +65,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
 
         setLoading(true);
         log(`📂 Loading File: ${file.name}`);
-        setImportStatus('Initializing Matrix...');
+        setImportStatus('Initializing Sync v6.1...');
 
         const reader = new FileReader();
         reader.onload = async (event) => {
@@ -66,7 +74,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 const workbook = XLSX.read(data, { type: 'array' });
                 const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
-                log(`📊 Analysis Complete: ${jsonData.length} candidates found.`);
+                log(`📊 Analysis Complete: ${jsonData.length} rows found.`);
                 let success = 0;
                 let fail = 0;
 
@@ -79,32 +87,32 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
 
                     while (!committed && retryCount < 5) {
                         try {
-                            setImportStatus(`Slow-Sync v6.0: ${count}/${jsonData.length}`);
+                            setImportStatus(`Minimal-Sync v6.1: ${count}/${jsonData.length}`);
 
-                            // 🏁 True Schema Alignment v6.0
-                            // Verified fields: carMake, carModel, images, stock, stockQuantity, partBrand, brand, nameAr
+                            // 🏁 Minimal Audited Schema v6.1 (18 verified fields ONLY)
                             const p = {
                                 name: String(row.name || '').trim(),
                                 nameAr: String(row.name || '').trim(),
+                                description: String(row.description || '').trim(),
+                                descriptionAr: String(row.description || '').trim(),
+                                price: Number(row.sellPrice || row.price || 0),
+                                salePrice: row.salePrice ? Number(row.salePrice) : null,
                                 category: String(row.category || '').trim(),
                                 subcategory: String(row.subcategory || '').trim(),
+                                brand: String(row.partBrand || row.brand || '').trim(),
+                                partBrand: String(row.partBrand || row.brand || '').trim(),
+                                images: String(row.imageUrl || row.images || row.image || '').trim(),
+                                stock: Number(row.stock || row.stockQuantity || 0),
+                                stockQuantity: Number(row.stock || row.stockQuantity || 0),
                                 carMake: String(row.carMake || row.make || '').toUpperCase().trim(),
                                 carModel: String(row.carModel || row.model || '').toUpperCase().trim(),
                                 carYear: row.carYear ? String(row.carYear) : (row.yearStart ? `${row.yearStart}-${row.yearEnd || 'Cur'}` : null),
-                                brand: String(row.partBrand || row.brand || '').trim(),
-                                partBrand: String(row.partBrand || row.brand || '').trim(),
-                                countryOfOrigin: String(row.countryOfOrigin || '').trim(),
-                                price: Number(row.sellPrice || row.price) || 0,
-                                salePrice: row.salePrice ? Number(row.salePrice) : null,
-                                description: String(row.description || '').trim(),
-                                images: String(row.imageUrl || row.images || row.image || '').trim(),
+                                featured: false,
                                 isActive: String(row.activeStatus).toLowerCase() !== 'false',
-                                stock: Number(row.stock || row.stockQuantity || 10),
-                                stockQuantity: Number(row.stock || row.stockQuantity || 10),
                                 updatedAt: new Date().toISOString()
                             };
 
-                            if (!p.name) throw new Error("Missing Name");
+                            if (!p.name) throw new Error("Row Missing Name");
 
                             if (row.productID && String(row.productID).length > 5) {
                                 await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, String(row.productID).trim(), p);
@@ -128,7 +136,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                                 await sleep(10000);
                             } else {
                                 fail++;
-                                log(`🚨 Row ${count} Failed: ${errorMsg}`);
+                                log(`🚨 Row ${count} Rejected: ${errorMsg}`);
                                 committed = true;
                             }
                         }
@@ -136,12 +144,12 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 }
 
                 log(`🏆 FINAL SYNC: ${success} SUCCESS | ${fail} FAILURES`);
-                toast.success(`Import Finished. ${success} items sync'd.`, { duration: 5000 });
+                toast.success(`Sync Complete. ${success} items updated.`, { duration: 5000 });
 
                 e.target.value = '';
                 if (onSuccess) onSuccess();
             } catch (err) {
-                log(`❌ FATAL CRASH: ${err.message}`);
+                log(`❌ FATAL SYNC ERROR: ${err.message}`);
             }
             finally {
                 setLoading(false);
@@ -165,7 +173,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 if (lastId) queries.push(Query.cursorAfter(lastId));
                 const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, queries);
                 allDocs = [...allDocs, ...response.documents];
-                if (response.documents.length < 100 || allDocs.length >= 35000) hasMore = false;
+                if (response.documents.length < 100 || allDocs.length >= 40000) hasMore = false;
                 else {
                     lastId = response.documents[response.documents.length - 1].$id;
                     setImportStatus(`Scanning: ${allDocs.length}`);
@@ -186,15 +194,15 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 const ref = refMap.get(String(doc.$id).trim());
                 const updates = {};
 
-                if (i % 50 === 0) setImportStatus(`Auditing: ${i + 1}/${allDocs.length}`);
+                if (i % 50 === 0) setImportStatus(`Auditing Registry: ${i + 1}/${allDocs.length}`);
 
                 if (ref) {
                     if (ref.make && !doc.carMake) updates.carMake = String(ref.make).toUpperCase();
                     if (ref.model && !doc.carModel) updates.carModel = String(ref.model).toUpperCase();
-                    if ((ref.brand || ref.partBrand) && !doc.brand) updates.brand = String(ref.brand || ref.partBrand);
                 }
 
                 if (!doc.nameAr && doc.name) updates.nameAr = doc.name;
+                if (!doc.descriptionAr && doc.description) updates.descriptionAr = doc.description;
                 if (doc.isActive === undefined) updates.isActive = true;
 
                 if (Object.keys(updates).length > 0) {
@@ -237,7 +245,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     </div>
                     <div>
                         <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 leading-none">Management Hub</h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Core Registry v6.0 | True-Sync Mode</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Registry v6.1 | Minimal Schema Mode</p>
                     </div>
                 </div>
 
@@ -246,7 +254,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                         onClick={downloadTemplate}
                         className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-all text-xs"
                     >
-                        <Download size={14} /> Template
+                        <Download size={14} /> Template v6.1
                     </button>
 
                     <div className="relative">
@@ -270,7 +278,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                         onClick={() => window.location.reload()}
                         className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-black transition-all text-xs shadow-lg"
                     >
-                        <RefreshCcw size={14} /> Refresh Matrix
+                        <RefreshCcw size={14} /> Refresh Registry
                     </button>
 
                     <button
@@ -294,12 +302,12 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                         <AlertCircle size={10} className="text-slate-400" />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Activity Telemetry Log</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Registry Activity Telemetry</span>
                     </div>
                 </div>
                 <div className="space-y-1 max-h-24 overflow-y-auto custom-scrollbar">
                     {uiLogs.length === 0 ? (
-                        <p className="text-[10px] text-slate-400 italic">True-Sync Protocol v6.0 Active...</p>
+                        <p className="text-[10px] text-slate-400 italic">Minimal-Sync SyncProtocol v6.1 Initialized...</p>
                     ) : (
                         uiLogs.map((logMsg, i) => (
                             <div key={i} className="text-[10px] text-slate-600 font-mono flex items-start gap-4 hover:bg-white rounded py-0.5 px-1 border-b border-slate-100 last:border-0">
