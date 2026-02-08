@@ -49,6 +49,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
     };
 
     const handleImport = async (e) => {
+        if (loading) return;
         e.preventDefault();
         e.stopPropagation();
 
@@ -74,71 +75,79 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     const row = jsonData[i];
                     const count = i + 1;
 
-                    try {
-                        setImportStatus(`Steady-Sync: ${count}/${jsonData.length}`);
+                    let retryCount = 0;
+                    let committed = false;
 
-                        // Align Mapping with Schema (Required nameAr)
-                        const p = {
-                            name: String(row.name || '').trim(),
-                            nameAr: String(row.name || '').trim(), // REQUIRED by schema
-                            nameEn: String(row.nameEn || row.name_en || '').trim(),
-                            category: String(row.category || '').trim(),
-                            subcategory: String(row.subcategory || '').trim(),
-                            make: String(row.carMake || '').toUpperCase().trim(),
-                            model: String(row.carModel || '').toUpperCase().trim(),
-                            yearStart: row.yearStart ? parseInt(row.yearStart) : null,
-                            yearEnd: row.yearEnd ? parseInt(row.yearEnd) : null,
-                            yearRange: row.yearRange ? String(row.yearRange) : null,
-                            partBrand: String(row.partBrand || row.brand || '').trim(),
-                            countryOfOrigin: String(row.countryOfOrigin || '').trim(),
-                            costPrice: Number(row.costPrice) || 0,
-                            price: Number(row.sellPrice || row.price) || 0,
-                            salePrice: row.salePrice ? Number(row.salePrice) : null,
-                            warranty_months: row.warranty ? parseInt(row.warranty) : null,
-                            description: String(row.description || '').trim(),
-                            image: String(row.imageUrl || '').trim(),
-                            images: String(row.imageUrl || '').trim(),
-                            partNumber: String(row.partNumber || '').trim(),
-                            compatibility: String(row.compatibility || '').trim(),
-                            isActive: String(row.activeStatus).toLowerCase() !== 'false',
-                            isGenuine: String(row.isGenuine).toLowerCase() === 'true',
-                            updatedAt: new Date().toISOString()
-                        };
+                    while (!committed && retryCount < 5) {
+                        try {
+                            setImportStatus(`Slow-Sync: ${count}/${jsonData.length}`);
 
-                        if (!p.name) throw new Error("Missing Name");
+                            const p = {
+                                name: String(row.name || '').trim(),
+                                nameAr: String(row.name || '').trim(),
+                                nameEn: String(row.nameEn || row.name_en || '').trim(),
+                                category: String(row.category || '').trim(),
+                                subcategory: String(row.subcategory || '').trim(),
+                                make: String(row.carMake || '').toUpperCase().trim(),
+                                model: String(row.carModel || '').toUpperCase().trim(),
+                                yearStart: row.yearStart ? parseInt(row.yearStart) : null,
+                                yearEnd: row.yearEnd ? parseInt(row.yearEnd) : null,
+                                yearRange: row.yearRange ? String(row.yearRange) : null,
+                                partBrand: String(row.partBrand || row.brand || '').trim(),
+                                countryOfOrigin: String(row.countryOfOrigin || '').trim(),
+                                costPrice: Number(row.costPrice) || 0,
+                                price: Number(row.sellPrice || row.price) || 0,
+                                salePrice: row.salePrice ? Number(row.salePrice) : null,
+                                warranty_months: row.warranty ? parseInt(row.warranty) : null,
+                                description: String(row.description || '').trim(),
+                                image: String(row.imageUrl || '').trim(),
+                                images: String(row.imageUrl || '').trim(),
+                                partNumber: String(row.partNumber || '').trim(),
+                                compatibility: String(row.compatibility || '').trim(),
+                                isActive: String(row.activeStatus).toLowerCase() !== 'false',
+                                isGenuine: String(row.isGenuine).toLowerCase() === 'true',
+                                updatedAt: new Date().toISOString()
+                            };
 
-                        if (row.productID && String(row.productID).length > 5) {
-                            await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, String(row.productID).trim(), p);
-                        } else {
-                            p.createdAt = new Date().toISOString();
-                            await databases.createDocument(DATABASE_ID, PRODUCTS_COLLECTION, ID.unique(), p);
-                        }
+                            if (!p.name) throw new Error("Missing Name");
 
-                        success++;
-                        if (success % 10 === 0) log(`🔹 Synchronized ${success} items...`);
+                            if (row.productID && String(row.productID).length > 5) {
+                                await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, String(row.productID).trim(), p);
+                            } else {
+                                p.createdAt = new Date().toISOString();
+                                await databases.createDocument(DATABASE_ID, PRODUCTS_COLLECTION, ID.unique(), p);
+                            }
 
-                        // 🚦 Rate Limit Throttling: Sleep 150ms between rows
-                        await sleep(150);
+                            success++;
+                            committed = true;
+                            if (success % 10 === 0) log(`🔹 Synchronized ${success} items...`);
 
-                    } catch (err) {
-                        fail++;
-                        log(`🚨 Row ${count} Failed: ${err.message}`);
-                        // If we hit a rate limit, sleep longer
-                        if (err.message.includes('rate limit')) {
-                            log("🚦 Rate limit hit. Cooling down for 5 seconds...");
-                            await sleep(5000);
+                            // 🐢 Slow-Sync v5.8 Target: 500ms delay
+                            await sleep(500);
+
+                        } catch (err) {
+                            const errorMsg = err.message || '';
+                            if (errorMsg.toLowerCase().includes('rate limit') || errorMsg.includes('429')) {
+                                retryCount++;
+                                log(`🚦 Rate Limit Hit (Row ${count}). Cooling down 10s... (Attempt ${retryCount})`);
+                                setImportStatus(`🚦 COOLING DOWN: ${count}/${jsonData.length}`);
+                                await sleep(10000);
+                            } else {
+                                fail++;
+                                log(`🚨 Row ${count} Failed: ${errorMsg}`);
+                                committed = true; // Don't retry logic errors
+                            }
                         }
                     }
                 }
 
                 log(`🏆 FINAL SYNC: ${success} SUCCESS | ${fail} FAILURES`);
-                toast.success(`Import Finished. ${success} items added to Registry.`, { duration: 5000 });
+                toast.success(`Import Finished. ${success} items sync'd.`, { duration: 5000 });
 
                 e.target.value = '';
                 if (onSuccess) onSuccess();
             } catch (err) {
                 log(`❌ FATAL CRASH: ${err.message}`);
-                toast.error("Process Terminated. Check Log.");
             }
             finally {
                 setLoading(false);
@@ -183,7 +192,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 const ref = refMap.get(String(doc.$id).trim());
                 const updates = {};
 
-                if (i % 100 === 0) setImportStatus(`Auditing: ${i + 1}/${allDocs.length}`);
+                if (i % 50 === 0) setImportStatus(`Auditing: ${i + 1}/${allDocs.length}`);
 
                 if (ref) {
                     if (ref.yearStart && !doc.yearStart) updates.yearStart = Number(ref.yearStart);
@@ -196,14 +205,16 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
 
                 if (doc.carMake && !doc.make) updates.make = doc.carMake.toUpperCase();
                 if (doc.isActive === undefined) updates.isActive = true;
-
-                // Critical: Ensure nameAr exists if it's missing in some old records
                 if (!doc.nameAr && doc.name) updates.nameAr = doc.name;
 
                 if (Object.keys(updates).length > 0) {
-                    await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, doc.$id, updates);
-                    repairs++;
-                    await sleep(100); // Small throttle for repair too
+                    try {
+                        await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, doc.$id, updates);
+                        repairs++;
+                        await sleep(300); // Steady repair pace
+                    } catch (e) {
+                        if (e.message.includes('rate limit')) await sleep(5000);
+                    }
                 }
             }
             log(`✅ AUDIT COMPLETE. Recalibrated ${repairs} entries.`);
@@ -236,7 +247,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     </div>
                     <div>
                         <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 leading-none">Management Hub</h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Core Registry v5.7 | Steady-Sync Mode</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Core Registry v5.8 | Slow-Sync Mode</p>
                     </div>
                 </div>
 
@@ -283,8 +294,8 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
             </div>
 
             {importStatus && (
-                <div className="mt-4 flex items-center gap-3 bg-slate-900 text-white p-3 rounded-2xl text-[11px] font-black uppercase tracking-widest animate-pulse border-l-4 border-emerald-500">
-                    <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />
+                <div className={`mt-4 flex items-center gap-3 bg-slate-900 text-white p-3 rounded-2xl text-[11px] font-black uppercase tracking-widest animate-pulse border-l-4 ${importStatus.includes('COOLING') ? 'border-orange-500' : 'border-emerald-500'}`}>
+                    <Loader2 className={`h-4 w-4 animate-spin ${importStatus.includes('COOLING') ? 'text-orange-500' : 'text-emerald-500'}`} />
                     {importStatus}
                 </div>
             )}
@@ -298,12 +309,12 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 </div>
                 <div className="space-y-1 max-h-24 overflow-y-auto custom-scrollbar">
                     {uiLogs.length === 0 ? (
-                        <p className="text-[10px] text-slate-400 italic">Steady-Sync Core Online...</p>
+                        <p className="text-[10px] text-slate-400 italic">Slow-Sync Protocol Active...</p>
                     ) : (
                         uiLogs.map((logMsg, i) => (
                             <div key={i} className="text-[10px] text-slate-600 font-mono flex items-start gap-4 hover:bg-white rounded py-0.5 px-1 border-b border-slate-100 last:border-0">
                                 <span className="text-slate-300 flex-shrink-0">[{new Date().toLocaleTimeString()}]</span>
-                                <span className={logMsg.includes('🚨') || logMsg.includes('❌') ? 'text-red-500 font-bold' : logMsg.includes('🏆') || logMsg.includes('✅') ? 'text-emerald-600 font-bold' : ''}>{logMsg}</span>
+                                <span className={logMsg.includes('🚨') || logMsg.includes('❌') ? 'text-red-500 font-bold' : logMsg.includes('🏆') || logMsg.includes('✅') ? 'text-emerald-600 font-bold' : logMsg.includes('🚦') ? 'text-orange-500 font-bold' : ''}>{logMsg}</span>
                             </div>
                         ))
                     )}
