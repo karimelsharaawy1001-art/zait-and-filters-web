@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { databases } from '../appwrite';
+import { db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 const SettingsContext = createContext();
 
@@ -17,32 +18,25 @@ export const SettingsProvider = ({ children }) => {
     });
     const [loading, setLoading] = useState(true);
 
-    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-    const SETTINGS_COLLECTION = import.meta.env.VITE_APPWRITE_SETTINGS_COLLECTION_ID;
-
     useEffect(() => {
         const fetchSettings = async () => {
-            if (!DATABASE_ID || !SETTINGS_COLLECTION) {
-                console.warn("Appwrite Settings: Database or Collection ID missing in ENV");
-                setLoading(false);
-                return;
-            }
-
             try {
-                const doc = await databases.getDocument(
-                    DATABASE_ID,
-                    SETTINGS_COLLECTION,
-                    'general' // Document ID 'general'
-                );
-                setSettings(doc);
+                const docRef = doc(db, 'settings', 'general');
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    setSettings(prev => ({ ...prev, ...docSnap.data() }));
+                } else {
+                    console.warn("Settings document not found, using defaults");
+                }
             } catch (error) {
-                console.error('Error fetching settings from Appwrite:', error);
+                console.error('Error fetching settings from Firestore:', error);
             } finally {
                 setLoading(false);
             }
         };
         fetchSettings();
-    }, [DATABASE_ID, SETTINGS_COLLECTION]);
+    }, []);
 
 
     return (
