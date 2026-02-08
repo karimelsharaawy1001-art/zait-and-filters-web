@@ -111,27 +111,67 @@ const AdminOrders = () => {
                 }
             };
 
-            const [fbOrders, awOrders] = await Promise.all([
+            // 3. Fetch from Static JSON (Workaround for Quota Blocks)
+            const fetchStaticOrders = async () => {
+                try {
+                    const response = await fetch('/data/orders-legacy.json');
+                    if (!response.ok) return [];
+                    const data = await response.json();
+
+                    // Appwrite export is usually { documents: [...] } or an array
+                    const documents = Array.isArray(data) ? data : (data.documents || []);
+
+                    return documents.map(doc => {
+                        let customer = {};
+                        const rawCustomer = doc.customer || doc.customerInfo;
+                        if (typeof rawCustomer === 'string') {
+                            try { customer = JSON.parse(rawCustomer); } catch (e) { }
+                        } else {
+                            customer = rawCustomer || {};
+                        }
+
+                        let items = [];
+                        if (typeof doc.items === 'string') {
+                            try { items = JSON.parse(doc.items); } catch (e) { }
+                        } else if (Array.isArray(doc.items)) {
+                            items = doc.items;
+                        }
+
+                        return {
+                            id: doc.$id || doc.id,
+                            ...doc,
+                            source: 'static',
+                            customer,
+                            items: items,
+                            createdAt: doc.$createdAt ? new Date(doc.$createdAt).getTime() : (doc.createdAt ? new Date(doc.createdAt).getTime() : Date.now())
+                        };
+                    });
+                } catch (err) {
+                    console.log("[AdminOrders] No static legacy orders found or fetch failed.");
+                    return [];
+                }
+            };
+
+            const [fbOrders, awOrders, staticOrders] = await Promise.all([
                 fetchFirebaseOrders().catch(err => {
                     console.error("Firebase fetch error:", err);
-                    toast.error("Firebase sync failure");
                     return [];
                 }),
                 fetchAppwriteOrders().catch(err => {
                     console.error("Appwrite fetch error:", err);
-                    toast.error("Appwrite sync failure: " + err.message);
                     return [];
-                })
+                }),
+                fetchStaticOrders()
             ]);
 
-            console.log(`[AdminOrders] Fetched ${fbOrders.length} from Firebase, ${awOrders.length} from Appwrite`);
+            console.log(`[AdminOrders] Fetched: ${fbOrders.length} FB, ${awOrders.length} AW, ${staticOrders.length} Static`);
 
             // Combine and sort by createdAt desc
-            const combinedOrders = [...fbOrders, ...awOrders].sort((a, b) => b.createdAt - a.createdAt);
+            const combinedOrders = [...fbOrders, ...awOrders, ...staticOrders].sort((a, b) => b.createdAt - a.createdAt);
 
             setOrders(combinedOrders);
             if (combinedOrders.length === 0) {
-                console.warn("[AdminOrders] No orders found in either source");
+                console.warn("[AdminOrders] No orders found in any source");
             }
         } catch (error) {
             console.error("Error fetching orders:", error);
@@ -267,7 +307,7 @@ const AdminOrders = () => {
                         <p className="text-[11px] font-medium text-slate-400 uppercase tracking-widest mt-0.5">
                             Oversight Feed: {orders.length} Protocols
                             <span className="ml-2 text-slate-300">
-                                ({orders.filter(o => o.source === 'firebase').length} FB | {orders.filter(o => o.source === 'appwrite').length} AW)
+                                ({orders.filter(o => o.source === 'firebase').length} FB | {orders.filter(o => o.source === 'appwrite').length} AW | {orders.filter(o => o.source === 'static').length} ST)
                             </span>
                         </p>
                     </div>
