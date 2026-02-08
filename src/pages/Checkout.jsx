@@ -13,9 +13,11 @@ import { safeStorage } from '../utils/storage';
 import { Loader2, ShieldCheck, Banknote, CreditCard, Ticket, CheckCircle2, AlertCircle, MapPin, Plus, User, Mail, Smartphone, Trash2, Home, Briefcase, Building, Map } from 'lucide-react';
 import PhoneInputGroup from '../components/PhoneInputGroup';
 import TrustPaymentSection from '../components/TrustPaymentSection';
+import { useStaticData } from '../context/StaticDataContext';
 
 const Checkout = () => {
     const { cartItems, getCartTotal, clearCart, updateCartStage, updateCustomerInfo, getEffectivePrice } = useCart();
+    const { shipping_rates: staticShippingRates } = useStaticData();
     const { user } = useAuth();
     const { navigate } = useSafeNavigation();
     const { t, i18n } = useTranslation();
@@ -172,7 +174,12 @@ const Checkout = () => {
     const fetchShippingRates = async () => {
         try {
             const querySnapshot = await getDocs(collection(db, 'shipping_rates'));
-            const data = querySnapshot.docs.map(doc => ({ $id: doc.id, ...doc.data() }));
+            let data = querySnapshot.docs.map(doc => ({ $id: doc.id, ...doc.data() }));
+
+            if (data.length === 0 && staticShippingRates?.length > 0) {
+                console.log("Using static shipping rates baseline");
+                data = staticShippingRates.map(r => ({ ...r, $id: r.id || r.$id }));
+            }
 
             const sortedData = data.sort((a, b) => {
                 const govA = a?.governorate || '';
@@ -183,6 +190,9 @@ const Checkout = () => {
             setShippingRates(sortedData);
         } catch (error) {
             console.error("Error fetching shipping rates:", error);
+            if (staticShippingRates?.length > 0) {
+                setShippingRates(staticShippingRates);
+            }
         }
     };
 

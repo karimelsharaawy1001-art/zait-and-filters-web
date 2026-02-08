@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { databases } from '../../appwrite';
-import { ID, Query } from 'appwrite';
+import { db } from '../../firebase';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
 import AdminHeader from '../../components/AdminHeader';
 import { Truck, Plus, Trash2, Edit2, Save, X, Loader2, RefreshCcw, Map, Shield } from 'lucide-react';
@@ -25,17 +25,15 @@ const ManageShipping = () => {
     const [newRate, setNewRate] = useState({ governorate: '', cost: '' });
     const [editRate, setEditRate] = useState({ governorate: '', cost: '' });
 
-    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-    const SHIPPING_COLLECTION = import.meta.env.VITE_APPWRITE_SHIPPING_COLLECTION_ID || 'shipping_rates';
-
     const fetchRates = async () => {
-        if (!DATABASE_ID) return;
         setLoading(true);
         try {
-            const response = await databases.listDocuments(DATABASE_ID, SHIPPING_COLLECTION, [Query.limit(100)]);
-            setRates(response.documents.map(d => ({ id: d.$id, ...d })).sort((a, b) => a.governorate.localeCompare(b.governorate)));
+            const q = query(collection(db, 'shipping_rates'), orderBy('governorate', 'asc'));
+            const querySnapshot = await getDocs(q);
+            setRates(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
         } catch (error) {
-            console.error(error);
+            console.error("Error fetching rates:", error);
+            toast.error("Failed to load rates");
         } finally {
             setLoading(false);
         }
@@ -43,13 +41,13 @@ const ManageShipping = () => {
 
     useEffect(() => {
         fetchRates();
-    }, [DATABASE_ID]);
+    }, []);
 
     const handleAdd = async (e) => {
         e.preventDefault();
         setActionLoading(true);
         try {
-            await databases.createDocument(DATABASE_ID, SHIPPING_COLLECTION, ID.unique(), {
+            await addDoc(collection(db, 'shipping_rates'), {
                 governorate: newRate.governorate,
                 cost: Number(newRate.cost)
             });
@@ -57,7 +55,8 @@ const ManageShipping = () => {
             fetchRates();
             toast.success("Zone registered");
         } catch (error) {
-            toast.error("Sync failure");
+            console.error(error);
+            toast.error("Add failure");
         } finally {
             setActionLoading(false);
         }
@@ -67,11 +66,12 @@ const ManageShipping = () => {
         if (!window.confirm("Purge zone?")) return;
         setActionLoading(true);
         try {
-            await databases.deleteDocument(DATABASE_ID, SHIPPING_COLLECTION, id);
+            await deleteDoc(doc(db, 'shipping_rates', id));
             fetchRates();
             toast.success("Resource deleted");
         } catch (error) {
-            toast.error("Operation failed");
+            console.error(error);
+            toast.error("Delete failure");
         } finally {
             setActionLoading(false);
         }
@@ -80,7 +80,7 @@ const ManageShipping = () => {
     const handleUpdate = async (id) => {
         setActionLoading(true);
         try {
-            await databases.updateDocument(DATABASE_ID, SHIPPING_COLLECTION, id, {
+            await updateDoc(doc(db, 'shipping_rates', id), {
                 governorate: editRate.governorate,
                 cost: Number(editRate.cost)
             });
@@ -88,22 +88,31 @@ const ManageShipping = () => {
             fetchRates();
             toast.success("Matrix updated");
         } catch (error) {
-            toast.error("Sync failure");
+            console.error(error);
+            toast.error("Update failure");
         } finally {
             setActionLoading(false);
         }
     };
 
     const handleSeed = async () => {
-        if (!window.confirm("Initialize default Egypt 27-zone matrix?")) return;
+        if (!window.confirm("Initialize/Merge default Egypt 27-zone matrix?")) return;
         setActionLoading(true);
         try {
+            const ratesRef = collection(db, 'shipping_rates');
+            // Check existing to avoid duplicates if possible, or just add all
+            const existingSnapshot = await getDocs(ratesRef);
+            const existingGovs = existingSnapshot.docs.map(d => d.data().governorate);
+
             for (const gov of EGYPT_GOVERNORATES) {
-                await databases.createDocument(DATABASE_ID, SHIPPING_COLLECTION, ID.unique(), gov);
+                if (!existingGovs.includes(gov.governorate)) {
+                    await addDoc(ratesRef, gov);
+                }
             }
             fetchRates();
-            toast.success("Matrix provisioned");
+            toast.success("Matrix provisioned and synced");
         } catch (error) {
+            console.error(error);
             toast.error("Seeding failure");
         } finally {
             setActionLoading(false);
