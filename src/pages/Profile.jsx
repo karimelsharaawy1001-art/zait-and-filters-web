@@ -25,7 +25,6 @@ import {
     Building,
     Briefcase,
     Building2,
-    Map,
     Printer
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
