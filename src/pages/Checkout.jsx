@@ -690,7 +690,7 @@ const Checkout = () => {
                             </div>
 
                             {/* Order Summary */}
-                            <div className="bg-gray-50 rounded-xl p-6 space-y-3">
+                            <div className="bg-orange-50 rounded-xl p-6 space-y-3">
                                 <div className="flex justify-between text-sm text-gray-600">
                                     <span>{t('subtotal')}</span>
                                     <span className="font-bold">{subtotal.toLocaleString()} EGP</span>
