@@ -6,10 +6,9 @@ import { toast } from 'react-hot-toast';
 import { Download, Upload, Loader2, TrendingUp, AlertCircle, RefreshCcw } from 'lucide-react';
 
 /*
-- [ ] Sync Protocol v6.1: Minimal Schema Alignment (Strict)
-    - [x] Determine exact 18 allowed fields from direct audit
-    - [/] Remove countryOfOrigin, costPrice, warranty, partNumber, compatibility
-    - [/] Stick to: name, nameAr, desc, price, category, brand, images, stock, carMake, carModel, carYear
+- [ ] Sync Protocol v6.2: Final Manual Schema (Strict)
+    - [x] Strip updatedAt/createdAt (Appwrite system manages these)
+    - [x] Stick ONLY to verified custom attributes
     - [ ] Final verification of 4,000+ item sync success
 */
 
@@ -48,8 +47,8 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
             const ws = XLSX.utils.json_to_sheet(sampleData, { header: headers });
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Template");
-            XLSX.writeFile(wb, "products_template_v6.1.xlsx");
-            log("✅ Template v6.1 downloaded.");
+            XLSX.writeFile(wb, "products_template_v6.2.xlsx");
+            log("✅ Template v6.2 downloaded.");
         } catch (e) {
             log(`❌ Template error: ${e.message}`);
         }
@@ -65,7 +64,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
 
         setLoading(true);
         log(`📂 Loading File: ${file.name}`);
-        setImportStatus('Initializing Sync v6.1...');
+        setImportStatus('Initializing Sync v6.2...');
 
         const reader = new FileReader();
         reader.onload = async (event) => {
@@ -87,9 +86,10 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
 
                     while (!committed && retryCount < 5) {
                         try {
-                            setImportStatus(`Minimal-Sync v6.1: ${count}/${jsonData.length}`);
+                            setImportStatus(`Clean-Sync v6.2: ${count}/${jsonData.length}`);
 
-                            // 🏁 Minimal Audited Schema v6.1 (18 verified fields ONLY)
+                            // 🏁 Verified Attributes ONLY (Directly Audit Matched)
+                            // Stripped: updatedAt, createdAt (Unknown Attributes)
                             const p = {
                                 name: String(row.name || '').trim(),
                                 nameAr: String(row.name || '').trim(),
@@ -108,8 +108,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                                 carModel: String(row.carModel || row.model || '').toUpperCase().trim(),
                                 carYear: row.carYear ? String(row.carYear) : (row.yearStart ? `${row.yearStart}-${row.yearEnd || 'Cur'}` : null),
                                 featured: false,
-                                isActive: String(row.activeStatus).toLowerCase() !== 'false',
-                                updatedAt: new Date().toISOString()
+                                isActive: String(row.activeStatus).toLowerCase() !== 'false'
                             };
 
                             if (!p.name) throw new Error("Row Missing Name");
@@ -117,7 +116,6 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                             if (row.productID && String(row.productID).length > 5) {
                                 await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, String(row.productID).trim(), p);
                             } else {
-                                p.createdAt = new Date().toISOString();
                                 await databases.createDocument(DATABASE_ID, PRODUCTS_COLLECTION, ID.unique(), p);
                             }
 
@@ -245,7 +243,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     </div>
                     <div>
                         <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 leading-none">Management Hub</h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Registry v6.1 | Minimal Schema Mode</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Registry v6.2 | Strict Clean-Sync Mode</p>
                     </div>
                 </div>
 
@@ -254,7 +252,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                         onClick={downloadTemplate}
                         className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-all text-xs"
                     >
-                        <Download size={14} /> Template v6.1
+                        <Download size={14} /> Template v6.2
                     </button>
 
                     <div className="relative">
@@ -307,7 +305,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 </div>
                 <div className="space-y-1 max-h-24 overflow-y-auto custom-scrollbar">
                     {uiLogs.length === 0 ? (
-                        <p className="text-[10px] text-slate-400 italic">Minimal-Sync SyncProtocol v6.1 Initialized...</p>
+                        <p className="text-[10px] text-slate-400 italic">SyncProtocol v6.2 (Strict Attributes) Active...</p>
                     ) : (
                         uiLogs.map((logMsg, i) => (
                             <div key={i} className="text-[10px] text-slate-600 font-mono flex items-start gap-4 hover:bg-white rounded py-0.5 px-1 border-b border-slate-100 last:border-0">
