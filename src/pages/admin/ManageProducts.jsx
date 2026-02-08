@@ -31,47 +31,104 @@ const ManageProducts = () => {
     const [pageSize] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
 
-    const fetchProducts = async () => {
-        if (!DATABASE_ID || !PRODUCTS_COLLECTION) return;
-        setLoading(true);
-        try {
-            const queries = [
-                Query.limit(pageSize),
-                Query.offset((currentPage - 1) * pageSize)
-            ];
+    const [filteredProducts, setFilteredProducts] = useState([]);
+    const [displayProducts, setDisplayProducts] = useState([]);
 
-            if (categoryFilter !== 'All') queries.push(Query.equal('category', categoryFilter));
-            if (brandFilter !== 'All') queries.push(Query.equal('brand', brandFilter));
-            if (makeFilter !== 'All') queries.push(Query.equal('make', makeFilter));
-            if (modelFilter !== 'All') queries.push(Query.equal('model', modelFilter));
-            if (yearFilter !== 'All') queries.push(Query.equal('yearRange', yearFilter));
-            if (statusFilter === 'Active') queries.push(Query.equal('isActive', true));
-            if (statusFilter === 'Inactive') queries.push(Query.equal('isActive', false));
-            if (searchQuery) queries.push(Query.contains('name', searchQuery));
-
-            const [field, dir] = sortBy.split('-');
-            queries.push(dir === 'asc' ? Query.orderAsc(field) : Query.orderDesc(field));
-
-            const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, queries);
-            setProducts(response.documents.map(d => ({ id: d.$id, ...d })));
-            setTotalCount(response.total);
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to sync inventory");
-        } finally {
-            setLoading(false);
-        }
-    };
-
+    // Client-Side Filter Engine
     useEffect(() => {
-        fetchProducts();
-    }, [categoryFilter, brandFilter, makeFilter, modelFilter, yearFilter, statusFilter, sortBy, searchQuery, currentPage]);
+        if (!isStaticLoaded) return;
+
+        let results = [...staticProducts];
+
+        // 1. Sector (Category) Filter
+        if (categoryFilter !== 'All') {
+            results = results.filter(p => p.category === categoryFilter);
+        }
+
+        // 2. Status Filter
+        if (statusFilter === 'Active') {
+            results = results.filter(p => p.isActive !== false);
+        } else if (statusFilter === 'Inactive') {
+            results = results.filter(p => p.isActive === false);
+        }
+
+        // 3. Vehicle Filters (Robust/Legacy Support)
+        if (makeFilter !== 'All') {
+            results = results.filter(p =>
+                (p.make && p.make.toUpperCase() === makeFilter.toUpperCase()) ||
+                (p.carMake && p.carMake.toUpperCase() === makeFilter.toUpperCase())
+            );
+        }
+
+        if (modelFilter !== 'All') {
+            results = results.filter(p =>
+                (p.model && p.model.toUpperCase() === modelFilter.toUpperCase()) ||
+                (p.carModel && p.carModel.toUpperCase() === modelFilter.toUpperCase())
+            );
+        }
+
+        if (yearFilter !== 'All' && yearFilter.length >= 4) {
+            results = results.filter(p => {
+                const searchYear = parseInt(yearFilter);
+                if (isNaN(searchYear)) return true;
+
+                // Check yearStart/yearEnd
+                if (p.yearStart && p.yearEnd) {
+                    return searchYear >= p.yearStart && searchYear <= p.yearEnd;
+                }
+                // Check yearRange string
+                if (p.yearRange && p.yearRange.includes(yearFilter)) return true;
+                return false;
+            });
+        }
+
+        // 4. Universal Search
+        if (searchQuery) {
+            const q = searchQuery.toLowerCase();
+            results = results.filter(p =>
+                (p.name && p.name.toLowerCase().includes(q)) ||
+                (p.id && p.id.toLowerCase().includes(q)) ||
+                (p.partNumber && p.partNumber.toLowerCase().includes(q)) ||
+                (p.brand && p.brand.toLowerCase().includes(q))
+            );
+        }
+
+        // 5. Sorting
+        const [field, dir] = sortBy.split('-');
+        results.sort((a, b) => {
+            let valA = a[field] || '';
+            let valB = b[field] || '';
+
+            if (field === '$createdAt') {
+                valA = new Date(a.$createdAt).getTime();
+                valB = new Date(b.$createdAt).getTime();
+            }
+
+            if (dir === 'asc') return valA > valB ? 1 : -1;
+            return valA < valB ? 1 : -1;
+        });
+
+        setFilteredProducts(results);
+        setTotalCount(results.length);
+        setCurrentPage(1); // Reset to page 1 on filter change
+        setLoading(false);
+    }, [isStaticLoaded, staticProducts, categoryFilter, statusFilter, makeFilter, modelFilter, yearFilter, searchQuery, sortBy]);
+
+    // Client-Side Pagination
+    useEffect(() => {
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        setDisplayProducts(filteredProducts.slice(start, end));
+    }, [filteredProducts, currentPage, pageSize]);
 
     const handleToggleActive = async (productId, currentStatus) => {
         try {
             await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, productId, { isActive: !currentStatus });
-            toast.success("Status synced");
-            fetchProducts();
+            toast.success("Status updated. Syncing view...");
+            // Success call to force context refresh if needed, 
+            // but context usually refreshes on mount or interval.
+            // For now, local UI update for speed:
+            setDisplayProducts(prev => prev.map(p => p.id === productId ? { ...p, isActive: !currentStatus } : p));
         } catch (error) {
             toast.error("Sync failure");
         }
@@ -82,7 +139,7 @@ const ManageProducts = () => {
             try {
                 await databases.deleteDocument(DATABASE_ID, PRODUCTS_COLLECTION, productId);
                 toast.success("Resource deleted");
-                fetchProducts();
+                setDisplayProducts(prev => prev.filter(p => p.id !== productId));
             } catch (error) {
                 toast.error("Operation failed");
             }
@@ -90,20 +147,7 @@ const ManageProducts = () => {
     };
 
     const handleExportFetch = async () => {
-        if (!DATABASE_ID || !PRODUCTS_COLLECTION) return [];
-        try {
-            const queries = [Query.limit(5000)];
-            if (categoryFilter !== 'All') queries.push(Query.equal('category', categoryFilter));
-            if (brandFilter !== 'All') queries.push(Query.equal('brand', brandFilter));
-            if (statusFilter === 'Active') queries.push(Query.equal('isActive', true));
-            if (statusFilter === 'Inactive') queries.push(Query.equal('isActive', false));
-
-            const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, queries);
-            return response.documents;
-        } catch (error) {
-            console.error("Export fetch failure:", error);
-            return [];
-        }
+        return filteredProducts;
     };
 
     return (
@@ -120,7 +164,7 @@ const ManageProducts = () => {
                     </button>
                 </div>
 
-                <BulkOperations onSuccess={fetchProducts} onExportFetch={handleExportFetch} staticProducts={rawStaticProducts} />
+                <BulkOperations onSuccess={() => window.location.reload()} onExportFetch={handleExportFetch} staticProducts={rawStaticProducts} />
 
                 <div className="admin-card-compact p-4 flex flex-wrap gap-4 items-end mb-6">
                     <div className="flex-1 min-w-[280px]">
@@ -191,7 +235,7 @@ const ManageProducts = () => {
                         />
                     </div>
                     <button
-                        onClick={() => { setMakeFilter('All'); setModelFilter('All'); setYearFilter('All'); setCategoryFilter('All'); setBrandFilter('All'); setStatusFilter('All'); setSearchQuery(''); }}
+                        onClick={() => { setMakeFilter('All'); setModelFilter('All'); setYearFilter('All'); setCategoryFilter('All'); setStatusFilter('All'); setSearchQuery(''); }}
                         className="px-4 py-2 bg-white/10 hover:bg-white/20 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all"
                     >
                         Reset Matrix
@@ -216,7 +260,7 @@ const ManageProducts = () => {
                             <tbody className="divide-y divide-slate-50">
                                 {loading ? (
                                     <tr><td colSpan="5" className="p-16 text-center"><Loader2 className="animate-spin mx-auto text-slate-400" size={32} /></td></tr>
-                                ) : products.map(p => (
+                                ) : displayProducts.map(p => (
                                     <tr key={p.id} className="hover:bg-slate-50/50 transition-all group">
                                         <td>
                                             <div className="w-12 h-12 rounded-lg overflow-hidden border border-slate-100 flex-shrink-0">
