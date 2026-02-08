@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 import { databases } from '../../appwrite';
 import { Query, ID } from 'appwrite';
 import { toast } from 'react-hot-toast';
-import { Download, Upload, Loader2, TrendingUp, AlertCircle } from 'lucide-react';
+import { Download, Upload, Loader2, TrendingUp, AlertCircle, RefreshCcw } from 'lucide-react';
 
 const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
     const [loading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
 
     const log = (msg) => {
         console.log(`[BULK] ${msg}`);
-        setUiLogs(prev => [msg, ...prev].slice(0, 10));
+        setUiLogs(prev => [msg, ...prev].slice(0, 15));
     };
 
     const downloadTemplate = () => {
@@ -39,19 +39,22 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Template");
             XLSX.writeFile(wb, "products_template.xlsx");
-            log("✅ Template downloaded successfully.");
+            log("✅ Template downloaded.");
         } catch (e) {
             log(`❌ Template error: ${e.message}`);
         }
     };
 
     const handleImport = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
         const file = e.target.files[0];
         if (!file) return;
 
         setLoading(true);
-        log(`📂 Starting Import: ${file.name}`);
-        setImportStatus('Initializing Matrix...');
+        log(`📂 Loading File: ${file.name}`);
+        setImportStatus('Parsing Binary Matrix...');
 
         const reader = new FileReader();
         reader.onload = async (event) => {
@@ -60,15 +63,18 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 const workbook = XLSX.read(data, { type: 'array' });
                 const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
-                log(`📊 Found ${jsonData.length} records in Excel.`);
+                log(`📊 Analysis Complete: ${jsonData.length} candidates found.`);
                 let success = 0;
                 let fail = 0;
 
-                for (const row of jsonData) {
-                    try {
-                        const count = success + fail + 1;
-                        setImportStatus(`Processing: ${count}/${jsonData.length}`);
+                for (let i = 0; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    const count = i + 1;
 
+                    try {
+                        setImportStatus(`Committing Row: ${count}/${jsonData.length}`);
+
+                        // Robust Data Mapping
                         const p = {
                             name: String(row.name || '').trim(),
                             category: String(row.category || '').trim(),
@@ -94,25 +100,32 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                             updatedAt: new Date().toISOString()
                         };
 
-                        if (row.productID) {
+                        if (!p.name) throw new Error("Missing Name");
+
+                        if (row.productID && String(row.productID).length > 5) {
                             await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, String(row.productID).trim(), p);
                         } else {
                             p.createdAt = new Date().toISOString();
                             await databases.createDocument(DATABASE_ID, PRODUCTS_COLLECTION, ID.unique(), p);
                         }
                         success++;
+                        if (success % 10 === 0) log(`🔹 Synchronized ${success} items...`);
                     } catch (err) {
                         fail++;
-                        console.error(`Row fail:`, err);
+                        log(`🚨 Row ${count} Failed: ${err.message}`);
                     }
                 }
 
-                log(`🏆 Import Results: ${success} success, ${fail} failed.`);
-                toast.success(`Imported ${success} products!`);
+                log(`🏆 FINAL SYNC: ${success} SUCCESS | ${fail} FAILURES`);
+                toast.success(`Import Finished. ${success} items added to Registry.`, { duration: 5000 });
+
+                // Clear input so user can re-upload if needed
+                e.target.value = '';
+
                 if (onSuccess) onSuccess();
             } catch (err) {
-                log(`❌ Fatal Import Error: ${err.message}`);
-                toast.error("Critical Failure: Check console.");
+                log(`❌ FATAL CRASH: ${err.message}`);
+                toast.error("Process Terminated. Check Log.");
             }
             finally {
                 setLoading(false);
@@ -123,8 +136,8 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
     };
 
     const runDataRepair = async () => {
-        log("🚀 REPAIR MODE ACTIVATED...");
-        toast.loading('Force Syncing...', { id: 'repair-toast' });
+        log("🚀 REPAIR PROTOCOL ACTIVATED...");
+        toast.loading('Deep Scanning...', { id: 'repair-toast' });
         try {
             setLoading(true);
             let allDocs = [];
@@ -139,7 +152,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 if (response.documents.length < 100 || allDocs.length >= 35000) hasMore = false;
                 else {
                     lastId = response.documents[response.documents.length - 1].$id;
-                    setImportStatus(`Scanning: ${allDocs.length}`);
+                    setImportStatus(`Mapping: ${allDocs.length}`);
                 }
             }
 
@@ -157,7 +170,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 const ref = refMap.get(String(doc.$id).trim());
                 const updates = {};
 
-                if (i % 100 === 0) setImportStatus(`Fixing: ${i + 1}/${allDocs.length}`);
+                if (i % 100 === 0) setImportStatus(`Auditing: ${i + 1}/${allDocs.length}`);
 
                 if (ref) {
                     if (ref.yearStart && !doc.yearStart) updates.yearStart = Number(ref.yearStart);
@@ -176,10 +189,10 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     repairs++;
                 }
             }
-            log(`✅ Repair complete. Fixed ${repairs} resources.`);
-            toast.success(`Success! Fixed ${repairs} items.`, { id: 'repair-toast' });
+            log(`✅ AUDIT COMPLETE. Recalibrated ${repairs} entries.`);
+            toast.success(`Audit Complete. Fixed ${repairs} items.`, { id: 'repair-toast' });
         } catch (error) {
-            log(`❌ Repair error: ${error.message}`);
+            log(`❌ REPAIR ERROR: ${error.message}`);
         } finally {
             setLoading(false);
             setImportStatus('');
@@ -205,8 +218,8 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                         <TrendingUp className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 leading-none">Bulk Operations</h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Management Node v5.5</p>
+                        <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 leading-none">Management Hub</h3>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Core Registry v5.6 | Resilient Mode</p>
                     </div>
                 </div>
 
@@ -236,6 +249,13 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     </div>
 
                     <button
+                        onClick={() => window.location.reload()}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-black transition-all text-xs shadow-lg"
+                    >
+                        <RefreshCcw size={14} /> Refresh Matrix
+                    </button>
+
+                    <button
                         id="master-repair-btn"
                         disabled={loading}
                         className={`flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white font-black rounded-xl hover:bg-red-700 transition-all text-xs shadow-lg shadow-red-600/20 ${loading ? 'opacity-50' : 'animate-pulse'}`}
@@ -246,25 +266,27 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
             </div>
 
             {importStatus && (
-                <div className="mt-4 flex items-center gap-3 bg-slate-900 text-white p-3 rounded-2xl text-[11px] font-black uppercase tracking-widest animate-pulse">
+                <div className="mt-4 flex items-center gap-3 bg-slate-900 text-white p-3 rounded-2xl text-[11px] font-black uppercase tracking-widest animate-pulse border-l-4 border-red-500">
                     <Loader2 className="h-4 w-4 animate-spin text-red-500" />
                     {importStatus}
                 </div>
             )}
 
-            <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <div className="flex items-center gap-2 mb-2">
-                    <AlertCircle size={10} className="text-slate-400" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">System Activity Log</span>
+            <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                        <AlertCircle size={10} className="text-slate-400" />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Activity Telemetry Log</span>
+                    </div>
                 </div>
                 <div className="space-y-1 max-h-24 overflow-y-auto custom-scrollbar">
                     {uiLogs.length === 0 ? (
-                        <p className="text-[10px] text-slate-400 italic">Ready for commands...</p>
+                        <p className="text-[10px] text-slate-400 italic">Waiting for Command Input...</p>
                     ) : (
                         uiLogs.map((logMsg, i) => (
-                            <div key={i} className="text-[10px] text-slate-600 font-mono flex items-start gap-4 hover:bg-white/50 rounded py-0.5 px-1">
+                            <div key={i} className="text-[10px] text-slate-600 font-mono flex items-start gap-4 hover:bg-white rounded py-0.5 px-1 border-b border-slate-100 last:border-0">
                                 <span className="text-slate-300 flex-shrink-0">[{new Date().toLocaleTimeString()}]</span>
-                                <span>{logMsg}</span>
+                                <span className={logMsg.includes('🚨') || logMsg.includes('❌') ? 'text-red-500 font-bold' : logMsg.includes('🏆') ? 'text-emerald-600 font-bold' : ''}>{logMsg}</span>
                             </div>
                         ))
                     )}

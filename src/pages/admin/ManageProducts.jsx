@@ -164,7 +164,7 @@ const ManageProducts = () => {
                     </button>
                 </div>
 
-                <BulkOperations onSuccess={() => window.location.reload()} onExportFetch={handleExportFetch} staticProducts={rawStaticProducts} />
+                <BulkOperations onSuccess={() => toast.success("Registry synchronized")} onExportFetch={handleExportFetch} staticProducts={rawStaticProducts} />
 
                 <div className="admin-card-compact p-4 flex flex-wrap gap-4 items-end mb-6">
                     <div className="flex-1 min-w-[280px]">
