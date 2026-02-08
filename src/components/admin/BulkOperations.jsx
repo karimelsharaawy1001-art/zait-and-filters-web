@@ -79,32 +79,28 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
 
                     while (!committed && retryCount < 5) {
                         try {
-                            setImportStatus(`Slow-Sync v5.9: ${count}/${jsonData.length}`);
+                            setImportStatus(`Slow-Sync v6.0: ${count}/${jsonData.length}`);
 
-                            // 🛑 Final Schema Alignment: Removed 'nameEn' (Unknown Attribute)
+                            // 🏁 True Schema Alignment v6.0
+                            // Verified fields: carMake, carModel, images, stock, stockQuantity, partBrand, brand, nameAr
                             const p = {
                                 name: String(row.name || '').trim(),
-                                nameAr: String(row.name || '').trim(), // REQUIRED
+                                nameAr: String(row.name || '').trim(),
                                 category: String(row.category || '').trim(),
                                 subcategory: String(row.subcategory || '').trim(),
-                                make: String(row.carMake || '').toUpperCase().trim(),
-                                model: String(row.carModel || '').toUpperCase().trim(),
-                                yearStart: row.yearStart ? parseInt(row.yearStart) : null,
-                                yearEnd: row.yearEnd ? parseInt(row.yearEnd) : null,
-                                yearRange: row.yearRange ? String(row.yearRange) : null,
+                                carMake: String(row.carMake || row.make || '').toUpperCase().trim(),
+                                carModel: String(row.carModel || row.model || '').toUpperCase().trim(),
+                                carYear: row.carYear ? String(row.carYear) : (row.yearStart ? `${row.yearStart}-${row.yearEnd || 'Cur'}` : null),
+                                brand: String(row.partBrand || row.brand || '').trim(),
                                 partBrand: String(row.partBrand || row.brand || '').trim(),
                                 countryOfOrigin: String(row.countryOfOrigin || '').trim(),
-                                costPrice: Number(row.costPrice) || 0,
                                 price: Number(row.sellPrice || row.price) || 0,
                                 salePrice: row.salePrice ? Number(row.salePrice) : null,
-                                warranty_months: row.warranty ? parseInt(row.warranty) : null,
                                 description: String(row.description || '').trim(),
-                                image: String(row.imageUrl || '').trim(),
-                                images: String(row.imageUrl || '').trim(),
-                                partNumber: String(row.partNumber || '').trim(),
-                                compatibility: String(row.compatibility || '').trim(),
+                                images: String(row.imageUrl || row.images || row.image || '').trim(),
                                 isActive: String(row.activeStatus).toLowerCase() !== 'false',
-                                isGenuine: String(row.isGenuine).toLowerCase() === 'true',
+                                stock: Number(row.stock || row.stockQuantity || 10),
+                                stockQuantity: Number(row.stock || row.stockQuantity || 10),
                                 updatedAt: new Date().toISOString()
                             };
 
@@ -121,7 +117,6 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                             committed = true;
                             if (success % 10 === 0) log(`🔹 Synchronized ${success} items...`);
 
-                            // 🐢 Slow-Sync Base Delay
                             await sleep(500);
 
                         } catch (err) {
@@ -194,17 +189,13 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 if (i % 50 === 0) setImportStatus(`Auditing: ${i + 1}/${allDocs.length}`);
 
                 if (ref) {
-                    if (ref.yearStart && !doc.yearStart) updates.yearStart = Number(ref.yearStart);
-                    if (ref.yearEnd && !doc.yearEnd) updates.yearEnd = Number(ref.yearEnd);
-                    if (ref.make && !doc.make) updates.make = String(ref.make).toUpperCase();
-                    if (ref.model && !doc.model) updates.model = String(ref.model).toUpperCase();
+                    if (ref.make && !doc.carMake) updates.carMake = String(ref.make).toUpperCase();
+                    if (ref.model && !doc.carModel) updates.carModel = String(ref.model).toUpperCase();
                     if ((ref.brand || ref.partBrand) && !doc.brand) updates.brand = String(ref.brand || ref.partBrand);
-                    if ((ref.make || ref.carMake) && (!doc.carMake || doc.carMake === '-')) updates.carMake = String(ref.make || ref.carMake).toUpperCase();
                 }
 
-                if (doc.carMake && !doc.make) updates.make = doc.carMake.toUpperCase();
-                if (doc.isActive === undefined) updates.isActive = true;
                 if (!doc.nameAr && doc.name) updates.nameAr = doc.name;
+                if (doc.isActive === undefined) updates.isActive = true;
 
                 if (Object.keys(updates).length > 0) {
                     try {
@@ -246,7 +237,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     </div>
                     <div>
                         <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 leading-none">Management Hub</h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Core Registry v5.9 | Clean-Sync Mode</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Core Registry v6.0 | True-Sync Mode</p>
                     </div>
                 </div>
 
@@ -308,7 +299,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 </div>
                 <div className="space-y-1 max-h-24 overflow-y-auto custom-scrollbar">
                     {uiLogs.length === 0 ? (
-                        <p className="text-[10px] text-slate-400 italic">Clean-Sync Protocol v5.9 Active...</p>
+                        <p className="text-[10px] text-slate-400 italic">True-Sync Protocol v6.0 Active...</p>
                     ) : (
                         uiLogs.map((logMsg, i) => (
                             <div key={i} className="text-[10px] text-slate-600 font-mono flex items-start gap-4 hover:bg-white rounded py-0.5 px-1 border-b border-slate-100 last:border-0">
