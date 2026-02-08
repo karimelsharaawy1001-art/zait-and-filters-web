@@ -146,9 +146,16 @@ const Checkout = () => {
     const fetchPaymentMethods = async () => {
         try {
             setFetchingMethods(true);
-            const q = query(collection(db, 'payment_configs'), where('isActive', '==', true));
-            const querySnapshot = await getDocs(q);
-            const methods = querySnapshot.docs.map(doc => ({ $id: doc.id, ...doc.data() })); // Using $id for compat
+            const knownKeys = ['cod', 'easykash', 'instapay', 'wallet'];
+            const fetchPromises = knownKeys.map(key => getDoc(doc(db, 'payment_methods', key)));
+            const snapshots = await Promise.all(fetchPromises);
+
+            const methods = [];
+            snapshots.forEach(snap => {
+                if (snap.exists() && snap.data().isActive) {
+                    methods.push({ $id: snap.id, ...snap.data() });
+                }
+            });
 
             setActiveMethods(methods);
 

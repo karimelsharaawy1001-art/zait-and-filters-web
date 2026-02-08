@@ -44,7 +44,7 @@ export default async function handler(req, res) {
 
     try {
         console.log('[Payment API] Fetching credentials from Firestore...');
-        const configSnap = await db.collection('payment_configs').doc('easykash').get();
+        const configSnap = await db.collection('payment_methods').doc('easykash').get();
         if (configSnap.exists) {
             const config = configSnap.data();
             if (config.apiKey) {
