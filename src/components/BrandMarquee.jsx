@@ -1,25 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { databases } from '../appwrite';
-import { Query } from 'appwrite';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { db } from '../firebase';
 
 const BrandMarquee = () => {
     const [brands, setBrands] = useState([]);
-
-    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-    const BRANDS_COLLECTION = import.meta.env.VITE_APPWRITE_BRANDS_COLLECTION_ID || 'brands';
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchBrands = async () => {
-            if (!DATABASE_ID) return;
             try {
-                const response = await databases.listDocuments(DATABASE_ID, BRANDS_COLLECTION, [Query.limit(100)]);
-                setBrands(response.documents);
+                const snapshot = await getDocs(collection(db, 'brands'));
+                const brandsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setBrands(brandsList);
             } catch (error) {
-                console.error("Error fetching brand logos:", error);
+                console.error("Error fetching brand logos from Firebase:", error);
+            } finally {
+                setLoading(false);
             }
         };
         fetchBrands();
-    }, [DATABASE_ID]);
+    }, []);
 
     if (brands.length === 0) return null;
 

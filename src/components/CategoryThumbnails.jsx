@@ -2,30 +2,33 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFilters } from '../context/FilterContext';
 import { useTranslation } from 'react-i18next';
-import { databases } from '../appwrite';
-import { Query } from 'appwrite';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { db } from '../firebase';
 
 const CategoryThumbnails = () => {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
-    const { updateFilter } = useFilters();
     const [categories, setCategories] = useState([]);
-
-    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-    const CATEGORIES_COLLECTION = import.meta.env.VITE_APPWRITE_CATEGORIES_COLLECTION_ID || 'categories';
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchCategories = async () => {
-            if (!DATABASE_ID) return;
             try {
-                const response = await databases.listDocuments(DATABASE_ID, CATEGORIES_COLLECTION, [Query.limit(100)]);
-                setCategories(response.documents);
+                const q = query(collection(db, 'categories'), orderBy('name', 'asc'));
+                const snapshot = await getDocs(q);
+                const cats = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                setCategories(cats);
             } catch (error) {
-                console.error("Error fetching categories", error);
+                console.error("Error fetching categories from Firebase:", error);
+            } finally {
+                setLoading(false);
             }
         };
         fetchCategories();
-    }, [DATABASE_ID]);
+    }, []);
 
     const handleCategoryClick = (categoryId) => {
         navigate(`/category/${categoryId}`);

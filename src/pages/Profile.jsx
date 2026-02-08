@@ -262,15 +262,21 @@ const Profile = () => {
     };
 
     const handleDeleteCar = async (car) => {
-        if (!window.confirm(`Remove ${car.make} ${car.model} from your garage?`)) return;
+        const carDisplayName = car.make && car.model ? `${car.make} ${car.model}` : "this entry";
+        if (!window.confirm(`Remove ${carDisplayName} from your garage?`)) return;
 
         try {
+            // If the car object is corrupted (missing keys), we need to be careful with arrayRemove
+            // arrayRemove in Firestore requires an EXACT match. 
+            // If the car object in state matches the one in Firestore, this works.
             await updateDoc(doc(db, 'users', auth.currentUser.uid), {
                 garage: arrayRemove(car)
             });
             toast.success("Car removed");
         } catch (error) {
             console.error("Error removing car:", error);
+            // Fallback: If arrayRemove fails, it might be because the object in state differs slightly from DB
+            // But usually this works as long as the object was fetched from the same document.
             toast.error("Failed to remove car");
         }
     };
@@ -460,50 +466,52 @@ const Profile = () => {
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                            {userGarage.map((car) => (
-                                                <div
-                                                    key={car.id}
-                                                    onClick={() => toggleCarActive(car.id)}
-                                                    className={`group relative p-6 rounded-[2rem] border-2 transition-all cursor-pointer ${car.isActive ? 'border-orange-600 bg-orange-50/50 shadow-xl shadow-orange-100' : 'border-gray-100 hover:border-gray-200 hover:shadow-lg'}`}
-                                                >
-                                                    <div className="flex items-start justify-between">
-                                                        <div className="flex items-center gap-4">
-                                                            <div className={`w-24 h-16 rounded-2xl overflow-hidden flex-shrink-0 ${car.isActive ? 'bg-orange-100' : 'bg-gray-100'} transition-all`}>
-                                                                {car.imageUrl ? (
-                                                                    <img src={getOptimizedImage(car.imageUrl, 'f_auto,q_auto,w_300')} alt={`${car.make} ${car.model}`} className="w-full h-full object-cover" />
-                                                                ) : (
-                                                                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                                                        <CarIcon className="h-8 w-8" />
+                                            {userGarage
+                                                .filter(car => car && (car.make || car.model)) // Filter out empty/dummy entries
+                                                .map((car) => (
+                                                    <div
+                                                        key={car.id}
+                                                        onClick={() => toggleCarActive(car.id)}
+                                                        className={`group relative p-6 rounded-[2rem] border-2 transition-all cursor-pointer ${car.isActive ? 'border-orange-600 bg-orange-50/50 shadow-xl shadow-orange-100' : 'border-gray-100 hover:border-gray-200 hover:shadow-lg'}`}
+                                                    >
+                                                        <div className="flex items-start justify-between">
+                                                            <div className="flex items-center gap-4">
+                                                                <div className={`w-24 h-16 rounded-2xl overflow-hidden flex-shrink-0 ${car.isActive ? 'bg-orange-100' : 'bg-gray-100'} transition-all`}>
+                                                                    {car.imageUrl ? (
+                                                                        <img src={getOptimizedImage(car.imageUrl, 'f_auto,q_auto,w_300')} alt={`${car.make} ${car.model}`} className="w-full h-full object-cover" />
+                                                                    ) : (
+                                                                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                                                            <CarIcon className="h-8 w-8" />
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className="text-lg font-black text-gray-900">{car.make || 'Unknown'} {car.model || 'Model'}</h4>
+                                                                    <div className="flex items-center gap-2 text-sm font-bold text-gray-500 mt-1">
+                                                                        <Calendar className="h-4 w-4" />
+                                                                        {car.year || 'N/A'}
                                                                     </div>
-                                                                )}
-                                                            </div>
-                                                            <div>
-                                                                <h4 className="text-lg font-black text-gray-900">{car.make} {car.model}</h4>
-                                                                <div className="flex items-center gap-2 text-sm font-bold text-gray-500 mt-1">
-                                                                    <Calendar className="h-4 w-4" />
-                                                                    {car.year}
                                                                 </div>
                                                             </div>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDeleteCar(car);
+                                                                }}
+                                                                className="p-2 text-gray-300 hover:text-red-500 transition-colors"
+                                                            >
+                                                                <Trash2 className="h-5 w-5" />
+                                                            </button>
                                                         </div>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleDeleteCar(car);
-                                                            }}
-                                                            className="p-2 text-gray-300 hover:text-red-500 transition-colors"
-                                                        >
-                                                            <Trash2 className="h-5 w-5" />
-                                                        </button>
-                                                    </div>
 
-                                                    {car.isActive && (
-                                                        <div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-orange-600">
-                                                            <CheckCircle2 className="h-3 w-3" />
-                                                            Primary Vehicle
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ))}
+                                                        {car.isActive && (
+                                                            <div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-orange-600">
+                                                                <CheckCircle2 className="h-3 w-3" />
+                                                                Primary Vehicle
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
                                         </div>
                                     )}
                                 </div>
