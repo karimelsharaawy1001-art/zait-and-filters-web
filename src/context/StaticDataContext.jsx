@@ -63,34 +63,39 @@ export const StaticDataProvider = ({ children }) => {
                             let hasMore = true;
 
                             while (hasMore) {
-                                const queries = [Query.limit(100)];
+                                const queries = [
+                                    Query.limit(100),
+                                    Query.orderDesc('$createdAt')
+                                ];
                                 if (lastId) queries.push(Query.cursorAfter(lastId));
 
                                 const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, queries);
-                                freshItems = [...freshItems, ...response.documents.map(d => ({ id: d.$id, ...d }))];
+                                const batch = response.documents.map(d => ({ id: d.$id, ...d }));
+                                freshItems = [...freshItems, ...batch];
 
                                 if (response.documents.length < 100 || freshItems.length >= 35000) {
                                     hasMore = false;
                                 } else {
                                     lastId = response.documents[response.documents.length - 1].$id;
-                                    if (freshItems.length % 500 === 0) console.log(`📡 Sync: ${freshItems.length} items...`);
+                                }
+
+                                // Incremental UI Update for Speed
+                                if (freshItems.length % 500 === 0 || !hasMore) {
+                                    console.log(`📡 Sync: ${freshItems.length} items...`);
+                                    const productMap = new Map();
+                                    staticProd.forEach(p => productMap.set(p.id, p));
+                                    freshItems.forEach(p => productMap.set(p.id, p));
+                                    const incremental = Array.from(productMap.values());
+
+                                    setStaticData(prev => ({
+                                        ...prev,
+                                        products: incremental,
+                                        isLoaded: true
+                                    }));
                                 }
                             }
-
-                            const productMap = new Map();
-                            staticProd.forEach(p => productMap.set(p.id, p));
-                            freshItems.forEach(p => productMap.set(p.id, p));
-
-                            const finalProducts = Array.from(productMap.values());
-
-                            setStaticData(prev => ({
-                                ...prev,
-                                products: finalProducts,
-                                isLoaded: true
-                            }));
-
-                            console.log(`✅ Background Sync Complete: ${finalProducts.length} items ready.`);
-                            window.__CATALOG_DEBUG__ = { total: finalProducts.length, date: new Date().toISOString() };
+                            console.log(`✅ Background Sync Complete: ${freshItems.length} total items.`);
+                            window.__CATALOG_DEBUG__ = { total: freshItems.length, date: new Date().toISOString() };
                         } catch (err) {
                             console.warn("⚠️ Background sync failed:", err);
                         }

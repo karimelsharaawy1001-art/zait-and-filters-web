@@ -67,34 +67,68 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
         const file = e.target.files[0];
         if (!file) return;
         setLoading(true);
+        setImportStatus('Initializing Import...');
+
         const reader = new FileReader();
         reader.onload = async (event) => {
             try {
                 const data = new Uint8Array(event.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
                 const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+
+                let count = 0;
                 for (const row of jsonData) {
-                    const dataToUpdate = {
+                    count++;
+                    setImportStatus(`Processing: ${count}/${jsonData.length}`);
+
+                    const p = {
                         name: String(row.name || '').trim(),
                         category: String(row.category || '').trim(),
+                        subcategory: String(row.subcategory || '').trim(),
                         make: String(row.carMake || '').toUpperCase().trim(),
                         model: String(row.carModel || '').toUpperCase().trim(),
-                        isActive: true
+                        yearRange: String(row.yearRange || '').trim(),
+                        brand: String(row.partBrand || row.brand || '').trim(),
+                        countryOfOrigin: String(row.countryOfOrigin || '').trim(),
+                        costPrice: Number(row.costPrice) || 0,
+                        price: Number(row.sellPrice || row.price) || 0,
+                        salePrice: Number(row.salePrice) || 0,
+                        warranty: String(row.warranty || '').trim(),
+                        description: String(row.description || '').trim(),
+                        images: String(row.imageUrl || '').trim(),
+                        partNumber: String(row.partNumber || '').trim(),
+                        compatibility: String(row.compatibility || '').trim(),
+                        isActive: String(row.activeStatus).toLowerCase() !== 'false',
+                        isGenuine: String(row.isGenuine).toLowerCase() === 'true'
                     };
-                    if (row.productID) {
-                        await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, String(row.productID).trim(), dataToUpdate);
+
+                    try {
+                        if (row.productID) {
+                            await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, String(row.productID).trim(), p);
+                        } else {
+                            await databases.createDocument(DATABASE_ID, PRODUCTS_COLLECTION, ID.unique(), p);
+                        }
+                    } catch (err) {
+                        console.error(`Row ${count} failed:`, err);
                     }
                 }
-                toast.success("Import Complete");
-            } catch (err) { toast.error("Import failure"); }
-            finally { setLoading(false); }
+                toast.success(`Import Complete! Processed ${count} items.`);
+                if (onSuccess) onSuccess();
+            } catch (err) {
+                console.error(err);
+                toast.error("Import failure: Check file format.");
+            }
+            finally {
+                setLoading(false);
+                setImportStatus('');
+            }
         };
         reader.readAsArrayBuffer(file);
     };
 
     const runDataRepair = async () => {
-        log("🚀 GLOBAL RECOVERY STARTED (NUCLEAR MODE)...");
-        toast.loading('Force Syncing 20,000 items...', { id: 'repair-toast' });
+        log("🚀 GLOBAL RECOVERY STARTED...");
+        toast.loading('Syncing Catalog...', { id: 'repair-toast' });
 
         try {
             setLoading(true);
@@ -102,7 +136,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
             let lastId = null;
             let hasMore = true;
 
-            log("🛰️ Phase 1: Exhaustive Catalog Fetch...");
+            log("🛰️ Fetching Remote Documents...");
             while (hasMore) {
                 const queries = [Query.limit(100)];
                 if (lastId) queries.push(Query.cursorAfter(lastId));
@@ -112,11 +146,11 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     hasMore = false;
                 } else {
                     lastId = response.documents[response.documents.length - 1].$id;
-                    setImportStatus(`Gathering: ${allDocs.length}`);
+                    setImportStatus(`Scanning: ${allDocs.length}`);
                 }
             }
 
-            log(`🛰️ Fetched ${allDocs.length} records. Building Reference Matrix...`);
+            log(`🛰️ Mapping ${allDocs.length} items...`);
             const refMap = new Map();
             if (Array.isArray(staticProducts)) {
                 staticProducts.forEach(r => {
@@ -126,13 +160,12 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
             }
 
             let repairCount = 0;
-            log("🔨 Phase 2: Repairing Metadata In-Place...");
             for (let i = 0; i < allDocs.length; i++) {
                 const doc = allDocs[i];
                 const updates = {};
                 const ref = refMap.get(String(doc.$id).trim());
 
-                if (i % 50 === 0) setImportStatus(`Repairs: ${repairCount} | Progress: ${i + 1}/${allDocs.length}`);
+                if (i % 100 === 0) setImportStatus(`Repairing: ${i + 1}/${allDocs.length}`);
 
                 if (ref) {
                     if (ref.yearStart && !doc.yearStart) updates.yearStart = Number(ref.yearStart);
@@ -154,16 +187,16 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     try {
                         await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, doc.$id, updates);
                         repairCount++;
-                        if (repairCount % 20 === 0) await new Promise(r => setTimeout(r, 10));
+                        if (repairCount % 50 === 0) await new Promise(r => setTimeout(r, 5));
                     } catch (e) { }
                 }
             }
 
-            log(`🏆 SUCCESS: Applied ${repairCount} fixes to ${allDocs.length} items.`);
-            toast.success(`Complete! Fixed ${repairCount} items.`, { id: 'repair-toast', duration: 10000 });
+            log(`🏆 SUCCESS: Fixed ${repairCount} items.`);
+            toast.success(`Complete! Fixed ${repairCount} items.`, { id: 'repair-toast' });
         } catch (error) {
-            log(`❌ FATAL ERROR: ${error.message}`);
-            toast.error(`System Failure: ${error.message}`, { id: 'repair-toast' });
+            log(`❌ ERROR: ${error.message}`);
+            toast.error(error.message, { id: 'repair-toast' });
         } finally {
             setLoading(false);
             setImportStatus('');
@@ -174,9 +207,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
     useEffect(() => {
         const globalHandler = (e) => {
             if (e.target && (e.target.id === 'master-repair-btn' || e.target.closest('#master-repair-btn'))) {
-                log("🎯 GLOBAL INTERCEPT TRIGGERED!");
                 if (!loading) runDataRepair();
-                else log("⚠️ Action ignored: Sync currently running.");
             }
         };
         window.addEventListener('click', globalHandler, true);
@@ -186,73 +217,63 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
     window.REPAIR_MATRIX = runDataRepair;
 
     return (
-        <div className="bg-white p-8 rounded-[2.5rem] shadow-[0_35px_60px_-15px_rgba(220,38,38,0.2)] border-8 border-red-600 mb-12 relative z-[9999] overflow-hidden transform-gpu">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/5 rounded-full -mr-32 -mt-32 blur-3xl" />
-
-            <div className="flex flex-wrap items-center justify-between gap-8 relative z-10">
-                <div className="flex items-center gap-6">
-                    <div className="p-5 bg-red-600 rounded-[2rem] shadow-2xl shadow-red-600/40 animate-pulse">
-                        <TrendingUp className="h-10 w-10 text-white" />
+        <div className="bg-white p-6 rounded-3xl shadow-xl border-2 border-red-500 mb-8 relative z-[100] overflow-hidden">
+            <div className="flex flex-wrap items-center justify-between gap-6 relative z-10">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-red-600 rounded-xl shadow-lg">
+                        <TrendingUp className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                        <h3 className="text-2xl font-black uppercase tracking-tighter text-slate-900 leading-none">Catalog Recovery Node</h3>
-                        <p className="text-xs font-bold text-red-600 uppercase tracking-[0.3em] mt-3">EMERGENCY PROTOCOL v5.3 | ACTIVE</p>
+                        <h3 className="text-lg font-black uppercase text-slate-900 leading-none">Catalog Core</h3>
+                        <p className="text-[10px] font-bold text-red-600 uppercase tracking-widest mt-1">Recovery Protocol v5.4</p>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-4">
-                    <button onClick={downloadTemplate} className="px-6 py-3 bg-slate-100 text-slate-700 font-bold rounded-2xl hover:bg-slate-200 transition-all">
-                        Template
+                <div className="flex flex-wrap gap-2">
+                    <button onClick={downloadTemplate} className="admin-btn-slim bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200">
+                        <Download size={14} /> Template
                     </button>
+
+                    <div className="relative">
+                        <input type="file" id="bulk-import-main" className="hidden" accept=".xlsx, .xls" onChange={handleImport} disabled={loading} />
+                        <label htmlFor="bulk-import-main" className="admin-btn-slim bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-200 cursor-pointer">
+                            <Upload size={14} /> Import Excel
+                        </label>
+                    </div>
 
                     <button
                         id="master-repair-btn"
                         disabled={loading}
-                        className={`px-14 py-8 bg-red-600 text-white font-black text-lg uppercase tracking-[0.25em] rounded-3xl hover:bg-red-700 shadow-[0_20px_40px_-10px_rgba(220,38,38,0.5)] transition-all duration-300 transform active:scale-90 flex items-center gap-6 cursor-pointer relative z-[100] ${loading ? 'opacity-50 grayscale' : 'animate-bounce'}`}
+                        className={`admin-btn-slim bg-red-600 text-white hover:bg-red-700 border-none px-6 ${loading ? 'opacity-50' : 'animate-pulse'}`}
                     >
-                        <TrendingUp size={32} /> START MASTER REPAIR
+                        <TrendingUp size={14} /> REPAIR MATRIX
                     </button>
                 </div>
             </div>
 
             {importStatus && (
-                <div className="mt-8 flex items-center gap-4 bg-red-600 text-white px-8 py-5 rounded-[2rem] shadow-2xl animate-pulse">
-                    <Loader2 className="h-8 w-8 animate-spin" />
-                    <span className="text-lg font-black uppercase tracking-tighter">{importStatus}</span>
+                <div className="mt-4 flex items-center gap-3 bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold animate-pulse">
+                    <Loader2 className="h-4 w-4 animate-spin text-red-500" />
+                    <span className="uppercase tracking-wider">{importStatus}</span>
                 </div>
             )}
 
-            <div className="mt-8 p-6 bg-slate-900 rounded-[2rem] border border-slate-800 shadow-2xl shadow-inner overflow-hidden">
-                <div className="flex items-center justify-between mb-4 px-2">
-                    <div className="flex items-center gap-3">
-                        <div className="h-3 w-3 rounded-full bg-red-500 animate-ping" />
-                        <span className="text-xs text-red-500 font-black uppercase tracking-widest">System Telemetry Log</span>
+            {uiLogs.length > 0 && (
+                <div className="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="flex items-center gap-2 mb-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                        <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Logs</span>
                     </div>
-                    <span className="text-[10px] text-slate-500 font-mono italic">zait-os core diagnostics active</span>
-                </div>
-                <div className="space-y-2">
-                    {uiLogs.length === 0 ? (
-                        <div className="text-[11px] text-slate-600 font-mono py-2 italic px-2">Waiting for trigger command...</div>
-                    ) : (
-                        uiLogs.map((logMsg, i) => (
-                            <div key={i} className="text-[11px] text-slate-300 py-2 border-b border-white/5 last:border-0 font-mono flex items-start gap-4 hover:bg-white/5 rounded px-2 transition-colors">
-                                <span className="text-slate-600 flex-shrink-0">[{new Date().toLocaleTimeString()}]</span>
-                                <span className={`${logMsg.includes('❌') ? 'text-red-400' : logMsg.includes('🏆') ? 'text-emerald-400' : ''}`}>{logMsg}</span>
+                    <div className="space-y-1 max-h-20 overflow-y-auto">
+                        {uiLogs.map((logMsg, i) => (
+                            <div key={i} className="text-[10px] text-slate-600 font-mono flex items-center gap-2">
+                                <span className="text-slate-300">[{new Date().toLocaleTimeString()}]</span>
+                                <span>{logMsg}</span>
                             </div>
-                        ))
-                    )}
+                        ))}
+                    </div>
                 </div>
-            </div>
-
-            <div className="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center text-[10px] font-black text-slate-400">
-                <div className="flex gap-6 uppercase tracking-[0.2em]">
-                    <span className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500" /> Remote: {DATABASE_ID ? 'CONNECTED' : 'OFFLINE'}</span>
-                    <span className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500" /> Catalog: {staticProducts?.length || 0} ITEMS</span>
-                </div>
-                <div className="bg-orange-50 text-orange-600 px-4 py-1.5 rounded-full shadow-sm hover:bg-orange-100 transition-colors">
-                    EMERGENCY OVERRIDE: window.REPAIR_MATRIX()
-                </div>
-            </div>
+            )}
         </div>
     );
 };
