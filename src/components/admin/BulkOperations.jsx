@@ -49,7 +49,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
             let hasMore = true;
             while (hasMore) {
                 const queries = [Query.limit(100)];
-                if (lastId) queries.push(Query.after(lastId));
+                if (lastId) queries.push(Query.cursorAfter(lastId));
                 const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, queries);
                 allDocs = [...allDocs, ...response.documents];
                 if (response.documents.length < 100) hasMore = false;
@@ -105,7 +105,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
             log("🛰️ Phase 1: Exhaustive Catalog Fetch...");
             while (hasMore) {
                 const queries = [Query.limit(100)];
-                if (lastId) queries.push(Query.after(lastId));
+                if (lastId) queries.push(Query.cursorAfter(lastId));
                 const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, queries);
                 allDocs = [...allDocs, ...response.documents];
                 if (response.documents.length < 100 || allDocs.length >= 35000) {

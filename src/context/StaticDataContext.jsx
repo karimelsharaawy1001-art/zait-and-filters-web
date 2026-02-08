@@ -64,12 +64,12 @@ export const StaticDataProvider = ({ children }) => {
 
                             while (hasMore) {
                                 const queries = [Query.limit(100)];
-                                if (lastId) queries.push(Query.after(lastId));
+                                if (lastId) queries.push(Query.cursorAfter(lastId));
 
                                 const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, queries);
                                 freshItems = [...freshItems, ...response.documents.map(d => ({ id: d.$id, ...d }))];
 
-                                if (response.documents.length < 100 || freshItems.length >= 20000) {
+                                if (response.documents.length < 100 || freshItems.length >= 35000) {
                                     hasMore = false;
                                 } else {
                                     lastId = response.documents[response.documents.length - 1].$id;
