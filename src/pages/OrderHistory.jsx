@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Package, Clock, ChevronRight, Printer, Download, Edit2, Save, X, Loader2 } from 'lucide-react';
+import { Package, Clock, ChevronRight, Printer, Download, Edit2, Save, X, Loader2, FileImage } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { generateInvoice } from '../utils/invoiceGenerator';
@@ -237,6 +237,12 @@ const OrderHistory = () => {
                                     )}
                                 </div>
                                 <div className={`flex items-center gap-3 ${isAr ? 'flex-row-reverse' : ''}`}>
+                                    {(order.receiptUrl || order.notes?.includes('[Receipt URL]:')) && (
+                                        <div className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter border border-blue-100 shadow-sm">
+                                            <FileImage className="w-3 h-3" />
+                                            {isAr ? 'تم رفع الإيصال' : 'Receipt Uploaded'}
+                                        </div>
+                                    )}
                                     <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-tighter
                                         ${order.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700 font-bold' : ''}
                                         ${order.paymentStatus === 'Pending' ? 'bg-gray-100 text-gray-700 font-bold' : ''}
@@ -312,6 +318,24 @@ const OrderHistory = () => {
                                         </div>
                                     ))}
 
+                                    {(() => {
+                                        const receiptUrl = order.receiptUrl || order.notes?.match(/\[Receipt URL\]:\s*(.+)/)?.[1]?.trim();
+                                        return receiptUrl && (
+                                            <div className="mt-4 pt-4 border-t border-gray-50">
+                                                <p className={`text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ${isAr ? 'text-right' : 'text-left'}`}>
+                                                    {isAr ? 'إيصال الدفع' : 'Payment Receipt'}
+                                                </p>
+                                                <div className={`flex ${isAr ? 'justify-end' : 'justify-start'}`}>
+                                                    <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="block max-w-[200px] border border-gray-100 rounded-xl overflow-hidden hover:border-orange-200 transition-all shadow-sm group relative">
+                                                        <img src={receiptUrl} alt="Receipt" className="w-full h-auto" />
+                                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all text-white font-black text-[10px] uppercase">
+                                                            {isAr ? 'عرض' : 'View'}
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                                 <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
                                     <div className={`flex justify-between items-center text-xs font-medium text-gray-500 ${isAr ? 'flex-row-reverse' : ''}`}>

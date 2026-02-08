@@ -6,7 +6,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import AdminHeader from '../components/AdminHeader';
 import {
     Eye, DollarSign, Edit2, Search, PlusCircle, Package, CreditCard, Clock, X, Save,
-    User, MapPin, Loader2, Printer, Download, Filter, ArrowUpRight, CheckCircle2, AlertCircle, Trash2
+    User, MapPin, Loader2, Filter, Printer, Trash2, ChevronLeft, ChevronRight, Download, Calendar, Phone, FileImage
 } from 'lucide-react';
 import { generateInvoice } from '../utils/invoiceGenerator';
 import { useStaticData } from '../context/StaticDataContext';
@@ -382,7 +382,15 @@ const AdminOrders = () => {
                                             </td>
                                             <td className="p-4">
                                                 <div className="flex flex-col gap-1">
-                                                    <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1"><CreditCard size={10} />{order.paymentMethod}</span>
+                                                    <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                                                        <CreditCard size={10} />
+                                                        {order.paymentMethod}
+                                                        {(order.receiptUrl || order.notes?.includes('[Receipt URL]:')) && (
+                                                            <span className="ml-1 text-[8px] bg-blue-100 text-blue-600 px-1 rounded flex items-center gap-0.5" title="Payment Proof Uploaded">
+                                                                <FileImage size={8} /> PROOF
+                                                            </span>
+                                                        )}
+                                                    </span>
                                                     <span className={`text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border w-fit ${order.paymentStatus === 'Paid' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>{order.paymentStatus}</span>
                                                 </div>
                                             </td>

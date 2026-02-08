@@ -600,12 +600,11 @@ const OrderDetails = () => {
                                     <span className="font-bold bg-gray-100 px-2 py-1 rounded text-xs uppercase">{order.paymentMethod}</span>
                                 </div>
                                 {(() => {
-                                    const receiptMatch = order.notes?.match(/\[Receipt URL\]:\s*(.+)/);
-                                    const receiptUrl = receiptMatch ? receiptMatch[1].trim() : null;
+                                    const receiptUrl = order.receiptUrl || order.notes?.match(/\[Receipt URL\]:\s*(.+)/)?.[1]?.trim();
                                     return receiptUrl ? (
                                         <div className="mt-4">
                                             <p className="text-xs font-bold text-gray-500 mb-2">Payment Receipt</p>
-                                            <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="block relative group overflow-hidden rounded-lg border border-gray-200">
+                                            <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="block relative group overflow-hidden rounded-lg border border-gray-200 hover:border-orange-200 transition-all shadow-sm">
                                                 <img src={receiptUrl} alt="Payment Receipt" className="w-full h-auto" />
                                                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white font-bold text-xs pointer-events-none">
                                                     View Full Size
