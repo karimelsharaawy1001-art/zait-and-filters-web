@@ -3,71 +3,55 @@ import * as XLSX from 'xlsx';
 import { databases } from '../../appwrite';
 import { Query, ID } from 'appwrite';
 import { toast } from 'react-hot-toast';
-import { Download, Upload, FileSpreadsheet, Loader2, TrendingUp } from 'lucide-react';
-import { parseYearRange } from '../../utils/productUtils';
+import { Download, Upload, Loader2, TrendingUp, AlertCircle } from 'lucide-react';
 
 const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
     const [loading, setLoading] = useState(false);
     const [importStatus, setImportStatus] = useState('');
     const [uiLogs, setUiLogs] = useState([]);
-    const btnRef = useRef(null);
 
     const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
     const PRODUCTS_COLLECTION = import.meta.env.VITE_APPWRITE_PRODUCTS_COLLECTION_ID || 'products';
 
     const headers = [
         'productID', 'name', 'activeStatus', 'isGenuine', 'category', 'subcategory', 'carMake', 'carModel',
-        'yearRange', 'partBrand', 'countryOfOrigin', 'costPrice', 'sellPrice',
+        'yearStart', 'yearEnd', 'partBrand', 'countryOfOrigin', 'costPrice', 'sellPrice',
         'salePrice', 'warranty', 'description', 'imageUrl', 'partNumber', 'compatibility'
     ];
 
     const log = (msg) => {
-        console.log(`[REPAIR] ${msg}`);
+        console.log(`[BULK] ${msg}`);
         setUiLogs(prev => [msg, ...prev].slice(0, 10));
     };
 
     const downloadTemplate = () => {
-        const sampleData = [{
-            name: "فلتر زيت",
-            activeStatus: "TRUE",
-            category: "Maintenance",
-            carMake: "Toyota",
-            carModel: "Corolla",
-            yearRange: "2015-2023"
-        }];
-        const ws = XLSX.utils.json_to_sheet(sampleData, { header: headers });
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Template");
-        XLSX.writeFile(wb, "products_template.xlsx");
-    };
-
-    const exportProducts = async () => {
-        setLoading(true);
         try {
-            let allDocs = [];
-            let lastId = null;
-            let hasMore = true;
-            while (hasMore) {
-                const queries = [Query.limit(100)];
-                if (lastId) queries.push(Query.cursorAfter(lastId));
-                const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, queries);
-                allDocs = [...allDocs, ...response.documents];
-                if (response.documents.length < 100) hasMore = false;
-                else lastId = response.documents[response.documents.length - 1].$id;
-            }
-            const ws = XLSX.utils.json_to_sheet(allDocs.map(d => ({ productID: d.$id, ...d })), { header: headers });
+            const sampleData = [{
+                name: "فلتر زيت",
+                activeStatus: "TRUE",
+                category: "Maintenance",
+                carMake: "Toyota",
+                carModel: "Corolla",
+                yearStart: 2015,
+                yearEnd: 2023
+            }];
+            const ws = XLSX.utils.json_to_sheet(sampleData, { header: headers });
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Products");
-            XLSX.writeFile(wb, `products_export_${new Date().toISOString().split('T')[0]}.xlsx`);
-        } catch (err) { toast.error("Export failed"); }
-        finally { setLoading(false); }
+            XLSX.utils.book_append_sheet(wb, ws, "Template");
+            XLSX.writeFile(wb, "products_template.xlsx");
+            log("✅ Template downloaded successfully.");
+        } catch (e) {
+            log(`❌ Template error: ${e.message}`);
+        }
     };
 
     const handleImport = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
+
         setLoading(true);
-        setImportStatus('Initializing Import...');
+        log(`📂 Starting Import: ${file.name}`);
+        setImportStatus('Initializing Matrix...');
 
         const reader = new FileReader();
         reader.onload = async (event) => {
@@ -76,47 +60,59 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 const workbook = XLSX.read(data, { type: 'array' });
                 const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
-                let count = 0;
+                log(`📊 Found ${jsonData.length} records in Excel.`);
+                let success = 0;
+                let fail = 0;
+
                 for (const row of jsonData) {
-                    count++;
-                    setImportStatus(`Processing: ${count}/${jsonData.length}`);
-
-                    const p = {
-                        name: String(row.name || '').trim(),
-                        category: String(row.category || '').trim(),
-                        subcategory: String(row.subcategory || '').trim(),
-                        make: String(row.carMake || '').toUpperCase().trim(),
-                        model: String(row.carModel || '').toUpperCase().trim(),
-                        yearRange: String(row.yearRange || '').trim(),
-                        brand: String(row.partBrand || row.brand || '').trim(),
-                        countryOfOrigin: String(row.countryOfOrigin || '').trim(),
-                        costPrice: Number(row.costPrice) || 0,
-                        price: Number(row.sellPrice || row.price) || 0,
-                        salePrice: Number(row.salePrice) || 0,
-                        warranty: String(row.warranty || '').trim(),
-                        description: String(row.description || '').trim(),
-                        images: String(row.imageUrl || '').trim(),
-                        partNumber: String(row.partNumber || '').trim(),
-                        compatibility: String(row.compatibility || '').trim(),
-                        isActive: String(row.activeStatus).toLowerCase() !== 'false',
-                        isGenuine: String(row.isGenuine).toLowerCase() === 'true'
-                    };
-
                     try {
+                        const count = success + fail + 1;
+                        setImportStatus(`Processing: ${count}/${jsonData.length}`);
+
+                        const p = {
+                            name: String(row.name || '').trim(),
+                            category: String(row.category || '').trim(),
+                            subcategory: String(row.subcategory || '').trim(),
+                            make: String(row.carMake || '').toUpperCase().trim(),
+                            model: String(row.carModel || '').toUpperCase().trim(),
+                            yearStart: row.yearStart ? parseInt(row.yearStart) : null,
+                            yearEnd: row.yearEnd ? parseInt(row.yearEnd) : null,
+                            yearRange: row.yearRange ? String(row.yearRange) : null,
+                            partBrand: String(row.partBrand || row.brand || '').trim(),
+                            countryOfOrigin: String(row.countryOfOrigin || '').trim(),
+                            costPrice: Number(row.costPrice) || 0,
+                            price: Number(row.sellPrice || row.price) || 0,
+                            salePrice: row.salePrice ? Number(row.salePrice) : null,
+                            warranty_months: row.warranty ? parseInt(row.warranty) : null,
+                            description: String(row.description || '').trim(),
+                            image: String(row.imageUrl || '').trim(),
+                            images: String(row.imageUrl || '').trim(),
+                            partNumber: String(row.partNumber || '').trim(),
+                            compatibility: String(row.compatibility || '').trim(),
+                            isActive: String(row.activeStatus).toLowerCase() !== 'false',
+                            isGenuine: String(row.isGenuine).toLowerCase() === 'true',
+                            updatedAt: new Date().toISOString()
+                        };
+
                         if (row.productID) {
                             await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, String(row.productID).trim(), p);
                         } else {
+                            p.createdAt = new Date().toISOString();
                             await databases.createDocument(DATABASE_ID, PRODUCTS_COLLECTION, ID.unique(), p);
                         }
+                        success++;
                     } catch (err) {
-                        console.error(`Row ${count} failed:`, err);
+                        fail++;
+                        console.error(`Row fail:`, err);
                     }
                 }
-                toast.success(`Import Complete! Processed ${count} items.`);
+
+                log(`🏆 Import Results: ${success} success, ${fail} failed.`);
+                toast.success(`Imported ${success} products!`);
                 if (onSuccess) onSuccess();
             } catch (err) {
-                console.error(err);
-                toast.error("Import failure: Check file format.");
+                log(`❌ Fatal Import Error: ${err.message}`);
+                toast.error("Critical Failure: Check console.");
             }
             finally {
                 setLoading(false);
@@ -127,30 +123,26 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
     };
 
     const runDataRepair = async () => {
-        log("🚀 GLOBAL RECOVERY STARTED...");
-        toast.loading('Syncing Catalog...', { id: 'repair-toast' });
-
+        log("🚀 REPAIR MODE ACTIVATED...");
+        toast.loading('Force Syncing...', { id: 'repair-toast' });
         try {
             setLoading(true);
             let allDocs = [];
             let lastId = null;
             let hasMore = true;
 
-            log("🛰️ Fetching Remote Documents...");
             while (hasMore) {
                 const queries = [Query.limit(100)];
                 if (lastId) queries.push(Query.cursorAfter(lastId));
                 const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, queries);
                 allDocs = [...allDocs, ...response.documents];
-                if (response.documents.length < 100 || allDocs.length >= 35000) {
-                    hasMore = false;
-                } else {
+                if (response.documents.length < 100 || allDocs.length >= 35000) hasMore = false;
+                else {
                     lastId = response.documents[response.documents.length - 1].$id;
                     setImportStatus(`Scanning: ${allDocs.length}`);
                 }
             }
 
-            log(`🛰️ Mapping ${allDocs.length} items...`);
             const refMap = new Map();
             if (Array.isArray(staticProducts)) {
                 staticProducts.forEach(r => {
@@ -159,44 +151,35 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                 });
             }
 
-            let repairCount = 0;
+            let repairs = 0;
             for (let i = 0; i < allDocs.length; i++) {
                 const doc = allDocs[i];
-                const updates = {};
                 const ref = refMap.get(String(doc.$id).trim());
+                const updates = {};
 
-                if (i % 100 === 0) setImportStatus(`Repairing: ${i + 1}/${allDocs.length}`);
+                if (i % 100 === 0) setImportStatus(`Fixing: ${i + 1}/${allDocs.length}`);
 
                 if (ref) {
                     if (ref.yearStart && !doc.yearStart) updates.yearStart = Number(ref.yearStart);
                     if (ref.yearEnd && !doc.yearEnd) updates.yearEnd = Number(ref.yearEnd);
-                    if (ref.yearRange && (!doc.yearRange || doc.yearRange === '-')) updates.yearRange = String(ref.yearRange);
                     if (ref.make && !doc.make) updates.make = String(ref.make).toUpperCase();
                     if (ref.model && !doc.model) updates.model = String(ref.model).toUpperCase();
                     if ((ref.brand || ref.partBrand) && !doc.brand) updates.brand = String(ref.brand || ref.partBrand);
                     if ((ref.make || ref.carMake) && (!doc.carMake || doc.carMake === '-')) updates.carMake = String(ref.make || ref.carMake).toUpperCase();
-                    if ((ref.model || ref.carModel) && (!doc.carModel || doc.carModel === '-')) updates.carModel = String(ref.model || ref.carModel).toUpperCase();
-                    if ((ref.yearRange || ref.carYear) && (!doc.carYear || doc.carYear === '-')) updates.carYear = String(ref.yearRange || ref.carYear);
                 }
 
                 if (doc.carMake && !doc.make) updates.make = doc.carMake.toUpperCase();
-                if (doc.carModel && !doc.model) updates.model = doc.carModel.toUpperCase();
-                if (doc.isActive === undefined || doc.isActive === null) updates.isActive = true;
+                if (doc.isActive === undefined) updates.isActive = true;
 
                 if (Object.keys(updates).length > 0) {
-                    try {
-                        await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, doc.$id, updates);
-                        repairCount++;
-                        if (repairCount % 50 === 0) await new Promise(r => setTimeout(r, 5));
-                    } catch (e) { }
+                    await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, doc.$id, updates);
+                    repairs++;
                 }
             }
-
-            log(`🏆 SUCCESS: Fixed ${repairCount} items.`);
-            toast.success(`Complete! Fixed ${repairCount} items.`, { id: 'repair-toast' });
+            log(`✅ Repair complete. Fixed ${repairs} resources.`);
+            toast.success(`Success! Fixed ${repairs} items.`, { id: 'repair-toast' });
         } catch (error) {
-            log(`❌ ERROR: ${error.message}`);
-            toast.error(error.message, { id: 'repair-toast' });
+            log(`❌ Repair error: ${error.message}`);
         } finally {
             setLoading(false);
             setImportStatus('');
@@ -214,29 +197,40 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
         return () => window.removeEventListener('click', globalHandler, true);
     }, [loading]);
 
-    window.REPAIR_MATRIX = runDataRepair;
-
     return (
-        <div className="bg-white p-6 rounded-3xl shadow-xl border-2 border-red-500 mb-8 relative z-[100] overflow-hidden">
-            <div className="flex flex-wrap items-center justify-between gap-6 relative z-10">
+        <div className="bg-white p-6 rounded-3xl shadow-xl border-2 border-slate-100 mb-8 relative z-[100]">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-6 relative z-10">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-red-600 rounded-xl shadow-lg">
+                    <div className="p-3 bg-red-600 rounded-2xl shadow-lg">
                         <TrendingUp className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-black uppercase text-slate-900 leading-none">Catalog Core</h3>
-                        <p className="text-[10px] font-bold text-red-600 uppercase tracking-widest mt-1">Recovery Protocol v5.4</p>
+                        <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 leading-none">Bulk Operations</h3>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Management Node v5.5</p>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                    <button onClick={downloadTemplate} className="admin-btn-slim bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200">
+                <div className="flex flex-wrap items-center gap-3">
+                    <button
+                        onClick={downloadTemplate}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-all text-xs"
+                    >
                         <Download size={14} /> Template
                     </button>
 
                     <div className="relative">
-                        <input type="file" id="bulk-import-main" className="hidden" accept=".xlsx, .xls" onChange={handleImport} disabled={loading} />
-                        <label htmlFor="bulk-import-main" className="admin-btn-slim bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-200 cursor-pointer">
+                        <input
+                            type="file"
+                            id="bulk-import-final"
+                            className="hidden"
+                            accept=".xlsx, .xls"
+                            onChange={handleImport}
+                            disabled={loading}
+                        />
+                        <label
+                            htmlFor="bulk-import-final"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all text-xs cursor-pointer shadow-lg shadow-emerald-600/20"
+                        >
                             <Upload size={14} /> Import Excel
                         </label>
                     </div>
@@ -244,7 +238,7 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
                     <button
                         id="master-repair-btn"
                         disabled={loading}
-                        className={`admin-btn-slim bg-red-600 text-white hover:bg-red-700 border-none px-6 ${loading ? 'opacity-50' : 'animate-pulse'}`}
+                        className={`flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white font-black rounded-xl hover:bg-red-700 transition-all text-xs shadow-lg shadow-red-600/20 ${loading ? 'opacity-50' : 'animate-pulse'}`}
                     >
                         <TrendingUp size={14} /> REPAIR MATRIX
                     </button>
@@ -252,28 +246,30 @@ const BulkOperations = ({ onSuccess, onExportFetch, staticProducts = [] }) => {
             </div>
 
             {importStatus && (
-                <div className="mt-4 flex items-center gap-3 bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold animate-pulse">
+                <div className="mt-4 flex items-center gap-3 bg-slate-900 text-white p-3 rounded-2xl text-[11px] font-black uppercase tracking-widest animate-pulse">
                     <Loader2 className="h-4 w-4 animate-spin text-red-500" />
-                    <span className="uppercase tracking-wider">{importStatus}</span>
+                    {importStatus}
                 </div>
             )}
 
-            {uiLogs.length > 0 && (
-                <div className="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <div className="flex items-center gap-2 mb-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
-                        <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Logs</span>
-                    </div>
-                    <div className="space-y-1 max-h-20 overflow-y-auto">
-                        {uiLogs.map((logMsg, i) => (
-                            <div key={i} className="text-[10px] text-slate-600 font-mono flex items-center gap-2">
-                                <span className="text-slate-300">[{new Date().toLocaleTimeString()}]</span>
+            <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="flex items-center gap-2 mb-2">
+                    <AlertCircle size={10} className="text-slate-400" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">System Activity Log</span>
+                </div>
+                <div className="space-y-1 max-h-24 overflow-y-auto custom-scrollbar">
+                    {uiLogs.length === 0 ? (
+                        <p className="text-[10px] text-slate-400 italic">Ready for commands...</p>
+                    ) : (
+                        uiLogs.map((logMsg, i) => (
+                            <div key={i} className="text-[10px] text-slate-600 font-mono flex items-start gap-4 hover:bg-white/50 rounded py-0.5 px-1">
+                                <span className="text-slate-300 flex-shrink-0">[{new Date().toLocaleTimeString()}]</span>
                                 <span>{logMsg}</span>
                             </div>
-                        ))}
-                    </div>
+                        ))
+                    )}
                 </div>
-            )}
+            </div>
         </div>
     );
 };
