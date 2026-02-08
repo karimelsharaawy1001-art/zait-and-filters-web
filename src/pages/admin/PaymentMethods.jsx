@@ -15,7 +15,7 @@ const PaymentMethods = () => {
     const defaults = {
         cod: { name: 'Cash on Delivery', nameAr: 'دفع عند الاستلام', isActive: true, type: 'offline' },
         easykash: { name: 'Pay via Card or Installments', nameAr: 'الدفع عن طريق الفيزا و شركات التقسيط', isActive: false, type: 'online', apiKey: '', secretKey: '' },
-        instapay: { name: 'Instapay', nameAr: 'انستاباي', isActive: false, type: 'manual', number: '' },
+        instapay: { name: 'Instapay', nameAr: 'انستاباي', isActive: false, type: 'manual', number: '', paymentLink: '' },
         wallet: { name: 'Electronic Wallets', nameAr: 'المحافظ الإلكترونية', isActive: false, type: 'manual', number: '' }
     };
 
@@ -182,7 +182,8 @@ const PaymentMethods = () => {
                                     <button onClick={() => handleToggle('instapay', configs.instapay.isActive)} className={`w-14 h-8 rounded-full transition-all flex items-center px-1 ${configs.instapay?.isActive ? 'bg-purple-600' : 'bg-gray-200'}`}><div className={`w-6 h-6 bg-white rounded-full transition-all ${configs.instapay?.isActive ? 'translate-x-6' : 'translate-x-0'}`} /></button>
                                 </div>
                                 <div className="p-8 space-y-6">
-                                    <div className="space-y-3"><label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest italic ml-1">Universal Identity / QR</label><input type="text" value={configs.instapay?.number} onChange={e => handleInputChange('instapay', 'number', e.target.value)} className="w-full px-6 py-4 bg-gray-50 border-2 rounded-2xl font-black text-base italic outline-none focus:border-purple-600 transition-all font-mono" placeholder="IPN Address / Details" /></div>
+                                    <div className="space-y-3"><label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest italic ml-1">Account Number / QR Details</label><input type="text" value={configs.instapay?.number} onChange={e => handleInputChange('instapay', 'number', e.target.value)} className="w-full px-6 py-4 bg-gray-50 border-2 rounded-2xl font-black text-base italic outline-none focus:border-purple-600 transition-all font-mono" placeholder="Account number or QR details" /></div>
+                                    <div className="space-y-3"><label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest italic ml-1">Payment Link (Optional)</label><input type="url" value={configs.instapay?.paymentLink || ''} onChange={e => handleInputChange('instapay', 'paymentLink', e.target.value)} className="w-full px-6 py-4 bg-gray-50 border-2 rounded-2xl font-black text-base italic outline-none focus:border-purple-600 transition-all font-mono" placeholder="https://instapay.com/pay/..." /></div>
                                     <div className="flex justify-end"><button onClick={() => handleSaveConfig('instapay')} disabled={saving === 'instapay'} className="bg-black text-white px-8 py-4 rounded-2xl font-black uppercase italic text-[10px] shadow-xl hover:scale-105 transition-all flex items-center gap-2">{saving === 'instapay' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Deploy</button></div>
                                 </div>
                             </div>

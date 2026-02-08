@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db, storage } from '../firebase';
 import { collection, getDocs, getDoc, doc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { Lock, Loader2, UploadCloud, CheckCircle2, Copy } from 'lucide-react';
+import { Lock, Loader2, UploadCloud, CheckCircle2, Copy, Activity } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 
@@ -134,33 +134,53 @@ const TrustPaymentSection = ({ method, onReceiptUpload, isUploading }) => {
                         </div>
                     )}
 
-                    <div className="mt-2">
-                        <label className="block w-full cursor-pointer group">
-                            <input
-                                type="file"
-                                className="hidden"
-                                accept="image/*"
-                                onChange={handleFileUpload}
-                                disabled={uploadProgress}
-                            />
-                            <div className={`p-8 border-2 border-dashed rounded-2xl flex flex-col items-center gap-3 transition-all ${uploadedFile ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-orange-400 hover:bg-orange-50'}`}>
-                                {uploadProgress ? (
-                                    <Loader2 className="animate-spin text-orange-500" size={32} />
-                                ) : uploadedFile ? (
-                                    <CheckCircle2 className="text-green-600" size={32} />
-                                ) : (
-                                    <UploadCloud className="text-gray-400 group-hover:text-orange-500 transition-colors" size={32} />
-                                )}
-
-                                <div className="text-center">
-                                    <p className={`text-sm font-bold ${uploadedFile ? 'text-green-700' : 'text-gray-600'}`}>
-                                        {uploadedFile ? (isAr ? 'تم استلام الإيصال' : 'Receipt Attached') : (isAr ? 'اضغط لرفع صورة التحويل' : 'Click to upload receipt')}
-                                    </p>
-                                    {!uploadedFile && <p className="text-[10px] text-gray-400 mt-1">{isAr ? 'أو اسحب وأفلت هنا' : 'or drag and drop here'}</p>}
+                    {/* If payment link exists, show Pay Now button instead of upload */}
+                    {currentMethodConfig.paymentLink ? (
+                        <div className="mt-4">
+                            <a
+                                href={currentMethodConfig.paymentLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-5 px-8 rounded-2xl font-black uppercase text-center shadow-2xl hover:shadow-purple-500/50 transition-all transform hover:scale-[1.02] active:scale-95"
+                            >
+                                <div className="flex items-center justify-center gap-3">
+                                    <Activity size={24} className="animate-pulse" />
+                                    <span className="text-lg">{isAr ? 'ادفع الآن' : 'PAY NOW'}</span>
                                 </div>
-                            </div>
-                        </label>
-                    </div>
+                            </a>
+                            <p className="text-xs text-center text-gray-500 mt-3 italic">
+                                {isAr ? 'سيتم فتح صفحة الدفع في نافذة جديدة' : 'Payment page will open in a new window'}
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="mt-2">
+                            <label className="block w-full cursor-pointer group">
+                                <input
+                                    type="file"
+                                    className="hidden"
+                                    accept="image/*"
+                                    onChange={handleFileUpload}
+                                    disabled={uploadProgress}
+                                />
+                                <div className={`p-8 border-2 border-dashed rounded-2xl flex flex-col items-center gap-3 transition-all ${uploadedFile ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-orange-400 hover:bg-orange-50'}`}>
+                                    {uploadProgress ? (
+                                        <Loader2 className="animate-spin text-orange-500" size={32} />
+                                    ) : uploadedFile ? (
+                                        <CheckCircle2 className="text-green-600" size={32} />
+                                    ) : (
+                                        <UploadCloud className="text-gray-400 group-hover:text-orange-500 transition-colors" size={32} />
+                                    )}
+
+                                    <div className="text-center">
+                                        <p className={`text-sm font-bold ${uploadedFile ? 'text-green-700' : 'text-gray-600'}`}>
+                                            {uploadedFile ? (isAr ? 'تم استلام الإيصال' : 'Receipt Attached') : (isAr ? 'اضغط لرفع صورة التحويل' : 'Click to upload receipt')}
+                                        </p>
+                                        {!uploadedFile && <p className="text-[10px] text-gray-400 mt-1">{isAr ? 'أو اسحب وأفلت هنا' : 'or drag and drop here'}</p>}
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    )}
                 </div>
             </div>
         );
