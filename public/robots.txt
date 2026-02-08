@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 
 # Sitemaps
-Sitemap: https://zait-and-filters-web.vercel.app/sitemap.xml
+Sitemap: https://zaitandfilters.com/sitemap.xml

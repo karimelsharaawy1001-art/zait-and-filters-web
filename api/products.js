@@ -14,8 +14,8 @@ function mapRestDoc(doc) {
     for (const [key, wrapper] of Object.entries(doc.fields)) {
         if (!wrapper) continue;
         if ('stringValue' in wrapper) data[key] = wrapper.stringValue;
-        else if ('integerValue' in wrapper) data[key] = parseInt(wrapper.integerValue);
-        else if ('doubleValue' in wrapper) data[key] = parseFloat(wrapper.doubleValue);
+        else if ('integerValue' in wrapper) data[key] = wrapper.integerValue;
+        else if ('doubleValue' in wrapper) data[key] = wrapper.doubleValue;
         else if ('booleanValue' in wrapper) data[key] = wrapper.booleanValue;
         else if ('arrayValue' in wrapper) data[key] = (wrapper.arrayValue.values || []).map(v => Object.values(v)[0]);
         else if ('timestampValue' in wrapper) data[key] = wrapper.timestampValue;
@@ -27,8 +27,70 @@ function mapRestDoc(doc) {
     return data;
 }
 
+// 🛡️ REPAIR: Move fetchAllProducts to top-level function declaration to fix hoisting/500 errors
+async function fetchAllProducts(REST_URL, API_KEY) {
+    if (globalProductCache && (Date.now() - lastCacheUpdate < CACHE_TTL)) {
+        return globalProductCache;
+    }
+
+    try {
+        // Option A: Static Load
+        try {
+            const fs = await import('fs');
+            const path = await import('path');
+            const staticPath = path.join(process.cwd(), 'public', 'data', 'products-db.json');
+            if (fs.existsSync(staticPath)) {
+                const data = JSON.parse(fs.readFileSync(staticPath, 'utf8'));
+                const minimal = data.map(p => ({
+                    id: p.id || p.$id,
+                    name: String(p.name || ''),
+                    nameEn: String(p.nameEn || ''),
+                    make: String(p.make || p.car_make || p.carMake || ''),
+                    model: String(p.model || p.car_model || p.carModel || ''),
+                    category: String(p.category || ''),
+                    subcategory: String(p.subcategory || ''),
+                    partBrand: String(p.partBrand || ''),
+                    price: p.price
+                }));
+                globalProductCache = minimal;
+                lastCacheUpdate = Date.now();
+                return minimal;
+            }
+        } catch (staticErr) { }
+
+        // Option B: REST API fetch
+        let allMinimalProducts = [];
+        let pageToken = null;
+        do {
+            const url = `${REST_URL}/products?pageSize=300${pageToken ? `&pageToken=${pageToken}` : ''}${API_KEY ? `&key=${API_KEY}` : ''}`;
+            const listRes = await axios.get(url, { timeout: 15000 });
+            const documents = listRes.data.documents || [];
+            const minimalPage = documents.map(mapRestDoc).filter(p => p && p.isActive !== false).map(p => ({
+                id: p.id,
+                name: String(p.name || ''),
+                nameEn: String(p.nameEn || ''),
+                make: String(p.make || p.car_make || p.carMake || ''),
+                model: String(p.model || p.car_model || p.carModel || ''),
+                category: String(p.category || ''),
+                subcategory: String(p.subcategory || ''),
+                partBrand: String(p.partBrand || ''),
+                price: p.price
+            }));
+            allMinimalProducts = allMinimalProducts.concat(minimalPage);
+            pageToken = listRes.data.nextPageToken;
+        } while (pageToken);
+
+        globalProductCache = allMinimalProducts;
+        lastCacheUpdate = Date.now();
+        return allMinimalProducts;
+    } catch (e) {
+        if (globalProductCache) return globalProductCache;
+        throw e;
+    }
+}
+
 export default async function handler(req, res) {
-    // CORS Headers - Essential for all responses
+    // CORS Headers
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -37,7 +99,6 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
 
     try {
-        // 1. Better Body Parsing for Vercel
         let body = {};
         if (req.body) {
             if (typeof req.body === 'string') {
@@ -47,10 +108,7 @@ export default async function handler(req, res) {
             }
         }
 
-        // 2. Action Detection
         const action = req.query.action || body.action;
-
-        // 3. Environment (Check both VITE_ and standard)
         const PROJECT_ID = sanitize(process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || 'zaitandfilters');
         const API_KEY = sanitize(process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || '');
         const REST_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
@@ -66,14 +124,9 @@ export default async function handler(req, res) {
                 const collectionId = process.env.VITE_APPWRITE_SETTINGS_COLLECTION_ID || 'settings';
 
                 const url = `${endpoint}/databases/${databaseId}/collections/${collectionId}/documents/integrations`;
-
-                const response = await axios.get(url, {
-                    headers: { 'X-Appwrite-Project': projectId }
-                });
-
+                const response = await axios.get(url, { headers: { 'X-Appwrite-Project': projectId } });
                 const data = response.data;
 
-                // Map tag names to Appwrite fields
                 const tagMap = {
                     'google-site-verification': 'googleVerificationCode',
                     'facebook-pixel': 'facebookPixelId',
@@ -86,7 +139,6 @@ export default async function handler(req, res) {
                 let savedValue = data[fieldName];
                 if (!savedValue) return res.status(200).json({ status: 'not_found' });
 
-                // Clean saved value if it's a full tag (mirroring SEO.jsx logic)
                 if (tagName === 'google-site-verification' && savedValue.includes('content="')) {
                     savedValue = savedValue.split('content="')[1].split('"')[0];
                 }
@@ -97,15 +149,12 @@ export default async function handler(req, res) {
 
                 return res.status(200).json({ status: 'found' });
             } catch (err) {
-                return res.status(200).json({
-                    status: 'error',
-                    msg: `Appwrite Error: ${err.response?.data?.message || err.message}`
-                });
+                return res.status(200).json({ status: 'error', msg: `Appwrite Error: ${err.response?.data?.message || err.message}` });
             }
         }
 
         if (action === 'verify-google') {
-            const requestedFile = req.query.file; // e.g. "google12345"
+            const requestedFile = req.query.file;
             try {
                 const endpoint = process.env.VITE_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1';
                 const projectId = process.env.VITE_APPWRITE_PROJECT_ID;
@@ -113,13 +162,9 @@ export default async function handler(req, res) {
                 const collectionId = process.env.VITE_APPWRITE_SETTINGS_COLLECTION_ID || 'settings';
 
                 const url = `${endpoint}/databases/${databaseId}/collections/${collectionId}/documents/integrations`;
-
-                const response = await axios.get(url, {
-                    headers: { 'X-Appwrite-Project': projectId }
-                });
-
+                const response = await axios.get(url, { headers: { 'X-Appwrite-Project': projectId } });
                 const data = response.data;
-                const savedFileName = data.googleVerificationFileName || ''; // e.g. "google123456.html"
+                const savedFileName = data.googleVerificationFileName || '';
                 const savedContent = data.googleVerificationFileContent || '';
 
                 if (savedFileName.startsWith(requestedFile)) {
@@ -135,7 +180,7 @@ export default async function handler(req, res) {
 
         if (action === 'generateSitemap') {
             try {
-                const products = await fetchAllProducts();
+                const products = await fetchAllProducts(REST_URL, API_KEY);
                 const baseUrl = 'https://zaitandfilters.com';
                 const today = new Date().toISOString().split('T')[0];
 
@@ -147,16 +192,15 @@ export default async function handler(req, res) {
     <url><loc>${baseUrl}/contact-us</loc><lastmod>${today}</lastmod><priority>0.5</priority></url>
     <url><loc>${baseUrl}/policy</loc><lastmod>${today}</lastmod><priority>0.3</priority></url>`;
 
-                // Dynamic Products
                 products.forEach(p => {
                     xml += `\n    <url><loc>${baseUrl}/product/${p.id}</loc><lastmod>${today}</lastmod><priority>0.7</priority></url>`;
                 });
 
                 xml += `\n</urlset>`;
-
                 res.setHeader('Content-Type', 'text/xml');
                 return res.status(200).send(xml);
             } catch (err) {
+                console.error("Sitemap Error:", err);
                 return res.status(500).send('Sitemap Generation Error');
             }
         }
@@ -178,75 +222,13 @@ export default async function handler(req, res) {
             }
         }
 
-        // --- PRODUCT ACTIONS (Cached) ---
-        const fetchAllProducts = async () => {
-            if (globalProductCache && (Date.now() - lastCacheUpdate < CACHE_TTL)) {
-                return globalProductCache;
-            }
-
-            try {
-                // Option A: Static Load
-                try {
-                    const fs = await import('fs');
-                    const path = await import('path');
-                    const staticPath = path.join(process.cwd(), 'public', 'data', 'products-db.json');
-                    if (fs.existsSync(staticPath)) {
-                        const data = JSON.parse(fs.readFileSync(staticPath, 'utf8'));
-                        const minimal = data.map(p => ({
-                            id: p.id,
-                            name: String(p.name || ''),
-                            nameEn: String(p.nameEn || ''),
-                            make: String(p.make || p.car_make || ''),
-                            model: String(p.model || p.car_model || ''),
-                            category: String(p.category || ''),
-                            subcategory: String(p.subcategory || ''),
-                            partBrand: String(p.partBrand || ''),
-                            price: p.price
-                        }));
-                        globalProductCache = minimal;
-                        lastCacheUpdate = Date.now();
-                        return minimal;
-                    }
-                } catch (staticErr) { }
-
-                // Option B: REST API fetch
-                let allMinimalProducts = [];
-                let pageToken = null;
-                do {
-                    const url = `${REST_URL}/products?pageSize=300${pageToken ? `&pageToken=${pageToken}` : ''}${API_KEY ? `&key=${API_KEY}` : ''}`;
-                    const listRes = await axios.get(url, { timeout: 15000 });
-                    const documents = listRes.data.documents || [];
-                    const minimalPage = documents.map(mapRestDoc).filter(p => p && p.isActive !== false).map(p => ({
-                        id: p.id,
-                        name: String(p.name || ''),
-                        nameEn: String(p.nameEn || ''),
-                        make: String(p.make || p.car_make || ''),
-                        model: String(p.model || p.car_model || ''),
-                        category: String(p.category || ''),
-                        subcategory: String(p.subcategory || ''),
-                        partBrand: String(p.partBrand || ''),
-                        price: p.price
-                    }));
-                    allMinimalProducts = allMinimalProducts.concat(minimalPage);
-                    pageToken = listRes.data.nextPageToken;
-                } while (pageToken);
-
-                globalProductCache = allMinimalProducts;
-                lastCacheUpdate = Date.now();
-                return allMinimalProducts;
-            } catch (e) {
-                if (globalProductCache) return globalProductCache;
-                throw e;
-            }
-        };
-
         if (action === 'getIndex') {
-            const index = await fetchAllProducts();
+            const index = await fetchAllProducts(REST_URL, API_KEY);
             return res.status(200).json(index);
         }
 
         if (action === 'getMakes') {
-            const products = await fetchAllProducts();
+            const products = await fetchAllProducts(REST_URL, API_KEY);
             const makes = [...new Set(products.map(p => p.make))].filter(Boolean).sort();
             return res.status(200).json(makes);
         }
