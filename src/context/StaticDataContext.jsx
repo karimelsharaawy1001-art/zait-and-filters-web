@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { databases } from '../appwrite';
-import { Query } from 'appwrite';
+import { db } from '../firebase';
+import { collection, getDocs, query, orderBy, limit, startAfter } from 'firebase/firestore';
 
 const StaticDataContext = createContext();
 
@@ -15,7 +15,7 @@ export const useStaticData = () => {
 export const StaticDataProvider = ({ children }) => {
     const [staticData, setStaticData] = useState({
         products: [],
-        rawStaticProducts: [], // Added for repair reference
+        rawStaticProducts: [],
         categories: [],
         cars: [],
         brands: [],
@@ -23,12 +23,10 @@ export const StaticDataProvider = ({ children }) => {
         isLoaded: false
     });
 
-    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-    const PRODUCTS_COLLECTION = import.meta.env.VITE_APPWRITE_PRODUCTS_COLLECTION_ID;
-
     useEffect(() => {
         const loadAllStaticData = async () => {
             try {
+                // 1. Load Static JSON Baselines (Fast Initial Render)
                 const load = async (file) => {
                     const version = new Date().getTime();
                     const r = await fetch(`/data/${file}?v=${version}`);
@@ -44,7 +42,7 @@ export const StaticDataProvider = ({ children }) => {
                 ]);
 
                 setStaticData({
-                    products: staticProd, // Use static baseline as initial state
+                    products: staticProd,
                     rawStaticProducts: staticProd,
                     categories,
                     cars,
@@ -53,69 +51,51 @@ export const StaticDataProvider = ({ children }) => {
                     isLoaded: true
                 });
 
-                // 2. BACKGROUND SYNC: Deep Fresh data from Appwrite (Non-blocking)
-                if (DATABASE_ID && PRODUCTS_COLLECTION) {
-                    setTimeout(async () => {
-                        try {
-                            console.log("🔄 Background Sync: Initializing Full Catalog Recovery...");
-                            let freshItems = [];
-                            let lastId = null;
-                            let hasMore = true;
+                // 2. BACKGROUND SYNC: Firestore (Non-blocking)
+                setTimeout(async () => {
+                    try {
+                        console.log("🔄 Firestore Sync: Initializing Full Catalog...");
+                        const productsRef = collection(db, 'products');
 
-                            while (hasMore) {
-                                const queries = [
-                                    Query.limit(100),
-                                    Query.orderDesc('$createdAt')
-                                ];
-                                if (lastId) queries.push(Query.cursorAfter(lastId));
+                        // Simple full fetch for now - Firestore handles scaling better
+                        const snapshot = await getDocs(productsRef);
+                        const freshItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                                const response = await databases.listDocuments(DATABASE_ID, PRODUCTS_COLLECTION, queries);
-                                const batch = response.documents.map(d => ({ id: d.$id, ...d }));
-                                freshItems = [...freshItems, ...batch];
+                        console.log(`📡 Firestore Sync: ${freshItems.length} items loaded.`);
 
-                                if (response.documents.length < 100 || freshItems.length >= 35000) {
-                                    hasMore = false;
-                                } else {
-                                    lastId = response.documents[response.documents.length - 1].$id;
-                                }
+                        if (freshItems.length > 0) {
+                            // Merge with static data
+                            const productMap = new Map();
+                            staticProd.forEach(p => productMap.set(String(p.id), p));
+                            freshItems.forEach(p => productMap.set(String(p.id), p));
+                            const merged = Array.from(productMap.values());
 
-                                // Incremental UI Update for Speed
-                                if (freshItems.length % 500 === 0 || !hasMore) {
-                                    console.log(`📡 Sync: ${freshItems.length} items...`);
-                                    const productMap = new Map();
-                                    staticProd.forEach(p => productMap.set(p.id, p));
-                                    freshItems.forEach(p => productMap.set(p.id, p));
-                                    const incremental = Array.from(productMap.values());
-
-                                    setStaticData(prev => ({
-                                        ...prev,
-                                        products: incremental,
-                                        isLoaded: true
-                                    }));
-                                }
-                            }
-                            console.log(`✅ Background Sync Complete: ${freshItems.length} total items.`);
-                            window.__CATALOG_DEBUG__ = { total: freshItems.length, date: new Date().toISOString() };
-                        } catch (err) {
-                            console.warn("⚠️ Background sync failed:", err);
+                            setStaticData(prev => ({
+                                ...prev,
+                                products: merged,
+                                isLoaded: true
+                            }));
                         }
-                    }, 100);
-                }
+
+                        window.__CATALOG_DEBUG__ = { total: freshItems.length, source: 'firestore' };
+                    } catch (err) {
+                        console.warn("⚠️ Firestore sync failed:", err);
+                    }
+                }, 100);
+
             } catch (error) {
                 console.warn('⚠️ Static architecture degraded:', error);
             }
         };
 
         loadAllStaticData();
-    }, [DATABASE_ID, PRODUCTS_COLLECTION]);
+    }, []);
 
     const value = {
         ...staticData,
         staticProducts: staticData.products,
-        rawStaticProducts: staticData.rawStaticProducts, // Expose raw for repair
-        isStaticLoaded: staticData.isLoaded,
-        // Fallback placeholder for compatibility
-        withFallback: (fn, coll) => fn ? fn() : (staticData[coll] || [])
+        rawStaticProducts: staticData.rawStaticProducts,
+        isStaticLoaded: staticData.isLoaded
     };
 
     return (

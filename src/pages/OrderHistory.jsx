@@ -6,8 +6,8 @@ import { generateInvoice } from '../utils/invoiceGenerator';
 import { useTranslation } from 'react-i18next';
 import { getOptimizedImage } from '../utils/cloudinaryUtils';
 import { useAuth } from '../context/AuthContext';
-import { databases } from '../appwrite';
-import { Query } from 'appwrite';
+import { collection, query, where, getDocs, orderBy, updateDoc, doc, limit } from 'firebase/firestore';
+import { db } from '../firebase';
 
 const OrderHistory = () => {
     const [orders, setOrders] = useState([]);
@@ -20,13 +20,9 @@ const OrderHistory = () => {
     const isAr = i18n.language === 'ar';
     const { user } = useAuth();
 
-    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-    const ORDERS_COLLECTION = import.meta.env.VITE_APPWRITE_ORDERS_COLLECTION_ID;
-
     useEffect(() => {
         if (user) {
             console.log('[OrderHistory] User logged in:', user);
-            console.log('[OrderHistory] User email:', user.email);
             fetchOrders();
         } else {
             console.log('[OrderHistory] No user logged in');
@@ -36,89 +32,66 @@ const OrderHistory = () => {
 
     const fetchOrders = async () => {
         try {
-            if (!DATABASE_ID || !ORDERS_COLLECTION) {
-                console.error('Missing Appwrite configuration');
-                setLoading(false);
-                return;
+            console.log('[OrderHistory] Fetching orders for user:', user.email);
+
+            // Firestore Query: Match userId OR email (Client side filtering for email if needed, or composite query)
+            // Ideally, we just query by userId for logged in users.
+            // But legacy orders might only have email.
+            // Let's try userId first, then fallback or parallel query?
+            // "or" queries in Firestore are supported in newer SDKs but limited.
+            // Let's just query by userId as primary.
+
+            const ordersRef = collection(db, 'orders');
+            // Strategy: Get by userId.
+            // Also get by email if available.
+            // Merge results.
+
+            const constraints = [
+                where('userId', '==', user.uid)
+            ];
+
+            const q = query(ordersRef, ...constraints, orderBy('createdAt', 'desc'), limit(50));
+            const querySnapshot = await getDocs(q);
+
+            let ordersList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Also check for email matches if we didn't find much, or just always check?
+            // If user has email, check for orders with that email (guest checkouts linked to account email)
+            if (user.email) {
+                const emailQuery = query(ordersRef, where('email', '==', user.email), orderBy('createdAt', 'desc'), limit(50));
+                const emailSnapshot = await getDocs(emailQuery);
+                const emailOrders = emailSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // Merge and deduplicate
+                const combined = [...ordersList, ...emailOrders];
+                const unique = new Map();
+                combined.forEach(o => unique.set(o.id, o));
+                ordersList = Array.from(unique.values()).sort((a, b) => {
+                    const da = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(a.createdAt);
+                    const db = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(b.createdAt);
+                    return db - da;
+                });
             }
 
-            console.log('[OrderHistory] Fetching orders for user:', user.email);
-            console.log('[OrderHistory] Database ID:', DATABASE_ID);
-            console.log('[OrderHistory] Collection ID:', ORDERS_COLLECTION);
-
-
-            // Fetch all orders (no email filter to avoid index requirement)
-            const response = await databases.listDocuments(
-                DATABASE_ID,
-                ORDERS_COLLECTION,
-                [Query.limit(1000)]
-            );
-
-            console.log('[OrderHistory] Total documents in collection:', response.total);
-
-            // Filter orders client-side by matching userId OR email
-            const userOrders = response.documents.filter(doc => {
-                // 1. Check userId (Best Match)
-                if (doc.userId && doc.userId === user.$id) {
-                    console.log(`[OrderHistory] Match found by userId for order ${doc.$id}`);
-                    return true;
-                }
-
-                // 2. Check root level email
-                if (doc.email && doc.email.toLowerCase() === user.email.toLowerCase()) {
-                    console.log(`[OrderHistory] Match found by root email for order ${doc.$id}`);
-                    return true;
-                }
-
-                // 3. Check customerInfo JSON
-                if (doc.customerInfo) {
-                    try {
-                        const customerData = typeof doc.customerInfo === 'string'
-                            ? JSON.parse(doc.customerInfo)
-                            : doc.customerInfo;
-
-                        if (customerData.email && customerData.email.toLowerCase() === user.email.toLowerCase()) {
-                            console.log(`[OrderHistory] Match found by customerInfo email for order ${doc.$id}`);
-                            return true;
-                        }
-                    } catch (e) {
-                        console.warn('[OrderHistory] Could not parse customerInfo for order:', doc.$id);
-                    }
-                }
-
-                return false;
-            });
-
-            const ordersList = userOrders.map(doc => {
+            // Parse items if they are JSON strings (Legacy)
+            ordersList = ordersList.map(doc => {
                 let parsedItems = [];
-                try {
-                    parsedItems = typeof doc.items === 'string' ? JSON.parse(doc.items) : doc.items;
-                } catch (e) {
-                    console.error("Error parsing items for order:", doc.$id, e);
+                if (typeof doc.items === 'string') {
+                    try { parsedItems = JSON.parse(doc.items); } catch (e) { }
+                } else if (Array.isArray(doc.items)) {
+                    parsedItems = doc.items;
                 }
 
                 return {
-                    id: doc.$id,
                     ...doc,
-                    items: Array.isArray(parsedItems) ? parsedItems : []
+                    items: parsedItems
                 };
-            }).sort((a, b) => {
-                const numA = parseInt(a.orderNumber) || 0;
-                const numB = parseInt(b.orderNumber) || 0;
-                return numB - numA;
             });
-
 
             console.log('[OrderHistory] Processed orders:', ordersList);
             setOrders(ordersList);
         } catch (error) {
             console.error("[OrderHistory] Error fetching orders:", error);
-            console.error("[OrderHistory] Error details:", {
-                message: error.message,
-                code: error.code,
-                type: error.type
-            });
-
             toast.error(isAr ? 'فشل تحميل الطلبات' : 'Failed to load orders');
         } finally {
             setLoading(false);
@@ -153,15 +126,11 @@ const OrderHistory = () => {
     const handleUpdateMileage = async (orderId) => {
         setUpdating(true);
         try {
-            await databases.updateDocument(
-                DATABASE_ID,
-                ORDERS_COLLECTION,
-                orderId,
-                {
-                    currentMileage: mileageValue,
-                    updatedAt: new Date().toISOString()
-                }
-            );
+            const orderRef = doc(db, 'orders', orderId);
+            await updateDoc(orderRef, {
+                currentMileage: mileageValue
+            });
+
             setOrders(prev => prev.map(o => o.id === orderId ? { ...o, currentMileage: mileageValue } : o));
             setEditingMileage(null);
             toast.success(isAr ? 'تم تحديث العداد بنجاح!' : 'Mileage updated successfully!');
@@ -221,7 +190,7 @@ const OrderHistory = () => {
                                     <div>
                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t('date')}</p>
                                         <p className="text-sm font-bold text-gray-700">
-                                            {(order.$createdAt || order.createdAt) ? new Date(order.$createdAt || order.createdAt).toLocaleDateString(isAr ? 'ar-EG' : 'en-US') : 'N/A'}
+                                            {(order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000) : new Date(order.createdAt)).toLocaleDateString(isAr ? 'ar-EG' : 'en-US')}
                                         </p>
                                     </div>
                                     <div>

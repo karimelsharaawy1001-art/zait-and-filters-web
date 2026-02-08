@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { databases } from '../../appwrite';
-import { Query, ID } from 'appwrite';
+import React, { useState, useEffect, useMemo } from 'react';
+import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import AdminHeader from '../../components/AdminHeader';
 import { useStaticData } from '../../context/StaticDataContext';
-import { normalizeArabic } from '../../utils/productUtils';
 
 const OrderDetails = () => {
     const { staticProducts, isStaticLoaded } = useStaticData();
@@ -46,7 +45,7 @@ const OrderDetails = () => {
     });
 
     // Extract unique filter values
-    const filterOptions = React.useMemo(() => {
+    const filterOptions = useMemo(() => {
         if (!staticProducts) return { makes: [], models: [], years: [], categories: [], subcategories: [] };
 
         const makes = [...new Set(staticProducts.map(p => p.make || p.carMake).filter(Boolean))].sort();
@@ -108,8 +107,6 @@ const OrderDetails = () => {
                     brand: product.brand || 'Generic',
                     carMake: product.make || product.carMake || '',
                     carModel: product.model || product.carModel || '',
-                    carMake: product.make || product.carMake || '',
-                    carModel: product.model || product.carModel || '',
                     year: product.year || '',
                     discount: 0
                 }]
@@ -136,88 +133,118 @@ const OrderDetails = () => {
         });
     };
 
-    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-    const ORDERS_COLLECTION = import.meta.env.VITE_APPWRITE_ORDERS_COLLECTION_ID || 'orders';
-    const PRODUCTS_COLLECTION = import.meta.env.VITE_APPWRITE_PRODUCTS_COLLECTION_ID;
-
     const fetchOrder = async () => {
-        if (!DATABASE_ID) return;
         setLoading(true);
         try {
-            const data = await databases.getDocument(DATABASE_ID, ORDERS_COLLECTION, id);
+            const docRef = doc(db, 'orders', id);
+            const docSnap = await getDoc(docRef);
+
+            if (!docSnap.exists()) {
+                toast.error('Order not found');
+                navigate('/admin/orders');
+                return;
+            }
+
+            const data = docSnap.data();
 
             let parsedItems = [];
-            try {
-                parsedItems = data.items ? (typeof data.items === 'string' ? JSON.parse(data.items) : data.items) : [];
-            } catch (e) {
-                console.warn("Failed to parse items", e);
+            if (typeof data.items === 'string') {
+                try { parsedItems = JSON.parse(data.items); } catch (e) { }
+            } else if (Array.isArray(data.items)) {
+                parsedItems = data.items;
             }
 
             let parsedCustomer = {};
-            try {
-                parsedCustomer = data.customerInfo ? (typeof data.customerInfo === 'string' ? JSON.parse(data.customerInfo) : data.customerInfo) : {};
-            } catch (e) {
-                console.warn("Failed to parse customer info", e);
+            if (typeof data.customerInfo === 'string') {
+                try { parsedCustomer = JSON.parse(data.customerInfo); } catch (e) { }
+            } else {
+                parsedCustomer = data.customerInfo || {};
             }
 
             let parsedAddress = {};
-            try {
-                parsedAddress = data.shippingAddress ? (typeof data.shippingAddress === 'string' ? JSON.parse(data.shippingAddress) : data.shippingAddress) : {};
-            } catch (e) {
-                console.warn("Failed to parse shipping address", e);
+            if (typeof data.shippingAddress === 'string') {
+                try { parsedAddress = JSON.parse(data.shippingAddress); } catch (e) { }
+            } else {
+                parsedAddress = data.shippingAddress || {};
             }
 
             setOrder({
-                id: data.$id,
+                id: docSnap.id,
                 ...data,
                 items: parsedItems,
                 customer: parsedCustomer,
                 shippingAddress: parsedAddress
             });
 
-            if (data.isOpened === false) await databases.updateDocument(DATABASE_ID, ORDERS_COLLECTION, id, { isOpened: true });
+            setEnrichedItems(parsedItems); // Initially set enriched items to parsed items
+
+            if (data.isOpened === false) await updateDoc(docRef, { isOpened: true });
         } catch (error) {
-            console.error(error);
-            toast.error('Order not found');
-            navigate('/admin/orders');
+            console.error("Error fetching order:", error);
+            toast.error('Failed to load order');
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => { fetchOrder(); }, [id, DATABASE_ID]);
+    useEffect(() => { fetchOrder(); }, [id]);
 
     useEffect(() => {
         const fetchProductDetails = async () => {
-            if (!order?.items || !PRODUCTS_COLLECTION) return;
+            if (!order?.items) return;
+            // In Firestore migration, we might rely on static data for enrichment or perform fetches if needed.
+            // For now, let's assume staticProducts (from context) is sufficient or we use existing item data.
+            // If we absolutely need fresh data from Firestore 'products' collection:
+
             try {
                 const enriched = await Promise.all(order.items.map(async (item) => {
                     try {
-                        const productData = await databases.getDocument(DATABASE_ID, PRODUCTS_COLLECTION, item.id);
-                        return {
-                            ...item,
-                            brand: productData.brand || item.brand,
-                            category: productData.category || item.category,
-                            sku: productData.sku || item.sku,
-                            // Enrich vehicle data
-                            carMake: productData.make || productData.carMake || item.make || item.carMake,
-                            carModel: productData.model || productData.carModel || item.model || item.carModel,
-                            yearRange: productData.yearRange || (productData.yearStart && productData.yearEnd ? `${productData.yearStart}-${productData.yearEnd}` : null) || item.yearRange || item.year
-                        };
+                        // Check static first (faster)
+                        const staticMatch = staticProducts?.find(p => p.id === item.id);
+                        if (staticMatch) {
+                            return {
+                                ...item,
+                                brand: staticMatch.brand || item.brand,
+                                category: staticMatch.category || item.category,
+                                sku: staticMatch.sku || item.sku,
+                                carMake: staticMatch.make || staticMatch.carMake || item.make || item.carMake,
+                                carModel: staticMatch.model || staticMatch.carModel || item.model || item.carModel,
+                                yearRange: staticMatch.yearRange || (staticMatch.yearStart && staticMatch.yearEnd ? `${staticMatch.yearStart}-${staticMatch.yearEnd}` : null) || item.yearRange || item.year
+                            };
+                        }
+
+                        // Fallback to Firestore getDoc if not found in static (and if we really need to)
+                        // For performance, we might skip this or do it only if essential data is missing.
+                        // Let's keep it simple and use what's in the order or static data.
+                        return item;
+                        /* 
+                        const prodRef = doc(db, 'products', item.id);
+                        const prodSnap = await getDoc(prodRef);
+                        if(prodSnap.exists()){
+                             const productData = prodSnap.data();
+                              return {
+                                ...item,
+                                ...productData // be careful with overrides
+                            };
+                        }
+                        */
                     } catch { return item; }
                 }));
                 setEnrichedItems(enriched);
             } catch (err) { console.error(err); }
         };
-        if (order) fetchProductDetails();
-    }, [order, DATABASE_ID]);
+        if (order && staticProducts) fetchProductDetails();
+    }, [order, staticProducts]);
 
     const handleStatusUpdate = async (newStatus) => {
         setUpdating(true);
         try {
             const payload = { status: newStatus };
             if (newStatus === 'Delivered') payload.deliveryDate = new Date().toISOString();
-            await databases.updateDocument(DATABASE_ID, ORDERS_COLLECTION, id, payload);
+
+            const orderRef = doc(db, 'orders', id);
+            await updateDoc(orderRef, payload);
+
             setOrder(prev => ({ ...prev, status: newStatus }));
             toast.success(`Status updated to: ${newStatus}`);
         } catch (err) { toast.error("Update failed"); }
@@ -227,9 +254,9 @@ const OrderDetails = () => {
     const handlePaymentStatusUpdate = async (newStatus) => {
         setUpdating(true);
         try {
-            await databases.updateDocument(DATABASE_ID, ORDERS_COLLECTION, id, {
-                paymentStatus: newStatus
-            });
+            const orderRef = doc(db, 'orders', id);
+            await updateDoc(orderRef, { paymentStatus: newStatus });
+
             setOrder(prev => ({ ...prev, paymentStatus: newStatus }));
             toast.success(`Payment status updated to: ${newStatus}`);
         } catch (err) { toast.error("Payment update failed"); }
@@ -246,74 +273,62 @@ const OrderDetails = () => {
             const shipping = parseFloat(editForm.shippingCost || 0);
             const total = subtotal + shipping + parseFloat(editForm.extraFees || 0) - parseFloat(editForm.manualDiscount || 0);
 
-            // SCHEMA-SAFE PAYLOAD GENERATION
-            // Only include fields that are known to exist in the database to prevent Appwrite errors
             const payload = {
-                items: JSON.stringify(editForm.items.map(i => ({
+                items: editForm.items.map(i => ({
                     ...i,
                     discount: parseFloat(i.discount || 0) || 0
-                }))),
+                })), // Firestore can store arrays of objects directly
                 subtotal: parseFloat(subtotal || 0) || 0,
                 total: parseFloat(total || 0) || 0,
                 notes: editForm.notes || '',
                 status: editForm.status,
                 paymentStatus: editForm.paymentStatus,
-                customerInfo: JSON.stringify({
+                customerInfo: {
                     name: editForm.customerName || '',
                     email: editForm.customerEmail || '',
                     phone: editForm.customerPhone || '',
                     city: editForm.customerCity || '',
                     governorate: editForm.customerGovernorate || '',
                     address: editForm.customerAddress || ''
-                }),
-                shippingAddress: JSON.stringify({
+                },
+                shippingAddress: {
                     address: editForm.customerAddress || '',
                     city: editForm.customerCity || '',
                     governorate: editForm.customerGovernorate || ''
-                })
+                },
+                shippingCost: shipping,
+                extraFees: parseFloat(editForm.extraFees || 0) || 0,
+                manualDiscount: parseFloat(editForm.manualDiscount || 0) || 0
             };
 
-            // Safely map fields that might or might not exist in the Appwrite Schema
-            if ('discount' in order) payload.discount = parseFloat(editForm.manualDiscount || 0) || 0;
-            if ('shippingCost' in order) payload.shippingCost = shipping;
-            else if ('shipping_cost' in order) payload.shipping_cost = shipping;
+            // In Firestore, we don't strictly need to check schema existence like Appwrite, 
+            // but we should maintain consistency.
+            // If historical orders use JSON strings, we might want to stick to that OR migrate to objects.
+            // The fetch logic handles both strings and objects.
+            // Let's save as objects for better querying in future, assuming we are moving forward.
+            // If the frontend expects strings (which we handled in fetchOrder), saving objects is fine as long as fetchOrder handles it.
+            // AND fetchOrder DOES handle it (Array.isArray check).
 
-            // Only send extraFees if it's explicitly in the schema
-            if ('extraFees' in order) payload.extraFees = parseFloat(editForm.extraFees || 0) || 0;
-            if ('manualDiscount' in order) payload.manualDiscount = parseFloat(editForm.manualDiscount || 0) || 0;
-
-            // Handle Mileage field discrepancy
-            if ('currentMileage' in order) payload.currentMileage = order.currentMileage;
-            if ('kilometers' in order) payload.kilometers = order.kilometers;
+            if ('shipping_cost' in order) payload.shipping_cost = shipping; // Support legacy field if present
 
             console.log("[DEBUG] Saving Order with Payload:", payload);
-            await databases.updateDocument(DATABASE_ID, ORDERS_COLLECTION, id, payload);
+            const orderRef = doc(db, 'orders', id);
+            await updateDoc(orderRef, payload);
 
             // Refetch or update local state
             setOrder(prev => ({
                 ...prev,
                 ...payload,
                 items: editForm.items,
-                shippingAddress: {
-                    address: editForm.customerAddress || '',
-                    city: editForm.customerCity || '',
-                    governorate: editForm.customerGovernorate || ''
-                },
-                customer: {
-                    name: editForm.customerName || '',
-                    email: editForm.customerEmail || '',
-                    phone: editForm.customerPhone || '',
-                    city: editForm.customerCity || '',
-                    governorate: editForm.customerGovernorate || '',
-                    address: editForm.customerAddress || ''
-                }
+                shippingAddress: payload.shippingAddress,
+                customer: payload.customerInfo
             }));
 
             setShowEditModal(false);
-            toast.success("Order updated successfully (Schema Verified)");
+            toast.success("Order updated successfully");
         } catch (err) {
             console.error("Save failure details:", err);
-            toast.error(`Update failed: ${err.message || 'Check database permissions'}`);
+            toast.error(`Update failed: ${err.message}`);
         }
         finally { setUpdating(false); }
     };
@@ -324,7 +339,7 @@ const OrderDetails = () => {
         setUpdating(true);
         try {
             toast.loading("Purging protocol...");
-            await databases.deleteDocument(DATABASE_ID, ORDERS_COLLECTION, id);
+            await deleteDoc(doc(db, 'orders', id));
             toast.dismiss();
             toast.success("Order deleted successfully");
             navigate('/admin/orders');
@@ -338,6 +353,7 @@ const OrderDetails = () => {
     };
 
     if (loading) return <div className="p-20 text-center text-gray-400 font-medium flex flex-col items-center"><Loader2 className="animate-spin mb-4" /> Loading Order Details...</div>;
+    if (!order) return null;
 
     const currentItems = enrichedItems.length > 0 ? enrichedItems : order.items;
 
@@ -379,7 +395,6 @@ const OrderDetails = () => {
                                     customerCity: order.customer?.city || '',
                                     customerGovernorate: order.customer?.governorate || '',
                                     customerAddress: order.customer?.address || '',
-                                    // Ensure items is an array
                                     items: Array.isArray(order.items) ? order.items : []
                                 });
                                 setShowEditModal(true);
@@ -454,7 +469,7 @@ const OrderDetails = () => {
                                                     {item.sku || item.id.substring(0, 8)}
                                                 </td>
                                                 <td className="px-6 py-4 text-right font-medium">
-                                                    {item.price.toLocaleString()} EGP
+                                                    {parseFloat(item.price).toLocaleString()} EGP
                                                 </td>
                                                 <td className="px-6 py-4 text-center font-bold">
                                                     {item.quantity}
@@ -480,7 +495,6 @@ const OrderDetails = () => {
                                     </div>
                                     <div className="flex justify-between text-sm text-gray-600">
                                         <span>Shipping Fee</span>
-                                        {/* FIXED: correctly referencing shippingCost or shipping_cost */}
                                         <span className="font-semibold">{(order.shippingCost || order.shipping_cost || 0).toLocaleString()} EGP</span>
                                     </div>
                                     {order.extraFees > 0 && (
@@ -535,12 +549,13 @@ const OrderDetails = () => {
                                                 <option value="Pending">Pending</option>
                                                 <option value="Paid">Paid</option>
                                                 <option value="Failed">Failed</option>
+                                                <option value="Refunded">Refunded</option>
                                             </select>
                                         </div>
                                     </div>
                                     <div className="pt-2 text-xs text-gray-400 flex items-center gap-1">
                                         <Clock size={12} />
-                                        Created: {new Date(order.$createdAt).toLocaleString()}
+                                        Created: {new Date(order.createdAt?.seconds ? order.createdAt.seconds * 1000 : order.createdAt).toLocaleString()}
                                     </div>
                                 </div>
                             </div>

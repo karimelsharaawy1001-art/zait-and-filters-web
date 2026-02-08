@@ -1,8 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { db, auth } from '../firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { safeLocalStorage } from '../utils/safeStorage';
-import { databases } from '../appwrite';
 
 const CartContext = createContext();
 
@@ -22,7 +21,6 @@ export const CartProvider = ({ children }) => {
     const [sessionId] = useState(() => {
         let id = safeLocalStorage.getItem('cartSessionId');
         if (!id) {
-            // Safer way to access randomUUID in browser
             id = (typeof crypto !== 'undefined' && crypto.randomUUID)
                 ? crypto.randomUUID()
                 : Math.random().toString(36).substring(2) + Date.now().toString(36);
@@ -51,23 +49,18 @@ export const CartProvider = ({ children }) => {
         }
     }, [cartItems]);
 
-    // 2. Debounced Appwrite Sync (Abandoned Cart Recovery)
+    // 2. Debounced Firestore Sync (Abandoned Cart Recovery)
     useEffect(() => {
         const handler = setTimeout(() => {
             try {
                 if (cartItems.length === 0) return;
 
                 const syncCart = async () => {
-                    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-                    const ABANDONED_COLLECTION = import.meta.env.VITE_APPWRITE_ABANDONED_CARTS_COLLECTION_ID || 'abandoned_carts';
-
-                    if (!DATABASE_ID) return;
-
                     try {
                         const cartId = auth.currentUser ? auth.currentUser.uid : sessionId;
                         const currentCartStr = JSON.stringify(cartItems);
 
-                        // Check if we already synced this state
+                        // Check if synced
                         const lastSyncedKey = `last_sync_${cartId}`;
                         if (safeLocalStorage.getItem(lastSyncedKey) === currentCartStr) return;
 
@@ -77,67 +70,48 @@ export const CartProvider = ({ children }) => {
                             email: customerDetails.email || auth.currentUser?.email || null,
                             customerName: customerDetails.name || auth.currentUser?.displayName || 'Guest',
                             customerPhone: customerDetails.phone || null,
-                            customerAddress: customerDetails.address || null,
-                            customerGovernorate: customerDetails.governorate || null,
-                            customerCity: customerDetails.city || null,
-                            items: currentCartStr, // Appwrite expects string for large payloads
                             total: cartItems.reduce((sum, item) => sum + (getEffectivePrice(item) * item.quantity), 0),
-                            lastModified: new Date().toISOString(),
-                            recovered: false,
-                            emailSent: false,
+                            items: cartItems, // Firestore supports arrays natively
+                            lastModified: serverTimestamp(),
+                            status: 'active',
                             lastStepReached: currentStage
                         };
 
-                        try {
-                            // Try updating first
-                            await databases.updateDocument(DATABASE_ID, ABANDONED_COLLECTION, cartId, cartData);
-                        } catch (err) {
-                            if (err.code === 404) {
-                                // Create if not exists
-                                await databases.createDocument(DATABASE_ID, ABANDONED_COLLECTION, cartId, cartData);
-                            } else {
-                                throw err;
-                            }
-                        }
+                        // Merge with existing to avoid overwriting sensitive fields
+                        await setDoc(doc(db, 'carts', cartId), cartData, { merge: true });
 
                         safeLocalStorage.setItem(lastSyncedKey, currentCartStr);
-                        console.log("[QUOTA] Abandoned cart synced to Appwrite");
+                        console.log("[QUOTA] Abandoned cart synced to Firestore");
                     } catch (err) {
-                        console.error("Error syncing abandoned cart to Appwrite:", err);
+                        console.error("Error syncing abandoned cart to Firestore:", err);
                     }
                 };
                 syncCart();
             } catch (error) {
-                console.error("Failed to handle Appwrite persistence:", error);
+                console.error("Failed to handle persistence:", error);
             }
-        }, 10000);
+        }, 5000); // 5s debounce
 
         return () => clearTimeout(handler);
     }, [cartItems, currentStage, customerDetails, auth.currentUser, sessionId]);
 
-    const updateCartStage = (stage) => {
-        setCurrentStage(stage);
-    };
+    const updateCartStage = (stage) => setCurrentStage(stage);
+    const updateCustomerInfo = (info) => setCustomerDetails(prev => ({ ...prev, ...info }));
 
-    const updateCustomerInfo = (info) => {
-        setCustomerDetails(prev => ({ ...prev, ...info }));
-    };
-
-    const parsePrice = (value) => {
-        if (value === undefined || value === null || value === '') return null;
-        const parsed = Number(value);
-        return isNaN(parsed) ? null : parsed;
+    const getEffectivePrice = (item) => {
+        if (!item) return 0;
+        return (item.salePrice !== null && item.salePrice !== undefined && Number(item.salePrice) > 0)
+            ? Number(item.salePrice)
+            : Number(item.price);
     };
 
     const addToCart = (product, quantity = 1) => {
-        // Sanitize Product Data on Entry
-        const safePrice = parsePrice(product.price) || 0;
-        let safeSalePrice = parsePrice(product.salePrice);
+        // Validation & Sanitization
+        const safePrice = Number(product.price) || 0;
+        let safeSalePrice = Number(product.salePrice);
 
-        // Strict Rule: If salePrice is invalid (0) or not better than regular price, ignore it.
-        // This fixes the "User sees regular price" bug by ensuring falsey/bad sale prices are NULLED.
-        if (safeSalePrice !== null && (safeSalePrice <= 0 || safeSalePrice >= safePrice)) {
-            safeSalePrice = null;
+        if (!safeSalePrice || safeSalePrice <= 0 || safeSalePrice >= safePrice) {
+            safeSalePrice = null; // Invalid sale price
         }
 
         const sanitizedProduct = {
@@ -151,11 +125,7 @@ export const CartProvider = ({ children }) => {
             if (existingItem) {
                 return prevItems.map((item) =>
                     item.id === product.id
-                        ? {
-                            ...item,
-                            ...sanitizedProduct, // Overwrite with sanitized, fresh data
-                            quantity: item.quantity + quantity
-                        }
+                        ? { ...item, ...sanitizedProduct, quantity: item.quantity + quantity }
                         : item
                 );
             }
@@ -163,28 +133,13 @@ export const CartProvider = ({ children }) => {
         });
     };
 
-    const getEffectivePrice = (item) => {
-        if (!item) return 0;
-        // Strictly use salePrice if it's a valid number and not null
-        return (item.salePrice !== null && item.salePrice !== undefined) ? Number(item.salePrice) : Number(item.price);
-    };
-
     const updateQuantity = (id, newQuantity) => {
         if (newQuantity < 1) {
             removeFromCart(id);
-            // Dynamic import to avoid circular dependency
-            import('react-hot-toast').then(({ toast }) => {
-                toast.success('تم إزالة المنتج من السلة', {
-                    icon: '🗑️',
-                    position: 'bottom-right'
-                });
-            });
             return;
         }
         setCartItems((prevItems) =>
-            prevItems.map((item) =>
-                item.id === id ? { ...item, quantity: newQuantity } : item
-            )
+            prevItems.map((item) => item.id === id ? { ...item, quantity: newQuantity } : item)
         );
     };
 
@@ -192,19 +147,10 @@ export const CartProvider = ({ children }) => {
         setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
     };
 
-    const clearCart = () => {
-        setCartItems([]);
-    };
+    const clearCart = () => setCartItems([]);
 
-    const getCartTotal = () => {
-        return cartItems.reduce((total, item) => {
-            return total + (getEffectivePrice(item) * item.quantity);
-        }, 0);
-    };
-
-    const getCartCount = () => {
-        return cartItems.reduce((count, item) => count + item.quantity, 0);
-    };
+    const getCartTotal = () => cartItems.reduce((total, item) => total + (getEffectivePrice(item) * item.quantity), 0);
+    const getCartCount = () => cartItems.reduce((count, item) => count + item.quantity, 0);
 
     return (
         <CartContext.Provider value={{

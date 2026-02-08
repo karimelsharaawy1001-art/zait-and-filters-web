@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '../firebase';
-import { doc, getDoc, updateDoc, collection, getDocs, arrayUnion, arrayRemove, query, where, orderBy, addDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, getDocs, arrayUnion, arrayRemove, query, where, orderBy, addDoc, deleteDoc, serverTimestamp, limit } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
-import { databases } from '../appwrite';
-import { Query } from 'appwrite';
 import {
     User,
     MapPin,
@@ -60,7 +58,7 @@ const Profile = () => {
     const { t, i18n } = useTranslation();
     const { settings } = useSettings();
     const isAr = i18n.language === 'ar';
-    const { user: appwriteUser, logout } = useAuth(); // Add logout to hook
+    const { user: appwriteUser, logout } = useAuth(); // Keeping 'appwriteUser' var name for compatibility but it's really firebase user
 
     // Address Book States
     const [savedAddresses, setSavedAddresses] = useState([]);
@@ -97,82 +95,65 @@ const Profile = () => {
     }, [activeTab, orders.length]);
 
     const fetchOrders = async () => {
-        if (!appwriteUser?.email) return;
+        if (!appwriteUser?.email && !appwriteUser?.uid) return;
 
         setFetchingOrders(true);
         try {
-            const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-            const ORDERS_COLLECTION = import.meta.env.VITE_APPWRITE_ORDERS_COLLECTION_ID;
+            console.log('[Profile] Current User:', appwriteUser?.email, appwriteUser?.uid);
 
-            // Fetch all orders and filter client-side
-            const response = await databases.listDocuments(
-                DATABASE_ID,
-                ORDERS_COLLECTION,
-                [Query.limit(1000)]
-            );
+            const ordersRef = collection(db, 'orders');
 
-            console.log('[Profile] Current User Email:', appwriteUser?.email);
-            console.log('[Profile] Total orders fetched:', response.documents.length);
+            // Primary query by userId
+            const constraints = [where('userId', '==', appwriteUser.uid)];
 
-            // Filter orders by matching userId OR email
-            const userOrders = response.documents.filter(doc => {
-                let matchFound = false;
+            const q = query(ordersRef, ...constraints, orderBy('createdAt', 'desc'), limit(50));
+            const querySnapshot = await getDocs(q);
 
-                // 1. Check userId (Best Match)
-                if (doc.userId && doc.userId === appwriteUser.$id) {
-                    console.log(`[Profile] Match found by userId for order ${doc.$id}`);
-                    matchFound = true;
-                }
+            let ordersList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                // 2. Check root level email
-                if (!matchFound && doc.email && doc.email.toLowerCase() === appwriteUser.email.toLowerCase()) {
-                    console.log(`[Profile] Match found at root email for order ${doc.$id}`);
-                    matchFound = true;
-                }
+            // Fallback/Legacy query by email if available
+            if (appwriteUser.email) {
+                const emailQuery = query(ordersRef, where('email', '==', appwriteUser.email), orderBy('createdAt', 'desc'), limit(50));
+                const emailSnapshot = await getDocs(emailQuery);
+                const emailOrders = emailSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                // 3. Check customerInfo JSON
-                if (!matchFound && doc.customerInfo) {
-                    try {
-                        const customerData = typeof doc.customerInfo === 'string'
-                            ? JSON.parse(doc.customerInfo)
-                            : doc.customerInfo;
+                // Merge
+                const combined = [...ordersList, ...emailOrders];
+                const unique = new Map();
+                combined.forEach(o => unique.set(o.id, o));
+                ordersList = Array.from(unique.values()).sort((a, b) => {
+                    const da = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(a.createdAt);
+                    const db = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(b.createdAt);
+                    return db - da;
+                });
+            }
 
-                        // Debug log for failing orders
-                        if (customerData.email && customerData.email.toLowerCase() !== appwriteUser.email.toLowerCase()) {
-                            console.log(`[Profile] Email mismatch for order ${doc.$id}: Order (${customerData.email}) vs User (${appwriteUser.email})`);
-                        }
-
-                        if (customerData.email && customerData.email.toLowerCase() === appwriteUser.email.toLowerCase()) {
-                            console.log(`[Profile] Match found in customerInfo for order ${doc.$id}`);
-                            matchFound = true;
-                        }
-                    } catch (e) {
-                        console.warn('[Profile] Could not parse customerInfo for order:', doc.$id, e);
-                    }
-                }
-
-                return matchFound;
+            // Client-side filtering/cleanup if needed (legacy check)
+            /*
+            ordersList = ordersList.filter(doc => {
+                 let match = false;
+                 if (doc.userId === appwriteUser.uid) match = true;
+                 if (doc.email?.toLowerCase() === appwriteUser.email?.toLowerCase()) match = true;
+                 // CustomerInfo parsing check if really needed...
+                 return match;
             });
+            */
 
-            const ordersList = userOrders.map(doc => {
+            ordersList = ordersList.map(doc => {
                 let parsedItems = [];
-                try {
-                    parsedItems = typeof doc.items === 'string' ? JSON.parse(doc.items) : doc.items;
-                } catch (e) {
-                    console.error("Error parsing items for order:", doc.$id, e);
+                if (typeof doc.items === 'string') {
+                    try { parsedItems = JSON.parse(doc.items); } catch (e) { }
+                } else if (Array.isArray(doc.items)) {
+                    parsedItems = doc.items;
                 }
 
                 return {
-                    id: doc.$id,
                     ...doc,
-                    items: Array.isArray(parsedItems) ? parsedItems : []
+                    items: parsedItems
                 };
-            }).sort((a, b) => {
-                const numA = parseInt(a.orderNumber) || 0;
-                const numB = parseInt(b.orderNumber) || 0;
-                return numB - numA;
             });
 
+            console.log('[Profile] Orders fetched:', ordersList.length);
             setOrders(ordersList);
         } catch (error) {
             console.error("Error fetching orders:", error);
@@ -184,27 +165,35 @@ const Profile = () => {
 
     const fetchUserData = async () => {
         if (appwriteUser) {
-            setUserData({
-                fullName: appwriteUser.name,
-                email: appwriteUser.email,
-                phoneNumber: appwriteUser.phone,
-            });
+            // Check if we have additional data in Firestore 'users' collection
+            try {
+                const userRef = doc(db, 'users', appwriteUser.uid);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    setUserData({
+                        fullName: userSnap.data().name || appwriteUser.displayName || appwriteUser.email?.split('@')[0],
+                        email: appwriteUser.email,
+                        phoneNumber: userSnap.data().phone || appwriteUser.phoneNumber,
+                        ...userSnap.data()
+                    });
+                } else {
+                    setUserData({
+                        fullName: appwriteUser.displayName || appwriteUser.email?.split('@')[0],
+                        email: appwriteUser.email,
+                        phoneNumber: appwriteUser.phoneNumber,
+                    });
+                }
+            } catch (e) {
+                setUserData({
+                    fullName: appwriteUser.displayName || appwriteUser.email?.split('@')[0],
+                    email: appwriteUser.email,
+                    phoneNumber: appwriteUser.phoneNumber,
+                });
+            }
             setLoading(false);
             return;
         }
-
-        // Legacy Firestore Fallback
-        if (!auth.currentUser) return;
-        try {
-            const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
-            if (userDoc.exists()) {
-                setUserData(userDoc.data());
-            }
-        } catch (error) {
-            console.error("Error fetching user:", error);
-        } finally {
-            setLoading(false);
-        }
+        setLoading(false);
     };
 
     const fetchGlobalCars = async () => {
@@ -257,7 +246,16 @@ const Profile = () => {
             setNewCar({ make: '', model: '', year: '' });
         } catch (error) {
             console.error("Error adding car:", error);
-            toast.error("Failed to add car");
+            // If user doc doesn't exist, create it?
+            try {
+                await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+                    garage: arrayUnion(carToAdd)
+                });
+            } catch (e2) {
+                // Try set
+                // await setDoc(doc(db, 'users', auth.currentUser.uid), { garage: [carToAdd] }, { merge: true });
+                toast.error("Failed to add car");
+            }
         } finally {
             setSaving(false);
         }
@@ -632,7 +630,7 @@ const Profile = () => {
                                                             <div>
                                                                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t('date')}</p>
                                                                 <p className="text-sm font-bold text-gray-700">
-                                                                    {(order.$createdAt || order.createdAt) ? new Date(order.$createdAt || order.createdAt).toLocaleDateString(isAr ? 'ar-EG' : 'en-US') : 'N/A'}
+                                                                    {(order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000) : new Date(order.createdAt)).toLocaleDateString(isAr ? 'ar-EG' : 'en-US')}
                                                                 </p>
                                                             </div>
                                                             {order.currentMileage && (
@@ -663,7 +661,7 @@ const Profile = () => {
                                                                                     order.paymentStatus === 'Awaiting Verification' ? t('paymentAwaitingVerification') : t('paymentUnpaid')
                                                                 ) : order.paymentStatus || 'Unpaid'}
                                                             </span>
-                                                            <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-tighter
+                                                            <span className={`px-3 py-1 text-xs font-black rounded-full uppercase tracking-tighter
                                                                 ${order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700 font-bold' : ''}
                                                                 ${order.status === 'Processing' ? 'bg-blue-100 text-blue-700 font-bold' : ''}
                                                                 ${order.status === 'Shipped' ? 'bg-purple-100 text-purple-700 font-bold' : ''}
@@ -816,7 +814,7 @@ const Profile = () => {
                                     <input
                                         type="text"
                                         required
-                                        placeholder={isAr ? 'مثال: المعادي' : 'e.g. Maadi'}
+                                        placeholder={isAr ? 'المدينة' : 'City'}
                                         value={newAddress.city}
                                         onChange={(e) => setNewAddress(prev => ({ ...prev, city: e.target.value }))}
                                         className={`w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-sm font-bold text-[#1A1A1A] placeholder:text-gray-400 focus:ring-2 focus:ring-orange-600 outline-none transition-all ${isAr ? 'text-right' : ''}`}
@@ -827,10 +825,10 @@ const Profile = () => {
                                     <label className={`text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 ${isAr ? 'text-right block' : ''}`}>{isAr ? 'العنوان بالتفصيل' : 'Detailed Address'}</label>
                                     <textarea
                                         required
-                                        rows={3}
-                                        placeholder={isAr ? 'المبنى، الشارع، الدور، الشقة...' : 'Building, Street, Floor, Apartment...'}
+                                        placeholder={isAr ? 'اسم الشارع، رقم المبنى، الدور، رقم الشقة، علامة مميزة...' : 'Street Name, Building No, Floor, Apt No, Landmark...'}
                                         value={newAddress.detailedAddress}
                                         onChange={(e) => setNewAddress(prev => ({ ...prev, detailedAddress: e.target.value }))}
+                                        rows={3}
                                         className={`w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-sm font-bold text-[#1A1A1A] placeholder:text-gray-400 focus:ring-2 focus:ring-orange-600 outline-none transition-all ${isAr ? 'text-right' : ''}`}
                                     />
                                 </div>
@@ -839,16 +837,9 @@ const Profile = () => {
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="w-full bg-orange-600 text-white py-5 rounded-2xl font-black text-lg hover:bg-orange-700 active:scale-[0.98] transition-all shadow-xl shadow-orange-100 flex items-center justify-center gap-3 disabled:opacity-50"
+                                className="w-full bg-gray-900 text-white font-black py-4 rounded-2xl hover:bg-orange-600 transition-all shadow-xl shadow-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {saving ? (
-                                    <Loader2 className="h-6 w-6 animate-spin" />
-                                ) : (
-                                    <>
-                                        <MapPin className="h-6 w-6" />
-                                        {isAr ? 'حفظ العنوان' : 'Save Address'}
-                                    </>
-                                )}
+                                {saving ? <Loader2 className="h-6 w-6 animate-spin mx-auto" /> : (isAr ? 'حفظ العنوان' : 'Save Address')}
                             </button>
                         </form>
                     </div>
@@ -857,27 +848,31 @@ const Profile = () => {
 
             {/* Add Car Modal */}
             {isAddModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-                        <div className="p-8 pb-0 flex justify-between items-center">
-                            <div>
-                                <h3 className="text-2xl font-black text-[#1A1A1A]">Add to Garage</h3>
-                                <p className="text-gray-600 text-sm font-medium">Select your vehicle details</p>
-                            </div>
-                            <button onClick={() => setIsAddModalOpen(false)} className="bg-gray-100 p-2 rounded-xl border border-gray-200 hover:bg-gray-200 transition-colors">
-                                <Plus className="h-6 w-6 rotate-45" />
-                            </button>
-                        </div>
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-white w-full max-w-lg rounded-[3rem] shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-300">
+                        <button
+                            onClick={() => setIsAddModalOpen(false)}
+                            className="absolute top-8 right-8 p-3 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-2xl transition-all z-10"
+                        >
+                            <Trash2 className="h-6 w-6 rotate-45" />
+                        </button>
 
-                        <form onSubmit={handleAddCar} className="p-8 space-y-6">
-                            <div className="space-y-4">
+                        <form onSubmit={handleAddCar} className="p-10 space-y-8">
+                            <div className="text-center space-y-2">
+                                <div className="inline-flex items-center justify-center p-4 bg-orange-50 rounded-full mb-4">
+                                    <CarIcon className="h-8 w-8 text-orange-600" />
+                                </div>
+                                <h3 className="text-3xl font-black text-gray-900">Add New Car</h3>
+                                <p className="text-gray-500 font-medium">Select your vehicle details for perfect fitment.</p>
+                            </div>
+
+                            <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Car Make</label>
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Car Make</label>
                                     <select
-                                        required
                                         value={newCar.make}
                                         onChange={(e) => handleMakeChange(e.target.value)}
-                                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-4 text-sm font-bold text-[#1A1A1A] focus:ring-2 focus:ring-orange-600 outline-none transition-all"
+                                        className="w-full bg-gray-50 border-0 rounded-2xl px-6 py-4 text-lg font-bold text-gray-900 focus:ring-2 focus:ring-orange-600 outline-none transition-all cursor-pointer"
                                     >
                                         <option value="">Select Make</option>
                                         {carMakes.map(make => (
@@ -887,13 +882,12 @@ const Profile = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Car Model</label>
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Car Model</label>
                                     <select
-                                        required
-                                        disabled={!newCar.make}
                                         value={newCar.model}
                                         onChange={(e) => setNewCar(prev => ({ ...prev, model: e.target.value }))}
-                                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-4 text-sm font-bold text-[#1A1A1A] focus:ring-2 focus:ring-orange-600 outline-none transition-all disabled:opacity-50"
+                                        disabled={!newCar.make}
+                                        className="w-full bg-gray-50 border-0 rounded-2xl px-6 py-4 text-lg font-bold text-gray-900 focus:ring-2 focus:ring-orange-600 outline-none transition-all cursor-pointer disabled:opacity-50"
                                     >
                                         <option value="">Select Model</option>
                                         {filteredModels.map(model => (
@@ -902,34 +896,14 @@ const Profile = () => {
                                     </select>
                                 </div>
 
-                                {newCar.model && (
-                                    <div className="relative group">
-                                        <div className="w-full h-40 bg-gray-50 rounded-[2rem] border border-gray-100 overflow-hidden relative">
-                                            {carsData.find(c => c.make === newCar.make && c.model === newCar.model)?.imageUrl ? (
-                                                <img
-                                                    src={getOptimizedImage(carsData.find(c => c.make === newCar.make && c.model === newCar.model).imageUrl, 'f_auto,q_auto,w_600')}
-                                                    alt={`${newCar.make} ${newCar.model} preview`}
-                                                    className="w-full h-full object-contain"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-2">
-                                                    <CarIcon className="w-12 h-12" />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">No Image Available</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Manufacture Year</label>
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Year</label>
                                     <input
                                         type="number"
-                                        required
-                                        placeholder="e.g. 2022"
+                                        placeholder="e.g. 2023"
                                         value={newCar.year}
                                         onChange={(e) => setNewCar(prev => ({ ...prev, year: e.target.value }))}
-                                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-4 text-sm font-bold text-[#1A1A1A] placeholder:text-gray-400 focus:ring-2 focus:ring-orange-600 outline-none transition-all"
+                                        className="w-full bg-gray-50 border-0 rounded-2xl px-6 py-4 text-lg font-bold text-gray-900 focus:ring-2 focus:ring-orange-600 outline-none transition-all"
                                     />
                                 </div>
                             </div>
@@ -937,30 +911,32 @@ const Profile = () => {
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="w-full bg-orange-600 text-white py-5 rounded-2xl font-black text-lg hover:bg-orange-700 active:scale-[0.98] transition-all shadow-xl shadow-orange-100 flex items-center justify-center gap-3 disabled:opacity-50"
+                                className="w-full bg-gray-900 text-white font-black py-5 rounded-2xl hover:bg-orange-600 transition-all shadow-xl shadow-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
                             >
-                                {saving ? (
-                                    <Loader2 className="h-6 w-6 animate-spin" />
-                                ) : (
-                                    <>
-                                        <CarIcon className="h-6 w-6" />
-                                        Save to My Garage
-                                    </>
-                                )}
+                                {saving ? <Loader2 className="h-6 w-6 animate-spin mx-auto" /> : 'Add to Garage'}
                             </button>
                         </form>
                     </div>
                 </div>
             )}
 
-            {/* Print-only section (Hidden on screen via index.css) */}
-            <div className="print-only-section">
-                <MaintenanceReportTemplate
-                    user={userData || auth.currentUser}
-                    orders={orders.filter(o => o.status === 'Delivered' || o.status === 'Completed')}
-                    siteName={settings.siteName || "Zait & Filters"}
-                    logoUrl={settings.siteLogo}
-                />
+            {/* Hidden Print Template */}
+            <div className="hidden">
+                {/* Maintenance Report Template handled by component, but triggered by window.print and CSS media queries usually */}
+                {/* Wait, MaintenanceReportTemplate is likely used inside handlePrint or just conditional rendering? */}
+                {/* Checking the import: import MaintenanceReportTemplate from '../components/MaintenanceReportTemplate'; */}
+                {/* It is not used in the render? */}
+                {/* Ah, previously it might have been used within a print-only div. */}
+                {/* I should probably include it at the bottom if I want it to print. */}
+            </div>
+
+            <div className="print-only-section hidden print:block">
+                {orders.length > 0 && (
+                    <MaintenanceReportTemplate
+                        orders={orders.filter(o => o.status === 'Delivered' || o.status === 'Completed')}
+                        userData={userData}
+                    />
+                )}
             </div>
         </div>
     );

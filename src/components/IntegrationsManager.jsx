@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { databases } from '../appwrite';
+import { db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 /**
  * IntegrationsManager handles global third-party scripts and verification tags.
@@ -9,15 +10,14 @@ import { databases } from '../appwrite';
 const IntegrationsManager = () => {
     useEffect(() => {
         const fetchIntegrations = async () => {
-            const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-            const SETTINGS_COLLECTION = import.meta.env.VITE_APPWRITE_SETTINGS_COLLECTION_ID || 'settings';
-            const DOC_ID = 'integrations';
-
-            if (!DATABASE_ID) return;
-
             try {
-                const data = await databases.getDocument(DATABASE_ID, SETTINGS_COLLECTION, DOC_ID);
-                if (data) {
+                // Fetch from Firestore 'settings/integrations'
+                const docRef = doc(db, 'settings', 'integrations');
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+
                     // 1. Google Site Verification (Meta Tag Method)
                     if (data.googleVerificationCode) {
                         let googleMeta = document.querySelector('meta[name="google-site-verification"]');
@@ -26,7 +26,7 @@ const IntegrationsManager = () => {
                             googleMeta.name = 'google-site-verification';
                             document.head.appendChild(googleMeta);
                         }
-                        // Clean the code (mirroring logic in SEO.jsx for consistency)
+
                         let code = data.googleVerificationCode;
                         if (code.includes('content="')) {
                             code = code.split('content="')[1].split('"')[0];
@@ -36,9 +36,8 @@ const IntegrationsManager = () => {
 
                     // 2. Facebook Pixel
                     if (data.facebookPixelId) {
-                        let fPixelScript = document.getElementById('facebook-pixel-script');
-                        if (!fPixelScript) {
-                            fPixelScript = document.createElement('script');
+                        if (!document.getElementById('facebook-pixel-script')) {
+                            const fPixelScript = document.createElement('script');
                             fPixelScript.id = 'facebook-pixel-script';
                             fPixelScript.innerHTML = `
                                 !function(f,b,e,v,n,t,s)
@@ -54,21 +53,17 @@ const IntegrationsManager = () => {
                             `;
                             document.head.appendChild(fPixelScript);
 
-                            let noscript = document.getElementById('facebook-pixel-noscript');
-                            if (!noscript) {
-                                noscript = document.createElement('noscript');
-                                noscript.id = 'facebook-pixel-noscript';
-                                noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${data.facebookPixelId}&ev=PageView&noscript=1" />`;
-                                document.head.appendChild(noscript);
-                            }
+                            const noscript = document.createElement('noscript');
+                            noscript.id = 'facebook-pixel-noscript';
+                            noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${data.facebookPixelId}&ev=PageView&noscript=1" />`;
+                            document.head.appendChild(noscript);
                         }
                     }
 
                     // 3. Google Analytics (GA4)
                     if (data.googleAnalyticsId) {
-                        let gaScript = document.getElementById('google-analytics-script');
-                        if (!gaScript) {
-                            gaScript = document.createElement('script');
+                        if (!document.getElementById('google-analytics-script')) {
+                            const gaScript = document.createElement('script');
                             gaScript.id = 'google-analytics-script';
                             gaScript.async = true;
                             gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${data.googleAnalyticsId}`;
@@ -87,7 +82,7 @@ const IntegrationsManager = () => {
                     }
                 }
             } catch (error) {
-                console.error('IntegrationsManager Error:', error);
+                console.error('IntegrationsManager Firestore Error:', error);
             }
         };
 

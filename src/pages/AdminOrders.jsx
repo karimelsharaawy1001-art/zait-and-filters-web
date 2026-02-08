@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { databases, auth as appwriteAuth } from '../appwrite';
-import { Query, ID } from 'appwrite';
+import { collection, query, orderBy, limit, getDocs, updateDoc, doc, deleteDoc, where, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../firebase';
 import { toast } from 'react-hot-toast';
 import { useNavigate, Link } from 'react-router-dom';
 import AdminHeader from '../components/AdminHeader';
@@ -19,90 +19,120 @@ const AdminOrders = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const navigate = useNavigate();
 
-    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-    const ORDERS_COLLECTION = import.meta.env.VITE_APPWRITE_ORDERS_COLLECTION_ID || 'orders';
-    const AFFILIATES_COLLECTION = import.meta.env.VITE_APPWRITE_AFFILIATES_COLLECTION_ID || 'affiliates';
-    const TRANSACTIONS_COLLECTION = import.meta.env.VITE_APPWRITE_TRANSACTIONS_COLLECTION_ID || 'transactions';
-
     const fetchOrders = async () => {
-        if (!DATABASE_ID) return;
         setLoading(true);
         try {
-            const response = await databases.listDocuments(DATABASE_ID, ORDERS_COLLECTION, [Query.orderDesc('$createdAt'), Query.limit(100)]);
-            setOrders(response.documents.map(doc => {
+            const ordersRef = collection(db, 'orders');
+            const q = query(ordersRef, orderBy('createdAt', 'desc'), limit(100));
+
+            const querySnapshot = await getDocs(q);
+            const fetchedOrders = querySnapshot.docs.map(doc => {
+                const data = doc.data();
+
                 let parsedCustomer = {};
-                try {
-                    parsedCustomer = doc.customerInfo ? (typeof doc.customerInfo === 'string' ? JSON.parse(doc.customerInfo) : doc.customerInfo) : {};
-                } catch (e) {
-                    console.warn("Failed to parse customer info");
+                if (typeof data.customerInfo === 'string') {
+                    try { parsedCustomer = JSON.parse(data.customerInfo); } catch (e) { }
+                } else {
+                    parsedCustomer = data.customerInfo || {};
                 }
 
                 let parsedItems = [];
-                try {
-                    parsedItems = doc.items ? (typeof doc.items === 'string' ? JSON.parse(doc.items) : doc.items) : [];
-                } catch (e) {
-                    console.warn("Failed to parse items");
+                if (typeof data.items === 'string') {
+                    try { parsedItems = JSON.parse(data.items); } catch (e) { }
+                } else if (Array.isArray(data.items)) {
+                    parsedItems = data.items;
                 }
 
                 let parsedAddress = {};
-                try {
-                    parsedAddress = doc.shippingAddress ? (typeof doc.shippingAddress === 'string' ? JSON.parse(doc.shippingAddress) : doc.shippingAddress) : {};
-                } catch (e) {
-                    console.warn("Failed to parse shipping address");
+                if (typeof data.shippingAddress === 'string') {
+                    try { parsedAddress = JSON.parse(data.shippingAddress); } catch (e) { }
+                } else {
+                    parsedAddress = data.shippingAddress || {};
                 }
 
                 return {
-                    id: doc.$id,
-                    ...doc,
+                    id: doc.id,
+                    ...data,
                     customer: parsedCustomer,
                     items: parsedItems,
                     shippingAddress: parsedAddress
                 };
-            }));
+            });
+
+            setOrders(fetchedOrders);
         } catch (error) {
-            console.error(error);
+            console.error("Error fetching orders:", error);
+            toast.error("Failed to load orders");
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => { fetchOrders(); }, [DATABASE_ID]);
+    useEffect(() => { fetchOrders(); }, []);
 
     const handleStatusChange = async (orderId, newStatus) => {
         try {
-            await databases.updateDocument(DATABASE_ID, ORDERS_COLLECTION, orderId, { status: newStatus });
+            const orderRef = doc(db, 'orders', orderId);
+            await updateDoc(orderRef, { status: newStatus });
             setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
             toast.success(`Protocol updated to ${newStatus}`);
 
             // Affiliate commission logic if Delivered
             const targetOrder = orders.find(o => o.id === orderId);
             if (newStatus === 'Delivered' && targetOrder?.affiliateCode) {
-                const affRes = await databases.listDocuments(DATABASE_ID, AFFILIATES_COLLECTION, [Query.equal('referralCode', targetOrder.affiliateCode)]);
-                if (affRes.total > 0) {
-                    const affDoc = affRes.documents[0];
-                    const transRes = await databases.listDocuments(DATABASE_ID, TRANSACTIONS_COLLECTION, [Query.equal('orderId', orderId)]);
-                    if (transRes.total === 0) {
-                        const commission = Math.floor((targetOrder.subtotal || 0) * ((affDoc.commissionPercentage || 5) / 100));
-                        await databases.createDocument(DATABASE_ID, TRANSACTIONS_COLLECTION, ID.unique(), {
-                            type: 'commission', amount: targetOrder.subtotal, commission, orderId, affiliateId: affDoc.$id, orderNumber: String(targetOrder.orderNumber), status: 'Pending', createdAt: new Date().toISOString()
-                        });
-                        await databases.updateDocument(DATABASE_ID, AFFILIATES_COLLECTION, affDoc.$id, {
-                            totalEarnings: (affDoc.totalEarnings || 0) + commission, referralCount: (affDoc.referralCount || 0) + 1
-                        });
+                try {
+                    const affiliatesRef = collection(db, 'affiliates');
+                    const qAff = query(affiliatesRef, where('referralCode', '==', targetOrder.affiliateCode));
+                    const affSnap = await getDocs(qAff);
+
+                    if (!affSnap.empty) {
+                        const affDoc = affSnap.docs[0];
+                        const affData = affDoc.data();
+
+                        // Check transaction existence
+                        const transactionsRef = collection(db, 'transactions');
+                        const qTrans = query(transactionsRef, where('orderId', '==', orderId));
+                        const transSnap = await getDocs(qTrans);
+
+                        if (transSnap.empty) {
+                            const commission = Math.floor((targetOrder.subtotal || 0) * ((affData.commissionPercentage || 5) / 100));
+
+                            await addDoc(transactionsRef, {
+                                type: 'commission',
+                                amount: targetOrder.subtotal,
+                                commission,
+                                orderId,
+                                affiliateId: affDoc.id,
+                                orderNumber: String(targetOrder.orderNumber),
+                                status: 'Pending',
+                                createdAt: serverTimestamp() // Firestore Timestamp
+                            });
+
+                            const affRef = doc(db, 'affiliates', affDoc.id);
+                            await updateDoc(affRef, {
+                                totalEarnings: (affData.totalEarnings || 0) + commission,
+                                referralCount: (affData.referralCount || 0) + 1
+                            });
+                        }
                     }
+                } catch (err) {
+                    console.error("Affiliate logic error:", err);
                 }
             }
         } catch (error) {
+            console.error("Status update error:", error);
             toast.error("Status sync failure");
         }
     };
 
     const handleMarkPaid = async (orderId) => {
         try {
-            await databases.updateDocument(DATABASE_ID, ORDERS_COLLECTION, orderId, { paymentStatus: 'Paid' });
+            const orderRef = doc(db, 'orders', orderId);
+            await updateDoc(orderRef, { paymentStatus: 'Paid' });
             setOrders(prev => prev.map(o => o.id === orderId ? { ...o, paymentStatus: 'Paid' } : o));
             toast.success("Payment verified");
         } catch (error) {
+            console.error("Payment update error:", error);
             toast.error("Verification failed");
         }
     };
@@ -112,7 +142,7 @@ const AdminOrders = () => {
 
         try {
             toast.loading("Deleting protocol...");
-            await databases.deleteDocument(DATABASE_ID, ORDERS_COLLECTION, orderId);
+            await deleteDoc(doc(db, 'orders', orderId));
             setOrders(prev => prev.filter(o => o.id !== orderId));
             toast.dismiss();
             toast.success(`Protocol #${orderNumber} purged successfully`);
@@ -128,7 +158,7 @@ const AdminOrders = () => {
     const filteredOrders = orders.filter(o => {
         const matchesTab = activeTab === 'All' || o.status === activeTab;
         const search = searchQuery.toLowerCase().trim();
-        const matchesSearch = !search || String(o.orderNumber).includes(search) || o.customer?.name?.toLowerCase().includes(search) || o.customer?.phone?.includes(search);
+        const matchesSearch = !search || String(o.orderNumber || '').includes(search) || o.customer?.name?.toLowerCase().includes(search) || o.customer?.phone?.includes(search);
         return matchesTab && matchesSearch;
     });
 
@@ -151,13 +181,13 @@ const AdminOrders = () => {
                                 placeholder="Search Protocol..."
                             />
                         </div>
-                        <button onClick={() => navigate('/admin/products/new')} className="admin-btn-slim bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-900/10">
+                        <button onClick={() => navigate('/admin/products/new')} className="text-xs bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-900/10 px-4 py-2 rounded-lg font-bold flex items-center gap-2">
                             <PlusCircle size={14} /> New Order
                         </button>
                     </div>
                 </div>
 
-                <div className="admin-card-compact p-1.5 mb-6 overflow-x-auto">
+                <div className="bg-white p-1.5 mb-6 overflow-x-auto rounded-xl border border-slate-100 shadow-sm">
                     <div className="flex gap-1 min-w-max">
                         {statusTabs.map(tab => (
                             <button
@@ -171,7 +201,7 @@ const AdminOrders = () => {
                     </div>
                 </div>
 
-                <div className="admin-card-compact overflow-hidden">
+                <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
                     {loading ? (
                         <div className="p-16 text-center text-slate-400">
                             <Loader2 className="animate-spin mx-auto mb-3" size={32} />
@@ -179,27 +209,29 @@ const AdminOrders = () => {
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="w-full admin-table-dense">
-                                <thead className="bg-slate-50/50">
+                            <table className="w-full text-left border-collapse">
+                                <thead className="bg-slate-50/50 text-[10px] uppercase tracking-widest text-slate-500 font-bold">
                                     <tr>
-                                        <th className="text-left">Protocol ID</th>
-                                        <th className="text-left">Consignee</th>
-                                        <th className="text-left">Flow Type</th>
-                                        <th className="text-center">Gross Revenue</th>
-                                        <th className="text-center">Phase</th>
-                                        <th className="text-right">Actions</th>
+                                        <th className="p-4 rounded-tl-xl text-left">Protocol ID</th>
+                                        <th className="p-4 text-left">Consignee</th>
+                                        <th className="p-4 text-left">Flow Type</th>
+                                        <th className="p-4 text-center">Gross Revenue</th>
+                                        <th className="p-4 text-center">Phase</th>
+                                        <th className="p-4 rounded-tr-xl text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50">
                                     {filteredOrders.map(order => (
                                         <tr key={order.id} className="hover:bg-slate-50/50 group transition-all">
-                                            <td>
+                                            <td className="p-4">
                                                 <div className="flex flex-col">
-                                                    <span className="text-[13px] font-bold text-slate-900">#{order.orderNumber}</span>
-                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">{new Date(order.$createdAt).toLocaleDateString('en-GB')}</span>
+                                                    <span className="text-[13px] font-bold text-slate-900">#{order.orderNumber || order.id.slice(-6).toUpperCase()}</span>
+                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">
+                                                        {(order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000) : new Date(order.createdAt)).toLocaleDateString('en-GB')}
+                                                    </span>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td className="p-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500 text-xs font-bold uppercase">{order.customer?.name?.[0]}</div>
                                                     <div>
@@ -208,16 +240,16 @@ const AdminOrders = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td className="p-4">
                                                 <div className="flex flex-col gap-1">
                                                     <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1"><CreditCard size={10} />{order.paymentMethod}</span>
                                                     <span className={`text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border w-fit ${order.paymentStatus === 'Paid' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>{order.paymentStatus}</span>
                                                 </div>
                                             </td>
-                                            <td className="text-center">
-                                                <span className="text-sm font-bold text-slate-900 font-Cairo">{order.total?.toLocaleString()} EGP</span>
+                                            <td className="p-4 text-center">
+                                                <span className="text-sm font-bold text-slate-900">{order.total?.toLocaleString()} EGP</span>
                                             </td>
-                                            <td className="text-center">
+                                            <td className="p-4 text-center">
                                                 <select
                                                     value={order.status}
                                                     onChange={e => handleStatusChange(order.id, e.target.value)}
@@ -230,7 +262,7 @@ const AdminOrders = () => {
                                                     {statusTabs.map(s => s !== 'All' && <option key={s} value={s}>{s}</option>)}
                                                 </select>
                                             </td>
-                                            <td className="text-right">
+                                            <td className="p-4 text-right">
                                                 <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-all">
                                                     {order.paymentStatus !== 'Paid' && (
                                                         <button onClick={() => handleMarkPaid(order.id)} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" title="Mark Paid">

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload, X, Loader2, CheckCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { storage } from '../../appwrite';
-import { ID } from 'appwrite';
+import { storage } from '../../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const ImageUpload = ({
     value,
@@ -19,14 +19,12 @@ const ImageUpload = ({
     const [preview, setPreview] = useState(actualValue || '');
     const [urlInput, setUrlInput] = useState(actualValue && actualValue.startsWith('http') ? actualValue : '');
 
-    const BUCKET_ID = import.meta.env.VITE_APPWRITE_BUCKET_ID;
-
     const isValidImageUrl = (url) => {
         if (!url) return false;
         return url.match(/\.(jpeg|jpg|gif|png|webp|svg|bmp)(\?.*)?$/i) !== null || url.startsWith('http');
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
         setPreview(actualValue || '');
         if (actualValue && actualValue.startsWith('http')) {
             setUrlInput(actualValue);
@@ -39,31 +37,27 @@ const ImageUpload = ({
         const file = e.target.files[0];
         if (!file) return;
 
-        if (!BUCKET_ID) {
-            toast.error("Appwrite Bucket ID is missing in configuration.");
-            return;
-        }
-
         setUploading(true);
         setProgress(0);
         setUrlInput('');
 
         try {
-            const uploadedFile = await storage.createFile(
-                BUCKET_ID,
-                ID.unique(),
-                file
-            );
+            // Create a consistent path: images/folder/timestamp_filename
+            const storagePath = `images/${folderPath}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+            const storageRef = ref(storage, storagePath);
 
-            // Get standard view URL
-            const fileUrl = storage.getFileView(BUCKET_ID, uploadedFile.$id);
+            // Upload
+            await uploadBytes(storageRef, file);
+
+            // Get URL
+            const fileUrl = await getDownloadURL(storageRef);
 
             setPreview(fileUrl);
             if (actualOnChange) actualOnChange(fileUrl);
-            toast.success("Image uploaded to Appwrite Storage");
+            toast.success("Image uploaded to Firebase Storage");
         } catch (error) {
-            console.error('Appwrite Upload Error:', error);
-            toast.error("Upload failed. please check Appwrite Console.");
+            console.error('Firebase Upload Error:', error);
+            toast.error(`Upload failed: ${error.message}`);
         } finally {
             setUploading(false);
         }

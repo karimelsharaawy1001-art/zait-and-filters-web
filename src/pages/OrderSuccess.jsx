@@ -1,39 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CheckCircle, Home, Package, ArrowRight, Loader2, UserPlus } from 'lucide-react';
+import { CheckCircle, Home, Package, ArrowRight, Loader2, UserPlus, Download } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { collection, doc, increment, runTransaction, getDoc } from 'firebase/firestore';
+import { collection, doc, increment, runTransaction, getDoc, updateDoc, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 import { useCart } from '../context/CartContext';
 import { generateInvoice } from '../utils/invoiceGenerator';
-import { Download } from 'lucide-react';
 import { safeLocalStorage } from '../utils/safeStorage';
+import axios from 'axios';
 
-const runPostOrderActions = async (order, databases, DATABASE_ID, PRODUCTS_COLLECTION, PROMOS_COLLECTION, ABANDONED_COLLECTION) => {
+const runPostOrderActions = async (order) => {
     try {
         console.log("[POST-ORDER] Starting automated actions for order:", order.id);
 
         // 1. Mark abandoned cart as recovered
         const cartId = auth.currentUser ? auth.currentUser.uid : (safeLocalStorage.getItem('cartSessionId') || order.sessionId);
         if (cartId) {
-            await databases.updateDocument(DATABASE_ID, ABANDONED_COLLECTION, cartId, {
+            const cartRef = doc(db, 'carts', cartId);
+            await updateDoc(cartRef, {
                 recovered: true,
-                recoveredAt: new Date().toISOString(),
+                recoveredAt: serverTimestamp(),
                 orderId: order.id
-            });
-            console.log("[POST-ORDER] Abandoned cart marked as recovered.");
+            }).catch(e => console.warn("Cart recovery update failed (likely already inactive)", e));
         }
 
         // 2. Increment Promo Usage
         if (order.promoId) {
             try {
-                const promoDoc = await databases.getDocument(DATABASE_ID, PROMOS_COLLECTION, order.promoId);
-                await databases.updateDocument(DATABASE_ID, PROMOS_COLLECTION, order.promoId, {
-                    usedCount: (promoDoc.usedCount || 0) + 1
+                const promoRef = doc(db, 'promo_codes', order.promoId);
+                await updateDoc(promoRef, {
+                    usedCount: increment(1)
                 });
-                console.log("[POST-ORDER] Promo usage incremented.");
             } catch (e) { console.warn("Promo update failed", e); }
         }
 
@@ -42,43 +41,51 @@ const runPostOrderActions = async (order, databases, DATABASE_ID, PRODUCTS_COLLE
         items.forEach(async (item) => {
             if (item.id && item.id !== 'unknown') {
                 try {
-                    const pDoc = await databases.getDocument(DATABASE_ID, PRODUCTS_COLLECTION, item.id);
-                    await databases.updateDocument(DATABASE_ID, PRODUCTS_COLLECTION, item.id, {
-                        soldCount: (pDoc.soldCount || 0) + item.quantity
+                    const prodRef = doc(db, 'products', item.id);
+                    await updateDoc(prodRef, {
+                        soldCount: increment(item.quantity)
                     });
-                } catch (e) { console.warn("Stock update failed for", item.id); }
+                } catch (e) {
+                    // Start soldCount if missing
+                    try {
+                        const prodRef = doc(db, 'products', item.id);
+                        await setDoc(prodRef, { soldCount: item.quantity }, { merge: true });
+                    } catch (e2) { console.warn("Stock update failed", e2); }
+                }
             }
         });
 
-        // 4. Automated Sync (Mailchimp & SendGrid)
+        // 4. Automated Sync (Mailchimp & SendGrid via API)
         try {
-            const { default: axios } = await import('axios');
             const firstName = order.customer?.name?.split(' ')[0] || '';
             const lastName = order.customer?.name?.split(' ').slice(1).join(' ') || '';
             const customerEmail = order.customer?.email || order.customerEmail;
 
             if (customerEmail) {
-                await axios.post('/api/products?action=subscribe', {
+                // Background firing
+                axios.post('/api/products?action=subscribe', {
                     email: customerEmail,
                     firstName: firstName,
                     lastName: lastName
-                });
+                }).catch(e => console.warn("Sub sync failed", e));
 
-                await axios.post('/api/send-order-email', {
+                axios.post('/api/send-order-email', {
                     order: {
                         id: order.id,
+                        orderNumber: order.orderNumber,
                         total: order.total,
                         items: items,
                         shippingAddress: order.customer,
                         customerName: order.customer?.name || 'Customer',
                         customerEmail: customerEmail
                     }
-                });
-                console.log("[POST-ORDER] Emails sent.");
-            }
-        } catch (e) { console.error("Email sync failed", e); }
+                }).catch(e => console.warn("Email API failed", e));
 
-    } catch (e) { console.warn("Post-order actions failed", e); }
+                console.log("[POST-ORDER] Email sync triggered.");
+            }
+        } catch (e) { console.error("Email sync setup failed", e); }
+
+    } catch (e) { console.warn("Post-order actions completely failed", e); }
 };
 
 const OrderSuccess = () => {
@@ -99,202 +106,139 @@ const OrderSuccess = () => {
     useEffect(() => {
         const createPendingOrder = async () => {
             try {
-                // Check if we have a pending order in local storage (from Checkout)
-                // Note: Checkout.jsx no longer sets 'pending_order' for offline payments in the same way,
-                // nor does it rely on 'pending_cart_items' for creation here.
-                // However, for ONLINE payments, we might still store pending data?
-                // Actually, Checkout.jsx handling for online payment still uses:
-                // safeLocalStorage.setItem('pending_order', JSON.stringify(orderData));
-                // safeLocalStorage.setItem('pending_cart_items', JSON.stringify(cartItems));
-                // BUT, the API /api/init-payment creates the order? No, usually it just gets a link.
-                // If the flow is: Checkout -> Init Payment -> Redirect -> Return to Success -> Create Order?
-                // OR Checkout -> Create Order (Pending) -> Init Payment -> Redirect -> Return to Success -> Update Order?
-                //
-                // Looking at Checkout.jsx:
-                // It calls `handleOnlinePayment`, which calls `/api/init-payment`.
-                // It DOES NOT create the document in Appwrite before redirecting for online payments?
-                // Wait, logic says: if (online) { handleOnlinePayment } else { createDocument }.
-                // AND handleOnlinePayment does NOT create the document.
-                // So for Online Payments, we rely on `OrderSuccess` to create it?
-                //
-                // Let's check `OrderSuccess.jsx` original logic.
-                // It checks `pendingOrderData`. If exists, it runs transaction to create order.
-                // So yes, for Online Payments, `OrderSuccess` CREATES the order.
-                // I need to replicate that logic for Appwrite.
-
+                // Check local storage for pending order data (set by Checkout for online payments)
                 const pendingOrderData = safeLocalStorage.getItem('pending_order');
-                const pendingCartItems = safeLocalStorage.getItem('pending_cart_items');
-
-                const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-                const ORDERS_COLLECTION = import.meta.env.VITE_APPWRITE_ORDERS_COLLECTION_ID || 'orders';
-                const SETTINGS_COLLECTION = 'settings';
-                const PRODUCTS_COLLECTION = import.meta.env.VITE_APPWRITE_PRODUCTS_COLLECTION_ID || 'products';
-                const ABANDONED_COLLECTION = import.meta.env.VITE_APPWRITE_ABANDONED_CARTS_COLLECTION_ID || 'abandoned_carts';
-                const PROMOS_COLLECTION = import.meta.env.VITE_APPWRITE_PROMO_CODES_COLLECTION_ID || 'promo_codes';
-
-                // Import Appwrite SDK if not globally available, but we use 'databases' from ../appwrite
-                const { databases } = await import('../appwrite');
-                const { ID } = await import('appwrite');
-
-                let orderData = null;
-                let cartItems = [];
-                let usedFallback = false;
 
                 const urlOrderId = searchParams.get('id');
                 const isEasyKashReturn = searchParams.get('order') || searchParams.get('reference');
 
-                // 1. Try to fetch existing order first (since we now create it BEFORE redirect)
+                // 1. Existing Order Path (URL ID exists and isn't temp)
                 if (urlOrderId && !urlOrderId.startsWith('temp_')) {
                     try {
-                        const existingOrder = await databases.getDocument(DATABASE_ID, ORDERS_COLLECTION, urlOrderId);
-                        if (existingOrder) {
+                        const orderRef = doc(db, 'orders', urlOrderId);
+                        const orderSnap = await getDoc(orderRef);
+
+                        if (orderSnap.exists()) {
+                            const existingOrder = orderSnap.data();
                             console.log("[SUCCESS] Found existing order:", urlOrderId, "Status:", existingOrder.status);
 
-                            // If it's awaiting payment, update it
-                            if (existingOrder.status === 'Awaiting Online Payment') {
-                                await databases.updateDocument(DATABASE_ID, ORDERS_COLLECTION, urlOrderId, {
+                            // Update status if coming back from payment
+                            if (existingOrder.status === 'Awaiting Online Payment' || isEasyKashReturn) {
+                                await updateDoc(orderRef, {
                                     paymentStatus: 'Paid',
                                     status: 'Pending'
                                 });
                                 console.log("[SUCCESS] Order status updated to Paid.");
                             }
 
-                            // Setup state for UI
-                            let parsedItems = [];
-                            try { parsedItems = JSON.parse(existingOrder.items); } catch (e) { }
-                            let parsedCustomer = {};
-                            try { parsedCustomer = JSON.parse(existingOrder.customerInfo); } catch (e) { }
-
                             setOrderId(urlOrderId);
                             setOrderNumber(existingOrder.orderNumber);
-                            const orderForUI = { id: urlOrderId, ...existingOrder, items: parsedItems, customer: parsedCustomer };
+                            const orderForUI = { id: urlOrderId, ...existingOrder };
                             setFullOrder(orderForUI);
 
-                            // Proceed to post-order updates
-                            await runPostOrderActions(orderForUI, databases, DATABASE_ID, PRODUCTS_COLLECTION, PROMOS_COLLECTION, ABANDONED_COLLECTION);
+                            // Run post-actions
+                            await runPostOrderActions(orderForUI);
 
                             safeLocalStorage.removeItem('pending_order');
                             safeLocalStorage.removeItem('pending_cart_items');
                             clearCart();
                             setProcessing(false);
-                            return; // EXIT: Unified path handled
+                            return;
                         }
                     } catch (e) {
-                        console.warn("[SUCCESS] Order not found or error fetching:", urlOrderId, e);
+                        console.warn("[SUCCESS] Order fetch error:", e);
                     }
                 }
 
-                // 2. FALLBACK/LEGACY PATH: Create from pendingOrderData or Abandoned Cart
+                // 2. Fallback / Reconstruction Path
+                let orderData = null;
+                let cartItems = [];
+
                 if (pendingOrderData) {
                     orderData = JSON.parse(pendingOrderData);
-                    cartItems = pendingCartItems ? JSON.parse(pendingCartItems) : [];
-                } else if (!urlOrderId || (urlOrderId && urlOrderId.startsWith('temp_')) || isEasyKashReturn) {
-                    console.log("[RECOVERY] Attempting fallback recovery from abandoned carts...");
+                    // Items are usually inside orderData.items from Checkout.jsx construction
+                    cartItems = orderData.items || [];
+                } else if (isEasyKashReturn) {
+                    // Try to recover from abandoned cart if no local storage
                     const cartId = auth.currentUser ? auth.currentUser.uid : safeLocalStorage.getItem('cartSessionId');
-
                     if (cartId) {
-                        try {
-                            const abandonedDoc = await databases.getDocument(DATABASE_ID, ABANDONED_COLLECTION, cartId);
-                            if (abandonedDoc && !abandonedDoc.recovered) {
+                        const cartRef = doc(db, 'carts', cartId);
+                        const cartSnap = await getDoc(cartRef);
+                        if (cartSnap.exists()) {
+                            const cData = cartSnap.data();
+                            if (!cData.recovered) {
                                 orderData = {
                                     customer: {
-                                        name: abandonedDoc.customerName,
-                                        phone: abandonedDoc.customerPhone,
-                                        email: abandonedDoc.email,
-                                        address: abandonedDoc.customerAddress || '',
-                                        governorate: abandonedDoc.customerGovernorate || '',
-                                        city: abandonedDoc.customerCity || ''
+                                        name: cData.customerName || 'Guest',
+                                        phone: cData.customerPhone || '',
+                                        email: cData.email || '',
+                                        address: cData.customerAddress || '',
+                                        governorate: cData.customerGovernorate || '',
+                                        city: cData.customerCity || ''
                                     },
-                                    subtotal: abandonedDoc.total,
-                                    discount: 0,
-                                    shipping_cost: 0,
-                                    total: abandonedDoc.total,
+                                    subtotal: cData.total || 0,
+                                    total: cData.total || 0,
                                     paymentMethod: 'EasyKash / Online',
                                     paymentType: 'online',
-                                    notes: 'Recovered from abandoned cart'
+                                    notes: 'Recovered from abandoned cart (Callback)'
                                 };
-                                cartItems = JSON.parse(abandonedDoc.items || '[]');
-                                usedFallback = true;
-                                console.log("[RECOVERY] Successfully mapped abandoned cart for recovery.");
+                                cartItems = cData.items || [];
                             }
-                        } catch (e) { console.warn("[RECOVERY] Abandoned cart failure:", e); }
+                        }
                     }
                 }
 
                 if (orderData) {
+                    // Create New Order
 
                     // 1. Get Next Order Number
-                    let nextNumber = 3501;
+                    let finalOrderNumber = 3501;
                     try {
-                        const counterDoc = await databases.getDocument(DATABASE_ID, SETTINGS_COLLECTION, 'counters');
-                        nextNumber = (counterDoc.lastOrderNumber || 3500) + 1;
-                        await databases.updateDocument(DATABASE_ID, SETTINGS_COLLECTION, 'counters', {
-                            lastOrderNumber: nextNumber
+                        const settingsRef = doc(db, 'settings', 'counters');
+                        await runTransaction(db, async (transaction) => {
+                            const sfDoc = await transaction.get(settingsRef);
+                            if (!sfDoc.exists()) {
+                                transaction.set(settingsRef, { lastOrderNumber: 3500 });
+                                finalOrderNumber = 3501;
+                            } else {
+                                const newNum = (sfDoc.data().lastOrderNumber || 3500) + 1;
+                                transaction.update(settingsRef, { lastOrderNumber: newNum });
+                                finalOrderNumber = newNum;
+                            }
                         });
                     } catch (e) {
-                        console.warn("Counter sync failed", e);
-                        nextNumber = parseInt(Date.now().toString().slice(-6));
+                        finalOrderNumber = Math.floor(Date.now() / 1000);
                     }
 
-                    // 2. Create Order in Appwrite
-                    const appwritePayload = {
-                        orderNumber: String(nextNumber),
+                    // 2. Prepare Payload
+                    const firestorePayload = {
+                        ...orderData,
+                        items: cartItems, // Ensure items are top level
+                        orderNumber: String(finalOrderNumber),
                         userId: auth.currentUser?.uid || 'guest',
-                        customerInfo: JSON.stringify(orderData.customer),
-                        items: JSON.stringify(cartItems),
-                        subtotal: orderData.subtotal,
-                        discount: orderData.discount,
-                        shippingCost: orderData.shipping_cost,
-                        total: orderData.total,
-                        paymentMethod: orderData.paymentMethod,
-                        paymentType: orderData.paymentType,
-                        paymentStatus: 'Paid', // Success page implies paid if it was online
+                        paymentStatus: 'Paid', // Implied success
                         status: 'Pending',
-                        shippingAddress: JSON.stringify({ // Ensure accurate mapping
-                            address: orderData.customer?.address || '',
-                            governorate: orderData.customer?.governorate || '',
-                            city: orderData.customer?.city || ''
-                        }),
-                        currentMileage: orderData.currentMileage ? Number(orderData.currentMileage) : null,
-                        notes: orderData.notes,
-                        promoCode: orderData.promoCode,
-                        affiliateCode: orderData.affiliateCode,
-                        createdAt: new Date().toISOString()
+                        createdAt: serverTimestamp()
                     };
 
-                    const result = await databases.createDocument(DATABASE_ID, ORDERS_COLLECTION, ID.unique(), appwritePayload);
+                    const ordersRef = collection(db, 'orders');
+                    const docRef = await addDoc(ordersRef, firestorePayload);
 
                     safeLocalStorage.removeItem('pending_order');
                     safeLocalStorage.removeItem('pending_cart_items');
                     clearCart();
 
-                    setOrderId(result.$id);
-                    setOrderNumber(nextNumber);
-                    setFullOrder({ id: result.$id, orderNumber: nextNumber, ...orderData, items: cartItems });
+                    setOrderId(docRef.id);
+                    setOrderNumber(finalOrderNumber);
+                    setFullOrder({ id: docRef.id, ...firestorePayload });
 
-                    await runPostOrderActions({ id: result.$id, ...orderData, items: cartItems }, databases, DATABASE_ID, PRODUCTS_COLLECTION, PROMOS_COLLECTION, ABANDONED_COLLECTION);
+                    await runPostOrderActions({ id: docRef.id, ...firestorePayload });
+
                 } else {
-                    // Fetch existing order by ID (from URL)
-                    const urlOrderId = searchParams.get('id');
-                    if (urlOrderId) {
-                        const doc = await databases.getDocument(DATABASE_ID, ORDERS_COLLECTION, urlOrderId);
-
-                        let parsedItems = [];
-                        try { parsedItems = JSON.parse(doc.items); } catch (e) { }
-
-                        let parsedCustomer = {};
-                        try { parsedCustomer = JSON.parse(doc.customerInfo); } catch (e) { }
-
-                        setOrderId(urlOrderId);
-                        setOrderNumber(doc.orderNumber);
-                        setFullOrder({
-                            id: urlOrderId,
-                            ...doc,
-                            items: parsedItems,
-                            customer: parsedCustomer
-                        });
-                    }
+                    // Just show ID if we can't do anything else and didn't find it
+                    if (urlOrderId) setOrderId(urlOrderId);
                 }
+
             } catch (error) {
                 console.error("Error creating/fetching order:", error);
                 toast.error(t('orderError'));
@@ -349,7 +293,7 @@ const OrderSuccess = () => {
                     <div className="space-y-1 font-bold">
                         <p className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('confNumber')}</p>
                         <h2 className="text-3xl font-black text-orange-600 tracking-tighter">
-                            {orderNumber ? `#${orderNumber}` : `Order #${orderId.slice(-6).toUpperCase()}`}
+                            {orderNumber ? `#${orderNumber}` : `Order #${orderId?.slice(-6).toUpperCase()}`}
                         </h2>
                     </div>
                 )}

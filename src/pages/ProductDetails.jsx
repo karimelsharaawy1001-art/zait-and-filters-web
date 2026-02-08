@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSafeNavigation } from '../utils/safeNavigation';
-import { databases, storage, account } from '../appwrite';
-import { Query, ID } from 'appwrite';
+import { collection, doc, getDoc, getDocs, query, where, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage, auth } from '../firebase';
 import {
     ShoppingCart,
     ArrowLeft,
@@ -48,12 +49,6 @@ const ProductDetails = () => {
     const { staticProducts, isStaticLoaded } = useStaticData();
     const { user } = useAuth();
 
-    // Appwrite IDs
-    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-    const PRODUCTS_COLLECTION = import.meta.env.VITE_APPWRITE_PRODUCTS_COLLECTION_ID;
-    const REVIEWS_COLLECTION = 'reviews'; // Needs to be added to ENV/Project
-    const BUCKET_ID = import.meta.env.VITE_APPWRITE_BUCKET_ID;
-
     // Review States
     const [reviews, setReviews] = useState([]);
     const [rating, setRating] = useState(5);
@@ -78,15 +73,20 @@ const ProductDetails = () => {
                     }
                 }
 
-                // 2. Try Appwrite
-                if (DATABASE_ID && PRODUCTS_COLLECTION) {
-                    try {
-                        const doc = await databases.getDocument(DATABASE_ID, PRODUCTS_COLLECTION, id);
-                        setProduct({ id: doc.$id, ...doc });
-                    } catch (err) {
+                // 2. Try Firestore
+                try {
+                    const docRef = doc(db, 'products', id);
+                    const docSnap = await getDoc(docRef);
+
+                    if (docSnap.exists()) {
+                        setProduct({ id: docSnap.id, ...docSnap.data() });
+                    } else {
                         toast.error('Product not found in our catalog.');
                         navigate('/shop');
                     }
+                } catch (err) {
+                    toast.error('Product not found in our catalog.');
+                    navigate('/shop');
                 }
             } catch (error) {
                 console.error("Fetch error:", error);
@@ -97,31 +97,30 @@ const ProductDetails = () => {
         };
 
         fetchProduct();
-    }, [id, navigate, isStaticLoaded, staticProducts, DATABASE_ID, PRODUCTS_COLLECTION]);
+    }, [id, navigate, isStaticLoaded, staticProducts]);
 
     // Fetch Approved Reviews
     useEffect(() => {
         const fetchReviews = async () => {
-            if (!DATABASE_ID) return;
             try {
-                const response = await databases.listDocuments(
-                    DATABASE_ID,
-                    REVIEWS_COLLECTION,
-                    [
-                        Query.equal('productId', id),
-                        Query.equal('status', 'approved'),
-                        Query.orderDesc('$createdAt')
-                    ]
+                const reviewsRef = collection(db, 'reviews');
+                const q = query(
+                    reviewsRef,
+                    where('productId', '==', id),
+                    where('status', '==', 'approved'),
+                    orderBy('createdAt', 'desc')
                 );
-                setReviews(response.documents.map(d => ({ id: d.$id, ...d })));
+
+                const querySnapshot = await getDocs(q);
+                const fetchedReviews = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setReviews(fetchedReviews);
             } catch (err) {
-                console.warn("Reviews fetching skipped (Collection not ready yet)");
+                console.warn("Reviews fetching skipped (Collection setup or permissions)", err);
             }
         };
 
         fetchReviews();
-        // Note: Appwrite has Realtime support, but keeping it simple with fetch for now
-    }, [id, DATABASE_ID]);
+    }, [id]);
 
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
@@ -148,24 +147,24 @@ const ProductDetails = () => {
         setIsSubmittingReview(true);
         try {
             let photoUrl = '';
-            if (photo && BUCKET_ID) {
-                const file = await storage.createFile(BUCKET_ID, ID.unique(), photo);
-                photoUrl = storage.getFileView(BUCKET_ID, file.$id);
+            if (photo) {
+                const storagePath = `reviews/${id}/${Date.now()}_${photo.name}`;
+                const storageRef = ref(storage, storagePath);
+                await uploadBytes(storageRef, photo);
+                photoUrl = await getDownloadURL(storageRef);
             }
 
-            if (DATABASE_ID) {
-                await databases.createDocument(DATABASE_ID, REVIEWS_COLLECTION, ID.unique(), {
-                    productId: id,
-                    productName: product.name,
-                    userId: user.$id,
-                    userName: user.name || user.email.split('@')[0],
-                    rating,
-                    comment,
-                    photoUrl,
-                    status: 'pending',
-                    createdAt: new Date().toISOString()
-                });
-            }
+            await addDoc(collection(db, 'reviews'), {
+                productId: id,
+                productName: product.name,
+                userId: user.uid,
+                userName: user.displayName || user.email?.split('@')[0] || 'User',
+                rating,
+                comment,
+                photoUrl,
+                status: 'pending',
+                createdAt: serverTimestamp() // Firestore server timestamp
+            });
 
             toast.success(t('reviewSuccess'));
 
@@ -368,7 +367,7 @@ const ProductDetails = () => {
                                                     <h4 className="font-black text-gray-900">{rev.userName}</h4>
                                                     <div className="flex items-center gap-2">
                                                         <div className="flex">{[1, 2, 3, 4, 5].map((s) => <Star key={s} className={`h-3 w-3 ${s <= rev.rating ? 'fill-orange-400 text-orange-400' : 'text-gray-200'}`} />)}</div>
-                                                        <span className="text-[10px] font-bold text-gray-400 tracking-widest">{new Date(rev.createdAt).toLocaleDateString()}</span>
+                                                        <span className="text-[10px] font-bold text-gray-400 tracking-widest">{new Date(rev.createdAt?.seconds * 1000 || rev.createdAt).toLocaleDateString()}</span>
                                                     </div>
                                                 </div>
                                             </div>

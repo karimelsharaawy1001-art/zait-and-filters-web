@@ -1,88 +1,71 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { account, databases } from '../appwrite';
-import { ID, Query } from 'appwrite';
+import { auth, db } from '../firebase';
+import {
+    onAuthStateChanged,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signOut
+} from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [role, setRole] = useState(null);
+    const [role, setRole] = useState(null); // 'admin' or 'user'
     const [loading, setLoading] = useState(true);
 
-    const USERS_COLLECTION = import.meta.env.VITE_APPWRITE_USERS_COLLECTION_ID;
-    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-
     useEffect(() => {
-        const checkSession = async () => {
-            try {
-                const sessionUser = await account.get();
-                setUser(sessionUser);
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+            setUser(currentUser);
+            if (currentUser) {
+                // Fetch User Role from Firestore
+                try {
+                    const userDocRef = doc(db, 'users', currentUser.uid);
+                    const userSnap = await getDoc(userDocRef);
 
-                // Fetch extra user data/role from database
-                if (DATABASE_ID && USERS_COLLECTION) {
-                    try {
-                        const userDoc = await databases.listDocuments(
-                            DATABASE_ID,
-                            USERS_COLLECTION,
-                            [Query.equal('email', sessionUser.email)]
-                        );
-                        if (userDoc.total > 0) {
-                            setRole(userDoc.documents[0].role);
-                        }
-                    } catch (dbErr) {
-                        console.error("Error fetching user data from Appwrite DB:", dbErr);
+                    if (userSnap.exists()) {
+                        setRole(userSnap.data().role || 'user');
+                    } else {
+                        // Create basic user profile if missing
+                        await setDoc(userDocRef, {
+                            email: currentUser.email,
+                            role: 'user',
+                            createdAt: new Date().toISOString()
+                        });
+                        setRole('user');
                     }
+                } catch (error) {
+                    console.error("Error fetching user role:", error);
+                    setRole('user');
                 }
-            } catch (error) {
-                setUser(null);
+            } else {
                 setRole(null);
-            } finally {
-                setLoading(false);
             }
-        };
+            setLoading(false);
+        });
 
-        checkSession();
-    }, [DATABASE_ID, USERS_COLLECTION]);
+        return () => unsubscribe();
+    }, []);
 
-    const login = async (email, password) => {
-        try {
-            await account.createEmailPasswordSession(email, password);
-        } catch (error) {
-            // If session already exists (401), ignore and proceed to get account
-            if (error.code !== 401) {
-                throw error;
-            }
-        }
-
-        const sessionUser = await account.get();
-        setUser(sessionUser);
-
-        // Fetch role after login
-        let fetchedRole = null;
-        if (DATABASE_ID && USERS_COLLECTION) {
-            const userDoc = await databases.listDocuments(
-                DATABASE_ID,
-                USERS_COLLECTION,
-                [Query.equal('email', sessionUser.email)]
-            );
-            if (userDoc.total > 0) {
-                fetchedRole = userDoc.documents[0].role;
-                setRole(fetchedRole);
-            }
-        }
-        return { ...sessionUser, role: fetchedRole };
+    const login = (email, password) => {
+        return signInWithEmailAndPassword(auth, email, password);
     };
 
     const signup = async (email, password, name) => {
-        const newUser = await account.create(ID.unique(), email, password, name);
-        await login(email, password); // Log in after signup
-        return newUser;
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        // Create user profile in Firestore
+        await setDoc(doc(db, 'users', userCredential.user.uid), {
+            email,
+            name,
+            role: 'user',
+            createdAt: new Date().toISOString()
+        });
+        return userCredential;
     };
 
-    const logout = async () => {
-        await account.deleteSession('current');
-        setUser(null);
-        setRole(null);
+    const logout = () => {
+        return signOut(auth);
     };
 
     return (

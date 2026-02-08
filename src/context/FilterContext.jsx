@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { databases } from '../appwrite';
-import { Query } from 'appwrite';
+import { db } from '../firebase';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 
 const FilterContext = createContext();
@@ -26,25 +26,20 @@ export const FilterProvider = ({ children }) => {
     const [activeCar, setActiveCar] = useState(null);
     const [userGarage, setUserGarage] = useState([]);
 
-    const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-    const USERS_COLLECTION = import.meta.env.VITE_APPWRITE_USERS_COLLECTION_ID;
-
-    // Sync Garage Data from Appwrite
+    // Sync Garage Data from Firestore
     useEffect(() => {
         const syncGarage = async () => {
-            if (user && DATABASE_ID && USERS_COLLECTION) {
+            if (user) {
                 try {
-                    const response = await databases.listDocuments(
-                        DATABASE_ID,
-                        USERS_COLLECTION,
-                        [Query.equal('email', user.email)]
-                    );
+                    const userDocRef = doc(db, 'users', user.uid);
+                    const userSnap = await getDoc(userDocRef);
 
-                    if (response.total > 0) {
-                        const userData = response.documents[0];
+                    if (userSnap.exists()) {
+                        const userData = userSnap.data();
                         const garage = userData.garage || [];
                         setUserGarage(garage);
 
+                        // Auto-select active car
                         const active = garage.find(c => c.isActive) || garage[0] || null;
                         setActiveCar(active);
 
@@ -53,7 +48,7 @@ export const FilterProvider = ({ children }) => {
                         }
                     }
                 } catch (error) {
-                    console.error('Error fetching garage from Appwrite:', error);
+                    console.error('Error fetching garage from Firestore:', error);
                 }
             } else {
                 setUserGarage([]);
@@ -63,8 +58,7 @@ export const FilterProvider = ({ children }) => {
         };
 
         syncGarage();
-    }, [user, DATABASE_ID, USERS_COLLECTION]);
-
+    }, [user]);
 
     const updateFilter = (key, value) => {
         setFilters(prev => {
