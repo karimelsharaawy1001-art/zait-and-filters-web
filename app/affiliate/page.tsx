@@ -68,7 +68,7 @@ export default function AffiliateLanding() {
         </motion.div>
 
         <div style={statsBanner} className="glass-panel">
-          {/* تم تعديل عدد المسوقين هنا */}
+          {/* تم تعديل عدد المسوقين هنا ليكون +500 */}
           <div style={statItem}><Users size={22} color="#27ae60"/> <span>+500 مسوق نشط</span></div>
           <div style={{...dividerV, display: 'block'}} />
           <div style={statItem}><BarChart3 size={22} color="#27ae60"/> <span>نظام تتبع لحظي</span></div>
@@ -163,8 +163,10 @@ const features = [
 const container: any = { backgroundColor: '#050505', color: '#fff', direction: 'rtl', minHeight: '100vh', fontFamily: 'inherit' };
 const heroSection: any = { padding: '120px 20px', textAlign: 'center', borderBottom: '1px solid #111', position: 'relative' };
 const badge: any = { background: 'rgba(39, 174, 96, 0.1)', color: '#27ae60', padding: '10px 25px', borderRadius: '50px', fontSize: '0.95rem', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '10px', marginBottom: '30px', border: '1px solid rgba(39, 174, 96, 0.3)' };
-// تم زيادة الـ lineHeight هنا لتوسيع المسافة بين السطرين في العنوان
-const mainTitle: any = { fontSize: 'clamp(2.5rem, 8vw, 4.5rem)', fontWeight: '950', marginBottom: '25px', lineHeight: '1.4', letterSpacing: '-1px' };
+
+// تم زيادة الـ lineHeight لـ 1.6 لضمان وجود مسافة كافية بين العنوان الأبيض والأخضر
+const mainTitle: any = { fontSize: 'clamp(2.5rem, 8vw, 4.5rem)', fontWeight: '950', marginBottom: '25px', lineHeight: '1.6', letterSpacing: '-1px' };
+
 const highlightText: any = { color: '#27ae60', textShadow: '0 0 40px rgba(39, 174, 96, 0.4)' };
 const heroDesc: any = { fontSize: '1.25rem', color: '#999', maxWidth: '850px', margin: '0 auto 50px', lineHeight: '1.8' };
 const actions: any = { display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' };
