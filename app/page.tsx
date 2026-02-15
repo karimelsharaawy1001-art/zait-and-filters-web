@@ -136,7 +136,6 @@ export default function HomePage() {
     }
   };
 
-  // --- تم تكبير الارتفاع وحجم الخط هنا ---
   const customSelectStyles = {
     control: (base: any) => ({ ...base, height: '52px', borderRadius: '12px', border: 'none', backgroundColor: '#f8f8f8', fontSize: '1rem', textAlign: 'right', display: 'flex', flexDirection: 'row-reverse' }),
     option: (base: any, state: any) => ({ ...base, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', flexDirection: 'row-reverse', gap: '8px', padding: '10px 15px', fontSize: '0.95rem', backgroundColor: state.isFocused ? '#eefcf5' : '#fff', color: '#1a1a1a', cursor: 'pointer' }),
@@ -179,8 +178,6 @@ export default function HomePage() {
         .marquee-inner { display: flex; width: max-content; animation: marquee 35s linear infinite; }
         .brand-logo-wrap { width: 180px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 10px 25px; }
         .logo-img-v3 { max-width: 130px; max-height: 60px; filter: grayscale(100%); opacity: 0.5; transition: 0.3s; }
-        .footer-main { background-color: #0a0a0a; color: #e5e5e5; padding: 80px 20px 30px; border-top: 4px solid #22c55e; }
-        .footer-grid { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr; gap: 40px; }
         @media (max-width: 768px) { .category-grid-v3 { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
       `}} />
 
@@ -199,7 +196,6 @@ export default function HomePage() {
                         <Link href={slides[currentSlide]?.button_link || '/store'} style={{ padding: '12px 30px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.95rem' }}>{slides[currentSlide]?.button_text || 'تصفح المتجر'}</Link>
                       </div>
                       
-                      {/* --- تكبير بوكس البحث وحجم الخطوط هنا --- */}
                       <div style={{ width: '400px', backgroundColor: '#fff', padding: '30px', borderRadius: '30px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
                         <h3 style={{ marginBottom: '20px', fontSize: '1.2rem', fontWeight: '900', textAlign: 'center' }}>ابحث بمواصفات سيارتك</h3>
                         <div style={{marginBottom: '12px'}}><label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>الماركة</label><Select instanceId="make-select" options={makesOptions} styles={customSelectStyles} placeholder="اختر الماركة" isRtl={true} onChange={(opt) => setSelectedMake(opt)} formatOptionLabel={(brand: any) => (<div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>{brand.logo ? <img src={brand.logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} /> : <Car size={20} color="#ccc" />}<span>{brand.label}</span></div>)} /></div>
@@ -221,7 +217,7 @@ export default function HomePage() {
             </section>
           )}
 
-          {/* عروض حصرية - مع بلد المنشأ والخط الواضح */}
+          {/* عروض حصرية */}
           {saleProducts.length > 0 && (
             <section style={{ padding: '25px 0', maxWidth: '1200px', margin: '0 auto' }}>
               <div style={{ padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '15px' }}>
@@ -240,7 +236,6 @@ export default function HomePage() {
                           <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.8rem' }}>{p.brand}</span>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#666', fontWeight: '700' }}><Globe size={14} color="#22c55e" /><span>{country}</span></div>
                         </div>
-                        {/* تعديل المسافة هنا: marginBottom: '4px' */}
                         <h3 style={{ fontSize: '1rem', fontWeight: '900', marginBottom: '4px', height: '45px', overflow: 'hidden' }}>{p.name}</h3>
                         <div style={{ background: '#f9f9f9', padding: '10px', borderRadius: '10px', marginBottom: '10px' }}>
                           <div style={{fontSize:'0.8rem', color:'#1a1a1a', fontWeight:'800', marginBottom:'3px', display:'flex', alignItems:'center', gap:'6px'}}><Settings2 size={14} color="#22c55e"/> {p.car_make} {p.car_model}</div>
@@ -279,7 +274,6 @@ export default function HomePage() {
                           <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.8rem' }}>{p.brand}</span>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#666', fontWeight: '700' }}><Globe size={14} color="#22c55e" /><span>{country}</span></div>
                         </div>
-                        {/* تعديل المسافة هنا: marginBottom: '4px' */}
                         <h3 style={{ fontSize: '1rem', fontWeight: '900', marginBottom: '4px', height: '45px', overflow: 'hidden' }}>{p.name}</h3>
                         <div style={{ background: '#f9f9f9', padding: '8px', borderRadius: '10px', marginBottom: '10px' }}>
                           <div style={{fontSize:'0.8rem', color:'#1a1a1a', fontWeight:'800', marginBottom:'3px', display:'flex', alignItems:'center', gap:'6px'}}><Settings2 size={14} color="#22c55e"/> {p.car_make} {p.car_model}</div>
@@ -313,28 +307,6 @@ export default function HomePage() {
             </div>
           </section>
 
-          <footer className="footer-main">
-            <div className="footer-grid">
-              <div className="footer-column">
-                <h4 style={{ color: '#22c55e', fontSize: '1.5rem', marginBottom: '20px' }}>زيت أند فلترز</h4>
-                <p style={{ lineHeight: '1.8', color: '#999', marginBottom: '25px' }}>وجهتك الأولى والوحيدة لكل ما يخص قطع غيار السيارات في مصر.</p>
-                <div style={{ display:'flex', gap:'15px', marginTop:'20px' }}><a href="#" className="social-icon"><Facebook size={20} /></a><a href="#" className="social-icon"><Instagram size={20} /></a><a href="#" className="social-icon"><Music2 size={20} /></a></div>
-              </div>
-              <div className="footer-column">
-                <h4>روابط سريعة</h4>
-                <ul style={{ listStyle:'none', padding:0 }}><li><Link href="/store" style={{color:'#aaa', textDecoration:'none'}}>المتجر</Link></li><li><Link href="/about" style={{color:'#aaa', textDecoration:'none'}}>عن المتجر</Link></li></ul>
-              </div>
-              <div className="footer-column">
-                <h4>دعم العملاء</h4>
-                <div style={{ display:'flex', flexDirection:'column', gap:'15px' }}><Link href="/contact" style={{ background:'#22c55e', color:'#000', padding:'10px', borderRadius:'10px', textAlign:'center', fontWeight:'bold', textDecoration:'none' }}>تواصل معنا</Link><div style={{display:'flex', gap:'10px', color:'#aaa'}}><MapPin size={18}/><span>القاهرة، مصر</span></div></div>
-              </div>
-              <div className="footer-column">
-                <h4>النشرة البريدية</h4>
-                <form style={{ display:'flex', position:'relative' }} onSubmit={(e) => e.preventDefault()}><input type="email" placeholder="بريدك الإلكتروني" style={{ background:'#1a1a1a', border:'1px solid #333', padding:'12px', borderRadius:'8px', color:'#fff', width:'100%' }} /><button type="submit" style={{ position:'absolute', left:'5px', top:'5px', bottom:'5px', background:'#22c55e', border:'none', borderRadius:'6px', padding:'0 15px' }}><Send size={18}/></button></form>
-              </div>
-            </div>
-            <div style={{ textAlign:'center', marginTop:'60px', color:'#666', borderTop:'1px solid #222', paddingTop:'30px' }}>© 2026 زيت أند فلترز - جميع الحقوق محفوظة.</div>
-          </footer>
         </motion.div>
       )}
     </div>
