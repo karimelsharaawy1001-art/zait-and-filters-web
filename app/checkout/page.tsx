@@ -25,7 +25,7 @@ export default function CheckoutPage() {
   const [promoCode, setPromoCode] = useState('');
   const [discountAmount, setDiscountAmount] = useState(0);
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
-  const [appliedPromoType, setAppliedPromoType] = useState<string | null>(null); // جديد: لتحديد نوع الخصم
+  const [appliedPromoType, setAppliedPromoType] = useState<string | null>(null); 
   const [promoLoading, setPromoLoading] = useState(false);
 
   const [carMileage, setCarMileage] = useState('');
@@ -36,13 +36,12 @@ export default function CheckoutPage() {
     name: '',
     phone: '',
     secondary_phone: '',
-    email: '', // إضافة حقل الإيميل هنا
+    email: '', 
     address: ''
   });
 
   // --- 🗝️ تأكيد المفاتيح والروابط المطلوبة ---
-  const EASYKASH_API_KEY = "gf8ueul7plkntb5r"; // الـ Public Key الخاص بك
-  const CALLBACK_URL = "https://zaitandfilters.com/order-success"; // رابط العودة المعتمد
+  const CALLBACK_URL = "https://zaitandfilters.com/order-success"; 
   const CLOUD_NAME = "dxtncdxfh";
   const UPLOAD_PRESET = "zaitandfiltersnew";
 
@@ -55,7 +54,6 @@ export default function CheckoutPage() {
       }
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // تحديث جلب البيانات ليشمل الإيميل
         const { data: profile } = await supabase.from('profiles').select('full_name, phone_number, email').eq('id', user.id).single();
         if (profile) setCustomerInfo(prev => ({ 
           ...prev, 
@@ -82,23 +80,18 @@ export default function CheckoutPage() {
 
   const subtotal = useMemo(() => cart.reduce((sum: number, item: any) => sum + (parseFloat(item.price) * item.quantity), 0), [cart]);
   
-  // حساب الإجمالي النهائي (مع دعم الشحن المجاني)
   const finalTotal = useMemo(() => {
     const shipping = selectedCity?.price || 0;
     let currentDiscount = discountAmount;
-
-    // لو الكود نوعه شحن مجاني، بنخصم قيمة الشحن بالكامل
     if (appliedPromoType === 'free_shipping') {
       currentDiscount = shipping;
     }
-
     const total = (subtotal + shipping) - currentDiscount;
     return total > 0 ? total : 0;
   }, [subtotal, selectedCity, discountAmount, appliedPromoType]);
 
   useEffect(() => { if (isInitialized) setTimeout(() => setIsReady(true), 800); }, [isInitialized]);
 
-  // --- وظيفة تطبيق البرومو كود (محدثة لدعم الشحن المجاني) ---
   const applyPromoCode = async () => {
     if (!promoCode.trim()) return;
     setPromoLoading(true);
@@ -127,7 +120,7 @@ export default function CheckoutPage() {
       setAppliedPromo(data.code);
 
       if (data.discount_type === 'free_shipping') {
-        setDiscountAmount(0); // الخصم الفعلي بيتحسب في الـ finalTotal بناءً على سعر الشحن
+        setDiscountAmount(0);
         toast.success(`مبروك! تم تطبيق الشحن المجاني 🚚`);
       } else {
         let calculatedDiscount = data.discount_type === 'percentage' 
@@ -159,10 +152,8 @@ export default function CheckoutPage() {
     }
   };
 
-  // --- 🚀 التعديل هنا ليتوافق مع منطق "DirectPay API v1" لضمان إرسال المسميات الصحيحة ---
   const initiateEasyKashPayment = async (orderId: string) => {
     try {
-      // إرسال البيانات بالمسميات التي يتوقعها الـ API Route بناءً على منطق المشروع القديم
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -177,14 +168,14 @@ export default function CheckoutPage() {
 
       const data = await response.json();
       
-      // التغيير هنا: التحقق من نجاح العملية واستلام الحقل url كما هو في الكود القديم
       if (data.success && data.url) {
         window.location.href = data.url; 
       } else {
-        throw new Error(data.message || data.error || 'فشل الاتصال ببوابة الدفع');
+        throw new Error(data.message || data.error || 'فشل الحصول على رابط الدفع من البوابة');
       }
     } catch (err: any) {
-      toast.error('خطأ في بوابة الدفع: ' + err.message);
+      toast.error('خطأ في الاتصال: ' + err.message);
+      setLoading(false); 
     }
   };
 
@@ -198,9 +189,7 @@ export default function CheckoutPage() {
       const { data: { user } } = await supabase.auth.getUser();
       let uploadedImageUrl = screenshot ? await uploadToCloudinary(screenshot) : null;
 
-      // --- 🚀 منطق المسوقين ---
       let finalMarketerId = null;
-
       if (appliedPromo) {
         const { data: marketerByPromo } = await supabase
           .from('marketers')
@@ -256,7 +245,6 @@ export default function CheckoutPage() {
       }
     } catch (err: any) {
       toast.error('حدث خطأ: ' + err.message);
-    } finally {
       setLoading(false);
     }
   };
