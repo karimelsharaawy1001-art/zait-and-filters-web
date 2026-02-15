@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { 
   Facebook, Instagram, Mail, MapPin, 
-  ChevronLeft, ShieldCheck, Clock, MessageCircle, Music2, FileText, ShieldAlert, RefreshCcw, Users 
+  ChevronLeft, ShieldCheck, Clock, MessageCircle, Music2, FileText, ShieldAlert, RefreshCcw, Users, Truck 
 } from 'lucide-react';
 
 // --- قسم التعديل السريع لروابط السوشيال ميديا ---
@@ -46,15 +46,16 @@ export default function ProfessionalFooter() {
           <ul style={linkList}>
             <li><Link href="/store" className="footer-link-item" style={footerLink}><ChevronLeft size={14} /> المتجر</Link></li>
             <li><Link href="/profile" className="footer-link-item" style={footerLink}><ChevronLeft size={14} /> حسابي الشخصي</Link></li>
-            {/* --- إضافة رابط برنامج المسوقين هنا --- */}
+            {/* --- رابط برنامج المسوقين --- */}
             <li><Link href="/affiliate" className="footer-link-item" style={{...footerLink, color: '#27ae60', fontWeight: 'bold'}}><Users size={14} /> انضم لبرنامج المسوقين</Link></li>
-            {/* -------------------------------------- */}
+            {/* --------------------------- */}
             <li><Link href="/about" className="footer-link-item" style={footerLink}><ChevronLeft size={14} /> من نحن</Link></li>
             <hr style={divider} />
-            {/* الصفحات القانونية */}
+            {/* الصفحات القانونية المرتبطة بالأكواد الجديدة */}
             <li><Link href="/privacy" className="footer-link-item" style={footerLink}><ShieldAlert size={14} /> سياسة الخصوصية</Link></li>
             <li><Link href="/terms" className="footer-link-item" style={footerLink}><FileText size={14} /> الشروط والأحكام</Link></li>
-            <li><Link href="/returns" className="footer-link-item" style={footerLink}><RefreshCcw size={14} /> سياسة الإرجاع والاستبدال</Link></li>
+            <li><Link href="/refund" className="footer-link-item" style={footerLink}><RefreshCcw size={14} /> سياسة الاستبدال والاسترجاع</Link></li>
+            <li><Link href="/shipping" className="footer-link-item" style={footerLink}><Truck size={14} /> سياسة الشحن والتوصيل</Link></li>
           </ul>
         </div>
 
@@ -108,7 +109,7 @@ export default function ProfessionalFooter() {
   );
 }
 
-// --- التنسيقات (تم التعديل للون الأسود) ---
+// --- التنسيقات ---
 const footerContainer: any = { backgroundColor: '#050505', borderTop: '1px solid #111', padding: '60px 20px 20px', direction: 'rtl' };
 const footerContent: any = { maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '40px', marginBottom: '40px' };
 const footerColumn: any = { display: 'flex', flexDirection: 'column', gap: '15px' };

@@ -58,3 +58,65 @@ a {
 ::-webkit-scrollbar-thumb:hover {
   background: #1e8449;
 }
+
+/* =============================================
+   تنسيقات الصفحات القانونية (Legal Pages Styling)
+   ============================================= */
+.legal-container {
+  max-width: 900px;
+  margin: 50px auto;
+  padding: 40px;
+  direction: rtl;
+  line-height: 2;
+  color: #333;
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.legal-container h1 { 
+  color: var(--primary-green); 
+  margin-bottom: 40px; 
+  text-align: center;
+  border-bottom: 2px solid #f0fdf4;
+  padding-bottom: 15px;
+  font-weight: 900;
+  font-size: 2.2rem;
+}
+
+.legal-container h3 { 
+  color: #166534; 
+  margin-top: 35px; 
+  border-right: 4px solid var(--primary-green);
+  padding-right: 15px;
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+
+.legal-container p, .legal-container li {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  text-align: justify;
+}
+
+.legal-container ul {
+  padding-right: 25px;
+  list-style-type: square;
+  margin-bottom: 20px;
+}
+
+.legal-container b {
+  color: var(--primary-green);
+}
+
+/* تحسين التجاوب للهواتف في الصفحات القانونية */
+@media (max-width: 768px) {
+  .legal-container {
+    margin: 20px;
+    padding: 20px;
+  }
+  .legal-container h1 {
+    font-size: 1.8rem;
+  }
+}
