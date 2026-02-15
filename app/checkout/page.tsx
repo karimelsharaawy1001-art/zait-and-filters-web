@@ -66,7 +66,6 @@ export default function CheckoutPage() {
     initCheckout();
   }, []);
 
-  // تم تعديل السطر التالي لحل مشكلة الـ TypeScript Build
   const subtotal = useMemo(() => cart.reduce((sum: number, item: any) => sum + (parseFloat(item.price) * item.quantity), 0), [cart]);
   const finalTotal = subtotal + (selectedCity?.price || 0);
 
@@ -178,7 +177,6 @@ export default function CheckoutPage() {
                return (
                 <div key={item.id} style={cartItem}>
                   <div style={{ display: 'flex', gap: '15px' }}>
-                    {/* تم تعديل السطر التالي لضمان قراءة الصورة بشكل صحيح */}
                     <div style={imageBox}><img src={item.image_url || item.image} alt="" style={imgFluid} /></div>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -279,7 +277,6 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                   
-                  {/* إضافة لوجو انستا باي هنا */}
                   <div style={logosGrid}>
                     <img src="https://i.postimg.cc/3r19c1zy/Pv1p8v-KJq4Z-LLOj-Qj-BZp-K8DNJg4Zb5.png" alt="InstaPay" style={miniLogoImg} />
                   </div>
@@ -301,11 +298,15 @@ export default function CheckoutPage() {
                     <div style={payIconWrapper}><Wallet size={22} color={paymentMethod === 'wallets' ? '#15803d' : '#666'} /></div>
                     <div style={payTextContent}>
                       <span style={payTitle}>محافظ إلكترونية (كاش)</span>
-                      <span style={paySubTitle}>التحويل للرقم: 01023862436</span>
+                      {/* تم تكبير الرقم وإضافة اسم المستلم هنا */}
+                      <span style={paySubTitle}>
+                        التحويل للرقم: <strong style={{ fontSize: '1.05rem', color: '#1a1a1a' }}>01023862436</strong>
+                        <br />
+                        بإسم: <strong style={{ color: '#1a1a1a' }}>محمد جمال ابراهيم</strong>
+                      </span>
                     </div>
                   </div>
 
-                  {/* إضافة لوجوهات المحافظ هنا */}
                   <div style={logosGrid}>
                     <img src="https://i.postimg.cc/ryjgPj7K/VODAFONE.jpg" alt="Vodafone Cash" style={miniLogoImg} />
                     <img src="https://i.postimg.cc/Y2R8sRTj/ORANGE.jpg" alt="Orange Money" style={miniLogoImg} />
