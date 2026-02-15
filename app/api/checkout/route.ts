@@ -5,12 +5,22 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     
-    // NEW HMAC Secret Key used as the "Authorization" header
-    const SECRET_KEY = "87ca3d5640dc3f5809d3dfbf4a5045ad";
+    // EasyKash Credentials
+    const API_KEY = "gf8ueul7plkntb5r";
+    const HMAC_SECRET = "87ca3d5640dc3f5809d3dfbf4a5045ad";
 
     const parsedAmount = parseFloat(body.amount) || 0;
 
-    // EXACT payload structure from your working reference code
+    // Validate phone number (Egyptian format)
+    const mobile = (body.customerPhone || "01000000000").replace(/\s/g, '');
+    if (!mobile.match(/^01[0-9]{9}$/)) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'رقم الموبايل غير صحيح' 
+      }, { status: 400 });
+    }
+
+    // EasyKash payload structure
     const payload = {
       amount: Number(parsedAmount.toFixed(2)),
       currency: "EGP",
@@ -18,46 +28,86 @@ export async function POST(req: Request) {
       cashExpiry: 24,
       name: (body.customerName || "Customer").substring(0, 50),
       email: body.customerEmail || "customer@zaitandfilters.com",
-      mobile: body.customerPhone || "01000000000",
-      redirectUrl: "https://zaitandfilters.com/order-success", //
+      mobile: mobile,
+      redirectUrl: "https://zaitandfilters.com/order-success",
       customerReference: String(body.orderId)
     };
 
-    console.log('[EasyKash] Calling Legacy Endpoint with NEW Keys...');
+    console.log('[EasyKash] Request Payload:', JSON.stringify(payload, null, 2));
+    console.log('[EasyKash] Using API Key:', API_KEY.substring(0, 8) + '...');
 
-    // Using the EXACT endpoint from your working code to bypass DNS ENOTFOUND errors
-    const response = await axios.post('https://back.easykash.net/api/directpayv1/pay', payload, {
-      headers: {
-        'authorization': SECRET_KEY,
-        'Content-Type': 'application/json'
-      },
-      timeout: 8000
-    });
+    // Call EasyKash API with CORRECT authentication
+    const response = await axios.post(
+      'https://back.easykash.net/api/directpayv1/pay', 
+      payload, 
+      {
+        headers: {
+          'apikey': API_KEY,           // ← API Key header
+          'authorization': HMAC_SECRET, // ← HMAC Secret header
+          'Content-Type': 'application/json'
+        },
+        timeout: 15000 // Increased timeout
+      }
+    );
 
     const data = response.data;
-    console.log('[EasyKash Response]:', JSON.stringify(data));
+    console.log('[EasyKash] Response:', JSON.stringify(data, null, 2));
 
-    // Logic to extract URL exactly as your working code did
-    let paymentUrl = data?.redirectUrl || data?.url || (typeof data === 'string' && data.startsWith('http') ? data : null);
+    // Extract payment URL from response
+    let paymentUrl = data?.redirectUrl || data?.url || data?.paymentUrl;
+
+    // Handle if response is a direct string URL
+    if (!paymentUrl && typeof data === 'string' && data.startsWith('http')) {
+      paymentUrl = data;
+    }
 
     if (paymentUrl) {
-      // Fix double slashes as per your reference code
+      // Clean up URL (remove double slashes)
       paymentUrl = paymentUrl.replace(/([^:])\/\//g, '$1/');
+
+      console.log('[EasyKash] Payment URL:', paymentUrl);
 
       return NextResponse.json({
         success: true,
         url: paymentUrl
       });
     } else {
-      throw new Error("No URL returned from EasyKash");
+      console.error('[EasyKash] No URL in response:', data);
+      throw new Error("No payment URL returned from EasyKash");
     }
 
   } catch (error: any) {
+    // Enhanced error handling
+    if (error.code === 'ECONNABORTED') {
+      console.error('❌ Timeout Error: EasyKash took too long to respond');
+      return NextResponse.json({ 
+        success: false, 
+        message: 'انتهت مهلة الاتصال ببوابة الدفع. حاول مرة أخرى.' 
+      }, { status: 408 });
+    }
+
+    if (error.code === 'ENOTFOUND') {
+      console.error('❌ DNS Error: Cannot reach EasyKash servers');
+      return NextResponse.json({ 
+        success: false, 
+        message: 'لا يمكن الوصول لبوابة الدفع. تحقق من الاتصال بالإنترنت.' 
+      }, { status: 503 });
+    }
+
     const errorData = error.response?.data;
-    console.error('❌ Gateway Error:', errorData || error.message);
+    const errorStatus = error.response?.status;
+    
+    console.error('❌ EasyKash Error:', {
+      status: errorStatus,
+      data: errorData,
+      message: error.message,
+      fullError: error
+    });
+
     return NextResponse.json({ 
       success: false, 
-      message: errorData?.message || error.message 
-    }, { status: error.response?.status || 500 });
+      message: errorData?.message || error.message || 'حدث خطأ في بوابة الدفع',
+      details: errorData
+    }, { status: errorStatus || 500 });
   }
 }
