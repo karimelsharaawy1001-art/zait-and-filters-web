@@ -16,28 +16,30 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'إضافة منتج', href: '/admin/add-product', icon: '➕' },
     { name: 'إدارة المنتجات', href: '/admin/products', icon: '📦' },
     { name: 'إدارة الماركات', href: '/admin/brands', icon: '🏎️' },
-    /* --- القسم الجديد المضاف لـ Hero Section --- */
     { name: 'إعدادات الهيرو', href: '/admin/hero', icon: '🖼️' },
+    /* --- الزرار الجديد المضاف لأكواد الخصم --- */
+    { name: 'أكواد الخصم', href: '/admin/promo-codes', icon: '🎫' },
     /* ----------------------------------------- */
     { name: 'رسائل العملاء', href: '/admin/messages', icon: '💬' },
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', direction: 'rtl', backgroundColor: '#000' }}>
-      {/* Side Menu */}
+    <div style={{ display: 'flex', minHeight: '100vh', direction: 'rtl', backgroundColor: '#f8fafc' }}>
+      {/* Side Menu - تم تعديل الألوان للوضع الفاتح */}
       <aside style={{ 
         width: '260px', 
-        backgroundColor: '#050505', 
-        borderLeft: '1px solid #111', 
+        backgroundColor: '#ffffff', 
+        borderLeft: '1px solid #e2e8f0', 
         padding: '20px',
         position: 'fixed',
         height: '100vh',
         right: 0,
-        zIndex: 100
+        zIndex: 100,
+        boxShadow: '-2px 0 10px rgba(0,0,0,0.02)'
       }}>
         <div style={{ marginBottom: '40px', padding: '0 10px' }}>
-          <h2 style={{ color: '#2ecc71', fontWeight: '900', fontStyle: 'italic', fontSize: '1.2rem', letterSpacing: '1px' }}>ZAIT & FILTERS</h2>
-          <p style={{ color: '#444', fontSize: '0.8rem', marginTop: '5px' }}>لوحة الإدارة الاحترافية</p>
+          <h2 style={{ color: '#27ae60', fontWeight: '900', fontStyle: 'italic', fontSize: '1.2rem', letterSpacing: '1px' }}>ZAIT & FILTERS</h2>
+          <p style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '5px' }}>لوحة الإدارة الاحترافية</p>
         </div>
 
         <nav>
@@ -50,10 +52,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 gap: '15px',
                 padding: '12px 15px',
                 marginBottom: '10px',
-                borderRadius: '8px',
+                borderRadius: '12px',
                 textDecoration: 'none',
-                color: isActive ? '#000' : '#888',
-                backgroundColor: isActive ? '#2ecc71' : 'transparent',
+                color: isActive ? '#fff' : '#475569',
+                backgroundColor: isActive ? '#27ae60' : 'transparent',
                 fontWeight: 'bold',
                 transition: '0.3s cubic-bezier(0.4, 0, 0.2, 1)'
               }}>
@@ -72,10 +74,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             bottom: '20px',
             width: 'calc(100% - 40px)',
             padding: '12px',
-            backgroundColor: '#0a0a0a',
+            backgroundColor: '#fff5f5',
             color: '#ff4d4d',
-            border: '1px solid #1a1a1a',
-            borderRadius: '8px',
+            border: '1px solid #ffebeb',
+            borderRadius: '12px',
             cursor: 'pointer',
             fontWeight: 'bold',
             display: 'flex',
@@ -84,28 +86,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             gap: '10px',
             transition: '0.3s'
           }}
-          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#151515')}
-          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#0a0a0a')}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#fff0f0')}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#fff5f5')}
         >
           <span>تسجيل الخروج</span>
           <span>🚪</span>
         </button>
       </aside>
 
-      {/* Main Content Area */}
+      {/* Main Content Area Area - تم تعديل الألوان للوضع الفاتح */}
       <main style={{ 
         flex: 1, 
         marginRight: '260px', 
         padding: '30px',
-        backgroundColor: '#000',
+        backgroundColor: '#f8fafc',
         minHeight: '100vh'
       }}>
         <div style={{ 
-          background: '#050505', 
-          borderRadius: '20px', 
-          padding: '25px', 
-          border: '1px solid #111',
-          minHeight: 'calc(100vh - 60px)'
+          background: '#ffffff', 
+          borderRadius: '24px', 
+          padding: '30px', 
+          border: '1px solid #e2e8f0',
+          minHeight: 'calc(100vh - 60px)',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
         }}>
           {children}
         </div>

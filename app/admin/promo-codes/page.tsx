@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import { 
   Ticket, Plus, Trash2, Power, PowerOff, 
-  Loader2, Calendar, Tag, Percent, Banknote 
+  Loader2, Calendar, Tag, Percent, Banknote, Truck 
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -43,14 +43,20 @@ export default function PromoCodesAdmin() {
 
   async function handleAddCoupon(e: React.FormEvent) {
     e.preventDefault();
-    if (!newCoupon.code || !newCoupon.discount_value) return toast.error('أكمل البيانات المطلوبة');
+    
+    // التحقق من البيانات: لو شحن مجاني مش لازم يدخل قيمة
+    const isFreeShipping = newCoupon.discount_type === 'free_shipping';
+    if (!newCoupon.code || (!isFreeShipping && !newCoupon.discount_value)) {
+      return toast.error('أكمل البيانات المطلوبة');
+    }
 
     setBtnLoading(true);
     try {
       const { error } = await supabase.from('coupons').insert([{
         code: newCoupon.code.toUpperCase().trim(),
         discount_type: newCoupon.discount_type,
-        discount_value: parseFloat(newCoupon.discount_value),
+        // لو شحن مجاني بنخلي القيمة 0 أوتوماتيك
+        discount_value: isFreeShipping ? 0 : parseFloat(newCoupon.discount_value),
         expiry_date: newCoupon.expiry_date || null,
         is_active: newCoupon.is_active
       }]);
@@ -103,7 +109,7 @@ export default function PromoCodesAdmin() {
           <h3 style={cardTitle}><Plus size={18} /> إضافة كود جديد</h3>
           <form onSubmit={handleAddCoupon} style={form}>
             <div style={inputGroup}>
-              <label style={label}>رمز الكود (مثلاً: RAMADAN20)</label>
+              <label style={label}>رمز الكود (مثلاً: FREE_SHIP)</label>
               <input 
                 style={input} 
                 value={newCoupon.code} 
@@ -122,18 +128,23 @@ export default function PromoCodesAdmin() {
                 >
                   <option value="percentage">نسبة مئوية (%)</option>
                   <option value="fixed">مبلغ ثابت (ج.م)</option>
+                  <option value="free_shipping">شحن مجاني 🚚</option>
                 </select>
               </div>
-              <div style={{ flex: 1 }}>
-                <label style={label}>القيمة</label>
-                <input 
-                  type="number" 
-                  style={input} 
-                  value={newCoupon.discount_value} 
-                  onChange={e => setNewCoupon({...newCoupon, discount_value: e.target.value})} 
-                  placeholder="10"
-                />
-              </div>
+              
+              {/* إخفاء القيمة في حالة الشحن المجاني */}
+              {newCoupon.discount_type !== 'free_shipping' && (
+                <div style={{ flex: 1 }}>
+                  <label style={label}>القيمة</label>
+                  <input 
+                    type="number" 
+                    style={input} 
+                    value={newCoupon.discount_value} 
+                    onChange={e => setNewCoupon({...newCoupon, discount_value: e.target.value})} 
+                    placeholder="10"
+                  />
+                </div>
+              )}
             </div>
 
             <div style={inputGroup}>
@@ -176,8 +187,10 @@ export default function PromoCodesAdmin() {
                       <td style={td}>
                         {coupon.discount_type === 'percentage' ? (
                           <span style={badgePercent}><Percent size={12} /> {coupon.discount_value}%</span>
-                        ) : (
+                        ) : coupon.discount_type === 'fixed' ? (
                           <span style={badgeFixed}><Banknote size={12} /> {coupon.discount_value} ج.م</span>
+                        ) : (
+                          <span style={badgeFree}><Truck size={12} /> شحن مجاني</span>
                         )}
                       </td>
                       <td style={td}>
@@ -230,6 +243,8 @@ const tr: any = { borderBottom: '1px solid #f1f5f9' };
 const td: any = { padding: '15px 10px', fontSize: '0.9rem' };
 const badgePercent: any = { background: '#f0fdf4', color: '#15803d', padding: '5px 10px', borderRadius: '8px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '5px', width: 'fit-content' };
 const badgeFixed: any = { background: '#eff6ff', color: '#1d4ed8', padding: '5px 10px', borderRadius: '8px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '5px', width: 'fit-content' };
+// ستايل بادج الشحن المجاني الجديد
+const badgeFree: any = { background: '#fff7ed', color: '#c2410c', padding: '5px 10px', borderRadius: '8px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '5px', width: 'fit-content', border: '1px solid #ffedd5' };
 const statusActive: any = { background: '#dcfce7', color: '#15803d', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '700' };
 const statusInactive: any = { background: '#fee2e2', color: '#b91c1c', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '700' };
 const deleteBtn: any = { background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', transition: '0.3s' };
