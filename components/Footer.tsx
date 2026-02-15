@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { 
   Facebook, Instagram, Mail, MapPin, 
-  ChevronLeft, ShieldCheck, Clock, MessageCircle, Music2, FileText, ShieldAlert, RefreshCcw 
+  ChevronLeft, ShieldCheck, Clock, MessageCircle, Music2, FileText, ShieldAlert, RefreshCcw, Users 
 } from 'lucide-react';
 
 // --- قسم التعديل السريع لروابط السوشيال ميديا ---
@@ -18,8 +18,9 @@ export default function ProfessionalFooter() {
   return (
     <footer style={footerContainer}>
       <style dangerouslySetInnerHTML={{ __html: `
-        .footer-cta:hover { background-color: #1a1a1a !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15) !important; }
+        .footer-cta:hover { background-color: #14532d !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.4) !important; }
         .footer-link-item:hover { color: #27ae60 !important; padding-right: 5px; }
+        .footer-social-icon:hover { background-color: #27ae60 !important; color: #fff !important; transform: scale(1.1); }
       `}} />
 
       <div style={footerContent}>
@@ -33,9 +34,9 @@ export default function ProfessionalFooter() {
             وجهتك الأولى والموثوقة لجميع أنواع زيوت المحركات وفلاتر السيارات الأصلية. نضمن لك الجودة والأداء العالي لسيارتك.
           </p>
           <div style={socialLinks}>
-            <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noreferrer" style={socialIcon}><Facebook size={20} /></a>
-            <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noreferrer" style={socialIcon}><Instagram size={20} /></a>
-            <a href={SOCIAL_LINKS.tiktok} target="_blank" rel="noreferrer" style={socialIcon}><Music2 size={20} /></a>
+            <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noreferrer" className="footer-social-icon" style={socialIcon}><Facebook size={20} /></a>
+            <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noreferrer" className="footer-social-icon" style={socialIcon}><Instagram size={20} /></a>
+            <a href={SOCIAL_LINKS.tiktok} target="_blank" rel="noreferrer" className="footer-social-icon" style={socialIcon}><Music2 size={20} /></a>
           </div>
         </div>
 
@@ -45,6 +46,9 @@ export default function ProfessionalFooter() {
           <ul style={linkList}>
             <li><Link href="/store" className="footer-link-item" style={footerLink}><ChevronLeft size={14} /> المتجر</Link></li>
             <li><Link href="/profile" className="footer-link-item" style={footerLink}><ChevronLeft size={14} /> حسابي الشخصي</Link></li>
+            {/* --- إضافة رابط برنامج المسوقين هنا --- */}
+            <li><Link href="/affiliate" className="footer-link-item" style={{...footerLink, color: '#27ae60', fontWeight: 'bold'}}><Users size={14} /> انضم لبرنامج المسوقين</Link></li>
+            {/* -------------------------------------- */}
             <li><Link href="/about" className="footer-link-item" style={footerLink}><ChevronLeft size={14} /> من نحن</Link></li>
             <hr style={divider} />
             {/* الصفحات القانونية */}
@@ -104,24 +108,24 @@ export default function ProfessionalFooter() {
   );
 }
 
-// --- التنسيقات ---
-const footerContainer: any = { backgroundColor: '#fff', borderTop: '1px solid #eee', padding: '60px 20px 20px', direction: 'rtl' };
+// --- التنسيقات (تم التعديل للون الأسود) ---
+const footerContainer: any = { backgroundColor: '#050505', borderTop: '1px solid #111', padding: '60px 20px 20px', direction: 'rtl' };
 const footerContent: any = { maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '40px', marginBottom: '40px' };
 const footerColumn: any = { display: 'flex', flexDirection: 'column', gap: '15px' };
-const logoStyle: any = { fontSize: '1.8rem', fontWeight: '900', fontStyle: 'italic', color: '#1a1a1a', textDecoration: 'none', letterSpacing: '-1px' };
-const brandDesc: any = { color: '#666', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 };
+const logoStyle: any = { fontSize: '1.8rem', fontWeight: '900', fontStyle: 'italic', color: '#fff', textDecoration: 'none', letterSpacing: '-1px' };
+const brandDesc: any = { color: '#999', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 };
 const socialLinks: any = { display: 'flex', gap: '12px', marginTop: '10px' };
-const socialIcon: any = { width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1a1a1a', transition: '0.3s' };
-const columnTitle: any = { fontSize: '1.1rem', fontWeight: '900', color: '#1a1a1a', marginBottom: '10px', position: 'relative', paddingBottom: '10px' };
+const socialIcon: any = { width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', transition: '0.3s' };
+const columnTitle: any = { fontSize: '1.1rem', fontWeight: '900', color: '#fff', marginBottom: '10px', position: 'relative', paddingBottom: '10px' };
 const linkList: any = { listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' };
-const footerLink: any = { textDecoration: 'none', color: '#666', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.3s ease' };
-const divider: any = { border: 'none', borderTop: '1px solid #f5f5f5', margin: '5px 0' };
+const footerLink: any = { textDecoration: 'none', color: '#bbb', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.3s ease' };
+const divider: any = { border: 'none', borderTop: '1px solid #111', margin: '5px 0' };
 const contactItem: any = { display: 'flex', gap: '12px', alignItems: 'center' };
-const contactLabel: any = { display: 'block', fontSize: '0.75rem', color: '#999', marginBottom: '4px' };
-const contactValue: any = { fontSize: '0.9rem', fontWeight: 'bold', color: '#1a1a1a', textDecoration: 'none' };
+const contactLabel: any = { display: 'block', fontSize: '0.75rem', color: '#666', marginBottom: '4px' };
+const contactValue: any = { fontSize: '0.9rem', fontWeight: 'bold', color: '#fff', textDecoration: 'none' };
 const contactBtn: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', backgroundColor: '#27ae60', color: '#fff', padding: '12px 20px', borderRadius: '14px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.9rem', marginTop: '5px', transition: '0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 4px 12px rgba(39, 174, 96, 0.2)', width: 'fit-content' };
-const trustBadge: any = { display: 'flex', alignItems: 'center', gap: '8px', background: '#f0fdf4', color: '#15803d', padding: '10px 15px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 'bold' };
-const paymentText: any = { fontSize: '0.85rem', color: '#888', margin: '15px 0 10px' };
+const trustBadge: any = { display: 'flex', alignItems: 'center', gap: '8px', background: '#111', color: '#27ae60', padding: '10px 15px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 'bold', border: '1px solid #222' };
+const paymentText: any = { fontSize: '0.85rem', color: '#555', margin: '15px 0 10px' };
 const paymentLogos: any = { display: 'flex', gap: '10px', flexWrap: 'wrap' };
-const payImg: any = { height: '25px', width: 'auto', borderRadius: '4px', objectFit: 'contain' };
-const bottomBar: any = { borderTop: '1px solid #f5f5f5', paddingTop: '20px', textAlign: 'center', color: '#666', fontSize: '0.85rem' };
+const payImg: any = { height: '25px', width: 'auto', borderRadius: '4px', objectFit: 'contain', filter: 'grayscale(0.2)' };
+const bottomBar: any = { borderTop: '1px solid #111', paddingTop: '20px', textAlign: 'center', color: '#666', fontSize: '0.85rem' };

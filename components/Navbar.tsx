@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { 
   Search, ShoppingCart, User, Home, Store, Package, 
-  Menu as MenuIcon, X, Info, PhoneCall, ShieldCheck, Settings, LogIn, LogOut 
+  Menu as MenuIcon, X, Info, PhoneCall, ShieldCheck, Settings, LogIn, LogOut,
+  Handshake // إضافة أيقونة المصافحة للمسوقين
 } from 'lucide-react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext'; 
@@ -81,7 +82,10 @@ export default function ProfessionalNavbar() {
               <div style={sidebarContent}>
                 <Link href="/" onClick={()=>setIsSidebarOpen(false)} style={sidebarLink}><Home size={20}/> الرئيسية</Link>
                 <Link href="/store" onClick={()=>setIsSidebarOpen(false)} style={sidebarLink}><Store size={20}/> المتجر</Link>
-                {/* تم حذف رابط طلباتي من هنا */}
+                
+                {/* --- الرابط الجديد في الموبايل --- */}
+                <Link href="/affiliate" onClick={()=>setIsSidebarOpen(false)} style={{...sidebarLink, color: '#27ae60'}}><Handshake size={20}/> ابدأ الربح معنا</Link>
+                
                 <hr style={sidebarDivider} />
                 {user ? (
                   <>
@@ -125,7 +129,10 @@ export default function ProfessionalNavbar() {
 
           <div style={navLinks} className="desktop-links">
             <Link href="/store" style={linkItem}>المتجر</Link>
-            {/* تم حذف رابط طلباتي من هنا */}
+            
+            {/* --- الرابط الجديد في الديسكتوب --- */}
+            <Link href="/affiliate" style={{...linkItem, color: '#27ae60'}}>ابدأ الربح معنا</Link>
+
             <div style={iconGroup}>
               {user ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -157,7 +164,6 @@ export default function ProfessionalNavbar() {
           {cartItems.length > 0 && <span style={cartBadgeMobile}>{cartItems.length}</span>}
           <span>السلة</span>
         </Link>
-        {/* تم استبدال رابط طلباتي برابط مباشر لـ "حسابي" لسهولة الوصول */}
         <Link href={user ? "/profile" : "/login"} style={bottomNavItem}><User size={22} /><span>حسابي</span></Link>
         <button onClick={() => setIsSidebarOpen(true)} style={bottomNavItemBtn}><MenuIcon size={22} /><span>المزيد</span></button>
       </div>
