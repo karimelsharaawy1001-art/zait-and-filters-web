@@ -182,7 +182,7 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (subtotal <= 0) return toast.error('السلة فارغة');
-    if (paymentMethod !== 'card_installments' && !screenshot) return toast.error('يرجى رفع سكرين شوت التحويل');
+    if (paymentMethod !== 'card_installments' && !screenshot && paymentMethod !== 'card_installments') return toast.error('يرجى رفع سكرين شوت التحويل');
 
     setLoading(true);
     try {
@@ -446,7 +446,7 @@ export default function CheckoutPage() {
           </div>
 
           <button disabled={loading} type="submit" className="btn-hover" style={btnStyle}>
-            {loading ? <Loader2 className="animate-spin" /> : <><CheckCircle size={20} /> {paymentMethod === 'card_installments' ? 'الانتقال للدفع والتقسيط' : 'تأكيد وإتمام الطلب'}</>}
+            {loading ? <Loader2 className="animate-spin" size={40} color="#15803d" /> : <><CheckCircle size={20} /> {paymentMethod === 'card_installments' ? 'الانتقال للدفع والتقسيط' : 'تأكيد وإتمام الطلب'}</>}
           </button>
         </form>
       </div>
