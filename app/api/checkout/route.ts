@@ -5,9 +5,9 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     
-    // EasyKash Credentials
-    const API_KEY = "gf8ueul7plkntb5r";
-    const HMAC_SECRET = "87ca3d5640dc3f5809d3dfbf4a5045ad";
+    // ✅ CORRECT EasyKash Credentials from Dashboard
+    const API_KEY = "apdj858gekt0naz1";
+    const HMAC_SECRET = "87ca3d564d0dc3f5809d3dfbf4a5045ad";
 
     const parsedAmount = parseFloat(body.amount) || 0;
 
@@ -42,11 +42,11 @@ export async function POST(req: Request) {
       payload, 
       {
         headers: {
-          'apikey': API_KEY,           // ← API Key header
-          'authorization': HMAC_SECRET, // ← HMAC Secret header
+          'apikey': API_KEY,
+          'authorization': HMAC_SECRET,
           'Content-Type': 'application/json'
         },
-        timeout: 15000 // Increased timeout
+        timeout: 15000
       }
     );
 
