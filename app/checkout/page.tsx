@@ -122,8 +122,13 @@ export default function CheckoutPage() {
 
     setLoading(true);
     try {
+      // جلب بيانات المستخدم الحالي (إذا وجد) لربط الطلب بحسابه
+      const { data: { user } } = await supabase.auth.getUser();
+      
       let uploadedImageUrl = screenshot ? await uploadToCloudinary(screenshot) : null;
+      
       const orderData = {
+        user_id: user?.id || null, // التعديل هنا لربط الطلب بالحساب تلقائياً
         customer_name: customerInfo.name,
         customer_phone: customerInfo.phone,
         customer_address: customerInfo.address,
@@ -144,7 +149,6 @@ export default function CheckoutPage() {
       if (paymentMethod === 'card_installments') {
         await initiateEasyKashPayment(newOrder.id);
       } else {
-        // --- التعديل هنا: التوجيه لصفحة الشكر بدلاً من البروفايل ---
         toast.success('تم تسجيل طلبك بنجاح! 🎉');
         clearCart();
         router.push(`/order-success?orderId=${newOrder.id}`); 
