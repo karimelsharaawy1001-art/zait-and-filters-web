@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import axios from 'axios';
 
 export async function POST(req: Request) {
   try {
@@ -9,7 +8,7 @@ export async function POST(req: Request) {
     const PUBLIC_KEY = "gf8ueul7plkntb5r";
     const SECRET_KEY = "87ca3d5640dc3f5809d3dfbf4a5045ad";
 
-    // بناء الـ Payload بناءً على طلبك اللي ظهر في اللوجات
+    // بناء الـ Payload بنفس مسميات طلبك القديم الناجح
     const payload = {
       api_key: PUBLIC_KEY,
       amount: Number(body.amount),
@@ -22,41 +21,32 @@ export async function POST(req: Request) {
       payment_methods: ["card", "installments", "valu", "aman"]
     };
 
-    console.log('[EasyKash] Initializing Payment using Legacy Logic + New Keys...');
+    console.log('[EasyKash] Sending payload to checkout v1 endpoint...');
 
-    // استخدام axios ونفس الهيدر من كودك القديم
-    const response = await axios.post('https://api.easykash.net/api/v1/checkout', payload, {
-      headers: {
-        'authorization': SECRET_KEY,
+    // الرابط المخصص للمفاتيح الجديدة مع استخدام الهيدر authorization كما طلبت
+    const response = await fetch('https://api.easykash.net/api/v1/checkout', {
+      method: 'POST',
+      headers: { 
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'authorization': SECRET_KEY 
       },
-      timeout: 10000 // مهلة 10 ثوانٍ
+      body: JSON.stringify(payload)
     });
 
-    const data = response.data;
-    console.log('[EasyKash Response]:', JSON.stringify(data));
+    const responseText = await response.text();
+    console.log('[EasyKash Raw Response]:', responseText);
 
-    // استخراج الرابط كما في النظام الجديد
-    if (data.status === 'success' && data.checkout_url) {
-      return NextResponse.json({ success: true, url: data.checkout_url });
-    } else {
-      return NextResponse.json({ 
-        success: false, 
-        message: data.message || 'فشل استخراج رابط الدفع',
-        details: data 
-      }, { status: 400 });
+    try {
+      const data = JSON.parse(responseText);
+      if (data.status === 'success' && data.checkout_url) {
+        return NextResponse.json({ success: true, url: data.checkout_url });
+      }
+      return NextResponse.json({ success: false, message: data.message || 'Error from Gateway' }, { status: 400 });
+    } catch (e) {
+      return NextResponse.json({ success: false, message: 'Invalid Response from Gateway', debug: responseText.substring(0, 100) }, { status: 500 });
     }
 
   } catch (error: any) {
-    // لو الرد HTML (اللي بيعمل أيرور <) هنمسكه هنا
-    const errorData = error.response?.data;
-    console.error('❌ EasyKash Error:', errorData || error.message);
-    
-    return NextResponse.json({ 
-      success: false, 
-      error: 'خطأ في الاتصال ببوابة الدفع',
-      details: errorData || error.message
-    }, { status: error.response?.status || 500 });
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
