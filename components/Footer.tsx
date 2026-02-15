@@ -1,9 +1,16 @@
 'use client';
 import Link from 'next/link';
 import { 
-  Facebook, Instagram, Phone, Mail, MapPin, 
-  ChevronLeft, MessageSquare, ShieldCheck, Clock 
+  Facebook, Instagram, Mail, MapPin, 
+  ChevronLeft, ShieldCheck, Clock, MessageCircle, Music2 
 } from 'lucide-react';
+
+// --- قسم التعديل السريع لروابط السوشيال ميديا ---
+const SOCIAL_LINKS = {
+  facebook: "https://facebook.com/zaitandfilters", // ضع لينك الفيسبوك هنا
+  instagram: "https://instagram.com/zaitandfilters", // ضع لينك الانستجرام هنا
+  tiktok: "https://tiktok.com/@zait.and.filters" // ضع لينك التيك توك هنا
+};
 
 export default function ProfessionalFooter() {
   const currentYear = new Date().getFullYear();
@@ -12,7 +19,7 @@ export default function ProfessionalFooter() {
     <footer style={footerContainer}>
       <div style={footerContent}>
         
-        {/* العمود الأول: عن البراند */}
+        {/* العمود الأول: عن البراند والسوشيال ميديا */}
         <div style={footerColumn}>
           <Link href="/" style={logoStyle}>
             ZAIT <span style={{ color: '#27ae60' }}>& FILTERS</span>
@@ -21,9 +28,10 @@ export default function ProfessionalFooter() {
             وجهتك الأولى والموثوقة لجميع أنواع زيوت المحركات وفلاتر السيارات الأصلية. نضمن لك الجودة والأداء العالي لسيارتك.
           </p>
           <div style={socialLinks}>
-            <a href="https://facebook.com" style={socialIcon}><Facebook size={20} /></a>
-            <a href="https://instagram.com" style={socialIcon}><Instagram size={20} /></a>
-            <a href="https://wa.me/201023862436" style={socialIcon}><MessageSquare size={20} /></a>
+            {/* أضفنا تيك توك هنا مع إمكانية التعديل */}
+            <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noreferrer" style={socialIcon} title="فيسبوك"><Facebook size={20} /></a>
+            <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noreferrer" style={socialIcon} title="انستجرام"><Instagram size={20} /></a>
+            <a href={SOCIAL_LINKS.tiktok} target="_blank" rel="noreferrer" style={socialIcon} title="تيك توك"><Music2 size={20} /></a>
           </div>
         </div>
 
@@ -38,14 +46,14 @@ export default function ProfessionalFooter() {
           </ul>
         </div>
 
-        {/* العمود الثالث: التواصل */}
+        {/* العمود الثالث: التواصل (بدون رقم موبايل) */}
         <div style={footerColumn}>
           <h4 style={columnTitle}>تواصل معنا</h4>
           <div style={contactItem}>
-            <Phone size={18} color="#27ae60" />
+            <MessageCircle size={18} color="#27ae60" />
             <div style={{ textAlign: 'right' }}>
-              <span style={contactLabel}>اتصل بنا:</span>
-              <a href="tel:+201023862436" style={contactValue}>01023862436</a>
+              <span style={contactLabel}>دعم العملاء:</span>
+              <Link href="/contact" style={contactValue}>عبر صفحة "اتصل بنا" فقط</Link>
             </div>
           </div>
           <div style={contactItem}>
@@ -59,14 +67,15 @@ export default function ProfessionalFooter() {
             <Clock size={18} color="#27ae60" />
             <div style={{ textAlign: 'right' }}>
               <span style={contactLabel}>مواعيد العمل:</span>
-              <span style={contactValue}>يومياً من 10 ص حتى 10 م</span>
+              <span style={contactValue}>يومياً من 10 ص حتى 6 م</span>
             </div>
           </div>
         </div>
 
         {/* العمود الرابع: الثقة والدفع */}
         <div style={footerColumn}>
-          <h4 style={columnTitle}>تسوق بآمان</h4>
+          {/* تصحيح الكلمة لـ "بأمان" */}
+          <h4 style={columnTitle}>تسوق بأمان</h4> 
           <div style={trustBadge}>
             <ShieldCheck size={18} color="#27ae60" />
             <span>منتجات أصلية 100%</span>
@@ -98,7 +107,7 @@ const footerColumn: any = { display: 'flex', flexDirection: 'column', gap: '15px
 
 const logoStyle: any = { fontSize: '1.8rem', fontWeight: '900', fontStyle: 'italic', color: '#1a1a1a', textDecoration: 'none', letterSpacing: '-1px' };
 const brandDesc: any = { color: '#666', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 };
-const socialLinks: any = { display: 'flex', gap: '15px', marginTop: '10px' };
+const socialLinks: any = { display: 'flex', gap: '12px', marginTop: '10px' };
 const socialIcon: any = { width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1a1a1a', transition: '0.3s' };
 
 const columnTitle: any = { fontSize: '1.1rem', fontWeight: '900', color: '#1a1a1a', marginBottom: '10px', position: 'relative', paddingBottom: '10px' };
