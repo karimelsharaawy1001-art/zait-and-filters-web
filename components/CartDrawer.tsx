@@ -34,7 +34,8 @@ export default function CartDrawer() {
               {cartItems.length === 0 ? (
                 <div style={emptyState}>السلة فارغة حالياً.. ابدأ بالتسوق الآن!</div>
               ) : (
-                cartItems.map(item => (
+                // تم تعديل السطر التالي لإضافة (item: any) لحل مشكلة TypeScript Build
+                cartItems.map((item: any) => (
                   <div key={item.id} style={cartItemRow}>
                     <img src={item.image_url} style={itemThumb} alt={item.name} />
                     <div style={{ flex: 1 }}>
