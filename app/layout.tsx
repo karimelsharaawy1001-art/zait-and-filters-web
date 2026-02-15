@@ -1,5 +1,6 @@
 import './globals.css'
 import ProfessionalNavbar from '@/components/Navbar'
+import ProfessionalFooter from '@/components/Footer' // استيراد الفوتر الجديد
 import { Almarai } from 'next/font/google'
 import { CartProvider } from '@/context/CartContext'
 import CartDrawer from '@/components/CartDrawer'
@@ -35,7 +36,7 @@ export const metadata = {
   openGraph: {
     title: "زيت أند فلترز | وجهتك الموثوقة لقطع غيار السيارات الأصلية",
     description: "كل ما تحتاجه سيارتك من قطع غيار أصلية وزيوت عالمية في مكان واحد. اطلب الآن واستلم في منزلك بجميع محافظات مصر.",
-    url: "https://zaitandfilters.com", // استخدم الدومين الحقيقي بتاعك هنا
+    url: "https://zaitandfilters.com", 
     siteName: "Zait & Filters",
     images: [
       {
@@ -88,6 +89,10 @@ export default function RootLayout({
           <main>
             {children}
           </main>
+
+          {/* إضافة الفوتر هنا ليظهر في أسفل كل الصفحات */}
+          <ProfessionalFooter />
+          
         </CartProvider>
       </body>
     </html>
