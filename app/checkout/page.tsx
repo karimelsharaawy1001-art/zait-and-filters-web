@@ -101,7 +101,6 @@ export default function CheckoutPage() {
         return;
       }
 
-      // التحقق من تاريخ الصلاحية إذا وُجد
       if (data.expiry_date && new Date(data.expiry_date) < new Date()) {
         toast.error('هذا الكود قد انتهت صلاحيته');
         return;
@@ -185,8 +184,8 @@ export default function CheckoutPage() {
         customer_address: customerInfo.address,
         city: selectedCity?.city_name,
         shipping_cost: selectedCity?.price,
-        discount_applied: discountAmount, // حفظ قيمة الخصم في الطلب
-        promo_code: appliedPromo, // حفظ الكود المستخدم
+        discount_applied: discountAmount, 
+        promo_code: appliedPromo, 
         total_price: finalTotal,
         items: cart, 
         payment_method: paymentMethod,
@@ -242,9 +241,12 @@ export default function CheckoutPage() {
                         <span style={{ fontWeight: '900', fontSize: '0.95rem' }}>{item.name}</span>
                         <span style={{ fontWeight: '900' }}>{(parseFloat(item.price) * item.quantity).toFixed(2)} ج.م</span>
                       </div>
+                      {/* --- إصلاح عرض بيانات المنتج هنا --- */}
                       <div style={detailsGrid}>
-                        <div style={detailItem}><Settings2 size={11} color="#15803d" /> <span>الماركة: <b>{item.brand}</b></span></div>
-                        <div style={detailItem}><Globe size={11} color="#15803d" /> <span>المنشأ: <b>{country}</b></span></div>
+                        <div style={detailItem}><Tags size={11} color="#15803d" /> <span>البراند: <b>{item.brand}</b></span></div>
+                        <div style={detailItem}><Settings2 size={11} color="#15803d" /> <span>لسيارة: <b>{item.car_make} {item.car_model}</b></span></div>
+                        {item.car_model_year && <div style={detailItem}><Calendar size={11} color="#15803d" /> <span>سنة الموديل: <b>{item.car_model_year}</b></span></div>}
+                        <div style={detailItem}><Globe size={11} color="#15803d" /> <span>بلد المنشأ: <b>{country}</b></span></div>
                       </div>
                       <div style={{ marginTop: '5px' }}>
                         <span style={qtyBadge}>الكمية: {item.quantity}</span>
@@ -256,24 +258,11 @@ export default function CheckoutPage() {
             })}
           </div>
 
-          {/* --- قسم البرومو كود الجديد --- */}
           <div style={promoWrapper}>
             <label style={lab}><Ticket size={14} color="#15803d" /> هل لديك كود خصم؟</label>
             <div style={{ display: 'flex', gap: '8px', marginTop: '5px' }}>
-              <input 
-                placeholder="ادخل الكود هنا" 
-                value={promoCode} 
-                onChange={(e) => setPromoCode(e.target.value)} 
-                style={{ ...inp, marginBottom: 0, flex: 1 }}
-                disabled={!!appliedPromo}
-              />
-              <button 
-                type="button" 
-                onClick={applyPromoCode} 
-                disabled={promoLoading || !!appliedPromo || !promoCode}
-                className="promo-btn"
-                style={promoBtnStyle}
-              >
+              <input placeholder="ادخل الكود هنا" value={promoCode} onChange={(e) => setPromoCode(e.target.value)} style={{ ...inp, marginBottom: 0, flex: 1 }} disabled={!!appliedPromo} />
+              <button type="button" onClick={applyPromoCode} disabled={promoLoading || !!appliedPromo || !promoCode} className="promo-btn" style={promoBtnStyle}>
                 {promoLoading ? <Loader2 size={16} className="animate-spin" /> : appliedPromo ? 'تم التطبيق' : 'تطبيق'}
               </button>
             </div>
@@ -332,6 +321,24 @@ export default function CheckoutPage() {
                       <span style={paySubTitle}>أمان، فوري، فاليو، كونتكت، البنك الأهلي والعديد..</span>
                     </div>
                   </div>
+                  {/* --- إضافة اللوجوهات بالكامل --- */}
+                  <div style={logosGrid}>
+                    <img src="https://i.postimg.cc/Njw3g5JW/visa-logo-png-seeklogo-149697.png" alt="Visa" style={miniLogoImg} />
+                    <img src="https://i.postimg.cc/sgRkVv64/1280px-Master-Card-Logo-svg.png" alt="Mastercard" style={miniLogoImg} />
+                    <img src="https://i.postimg.cc/wjdC67fn/VALU.jpg" alt="Valu" style={miniLogoImg} />
+                    <img src="https://i.postimg.cc/dVKbqLHB/AMAN.jpg" alt="Aman" style={miniLogoImg} />
+                    <img src="https://i.postimg.cc/pLtw2pGk/FAWRY.jpg" alt="Fawry" style={miniLogoImg} />
+                    <img src="https://i.postimg.cc/vZdJQcqN/SOHOOLA.jpg" alt="Souhoola" style={miniLogoImg} />
+                    <img src="https://i.postimg.cc/52Mhx67g/CONTACT.jpg" alt="Contact" style={miniLogoImg} />
+                    <img src="https://i.postimg.cc/FHQM97WT/HALAN.jpg" alt="Halan" style={miniLogoImg} />
+                    <img src="https://i.postimg.cc/kgd0nB1f/EL-AHLY.jpg" alt="NBE" style={miniLogoImg} />
+                    <img src="https://i.postimg.cc/7ZyFxfsB/MEEZA.jpg" alt="Meeza" style={miniLogoImg} />
+                    <img src="https://i.postimg.cc/VkcxYdGp/TAKKA.jpg" alt="Takka" style={miniLogoImg} />
+                    <img src="https://i.postimg.cc/wjdC67ff/lucky.jpg" alt="Lucky" style={miniLogoImg} />
+                    <img src="https://i.postimg.cc/qvdPkzbY/TRU.jpg" alt="Tru" style={miniLogoImg} />
+                    <img src="https://i.postimg.cc/RZzkMNsb/mogo.jpg" alt="Mogo" style={miniLogoImg} />
+                    <img src="https://i.postimg.cc/zG1sJVt2/apple-pay.png" alt="Apple Pay" style={miniLogoImg} />
+                  </div>
                 </div>
               </label>
 
@@ -343,6 +350,9 @@ export default function CheckoutPage() {
                     <div style={payTextContent}>
                       <span style={payTitle}>تطبيق انستا باي (InstaPay)</span>
                     </div>
+                  </div>
+                  <div style={logosGrid}>
+                    <img src="https://i.postimg.cc/3r19c1zy/Pv1p8v-KJq4Z-LLOj-Qj-BZp-K8DNJg4Zb5.png" alt="InstaPay" style={miniLogoImg} />
                   </div>
                   {paymentMethod === 'instapay' && (
                     <div style={payDetailsBox}>
@@ -362,6 +372,11 @@ export default function CheckoutPage() {
                     <div style={payTextContent}>
                       <span style={payTitle}>محافظ إلكترونية (كاش)</span>
                     </div>
+                  </div>
+                  <div style={logosGrid}>
+                    <img src="https://i.postimg.cc/ryjgPj7K/VODAFONE.jpg" alt="Vodafone Cash" style={miniLogoImg} />
+                    <img src="https://i.postimg.cc/Y2R8sRTj/ORANGE.jpg" alt="Orange Money" style={miniLogoImg} />
+                    <img src="https://i.postimg.cc/59gpRgDy/ETTISALAT.jpg" alt="Etisalat Cash" style={miniLogoImg} />
                   </div>
                   {paymentMethod === 'wallets' && (
                     <div style={payDetailsBox}>
@@ -420,7 +435,9 @@ const payDetailsBox: any = { marginTop: '12px', padding: '18px', background: '#f
 const actionBtnLink: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#1a1a1a', color: '#fff', padding: '12px', borderRadius: '12px', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 'bold', transition: '0.3s ease' };
 const uploadArea: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '2px dashed #15803d', color: '#15803d', padding: '12px', borderRadius: '12px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '900', transition: '0.3s ease' };
 
-// --- تنسيقات البرومو كود ---
+// --- تنسيقات البرومو كود والصور الجديدة ---
 const promoWrapper: any = { marginTop: '20px', padding: '15px', background: '#fff', borderRadius: '20px', border: '1px dashed #ddd', marginBottom: '15px' };
 const promoBtnStyle: any = { padding: '0 25px', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', transition: '0.3s ease', fontSize: '0.9rem' };
 const promoSuccessText: any = { fontSize: '0.8rem', color: '#15803d', marginTop: '10px', fontWeight: 'bold' };
+const logosGrid: any = { display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '8px', paddingRight: '57px' };
+const miniLogoImg: any = { height: '30px', width: 'auto', borderRadius: '6px', border: '1px solid #f0f0f0', padding: '2px', background: '#fff' };
