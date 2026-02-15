@@ -178,7 +178,8 @@ export default function CheckoutPage() {
                return (
                 <div key={item.id} style={cartItem}>
                   <div style={{ display: 'flex', gap: '15px' }}>
-                    <div style={imageBox}><img src={item.image} alt="" style={imgFluid} /></div>
+                    {/* تم تعديل السطر التالي لضمان قراءة الصورة بشكل صحيح */}
+                    <div style={imageBox}><img src={item.image_url || item.image} alt="" style={imgFluid} /></div>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ fontWeight: '900', fontSize: '0.95rem' }}>{item.name}</span>

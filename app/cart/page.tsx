@@ -33,9 +33,9 @@ export default function CartPage() {
         <div style={itemsSection}>
           {cart.map((item: any) => {
             const itemPrice = parseFloat(item.price || 0);
-            const productImg = item.image || 'https://via.placeholder.com/150?text=No+Image';
+            // تم تعديل السطر التالي لضمان قراءة الصورة سواء كانت باسم image أو image_url
+            const productImg = item.image_url || item.image || 'https://via.placeholder.com/150?text=No+Image';
             
-            // تصحيح المسميات لضمان ظهور البيانات الحقيقية
             const origin = item.country_origin || item.country_of_origin || 'أصلي';
             const carYear = item.car_model_year || item.year || '';
 
@@ -52,7 +52,6 @@ export default function CartPage() {
                   </div>
 
                   <div style={specsWrapper}>
-                    {/* إصلاح سطر التوافق ليعرض السنة بجانب الموديل */}
                     <div style={specEntry}>
                       <Car size={13} color="#27ae60"/> 
                       <span>مناسب لـ: <b>{item.car_make || 'عالمي'} {item.car_model} {carYear}</b></span>
@@ -100,7 +99,7 @@ export default function CartPage() {
   );
 }
 
-// --- Styles (ثابتة ومنظمة) ---
+// --- Styles ---
 const pageContainer: any = { maxWidth: '1100px', margin: '20px auto', padding: '0 20px', direction: 'rtl' };
 const title: any = { fontSize: '1.4rem', fontWeight: '900', marginBottom: '20px' };
 const contentGrid: any = { display: 'grid', gridTemplateColumns: '1fr 320px', gap: '20px', alignItems: 'start' };
