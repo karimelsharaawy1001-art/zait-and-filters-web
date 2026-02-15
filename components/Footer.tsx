@@ -7,9 +7,9 @@ import {
 
 // --- قسم التعديل السريع لروابط السوشيال ميديا ---
 const SOCIAL_LINKS = {
-  facebook: "https://facebook.com/zaitandfilters", // ضع لينك الفيسبوك هنا
-  instagram: "https://instagram.com/zaitandfilters", // ضع لينك الانستجرام هنا
-  tiktok: "https://tiktok.com/@zait.and.filters" // ضع لينك التيك توك هنا
+  facebook: "https://facebook.com/zaitandfilters",
+  instagram: "https://instagram.com/zaitandfilters",
+  tiktok: "https://tiktok.com/@zait.and.filters"
 };
 
 export default function ProfessionalFooter() {
@@ -17,9 +17,14 @@ export default function ProfessionalFooter() {
 
   return (
     <footer style={footerContainer}>
+      {/* ستايل الزرار الجديد (Hover Effect) */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        .footer-cta:hover { background-color: #1a1a1a !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15) !important; }
+      `}} />
+
       <div style={footerContent}>
         
-        {/* العمود الأول: عن البراند والسوشيال ميديا */}
+        {/* العمود الأول: عن البراند */}
         <div style={footerColumn}>
           <Link href="/" style={logoStyle}>
             ZAIT <span style={{ color: '#27ae60' }}>& FILTERS</span>
@@ -28,10 +33,9 @@ export default function ProfessionalFooter() {
             وجهتك الأولى والموثوقة لجميع أنواع زيوت المحركات وفلاتر السيارات الأصلية. نضمن لك الجودة والأداء العالي لسيارتك.
           </p>
           <div style={socialLinks}>
-            {/* أضفنا تيك توك هنا مع إمكانية التعديل */}
-            <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noreferrer" style={socialIcon} title="فيسبوك"><Facebook size={20} /></a>
-            <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noreferrer" style={socialIcon} title="انستجرام"><Instagram size={20} /></a>
-            <a href={SOCIAL_LINKS.tiktok} target="_blank" rel="noreferrer" style={socialIcon} title="تيك توك"><Music2 size={20} /></a>
+            <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noreferrer" style={socialIcon}><Facebook size={20} /></a>
+            <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noreferrer" style={socialIcon}><Instagram size={20} /></a>
+            <a href={SOCIAL_LINKS.tiktok} target="_blank" rel="noreferrer" style={socialIcon}><Music2 size={20} /></a>
           </div>
         </div>
 
@@ -46,16 +50,18 @@ export default function ProfessionalFooter() {
           </ul>
         </div>
 
-        {/* العمود الثالث: التواصل (بدون رقم موبايل) */}
+        {/* العمود الثالث: التواصل (الزرار الجديد هنا) */}
         <div style={footerColumn}>
           <h4 style={columnTitle}>تواصل معنا</h4>
-          <div style={contactItem}>
-            <MessageCircle size={18} color="#27ae60" />
-            <div style={{ textAlign: 'right' }}>
-              <span style={contactLabel}>دعم العملاء:</span>
-              <Link href="/contact" style={contactValue}>عبر صفحة "اتصل بنا" فقط</Link>
-            </div>
+          
+          <div style={{ marginBottom: '15px' }}>
+            <span style={contactLabel}>دعم العملاء:</span>
+            {/* الزرار الاحترافي الجديد */}
+            <Link href="/contact" className="footer-cta" style={contactBtn}>
+              <MessageCircle size={18} /> تواصل معنا الآن
+            </Link>
           </div>
+
           <div style={contactItem}>
             <MapPin size={18} color="#27ae60" />
             <div style={{ textAlign: 'right' }}>
@@ -74,7 +80,6 @@ export default function ProfessionalFooter() {
 
         {/* العمود الرابع: الثقة والدفع */}
         <div style={footerColumn}>
-          {/* تصحيح الكلمة لـ "بأمان" */}
           <h4 style={columnTitle}>تسوق بأمان</h4> 
           <div style={trustBadge}>
             <ShieldCheck size={18} color="#27ae60" />
@@ -91,36 +96,50 @@ export default function ProfessionalFooter() {
 
       </div>
 
-      {/* شريط حقوق النشر السفلي */}
       <div style={bottomBar}>
         <p>© {currentYear} زيت أند فلترز. جميع الحقوق محفوظة.</p>
-        <p style={{ fontSize: '0.75rem', marginTop: '5px', color: '#999' }}>تم التطوير بكل ❤️ لخدمة سيارتك</p>
       </div>
     </footer>
   );
 }
 
-// --- التنسيقات (Light & Professional) ---
+// --- التنسيقات (تم إضافة تنسيق الزرار الجديد) ---
 const footerContainer: any = { backgroundColor: '#fff', borderTop: '1px solid #eee', padding: '60px 20px 20px', direction: 'rtl' };
 const footerContent: any = { maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '40px', marginBottom: '40px' };
 const footerColumn: any = { display: 'flex', flexDirection: 'column', gap: '15px' };
-
 const logoStyle: any = { fontSize: '1.8rem', fontWeight: '900', fontStyle: 'italic', color: '#1a1a1a', textDecoration: 'none', letterSpacing: '-1px' };
 const brandDesc: any = { color: '#666', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 };
 const socialLinks: any = { display: 'flex', gap: '12px', marginTop: '10px' };
 const socialIcon: any = { width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1a1a1a', transition: '0.3s' };
-
 const columnTitle: any = { fontSize: '1.1rem', fontWeight: '900', color: '#1a1a1a', marginBottom: '10px', position: 'relative', paddingBottom: '10px' };
 const linkList: any = { listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' };
 const footerLink: any = { textDecoration: 'none', color: '#666', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '5px', transition: '0.3s' };
-
 const contactItem: any = { display: 'flex', gap: '12px', alignItems: 'center' };
-const contactLabel: any = { display: 'block', fontSize: '0.75rem', color: '#999' };
+const contactLabel: any = { display: 'block', fontSize: '0.75rem', color: '#999', marginBottom: '4px' };
 const contactValue: any = { fontSize: '0.9rem', fontWeight: 'bold', color: '#1a1a1a', textDecoration: 'none' };
+
+// --- ستايل الزرار الاحترافي الجديد ---
+const contactBtn: any = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '8px',
+  backgroundColor: '#27ae60',
+  color: '#fff',
+  padding: '12px 20px',
+  borderRadius: '14px',
+  textDecoration: 'none',
+  fontWeight: 'bold',
+  fontSize: '0.9rem',
+  marginTop: '5px',
+  transition: '0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  boxShadow: '0 4px 12px rgba(39, 174, 96, 0.2)',
+  border: 'none',
+  width: 'fit-content'
+};
 
 const trustBadge: any = { display: 'flex', alignItems: 'center', gap: '8px', background: '#f0fdf4', color: '#15803d', padding: '10px 15px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 'bold' };
 const paymentText: any = { fontSize: '0.85rem', color: '#888', margin: '15px 0 10px' };
 const paymentLogos: any = { display: 'flex', gap: '10px', flexWrap: 'wrap' };
 const payImg: any = { height: '25px', width: 'auto', borderRadius: '4px', objectFit: 'contain' };
-
 const bottomBar: any = { borderTop: '1px solid #f5f5f5', paddingTop: '20px', textAlign: 'center', color: '#666', fontSize: '0.85rem' };
