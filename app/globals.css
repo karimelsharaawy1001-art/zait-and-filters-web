@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
 :root {
+  /* إجبار المتصفح على عرض ألوان الـ Light Mode فقط */
+  color-scheme: light;
+  
   /* ألوان الـ Light Mode الاحترافية */
   --background: #ffffff;
   --foreground: #1a1a1a;
@@ -14,12 +17,20 @@
 
 /* إلغاء تفعيل الـ Dark Mode القسري لضمان مظهر الـ Premium Light */
 body {
-  color: var(--foreground);
-  background-color: var(--background);
+  color: var(--foreground) !important; /* استخدام important لضمان عدم التداخل */
+  background-color: var(--background) !important;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   margin: 0;
   padding: 0;
+}
+
+/* منع أي عناصر من التحول للون الأسود بناءً على نظام التشغيل */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #ffffff;
+    --foreground: #1a1a1a;
+  }
 }
 
 /* تحسينات عامة */
