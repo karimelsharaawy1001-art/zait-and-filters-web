@@ -4,14 +4,13 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     
-    // المفاتيح الجديدة والوحيدة من لوحة تحكمك
+    // المفاتيح الجديدة المؤكدة
     const PUBLIC_KEY = "gf8ueul7plkntb5r";
     const SECRET_KEY = "87ca3d5640dc3f5809d3dfbf4a5045ad";
 
-    // بناء الـ Payload بمسميات الحقول الصحيحة للنظام الجديد
     const payload = {
-      api_key: PUBLIC_KEY, // المفتاح العام هنا
-      amount: Number(body.amount),
+      api_key: PUBLIC_KEY,
+      amount: Number(parseFloat(body.amount).toFixed(2)),
       currency: "EGP",
       order_id: String(body.orderId),
       customer_name: body.customerName,
@@ -21,35 +20,37 @@ export async function POST(req: Request) {
       payment_methods: ["card", "installments", "valu", "aman"]
     };
 
-    console.log('[EasyKash] Initializing with NEW Keys and Official Endpoint...');
+    console.log("🚀 Switching to STABLE .io Endpoint...");
 
-    // الرابط الرسمي لنظام Checkout v1 المخصص لمفاتيحك
-    const response = await fetch('https://api.easykash.net/api/v1/checkout', {
+    // استخدام .io بدلاً من .net لحل مشكلة ENOTFOUND
+    const response = await fetch('https://api.easykash.io/api/v1/checkout', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'authorization': SECRET_KEY // المفتاح السري هنا كما طلبت
+        'Accept': 'application/json',
+        'authorization': SECRET_KEY 
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      cache: 'no-store'
     });
 
     const responseText = await response.text();
-    console.log('[EasyKash Raw Response]:', responseText);
 
-    try {
-      const data = JSON.parse(responseText);
-      if (data.status === 'success' && data.checkout_url) {
-        return NextResponse.json({ success: true, url: data.checkout_url });
-      }
-      return NextResponse.json({ success: false, message: data.message || 'Error from Gateway' }, { status: 400 });
-    } catch (e) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'السيرفر رد بصفحة HTML. تأكد من تفعيل الحساب للـ API.',
-        debug: responseText.substring(0, 100) 
-      }, { status: 500 });
+    if (!response.ok || responseText.trim().startsWith('<!DOCTYPE')) {
+      console.error("❌ Gateway Error Page:", responseText.substring(0, 300));
+      throw new Error(`Gateway Error: ${response.status}`);
     }
+
+    const data = JSON.parse(responseText);
+    
+    if (data.status === 'success' && data.checkout_url) {
+      return NextResponse.json({ success: true, url: data.checkout_url });
+    } else {
+      return NextResponse.json({ success: false, message: data.message || 'Payment Link Error' }, { status: 400 });
+    }
+
   } catch (error: any) {
+    console.error("🔥 Final Route Failure:", error.message);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
