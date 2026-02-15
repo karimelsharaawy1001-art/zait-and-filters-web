@@ -5,8 +5,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     
-    // ✅ CORRECT EasyKash Credentials from Dashboard
-    const API_KEY = "apdj858gekt0naz1";
+    // ✅ ONLY use HMAC Secret Key (from your working code pattern)
     const HMAC_SECRET = "87ca3d564d0dc3f5809d3dfbf4a5045ad";
 
     const parsedAmount = parseFloat(body.amount) || 0;
@@ -20,7 +19,7 @@ export async function POST(req: Request) {
       }, { status: 400 });
     }
 
-    // EasyKash payload structure
+    // EXACT payload structure from working code
     const payload = {
       amount: Number(parsedAmount.toFixed(2)),
       currency: "EGP",
@@ -34,35 +33,29 @@ export async function POST(req: Request) {
     };
 
     console.log('[EasyKash] Request Payload:', JSON.stringify(payload, null, 2));
-    console.log('[EasyKash] Using API Key:', API_KEY.substring(0, 8) + '...');
+    console.log('[EasyKash] Using HMAC Secret (first 8 chars):', HMAC_SECRET.substring(0, 8) + '...');
 
-    // Call EasyKash API with CORRECT authentication
+    // ✅ EXACT endpoint and headers from working code
     const response = await axios.post(
       'https://back.easykash.net/api/directpayv1/pay', 
       payload, 
       {
         headers: {
-          'apikey': API_KEY,
-          'authorization': HMAC_SECRET,
+          'authorization': HMAC_SECRET,  // ← ONLY THIS ONE!
           'Content-Type': 'application/json'
         },
-        timeout: 15000
+        timeout: 7000  // Match your working code's timeout
       }
     );
 
     const data = response.data;
     console.log('[EasyKash] Response:', JSON.stringify(data, null, 2));
 
-    // Extract payment URL from response
-    let paymentUrl = data?.redirectUrl || data?.url || data?.paymentUrl;
-
-    // Handle if response is a direct string URL
-    if (!paymentUrl && typeof data === 'string' && data.startsWith('http')) {
-      paymentUrl = data;
-    }
+    // Extract payment URL (matching your working code logic)
+    let paymentUrl = data?.redirectUrl || data?.url || (typeof data === 'string' && data.startsWith('http') ? data : null);
 
     if (paymentUrl) {
-      // Clean up URL (remove double slashes)
+      // Fix double slashes (from your working code)
       paymentUrl = paymentUrl.replace(/([^:])\/\//g, '$1/');
 
       console.log('[EasyKash] Payment URL:', paymentUrl);
@@ -77,37 +70,30 @@ export async function POST(req: Request) {
     }
 
   } catch (error: any) {
-    // Enhanced error handling
-    if (error.code === 'ECONNABORTED') {
-      console.error('❌ Timeout Error: EasyKash took too long to respond');
-      return NextResponse.json({ 
-        success: false, 
-        message: 'انتهت مهلة الاتصال ببوابة الدفع. حاول مرة أخرى.' 
-      }, { status: 408 });
-    }
-
-    if (error.code === 'ENOTFOUND') {
-      console.error('❌ DNS Error: Cannot reach EasyKash servers');
-      return NextResponse.json({ 
-        success: false, 
-        message: 'لا يمكن الوصول لبوابة الدفع. تحقق من الاتصال بالإنترنت.' 
-      }, { status: 503 });
-    }
-
+    // Enhanced error handling (matching your working code)
     const errorData = error.response?.data;
-    const errorStatus = error.response?.status;
+    const errorStatus = error.response?.status || 500;
     
     console.error('❌ EasyKash Error:', {
       status: errorStatus,
       data: errorData,
-      message: error.message,
-      fullError: error
+      message: error.message
     });
+
+    // Friendly error message
+    let friendlyMessage = "Failed to initialize payment gateway.";
+    if (errorData) {
+      if (typeof errorData === 'string') friendlyMessage += ` Detail: ${errorData}`;
+      else if (errorData.message) friendlyMessage += ` Detail: ${errorData.message}`;
+      else friendlyMessage += ` Detail: ${JSON.stringify(errorData)}`;
+    } else {
+      friendlyMessage += ` ${error.message}`;
+    }
 
     return NextResponse.json({ 
       success: false, 
-      message: errorData?.message || error.message || 'حدث خطأ في بوابة الدفع',
+      message: friendlyMessage,
       details: errorData
-    }, { status: errorStatus || 500 });
+    }, { status: errorStatus });
   }
 }
