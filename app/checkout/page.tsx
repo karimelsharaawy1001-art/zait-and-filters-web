@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import { 
   User, MapPin, ShoppingCart, Loader2, CheckCircle, Car, Globe, 
   Settings2, Calendar, Tags, Upload, ExternalLink, Plus, Gauge, 
-  Banknote, CreditCard, Wallet, SmartphoneNfc 
+  Banknote, CreditCard, Wallet, SmartphoneNfc, Ticket 
 } from 'lucide-react';
 
 export default function CheckoutPage() {
@@ -21,6 +21,12 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState('card_installments'); 
   const [screenshot, setScreenshot] = useState<File | null>(null);
 
+  // --- حالات البرومو كود ---
+  const [promoCode, setPromoCode] = useState('');
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
+  const [promoLoading, setPromoLoading] = useState(false);
+
   const [carMileage, setCarMileage] = useState('');
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string>('new');
@@ -32,10 +38,9 @@ export default function CheckoutPage() {
     address: ''
   });
 
-  // بيانات EasyKash
+  // بيانات EasyKash و Cloudinary
   const EASYKASH_API_KEY = "gf8ueul7plkntb5r";
   const CALLBACK_URL = "https://zaitandfilters.com/order-success";
-
   const CLOUD_NAME = "dxtncdxfh";
   const UPLOAD_PRESET = "zaitandfiltersnew";
 
@@ -67,9 +72,57 @@ export default function CheckoutPage() {
   }, []);
 
   const subtotal = useMemo(() => cart.reduce((sum: number, item: any) => sum + (parseFloat(item.price) * item.quantity), 0), [cart]);
-  const finalTotal = subtotal + (selectedCity?.price || 0);
+  
+  // حساب الإجمالي النهائي (المنتجات + الشحن - الخصم)
+  const finalTotal = useMemo(() => {
+    const shipping = selectedCity?.price || 0;
+    const total = (subtotal + shipping) - discountAmount;
+    return total > 0 ? total : 0;
+  }, [subtotal, selectedCity, discountAmount]);
 
   useEffect(() => { if (isInitialized) setTimeout(() => setIsReady(true), 800); }, [isInitialized]);
+
+  // --- وظيفة تطبيق البرومو كود ---
+  const applyPromoCode = async () => {
+    if (!promoCode.trim()) return;
+    setPromoLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('code', promoCode.trim().toUpperCase())
+        .eq('is_active', true)
+        .single();
+
+      if (error || !data) {
+        toast.error('كود الخصم غير صحيح أو منتهي');
+        setDiscountAmount(0);
+        setAppliedPromo(null);
+        return;
+      }
+
+      // التحقق من تاريخ الصلاحية إذا وُجد
+      if (data.expiry_date && new Date(data.expiry_date) < new Date()) {
+        toast.error('هذا الكود قد انتهت صلاحيته');
+        return;
+      }
+
+      let calculatedDiscount = 0;
+      if (data.discount_type === 'percentage') {
+        calculatedDiscount = (subtotal * data.discount_value) / 100;
+      } else {
+        calculatedDiscount = data.discount_value;
+      }
+
+      setDiscountAmount(calculatedDiscount);
+      setAppliedPromo(data.code);
+      toast.success(`تم تطبيق خصم بقيمة ${calculatedDiscount.toFixed(2)} ج.م ✅`);
+    } catch (err) {
+      toast.error('حدث خطأ أثناء التحقق من الكود');
+    } finally {
+      setPromoLoading(false);
+    }
+  };
 
   const uploadToCloudinary = async (file: File) => {
     const formData = new FormData();
@@ -122,18 +175,18 @@ export default function CheckoutPage() {
 
     setLoading(true);
     try {
-      // جلب بيانات المستخدم الحالي (إذا وجد) لربط الطلب بحسابه
       const { data: { user } } = await supabase.auth.getUser();
-      
       let uploadedImageUrl = screenshot ? await uploadToCloudinary(screenshot) : null;
       
       const orderData = {
-        user_id: user?.id || null, // التعديل هنا لربط الطلب بالحساب تلقائياً
+        user_id: user?.id || null,
         customer_name: customerInfo.name,
         customer_phone: customerInfo.phone,
         customer_address: customerInfo.address,
         city: selectedCity?.city_name,
         shipping_cost: selectedCity?.price,
+        discount_applied: discountAmount, // حفظ قيمة الخصم في الطلب
+        promo_code: appliedPromo, // حفظ الكود المستخدم
         total_price: finalTotal,
         items: cart, 
         payment_method: paymentMethod,
@@ -168,6 +221,7 @@ export default function CheckoutPage() {
         .btn-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(21, 128, 61, 0.4); background: #14532d !important; }
         .action-hover:hover { background: #000 !important; transform: translateY(-1px); }
         .upload-hover:hover { background: #f0fdf4 !important; border-color: #15803d !important; }
+        .promo-btn:hover { background: #1a1a1a !important; color: #fff !important; transform: scale(1.02); }
         input:focus, select:focus, textarea:focus { border-color: #15803d !important; box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1); }
       `}} />
       
@@ -191,9 +245,6 @@ export default function CheckoutPage() {
                       <div style={detailsGrid}>
                         <div style={detailItem}><Settings2 size={11} color="#15803d" /> <span>الماركة: <b>{item.brand}</b></span></div>
                         <div style={detailItem}><Globe size={11} color="#15803d" /> <span>المنشأ: <b>{country}</b></span></div>
-                        <div style={detailItem}><Car size={11} color="#15803d" /> <span>لـ: <b>{item.car_make} {item.car_model}</b></span></div>
-                        {item.car_model_year && <div style={detailItem}><Calendar size={11} color="#15803d" /> <span>سنة: <b>{item.car_model_year}</b></span></div>}
-                        {(item.category || item.subcategory) && <div style={detailItem}><Tags size={11} color="#15803d" /> <span>القسم: <b>{item.subcategory || item.category}</b></span></div>}
                       </div>
                       <div style={{ marginTop: '5px' }}>
                         <span style={qtyBadge}>الكمية: {item.quantity}</span>
@@ -204,9 +255,40 @@ export default function CheckoutPage() {
               );
             })}
           </div>
+
+          {/* --- قسم البرومو كود الجديد --- */}
+          <div style={promoWrapper}>
+            <label style={lab}><Ticket size={14} color="#15803d" /> هل لديك كود خصم؟</label>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '5px' }}>
+              <input 
+                placeholder="ادخل الكود هنا" 
+                value={promoCode} 
+                onChange={(e) => setPromoCode(e.target.value)} 
+                style={{ ...inp, marginBottom: 0, flex: 1 }}
+                disabled={!!appliedPromo}
+              />
+              <button 
+                type="button" 
+                onClick={applyPromoCode} 
+                disabled={promoLoading || !!appliedPromo || !promoCode}
+                className="promo-btn"
+                style={promoBtnStyle}
+              >
+                {promoLoading ? <Loader2 size={16} className="animate-spin" /> : appliedPromo ? 'تم التطبيق' : 'تطبيق'}
+              </button>
+            </div>
+            {appliedPromo && <p style={promoSuccessText}>تم تطبيق الكود "{appliedPromo}" بنجاح! تم خصم {discountAmount.toFixed(2)} ج.م</p>}
+          </div>
+
           <div style={totalBox}>
             <div style={rowPrice}><span>إجمالي المنتجات:</span><span>{subtotal.toFixed(2)} ج.م</span></div>
             <div style={rowPrice}><span>الشحن ({selectedCity?.city_name}):</span><span>{(selectedCity?.price || 0).toFixed(2)} ج.م</span></div>
+            {discountAmount > 0 && (
+              <div style={{ ...rowPrice, color: '#e74c3c', fontWeight: 'bold' }}>
+                <span>خصم البرومو كود:</span>
+                <span>-{discountAmount.toFixed(2)} ج.م</span>
+              </div>
+            )}
             <div style={finalRow}><span>الإجمالي النهائي:</span><span>{finalTotal.toFixed(2)} ج.م</span></div>
           </div>
         </div>
@@ -222,7 +304,7 @@ export default function CheckoutPage() {
             <input value={customerInfo.phone} onChange={(e)=>setCustomerInfo({...customerInfo, phone: e.target.value})} required style={inp} />
           </div>
           <div style={inputGroup}>
-            <label style={lab}><Gauge size={14} /> قراءة العداد</label>
+            <label style={lab}><Gauge size={14} /> قراءة العداد (اختياري)</label>
             <input type="number" value={carMileage} onChange={(e) => setCarMileage(e.target.value)} style={inp} />
           </div>
           <div style={inputGroup}>
@@ -250,24 +332,6 @@ export default function CheckoutPage() {
                       <span style={paySubTitle}>أمان، فوري، فاليو، كونتكت، البنك الأهلي والعديد..</span>
                     </div>
                   </div>
-                  
-                  <div style={logosGrid}>
-                    <img src="https://i.postimg.cc/Njw3g5JW/visa-logo-png-seeklogo-149697.png" alt="Visa" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/sgRkVv64/1280px-Master-Card-Logo-svg.png" alt="Mastercard" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/wjdC67fn/VALU.jpg" alt="Valu" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/dVKbqLHB/AMAN.jpg" alt="Aman" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/pLtw2pGk/FAWRY.jpg" alt="Fawry" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/vZdJQcqN/SOHOOLA.jpg" alt="Souhoola" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/52Mhx67g/CONTACT.jpg" alt="Contact" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/FHQM97WT/HALAN.jpg" alt="Halan" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/kgd0nB1f/EL-AHLY.jpg" alt="NBE" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/7ZyFxfsB/MEEZA.jpg" alt="Meeza" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/VkcxYdGp/TAKKA.jpg" alt="Takka" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/wjdC67ff/lucky.jpg" alt="Lucky" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/qvdPkzbY/TRU.jpg" alt="Tru" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/RZzkMNsb/mogo.jpg" alt="Mogo" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/zG1sJVt2/apple-pay.png" alt="Apple Pay" style={miniLogoImg} />
-                  </div>
                 </div>
               </label>
 
@@ -278,18 +342,12 @@ export default function CheckoutPage() {
                     <div style={payIconWrapper}><SmartphoneNfc size={22} color={paymentMethod === 'instapay' ? '#15803d' : '#666'} /></div>
                     <div style={payTextContent}>
                       <span style={payTitle}>تطبيق انستا باي (InstaPay)</span>
-                      <span style={paySubTitle}>دفع لحظي من حسابك البنكي</span>
                     </div>
                   </div>
-                  
-                  <div style={logosGrid}>
-                    <img src="https://i.postimg.cc/3r19c1zy/Pv1p8v-KJq4Z-LLOj-Qj-BZp-K8DNJg4Zb5.png" alt="InstaPay" style={miniLogoImg} />
-                  </div>
-
                   {paymentMethod === 'instapay' && (
                     <div style={payDetailsBox}>
                       <a href="https://ipn.eg/S/jimmydodo/instapay/3Jvfcf" target="_blank" className="action-hover" style={actionBtnLink}><ExternalLink size={14} /> اذهب للدفع الآن</a>
-                      <label htmlFor="u-insta" className="upload-hover" style={uploadArea}><Upload size={14}/> {screenshot ? '✅ تم الاختيار' : 'رفع سكرين شوت التحويل'}</label>
+                      <label htmlFor="u-insta" className="upload-hover" style={uploadArea}><Upload size={14}/> {screenshot ? '✅ تم اختيار الإثبات' : 'رفع سكرين شوت التحويل'}</label>
                       <input id="u-insta" type="file" accept="image/*" onChange={handleFileUpload} style={{display:'none'}}/>
                     </div>
                   )}
@@ -303,23 +361,12 @@ export default function CheckoutPage() {
                     <div style={payIconWrapper}><Wallet size={22} color={paymentMethod === 'wallets' ? '#15803d' : '#666'} /></div>
                     <div style={payTextContent}>
                       <span style={payTitle}>محافظ إلكترونية (كاش)</span>
-                      <span style={paySubTitle}>
-                        التحويل للرقم: <strong style={{ fontSize: '1.05rem', color: '#1a1a1a' }}>01023862436</strong>
-                        <br />
-                        بإسم: <strong style={{ color: '#1a1a1a' }}>محمد جمال ابراهيم</strong>
-                      </span>
                     </div>
                   </div>
-
-                  <div style={logosGrid}>
-                    <img src="https://i.postimg.cc/ryjgPj7K/VODAFONE.jpg" alt="Vodafone Cash" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/Y2R8sRTj/ORANGE.jpg" alt="Orange Money" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/59gpRgDy/ETTISALAT.jpg" alt="Etisalat Cash" style={miniLogoImg} />
-                  </div>
-
                   {paymentMethod === 'wallets' && (
                     <div style={payDetailsBox}>
-                      <label htmlFor="u-cash" className="upload-hover" style={uploadArea}><Upload size={14}/> {screenshot ? '✅ تم الاختيار' : 'رفع إثبات التحويل'}</label>
+                      <span style={{fontSize:'0.8rem', color:'#666'}}>التحويل للرقم: <strong>01023862436</strong></span>
+                      <label htmlFor="u-cash" className="upload-hover" style={uploadArea}><Upload size={14}/> {screenshot ? '✅ تم اختيار الإثبات' : 'رفع إثبات التحويل'}</label>
                       <input id="u-cash" type="file" accept="image/*" onChange={handleFileUpload} style={{display:'none'}}/>
                     </div>
                   )}
@@ -369,8 +416,11 @@ const payTextContent: any = { display: 'flex', flexDirection: 'column' };
 const payTitle: any = { fontWeight: '900', fontSize: '0.95rem', color: '#1a1a1a' };
 const paySubTitle: any = { fontSize: '0.75rem', color: '#777', fontWeight: '500' };
 const hideRadio: any = { display: 'none' };
-const logosGrid: any = { display: 'flex', gap: '12px', flexWrap: 'wrap', paddingRight: '57px', marginTop: '10px' };
-const miniLogoImg: any = { height: '36px', width: 'auto', borderRadius: '8px', objectFit: 'contain' as const, border: '1px solid #f0f0f0', padding: '3px', background: '#fff', boxShadow: '0 2px 5px rgba(0,0,0,0.03)' };
 const payDetailsBox: any = { marginTop: '12px', padding: '18px', background: '#fff', borderRadius: '15px', border: '1px dashed #15803d', display: 'flex', flexDirection: 'column', gap: '10px' };
 const actionBtnLink: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#1a1a1a', color: '#fff', padding: '12px', borderRadius: '12px', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 'bold', transition: '0.3s ease' };
 const uploadArea: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '2px dashed #15803d', color: '#15803d', padding: '12px', borderRadius: '12px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '900', transition: '0.3s ease' };
+
+// --- تنسيقات البرومو كود ---
+const promoWrapper: any = { marginTop: '20px', padding: '15px', background: '#fff', borderRadius: '20px', border: '1px dashed #ddd', marginBottom: '15px' };
+const promoBtnStyle: any = { padding: '0 25px', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', transition: '0.3s ease', fontSize: '0.9rem' };
+const promoSuccessText: any = { fontSize: '0.8rem', color: '#15803d', marginTop: '10px', fontWeight: 'bold' };
