@@ -5,50 +5,59 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     
-    // Your NEW keys from the screenshot
-    const PUBLIC_KEY = "gf8ueul7plkntb5r";
+    // NEW HMAC Secret Key used as the "Authorization" header
     const SECRET_KEY = "87ca3d5640dc3f5809d3dfbf4a5045ad";
 
+    const parsedAmount = parseFloat(body.amount) || 0;
+
+    // EXACT payload structure from your working reference code
     const payload = {
-      api_key: PUBLIC_KEY,
-      amount: Number(parseFloat(body.amount).toFixed(2)),
+      amount: Number(parsedAmount.toFixed(2)),
       currency: "EGP",
-      order_id: String(body.orderId),
-      customer_name: body.customerName,
-      customer_phone: body.customerPhone,
-      customer_email: body.customerEmail,
-      callback_url: "https://zaitandfilters.com/order-success",
-      payment_methods: ["card", "installments", "valu", "aman"]
+      paymentOptions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+      cashExpiry: 24,
+      name: (body.customerName || "Customer").substring(0, 50),
+      email: body.customerEmail || "customer@zaitandfilters.com",
+      mobile: body.customerPhone || "01000000000",
+      redirectUrl: "https://zaitandfilters.com/order-success", //
+      customerReference: String(body.orderId)
     };
 
-    console.log("🚀 Executing Axios request to EasyKash v1...");
+    console.log('[EasyKash] Calling Legacy Endpoint with NEW Keys...');
 
-    // Using axios with a User-Agent to bypass HTML security challenges
-    const response = await axios.post('https://api.easykash.net/api/v1/checkout', payload, {
+    // Using the EXACT endpoint from your working code to bypass DNS ENOTFOUND errors
+    const response = await axios.post('https://back.easykash.net/api/directpayv1/pay', payload, {
       headers: {
         'authorization': SECRET_KEY,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
+        'Content-Type': 'application/json'
       },
-      timeout: 15000
+      timeout: 8000
     });
 
     const data = response.data;
-    
-    if (data.status === 'success' && data.checkout_url) {
-      return NextResponse.json({ success: true, url: data.checkout_url });
+    console.log('[EasyKash Response]:', JSON.stringify(data));
+
+    // Logic to extract URL exactly as your working code did
+    let paymentUrl = data?.redirectUrl || data?.url || (typeof data === 'string' && data.startsWith('http') ? data : null);
+
+    if (paymentUrl) {
+      // Fix double slashes as per your reference code
+      paymentUrl = paymentUrl.replace(/([^:])\/\//g, '$1/');
+
+      return NextResponse.json({
+        success: true,
+        url: paymentUrl
+      });
+    } else {
+      throw new Error("No URL returned from EasyKash");
     }
-    
-    return NextResponse.json({ success: false, message: data.message || 'Gateway error' }, { status: 400 });
 
   } catch (error: any) {
     const errorData = error.response?.data;
-    console.error("🔥 Axios Bridge Failure:", errorData || error.message);
+    console.error('❌ Gateway Error:', errorData || error.message);
     return NextResponse.json({ 
       success: false, 
-      error: error.message,
-      details: errorData 
-    }, { status: 500 });
+      message: errorData?.message || error.message 
+    }, { status: error.response?.status || 500 });
   }
 }

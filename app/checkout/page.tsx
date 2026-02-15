@@ -151,7 +151,6 @@ export default function CheckoutPage() {
     }
   };
 
-  // --- 🚀 Redirection Fix: Properly calling the API Bridge ---
   const initiateEasyKashPayment = async (orderId: string) => {
     try {
       const response = await fetch('/api/checkout', {
@@ -169,13 +168,13 @@ export default function CheckoutPage() {
       const data = await response.json();
       
       if (data.success && data.url) {
-        // Force immediate browser redirection
+        // Redirection will happen here
         window.location.href = data.url; 
       } else {
-        throw new Error(data.message || data.error || 'فشل الحصول على رابط الدفع من البوابة');
+        throw new Error(data.message || data.error || 'Failed to initialize payment');
       }
     } catch (err: any) {
-      toast.error('خطأ في الاتصال: ' + err.message);
+      toast.error('Payment Error: ' + err.message);
       setLoading(false); 
     }
   };
@@ -184,7 +183,7 @@ export default function CheckoutPage() {
     e.preventDefault();
     if (subtotal <= 0) return toast.error('السلة فارغة');
     
-    // Validation Logic Fix
+    // Fixed Validation logic for Manual Payments
     if (paymentMethod !== 'card_installments' && !screenshot) {
       return toast.error('يرجى رفع سكرين شوت التحويل');
     }
@@ -242,7 +241,6 @@ export default function CheckoutPage() {
       localStorage.removeItem('zf_marketer_ref');
 
       if (paymentMethod === 'card_installments') {
-        // Trigger EasyKash Redirect
         await initiateEasyKashPayment(newOrder.id);
       } else {
         toast.success('تم تسجيل طلبك بنجاح! 🎉');
@@ -250,7 +248,7 @@ export default function CheckoutPage() {
         router.push(`/order-success?orderId=${newOrder.id}`); 
       }
     } catch (err: any) {
-      toast.error('حدث خطأ: ' + err.message);
+      toast.error('Error: ' + err.message);
       setLoading(false);
     }
   };
@@ -342,7 +340,7 @@ export default function CheckoutPage() {
           </div>
           
           <div style={inputGroup}>
-            <label style={lab}><Mail size={14} /> البريد الإلكتروني (مطلوب لعملية الدفع)</label>
+            <label style={lab}><Mail size={14} /> البريد الإلكتروني</label>
             <input 
               type="email" 
               placeholder="example@mail.com"
