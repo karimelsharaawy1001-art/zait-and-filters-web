@@ -5,7 +5,7 @@ import { supabase } from '@/app/lib/supabase';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { 
-  User, MapPin, ShoppingCart, Loader2, CheckCircle, Car, Globe, 
+  User, MapPin, ShoppingCart, Loader2, CheckCircle, Car, Globe, Mail,
   Settings2, Calendar, Tags, Upload, ExternalLink, Plus, Gauge, 
   Banknote, CreditCard, Wallet, SmartphoneNfc, Ticket 
 } from 'lucide-react';
@@ -36,6 +36,7 @@ export default function CheckoutPage() {
     name: '',
     phone: '',
     secondary_phone: '',
+    email: '', // إضافة حقل الإيميل هنا
     address: ''
   });
 
@@ -54,8 +55,15 @@ export default function CheckoutPage() {
       }
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { data: profile } = await supabase.from('profiles').select('full_name, phone_number').eq('id', user.id).single();
-        if (profile) setCustomerInfo(prev => ({ ...prev, name: profile.full_name || '', phone: profile.phone_number || '' }));
+        // تحديث جلب البيانات ليشمل الإيميل
+        const { data: profile } = await supabase.from('profiles').select('full_name, phone_number, email').eq('id', user.id).single();
+        if (profile) setCustomerInfo(prev => ({ 
+          ...prev, 
+          name: profile.full_name || '', 
+          phone: profile.phone_number || '',
+          email: profile.email || '' 
+        }));
+        
         const { data: addresses } = await supabase.from('addresses').select('*').eq('user_id', user.id);
         if (addresses && addresses.length > 0) {
           setSavedAddresses(addresses);
@@ -165,7 +173,7 @@ export default function CheckoutPage() {
           order_id: orderId,
           customer_name: customerInfo.name,
           customer_phone: customerInfo.phone,
-          customer_email: "customer@zaitandfilters.com", // إيميل افتراضي لضمان توافق الطلب مع متطلبات البوابة
+          customer_email: customerInfo.email || "customer@zaitandfilters.com", // استخدام إيميل العميل من النموذج
           callback_url: CALLBACK_URL,
           payment_methods: ["card", "installments", "valu", "aman"]
         })
@@ -222,6 +230,7 @@ export default function CheckoutPage() {
         user_id: user?.id || null,
         customer_name: customerInfo.name,
         customer_phone: customerInfo.phone,
+        customer_email: customerInfo.email, // حفظ الإيميل في الأوردر
         customer_address: customerInfo.address,
         city: selectedCity?.city_name,
         shipping_cost: selectedCity?.price,
@@ -342,6 +351,20 @@ export default function CheckoutPage() {
             <label style={lab}>رقم الموبايل</label>
             <input value={customerInfo.phone} onChange={(e)=>setCustomerInfo({...customerInfo, phone: e.target.value})} required style={inp} />
           </div>
+          
+          {/* حقل البريد الإلكتروني الجديد */}
+          <div style={inputGroup}>
+            <label style={lab}><Mail size={14} /> البريد الإلكتروني (مطلوب لعملية الدفع)</label>
+            <input 
+              type="email" 
+              placeholder="example@mail.com"
+              value={customerInfo.email} 
+              onChange={(e)=>setCustomerInfo({...customerInfo, email: e.target.value})} 
+              required 
+              style={inp} 
+            />
+          </div>
+
           <div style={inputGroup}>
             <label style={lab}><Gauge size={14} /> قراءة العداد (اختياري)</label>
             <input type="number" value={carMileage} onChange={(e) => setCarMileage(e.target.value)} style={inp} />
