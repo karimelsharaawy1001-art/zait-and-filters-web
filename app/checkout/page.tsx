@@ -278,6 +278,12 @@ export default function CheckoutPage() {
                       <span style={paySubTitle}>دفع لحظي من حسابك البنكي</span>
                     </div>
                   </div>
+                  
+                  {/* إضافة لوجو انستا باي هنا */}
+                  <div style={logosGrid}>
+                    <img src="https://i.postimg.cc/3r19c1zy/Pv1p8v-KJq4Z-LLOj-Qj-BZp-K8DNJg4Zb5.png" alt="InstaPay" style={miniLogoImg} />
+                  </div>
+
                   {paymentMethod === 'instapay' && (
                     <div style={payDetailsBox}>
                       <a href="https://ipn.eg/S/jimmydodo/instapay/3Jvfcf" target="_blank" className="action-hover" style={actionBtnLink}><ExternalLink size={14} /> اذهب للدفع الآن</a>
@@ -298,6 +304,14 @@ export default function CheckoutPage() {
                       <span style={paySubTitle}>التحويل للرقم: 01023862436</span>
                     </div>
                   </div>
+
+                  {/* إضافة لوجوهات المحافظ هنا */}
+                  <div style={logosGrid}>
+                    <img src="https://i.postimg.cc/ryjgPj7K/VODAFONE.jpg" alt="Vodafone Cash" style={miniLogoImg} />
+                    <img src="https://i.postimg.cc/Y2R8sRTj/ORANGE.jpg" alt="Orange Money" style={miniLogoImg} />
+                    <img src="https://i.postimg.cc/59gpRgDy/ETTISALAT.jpg" alt="Etisalat Cash" style={miniLogoImg} />
+                  </div>
+
                   {paymentMethod === 'wallets' && (
                     <div style={payDetailsBox}>
                       <label htmlFor="u-cash" className="upload-hover" style={uploadArea}><Upload size={14}/> {screenshot ? '✅ تم الاختيار' : 'رفع إثبات التحويل'}</label>
