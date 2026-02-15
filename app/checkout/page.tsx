@@ -144,9 +144,10 @@ export default function CheckoutPage() {
       if (paymentMethod === 'card_installments') {
         await initiateEasyKashPayment(newOrder.id);
       } else {
+        // --- التعديل هنا: التوجيه لصفحة الشكر بدلاً من البروفايل ---
         toast.success('تم تسجيل طلبك بنجاح! 🎉');
         clearCart();
-        router.push('/profile'); 
+        router.push(`/order-success?orderId=${newOrder.id}`); 
       }
     } catch (err: any) {
       toast.error('حدث خطأ: ' + err.message);
@@ -298,7 +299,6 @@ export default function CheckoutPage() {
                     <div style={payIconWrapper}><Wallet size={22} color={paymentMethod === 'wallets' ? '#15803d' : '#666'} /></div>
                     <div style={payTextContent}>
                       <span style={payTitle}>محافظ إلكترونية (كاش)</span>
-                      {/* تم تكبير الرقم وإضافة اسم المستلم هنا */}
                       <span style={paySubTitle}>
                         التحويل للرقم: <strong style={{ fontSize: '1.05rem', color: '#1a1a1a' }}>01023862436</strong>
                         <br />
