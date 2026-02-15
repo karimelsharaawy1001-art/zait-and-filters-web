@@ -1,6 +1,6 @@
 import './globals.css'
 import ProfessionalNavbar from '@/components/Navbar'
-import ProfessionalFooter from '@/components/Footer' // استيراد الفوتر الجديد
+import ProfessionalFooter from '@/components/Footer' 
 import { Almarai } from 'next/font/google'
 import { CartProvider } from '@/context/CartContext'
 import CartDrawer from '@/components/CartDrawer'
@@ -70,6 +70,20 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl">
       <body className={almarai.className}>
+        {/* --- 🎯 رادار المسوقين: التقاط كود الريفيرال من اللينك وتخزينه --- */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            try {
+              const urlParams = new URLSearchParams(window.location.search);
+              const ref = urlParams.get('ref');
+              if (ref) {
+                localStorage.setItem('zf_marketer_ref', ref);
+                console.log('Affiliate ID Captured:', ref);
+              }
+            } catch (e) { console.error('Affiliate error:', e); }
+          })();
+        `}} />
+
         <CartProvider>
           <Toaster 
             position="bottom-right"
@@ -90,7 +104,6 @@ export default function RootLayout({
             {children}
           </main>
 
-          {/* إضافة الفوتر هنا ليظهر في أسفل كل الصفحات */}
           <ProfessionalFooter />
           
         </CartProvider>

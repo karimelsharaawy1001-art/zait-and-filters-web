@@ -21,10 +21,11 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState('card_installments'); 
   const [screenshot, setScreenshot] = useState<File | null>(null);
 
-  // --- حالات البرومو كود ---
+  // --- حالات البرومو كود والمسوقين ---
   const [promoCode, setPromoCode] = useState('');
   const [discountAmount, setDiscountAmount] = useState(0);
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
+  const [appliedPromoType, setAppliedPromoType] = useState<string | null>(null); // جديد: لتحديد نوع الخصم
   const [promoLoading, setPromoLoading] = useState(false);
 
   const [carMileage, setCarMileage] = useState('');
@@ -73,16 +74,23 @@ export default function CheckoutPage() {
 
   const subtotal = useMemo(() => cart.reduce((sum: number, item: any) => sum + (parseFloat(item.price) * item.quantity), 0), [cart]);
   
-  // حساب الإجمالي النهائي (المنتجات + الشحن - الخصم)
+  // حساب الإجمالي النهائي (مع دعم الشحن المجاني)
   const finalTotal = useMemo(() => {
     const shipping = selectedCity?.price || 0;
-    const total = (subtotal + shipping) - discountAmount;
+    let currentDiscount = discountAmount;
+
+    // لو الكود نوعه شحن مجاني، بنخصم قيمة الشحن بالكامل
+    if (appliedPromoType === 'free_shipping') {
+      currentDiscount = shipping;
+    }
+
+    const total = (subtotal + shipping) - currentDiscount;
     return total > 0 ? total : 0;
-  }, [subtotal, selectedCity, discountAmount]);
+  }, [subtotal, selectedCity, discountAmount, appliedPromoType]);
 
   useEffect(() => { if (isInitialized) setTimeout(() => setIsReady(true), 800); }, [isInitialized]);
 
-  // --- وظيفة تطبيق البرومو كود ---
+  // --- وظيفة تطبيق البرومو كود (محدثة لدعم الشحن المجاني) ---
   const applyPromoCode = async () => {
     if (!promoCode.trim()) return;
     setPromoLoading(true);
@@ -98,6 +106,7 @@ export default function CheckoutPage() {
         toast.error('كود الخصم غير صحيح أو منتهي');
         setDiscountAmount(0);
         setAppliedPromo(null);
+        setAppliedPromoType(null);
         return;
       }
 
@@ -106,16 +115,19 @@ export default function CheckoutPage() {
         return;
       }
 
-      let calculatedDiscount = 0;
-      if (data.discount_type === 'percentage') {
-        calculatedDiscount = (subtotal * data.discount_value) / 100;
-      } else {
-        calculatedDiscount = data.discount_value;
-      }
-
-      setDiscountAmount(calculatedDiscount);
+      setAppliedPromoType(data.discount_type);
       setAppliedPromo(data.code);
-      toast.success(`تم تطبيق خصم بقيمة ${calculatedDiscount.toFixed(2)} ج.م ✅`);
+
+      if (data.discount_type === 'free_shipping') {
+        setDiscountAmount(0); // الخصم الفعلي بيتحسب في الـ finalTotal بناءً على سعر الشحن
+        toast.success(`مبروك! تم تطبيق الشحن المجاني 🚚`);
+      } else {
+        let calculatedDiscount = data.discount_type === 'percentage' 
+          ? (subtotal * data.discount_value) / 100 
+          : data.discount_value;
+        setDiscountAmount(calculatedDiscount);
+        toast.success(`تم تطبيق خصم بقيمة ${calculatedDiscount.toFixed(2)} ج.م ✅`);
+      }
     } catch (err) {
       toast.error('حدث خطأ أثناء التحقق من الكود');
     } finally {
@@ -176,6 +188,32 @@ export default function CheckoutPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       let uploadedImageUrl = screenshot ? await uploadToCloudinary(screenshot) : null;
+
+      // --- 🚀 منطق المسوقين: البحث عن المسوق المرتبط بالأوردر ---
+      let finalMarketerId = null;
+
+      // 1. الأولوية: لو استخدم برومو كود يخص مسوق
+      if (appliedPromo) {
+        const { data: marketerByPromo } = await supabase
+          .from('marketers')
+          .select('id')
+          .eq('promo_code', appliedPromo)
+          .single();
+        if (marketerByPromo) finalMarketerId = marketerByPromo.id;
+      }
+
+      // 2. البديل: لو مفيش كود مسوق، نشوف لو فيه Referral ID في المتصفح
+      if (!finalMarketerId) {
+        const savedRef = localStorage.getItem('zf_marketer_ref');
+        if (savedRef) {
+          const { data: marketerByRef } = await supabase
+            .from('marketers')
+            .select('id')
+            .eq('referral_id', savedRef)
+            .single();
+          if (marketerByRef) finalMarketerId = marketerByRef.id;
+        }
+      }
       
       const orderData = {
         user_id: user?.id || null,
@@ -184,19 +222,23 @@ export default function CheckoutPage() {
         customer_address: customerInfo.address,
         city: selectedCity?.city_name,
         shipping_cost: selectedCity?.price,
-        discount_applied: discountAmount, 
+        discount_applied: appliedPromoType === 'free_shipping' ? selectedCity?.price : discountAmount, 
         promo_code: appliedPromo, 
         total_price: finalTotal,
         items: cart, 
         payment_method: paymentMethod,
         payment_screenshot_url: uploadedImageUrl,
         car_mileage: carMileage,
+        marketer_id: finalMarketerId, // ربط الطلب بالمسوق
         status: paymentMethod === 'card_installments' ? 'pending_payment' : 'pending',
         created_at: new Date().toISOString()
       };
 
       const { data: newOrder, error } = await supabase.from('orders').insert([orderData]).select().single();
       if (error) throw error;
+
+      // مسح الريفيرال من الذاكرة بعد نجاح العملية
+      localStorage.removeItem('zf_marketer_ref');
 
       if (paymentMethod === 'card_installments') {
         await initiateEasyKashPayment(newOrder.id);
@@ -241,7 +283,6 @@ export default function CheckoutPage() {
                         <span style={{ fontWeight: '900', fontSize: '0.95rem' }}>{item.name}</span>
                         <span style={{ fontWeight: '900' }}>{(parseFloat(item.price) * item.quantity).toFixed(2)} ج.م</span>
                       </div>
-                      {/* --- إصلاح عرض بيانات المنتج هنا --- */}
                       <div style={detailsGrid}>
                         <div style={detailItem}><Tags size={11} color="#15803d" /> <span>البراند: <b>{item.brand}</b></span></div>
                         <div style={detailItem}><Settings2 size={11} color="#15803d" /> <span>لسيارة: <b>{item.car_make} {item.car_model}</b></span></div>
@@ -266,12 +307,18 @@ export default function CheckoutPage() {
                 {promoLoading ? <Loader2 size={16} className="animate-spin" /> : appliedPromo ? 'تم التطبيق' : 'تطبيق'}
               </button>
             </div>
-            {appliedPromo && <p style={promoSuccessText}>تم تطبيق الكود "{appliedPromo}" بنجاح! تم خصم {discountAmount.toFixed(2)} ج.م</p>}
+            {appliedPromo && <p style={promoSuccessText}>تم تطبيق الكود "{appliedPromo}" بنجاح! {appliedPromoType === 'free_shipping' ? 'تم تصفير مصاريف الشحن 🚚' : `تم خصم ${discountAmount.toFixed(2)} ج.م`}</p>}
           </div>
 
           <div style={totalBox}>
             <div style={rowPrice}><span>إجمالي المنتجات:</span><span>{subtotal.toFixed(2)} ج.م</span></div>
-            <div style={rowPrice}><span>الشحن ({selectedCity?.city_name}):</span><span>{(selectedCity?.price || 0).toFixed(2)} ج.م</span></div>
+            <div style={rowPrice}>
+              <span>الشحن ({selectedCity?.city_name}):</span>
+              <span style={{ textDecoration: appliedPromoType === 'free_shipping' ? 'line-through' : 'none', color: appliedPromoType === 'free_shipping' ? '#999' : 'inherit' }}>
+                {(selectedCity?.price || 0).toFixed(2)} ج.م
+              </span>
+            </div>
+            {appliedPromoType === 'free_shipping' && <div style={{ ...rowPrice, color: '#27ae60', fontWeight: 'bold' }}><span>خصم الشحن المجاني:</span><span>-{(selectedCity?.price || 0).toFixed(2)} ج.م</span></div>}
             {discountAmount > 0 && (
               <div style={{ ...rowPrice, color: '#e74c3c', fontWeight: 'bold' }}>
                 <span>خصم البرومو كود:</span>
@@ -321,7 +368,6 @@ export default function CheckoutPage() {
                       <span style={paySubTitle}>أمان، فوري، فاليو، كونتكت، البنك الأهلي والعديد..</span>
                     </div>
                   </div>
-                  {/* --- إضافة اللوجوهات بالكامل --- */}
                   <div style={logosGrid}>
                     <img src="https://i.postimg.cc/Njw3g5JW/visa-logo-png-seeklogo-149697.png" alt="Visa" style={miniLogoImg} />
                     <img src="https://i.postimg.cc/sgRkVv64/1280px-Master-Card-Logo-svg.png" alt="Mastercard" style={miniLogoImg} />

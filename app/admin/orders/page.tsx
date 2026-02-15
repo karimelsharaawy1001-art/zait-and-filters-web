@@ -48,10 +48,34 @@ export default function AdminOrders() {
     }
   }
 
+  // --- التعديل هنا: إضافة منطق عمولة المسوقين ---
   async function updateOrderStatus(orderId: string, newStatus: string) {
     try {
+      // 1. تحديد الطلب الحالي من المصفوفة
+      const orderToUpdate = orders.find(o => o.id === orderId);
+
+      // 2. التحقق: لو الحالة اتغيرت لـ "تم التوصيل" ولم تكن كذلك، وكان فيه مسوق
+      if (newStatus === 'delivered' && orderToUpdate?.status !== 'delivered' && orderToUpdate?.marketer_id) {
+        const commission = orderToUpdate.total_price * 0.05; // حساب الـ 5%
+
+        // استدعاء دالة زيادة الرصيد في Supabase
+        const { error: rpcError } = await supabase.rpc('increment_marketer_balance', {
+          m_id: orderToUpdate.marketer_id,
+          amount: commission
+        });
+
+        if (rpcError) {
+          console.error('Commission Error:', rpcError);
+          toast.error('حدث خطأ أثناء إضافة عمولة المسوق');
+        } else {
+          toast.success(`تمت إضافة عمولة ${commission.toFixed(2)} ج.م للمسوق ✅`);
+        }
+      }
+
+      // 3. تحديث حالة الطلب في الداتابيز
       const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
       if (error) throw error;
+
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
       toast.success('تم تحديث حالة الطلب');
     } catch (err: any) {

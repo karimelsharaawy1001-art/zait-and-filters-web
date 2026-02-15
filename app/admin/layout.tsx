@@ -17,8 +17,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'إدارة المنتجات', href: '/admin/products', icon: '📦' },
     { name: 'إدارة الماركات', href: '/admin/brands', icon: '🏎️' },
     { name: 'إعدادات الهيرو', href: '/admin/hero', icon: '🖼️' },
-    /* --- الزرار الجديد المضاف لأكواد الخصم --- */
     { name: 'أكواد الخصم', href: '/admin/promo-codes', icon: '🎫' },
+    /* --- الزرار الجديد المضاف لإدارة المسوقين --- */
+    { name: 'إدارة المسوقين', href: '/admin/marketers', icon: '👥' },
     /* ----------------------------------------- */
     { name: 'رسائل العملاء', href: '/admin/messages', icon: '💬' },
   ];
