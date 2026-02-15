@@ -151,10 +151,10 @@ export default function CheckoutPage() {
     }
   };
 
-  // --- 🚀 التعديل هنا لحل مشكلة الـ CORS ---
+  // --- 🚀 التعديل هنا لحل مشكلة الـ CORS وإضافة الإيميل لضمان قبول الطلب ---
   const initiateEasyKashPayment = async (orderId: string) => {
     try {
-      // ننادي الـ API Route الداخلي بدلاً من رابط EasyKash المباشر
+      // ننادي الـ API Route الداخلي بدلاً من رابط EasyKash المباشر لتخطي الـ CORS وحماية الـ Key
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -165,6 +165,7 @@ export default function CheckoutPage() {
           order_id: orderId,
           customer_name: customerInfo.name,
           customer_phone: customerInfo.phone,
+          customer_email: "customer@zaitandfilters.com", // إيميل افتراضي لضمان توافق الطلب مع متطلبات البوابة
           callback_url: CALLBACK_URL,
           payment_methods: ["card", "installments", "valu", "aman"]
         })
