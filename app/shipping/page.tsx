@@ -1,6 +1,6 @@
 export default function ShippingPage() {
   return (
-    <div style={legalContainer}>
+    <div style={legal-container}>
       <h1>سياسة الشحن والتوصيل</h1>
       <p>نعمل مع أفضل شركات الشحن في مصر لضمان وصول طلباتكم في أسرع وقت وبأفضل حالة.</p>
 
