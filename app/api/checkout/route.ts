@@ -4,44 +4,43 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     
-    // Your Keys from
+    // Using both keys provided in
     const PUBLIC_KEY = "gf8ueul7plkntb5r";
-    const SECRET_KEY = "87ca3d5640dc3f5809d3dfbf4a5045ad";
+    const HMAC_SECRET = "87ca3d5640dc3f5809d3dfbf4a5045ad";
 
-    // Inject the public key into the request body
+    // EasyKash expects the Public Key in the body
     body.api_key = PUBLIC_KEY;
 
-    // Use the official API endpoint (NOT www)
-    const response = await fetch('https://api.easykash.net/api/v1/checkout', {
+    // We use .io here - this is the official API endpoint
+    const response = await fetch('https://api.easykash.io/api/v1/checkout', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        // EasyKash often requires the Secret Key in the Authorization header
-        'Authorization': SECRET_KEY 
+        // Some versions of EasyKash require the Secret Key in the header
+        'Authorization': HMAC_SECRET 
       },
       body: JSON.stringify(body)
     });
 
-    // Capture the response as text first to prevent the "<" SyntaxError
     const responseText = await response.text();
 
     try {
+      // If this works, the URL was correct and the keys are valid
       const data = JSON.parse(responseText);
-      console.log("EasyKash Response:", data);
       return NextResponse.json(data);
-    } catch (parseError) {
-      // If we reach here, EasyKash returned an HTML error page
-      console.error("EasyKash returned HTML instead of JSON:", responseText);
+    } catch (err) {
+      // If we get HTML (the "<" error), we log the actual HTML to the console
+      console.error("Gateway returned HTML. Content:", responseText.substring(0, 500));
       return NextResponse.json({ 
         status: 'error', 
-        message: 'The payment gateway returned an error page. Please check your account settings.',
-        debug: responseText.substring(0, 200) 
+        message: 'The gateway returned an HTML error. Check the server logs for the full page text.',
+        debug_html: responseText.substring(0, 300)
       }, { status: response.status });
     }
 
   } catch (error: any) {
-    console.error("Internal Server Error:", error.message);
+    console.error("Fetch Execution Failed:", error.message);
     return NextResponse.json({ status: 'error', message: error.message }, { status: 500 });
   }
 }
