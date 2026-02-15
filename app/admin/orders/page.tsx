@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import { 
   Package, Phone, MapPin, Clock, Truck, CheckCircle, 
@@ -120,14 +120,15 @@ export default function AdminOrders() {
                   <span style={{ color: '#2ecc71', fontWeight: '900' }}>{order.total_price} ج.م</span>
                 </td>
                 <td style={td}>
-                  {order.payment_method === 'instapay' ? <Banknote size={16} color="#9b59b6" title="انستا باي" /> : 
-                   order.payment_method === 'wallets' ? <Smartphone size={16} color="#e74c3c" title="محفظة" /> : 
-                   <CreditCard size={16} color="#3498db" title="بطاقة" />}
+                  {/* تم تصحيح الأيقونات هنا وحذف خاصية title التي تسبب الخطأ */}
+                  {order.payment_method === 'instapay' ? <Banknote size={16} color="#9b59b6" /> : 
+                   order.payment_method === 'wallets' ? <Smartphone size={16} color="#e74c3c" /> : 
+                   <CreditCard size={16} color="#3498db" />}
                   {order.payment_screenshot_url && <ImageIcon size={14} color="#2ecc71" style={{marginRight:'5px'}} />}
                 </td>
                 <td style={td}>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => setSelectedOrder(order)} style={iconBtn} title="عرض التفاصيل"><Eye size={16} /></button>
+                    <button onClick={() => setSelectedOrder(order)} style={iconBtn}><Eye size={16} /></button>
                     <button onClick={() => deleteOrder(order.id)} style={delBtn}><Trash2 size={16} /></button>
                   </div>
                 </td>
@@ -221,8 +222,9 @@ export default function AdminOrders() {
   );
 }
 
-const Smartphone = ({ size, color, title }: any) => (
-  <svg title={title} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+// تم حذف خاصية title من هنا أيضاً
+const Smartphone = ({ size, color }: any) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
 );
 
 // --- Styles التنسيقات المطورة ---
