@@ -1,6 +1,6 @@
 export default function PrivacyPage() {
   return (
-    <div style={legal-container}>
+    <div className="legal-container">
       <h1>سياسة الخصوصية</h1>
       <p>نحن في <b>زيت وفلتر</b> نضع أمن بياناتك في مقدمة أولوياتنا. توضح هذه السياسة كيف نتعامل مع معلوماتك الشخصية.</p>
 

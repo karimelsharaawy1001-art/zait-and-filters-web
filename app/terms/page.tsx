@@ -1,6 +1,6 @@
 export default function TermsPage() {
   return (
-    <div style={legal-container}>
+    <div className="legal-container">
       <h1>الشروط والأحكام</h1>
       <p>مرحباً بكم في <b>زيت وفلتر (Zait and Filters)</b>. تحكم هذه الشروط استخدامكم للموقع وشراء المنتجات منه. باستكمال عملية الشراء، فإنك تقر بموافقتك الكاملة على النقاط التالية:</p>
       

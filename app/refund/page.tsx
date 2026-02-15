@@ -1,6 +1,6 @@
 export default function RefundPage() {
   return (
-    <div style={legal-container}>
+    <div className="legal-container">
       <h1>سياسة الاستبدال والاسترجاع</h1>
       <p>نحن في <b>زيت وفلتر</b> نلتزم بأعلى معايير الجودة وبتطبيق قانون حماية المستهلك المصري (رقم 181 لسنة 2018). يرجى قراءة الشروط التالية بعناية:</p>
 
