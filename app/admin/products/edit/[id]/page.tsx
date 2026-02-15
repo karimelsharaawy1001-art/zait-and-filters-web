@@ -35,7 +35,8 @@ export default function EditProduct() {
   async function fetchFilterOptions() {
     const { data } = await supabase.from('products').select('car_make, car_model, category, subcategory');
     if (data) {
-      const getUnique = (field: string) => Array.from(new Set(data.map(i => i[field]).filter(Boolean))).sort() as string[];
+      // تم تعديل السطر التالي لحل مشكلة الـ TypeScript وتجاوز خطأ الـ Indexing
+      const getUnique = (field: string) => Array.from(new Set(data.map((i: any) => i[field]).filter(Boolean))).sort() as string[];
       setOptions({
         makes: getUnique('car_make'),
         models: getUnique('car_model'),
