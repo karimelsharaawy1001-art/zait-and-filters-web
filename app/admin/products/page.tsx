@@ -163,7 +163,8 @@ export default function AdminProducts() {
       const rows = text.split('\n').slice(1);
       let updateCount = 0; let insertCount = 0;
       for (const row of rows) {
-        const cols = row.split(',').map(c => c.trim().replace(/"/g, ''));
+        // تم تعديل السطر التالي لإضافة (c: string) لتجنب خطأ TypeScript Implicit Any
+        const cols = row.split(',').map((c: string) => c.trim().replace(/"/g, ''));
         if (cols.length < 6 || !cols[1]) continue;
         let warrantyVal = cols[10];
         if (warrantyVal && !isNaN(Number(warrantyVal))) warrantyVal = `${warrantyVal} شهور`;
