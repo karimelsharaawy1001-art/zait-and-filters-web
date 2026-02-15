@@ -1,46 +1,58 @@
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    
-    // Using both keys provided in
-    const PUBLIC_KEY = "gf8ueul7plkntb5r";
-    const HMAC_SECRET = "87ca3d5640dc3f5809d3dfbf4a5045ad";
+  const body = await req.json();
+  const PUBLIC_KEY = "gf8ueul7plkntb5r";
+  const SECRET_KEY = "87ca3d5640dc3f5809d3dfbf4a5045ad";
 
-    // EasyKash expects the Public Key in the body
-    body.api_key = PUBLIC_KEY;
+  // Ensure types are exactly what gateways expect
+  const payload = {
+    ...body,
+    api_key: PUBLIC_KEY,
+    amount: Number(body.amount), // Must be a number
+    order_id: String(body.order_id) // Must be a string
+  };
 
-    // We use .io here - this is the official API endpoint
-    const response = await fetch('https://api.easykash.io/api/v1/checkout', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        // Some versions of EasyKash require the Secret Key in the header
-        'Authorization': HMAC_SECRET 
-      },
-      body: JSON.stringify(body)
-    });
+  // Possible EasyKash endpoints (DNS varies by region/provider)
+  const endpoints = [
+    'https://api.easykash.net/api/v1/checkout',
+    'https://api.easykash.io/api/v1/checkout',
+    'https://easykash.net/api/v1/checkout' // No 'api' subdomain fallback
+  ];
 
-    const responseText = await response.text();
-
+  for (const url of endpoints) {
     try {
-      // If this works, the URL was correct and the keys are valid
-      const data = JSON.parse(responseText);
-      return NextResponse.json(data);
-    } catch (err) {
-      // If we get HTML (the "<" error), we log the actual HTML to the console
-      console.error("Gateway returned HTML. Content:", responseText.substring(0, 500));
-      return NextResponse.json({ 
-        status: 'error', 
-        message: 'The gateway returned an HTML error. Check the server logs for the full page text.',
-        debug_html: responseText.substring(0, 300)
-      }, { status: response.status });
-    }
+      console.log(`📡 Trying endpoint: ${url}`);
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': SECRET_KEY 
+        },
+        body: JSON.stringify(payload),
+        cache: 'no-store'
+      });
 
-  } catch (error: any) {
-    console.error("Fetch Execution Failed:", error.message);
-    return NextResponse.json({ status: 'error', message: error.message }, { status: 500 });
+      const text = await response.text();
+      
+      // If we got JSON, we are successful!
+      if (text.trim().startsWith('{')) {
+        const data = JSON.parse(text);
+        console.log(`✅ Success with: ${url}`);
+        return NextResponse.json(data);
+      } 
+      
+      console.warn(`⚠️ Endpoint ${url} returned HTML instead of JSON.`);
+    } catch (err: any) {
+      console.error(`❌ Endpoint ${url} failed: ${err.message}`);
+    }
   }
+
+  // If all failed, we return a detailed debug report
+  return NextResponse.json({ 
+    status: 'error', 
+    message: 'All EasyKash endpoints failed or returned HTML. This usually means your account is not activated for API access or your keys are wrong.',
+    technical_check: 'Check Vercel Server Logs for "Raw Response" to see the HTML error message.'
+  }, { status: 500 });
 }
