@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     // تسجيل البيانات المرسلة للتأكد من سلامتها في الـ Logs
     console.log("Sending to EasyKash:", body);
 
-    const response = await fetch('https://api.easykash.io/api/v1/checkout', {
+    const response = await fetch('https://api.easykash.net/api/v1/checkout', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
