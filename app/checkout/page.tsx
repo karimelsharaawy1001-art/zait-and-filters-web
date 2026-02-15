@@ -21,7 +21,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState('card_installments'); 
   const [screenshot, setScreenshot] = useState<File | null>(null);
 
-  // --- حالات البرومو كود والمسوقين ---
+  // --- Promo Code & Marketer States ---
   const [promoCode, setPromoCode] = useState('');
   const [discountAmount, setDiscountAmount] = useState(0);
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
@@ -40,8 +40,7 @@ export default function CheckoutPage() {
     address: ''
   });
 
-  // --- 🗝️ تأكيد المفاتيح والروابط المطلوبة ---
-  const CALLBACK_URL = "https://zaitandfilters.com/order-success"; 
+  // --- Keys & Presets ---
   const CLOUD_NAME = "dxtncdxfh";
   const UPLOAD_PRESET = "zaitandfiltersnew";
 
@@ -152,6 +151,7 @@ export default function CheckoutPage() {
     }
   };
 
+  // --- 🚀 Redirection Fix: Properly calling the API Bridge ---
   const initiateEasyKashPayment = async (orderId: string) => {
     try {
       const response = await fetch('/api/checkout', {
@@ -169,6 +169,7 @@ export default function CheckoutPage() {
       const data = await response.json();
       
       if (data.success && data.url) {
+        // Force immediate browser redirection
         window.location.href = data.url; 
       } else {
         throw new Error(data.message || data.error || 'فشل الحصول على رابط الدفع من البوابة');
@@ -182,7 +183,11 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (subtotal <= 0) return toast.error('السلة فارغة');
-    if (paymentMethod !== 'card_installments' && !screenshot && paymentMethod !== 'card_installments') return toast.error('يرجى رفع سكرين شوت التحويل');
+    
+    // Validation Logic Fix
+    if (paymentMethod !== 'card_installments' && !screenshot) {
+      return toast.error('يرجى رفع سكرين شوت التحويل');
+    }
 
     setLoading(true);
     try {
@@ -237,6 +242,7 @@ export default function CheckoutPage() {
       localStorage.removeItem('zf_marketer_ref');
 
       if (paymentMethod === 'card_installments') {
+        // Trigger EasyKash Redirect
         await initiateEasyKashPayment(newOrder.id);
       } else {
         toast.success('تم تسجيل طلبك بنجاح! 🎉');
@@ -454,7 +460,7 @@ export default function CheckoutPage() {
   );
 }
 
-// --- التنسيقات ---
+// --- Styles ---
 const container: any = { padding: '40px 20px', maxWidth: '1200px', margin: '0 auto', direction: 'rtl' };
 const title: any = { marginBottom: '30px', fontWeight: '900', textAlign: 'center', fontSize: '2rem' };
 const layoutGrid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '25px', alignItems: 'start' };
@@ -489,7 +495,7 @@ const payDetailsBox: any = { marginTop: '12px', padding: '18px', background: '#f
 const actionBtnLink: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#1a1a1a', color: '#fff', padding: '12px', borderRadius: '12px', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 'bold', transition: '0.3s ease' };
 const uploadArea: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '2px dashed #15803d', color: '#15803d', padding: '12px', borderRadius: '12px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '900', transition: '0.3s ease' };
 
-// --- تنسيقات البرومو كود والصور الجديدة ---
+// --- Promo Code Styling ---
 const promoWrapper: any = { marginTop: '20px', padding: '15px', background: '#fff', borderRadius: '20px', border: '1px dashed #ddd', marginBottom: '15px' };
 const promoBtnStyle: any = { padding: '0 25px', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', transition: '0.3s ease', fontSize: '0.9rem' };
 const promoSuccessText: any = { fontSize: '0.8rem', color: '#15803d', marginTop: '10px', fontWeight: 'bold' };
