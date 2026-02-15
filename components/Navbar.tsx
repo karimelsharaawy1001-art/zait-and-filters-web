@@ -54,7 +54,6 @@ export default function ProfessionalNavbar() {
           .mobile-bottom-nav { display: flex !important; }
           .nav-content { justify-content: space-between !important; padding: 0 10px !important; }
           .search-wrapper { display: none !important; }
-          /* تكبير اللوجو في الموبايل أيضاً ليكون واضحاً */
           .logo-text { font-size: 1.5rem !important; } 
           .mobile-menu-btn { display: flex !important; }
         }
@@ -82,7 +81,7 @@ export default function ProfessionalNavbar() {
               <div style={sidebarContent}>
                 <Link href="/" onClick={()=>setIsSidebarOpen(false)} style={sidebarLink}><Home size={20}/> الرئيسية</Link>
                 <Link href="/store" onClick={()=>setIsSidebarOpen(false)} style={sidebarLink}><Store size={20}/> المتجر</Link>
-                <Link href="/my-orders" onClick={()=>setIsSidebarOpen(false)} style={sidebarLink}><Package size={20}/> طلباتي</Link>
+                {/* تم حذف رابط طلباتي من هنا */}
                 <hr style={sidebarDivider} />
                 {user ? (
                   <>
@@ -109,7 +108,6 @@ export default function ProfessionalNavbar() {
         <div style={navContent} className="nav-content">
           <button className="mobile-menu-btn" style={{...iconBtn, display:'none'}} onClick={() => setIsSidebarOpen(true)}><MenuIcon size={24} /></button>
 
-          {/* اللوجو الجديد المعدل (مايل، أكبر، وأوضح) */}
           <Link href="/" style={logoStyle} className="logo-text">
             ZAIT <span style={{ color: '#27ae60' }}>& FILTERS</span>
           </Link>
@@ -127,7 +125,7 @@ export default function ProfessionalNavbar() {
 
           <div style={navLinks} className="desktop-links">
             <Link href="/store" style={linkItem}>المتجر</Link>
-            <Link href="/my-orders" style={linkItem}>طلباتي</Link>
+            {/* تم حذف رابط طلباتي من هنا */}
             <div style={iconGroup}>
               {user ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -159,29 +157,18 @@ export default function ProfessionalNavbar() {
           {cartItems.length > 0 && <span style={cartBadgeMobile}>{cartItems.length}</span>}
           <span>السلة</span>
         </Link>
-        <Link href="/my-orders" style={bottomNavItem}><Package size={22} /><span>طلباتي</span></Link>
+        {/* تم استبدال رابط طلباتي برابط مباشر لـ "حسابي" لسهولة الوصول */}
+        <Link href={user ? "/profile" : "/login"} style={bottomNavItem}><User size={22} /><span>حسابي</span></Link>
         <button onClick={() => setIsSidebarOpen(true)} style={bottomNavItemBtn}><MenuIcon size={22} /><span>المزيد</span></button>
       </div>
     </>
   );
 }
 
-// --- التنسيقات المعدلة ---
+// --- التنسيقات ---
 const navContainer: any = { position: 'sticky', top: 0, zIndex: 1000, width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(0, 0, 0, 0.08)', padding: '15px 0', direction: 'rtl' };
 const navContent: any = { maxWidth: '1200px', margin: '0 auto', padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px' };
-
-// التعديل الأساسي للوجو هنا
-const logoStyle: any = { 
-  fontSize: '2.1rem',      // تكبير الخط بشكل ملحوظ
-  fontWeight: '900',       // خط سميك جداً ليكون أوضح
-  fontStyle: 'italic',     // جعل الخط مائلاً (Italic)
-  textDecoration: 'none', 
-  color: '#1a1a1a', 
-  letterSpacing: '-1.5px', // تضييق المسافات يعطي مظهر "اللوجو" الاحترافي
-  flexShrink: 0,
-  textTransform: 'uppercase' // جعل الحروف كبيرة لزيادة الوضوح
-};
-
+const logoStyle: any = { fontSize: '2.1rem', fontWeight: '900', fontStyle: 'italic', textDecoration: 'none', color: '#1a1a1a', letterSpacing: '-1.5px', flexShrink: 0, textTransform: 'uppercase' };
 const searchWrapper: any = { flex: 1, maxWidth: '400px', display: 'flex', alignItems: 'center', backgroundColor: '#f5f5f5', padding: '8px 16px', borderRadius: '12px', border: '1px solid transparent', transition: 'all 0.3s ease', gap: '10px' };
 const searchInput: any = { width: '100%', border: 'none', backgroundColor: 'transparent', outline: 'none', fontSize: '0.9rem' };
 const navLinks: any = { display: 'flex', alignItems: 'center', gap: '25px' };
