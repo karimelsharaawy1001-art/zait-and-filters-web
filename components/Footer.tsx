@@ -2,14 +2,14 @@
 import Link from 'next/link';
 import { 
   Facebook, Instagram, Mail, MapPin, 
-  ChevronLeft, ShieldCheck, Clock, MessageCircle, Music2 
+  ChevronLeft, ShieldCheck, Clock, MessageCircle, Music2, FileText, ShieldAlert, RefreshCcw 
 } from 'lucide-react';
 
 // --- قسم التعديل السريع لروابط السوشيال ميديا ---
 const SOCIAL_LINKS = {
   facebook: "https://facebook.com/zaitandfilters",
   instagram: "https://instagram.com/zaitandfilters",
-  tiktok: "https://tiktok.com/@zait.and.filters"
+  tiktok: "https://tiktok.com/@zai.tand.filters"
 };
 
 export default function ProfessionalFooter() {
@@ -17,9 +17,9 @@ export default function ProfessionalFooter() {
 
   return (
     <footer style={footerContainer}>
-      {/* ستايل الزرار الجديد (Hover Effect) */}
       <style dangerouslySetInnerHTML={{ __html: `
         .footer-cta:hover { background-color: #1a1a1a !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15) !important; }
+        .footer-link-item:hover { color: #27ae60 !important; padding-right: 5px; }
       `}} />
 
       <div style={footerContent}>
@@ -39,29 +39,30 @@ export default function ProfessionalFooter() {
           </div>
         </div>
 
-        {/* العمود الثاني: روابط سريعة */}
+        {/* العمود الثاني: روابط سريعة وصفحات قانونية */}
         <div style={footerColumn}>
-          <h4 style={columnTitle}>روابط سريعة</h4>
+          <h4 style={columnTitle}>روابط هامة</h4>
           <ul style={linkList}>
-            <li><Link href="/store" style={footerLink}><ChevronLeft size={14} /> المتجر</Link></li>
-            <li><Link href="/profile" style={footerLink}><ChevronLeft size={14} /> حسابي الشخصي</Link></li>
-            <li><Link href="/about" style={footerLink}><ChevronLeft size={14} /> من نحن</Link></li>
-            <li><Link href="/contact" style={footerLink}><ChevronLeft size={14} /> اتصل بنا</Link></li>
+            <li><Link href="/store" className="footer-link-item" style={footerLink}><ChevronLeft size={14} /> المتجر</Link></li>
+            <li><Link href="/profile" className="footer-link-item" style={footerLink}><ChevronLeft size={14} /> حسابي الشخصي</Link></li>
+            <li><Link href="/about" className="footer-link-item" style={footerLink}><ChevronLeft size={14} /> من نحن</Link></li>
+            <hr style={divider} />
+            {/* الصفحات القانونية */}
+            <li><Link href="/privacy" className="footer-link-item" style={footerLink}><ShieldAlert size={14} /> سياسة الخصوصية</Link></li>
+            <li><Link href="/terms" className="footer-link-item" style={footerLink}><FileText size={14} /> الشروط والأحكام</Link></li>
+            <li><Link href="/returns" className="footer-link-item" style={footerLink}><RefreshCcw size={14} /> سياسة الإرجاع والاستبدال</Link></li>
           </ul>
         </div>
 
-        {/* العمود الثالث: التواصل (الزرار الجديد هنا) */}
+        {/* العمود الثالث: التواصل */}
         <div style={footerColumn}>
           <h4 style={columnTitle}>تواصل معنا</h4>
-          
           <div style={{ marginBottom: '15px' }}>
             <span style={contactLabel}>دعم العملاء:</span>
-            {/* الزرار الاحترافي الجديد */}
             <Link href="/contact" className="footer-cta" style={contactBtn}>
               <MessageCircle size={18} /> تواصل معنا الآن
             </Link>
           </div>
-
           <div style={contactItem}>
             <MapPin size={18} color="#27ae60" />
             <div style={{ textAlign: 'right' }}>
@@ -103,7 +104,7 @@ export default function ProfessionalFooter() {
   );
 }
 
-// --- التنسيقات (تم إضافة تنسيق الزرار الجديد) ---
+// --- التنسيقات ---
 const footerContainer: any = { backgroundColor: '#fff', borderTop: '1px solid #eee', padding: '60px 20px 20px', direction: 'rtl' };
 const footerContent: any = { maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '40px', marginBottom: '40px' };
 const footerColumn: any = { display: 'flex', flexDirection: 'column', gap: '15px' };
@@ -113,31 +114,12 @@ const socialLinks: any = { display: 'flex', gap: '12px', marginTop: '10px' };
 const socialIcon: any = { width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1a1a1a', transition: '0.3s' };
 const columnTitle: any = { fontSize: '1.1rem', fontWeight: '900', color: '#1a1a1a', marginBottom: '10px', position: 'relative', paddingBottom: '10px' };
 const linkList: any = { listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' };
-const footerLink: any = { textDecoration: 'none', color: '#666', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '5px', transition: '0.3s' };
+const footerLink: any = { textDecoration: 'none', color: '#666', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.3s ease' };
+const divider: any = { border: 'none', borderTop: '1px solid #f5f5f5', margin: '5px 0' };
 const contactItem: any = { display: 'flex', gap: '12px', alignItems: 'center' };
 const contactLabel: any = { display: 'block', fontSize: '0.75rem', color: '#999', marginBottom: '4px' };
 const contactValue: any = { fontSize: '0.9rem', fontWeight: 'bold', color: '#1a1a1a', textDecoration: 'none' };
-
-// --- ستايل الزرار الاحترافي الجديد ---
-const contactBtn: any = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: '8px',
-  backgroundColor: '#27ae60',
-  color: '#fff',
-  padding: '12px 20px',
-  borderRadius: '14px',
-  textDecoration: 'none',
-  fontWeight: 'bold',
-  fontSize: '0.9rem',
-  marginTop: '5px',
-  transition: '0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  boxShadow: '0 4px 12px rgba(39, 174, 96, 0.2)',
-  border: 'none',
-  width: 'fit-content'
-};
-
+const contactBtn: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', backgroundColor: '#27ae60', color: '#fff', padding: '12px 20px', borderRadius: '14px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.9rem', marginTop: '5px', transition: '0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 4px 12px rgba(39, 174, 96, 0.2)', width: 'fit-content' };
 const trustBadge: any = { display: 'flex', alignItems: 'center', gap: '8px', background: '#f0fdf4', color: '#15803d', padding: '10px 15px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 'bold' };
 const paymentText: any = { fontSize: '0.85rem', color: '#888', margin: '15px 0 10px' };
 const paymentLogos: any = { display: 'flex', gap: '10px', flexWrap: 'wrap' };
