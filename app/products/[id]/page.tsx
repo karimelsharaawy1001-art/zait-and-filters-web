@@ -8,16 +8,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   if (!product) return { title: 'المنتج غير موجود' };
 
-  // تنسيق العنوان ليكون جذاباً واحترافياً
-  const title = `🛒 ${product.name} لـ ${product.car_make} ${product.car_model} | ${product.brand}`;
+  // 1. جعل اسم الموقع في بداية العنوان لضمان ظهوره (اسم الموقع مش ظاهر)
+  const title = `زيت أند فلترز | 🛒 ${product.name} - ${product.brand}`;
   
-  // بناء وصف مفصل ومنظم يظهر في المعاينة
+  // 2. تقديم السعر والماركة في أول سطرين لأن الواتساب بيقص الوصف (البيانات مش كاملة)
   const description = `
-✅ قطعة غيار أصلية: ${product.name}
-🚗 مناسب لـ: ${product.car_make} ${product.car_model} ${product.car_model_year || ''}
 💰 السعر: ${product.sale_price || product.regular_price} ج.م
-🌍 المنشأ: ${product.country_of_origin || 'أصلي'}
-🛡️ ضمان جودة وشحن سريع لباب البيت.. اطلب الآن!
+🚗 لسيارة: ${product.car_make} ${product.car_model} ${product.car_model_year || ''}
+✅ قطعة أصلية من ماركة ${product.brand} - المنشأ: ${product.country_of_origin || 'أصلي'}
+🛡️ اطلبها الآن من "زيت أند فلترز" بأفضل جودة وشحن لباب البيت.
   `.trim();
 
   return {
@@ -27,12 +26,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title: title,
       description: description,
       url: `https://zaitandfilters.vercel.app/products/${id}`,
-      siteName: 'زيت أند فلترز - Zait & Filters',
+      // التأكد من تعريف اسم الموقع هنا أيضاً
+      siteName: 'زيت أند فلترز - Zait & Filters', 
       images: [
         {
           url: product.image_url || '/og-image.jpg',
-          width: 1200, // العرض المثالي للواتساب والفيسبوك
-          height: 630, // الارتفاع المثالي لظهور صورة كبيرة
+          width: 1200,
+          height: 630,
           alt: product.name,
         },
       ],
@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       type: 'article',
     },
     twitter: {
-      card: 'summary_large_image', // لإظهار صورة المنتج كبيرة في تويتر
+      card: 'summary_large_image',
       title: title,
       description: description,
       images: [product.image_url || '/og-image.jpg'],
