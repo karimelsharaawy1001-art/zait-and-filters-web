@@ -151,9 +151,11 @@ export default function CheckoutPage() {
     }
   };
 
+  // --- 🚀 التعديل هنا لحل مشكلة الـ CORS ---
   const initiateEasyKashPayment = async (orderId: string) => {
     try {
-      const response = await fetch('https://api.easykash.net/api/v1/checkout', {
+      // ننادي الـ API Route الداخلي بدلاً من رابط EasyKash المباشر
+      const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
