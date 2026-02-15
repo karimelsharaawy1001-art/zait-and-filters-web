@@ -34,7 +34,7 @@ export default function CheckoutPage() {
 
   // بيانات EasyKash
   const EASYKASH_API_KEY = "gf8ueul7plkntb5r";
-  const CALLBACK_URL = "https://zait-and-filters-web.vercel.app/order-success";
+  const CALLBACK_URL = "https://zaitandfilters.com/order-success";
 
   const CLOUD_NAME = "dxtncdxfh";
   const UPLOAD_PRESET = "zaitandfiltersnew";
