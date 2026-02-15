@@ -159,30 +159,30 @@ export default function CheckoutPage() {
     }
   };
 
-  // --- 🚀 الربط مع الـ API Route الداخلي لحل مشكلة الـ CORS ---
+  // --- 🚀 التعديل هنا ليتوافق مع منطق "DirectPay API v1" من المشروع المرفق ---
   const initiateEasyKashPayment = async (orderId: string) => {
     try {
+      // إرسال البيانات بالمسميات التي يتوقعها الـ API Route بناءً على الكود المرفق
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          api_key: EASYKASH_API_KEY,
           amount: finalTotal,
-          currency: "EGP",
-          order_id: orderId,
-          customer_name: customerInfo.name,
-          customer_phone: customerInfo.phone,
-          customer_email: customerInfo.email || "customer@zaitandfilters.com",
-          callback_url: CALLBACK_URL,
-          payment_methods: ["card", "installments", "valu", "aman"]
+          customerName: customerInfo.name,
+          customerPhone: customerInfo.phone,
+          customerEmail: customerInfo.email || "customer@zaitandfilters.com",
+          returnUrl: CALLBACK_URL,
+          orderId: orderId
         })
       });
 
       const data = await response.json();
-      if (data.status === 'success' && data.checkout_url) {
-        window.location.href = data.checkout_url; 
+      
+      // الكود المرفق يعيد نجاح مع حقل url
+      if (data.success && data.url) {
+        window.location.href = data.url; 
       } else {
-        throw new Error(data.message || 'فشل الاتصال ببوابة الدفع');
+        throw new Error(data.message || data.error || 'فشل الاتصال ببوابة الدفع');
       }
     } catch (err: any) {
       toast.error('خطأ في بوابة الدفع: ' + err.message);
