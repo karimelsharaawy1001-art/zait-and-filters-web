@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 
 export default function MarketerDashboard() {
   const [data, setData] = useState<any>(null);
-  // --- إصلاح الخطأ البرمجي هنا بتحديد النوع ---
+  // --- إصلاح الخطأ البرمجي هنا بتحديد النوع الصريح للمصفوفة لضمان نجاح الـ Build ---
   const [stats, setStats] = useState<{ total_orders: number; recent_orders: any[] }>({ 
     total_orders: 0, 
     recent_orders: [] 
@@ -48,7 +48,12 @@ export default function MarketerDashboard() {
     toast.success(msg);
   };
 
-  if (loading) return <div style={loaderContainer}><Loader2 className="animate-spin" size={40} color="#27ae60" /><p>جاري تحميل بياناتك...</p></div>;
+  if (loading) return (
+    <div style={loaderContainer}>
+      <Loader2 className="animate-spin" size={40} color="#27ae60" />
+      <p>جاري تحميل بياناتك...</p>
+    </div>
+  );
 
   return (
     <div style={container}>

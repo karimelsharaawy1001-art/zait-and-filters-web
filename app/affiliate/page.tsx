@@ -1,4 +1,5 @@
 'use client';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Trophy, Rocket, DollarSign, ShieldCheck } from 'lucide-react';
 
@@ -22,9 +23,13 @@ export default function AffiliateLanding() {
           <h3>عمولات مجزية</h3>
           <p>احصل على عمولة 5% فورية على كل طلب يتم عن طريقك.</p>
         </div>
-        <div style={Rocket size={30} color="#27ae60" />
-        <h3>كود خصم خاص</h3>
-        <p>كود خصم 5% باسمك لعملائك لزيادة مبيعاتك.</p>
+        
+        {/* تم تصحيح الخطأ هنا ليعمل الكود بشكل سليم */}
+        <div style={featureCard}>
+          <Rocket size={30} color="#27ae60" />
+          <h3>كود خصم خاص</h3>
+          <p>كود خصم 5% باسمك لعملائك لزيادة مبيعاتك.</p>
+        </div>
       </div>
     </div>
   );

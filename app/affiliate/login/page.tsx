@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { Loader2, Lock } from 'lucide-react';
 
-// تأكد من وجود export default هنا
+// تأكد من وجود export default هنا لضمان نجاح الـ Build على Vercel
 export default function MarketerLogin() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -23,7 +23,7 @@ export default function MarketerLogin() {
       toast.success('أهلاً بك مجدداً! 🎯');
       router.push('/affiliate/dashboard');
     } catch (err: any) {
-      toast.error('خطأ: ' + err.message);
+      toast.error('خطأ في الدخول: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -37,9 +37,23 @@ export default function MarketerLogin() {
           <h1 style={{ fontWeight: '900', marginTop: '15px' }}>دخول المسوقين</h1>
         </div>
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          <input type="email" placeholder="البريد الإلكتروني" required style={inp} onChange={e => setForm({...form, email: e.target.value})} />
-          <input type="password" placeholder="كلمة المرور" required style={inp} onChange={e => setForm({...form, password: e.target.value})} />
-          <button disabled={loading} style={btn}>{loading ? <Loader2 className="animate-spin" /> : 'تسجيل الدخول'}</button>
+          <input 
+            type="email" 
+            placeholder="البريد الإلكتروني" 
+            required 
+            style={inp} 
+            onChange={e => setForm({...form, email: e.target.value})} 
+          />
+          <input 
+            type="password" 
+            placeholder="كلمة المرور" 
+            required 
+            style={inp} 
+            onChange={e => setForm({...form, password: e.target.value})} 
+          />
+          <button disabled={loading} style={btn}>
+            {loading ? <Loader2 className="animate-spin" /> : 'تسجيل الدخول'}
+          </button>
         </form>
       </div>
     </div>
