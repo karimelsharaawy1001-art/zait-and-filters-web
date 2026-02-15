@@ -32,9 +32,8 @@ export default function CheckoutPage() {
     address: ''
   });
 
-  // بيانات EasyKash من الصورة المرفقة
+  // بيانات EasyKash
   const EASYKASH_API_KEY = "gf8ueul7plkntb5r";
-  // الرابط الموجود في إعدادات حسابك
   const CALLBACK_URL = "https://zait-and-filters-web.vercel.app/order-success";
 
   const CLOUD_NAME = "dxtncdxfh";
@@ -67,7 +66,8 @@ export default function CheckoutPage() {
     initCheckout();
   }, []);
 
-  const subtotal = useMemo(() => cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0), [cart]);
+  // تم تعديل السطر التالي لحل مشكلة الـ TypeScript Build
+  const subtotal = useMemo(() => cart.reduce((sum: number, item: any) => sum + (parseFloat(item.price) * item.quantity), 0), [cart]);
   const finalTotal = subtotal + (selectedCity?.price || 0);
 
   useEffect(() => { if (isInitialized) setTimeout(() => setIsReady(true), 800); }, [isInitialized]);
@@ -88,7 +88,6 @@ export default function CheckoutPage() {
     }
   };
 
-  // --- وظيفة الربط المضافة مع EasyKash ---
   const initiateEasyKashPayment = async (orderId: string) => {
     try {
       const response = await fetch('https://api.easykash.net/api/v1/checkout', {
@@ -144,7 +143,6 @@ export default function CheckoutPage() {
       if (error) throw error;
 
       if (paymentMethod === 'card_installments') {
-        // التحويل لـ EasyKash
         await initiateEasyKashPayment(newOrder.id);
       } else {
         toast.success('تم تسجيل طلبك بنجاح! 🎉');
@@ -320,7 +318,7 @@ export default function CheckoutPage() {
   );
 }
 
-// --- التنسيقات الفاخرة المحدثة ---
+// --- التنسيقات ---
 const container: any = { padding: '40px 20px', maxWidth: '1200px', margin: '0 auto', direction: 'rtl' };
 const title: any = { marginBottom: '30px', fontWeight: '900', textAlign: 'center', fontSize: '2rem' };
 const layoutGrid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '25px', alignItems: 'start' };
