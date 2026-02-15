@@ -40,9 +40,9 @@ export default function CheckoutPage() {
     address: ''
   });
 
-  // بيانات EasyKash و Cloudinary
-  const EASYKASH_API_KEY = "gf8ueul7plkntb5r";
-  const CALLBACK_URL = "https://zaitandfilters.com/order-success";
+  // --- 🗝️ تأكيد المفاتيح والروابط المطلوبة ---
+  const EASYKASH_API_KEY = "gf8ueul7plkntb5r"; // الـ Public Key الخاص بك
+  const CALLBACK_URL = "https://zaitandfilters.com/order-success"; // رابط العودة المعتمد
   const CLOUD_NAME = "dxtncdxfh";
   const UPLOAD_PRESET = "zaitandfiltersnew";
 
@@ -159,10 +159,9 @@ export default function CheckoutPage() {
     }
   };
 
-  // --- 🚀 التعديل هنا لحل مشكلة الـ CORS وإضافة الإيميل لضمان قبول الطلب ---
+  // --- 🚀 الربط مع الـ API Route الداخلي لحل مشكلة الـ CORS ---
   const initiateEasyKashPayment = async (orderId: string) => {
     try {
-      // ننادي الـ API Route الداخلي بدلاً من رابط EasyKash المباشر لتخطي الـ CORS وحماية الـ Key
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -173,7 +172,7 @@ export default function CheckoutPage() {
           order_id: orderId,
           customer_name: customerInfo.name,
           customer_phone: customerInfo.phone,
-          customer_email: customerInfo.email || "customer@zaitandfilters.com", // استخدام إيميل العميل من النموذج
+          customer_email: customerInfo.email || "customer@zaitandfilters.com",
           callback_url: CALLBACK_URL,
           payment_methods: ["card", "installments", "valu", "aman"]
         })
@@ -200,10 +199,9 @@ export default function CheckoutPage() {
       const { data: { user } } = await supabase.auth.getUser();
       let uploadedImageUrl = screenshot ? await uploadToCloudinary(screenshot) : null;
 
-      // --- 🚀 منطق المسوقين: البحث عن المسوق المرتبط بالأوردر ---
+      // --- 🚀 منطق المسوقين ---
       let finalMarketerId = null;
 
-      // 1. الأولوية: لو استخدم برومو كود يخص مسوق
       if (appliedPromo) {
         const { data: marketerByPromo } = await supabase
           .from('marketers')
@@ -213,7 +211,6 @@ export default function CheckoutPage() {
         if (marketerByPromo) finalMarketerId = marketerByPromo.id;
       }
 
-      // 2. البديل: لو مفيش كود مسوق، نشوف لو فيه Referral ID في المتصفح
       if (!finalMarketerId) {
         const savedRef = localStorage.getItem('zf_marketer_ref');
         if (savedRef) {
@@ -230,7 +227,7 @@ export default function CheckoutPage() {
         user_id: user?.id || null,
         customer_name: customerInfo.name,
         customer_phone: customerInfo.phone,
-        customer_email: customerInfo.email, // حفظ الإيميل في الأوردر
+        customer_email: customerInfo.email,
         customer_address: customerInfo.address,
         city: selectedCity?.city_name,
         shipping_cost: selectedCity?.price,
@@ -241,7 +238,7 @@ export default function CheckoutPage() {
         payment_method: paymentMethod,
         payment_screenshot_url: uploadedImageUrl,
         car_mileage: carMileage,
-        marketer_id: finalMarketerId, // ربط الطلب بالمسوق
+        marketer_id: finalMarketerId,
         status: paymentMethod === 'card_installments' ? 'pending_payment' : 'pending',
         created_at: new Date().toISOString()
       };
@@ -249,7 +246,6 @@ export default function CheckoutPage() {
       const { data: newOrder, error } = await supabase.from('orders').insert([orderData]).select().single();
       if (error) throw error;
 
-      // مسح الريفيرال من الذاكرة بعد نجاح العملية
       localStorage.removeItem('zf_marketer_ref');
 
       if (paymentMethod === 'card_installments') {
@@ -352,7 +348,6 @@ export default function CheckoutPage() {
             <input value={customerInfo.phone} onChange={(e)=>setCustomerInfo({...customerInfo, phone: e.target.value})} required style={inp} />
           </div>
           
-          {/* حقل البريد الإلكتروني الجديد */}
           <div style={inputGroup}>
             <label style={lab}><Mail size={14} /> البريد الإلكتروني (مطلوب لعملية الدفع)</label>
             <input 

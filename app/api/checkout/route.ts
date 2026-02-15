@@ -4,34 +4,41 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     
-    // تسجيل البيانات المرسلة للتأكد من سلامتها في الـ Logs
-    console.log("Sending to EasyKash:", body);
+    // المفاتيح الخاصة بك من
+    const PUBLIC_API_KEY = "gf8ueul7plkntb5r";
+    const HMAC_SECRET_KEY = "87ca3d5640dc3f5809d3dfbf4a5045ad";
 
-    // تم تعديل الرابط هنا من api.easykash.net إلى www.easykash.net
-    const response = await fetch('https://www.easykash.net/api/v1/checkout', {
+    // نضمن إن الـ api_key موجود في البيانات المرسلة
+    body.api_key = PUBLIC_API_KEY;
+
+    console.log("🚀 Sending authenticated request to EasyKash...");
+
+    const response = await fetch('https://api.easykash.net/api/v1/checkout', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        // إضافة السيكرت كي في الهيدر للتحقق من الهوية
+        'Authorization': HMAC_SECRET_KEY 
       },
       body: JSON.stringify(body)
     });
 
-    const data = await response.json();
-
-    // تسجيل رد فعل سيرفر EasyKash لمعرفة سبب الرفض إن وجد
-    console.log("EasyKash Server Response:", data);
-
-    return NextResponse.json(data);
-  } catch (error: any) {
-    console.error("Payment Bridge Error:", error);
-    return NextResponse.json(
-      { 
+    const responseText = await response.text();
+    
+    try {
+      const data = JSON.parse(responseText);
+      return NextResponse.json(data);
+    } catch (e) {
+      console.error("❌ EasyKash Error Page Content:", responseText);
+      return NextResponse.json({ 
         status: 'error', 
-        message: 'فشل الاتصال بسيرفر الدفع',
-        details: error.message 
-      }, 
-      { status: 500 }
-    );
+        message: 'بوابة الدفع رفضت الطلب أمنياً. تأكد من تطابق الـ Keys.',
+        debug: responseText.substring(0, 300)
+      }, { status: response.status });
+    }
+
+  } catch (error: any) {
+    return NextResponse.json({ status: 'error', message: error.message }, { status: 500 });
   }
 }
