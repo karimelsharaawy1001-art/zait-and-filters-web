@@ -241,7 +241,7 @@ export default function CheckoutPage() {
                   <div style={payHeader}>
                     <div style={payIconWrapper}><CreditCard size={22} color={paymentMethod === 'card_installments' ? '#15803d' : '#666'} /></div>
                     <div style={payTextContent}>
-                      <span style={payTitle}>دفع بالتقسيط أو البطاقة (EasyKash)</span>
+                      <span style={payTitle}>دفع بالتقسيط أو البطاقة</span>
                       <span style={paySubTitle}>أمان، فوري، فاليو، كونتكت، البنك الأهلي والعديد..</span>
                     </div>
                   </div>
