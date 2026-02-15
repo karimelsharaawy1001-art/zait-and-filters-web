@@ -159,10 +159,10 @@ export default function CheckoutPage() {
     }
   };
 
-  // --- 🚀 التعديل هنا ليتوافق مع منطق "DirectPay API v1" من المشروع المرفق ---
+  // --- 🚀 التعديل هنا ليتوافق مع منطق "DirectPay API v1" لضمان إرسال المسميات الصحيحة ---
   const initiateEasyKashPayment = async (orderId: string) => {
     try {
-      // إرسال البيانات بالمسميات التي يتوقعها الـ API Route بناءً على الكود المرفق
+      // إرسال البيانات بالمسميات التي يتوقعها الـ API Route بناءً على منطق المشروع القديم
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -171,14 +171,13 @@ export default function CheckoutPage() {
           customerName: customerInfo.name,
           customerPhone: customerInfo.phone,
           customerEmail: customerInfo.email || "customer@zaitandfilters.com",
-          returnUrl: CALLBACK_URL,
           orderId: orderId
         })
       });
 
       const data = await response.json();
       
-      // الكود المرفق يعيد نجاح مع حقل url
+      // التغيير هنا: التحقق من نجاح العملية واستلام الحقل url كما هو في الكود القديم
       if (data.success && data.url) {
         window.location.href = data.url; 
       } else {
