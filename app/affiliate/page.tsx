@@ -1,271 +1,273 @@
 'use client';
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/app/lib/supabase';
+import { useRouter } from 'next/navigation';
 import { 
-  Trophy, Rocket, DollarSign, ShieldCheck, 
-  BarChart3, Share2, Wallet, CheckCircle2, 
-  Zap, Users, Percent, Ticket, ArrowRight, Star,
-  LogIn, UserPlus
+  Wallet, Link as LinkIcon, Ticket, Loader2, Copy, 
+  TrendingUp, ShoppingBag 
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 
-export default function AffiliateLanding() {
+export default function MarketerDashboard() {
+  const router = useRouter();
+  const [data, setData] = useState<any>(null);
+  const [stats, setStats] = useState<{ total_orders: number; recent_orders: any[] }>({ 
+    total_orders: 0, 
+    recent_orders: [] 
+  });
+  const [loading, setLoading] = useState(true);
+
+
+  useEffect(() => {
+    async function getMarketerData() {
+      setLoading(true);
+      
+      try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        // If no user, redirect to login
+        if (!user || userError) {
+          toast.error('يجب تسجيل الدخول أولاً');
+          router.push('/affiliate/login');
+          return;
+        }
+
+        // Try to fetch marketer data
+        const { data: marketer, error: marketerError } = await supabase
+          .from('marketers')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        // If marketer doesn't exist, create a default one
+        if (marketerError || !marketer) {
+          const newMarketer = {
+            id: user.id,
+            full_name: user.email?.split('@')[0] || 'مسوق جديد',
+            email: user.email,
+            referral_id: `REF${Date.now().toString().slice(-6)}`,
+            promo_code: `PROMO${Date.now().toString().slice(-6)}`,
+            balance: 0,
+            total_earnings: 0,
+            created_at: new Date().toISOString()
+          };
+
+          const { data: inserted, error: insertError } = await supabase
+            .from('marketers')
+            .insert([newMarketer])
+            .select()
+            .single();
+
+          if (!insertError && inserted) {
+            setData(inserted);
+            toast.success('تم إنشاء حسابك بنجاح!');
+          } else {
+            // If insert fails, use default data
+            setData(newMarketer);
+          }
+        } else {
+          setData(marketer);
+        }
+
+        // Fetch orders
+        const { data: orders, count, error: ordersError } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact' })
+          .eq('marketer_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (!ordersError) {
+          setStats({ 
+            total_orders: count || 0, 
+            recent_orders: orders || [] 
+          });
+        }
+      } catch (error) {
+        console.error('Dashboard error:', error);
+        toast.error('حدث خطأ في تحميل البيانات');
+        
+        // Set default data to prevent infinite loading
+        setData({
+          full_name: 'مسوق جديد',
+          referral_id: 'REF000000',
+          promo_code: 'PROMO000000',
+          balance: 0,
+          total_earnings: 0
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    getMarketerData();
+  }, [router]);
+
+
+  const referralLink = typeof window !== 'undefined' ? `${window.location.origin}?ref=${data?.referral_id}` : '';
+
+
+  const copyToClipboard = (text: string, msg: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(msg);
+  };
+
+
+  if (loading) return (
+    <div style={loaderContainer}>
+      <Loader2 className="animate-spin" size={40} color="#27ae60" />
+      <p style={{ color: '#64748b', marginTop: '15px' }}>جاري تحميل بياناتك...</p>
+    </div>
+  );
+
+
   return (
     <div style={container}>
-      {/* تأثيرات CSS متقدمة للتفاعل */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        .hero-gradient { background: radial-gradient(circle at center, #1a472a 0%, #050505 100%); }
-        .btn-glow:hover { box-shadow: 0 0 25px rgba(39, 174, 96, 0.6); transform: translateY(-3px); background: #2ecc71 !important; }
-        .feature-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .feature-card:hover { border-color: #27ae60 !important; background: rgba(39, 174, 96, 0.05) !important; transform: scale(1.02); }
-        .step-card:hover { border-color: #27ae60 !important; transform: translateY(-10px); }
-        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } }
-        .float-anim { animation: float 4s ease-in-out infinite; }
-        .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .auth-btn-login:hover { background: rgba(255, 255, 255, 0.15) !important; border-color: #27ae60 !important; }
-        .auth-btn-signup:hover { background: #2ecc71 !important; box-shadow: 0 0 20px rgba(39, 174, 96, 0.5) !important; }
-      `}} />
-
-      {/* Affiliate Auth Buttons - Top Right */}
-      <div style={authButtonsContainer}>
-        <Link href="/affiliate/login" style={authLoginButton} className="auth-btn-login">
-          <LogIn size={18} />
-          <span>تسجيل دخول المسوقين</span>
-        </Link>
-        <Link href="/affiliate/signup" style={authSignupButton} className="auth-btn-signup">
-          <UserPlus size={18} />
-          <span>إبدأ الربح الآن</span>
-        </Link>
+      <div style={header}>
+        <div>
+          <h1 style={title}>مرحباً، {data?.full_name || 'مسوق'} 🎯</h1>
+          <p style={subtitle}>لوحة تحكم شريك النجاح</p>
+        </div>
+        <div style={statusBadge}>مسوق معتمد ✓</div>
       </div>
 
-      {/* --- القسم الأول: الهيرو (Hero Section) --- */}
-      <section style={heroSection} className="hero-gradient">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="float-anim" 
-          style={badge}
-        >
-          <Star size={14} fill="#27ae60" /> برنامج النخبة للمسوقين 2026
-        </motion.div>
-        
-        <motion.h1 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
-          style={mainTitle}
-        >
-          حول شبكة علاقاتك إلى <br />
-          <span style={highlightText}>أرباح تصل إلى 10%</span>
-        </motion.h1>
 
-
-        <motion.p 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          style={heroDesc}
-        >
-          انضم إلى "زيت أند فلترز" وسوّق لأجود أنواع قطع الغيار الأصلية. 
-          نحن لا نعطيك عمولة فقط، نحن نعطيك نظاماً ذكياً لإدارة دخلك الشهري بالكامل.
-        </motion.p>
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          style={actions}
-        >
-          <Link href="/affiliate/signup" style={primaryBtn} className="btn-glow">
-            ابدأ رحلة الربح الآن <ArrowRight size={20} />
-          </Link>
-          <Link href="/affiliate/login" style={secondaryBtn}>
-            تسجيل دخول المسوقين
-          </Link>
-        </motion.div>
-
-
-        <div style={statsBanner} className="glass-panel">
-          {/* تم تعديل عدد المسوقين هنا ليكون +500 */}
-          <div style={statItem}><Users size={22} color="#27ae60"/> <span>+500 مسوق نشط</span></div>
-          <div style={{...dividerV, display: 'block'}} />
-          <div style={statItem}><BarChart3 size={22} color="#27ae60"/> <span>نظام تتبع لحظي</span></div>
-          <div style={{...dividerV, display: 'block'}} />
-          <div style={statItem}><ShieldCheck size={22} color="#27ae60"/> <span>سحب أرباح أسبوعي</span></div>
-        </div>
-      </section>
-
-
-      {/* --- القسم الثاني: خطوات العمل (3 Steps) --- */}
-      <section style={sectionPadding}>
-        <div style={{textAlign: 'center', marginBottom: '60px'}}>
-          <h2 style={sectionTitle}>كيف تبدأ بجني المال؟</h2>
-          <p style={{color: '#666'}}>ثلاث خطوات تفصلك عن أول عمولة في حسابك</p>
-        </div>
-        
-        <div style={stepsGrid}>
-          <div style={stepCard} className="step-card">
-            <div style={stepNumber}>01</div>
-            <div style={iconBox}><Users size={32} color="#27ae60" /></div>
-            <h3 style={cardHeader}>سجل حسابك</h3>
-            <p style={cardText}>عملية تسجيل بسيطة تمنحك وصولاً فورياً للوحة التحكم الخاصة بك وبدء العمل.</p>
+      <div style={statsGrid}>
+        <div style={statCard}>
+          <div style={{ ...iconCircle, background: '#f0fdf4' }}>
+            <Wallet color="#27ae60" size={24} />
           </div>
-          
-          <div style={stepCard} className="step-card">
-            <div style={stepNumber}>02</div>
-            <div style={iconBox}><Share2 size={32} color="#27ae60" /></div>
-            <h3 style={cardHeader}>انشر الكود</h3>
-            <p style={cardText}>شارك رابط الإحالة أو كود الخصم الحصري (باسمك) مع جمهورك وعملائك.</p>
-          </div>
-          
-          <div style={stepCard} className="step-card">
-            <div style={stepNumber}>03</div>
-            <div style={iconBox}><Wallet size={32} color="#27ae60" /></div>
-            <h3 style={cardHeader}>استلم عمولتك</h3>
-            <p style={cardText}>عند كل عملية شراء ناجحة، نرسل لك 10% من قيمة الأوردر مباشرة إلى محفظتك.</p>
+          <div>
+            <p style={statLabel}>الرصيد الحالي</p>
+            <h2 style={statValue}>{data?.balance?.toFixed(2) || '0.00'} ج.م</h2>
           </div>
         </div>
-      </section>
-
-
-      {/* --- القسم الثالث: المميزات (Why Us) --- */}
-      <section style={{ ...sectionPadding, backgroundColor: '#080808', position: 'relative', overflow: 'hidden' }}>
-        <div style={bgGlow} />
-        <h2 style={sectionTitle}>لماذا يختارنا المحترفون؟</h2>
-        <div style={featuresGrid}>
-          {features.map((f, i) => (
-            <motion.div 
-              whileHover={{ y: -5 }}
-              key={i} 
-              style={featureCard} 
-              className="feature-card glass-panel"
-            >
-              <div style={iconCircle}>{f.icon}</div>
-              <h4 style={cardHeader}>{f.title}</h4>
-              <p style={cardText}>{f.desc}</p>
-            </motion.div>
-          ))}
+        <div style={statCard}>
+          <div style={{ ...iconCircle, background: '#eff6ff' }}>
+            <ShoppingBag color="#3b82f6" size={24} />
+          </div>
+          <div>
+            <p style={statLabel}>إجمالي المبيعات</p>
+            <h2 style={statValue}>{stats.total_orders} طلب</h2>
+          </div>
         </div>
-      </section>
+        <div style={statCard}>
+          <div style={{ ...iconCircle, background: '#fef2f2' }}>
+            <TrendingUp color="#ef4444" size={24} />
+          </div>
+          <div>
+            <p style={statLabel}>إجمالي الأرباح</p>
+            <h2 style={statValue}>{data?.total_earnings?.toFixed(2) || '0.00'} ج.م</h2>
+          </div>
+        </div>
+      </div>
 
 
-      {/* --- القسم الرابع: الخاتمة (CTA) --- */}
-      <section style={ctaSection}>
-        <motion.div 
-          whileInView={{ scale: [0.9, 1], opacity: [0, 1] }}
-          viewport={{ once: true }}
-          style={ctaBox}
-        >
-          <Zap size={50} color="#fff" className="float-anim" />
-          <h2 style={{ fontSize: '2.5rem', fontWeight: '900', margin: '20px 0' }}>مستعد لتغيير دخلك الشهري؟</h2>
-          <p style={{ marginBottom: '40px', fontSize: '1.1rem', opacity: 0.9, maxWidth: '600px', margin: '0 auto 40px' }}>
-            لا تنتظر طويلاً، انضم الآن لشبكة مسوقي زيت أند فلترز واحصُل على أول عمولة لك اليوم.
-          </p>
-          <Link href="/affiliate/signup" style={ctaBtn} className="btn-glow">
-            أنشئ حسابك المجاني الآن
-          </Link>
-        </motion.div>
-      </section>
+      <div style={mainGrid}>
+        <div style={toolsCard}>
+          <h3 style={sectionTitle}>🔗 أدواتك التسويقية</h3>
+          <div style={toolItem}>
+            <div style={toolHeader}>
+              <LinkIcon size={18} />
+              <span>رابط الإحالة الخاص بك</span>
+            </div>
+            <div style={copyBox}>
+              <code style={codeText}>{referralLink}</code>
+              <button 
+                onClick={() => copyToClipboard(referralLink, 'تم نسخ الرابط!')} 
+                style={copyBtn}
+              >
+                <Copy size={16} />
+              </button>
+            </div>
+          </div>
+          <div style={toolItem}>
+            <div style={toolHeader}>
+              <Ticket size={18} />
+              <span>كود الخصم (5%)</span>
+            </div>
+            <div style={copyBox}>
+              <code style={{ ...codeText, color: '#27ae60', fontWeight: 'bold' }}>
+                {data?.promo_code || 'LOADING...'}
+              </code>
+              <button 
+                onClick={() => copyToClipboard(data?.promo_code, 'تم نسخ الكود!')} 
+                style={copyBtn}
+              >
+                <Copy size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+
+        <div style={ordersCard}>
+          <h3 style={sectionTitle}>📦 آخر الطلبات</h3>
+          <div style={tableWrapper}>
+            {stats.recent_orders.length > 0 ? (
+              <table style={table}>
+                <thead>
+                  <tr>
+                    <th style={th}>التاريخ</th>
+                    <th style={th}>المبلغ</th>
+                    <th style={th}>الحالة</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.recent_orders.map((order: any) => (
+                    <tr key={order.id} style={tr}>
+                      <td style={td}>
+                        {new Date(order.created_at).toLocaleDateString('ar-EG')}
+                      </td>
+                      <td style={td}>{order.total_price} ج.م</td>
+                      <td style={td}>
+                        <span style={{
+                          color: order.status === 'delivered' ? '#27ae60' : '#f39c12', 
+                          fontWeight: 'bold'
+                        }}>
+                          {order.status === 'delivered' ? 'تمت' : 'قيد التنفيذ'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p style={emptyText}>لا توجد طلبات مسجلة بعد. ابدأ بمشاركة رابطك!</p>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
 
-// --- البيانات ---
-const features = [
-  { title: "عمولات تصاعدية", desc: "ابدأ بـ 5% وتدرج حتى تصل إلى 10% بناءً على نشاطك الشهري مبيعاتك.", icon: <Percent size={24} color="#27ae60" /> },
-  { title: "لوحة تحكم احترافية", desc: "تتبع النقرات، التحويلات، والأرباح بالتفصيل الممل في شاشة واحدة ذكية.", icon: <BarChart3 size={24} color="#27ae60" /> },
-  { title: "أكواد خصم خاصة", desc: "امنح عملاءك خصم 5% بكود يحمل اسمك لزيادة مبيعاتك وبناء براندك الشخصي.", icon: <Ticket size={24} color="#27ae60" /> },
-  { title: "أدوات تسويقية جاهزة", desc: "نوفر لك صوراً وفيديوهات احترافية للمنتجات لتنشرها فوراً على حساباتك.", icon: <Rocket size={24} color="#27ae60" /> },
-  { title: "دفعات سريعة", desc: "نظام دفع مرن يضمن وصول أرباحك إليك في أسرع وقت ممكن وبكل شفافية.", icon: <DollarSign size={24} color="#27ae60" /> },
-  { title: "دعم فني 24/7", desc: "مدير حساب مخصص للرد على استفساراتك ومساعدتك في تطوير خطتك التسويقية.", icon: <CheckCircle2 size={24} color="#27ae60" /> },
-];
-
-
 // --- التنسيقات ---
-const container: any = { backgroundColor: '#050505', color: '#fff', direction: 'rtl', minHeight: '100vh', fontFamily: 'inherit', position: 'relative' };
-
-// Auth Buttons Styles
-const authButtonsContainer: any = {
-  position: 'fixed',
-  top: '100px',
-  left: '20px',
-  display: 'flex',
-  gap: '12px',
-  zIndex: 999,
-  flexDirection: 'column'
-};
-
-const authLoginButton: any = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  padding: '12px 20px',
-  background: 'rgba(255, 255, 255, 0.08)',
-  border: '1px solid rgba(255, 255, 255, 0.15)',
-  borderRadius: '14px',
-  color: '#fff',
-  textDecoration: 'none',
-  fontSize: '0.85rem',
-  fontWeight: 'bold',
-  transition: 'all 0.3s ease',
-  backdropFilter: 'blur(10px)',
-  cursor: 'pointer',
-  whiteSpace: 'nowrap'
-};
-
-const authSignupButton: any = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  padding: '12px 20px',
-  background: 'linear-gradient(135deg, #27ae60 0%, #229954 100%)',
-  border: 'none',
-  borderRadius: '14px',
-  color: '#fff',
-  textDecoration: 'none',
-  fontSize: '0.85rem',
-  fontWeight: 'bold',
-  boxShadow: '0 4px 15px rgba(39, 174, 96, 0.3)',
-  transition: 'all 0.3s ease',
-  cursor: 'pointer',
-  whiteSpace: 'nowrap'
-};
-
-const heroSection: any = { padding: '120px 20px', textAlign: 'center', borderBottom: '1px solid #111', position: 'relative' };
-const badge: any = { background: 'rgba(39, 174, 96, 0.1)', color: '#27ae60', padding: '10px 25px', borderRadius: '50px', fontSize: '0.95rem', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '10px', marginBottom: '30px', border: '1px solid rgba(39, 174, 96, 0.3)' };
-
-
-// تم زيادة الـ lineHeight لـ 1.6 لضمان وجود مسافة كافية بين العنوان الأبيض والأخضر
-const mainTitle: any = { fontSize: 'clamp(2.5rem, 8vw, 4.5rem)', fontWeight: '950', marginBottom: '25px', lineHeight: '1.6', letterSpacing: '-1px' };
-
-
-const highlightText: any = { color: '#27ae60', textShadow: '0 0 40px rgba(39, 174, 96, 0.4)' };
-const heroDesc: any = { fontSize: '1.25rem', color: '#999', maxWidth: '850px', margin: '0 auto 50px', lineHeight: '1.8' };
-const actions: any = { display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' };
-const primaryBtn: any = { background: '#27ae60', color: '#fff', padding: '20px 45px', borderRadius: '18px', textDecoration: 'none', fontWeight: '900', fontSize: '1.2rem', transition: '0.3s', display: 'flex', alignItems: 'center', gap: '12px' };
-const secondaryBtn: any = { background: 'transparent', color: '#fff', padding: '20px 45px', borderRadius: '18px', textDecoration: 'none', fontWeight: '900', fontSize: '1.2rem', border: '1px solid #333', transition: '0.3s' };
-const statsBanner: any = { display: 'inline-flex', justifyContent: 'center', gap: '30px', marginTop: '80px', padding: '20px 40px', borderRadius: '25px', flexWrap: 'wrap' };
-const statItem: any = { display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1rem', fontWeight: '600' };
-const dividerV: any = { width: '1px', height: '25px', background: 'rgba(255,255,255,0.1)' };
-
-
-const sectionPadding: any = { padding: '100px 20px', maxWidth: '1200px', margin: '0 auto' };
-const sectionTitle: any = { textAlign: 'center', fontSize: '2.8rem', fontWeight: '900', marginBottom: '20px', letterSpacing: '-1px' };
-const stepsGrid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', marginTop: '50px' };
-const stepCard: any = { position: 'relative', padding: '50px 30px', textAlign: 'center', background: '#0a0a0a', borderRadius: '35px', border: '1px solid #151515', transition: '0.4s' };
-const stepNumber: any = { position: 'absolute', top: '25px', left: '25px', color: 'rgba(39, 174, 96, 0.2)', fontWeight: '900', fontSize: '3rem', lineHeight: '1' };
-const iconBox: any = { width: '80px', height: '80px', background: 'rgba(39, 174, 96, 0.05)', borderRadius: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 25px', border: '1px solid rgba(39, 174, 96, 0.1)' };
-
-
-const featuresGrid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '25px', marginTop: '20px' };
-const featureCard: any = { padding: '40px', borderRadius: '35px', transition: '0.3s', textAlign: 'right', position: 'relative', zIndex: 1 };
-const iconCircle: any = { width: '60px', height: '60px', background: 'rgba(39, 174, 96, 0.1)', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '25px', border: '1px solid rgba(39, 174, 96, 0.2)' };
-const cardHeader: any = { fontSize: '1.5rem', fontWeight: '800', marginBottom: '15px', color: '#fff' };
-const cardText: any = { color: '#888', lineHeight: '1.7', fontSize: '1.05rem', margin: 0 };
-
-
-const ctaSection: any = { padding: '100px 20px', textAlign: 'center' };
-const ctaBox: any = { maxWidth: '1000px', margin: '0 auto', background: 'linear-gradient(145deg, #1a472a 0%, #27ae60 100%)', padding: '80px 40px', borderRadius: '50px', position: 'relative', overflow: 'hidden', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' };
-const ctaBtn: any = { background: '#fff', color: '#1a472a', padding: '22px 60px', borderRadius: '20px', textDecoration: 'none', fontWeight: '950', fontSize: '1.3rem', display: 'inline-block', transition: '0.3s' };
-const bgGlow: any = { position: 'absolute', top: '50%', left: '50%', width: '500px', height: '500px', background: 'rgba(39, 174, 96, 0.1)', filter: 'blur(150px)', borderRadius: '50%', transform: 'translate(-50%, -50%)', pointerEvents: 'none' };
+const container: any = { padding: '40px 20px', maxWidth: '1200px', margin: '0 auto', direction: 'rtl', minHeight: '100vh', background: '#f8fafc' };
+const header: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px', flexWrap: 'wrap', gap: '15px' };
+const title: any = { fontSize: '2rem', fontWeight: '900', color: '#1e293b', margin: 0 };
+const subtitle: any = { color: '#64748b', marginTop: '5px' };
+const statusBadge: any = { background: '#f0fdf4', color: '#15803d', padding: '10px 24px', borderRadius: '20px', fontWeight: 'bold', border: '1px solid #dcfce7' };
+const statsGrid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '40px' };
+const statCard: any = { background: '#fff', padding: '25px', borderRadius: '20px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '20px', transition: '0.3s', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' };
+const iconCircle: any = { width: '55px', height: '55px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
+const statLabel: any = { color: '#64748b', fontSize: '0.9rem', margin: 0, marginBottom: '8px' };
+const statValue: any = { fontSize: '1.5rem', fontWeight: '900', color: '#1e293b', margin: 0 };
+const mainGrid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '30px' };
+const toolsCard: any = { background: '#fff', padding: '30px', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' };
+const ordersCard: any = { background: '#fff', padding: '30px', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' };
+const sectionTitle: any = { fontSize: '1.2rem', fontWeight: '900', marginBottom: '25px', color: '#1e293b' };
+const toolItem: any = { marginBottom: '25px' };
+const toolHeader: any = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', fontWeight: 'bold', color: '#1e293b' };
+const copyBox: any = { background: '#f8fafc', padding: '15px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' };
+const codeText: any = { fontSize: '0.85rem', wordBreak: 'break-all', flex: 1 };
+const copyBtn: any = { background: '#fff', border: '1px solid #e2e8f0', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', transition: '0.2s', flexShrink: 0 };
+const tableWrapper: any = { overflowX: 'auto' };
+const table: any = { width: '100%', borderCollapse: 'collapse', textAlign: 'right' };
+const th: any = { padding: '12px 10px', color: '#64748b', fontSize: '0.85rem', borderBottom: '2px solid #f1f5f9', fontWeight: 'bold' };
+const tr: any = { borderBottom: '1px solid #f1f5f9', transition: '0.2s' };
+const td: any = { padding: '15px 10px', fontSize: '0.9rem', color: '#1e293b' };
+const emptyText: any = { textAlign: 'center', color: '#94a3b8', padding: '60px 20px', fontSize: '0.95rem' };
+const loaderContainer: any = { height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '15px', background: '#f8fafc' };
