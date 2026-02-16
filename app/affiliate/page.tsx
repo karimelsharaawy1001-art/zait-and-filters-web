@@ -9,6 +9,7 @@ import {
 import toast from 'react-hot-toast';
 
 
+
 export default function MarketerDashboard() {
   const router = useRouter();
   const [data, setData] = useState<any>(null);
@@ -19,7 +20,16 @@ export default function MarketerDashboard() {
   const [loading, setLoading] = useState(true);
 
 
+
   useEffect(() => {
+    // Add safety timeout to prevent infinite loading
+    const loadingTimeout = setTimeout(() => {
+      if (loading) {
+        setLoading(false);
+        toast.error('انتهت مهلة التحميل، يرجى تحديث الصفحة');
+      }
+    }, 10000); // 10 seconds max
+
     async function getMarketerData() {
       setLoading(true);
       
@@ -33,12 +43,14 @@ export default function MarketerDashboard() {
           return;
         }
 
+
         // Try to fetch marketer data
         const { data: marketer, error: marketerError } = await supabase
           .from('marketers')
           .select('*')
           .eq('id', user.id)
           .single();
+
 
         // If marketer doesn't exist, create a default one
         if (marketerError || !marketer) {
@@ -53,11 +65,13 @@ export default function MarketerDashboard() {
             created_at: new Date().toISOString()
           };
 
+
           const { data: inserted, error: insertError } = await supabase
             .from('marketers')
             .insert([newMarketer])
             .select()
             .single();
+
 
           if (!insertError && inserted) {
             setData(inserted);
@@ -70,6 +84,7 @@ export default function MarketerDashboard() {
           setData(marketer);
         }
 
+
         // Fetch orders
         const { data: orders, count, error: ordersError } = await supabase
           .from('orders')
@@ -77,6 +92,7 @@ export default function MarketerDashboard() {
           .eq('marketer_id', user.id)
           .order('created_at', { ascending: false })
           .limit(5);
+
 
         if (!ordersError) {
           setStats({ 
@@ -98,14 +114,19 @@ export default function MarketerDashboard() {
         });
       } finally {
         setLoading(false);
+        clearTimeout(loadingTimeout);
       }
     }
     
     getMarketerData();
-  }, [router]);
+
+    return () => clearTimeout(loadingTimeout);
+  }, [router, loading]);
+
 
 
   const referralLink = typeof window !== 'undefined' ? `${window.location.origin}?ref=${data?.referral_id}` : '';
+
 
 
   const copyToClipboard = (text: string, msg: string) => {
@@ -114,12 +135,14 @@ export default function MarketerDashboard() {
   };
 
 
+
   if (loading) return (
     <div style={loaderContainer}>
       <Loader2 className="animate-spin" size={40} color="#27ae60" />
       <p style={{ color: '#64748b', marginTop: '15px' }}>جاري تحميل بياناتك...</p>
     </div>
   );
+
 
 
   return (
@@ -131,6 +154,7 @@ export default function MarketerDashboard() {
         </div>
         <div style={statusBadge}>مسوق معتمد ✓</div>
       </div>
+
 
 
       <div style={statsGrid}>
@@ -162,6 +186,7 @@ export default function MarketerDashboard() {
           </div>
         </div>
       </div>
+
 
 
       <div style={mainGrid}>
@@ -200,6 +225,7 @@ export default function MarketerDashboard() {
             </div>
           </div>
         </div>
+
 
 
         <div style={ordersCard}>
@@ -242,6 +268,7 @@ export default function MarketerDashboard() {
     </div>
   );
 }
+
 
 
 // --- التنسيقات ---
