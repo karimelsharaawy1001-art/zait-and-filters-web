@@ -5,7 +5,7 @@ import { supabase } from '@/app/lib/supabase';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext'; 
 import { 
-  Loader2, Car, ShoppingCart, ChevronRight, ChevronLeft, Filter, Globe, Settings2, Calendar, LayoutGrid, Tags
+  Loader2, Car, ShoppingCart, ChevronRight, ChevronLeft, Filter, Globe, Settings2, Calendar, LayoutGrid, Tags, X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -115,6 +115,7 @@ function StoreContent() {
   const [allProducts, setAllProducts] = useState<any[]>([]); 
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [filterOpen, setFilterOpen] = useState(false);
   const itemsPerPage = 16;
 
 
@@ -201,15 +202,122 @@ function StoreContent() {
           grid-template-columns: repeat(4, 1fr);
           gap: 20px;
         }
+        
+        .mobile-filter-overlay {
+          display: none;
+        }
+        
+        .mobile-filter-toggle {
+          display: none;
+        }
+        
         @media (max-width: 768px) {
           .modern-grid-responsive {
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
           }
+          
+          .desktop-sidebar {
+            display: none !important;
+          }
+          
+          .mobile-filter-toggle {
+            display: flex;
+            position: fixed;
+            bottom: 80px;
+            left: 20px;
+            z-index: 999;
+            background: #22c55e;
+            color: #fff;
+            border: none;
+            padding: 15px;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+          }
+          
+          .mobile-filter-overlay {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+          }
+          
+          .mobile-filter-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+          }
+          
+          .mobile-filter-panel {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 85%;
+            max-width: 350px;
+            height: 100%;
+            background: #fff;
+            z-index: 1001;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+            box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
+          }
+          
+          .mobile-filter-panel.open {
+            right: 0;
+          }
         }
       `}} />
+      
+      {/* Mobile Filter Toggle Button */}
+      <button 
+        className="mobile-filter-toggle" 
+        onClick={() => setFilterOpen(true)}
+        aria-label="فتح الفلاتر"
+      >
+        <Filter size={24} />
+      </button>
+      
+      {/* Mobile Filter Overlay */}
+      <div 
+        className={`mobile-filter-overlay ${filterOpen ? 'open' : ''}`}
+        onClick={() => setFilterOpen(false)}
+      />
+      
+      {/* Mobile Filter Panel */}
+      <aside className={`mobile-filter-panel ${filterOpen ? 'open' : ''}`}>
+        <div style={{...sidebarHeader, justifyContent: 'space-between'}}>
+          <span style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+            <Filter size={16} /> تصفية البحث
+          </span>
+          <button 
+            onClick={() => setFilterOpen(false)}
+            style={{background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '5px'}}
+          >
+            <X size={20} />
+          </button>
+        </div>
+        <div style={{padding: '15px', display:'flex', flexDirection:'column', gap:'15px'}}>
+           <div><label style={labelS}>الماركة</label><select style={selectS} value={searchParams.get('make') || ''} onChange={e => onFilterChange('make', e.target.value)}><option value="">الكل</option>{filterOptions.makes.map(i => <option key={i} value={i}>{i}</option>)}</select></div>
+           <div><label style={labelS}>الموديل</label><select style={selectS} value={searchParams.get('model') || ''} onChange={e => onFilterChange('model', e.target.value)}><option value="">الكل</option>{filterOptions.models.map(i => <option key={i} value={i}>{i}</option>)}</select></div>
+           <div><label style={labelS}>سنة الصنع</label><select style={selectS} value={searchParams.get('year') || ''} onChange={e => onFilterChange('year', e.target.value)}><option value="">الكل</option>{filterOptions.years.map(i => <option key={i} value={i}>{i}</option>)}</select></div>
+           <div><label style={labelS}>القسم الرئيسي</label><select style={selectS} value={searchParams.get('cat') || ''} onChange={e => onFilterChange('cat', e.target.value)}><option value="">الكل</option>{filterOptions.cats.map(i => <option key={i} value={i}>{i}</option>)}</select></div>
+           <div><label style={labelS}>القسم الفرعي</label><select style={selectS} value={searchParams.get('sub') || ''} onChange={e => onFilterChange('sub', e.target.value)}><option value="">الكل</option>{filterOptions.subCats.map(i => <option key={i} value={i}>{i}</option>)}</select></div>
+           <button style={resetBtn} onClick={() => { router.push('/store'); setFilterOpen(false); }}>إعادة ضبط</button>
+        </div>
+      </aside>
+      
       <div style={mainLayoutWrapper}>
-        <aside style={sidebarStyle}>
+        {/* Desktop Sidebar */}
+        <aside className="desktop-sidebar" style={sidebarStyle}>
           <div style={sidebarHeader}><Filter size={16} /> تصفية البحث</div>
           <div style={{padding: '15px', display:'flex', flexDirection:'column', gap:'15px'}}>
              <div><label style={labelS}>الماركة</label><select style={selectS} value={searchParams.get('make') || ''} onChange={e => onFilterChange('make', e.target.value)}><option value="">الكل</option>{filterOptions.makes.map(i => <option key={i} value={i}>{i}</option>)}</select></div>
