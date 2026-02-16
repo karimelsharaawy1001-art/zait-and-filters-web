@@ -1,21 +1,34 @@
 'use client';
 import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { UserPlus, Mail, Lock, User, Phone, ArrowRight, Loader2 } from 'lucide-react';
-import toast from 'react-hot-toast';
 import { supabase } from '@/app/lib/supabase';
+import { useRouter } from 'next/navigation';
+import { Loader2, UserPlus, Mail, Lock, User, Phone } from 'lucide-react';
+import toast from 'react-hot-toast';
 
-export default function AffiliateSignupPage() {
+export default function AffiliateSignup() {
   const router = useRouter();
-  const [formData, setFormData] = useState({ 
-    name: '', 
-    email: '', 
-    phone: '', 
-    password: '', 
-    confirmPassword: '' 
-  });
   const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    full_name: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: ''
+  });
+
+  const generateReferralCode = (name: string) => {
+    const cleaned = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    const base = cleaned.slice(0, 4).padEnd(4, 'X');
+    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    return `${base}${random}`;
+  };
+
+  const generatePromoCode = (name: string) => {
+    const cleaned = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    const base = cleaned.slice(0, 5).padEnd(5, 'X');
+    const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+    return `${base}${random}`;
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,221 +46,231 @@ export default function AffiliateSignupPage() {
     setLoading(true);
 
     try {
-      // Sign up the user
+      // 1. Create auth user
+      console.log('Creating auth user...');
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           data: {
-            full_name: formData.name,
-            phone: formData.phone,
-            user_type: 'affiliate'
+            full_name: formData.full_name,
+            phone: formData.phone
           }
         }
       });
 
       if (authError) {
-        toast.error(authError.message);
-        setLoading(false);
-        return;
+        console.error('Auth error:', authError);
+        throw new Error(authError.message);
       }
 
-      if (authData.user) {
-        // Generate unique codes using SQL functions
-        const userName = formData.name.trim() || formData.email.split('@')[0];
+      if (!authData.user) {
+        throw new Error('فشل إنشاء المستخدم');
+      }
+
+      console.log('✅ Auth user created:', authData.user.id);
+
+      // 2. Generate codes
+      const referralId = generateReferralCode(formData.full_name);
+      const promoCode = generatePromoCode(formData.full_name);
+
+      console.log('Generated codes:', { referralId, promoCode });
+
+      // 3. Create marketer record
+      const marketerData = {
+        id: authData.user.id,
+        full_name: formData.full_name,
+        email: formData.email,
+        phone_number: formData.phone,
+        referral_id: referralId,
+        promo_code: promoCode,
+        balance: 0,
+        pending_balance: 0,
+        total_earnings: 0,
+        commission_rate: 5.00,
+        current_tier: 'bronze',
+        tier_percentage: 5.00,
+        total_clicks: 0,
+        total_conversions: 0,
+        status: 'active'
+      };
+
+      console.log('Inserting marketer:', marketerData);
+
+      const { data: marketerInsert, error: marketerError } = await supabase
+        .from('marketers')
+        .insert([marketerData])
+        .select()
+        .single();
+
+      if (marketerError) {
+        console.error('❌ Marketer creation error:', marketerError);
         
-        let referralCode = '';
-        let promoCode = '';
+        // Delete the auth user if marketer creation fails
+        await supabase.auth.admin.deleteUser(authData.user.id);
+        
+        throw new Error(marketerError.message || 'فشل إنشاء حساب المسوق');
+      }
 
-        try {
-          const { data: refCodeData } = await supabase.rpc('generate_referral_code', { 
-            user_name: userName 
-          });
-          referralCode = refCodeData || `${userName.toUpperCase().slice(0, 4)}${Math.floor(Math.random() * 10000)}`;
+      console.log('✅ Marketer created:', marketerInsert);
 
-          const { data: promoCodeData } = await supabase.rpc('generate_promo_code', { 
-            user_name: userName 
-          });
-          promoCode = promoCodeData || `${userName.toUpperCase().slice(0, 5)}5OFF`;
-        } catch (rpcError) {
-          // Fallback if functions don't exist
-          referralCode = `${userName.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4)}${Math.floor(Math.random() * 10000)}`;
-          promoCode = `${userName.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5)}5OFF`;
-        }
-
-        // Create marketer profile
-        const { error: marketerError } = await supabase.from('marketers').insert([{
-          id: authData.user.id,
-          full_name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          referral_id: referralCode,
-          promo_code: promoCode,
-          balance: 0,
-          total_earnings: 0,
-          commission_rate: 5.00,
-          total_clicks: 0,
-          total_conversions: 0,
-          status: 'active'
-        }]);
-
-        if (marketerError) {
-          console.error('Marketer creation error:', marketerError);
-        }
-
-        // Create promo code entry
-        await supabase.from('promo_codes').insert([{
+      // 4. Create promo code entry
+      const { error: promoError } = await supabase
+        .from('promo_codes')
+        .insert([{
           code: promoCode,
           marketer_id: authData.user.id,
           discount_percentage: 5.00,
-          is_active: true
+          is_active: true,
+          usage_count: 0
         }]);
 
-        toast.success('تم إنشاء حسابك بنجاح! 🎉');
-        
-        // Show the generated codes
-        toast.success(`رابط الإحالة: ${referralCode}`, { duration: 5000 });
-        toast.success(`كود الخصم: ${promoCode}`, { duration: 5000 });
-        
-        setTimeout(() => {
-          router.push('/affiliate/dashboard');
-        }, 1500);
+      if (promoError) {
+        console.error('Promo code error:', promoError);
+        // Don't fail the whole process for this
+      } else {
+        console.log('✅ Promo code created');
       }
+
+      toast.success('تم إنشاء حسابك بنجاح! 🎉');
+      
+      // Redirect to dashboard
+      setTimeout(() => {
+        router.push('/affiliate/dashboard');
+      }, 1500);
+
     } catch (error: any) {
-      console.error('Signup error:', error);
-      toast.error('حدث خطأ في إنشاء الحساب');
+      console.error('❌ Signup error:', error);
+      toast.error(error.message || 'حدث خطأ أثناء التسجيل');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={pageContainer}>
-      <Link href="/affiliate" style={backButton}>
-        <ArrowRight size={20} />
-        <span>العودة</span>
-      </Link>
-
-      <div style={signupCard}>
-        <div style={iconContainer}>
-          <UserPlus size={40} color="#22c55e" />
+    <div style={container}>
+      <div style={card}>
+        <div style={header}>
+          <h1 style={title}>
+            <UserPlus size={32} color="#27ae60" />
+            انضم لشبكة المسوقين
+          </h1>
+          <p style={subtitle}>سجل الآن واحصل على عمولة من كل عملية بيع!</p>
         </div>
-
-        <h1 style={title}>انضم كمسوق</h1>
-        <p style={subtitle}>ابدأ رحلتك في الربح من التسويق بالعمولة</p>
 
         <form onSubmit={handleSignup} style={form}>
           <div style={inputGroup}>
-            <label style={label}>الاسم الكامل</label>
-            <div style={inputWrapper}>
-              <User size={20} color="#666" />
-              <input 
-                type="text" 
-                value={formData.name} 
-                onChange={(e) => setFormData({...formData, name: e.target.value})} 
-                placeholder="أحمد محمد" 
-                style={input} 
-                required 
-              />
-            </div>
+            <label style={label}>
+              <User size={16} /> الاسم الكامل
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.full_name}
+              onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+              style={input}
+              placeholder="أدخل اسمك الكامل"
+            />
           </div>
 
           <div style={inputGroup}>
-            <label style={label}>البريد الإلكتروني</label>
-            <div style={inputWrapper}>
-              <Mail size={20} color="#666" />
-              <input 
-                type="email" 
-                value={formData.email} 
-                onChange={(e) => setFormData({...formData, email: e.target.value})} 
-                placeholder="affiliate@example.com" 
-                style={input} 
-                required 
-              />
-            </div>
+            <label style={label}>
+              <Mail size={16} /> البريد الإلكتروني
+            </label>
+            <input
+              type="email"
+              required
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              style={input}
+              placeholder="example@email.com"
+            />
           </div>
 
           <div style={inputGroup}>
-            <label style={label}>رقم الهاتف</label>
-            <div style={inputWrapper}>
-              <Phone size={20} color="#666" />
-              <input 
-                type="tel" 
-                value={formData.phone} 
-                onChange={(e) => setFormData({...formData, phone: e.target.value})} 
-                placeholder="01xxxxxxxxx" 
-                style={input} 
-                required 
-              />
-            </div>
+            <label style={label}>
+              <Phone size={16} /> رقم الموبايل
+            </label>
+            <input
+              type="tel"
+              required
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              style={input}
+              placeholder="01XXXXXXXXX"
+            />
           </div>
 
           <div style={inputGroup}>
-            <label style={label}>كلمة المرور</label>
-            <div style={inputWrapper}>
-              <Lock size={20} color="#666" />
-              <input 
-                type="password" 
-                value={formData.password} 
-                onChange={(e) => setFormData({...formData, password: e.target.value})} 
-                placeholder="••••••••" 
-                style={input} 
-                required 
-                minLength={6}
-              />
-            </div>
+            <label style={label}>
+              <Lock size={16} /> كلمة المرور
+            </label>
+            <input
+              type="password"
+              required
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              style={input}
+              placeholder="6 أحرف على الأقل"
+              minLength={6}
+            />
           </div>
 
           <div style={inputGroup}>
-            <label style={label}>تأكيد كلمة المرور</label>
-            <div style={inputWrapper}>
-              <Lock size={20} color="#666" />
-              <input 
-                type="password" 
-                value={formData.confirmPassword} 
-                onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})} 
-                placeholder="••••••••" 
-                style={input} 
-                required 
-                minLength={6}
-              />
-            </div>
+            <label style={label}>
+              <Lock size={16} /> تأكيد كلمة المرور
+            </label>
+            <input
+              type="password"
+              required
+              value={formData.confirmPassword}
+              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+              style={input}
+              placeholder="أعد إدخال كلمة المرور"
+              minLength={6}
+            />
           </div>
 
-          <button type="submit" style={submitButton} disabled={loading}>
+          <button
+            type="submit"
+            disabled={loading}
+            style={submitBtn}
+          >
             {loading ? (
               <>
                 <Loader2 className="animate-spin" size={20} />
-                <span>جاري الإنشاء...</span>
+                جاري التسجيل...
               </>
             ) : (
-              'إنشاء حساب مسوق'
+              <>
+                <UserPlus size={20} />
+                إنشاء الحساب
+              </>
             )}
           </button>
-        </form>
 
-        <p style={switchText}>
-          لديك حساب بالفعل؟{' '}
-          <Link href="/affiliate/login" style={switchLink}>
-            سجل دخولك
-          </Link>
-        </p>
+          <p style={loginLink}>
+            لديك حساب بالفعل؟{' '}
+            <a href="/affiliate/login" style={link}>
+              تسجيل الدخول
+            </a>
+          </p>
+        </form>
       </div>
     </div>
   );
 }
 
-const pageContainer: any = { minHeight: '100vh', background: '#0a1f1a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', direction: 'rtl', position: 'relative' };
-const backButton: any = { position: 'absolute', top: '20px', right: '20px', display: 'flex', alignItems: 'center', gap: '8px', color: '#fff', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 'bold', transition: '0.3s' };
-const signupCard: any = { maxWidth: '450px', width: '100%', background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '50px', border: '1px solid rgba(255, 255, 255, 0.1)' };
-const iconContainer: any = { width: '80px', height: '80px', background: 'rgba(34, 197, 94, 0.15)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 25px' };
-const title: any = { fontSize: '2rem', fontWeight: '900', textAlign: 'center', color: '#fff', marginBottom: '10px' };
-const subtitle: any = { textAlign: 'center', color: 'rgba(255, 255, 255, 0.7)', marginBottom: '35px' };
+// Styles
+const container: any = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', padding: '20px', direction: 'rtl' };
+const card: any = { background: '#fff', padding: '40px', borderRadius: '30px', maxWidth: '500px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' };
+const header: any = { textAlign: 'center', marginBottom: '35px' };
+const title: any = { fontSize: '2rem', fontWeight: '900', color: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', margin: 0 };
+const subtitle: any = { color: '#64748b', fontSize: '0.95rem', marginTop: '10px' };
 const form: any = { display: 'flex', flexDirection: 'column', gap: '20px' };
 const inputGroup: any = { display: 'flex', flexDirection: 'column', gap: '8px' };
-const label: any = { color: '#fff', fontSize: '0.9rem', fontWeight: 'bold' };
-const inputWrapper: any = { display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.2)', borderRadius: '12px', padding: '14px' };
-const input: any = { flex: 1, background: 'transparent', border: 'none', color: '#fff', fontSize: '1rem', outline: 'none' };
-const submitButton: any = { width: '100%', padding: '16px', background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px', transition: '0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' };
-const switchText: any = { textAlign: 'center', color: 'rgba(255, 255, 255, 0.7)', marginTop: '25px' };
-const switchLink: any = { color: '#22c55e', fontWeight: 'bold', textDecoration: 'none' };
+const label: any = { fontSize: '0.9rem', fontWeight: 'bold', color: '#475569', display: 'flex', alignItems: 'center', gap: '6px' };
+const input: any = { padding: '14px 18px', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem', outline: 'none', transition: '0.2s' };
+const submitBtn: any = { padding: '16px', background: 'linear-gradient(135deg, #27ae60 0%, #229954 100%)', color: '#fff', border: 'none', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', fontSize: '1.05rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', transition: '0.2s', marginTop: '10px' };
+const loginLink: any = { textAlign: 'center', color: '#64748b', fontSize: '0.9rem', marginTop: '10px' };
+const link: any = { color: '#27ae60', fontWeight: 'bold', textDecoration: 'none' };

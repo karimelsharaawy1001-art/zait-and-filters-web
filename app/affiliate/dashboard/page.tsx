@@ -12,8 +12,8 @@ import toast from 'react-hot-toast';
 
 const TIER_CONFIG = {
   bronze: { name: 'برونزي', color: '#cd7f32', percentage: 5, minConversions: 0, icon: '🥉' },
-  silver: { name: 'فضي', color: '#c0c0c0', percentage: 5, minConversions: 10, icon: '🥈' },
-  gold: { name: 'ذهبي', color: '#ffd700', percentage: 7, minConversions: 20, icon: '🥇' },
+  silver: { name: 'فضي', color: '#c0c0c0', percentage: 7, minConversions: 10, icon: '🥈' },
+  gold: { name: 'ذهبي', color: '#ffd700', percentage: 10, minConversions: 20, icon: '🥇' },
   diamond: { name: 'ماسي', color: '#b9f2ff', percentage: 10, minConversions: 30, icon: '💎' }
 };
 
