@@ -1,0 +1,27 @@
+# Robots.txt for zaitandfilters.com
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /checkout/
+Disallow: /my-orders/
+Disallow: /profile/
+
+# Sitemap
+Sitemap: https://zaitandfilters.com/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 1
+
+# Google Bot
+User-agent: Googlebot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+# Bing Bot
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/
+Disallow: /api/

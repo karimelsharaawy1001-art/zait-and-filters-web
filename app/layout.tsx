@@ -6,8 +6,7 @@ import { CartProvider } from '@/context/CartContext'
 import CartDrawer from '@/components/CartDrawer'
 import { Toaster } from 'react-hot-toast'
 import { AbandonedCartTracker } from '@/components/AbandonedCartTracker'
-
-
+import type { Metadata } from 'next'
 
 const almarai = Almarai({ 
   subsets: ['arabic'], 
@@ -15,10 +14,8 @@ const almarai = Almarai({
   display: 'swap',
 });
 
-
-
 // --- الـ Metadata المطورة لقطع الغيار الأصلية ---
-export const metadata = {
+export const metadata: Metadata = {
   title: {
     default: "زيت أند فلترز | اكبر موقع لقطع غيار السيارات في مصر",
     template: "%s | زيت أند فلترز"
@@ -33,11 +30,33 @@ export const metadata = {
     "بوجيهات", 
     "سيور سيارات", 
     "زيت أند فلترز", 
-    "أرخص قطع غيار في مصر"
+    "أرخص قطع غيار في مصر",
+    "قطع غيار تويوتا",
+    "قطع غيار هيونداي",
+    "فلاتر زيت",
+    "فلاتر هواء",
+    "فلاتر بنزين",
+    "car spare parts Egypt",
+    "MANN filters",
+    "BOSCH filters"
   ],
   authors: [{ name: "Zait & Filters" }],
-  viewport: "width=device-width, initial-scale=1",
-  themeColor: "#2ecc71",
+  creator: "Zait & Filters",
+  publisher: "Zait & Filters",
+  applicationName: "Zait & Filters",
+  category: "Automotive Parts",
+  classification: "E-commerce",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   openGraph: {
     title: "زيت أند فلترز | وجهتك الموثوقة لقطع غيار السيارات الأصلية",
     description: "كل ما تحتاجه سيارتك من قطع غيار أصلية وزيوت عالمية في مكان واحد. اطلب الآن واستلم في منزلك بجميع محافظات مصر.",
@@ -52,22 +71,26 @@ export const metadata = {
       },
     ],
     locale: "ar_EG",
+    alternateLocale: "en_US",
     type: "website",
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'زيت أند فلترز | قطع غيار السيارات الأصلية في مصر',
+    description: 'المتجر الأول لبيع قطع غيار السيارات الأصلية في مصر',
+    images: ['https://zaitandfilters.com/og-image.jpg'],
+  },
+  alternates: {
+    canonical: 'https://zaitandfilters.com',
+  },
+  verification: {
+    google: 'your-google-verification-code', // Add after Google Search Console setup
+  },
+  other: {
+    'apple-mobile-web-app-title': 'Zait & Filters',
+    'msapplication-TileColor': '#2ecc71',
   },
 };
-
-
 
 export default function RootLayout({
   children,
@@ -76,6 +99,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ar" dir="rtl">
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="theme-color" content="#2ecc71" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
       <body className={almarai.className}>
         {/* --- 🎯 رادار المسوقين: التقاط كود الريفيرال من اللينك وتخزينه --- */}
         <script dangerouslySetInnerHTML={{ __html: `
@@ -90,8 +119,6 @@ export default function RootLayout({
             } catch (e) { console.error('Affiliate error:', e); }
           })();
         `}} />
-
-
 
         <CartProvider>
           <Toaster 
@@ -115,8 +142,6 @@ export default function RootLayout({
           <main>
             {children}
           </main>
-
-
 
           <ProfessionalFooter />
           
