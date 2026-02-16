@@ -20,7 +20,7 @@ const TIER_CONFIG = {
 export default function ProfessionalAffiliateDashboard() {
   const router = useRouter();
   const [data, setData] = useState<any>(null);
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<any>({
     total_orders: 0,
     total_clicks: 0,
     total_conversions: 0,
