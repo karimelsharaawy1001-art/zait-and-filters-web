@@ -8,11 +8,13 @@ import { Toaster } from 'react-hot-toast'
 import { AbandonedCartTracker } from '@/components/AbandonedCartTracker'
 
 
+
 const almarai = Almarai({ 
   subsets: ['arabic'], 
   weight: ['300', '400', '700', '800'],
   display: 'swap',
 });
+
 
 
 // --- الـ Metadata المطورة لقطع الغيار الأصلية ---
@@ -66,10 +68,11 @@ export const metadata = {
 };
 
 
+
 export default function RootLayout({
   children,
 }: {
-  children: React.NodeNode
+  children: React.ReactNode
 }) {
   return (
     <html lang="ar" dir="rtl">
@@ -87,6 +90,7 @@ export default function RootLayout({
             } catch (e) { console.error('Affiliate error:', e); }
           })();
         `}} />
+
 
 
         <CartProvider>
@@ -111,6 +115,7 @@ export default function RootLayout({
           <main>
             {children}
           </main>
+
 
 
           <ProfessionalFooter />
