@@ -5,12 +5,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { 
-  Car, ShieldCheck, ChevronLeft, ChevronRight, Zap, ShoppingCart, 
+  Car, ChevronLeft, ChevronRight, Zap, ShoppingCart, 
   Globe, Settings2, Calendar, Flame, Loader2, 
-  Facebook, Instagram, Music2, Headphones, Mail, MapPin, Send,
   LayoutGrid, Tags 
 } from 'lucide-react';
-import { motion, AnimatePresence, useScroll, useTransform, useInView } from 'framer-motion';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { useCart } from '@/context/CartContext'; 
 import toast from 'react-hot-toast'; 
 
@@ -38,19 +37,6 @@ function ScrollReveal({ children, delay = 0, direction = 'up' }: { children: Rea
         delay: delay,
         ease: [0.21, 0.47, 0.32, 0.98],
       }}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-// Hover Scale Component
-function HoverScale({ children, scale = 1.05 }: { children: React.ReactNode; scale?: number }) {
-  return (
-    <motion.div
-      whileHover={{ scale: scale }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 17 }}
     >
       {children}
     </motion.div>
@@ -129,7 +115,6 @@ export default function HomePage() {
   const { addToCart } = useCart(); 
   const scrollRef = useRef<HTMLDivElement>(null);
   const bestSellerRef = useRef<HTMLDivElement>(null); 
-  const heroRef = useRef(null);
   
   const [isMounted, setIsMounted] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
@@ -144,10 +129,6 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [saleProducts, setSaleProducts] = useState<any[]>([]);
   const [bestSellers, setBestSellers] = useState<any[]>([]); 
-
-  // Parallax effect for hero
-  const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 500], [0, 150]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -261,7 +242,6 @@ export default function HomePage() {
 
   return (
     <>
-      {/* SEO: Structured Data */}
       <StructuredData />
       
       <div style={{ direction: 'rtl', backgroundColor: '#fdfdfd', color: '#1a1a1a', minHeight: '100vh', fontSize: '13px' }}>
@@ -282,7 +262,7 @@ export default function HomePage() {
           .no-scrollbar::-webkit-scrollbar { display: none; }
           .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
           .product-grid-carousel { display: flex !important; flex-wrap: nowrap !important; gap: 15px; overflow-x: auto !important; scroll-snap-type: x mandatory; padding: 10px 20px; -webkit-overflow-scrolling: touch; }
-          .product-card-mdrn { flex: 0 0 280px !important; background: #fff; border-radius: 18px; border: 1px solid #f2f2f2; transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; overflow: hidden; scroll-snap-align: start; }
+          .product-card-mdrn { flex: 0 0 320px !important; min-width: 320px !important; max-width: 320px !important; background: #fff; border-radius: 18px; border: 1px solid #f2f2f2; transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; overflow: hidden; scroll-snap-align: start; }
           .product-card-mdrn:hover { transform: translateY(-6px); border-color: #22c55e; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.15); }
           .img-container { background: #f9f9f9; height: 180px; width: 100%; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; overflow: hidden; }
           .img-fill-100 { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
@@ -299,21 +279,24 @@ export default function HomePage() {
           .brand-logo-wrap { width: 180px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 10px 25px; }
           .logo-img-v3 { max-width: 130px; max-height: 60px; filter: grayscale(100%); opacity: 0.5; transition: 0.3s; }
           .logo-img-v3:hover { filter: grayscale(0%); opacity: 1; transform: scale(1.1); }
-          @media (max-width: 768px) { .category-grid-v3 { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
+          @media (max-width: 768px) { 
+            .category-grid-v3 { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .product-card-mdrn { flex: 0 0 280px !important; min-width: 280px !important; max-width: 280px !important; }
+          }
         `}} />
 
         {!loading && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-            {/* Hero Section with Parallax */}
-            <section ref={heroRef} style={{ position: 'relative', minHeight: '500px', overflow: 'hidden', backgroundColor: '#000' }}>
+            {/* Hero Section */}
+            <section style={{ position: 'relative', minHeight: '500px', overflow: 'hidden', backgroundColor: '#000' }}>
               <AnimatePresence mode="wait">
                 {slides.length > 0 && (
                   <motion.div 
                     key={currentSlide} 
-                    initial={{ opacity: 0, scale: 1.1 }} 
-                    animate={{ opacity: 1, scale: 1 }} 
-                    exit={{ opacity: 0, scale: 0.95 }} 
-                    transition={{ duration: 1 }} 
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }} 
+                    exit={{ opacity: 0 }} 
+                    transition={{ duration: 0.8 }} 
                     style={{ 
                       position: 'absolute', 
                       inset: 0, 
@@ -334,9 +317,7 @@ export default function HomePage() {
                         >
                           <h1 style={{ fontSize: '3rem', fontWeight: '900', lineHeight: '1.4', marginBottom: '15px', color: '#22c55e' }} dangerouslySetInnerHTML={{ __html: slides[currentSlide]?.title || '' }} />
                           <p style={{ color: '#fff', fontSize: '1.2rem', fontWeight: '500', marginBottom: '25px', maxWidth: '550px', lineHeight: '1.5' }}>{slides[currentSlide]?.subtitle}</p>
-                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Link href={slides[currentSlide]?.button_link || '/store'} style={{ padding: '12px 30px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.95rem', display: 'inline-block' }}>{slides[currentSlide]?.button_text || 'تصفح المتجر'}</Link>
-                          </motion.div>
+                          <Link href={slides[currentSlide]?.button_link || '/store'} style={{ padding: '12px 30px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.95rem', display: 'inline-block' }}>{slides[currentSlide]?.button_text || 'تصفح المتجر'}</Link>
                         </motion.div>
                         
                         <motion.div 
@@ -349,14 +330,7 @@ export default function HomePage() {
                           <div style={{marginBottom: '12px'}}><label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>الماركة</label><Select instanceId="make-select" options={makesOptions} styles={customSelectStyles} placeholder="اختر الماركة" isRtl={true} onChange={(opt) => setSelectedMake(opt)} formatOptionLabel={(brand: any) => (<div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>{brand.logo ? <img src={brand.logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} /> : <Car size={20} color="#ccc" />}<span>{brand.label}</span></div>)} /></div>
                           <div style={{marginBottom: '12px'}}><label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>الموديل</label><Select instanceId="model-select" options={modelsOptions} styles={customSelectStyles} placeholder="اختر الموديل" isRtl={true} value={selectedModel} isDisabled={!selectedMake} onChange={(opt) => setSelectedModel(opt)} /></div>
                           <div style={{marginBottom: '12px'}}><label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>سنة الصنع</label><input type="text" placeholder="مثلاً: 2024" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} style={{ width: '100%', height: '52px', padding: '0 15px', backgroundColor: '#f8f8f8', border: 'none', borderRadius: '12px', fontSize: '1rem', outline: 'none' }} /></div>
-                          <motion.button 
-                            whileHover={{ scale: 1.02 }} 
-                            whileTap={{ scale: 0.98 }}
-                            onClick={handleSearch} 
-                            style={{ width: '100%', marginTop: '15px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', padding: '16px', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontSize: '1.1rem' }}
-                          >
-                            بحث الآن <ChevronLeft size={22} />
-                          </motion.button>
+                          <button onClick={handleSearch} style={{ width: '100%', marginTop: '15px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', padding: '16px', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontSize: '1.1rem' }}>بحث الآن <ChevronLeft size={22} /></button>
                         </motion.div>
                       </div>
                     </div>
@@ -386,29 +360,27 @@ export default function HomePage() {
                     {saleProducts.map((p) => {
                       const country = p.country_origin || p.country_of_origin || p.origin || 'أصلي';
                       return (
-                        <HoverScale key={p.id} scale={1.02}>
-                          <div className="product-card-mdrn">
-                            <div style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#ff4d4d', color: '#fff', padding: '2px 6px', borderRadius: '5px', fontSize: '0.6rem', fontWeight: '900', zIndex: 10 }}>-{Math.round(((p.regular_price - p.sale_price) / p.regular_price) * 100)}%</div>
-                            <Link href={`/products/${p.id}`} className="img-container"><img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" /><div style={{ position: 'absolute', bottom: 6, left: 6, background: 'rgba(255,255,255,0.9)', padding: '2px 6px', borderRadius: '5px', fontSize: '0.65rem', fontWeight: '800' }}><Car size={9} /> {p.car_make}</div></Link>
-                            <div style={{ padding: '15px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.8rem' }}>{p.brand}</span>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#666', fontWeight: '700' }}><Globe size={14} color="#22c55e" /><span>{country}</span></div>
-                              </div>
-                              <h3 style={{ fontSize: '1rem', fontWeight: '900', marginBottom: '4px', height: '45px', overflow: 'hidden' }}>{p.name}</h3>
-                              <div style={{ background: '#f9f9f9', padding: '10px', borderRadius: '10px', marginBottom: '10px' }}>
-                                <div style={{fontSize:'0.8rem', color:'#1a1a1a', fontWeight:'800', marginBottom:'3px', display:'flex', alignItems:'center', gap:'6px'}}><Settings2 size={14} color="#22c55e"/> {p.car_make} {p.car_model}</div>
-                                <div style={{fontSize:'0.8rem', color:'#666', fontWeight:'700', display:'flex', alignItems:'center', gap:'6px', marginBottom:'3px'}}><Calendar size={14} color="#22c55e"/> {p.car_model_year || 'الكل'}</div>
-                                <div style={{fontSize:'0.8rem', color:'#22c55e', fontWeight:'800', display:'flex', alignItems:'center', gap:'6px', marginBottom:'3px'}}><LayoutGrid size={14}/> {p.category}</div>
-                                <div style={{fontSize:'0.8rem', color:'#888', fontWeight:'700', display:'flex', alignItems:'center', gap:'6px'}}><Tags size={14}/> {p.subcategory || 'عام'}</div>
-                              </div>
-                              <div style={{ marginTop: 'auto', display:'flex', flexDirection:'column', gap:'12px' }}>
-                                <div><span style={{ display: 'block', color: '#bbb', textDecoration: 'line-through', fontSize: '0.75rem' }}>{p.regular_price} ج.م</span><span style={{ fontSize: '1.2rem', fontWeight: '900' }}>{p.sale_price} ج.م</span></div>
-                                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={cartBtnStyleSmall} onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, 1); toast.success('تمت الإضافة'); }}><ShoppingCart size={16} /> أضف إلى السلة</motion.button>
-                              </div>
+                        <div key={p.id} className="product-card-mdrn">
+                          <div style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#ff4d4d', color: '#fff', padding: '2px 6px', borderRadius: '5px', fontSize: '0.6rem', fontWeight: '900', zIndex: 10 }}>-{Math.round(((p.regular_price - p.sale_price) / p.regular_price) * 100)}%</div>
+                          <Link href={`/products/${p.id}`} className="img-container"><img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" /><div style={{ position: 'absolute', bottom: 6, left: 6, background: 'rgba(255,255,255,0.9)', padding: '2px 6px', borderRadius: '5px', fontSize: '0.65rem', fontWeight: '800' }}><Car size={9} /> {p.car_make}</div></Link>
+                          <div style={{ padding: '15px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                              <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.8rem' }}>{p.brand}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#666', fontWeight: '700' }}><Globe size={14} color="#22c55e" /><span>{country}</span></div>
+                            </div>
+                            <h3 style={{ fontSize: '1rem', fontWeight: '900', marginBottom: '4px', height: '45px', overflow: 'hidden' }}>{p.name}</h3>
+                            <div style={{ background: '#f9f9f9', padding: '10px', borderRadius: '10px', marginBottom: '10px' }}>
+                              <div style={{fontSize:'0.8rem', color:'#1a1a1a', fontWeight:'800', marginBottom:'3px', display:'flex', alignItems:'center', gap:'6px'}}><Settings2 size={14} color="#22c55e"/> {p.car_make} {p.car_model}</div>
+                              <div style={{fontSize:'0.8rem', color:'#666', fontWeight:'700', display:'flex', alignItems:'center', gap:'6px', marginBottom:'3px'}}><Calendar size={14} color="#22c55e"/> {p.car_model_year || 'الكل'}</div>
+                              <div style={{fontSize:'0.8rem', color:'#22c55e', fontWeight:'800', display:'flex', alignItems:'center', gap:'6px', marginBottom:'3px'}}><LayoutGrid size={14}/> {p.category}</div>
+                              <div style={{fontSize:'0.8rem', color:'#888', fontWeight:'700', display:'flex', alignItems:'center', gap:'6px'}}><Tags size={14}/> {p.subcategory || 'عام'}</div>
+                            </div>
+                            <div style={{ marginTop: 'auto', display:'flex', flexDirection:'column', gap:'12px' }}>
+                              <div><span style={{ display: 'block', color: '#bbb', textDecoration: 'line-through', fontSize: '0.75rem' }}>{p.regular_price} ج.م</span><span style={{ fontSize: '1.2rem', fontWeight: '900' }}>{p.sale_price} ج.م</span></div>
+                              <button style={cartBtnStyleSmall} onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, 1); toast.success('تمت الإضافة'); }}><ShoppingCart size={16} /> أضف إلى السلة</button>
                             </div>
                           </div>
-                        </HoverScale>
+                        </div>
                       );
                     })}
                   </div>
@@ -428,29 +400,27 @@ export default function HomePage() {
                     {bestSellers.map((p) => {
                       const country = p.country_origin || p.country_of_origin || p.origin || 'أصلي';
                       return (
-                        <HoverScale key={p.id} scale={1.02}>
-                          <div className="product-card-mdrn">
-                            <div style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#22c55e', color: '#fff', padding: '2px 6px', borderRadius: '5px', fontSize: '0.6rem', fontWeight: '900', zIndex: 10 }}>تريند ✨</div>
-                            <Link href={`/products/${p.id}`} className="img-container"><img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" /></Link>
-                            <div style={{ padding: '15px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.8rem' }}>{p.brand}</span>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#666', fontWeight: '700' }}><Globe size={14} color="#22c55e" /><span>{country}</span></div>
-                              </div>
-                              <h3 style={{ fontSize: '1rem', fontWeight: '900', marginBottom: '4px', height: '45px', overflow: 'hidden' }}>{p.name}</h3>
-                              <div style={{ background: '#f9f9f9', padding: '8px', borderRadius: '10px', marginBottom: '10px' }}>
-                                <div style={{fontSize:'0.8rem', color:'#1a1a1a', fontWeight:'800', marginBottom:'3px', display:'flex', alignItems:'center', gap:'6px'}}><Settings2 size={14} color="#22c55e"/> {p.car_make} {p.car_model}</div>
-                                <div style={{fontSize:'0.8rem', color:'#666', fontWeight:'700', display:'flex', alignItems:'center', gap:'6px', marginBottom:'3px'}}><Calendar size={14} color="#22c55e"/> {p.car_model_year || 'الكل'}</div>
-                                <div style={{fontSize:'0.8rem', color:'#22c55e', fontWeight:'800', display:'flex', alignItems:'center', gap:'6px', marginBottom:'3px'}}><LayoutGrid size={14}/> {p.category}</div>
-                                <div style={{fontSize:'0.8rem', color:'#888', fontWeight:'700', display:'flex', alignItems:'center', gap:'6px'}}><Tags size={14}/> {p.subcategory || 'عام'}</div>
-                              </div>
-                              <div style={{ marginTop: 'auto', display:'flex', flexDirection:'column', gap:'12px' }}>
-                                <span style={{ fontSize: '1.2rem', fontWeight: '900' }}>{p.sale_price || p.regular_price} ج.م</span>
-                                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={cartBtnStyleSmall} onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price || p.regular_price}, 1); toast.success('تمت الإضافة'); }}><ShoppingCart size={16} /> أضف إلى السلة</motion.button>
-                              </div>
+                        <div key={p.id} className="product-card-mdrn">
+                          <div style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#22c55e', color: '#fff', padding: '2px 6px', borderRadius: '5px', fontSize: '0.6rem', fontWeight: '900', zIndex: 10 }}>تريند ✨</div>
+                          <Link href={`/products/${p.id}`} className="img-container"><img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" /></Link>
+                          <div style={{ padding: '15px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                              <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.8rem' }}>{p.brand}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#666', fontWeight: '700' }}><Globe size={14} color="#22c55e" /><span>{country}</span></div>
+                            </div>
+                            <h3 style={{ fontSize: '1rem', fontWeight: '900', marginBottom: '4px', height: '45px', overflow: 'hidden' }}>{p.name}</h3>
+                            <div style={{ background: '#f9f9f9', padding: '8px', borderRadius: '10px', marginBottom: '10px' }}>
+                              <div style={{fontSize:'0.8rem', color:'#1a1a1a', fontWeight:'800', marginBottom:'3px', display:'flex', alignItems:'center', gap:'6px'}}><Settings2 size={14} color="#22c55e"/> {p.car_make} {p.car_model}</div>
+                              <div style={{fontSize:'0.8rem', color:'#666', fontWeight:'700', display:'flex', alignItems:'center', gap:'6px', marginBottom:'3px'}}><Calendar size={14} color="#22c55e"/> {p.car_model_year || 'الكل'}</div>
+                              <div style={{fontSize:'0.8rem', color:'#22c55e', fontWeight:'800', display:'flex', alignItems:'center', gap:'6px', marginBottom:'3px'}}><LayoutGrid size={14}/> {p.category}</div>
+                              <div style={{fontSize:'0.8rem', color:'#888', fontWeight:'700', display:'flex', alignItems:'center', gap:'6px'}}><Tags size={14}/> {p.subcategory || 'عام'}</div>
+                            </div>
+                            <div style={{ marginTop: 'auto', display:'flex', flexDirection:'column', gap:'12px' }}>
+                              <span style={{ fontSize: '1.2rem', fontWeight: '900' }}>{p.sale_price || p.regular_price} ج.م</span>
+                              <button style={cartBtnStyleSmall} onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price || p.regular_price}, 1); toast.success('تمت الإضافة'); }}><ShoppingCart size={16} /> أضف إلى السلة</button>
                             </div>
                           </div>
-                        </HoverScale>
+                        </div>
                       );
                     })}
                   </div>
