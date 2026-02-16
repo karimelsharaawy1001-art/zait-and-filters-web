@@ -20,10 +20,10 @@ export function AbandonedCartTracker() {
                              '';
 
         // Calculate cart totals
-        const cartSubtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+        const cartSubtotal = cart.reduce((sum: number, item: any) => sum + (parseFloat(item.price) * item.quantity), 0);
 
         // Prepare detailed cart items with all product information
-        const detailedCartItems = cart.map((item) => ({
+        const detailedCartItems = cart.map((item: any) => ({
           id: item.id,
           name: item.name,
           price: parseFloat(item.price),
