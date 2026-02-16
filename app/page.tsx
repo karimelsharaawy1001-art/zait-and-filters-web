@@ -6,19 +6,25 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { 
   Car, ChevronLeft, ChevronRight, Zap, ShoppingCart, 
-  Globe, Settings2, Calendar, Flame, Loader2, 
-  LayoutGrid, Tags 
+  Globe, Settings2, Calendar, Flame, 
+  LayoutGrid, Tags, Sparkles, Shield, TrendingUp
 } from 'lucide-react';
-import { motion, AnimatePresence, useInView } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
 import { useCart } from '@/context/CartContext'; 
 import toast from 'react-hot-toast'; 
 
-const Select = dynamic(() => import('react-select'), { ssr: false });
 
-// Scroll Reveal Component
+const Select = dynamic(() => import('react-select'), { 
+  ssr: false,
+  loading: () => <div style={{ height: '52px', backgroundColor: '#f8f8f8', borderRadius: '12px', display: 'flex', alignItems: 'center', padding: '0 15px', color: '#999' }}>جاري التحميل...</div>
+});
+
+
+// Optimized Scroll Reveal Component
 function ScrollReveal({ children, delay = 0, direction = 'up' }: { children: React.ReactNode; delay?: number; direction?: 'up' | 'down' | 'left' | 'right' }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-50px' });
+
 
   const directions = {
     up: { y: 40, x: 0 },
@@ -27,21 +33,23 @@ function ScrollReveal({ children, delay = 0, direction = 'up' }: { children: Rea
     right: { x: -40, y: 0 },
   };
 
+
   return (
     <motion.div
       ref={ref}
       initial={{ opacity: 0, ...directions[direction] }}
       animate={isInView ? { opacity: 1, y: 0, x: 0 } : {}}
       transition={{
-        duration: 0.6,
+        duration: 0.5,
         delay: delay,
-        ease: [0.21, 0.47, 0.32, 0.98],
+        ease: [0.25, 0.46, 0.45, 0.94],
       }}
     >
       {children}
     </motion.div>
   );
 }
+
 
 // SEO: Structured Data Component
 function StructuredData() {
@@ -67,6 +75,7 @@ function StructuredData() {
     openingHours: 'Mo-Sa 09:00-21:00',
   };
 
+
   const websiteSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -78,6 +87,7 @@ function StructuredData() {
       'query-input': 'required name=search_term_string',
     },
   };
+
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -91,6 +101,7 @@ function StructuredData() {
       },
     ],
   };
+
 
   return (
     <>
@@ -110,6 +121,7 @@ function StructuredData() {
   );
 }
 
+
 export default function HomePage() {
   const router = useRouter();
   const { addToCart } = useCart(); 
@@ -117,6 +129,7 @@ export default function HomePage() {
   const bestSellerRef = useRef<HTMLDivElement>(null); 
   
   const [isMounted, setIsMounted] = useState(false);
+  const [selectLoaded, setSelectLoaded] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [makesOptions, setMakesOptions] = useState<any[]>([]); 
   const [modelsOptions, setModelsOptions] = useState<any[]>([]);
@@ -129,11 +142,30 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [saleProducts, setSaleProducts] = useState<any[]>([]);
   const [bestSellers, setBestSellers] = useState<any[]>([]); 
+  const [loadingMessage, setLoadingMessage] = useState(0);
+
+
+  const loadingMessages = [
+    { icon: <Shield size={22} color="#22c55e" />, text: 'منتجات أصلية 100%' },
+    { icon: <Sparkles size={22} color="#22c55e" />, text: 'أفضل الأسعار في السوق' },
+    { icon: <TrendingUp size={22} color="#22c55e" />, text: 'توصيل سريع لجميع المحافظات' },
+  ];
+
 
   useEffect(() => {
     setIsMounted(true);
+    setSelectLoaded(true); // Mark Select as ready to load
     fetchInitialData();
+    
+    // Rotate loading messages
+    const messageInterval = setInterval(() => {
+      setLoadingMessage((prev) => (prev + 1) % loadingMessages.length);
+    }, 1500);
+
+
+    return () => clearInterval(messageInterval);
   }, []);
+
 
   useEffect(() => {
     if (slides.length > 1) {
@@ -144,12 +176,15 @@ export default function HomePage() {
     }
   }, [slides]);
 
+
   useEffect(() => {
     if (selectedMake) fetchModels(selectedMake.value);
     else { setModelsOptions([]); setSelectedModel(null); }
   }, [selectedMake]);
 
+
   const isValidImg = (url: any) => url && String(url).trim().startsWith('http');
+
 
   async function fetchInitialData() {
     try {
@@ -163,14 +198,17 @@ export default function HomePage() {
         supabase.from('car_brands').select('name, logo_url')
       ]);
 
+
       if (heroRes.data) setSlides(heroRes.data);
       if (partBrandsRes.data) setBrandLogos(partBrandsRes.data);
+
 
       const allProducts = productsRes.data || [];
       const customImages = customImgRes.data || [];
       
       if (allProducts.length > 0) {
         setSaleProducts(allProducts.filter(p => Number(p.sale_price) > 0 && Number(p.regular_price) > Number(p.sale_price) && isValidImg(p.image_url)));
+
 
         const { data: orders } = await supabase.from('orders').select('items').limit(50);
         const productCounts: Record<string, number> = {};
@@ -182,11 +220,13 @@ export default function HomePage() {
         const sortedBestIds = Object.entries(productCounts).sort(([, a], [, b]) => b - a).map(([id]) => id);
         let bestSellersList = sortedBestIds.map(id => allProducts.find(p => p.id === id)).filter(p => p && isValidImg(p.image_url));
 
+
         if (bestSellersList.length < 4) {
           bestSellersList = [...bestSellersList, ...allProducts.filter(p => !bestSellersList.find(b => b?.id === p.id) && isValidImg(p.image_url)).slice(0, 10)];
         }
         setBestSellers(bestSellersList);
       }
+
 
       if (catListRes.data) {
         const uniqueCats = Array.from(new Set(catListRes.data.map(i => i.category?.trim()).filter(Boolean)));
@@ -197,6 +237,7 @@ export default function HomePage() {
         }));
       }
 
+
       if (carBrandsRes.data) {
         const uniqueMakes = Array.from(new Set(allProducts.map(i => i.car_make?.trim()).filter(Boolean)));
         setMakesOptions(uniqueMakes.map(makeName => {
@@ -204,8 +245,11 @@ export default function HomePage() {
           return { value: makeName, label: makeName, logo: brandInfo?.logo_url || null };
         }));
       }
-    } catch (err) { console.error(err); } finally { setTimeout(() => setLoading(false), 500); }
+    } catch (err) { console.error(err); } finally { 
+      setTimeout(() => setLoading(false), 800); 
+    }
   }
+
 
   async function fetchModels(make: string) {
     const { data } = await supabase.from('products').select('car_model').ilike('car_make', make.trim());
@@ -213,6 +257,7 @@ export default function HomePage() {
       setModelsOptions(Array.from(new Set(data.map(i => i.car_model?.trim()).filter(Boolean))).sort().map(m => ({ value: m, label: m })));
     }
   }
+
 
   const handleSearch = () => {
     const query = new URLSearchParams();
@@ -222,6 +267,7 @@ export default function HomePage() {
     router.push(`/store?${query.toString()}`);
   };
 
+
   const scroll = (ref: any, direction: 'left' | 'right') => {
     if (ref.current) {
       const { scrollLeft, clientWidth } = ref.current;
@@ -229,6 +275,7 @@ export default function HomePage() {
       ref.current.scrollTo({ left: scrollTo, behavior: 'smooth' });
     }
   };
+
 
   const customSelectStyles = {
     control: (base: any) => ({ ...base, height: '52px', borderRadius: '12px', border: 'none', backgroundColor: '#f8f8f8', fontSize: '1rem', textAlign: 'right', display: 'flex', flexDirection: 'row-reverse' }),
@@ -238,7 +285,9 @@ export default function HomePage() {
     menu: (base: any) => ({ ...base, zIndex: 9999 })
   };
 
+
   if (!isMounted) return null;
+
 
   return (
     <>
@@ -246,39 +295,307 @@ export default function HomePage() {
       
       <div style={{ direction: 'rtl', backgroundColor: '#fdfdfd', color: '#1a1a1a', minHeight: '100vh', fontSize: '13px' }}>
         
-        <AnimatePresence>
-          {loading && (
-            <motion.div initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }} style={fullPageLoaderStyle}>
-              <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ textAlign: 'center' }}>
-                <div style={logoCircle}><Car size={40} color="#22c55e" /></div>
-                <h2 style={{ color: '#22c55e', fontWeight: '900', marginTop: '20px', fontSize: '1.2rem' }}>زيت أند فلترز</h2>
-                <div style={{ display: 'flex', gap: '5px', justifyContent: 'center', marginTop: '10px' }}><Loader2 className="animate-spin" size={20} color="#22c55e" /><span style={{color: '#888'}}>جاري التحميل...</span></div>
+        {loading && (
+          <motion.div 
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            style={fullPageLoaderStyle}
+          >
+            <div style={{ textAlign: 'center', maxWidth: '600px' }}>
+              {/* Animated Logo */}
+              <motion.div 
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.6, ease: 'easeOut' }}
+                style={logoContainer}
+              >
+                <motion.img
+                  src="/api/placeholder/200/200"
+                  alt="Zait and Filters"
+                  animate={{ 
+                    y: [0, -10, 0],
+                  }}
+                  transition={{ 
+                    duration: 2.5, 
+                    repeat: Infinity,
+                    ease: 'easeInOut'
+                  }}
+                  style={logoImage}
+                />
               </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+
+              {/* Brand Name */}
+              <motion.h1
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.6 }}
+                style={brandNameText}
+              >
+                <span style={{ color: '#fff' }}>ZAIT</span>
+                <span style={{ color: '#22c55e' }}>&nbsp;& FILTERS</span>
+              </motion.h1>
+
+              {/* Main Headline */}
+              <motion.h2 
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.6 }}
+                style={mainHeadline}
+              >
+                قطع الغيار بضغطة زرار
+              </motion.h2>
+
+
+              {/* Tagline */}
+              <motion.p 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.6 }}
+                style={tagline}
+              >
+                وجهتك الأولى لقطع غيار السيارات الأصلية في مصر
+              </motion.p>
+
+
+              {/* Loading Bar */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                style={loadingBarContainer}
+              >
+                <motion.div
+                  initial={{ width: '0%' }}
+                  animate={{ width: '100%' }}
+                  transition={{ duration: 1.5, ease: 'easeInOut' }}
+                  style={loadingBar}
+                />
+              </motion.div>
+
+
+              {/* Rotating Messages */}
+              <motion.div
+                key={loadingMessage}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.4 }}
+                style={messageContainer}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                  {loadingMessages[loadingMessage].icon}
+                  <span style={messageText}>{loadingMessages[loadingMessage].text}</span>
+                </div>
+              </motion.div>
+
+
+              {/* Feature Pills */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+                style={featurePills}
+              >
+                <div style={pill}>
+                  <Shield size={16} color="#22c55e" />
+                  <span>ضمان الجودة</span>
+                </div>
+                <div style={pill}>
+                  <Sparkles size={16} color="#22c55e" />
+                  <span>أسعار تنافسية</span>
+                </div>
+                <div style={pill}>
+                  <TrendingUp size={16} color="#22c55e" />
+                  <span>شحن مجاني</span>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+
 
         <style dangerouslySetInnerHTML={{ __html: `
+          * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+          
+          @keyframes pageLoad { 
+            from { opacity: 0; } 
+            to { opacity: 1; } 
+          }
+          
+          @keyframes slideIn { 
+            from { opacity: 0; transform: translateX(30px); } 
+            to { opacity: 1; transform: translateX(0); } 
+          }
+          
+          @keyframes slideUp { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+          }
+          
+          .page-container { animation: pageLoad 0.4s ease-out; }
+          
+          .hero-content-right { animation: slideIn 0.6s ease-out 0.15s both; }
+          .hero-content-left { animation: slideUp 0.6s ease-out 0.25s both; }
+          
+          .hero-slide { 
+            position: absolute; 
+            inset: 0; 
+            background-size: cover; 
+            background-position: center; 
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+          }
+          
+          .hero-slide.active { opacity: 1; }
+          
           .no-scrollbar::-webkit-scrollbar { display: none; }
           .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-          .product-grid-carousel { display: flex !important; flex-wrap: nowrap !important; gap: 15px; overflow-x: auto !important; scroll-snap-type: x mandatory; padding: 10px 20px; -webkit-overflow-scrolling: touch; }
-          .product-card-mdrn { flex: 0 0 320px !important; min-width: 320px !important; max-width: 320px !important; background: #fff; border-radius: 18px; border: 1px solid #f2f2f2; transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; overflow: hidden; scroll-snap-align: start; }
-          .product-card-mdrn:hover { transform: translateY(-6px); border-color: #22c55e; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.15); }
-          .img-container { background: #f9f9f9; height: 200px; width: 100%; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; overflow: hidden; }
-          .img-fill-100 { width: 100%; height: 100%; object-fit: contain; padding: 15px; transition: transform 0.3s ease; }
+          
+          .product-grid-carousel { 
+            display: flex !important; 
+            flex-wrap: nowrap !important; 
+            gap: 15px; 
+            overflow-x: auto !important; 
+            scroll-snap-type: x mandatory; 
+            padding: 10px 20px; 
+            -webkit-overflow-scrolling: touch; 
+          }
+          
+          .product-card-mdrn { 
+            flex: 0 0 320px !important; 
+            min-width: 320px !important; 
+            max-width: 320px !important; 
+            background: #fff; 
+            border-radius: 18px; 
+            border: 1px solid #f2f2f2; 
+            transition: all 0.3s ease; 
+            position: relative; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+            scroll-snap-align: start; 
+          }
+          
+          .product-card-mdrn:hover { 
+            transform: translateY(-6px); 
+            border-color: #22c55e; 
+            box-shadow: 0 10px 30px rgba(34, 197, 94, 0.15); 
+          }
+          
+          .img-container { 
+            background: #f9f9f9; 
+            height: 200px; 
+            width: 100%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            position: relative; 
+            cursor: pointer; 
+            overflow: hidden; 
+          }
+          
+          .img-fill-100 { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: contain; 
+            padding: 15px; 
+            transition: transform 0.3s ease; 
+          }
+          
           .img-container:hover .img-fill-100 { transform: scale(1.05); }
-          .category-grid-v3 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 20px; }
-          .category-item-mdrn { position: relative; height: 220px; border-radius: 20px; overflow: hidden; background-color: #1a1a1a; transition: 0.3s ease; cursor: pointer; }
-          .category-item-mdrn:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
-          .category-item-mdrn:hover .cat-bg-img { transform: scale(1.1); filter: brightness(0.9); }
-          .cat-bg-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; filter: brightness(0.7); transition: 0.4s ease; }
-          .cat-info-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); padding: 20px; }
-          .cat-title-text { color: #fff; font-size: 1.6rem; font-weight: 900; text-align: center; text-shadow: 2px 2px 10px rgba(0,0,0,0.8); }
-          @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-          .marquee-inner { display: flex; width: max-content; animation: marquee 35s linear infinite; }
-          .brand-logo-wrap { width: 180px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 10px 25px; }
-          .logo-img-v3 { max-width: 130px; max-height: 60px; filter: grayscale(100%); opacity: 0.5; transition: 0.3s; }
-          .logo-img-v3:hover { filter: grayscale(0%); opacity: 1; transform: scale(1.1); }
+          
+          .category-grid-v3 { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 20px; 
+            padding: 20px; 
+          }
+          
+          .category-item-mdrn { 
+            position: relative; 
+            height: 220px; 
+            border-radius: 20px; 
+            overflow: hidden; 
+            background-color: #1a1a1a; 
+            transition: 0.3s ease; 
+            cursor: pointer; 
+          }
+          
+          .category-item-mdrn:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3); 
+          }
+          
+          .category-item-mdrn:hover .cat-bg-img { 
+            transform: scale(1.1); 
+            filter: brightness(0.9); 
+          }
+          
+          .cat-bg-img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            opacity: 0.6; 
+            filter: brightness(0.7); 
+            transition: 0.4s ease; 
+          }
+          
+          .cat-info-overlay { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); 
+            padding: 20px; 
+          }
+          
+          .cat-title-text { 
+            color: #fff; 
+            font-size: 1.6rem; 
+            font-weight: 900; 
+            text-align: center; 
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.8); 
+          }
+          
+          @keyframes marquee { 
+            0% { transform: translateX(0); } 
+            100% { transform: translateX(-50%); } 
+          }
+          
+          .marquee-inner { 
+            display: flex; 
+            width: max-content; 
+            animation: marquee 35s linear infinite; 
+          }
+          
+          .brand-logo-wrap { 
+            width: 180px; 
+            flex-shrink: 0; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 10px 25px; 
+          }
+          
+          .logo-img-v3 { 
+            max-width: 130px; 
+            max-height: 60px; 
+            filter: grayscale(100%); 
+            opacity: 0.5; 
+            transition: 0.3s; 
+          }
+          
+          .logo-img-v3:hover { 
+            filter: grayscale(0%); 
+            opacity: 1; 
+            transform: scale(1.1); 
+          }
+          
           @media (max-width: 768px) { 
             .category-grid-v3 { grid-template-columns: repeat(2, 1fr); gap: 10px; }
             .product-card-mdrn { flex: 0 0 280px !important; min-width: 280px !important; max-width: 280px !important; }
@@ -286,72 +603,60 @@ export default function HomePage() {
           }
         `}} />
 
+
         {!loading && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-            {/* Hero Section */}
+          <div className="page-container">
+            {/* Hero Section - Pure CSS Transitions */}
             <section style={{ position: 'relative', minHeight: '500px', overflow: 'hidden', backgroundColor: '#000' }}>
-              <AnimatePresence mode="wait">
-                {slides.length > 0 && (
-                  <motion.div 
-                    key={currentSlide} 
-                    initial={{ opacity: 0 }} 
-                    animate={{ opacity: 1 }} 
-                    exit={{ opacity: 0 }} 
-                    transition={{ duration: 0.8 }} 
-                    style={{ 
-                      position: 'absolute', 
-                      inset: 0, 
-                      backgroundSize: 'cover', 
-                      backgroundPosition: 'center', 
-                      backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("${slides[currentSlide]?.bg_image_url}")`, 
-                      display: 'flex', 
-                      alignItems: 'center' 
-                    }}
-                  >
-                    <div style={{ position: 'relative', zIndex: 5, width: '100%', maxWidth: '1100px', margin: '0 auto', padding: '0 20px' }}>
-                      <div style={{ display: 'flex', gap: '40px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                        <motion.div 
-                          initial={{ opacity: 0, x: 50 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.3, duration: 0.8 }}
-                          style={{ flex: '1', textAlign: 'right', minWidth: '300px' }}
-                        >
-                          <h1 style={{ fontSize: '3rem', fontWeight: '900', lineHeight: '1.4', marginBottom: '15px', color: '#22c55e' }} dangerouslySetInnerHTML={{ __html: slides[currentSlide]?.title || '' }} />
-                          <p style={{ color: '#fff', fontSize: '1.2rem', fontWeight: '500', marginBottom: '25px', maxWidth: '550px', lineHeight: '1.5' }}>{slides[currentSlide]?.subtitle}</p>
-                          <Link href={slides[currentSlide]?.button_link || '/store'} style={{ padding: '12px 30px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.95rem', display: 'inline-block' }}>{slides[currentSlide]?.button_text || 'تصفح المتجر'}</Link>
-                        </motion.div>
-                        
-                        <motion.div 
-                          initial={{ opacity: 0, y: 30 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.5, duration: 0.8 }}
-                          style={{ width: '400px', backgroundColor: '#fff', padding: '30px', borderRadius: '30px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}
-                        >
-                          <h3 style={{ marginBottom: '20px', fontSize: '1.2rem', fontWeight: '900', textAlign: 'center' }}>ابحث بمواصفات سيارتك</h3>
-                          <div style={{marginBottom: '12px'}}><label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>الماركة</label><Select instanceId="make-select" options={makesOptions} styles={customSelectStyles} placeholder="اختر الماركة" isRtl={true} onChange={(opt) => setSelectedMake(opt)} formatOptionLabel={(brand: any) => (<div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>{brand.logo ? <img src={brand.logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} /> : <Car size={20} color="#ccc" />}<span>{brand.label}</span></div>)} /></div>
-                          <div style={{marginBottom: '12px'}}><label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>الموديل</label><Select instanceId="model-select" options={modelsOptions} styles={customSelectStyles} placeholder="اختر الموديل" isRtl={true} value={selectedModel} isDisabled={!selectedMake} onChange={(opt) => setSelectedModel(opt)} /></div>
-                          <div style={{marginBottom: '12px'}}><label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>سنة الصنع</label><input type="text" placeholder="مثلاً: 2024" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} style={{ width: '100%', height: '52px', padding: '0 15px', backgroundColor: '#f8f8f8', border: 'none', borderRadius: '12px', fontSize: '1rem', outline: 'none' }} /></div>
-                          <button onClick={handleSearch} style={{ width: '100%', marginTop: '15px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', padding: '16px', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontSize: '1.1rem' }}>بحث الآن <ChevronLeft size={22} /></button>
-                        </motion.div>
+              {slides.map((slide, index) => (
+                <div 
+                  key={index}
+                  className={`hero-slide ${index === currentSlide ? 'active' : ''}`}
+                  style={{ 
+                    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("${slide.bg_image_url}")`,
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                >
+                  <div style={{ position: 'relative', zIndex: 5, width: '100%', maxWidth: '1100px', margin: '0 auto', padding: '0 20px' }}>
+                    <div style={{ display: 'flex', gap: '40px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                      <div className="hero-content-right" style={{ flex: '1', textAlign: 'right', minWidth: '300px' }}>
+                        <h1 style={{ fontSize: '3rem', fontWeight: '900', lineHeight: '1.4', marginBottom: '15px', color: '#22c55e' }} dangerouslySetInnerHTML={{ __html: slide.title || '' }} />
+                        <p style={{ color: '#fff', fontSize: '1.2rem', fontWeight: '500', marginBottom: '25px', maxWidth: '550px', lineHeight: '1.5' }}>{slide.subtitle}</p>
+                        <Link href={slide.button_link || '/store'} style={{ padding: '12px 30px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.95rem', display: 'inline-block' }}>{slide.button_text || 'تصفح المتجر'}</Link>
+                      </div>
+                      
+                      <div className="hero-content-left" style={{ width: '400px', backgroundColor: '#fff', padding: '30px', borderRadius: '30px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+                        <h3 style={{ marginBottom: '20px', fontSize: '1.2rem', fontWeight: '900', textAlign: 'center' }}>ابحث بمواصفات سيارتك</h3>
+                        {selectLoaded && (
+                          <>
+                            <div style={{marginBottom: '12px'}}><label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>الماركة</label><Select instanceId="make-select" options={makesOptions} styles={customSelectStyles} placeholder="اختر الماركة" isRtl={true} onChange={(opt) => setSelectedMake(opt)} formatOptionLabel={(brand: any) => (<div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>{brand.logo ? <img src={brand.logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} /> : <Car size={20} color="#ccc" />}<span>{brand.label}</span></div>)} /></div>
+                            <div style={{marginBottom: '12px'}}><label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>الموديل</label><Select instanceId="model-select" options={modelsOptions} styles={customSelectStyles} placeholder="اختر الموديل" isRtl={true} value={selectedModel} isDisabled={!selectedMake} onChange={(opt) => setSelectedModel(opt)} /></div>
+                          </>
+                        )}
+                        <div style={{marginBottom: '12px'}}><label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>سنة الصنع</label><input type="text" placeholder="مثلاً: 2024" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} style={{ width: '100%', height: '52px', padding: '0 15px', backgroundColor: '#f8f8f8', border: 'none', borderRadius: '12px', fontSize: '1rem', outline: 'none' }} /></div>
+                        <button onClick={handleSearch} style={{ width: '100%', marginTop: '15px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', padding: '16px', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontSize: '1.1rem' }}>بحث الآن <ChevronLeft size={22} /></button>
                       </div>
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  </div>
+                </div>
+              ))}
             </section>
+
 
             {/* Brand Logos */}
             {brandLogos.length > 0 && (
-              <ScrollReveal direction="up" delay={0.1}>
+              <ScrollReveal direction="up" delay={0.05}>
                 <section style={{ padding: '12px 0', background: '#fff', borderBottom: '1px solid #f5f5f5' }}>
                   <div style={{ overflow: 'hidden', direction: 'ltr' }}><div className="marquee-inner">{[...brandLogos, ...brandLogos].map((brand, index) => (<div key={index} className="brand-logo-wrap"><Link href={`/store?brand=${brand.name}`}><img src={brand.logo_url} alt={brand.name} className="logo-img-v3" loading="lazy"/></Link></div>))}</div></div>
                 </section>
               </ScrollReveal>
             )}
 
+
             {/* عروض حصرية */}
             {saleProducts.length > 0 && (
-              <ScrollReveal direction="up" delay={0.15}>
+              <ScrollReveal direction="up" delay={0.1}>
                 <section style={{ padding: '25px 0', maxWidth: '1200px', margin: '0 auto' }}>
                   <div style={{ padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '15px' }}>
                     <div><div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ff4d4d', marginBottom: '4px' }}><Zap size={16} fill="#ff4d4d" /><span style={{ fontWeight: '800', fontSize: '0.85rem' }}>أقوى الخصومات</span></div><h2 style={{ fontSize: '1.8rem', fontWeight: '900', margin: 0 }}>عروض حصرية 🔥</h2></div>
@@ -389,9 +694,10 @@ export default function HomePage() {
               </ScrollReveal>
             )}
 
+
             {/* تريند الآن */}
             {bestSellers.length > 0 && (
-              <ScrollReveal direction="up" delay={0.2}>
+              <ScrollReveal direction="up" delay={0.15}>
                 <section style={{ padding: '25px 0', maxWidth: '1200px', margin: '0 auto', background: '#fff', borderRadius: '30px' }}>
                   <div style={{ padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '15px' }}>
                     <div><div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#22c55e', marginBottom: '4px' }}><Flame size={16} fill="#22c55e" /><span style={{ fontWeight: '800', fontSize: '0.85rem' }}>الأكثر طلباً</span></div><h2 style={{ fontSize: '1.8rem', fontWeight: '900', margin: 0 }}>تريند الآن 🔥</h2></div>
@@ -429,18 +735,19 @@ export default function HomePage() {
               </ScrollReveal>
             )}
 
+
             {/* Categories */}
-            <ScrollReveal direction="up" delay={0.25}>
+            <ScrollReveal direction="up" delay={0.2}>
               <section style={{ padding: '40px 20px 80px', maxWidth: '1200px', margin: '0 auto' }}>
                 <div style={{ textAlign: 'right', marginBottom: '30px' }}><h2 style={{ fontSize: '2.2rem', fontWeight: '900', margin: 0 }}>تسوق حسب الفئة</h2></div>
                 <div className="category-grid-v3">
                   {categories.map((cat, index) => (
                     <motion.div
                       key={index}
-                      initial={{ opacity: 0, y: 30 }}
+                      initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ delay: index * 0.1, duration: 0.5 }}
+                      transition={{ delay: index * 0.08, duration: 0.4, ease: 'easeOut' }}
                     >
                       <Link href={`/categories/${encodeURIComponent(cat.name)}`}>
                         <div className="category-item-mdrn">
@@ -454,14 +761,126 @@ export default function HomePage() {
               </section>
             </ScrollReveal>
 
-          </motion.div>
+
+          </div>
         )}
       </div>
     </>
   );
 }
 
-const fullPageLoaderStyle: any = { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 };
-const logoCircle: any = { width: '80px', height: '80px', borderRadius: '50%', backgroundColor: '#eefcf5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', boxShadow: '0 10px 20px rgba(34, 197, 94, 0.1)' };
+
+const fullPageLoaderStyle: any = { 
+  position: 'fixed', 
+  top: 0, 
+  left: 0, 
+  width: '100%', 
+  height: '100%', 
+  background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)', 
+  display: 'flex', 
+  alignItems: 'center', 
+  justifyContent: 'center', 
+  zIndex: 99999 
+};
+
+
+const logoContainer: any = { 
+  marginBottom: '30px'
+};
+
+
+const logoImage: any = {
+  width: '180px',
+  height: 'auto',
+  filter: 'drop-shadow(0 20px 40px rgba(34, 197, 94, 0.3))'
+};
+
+const brandNameText: any = {
+  fontSize: '4rem',
+  fontWeight: '900',
+  fontStyle: 'italic',
+  letterSpacing: '-2px',
+  marginBottom: '25px',
+  lineHeight: '1',
+  textTransform: 'uppercase',
+  filter: 'drop-shadow(0 10px 30px rgba(34, 197, 94, 0.4))'
+};
+
+
+const mainHeadline: any = { 
+  color: '#fff', 
+  fontWeight: '900', 
+  fontSize: '3.5rem', 
+  marginBottom: '20px',
+  letterSpacing: '-1px',
+  lineHeight: '1.2',
+  textShadow: '0 4px 20px rgba(34, 197, 94, 0.3)'
+};
+
+
+const tagline: any = { 
+  color: '#a0a0a0', 
+  fontSize: '1.3rem', 
+  fontWeight: '600', 
+  marginBottom: '45px',
+  lineHeight: '1.7'
+};
+
+
+const loadingBarContainer: any = {
+  width: '100%',
+  height: '5px',
+  backgroundColor: 'rgba(255,255,255,0.1)',
+  borderRadius: '10px',
+  overflow: 'hidden',
+  marginBottom: '40px',
+  boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.3)'
+};
+
+
+const loadingBar: any = {
+  height: '100%',
+  background: 'linear-gradient(90deg, #22c55e 0%, #16a34a 50%, #22c55e 100%)',
+  borderRadius: '10px',
+  boxShadow: '0 0 20px rgba(34, 197, 94, 0.5)'
+};
+
+
+const messageContainer: any = {
+  marginBottom: '35px',
+  minHeight: '35px'
+};
+
+
+const messageText: any = {
+  fontSize: '1.15rem',
+  fontWeight: '700',
+  color: '#fff'
+};
+
+
+const featurePills: any = {
+  display: 'flex',
+  gap: '15px',
+  justifyContent: 'center',
+  flexWrap: 'wrap'
+};
+
+
+const pill: any = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  padding: '10px 20px',
+  backgroundColor: 'rgba(34, 197, 94, 0.15)',
+  border: '1px solid rgba(34, 197, 94, 0.3)',
+  borderRadius: '25px',
+  fontSize: '0.85rem',
+  fontWeight: '700',
+  color: '#22c55e',
+  backdropFilter: 'blur(10px)'
+};
+
+
 const arrowBtnSmall = { width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#fff', border: '1px solid #eee', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.2s' };
 const cartBtnStyleSmall: any = { width: '100%', padding: '12px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '1rem', transition: '0.2s' };
