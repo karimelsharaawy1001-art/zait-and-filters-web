@@ -6,7 +6,6 @@ import { CartProvider } from '@/context/CartContext'
 import CartDrawer from '@/components/CartDrawer'
 import { Toaster } from 'react-hot-toast'
 import { AbandonedCartTracker } from '@/components/AbandonedCartTracker'
-import SmoothScroll from '@/components/SmoothScroll'
 import PageTransition from '@/components/PageTransition'
 import ScrollProgress from '@/components/ScrollProgress'
 import type { Metadata } from 'next'
@@ -17,7 +16,6 @@ const almarai = Almarai({
   display: 'swap',
 });
 
-// --- الـ Metadata المطورة لقطع الغيار الأصلية ---
 export const metadata: Metadata = {
   title: {
     default: "زيت أند فلترز | اكبر موقع لقطع غيار السيارات في مصر",
@@ -87,7 +85,7 @@ export const metadata: Metadata = {
     canonical: 'https://zaitandfilters.com',
   },
   verification: {
-    google: 'your-google-verification-code', // Add after Google Search Console setup
+    google: 'your-google-verification-code',
   },
   other: {
     'apple-mobile-web-app-title': 'Zait & Filters',
@@ -101,7 +99,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" style={{ scrollBehavior: 'smooth' }}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -109,7 +107,6 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body className={almarai.className}>
-        {/* --- 🎯 رادار المسوقين: التقاط كود الريفيرال من اللينك وتخزينه --- */}
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
             try {
@@ -124,36 +121,33 @@ export default function RootLayout({
         `}} />
 
         <CartProvider>
-          <SmoothScroll>
-            {/* Scroll Progress Bar */}
-            <ScrollProgress />
-            
-            <Toaster 
-              position="bottom-right"
-              toastOptions={{
-                style: {
-                  fontFamily: 'inherit',
-                  borderRadius: '12px',
-                  background: '#333',
-                  color: '#fff',
-                },
-              }}
-            />
-            
-            {/* ✅ Abandoned Cart Tracker - Tracks cart activity silently */}
-            <AbandonedCartTracker />
-            
-            <ProfessionalNavbar />
-            <CartDrawer />
-            
-            <PageTransition>
-              <main>
-                {children}
-              </main>
-            </PageTransition>
+          {/* Scroll Progress Bar */}
+          <ScrollProgress />
+          
+          <Toaster 
+            position="bottom-right"
+            toastOptions={{
+              style: {
+                fontFamily: 'inherit',
+                borderRadius: '12px',
+                background: '#333',
+                color: '#fff',
+              },
+            }}
+          />
+          
+          <AbandonedCartTracker />
+          
+          <ProfessionalNavbar />
+          <CartDrawer />
+          
+          <PageTransition>
+            <main>
+              {children}
+            </main>
+          </PageTransition>
 
-            <ProfessionalFooter />
-          </SmoothScroll>
+          <ProfessionalFooter />
         </CartProvider>
       </body>
     </html>
