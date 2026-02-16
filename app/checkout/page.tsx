@@ -376,18 +376,26 @@ export default function CheckoutPage() {
             <label style={lab}>الاسم بالكامل</label>
             <input 
               value={customerInfo.name} 
-              onChange={(e)=>setCustomerInfo({...customerInfo, name: e.target.value})} 
+              onChange={(e) => {
+                setCustomerInfo({...customerInfo, name: e.target.value});
+                localStorage.setItem('checkout_name', e.target.value);
+              }}
               onBlur={trackAbandonedCart}
-              required style={inp} 
+              required 
+              style={inp} 
             />
           </div>
           <div style={inputGroup}>
             <label style={lab}>رقم الموبايل</label>
             <input 
               value={customerInfo.phone} 
-              onChange={(e)=>setCustomerInfo({...customerInfo, phone: e.target.value})} 
+              onChange={(e) => {
+                setCustomerInfo({...customerInfo, phone: e.target.value});
+                localStorage.setItem('checkout_phone', e.target.value);
+              }}
               onBlur={trackAbandonedCart}
-              required style={inp} 
+              required 
+              style={inp} 
             />
           </div>
           
@@ -397,7 +405,10 @@ export default function CheckoutPage() {
               type="email" 
               placeholder="example@mail.com"
               value={customerInfo.email} 
-              onChange={(e)=>setCustomerInfo({...customerInfo, email: e.target.value})} 
+              onChange={(e) => {
+                setCustomerInfo({...customerInfo, email: e.target.value});
+                localStorage.setItem('checkout_email', e.target.value);
+              }}
               onBlur={trackAbandonedCart}
               required 
               style={inp} 
