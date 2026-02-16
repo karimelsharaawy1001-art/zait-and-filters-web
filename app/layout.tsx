@@ -6,6 +6,9 @@ import { CartProvider } from '@/context/CartContext'
 import CartDrawer from '@/components/CartDrawer'
 import { Toaster } from 'react-hot-toast'
 import { AbandonedCartTracker } from '@/components/AbandonedCartTracker'
+import SmoothScroll from '@/components/SmoothScroll'
+import PageTransition from '@/components/PageTransition'
+import ScrollProgress from '@/components/ScrollProgress'
 import type { Metadata } from 'next'
 
 const almarai = Almarai({ 
@@ -121,30 +124,36 @@ export default function RootLayout({
         `}} />
 
         <CartProvider>
-          <Toaster 
-            position="bottom-right"
-            toastOptions={{
-              style: {
-                fontFamily: 'inherit',
-                borderRadius: '12px',
-                background: '#333',
-                color: '#fff',
-              },
-            }}
-          />
-          
-          {/* ✅ Abandoned Cart Tracker - Tracks cart activity silently */}
-          <AbandonedCartTracker />
-          
-          <ProfessionalNavbar />
-          <CartDrawer />
-          
-          <main>
-            {children}
-          </main>
+          <SmoothScroll>
+            {/* Scroll Progress Bar */}
+            <ScrollProgress />
+            
+            <Toaster 
+              position="bottom-right"
+              toastOptions={{
+                style: {
+                  fontFamily: 'inherit',
+                  borderRadius: '12px',
+                  background: '#333',
+                  color: '#fff',
+                },
+              }}
+            />
+            
+            {/* ✅ Abandoned Cart Tracker - Tracks cart activity silently */}
+            <AbandonedCartTracker />
+            
+            <ProfessionalNavbar />
+            <CartDrawer />
+            
+            <PageTransition>
+              <main>
+                {children}
+              </main>
+            </PageTransition>
 
-          <ProfessionalFooter />
-          
+            <ProfessionalFooter />
+          </SmoothScroll>
         </CartProvider>
       </body>
     </html>
