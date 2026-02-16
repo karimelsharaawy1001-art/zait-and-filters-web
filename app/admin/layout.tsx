@@ -21,6 +21,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     /* --- الزرار الجديد المضاف لإدارة المسوقين --- */
     { name: 'إدارة المسوقين', href: '/admin/marketers', icon: '👥' },
     /* ----------------------------------------- */
+    { name: 'السلات المتروكة', href: '/admin/abandoned-carts', icon: '🛒' },
     { name: 'رسائل العملاء', href: '/admin/messages', icon: '💬' },
   ];
 
