@@ -264,8 +264,8 @@ export default function HomePage() {
           .product-grid-carousel { display: flex !important; flex-wrap: nowrap !important; gap: 15px; overflow-x: auto !important; scroll-snap-type: x mandatory; padding: 10px 20px; -webkit-overflow-scrolling: touch; }
           .product-card-mdrn { flex: 0 0 320px !important; min-width: 320px !important; max-width: 320px !important; background: #fff; border-radius: 18px; border: 1px solid #f2f2f2; transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; overflow: hidden; scroll-snap-align: start; }
           .product-card-mdrn:hover { transform: translateY(-6px); border-color: #22c55e; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.15); }
-          .img-container { background: #f9f9f9; height: 180px; width: 100%; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; overflow: hidden; }
-          .img-fill-100 { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+          .img-container { background: #f9f9f9; height: 200px; width: 100%; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; overflow: hidden; }
+          .img-fill-100 { width: 100%; height: 100%; object-fit: contain; padding: 15px; transition: transform 0.3s ease; }
           .img-container:hover .img-fill-100 { transform: scale(1.05); }
           .category-grid-v3 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 20px; }
           .category-item-mdrn { position: relative; height: 220px; border-radius: 20px; overflow: hidden; background-color: #1a1a1a; transition: 0.3s ease; cursor: pointer; }
@@ -282,6 +282,7 @@ export default function HomePage() {
           @media (max-width: 768px) { 
             .category-grid-v3 { grid-template-columns: repeat(2, 1fr); gap: 10px; }
             .product-card-mdrn { flex: 0 0 280px !important; min-width: 280px !important; max-width: 280px !important; }
+            .img-container { height: 180px; }
           }
         `}} />
 
