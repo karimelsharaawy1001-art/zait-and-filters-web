@@ -3,9 +3,11 @@ import Link from 'next/link';
 import { 
   Trophy, Rocket, DollarSign, ShieldCheck, 
   BarChart3, Share2, Wallet, CheckCircle2, 
-  Zap, Users, Percent, Ticket, ArrowRight, Star
+  Zap, Users, Percent, Ticket, ArrowRight, Star,
+  LogIn, UserPlus
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+
 
 export default function AffiliateLanding() {
   return (
@@ -20,7 +22,21 @@ export default function AffiliateLanding() {
         @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } }
         .float-anim { animation: float 4s ease-in-out infinite; }
         .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .auth-btn-login:hover { background: rgba(255, 255, 255, 0.15) !important; border-color: #27ae60 !important; }
+        .auth-btn-signup:hover { background: #2ecc71 !important; box-shadow: 0 0 20px rgba(39, 174, 96, 0.5) !important; }
       `}} />
+
+      {/* Affiliate Auth Buttons - Top Right */}
+      <div style={authButtonsContainer}>
+        <Link href="/affiliate/login" style={authLoginButton} className="auth-btn-login">
+          <LogIn size={18} />
+          <span>تسجيل دخول المسوقين</span>
+        </Link>
+        <Link href="/affiliate/signup" style={authSignupButton} className="auth-btn-signup">
+          <UserPlus size={18} />
+          <span>إبدأ الربح الآن</span>
+        </Link>
+      </div>
 
       {/* --- القسم الأول: الهيرو (Hero Section) --- */}
       <section style={heroSection} className="hero-gradient">
@@ -42,6 +58,7 @@ export default function AffiliateLanding() {
           حول شبكة علاقاتك إلى <br />
           <span style={highlightText}>أرباح تصل إلى 10%</span>
         </motion.h1>
+
 
         <motion.p 
           initial={{ opacity: 0 }}
@@ -67,6 +84,7 @@ export default function AffiliateLanding() {
           </Link>
         </motion.div>
 
+
         <div style={statsBanner} className="glass-panel">
           {/* تم تعديل عدد المسوقين هنا ليكون +500 */}
           <div style={statItem}><Users size={22} color="#27ae60"/> <span>+500 مسوق نشط</span></div>
@@ -76,6 +94,7 @@ export default function AffiliateLanding() {
           <div style={statItem}><ShieldCheck size={22} color="#27ae60"/> <span>سحب أرباح أسبوعي</span></div>
         </div>
       </section>
+
 
       {/* --- القسم الثاني: خطوات العمل (3 Steps) --- */}
       <section style={sectionPadding}>
@@ -108,6 +127,7 @@ export default function AffiliateLanding() {
         </div>
       </section>
 
+
       {/* --- القسم الثالث: المميزات (Why Us) --- */}
       <section style={{ ...sectionPadding, backgroundColor: '#080808', position: 'relative', overflow: 'hidden' }}>
         <div style={bgGlow} />
@@ -127,6 +147,7 @@ export default function AffiliateLanding() {
           ))}
         </div>
       </section>
+
 
       {/* --- القسم الرابع: الخاتمة (CTA) --- */}
       <section style={ctaSection}>
@@ -149,6 +170,7 @@ export default function AffiliateLanding() {
   );
 }
 
+
 // --- البيانات ---
 const features = [
   { title: "عمولات تصاعدية", desc: "ابدأ بـ 5% وتدرج حتى تصل إلى 10% بناءً على نشاطك الشهري مبيعاتك.", icon: <Percent size={24} color="#27ae60" /> },
@@ -159,13 +181,64 @@ const features = [
   { title: "دعم فني 24/7", desc: "مدير حساب مخصص للرد على استفساراتك ومساعدتك في تطوير خطتك التسويقية.", icon: <CheckCircle2 size={24} color="#27ae60" /> },
 ];
 
+
 // --- التنسيقات ---
-const container: any = { backgroundColor: '#050505', color: '#fff', direction: 'rtl', minHeight: '100vh', fontFamily: 'inherit' };
+const container: any = { backgroundColor: '#050505', color: '#fff', direction: 'rtl', minHeight: '100vh', fontFamily: 'inherit', position: 'relative' };
+
+// Auth Buttons Styles
+const authButtonsContainer: any = {
+  position: 'fixed',
+  top: '100px',
+  left: '20px',
+  display: 'flex',
+  gap: '12px',
+  zIndex: 999,
+  flexDirection: 'column'
+};
+
+const authLoginButton: any = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  padding: '12px 20px',
+  background: 'rgba(255, 255, 255, 0.08)',
+  border: '1px solid rgba(255, 255, 255, 0.15)',
+  borderRadius: '14px',
+  color: '#fff',
+  textDecoration: 'none',
+  fontSize: '0.85rem',
+  fontWeight: 'bold',
+  transition: 'all 0.3s ease',
+  backdropFilter: 'blur(10px)',
+  cursor: 'pointer',
+  whiteSpace: 'nowrap'
+};
+
+const authSignupButton: any = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  padding: '12px 20px',
+  background: 'linear-gradient(135deg, #27ae60 0%, #229954 100%)',
+  border: 'none',
+  borderRadius: '14px',
+  color: '#fff',
+  textDecoration: 'none',
+  fontSize: '0.85rem',
+  fontWeight: 'bold',
+  boxShadow: '0 4px 15px rgba(39, 174, 96, 0.3)',
+  transition: 'all 0.3s ease',
+  cursor: 'pointer',
+  whiteSpace: 'nowrap'
+};
+
 const heroSection: any = { padding: '120px 20px', textAlign: 'center', borderBottom: '1px solid #111', position: 'relative' };
 const badge: any = { background: 'rgba(39, 174, 96, 0.1)', color: '#27ae60', padding: '10px 25px', borderRadius: '50px', fontSize: '0.95rem', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '10px', marginBottom: '30px', border: '1px solid rgba(39, 174, 96, 0.3)' };
 
+
 // تم زيادة الـ lineHeight لـ 1.6 لضمان وجود مسافة كافية بين العنوان الأبيض والأخضر
 const mainTitle: any = { fontSize: 'clamp(2.5rem, 8vw, 4.5rem)', fontWeight: '950', marginBottom: '25px', lineHeight: '1.6', letterSpacing: '-1px' };
+
 
 const highlightText: any = { color: '#27ae60', textShadow: '0 0 40px rgba(39, 174, 96, 0.4)' };
 const heroDesc: any = { fontSize: '1.25rem', color: '#999', maxWidth: '850px', margin: '0 auto 50px', lineHeight: '1.8' };
@@ -176,6 +249,7 @@ const statsBanner: any = { display: 'inline-flex', justifyContent: 'center', gap
 const statItem: any = { display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1rem', fontWeight: '600' };
 const dividerV: any = { width: '1px', height: '25px', background: 'rgba(255,255,255,0.1)' };
 
+
 const sectionPadding: any = { padding: '100px 20px', maxWidth: '1200px', margin: '0 auto' };
 const sectionTitle: any = { textAlign: 'center', fontSize: '2.8rem', fontWeight: '900', marginBottom: '20px', letterSpacing: '-1px' };
 const stepsGrid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', marginTop: '50px' };
@@ -183,11 +257,13 @@ const stepCard: any = { position: 'relative', padding: '50px 30px', textAlign: '
 const stepNumber: any = { position: 'absolute', top: '25px', left: '25px', color: 'rgba(39, 174, 96, 0.2)', fontWeight: '900', fontSize: '3rem', lineHeight: '1' };
 const iconBox: any = { width: '80px', height: '80px', background: 'rgba(39, 174, 96, 0.05)', borderRadius: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 25px', border: '1px solid rgba(39, 174, 96, 0.1)' };
 
+
 const featuresGrid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '25px', marginTop: '20px' };
 const featureCard: any = { padding: '40px', borderRadius: '35px', transition: '0.3s', textAlign: 'right', position: 'relative', zIndex: 1 };
 const iconCircle: any = { width: '60px', height: '60px', background: 'rgba(39, 174, 96, 0.1)', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '25px', border: '1px solid rgba(39, 174, 96, 0.2)' };
 const cardHeader: any = { fontSize: '1.5rem', fontWeight: '800', marginBottom: '15px', color: '#fff' };
 const cardText: any = { color: '#888', lineHeight: '1.7', fontSize: '1.05rem', margin: 0 };
+
 
 const ctaSection: any = { padding: '100px 20px', textAlign: 'center' };
 const ctaBox: any = { maxWidth: '1000px', margin: '0 auto', background: 'linear-gradient(145deg, #1a472a 0%, #27ae60 100%)', padding: '80px 40px', borderRadius: '50px', position: 'relative', overflow: 'hidden', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' };
