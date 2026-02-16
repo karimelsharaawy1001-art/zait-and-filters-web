@@ -10,6 +10,7 @@ import {
 import toast from 'react-hot-toast';
 
 
+
 // --- مكون كارت المنتج (نفس تصميم الصفحة الرئيسية) ---
 const ProductCard = memo(({ p }: { p: any }) => {
   const { addToCart } = useCart(); 
@@ -20,6 +21,7 @@ const ProductCard = memo(({ p }: { p: any }) => {
   const hasDiscount = salePrice > 0 && regularPrice > salePrice;
   const discountPercent = hasDiscount ? Math.round(((regularPrice - salePrice) / regularPrice) * 100) : 0;
 
+
   return (
     <div style={productCardModern}>
       {/* Discount or Trending Badge */}
@@ -28,6 +30,7 @@ const ProductCard = memo(({ p }: { p: any }) => {
       ) : (
         <div style={trendingBadge}>تريند ✨</div>
       )}
+
 
       {/* Product Image */}
       <Link href={`/products/${p.id}`} style={imgContainerStyle}>
@@ -43,6 +46,7 @@ const ProductCard = memo(({ p }: { p: any }) => {
         </div>
       </Link>
 
+
       {/* Product Details */}
       <div style={productDetailsArea}>
         {/* Brand and Origin */}
@@ -54,8 +58,10 @@ const ProductCard = memo(({ p }: { p: any }) => {
           </div>
         </div>
 
+
         {/* Product Name */}
         <h3 style={productNameStyle}>{p.name}</h3>
+
 
         {/* Car Info Box */}
         <div style={carInfoBox}>
@@ -77,6 +83,7 @@ const ProductCard = memo(({ p }: { p: any }) => {
           </div>
         </div>
 
+
         {/* Pricing */}
         <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div>
@@ -85,6 +92,7 @@ const ProductCard = memo(({ p }: { p: any }) => {
             )}
             <span style={currentPriceStyle}>{price} ج.م</span>
           </div>
+
 
           {/* Add to Cart Button */}
           <button 
@@ -100,13 +108,15 @@ const ProductCard = memo(({ p }: { p: any }) => {
 });
 
 
+
 function StoreContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [allProducts, setAllProducts] = useState<any[]>([]); 
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 15;
+  const itemsPerPage = 16;
+
 
 
   useEffect(() => {
@@ -120,6 +130,7 @@ function StoreContent() {
   }, []);
 
 
+
   const filteredProducts = useMemo(() => {
     let list = [...allProducts];
     const m = searchParams.get('make')?.toLowerCase();
@@ -128,20 +139,25 @@ function StoreContent() {
     const s = searchParams.get('sub')?.toLowerCase();
     const y = searchParams.get('year');
 
+
     if (m) list = list.filter(p => p.car_make?.toLowerCase().trim() === m);
     if (mo) list = list.filter(p => p.car_model?.toLowerCase().trim() === mo);
     if (c) list = list.filter(p => p.category?.toLowerCase().trim() === c);
     if (s) list = list.filter(p => p.subcategory?.toLowerCase().trim() === s);
     if (y) list = list.filter(p => p.car_model_year?.toString().includes(y));
 
+
     return list;
   }, [allProducts, searchParams]);
+
 
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const displayProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+
   useEffect(() => { setCurrentPage(1); }, [searchParams]);
+
 
   const filterOptions = useMemo(() => {
     const getUnique = (key: string) => Array.from(new Set(allProducts.map(i => i[key]?.trim()).filter(Boolean))).sort();
@@ -151,10 +167,12 @@ function StoreContent() {
       allProducts.filter(p => !selMake || p.car_make?.toLowerCase().trim() === selMake).map(i => i.car_model?.trim()).filter(Boolean)
     )).sort();
 
+
     const selCat = searchParams.get('cat')?.toLowerCase();
     const subCats = Array.from(new Set(
       allProducts.filter(p => !selCat || p.category?.toLowerCase().trim() === selCat).map(i => i.subcategory?.trim()).filter(Boolean)
     )).sort();
+
 
     return {
       makes: getUnique('car_make'),
@@ -165,6 +183,7 @@ function StoreContent() {
     };
   }, [allProducts, searchParams]);
 
+
   const onFilterChange = (key: string, val: string) => {
     const p = new URLSearchParams(window.location.search);
     if (val) p.set(key, val); else p.delete(key);
@@ -173,8 +192,22 @@ function StoreContent() {
     router.push(`/store?${p.toString()}`);
   };
 
+
   return (
     <div style={{ backgroundColor: '#fcfcfc', minHeight: '100vh', direction: 'rtl', padding: '20px' }}>
+      <style dangerouslySetInnerHTML={{ __html: `
+        .modern-grid-responsive {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 20px;
+        }
+        @media (max-width: 768px) {
+          .modern-grid-responsive {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+          }
+        }
+      `}} />
       <div style={mainLayoutWrapper}>
         <aside style={sidebarStyle}>
           <div style={sidebarHeader}><Filter size={16} /> تصفية البحث</div>
@@ -188,14 +221,16 @@ function StoreContent() {
           </div>
         </aside>
 
+
         <main style={{ flex: 1 }}>
           {loading ? (
             <div style={{textAlign:'center', padding:'100px'}}><Loader2 className="animate-spin" size={40} color="#22c55e" /></div>
           ) : (
             <>
-              <div style={modernGrid}>
+              <div className="modern-grid-responsive">
                 {displayProducts.map(p => <ProductCard p={p} key={p.id} />)}
               </div>
+
 
               {totalPages > 1 && (
                 <div style={pagCenterContainer}>
@@ -214,7 +249,9 @@ function StoreContent() {
   );
 }
 
+
 export default function StorePage() { return <Suspense fallback={null}><StoreContent /></Suspense>; }
+
 
 // --- الأنماط (Updated to match homepage) ---
 const mainLayoutWrapper: any = { maxWidth: '1200px', margin: '0 auto', display: 'flex', gap: '25px', flexWrap: 'wrap' };
@@ -224,12 +261,6 @@ const labelS = { display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marg
 const selectS = { width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '0.85rem', outline: 'none' };
 const resetBtn = { width: '100%', marginTop: '10px', padding: '10px', border: 'none', background: '#fef2f2', borderRadius: '8px', cursor: 'pointer', color: '#ef4444', fontWeight: 'bold' };
 
-// Modern Grid matching homepage
-const modernGrid: any = { 
-  display: 'grid', 
-  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
-  gap: '20px' 
-};
 
 // Product Card Styles (matching homepage exactly)
 const productCardModern: any = { 
@@ -242,6 +273,7 @@ const productCardModern: any = {
   flexDirection: 'column',
   transition: 'all 0.3s ease'
 };
+
 
 const discountBadge: any = { 
   position: 'absolute', 
@@ -256,6 +288,7 @@ const discountBadge: any = {
   zIndex: 10 
 };
 
+
 const trendingBadge: any = { 
   position: 'absolute', 
   top: '8px', 
@@ -268,6 +301,7 @@ const trendingBadge: any = {
   fontWeight: '900', 
   zIndex: 10 
 };
+
 
 const imgContainerStyle: any = { 
   background: '#f9f9f9', 
@@ -282,6 +316,7 @@ const imgContainerStyle: any = {
   textDecoration: 'none'
 };
 
+
 const imgFillStyle: any = { 
   width: '100%', 
   height: '100%', 
@@ -289,6 +324,7 @@ const imgFillStyle: any = {
   padding: '15px', 
   transition: 'transform 0.3s ease' 
 };
+
 
 const carMakeBadge: any = { 
   position: 'absolute', 
@@ -304,6 +340,7 @@ const carMakeBadge: any = {
   gap: '4px'
 };
 
+
 const productDetailsArea: any = { 
   padding: '15px', 
   flex: 1, 
@@ -311,11 +348,13 @@ const productDetailsArea: any = {
   flexDirection: 'column' 
 };
 
+
 const brandTextStyle: any = { 
   color: '#22c55e', 
   fontWeight: '800', 
   fontSize: '0.8rem' 
 };
+
 
 const originBadgeStyle: any = { 
   display: 'flex', 
@@ -325,6 +364,7 @@ const originBadgeStyle: any = {
   fontWeight: '700',
   fontSize: '0.75rem'
 };
+
 
 const productNameStyle: any = { 
   fontSize: '1rem', 
@@ -338,6 +378,7 @@ const productNameStyle: any = {
   WebkitBoxOrient: 'vertical'
 };
 
+
 const carInfoBox: any = { 
   background: '#f9f9f9', 
   padding: '10px', 
@@ -348,6 +389,7 @@ const carInfoBox: any = {
   gap: '3px'
 };
 
+
 const carInfoItem: any = {
   fontSize: '0.8rem', 
   color: '#1a1a1a', 
@@ -356,6 +398,7 @@ const carInfoItem: any = {
   alignItems: 'center', 
   gap: '6px'
 };
+
 
 const carInfoItemGreen: any = {
   fontSize: '0.8rem', 
@@ -366,6 +409,7 @@ const carInfoItemGreen: any = {
   gap: '6px'
 };
 
+
 const carInfoItemSecondary: any = {
   fontSize: '0.8rem', 
   color: '#888', 
@@ -375,6 +419,7 @@ const carInfoItemSecondary: any = {
   gap: '6px'
 };
 
+
 const originalPriceStyle: any = { 
   display: 'block', 
   color: '#bbb', 
@@ -382,11 +427,13 @@ const originalPriceStyle: any = {
   fontSize: '0.75rem' 
 };
 
+
 const currentPriceStyle: any = { 
   fontSize: '1.2rem', 
   fontWeight: '900',
   color: '#1a1a1a'
 };
+
 
 const addToCartButton: any = { 
   width: '100%', 
@@ -404,6 +451,7 @@ const addToCartButton: any = {
   fontSize: '1rem', 
   transition: '0.2s' 
 };
+
 
 const pagCenterContainer: any = { display: 'flex', justifyContent: 'center', marginTop: '40px', width: '100%' };
 const compactPagBox: any = { display: 'flex', alignItems: 'center', gap: '15px', background: '#fff', padding: '8px 20px', borderRadius: '30px', border: '1px solid #eee', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' };
