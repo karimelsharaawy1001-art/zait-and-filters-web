@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 
 
 
+
 // --- مكون كارت المنتج (نفس تصميم الصفحة الرئيسية) ---
 const ProductCard = memo(({ p }: { p: any }) => {
   const { addToCart } = useCart(); 
@@ -22,6 +23,7 @@ const ProductCard = memo(({ p }: { p: any }) => {
   const discountPercent = hasDiscount ? Math.round(((regularPrice - salePrice) / regularPrice) * 100) : 0;
 
 
+
   return (
     <div style={productCardModern}>
       {/* Discount or Trending Badge */}
@@ -30,6 +32,7 @@ const ProductCard = memo(({ p }: { p: any }) => {
       ) : (
         <div style={trendingBadge}>تريند ✨</div>
       )}
+
 
 
       {/* Product Image */}
@@ -47,6 +50,7 @@ const ProductCard = memo(({ p }: { p: any }) => {
       </Link>
 
 
+
       {/* Product Details */}
       <div style={productDetailsArea}>
         {/* Brand and Origin */}
@@ -59,8 +63,10 @@ const ProductCard = memo(({ p }: { p: any }) => {
         </div>
 
 
+
         {/* Product Name */}
         <h3 style={productNameStyle}>{p.name}</h3>
+
 
 
         {/* Car Info Box */}
@@ -84,6 +90,7 @@ const ProductCard = memo(({ p }: { p: any }) => {
         </div>
 
 
+
         {/* Pricing */}
         <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div>
@@ -92,6 +99,7 @@ const ProductCard = memo(({ p }: { p: any }) => {
             )}
             <span style={currentPriceStyle}>{price} ج.م</span>
           </div>
+
 
 
           {/* Add to Cart Button */}
@@ -109,6 +117,7 @@ const ProductCard = memo(({ p }: { p: any }) => {
 
 
 
+
 function StoreContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -117,6 +126,7 @@ function StoreContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [filterOpen, setFilterOpen] = useState(false);
   const itemsPerPage = 16;
+
 
 
 
@@ -132,6 +142,7 @@ function StoreContent() {
 
 
 
+
   const filteredProducts = useMemo(() => {
     let list = [...allProducts];
     const m = searchParams.get('make')?.toLowerCase();
@@ -141,6 +152,7 @@ function StoreContent() {
     const y = searchParams.get('year');
 
 
+
     if (m) list = list.filter(p => p.car_make?.toLowerCase().trim() === m);
     if (mo) list = list.filter(p => p.car_model?.toLowerCase().trim() === mo);
     if (c) list = list.filter(p => p.category?.toLowerCase().trim() === c);
@@ -148,8 +160,10 @@ function StoreContent() {
     if (y) list = list.filter(p => p.car_model_year?.toString().includes(y));
 
 
+
     return list;
   }, [allProducts, searchParams]);
+
 
 
 
@@ -157,7 +171,9 @@ function StoreContent() {
   const displayProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
 
+
   useEffect(() => { setCurrentPage(1); }, [searchParams]);
+
 
 
   const filterOptions = useMemo(() => {
@@ -169,10 +185,12 @@ function StoreContent() {
     )).sort();
 
 
+
     const selCat = searchParams.get('cat')?.toLowerCase();
     const subCats = Array.from(new Set(
       allProducts.filter(p => !selCat || p.category?.toLowerCase().trim() === selCat).map(i => i.subcategory?.trim()).filter(Boolean)
     )).sort();
+
 
 
     return {
@@ -185,6 +203,7 @@ function StoreContent() {
   }, [allProducts, searchParams]);
 
 
+
   const onFilterChange = (key: string, val: string) => {
     const p = new URLSearchParams(window.location.search);
     if (val) p.set(key, val); else p.delete(key);
@@ -192,6 +211,7 @@ function StoreContent() {
     if (key === 'cat') p.delete('sub');
     router.push(`/store?${p.toString()}`);
   };
+
 
 
   return (
@@ -211,7 +231,11 @@ function StoreContent() {
           display: none;
         }
         
-        @media (max-width: 768px) {
+        .mobile-filter-panel {
+          display: none;
+        }
+        
+        @media (max-width: 968px) {
           .modern-grid-responsive {
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
@@ -222,15 +246,16 @@ function StoreContent() {
           }
           
           .mobile-filter-toggle {
-            display: flex;
+            display: flex !important;
             position: fixed;
-            bottom: 80px;
+            bottom: 90px;
             left: 20px;
-            z-index: 999;
+            z-index: 998;
             background: #22c55e;
             color: #fff;
             border: none;
-            padding: 15px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
             box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
             cursor: pointer;
@@ -246,18 +271,19 @@ function StoreContent() {
             right: 0;
             bottom: 0;
             background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
+            z-index: 999;
             opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
+            visibility: hidden;
+            transition: all 0.3s ease;
           }
           
           .mobile-filter-overlay.open {
             opacity: 1;
-            pointer-events: all;
+            visibility: visible;
           }
           
           .mobile-filter-panel {
+            display: block;
             position: fixed;
             top: 0;
             right: -100%;
@@ -265,7 +291,7 @@ function StoreContent() {
             max-width: 350px;
             height: 100%;
             background: #fff;
-            z-index: 1001;
+            z-index: 1000;
             transition: right 0.3s ease;
             overflow-y: auto;
             box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
@@ -330,7 +356,8 @@ function StoreContent() {
         </aside>
 
 
-        <main style={{ flex: 1 }}>
+
+        <main style={{ flex: 1, minWidth: 0 }}>
           {loading ? (
             <div style={{textAlign:'center', padding:'100px'}}><Loader2 className="animate-spin" size={40} color="#22c55e" /></div>
           ) : (
@@ -338,6 +365,7 @@ function StoreContent() {
               <div className="modern-grid-responsive">
                 {displayProducts.map(p => <ProductCard p={p} key={p.id} />)}
               </div>
+
 
 
               {totalPages > 1 && (
@@ -358,16 +386,19 @@ function StoreContent() {
 }
 
 
+
 export default function StorePage() { return <Suspense fallback={null}><StoreContent /></Suspense>; }
+
 
 
 // --- الأنماط (Updated to match homepage) ---
 const mainLayoutWrapper: any = { maxWidth: '1200px', margin: '0 auto', display: 'flex', gap: '25px', flexWrap: 'wrap' };
-const sidebarStyle: any = { width: '250px', background: '#fff', borderRadius: '16px', border: '1px solid #eee', height: 'fit-content', position: 'sticky', top: '20px' };
+const sidebarStyle: any = { width: '250px', background: '#fff', borderRadius: '16px', border: '1px solid #eee', height: 'fit-content', position: 'sticky', top: '20px', flexShrink: 0 };
 const sidebarHeader: any = { padding: '15px', background: '#22c55e', color: '#fff', borderRadius: '16px 16px 0 0', fontWeight: 'bold', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' };
 const labelS = { display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '5px', color: '#555' };
 const selectS = { width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '0.85rem', outline: 'none' };
 const resetBtn = { width: '100%', marginTop: '10px', padding: '10px', border: 'none', background: '#fef2f2', borderRadius: '8px', cursor: 'pointer', color: '#ef4444', fontWeight: 'bold' };
+
 
 
 // Product Card Styles (matching homepage exactly)
@@ -381,6 +412,7 @@ const productCardModern: any = {
   flexDirection: 'column',
   transition: 'all 0.3s ease'
 };
+
 
 
 const discountBadge: any = { 
@@ -397,6 +429,7 @@ const discountBadge: any = {
 };
 
 
+
 const trendingBadge: any = { 
   position: 'absolute', 
   top: '8px', 
@@ -409,6 +442,7 @@ const trendingBadge: any = {
   fontWeight: '900', 
   zIndex: 10 
 };
+
 
 
 const imgContainerStyle: any = { 
@@ -425,6 +459,7 @@ const imgContainerStyle: any = {
 };
 
 
+
 const imgFillStyle: any = { 
   width: '100%', 
   height: '100%', 
@@ -432,6 +467,7 @@ const imgFillStyle: any = {
   padding: '15px', 
   transition: 'transform 0.3s ease' 
 };
+
 
 
 const carMakeBadge: any = { 
@@ -449,6 +485,7 @@ const carMakeBadge: any = {
 };
 
 
+
 const productDetailsArea: any = { 
   padding: '15px', 
   flex: 1, 
@@ -457,11 +494,13 @@ const productDetailsArea: any = {
 };
 
 
+
 const brandTextStyle: any = { 
   color: '#22c55e', 
   fontWeight: '800', 
   fontSize: '0.8rem' 
 };
+
 
 
 const originBadgeStyle: any = { 
@@ -472,6 +511,7 @@ const originBadgeStyle: any = {
   fontWeight: '700',
   fontSize: '0.75rem'
 };
+
 
 
 const productNameStyle: any = { 
@@ -487,6 +527,7 @@ const productNameStyle: any = {
 };
 
 
+
 const carInfoBox: any = { 
   background: '#f9f9f9', 
   padding: '10px', 
@@ -496,6 +537,7 @@ const carInfoBox: any = {
   flexDirection: 'column',
   gap: '3px'
 };
+
 
 
 const carInfoItem: any = {
@@ -508,6 +550,7 @@ const carInfoItem: any = {
 };
 
 
+
 const carInfoItemGreen: any = {
   fontSize: '0.8rem', 
   color: '#22c55e', 
@@ -516,6 +559,7 @@ const carInfoItemGreen: any = {
   alignItems: 'center', 
   gap: '6px'
 };
+
 
 
 const carInfoItemSecondary: any = {
@@ -528,6 +572,7 @@ const carInfoItemSecondary: any = {
 };
 
 
+
 const originalPriceStyle: any = { 
   display: 'block', 
   color: '#bbb', 
@@ -536,11 +581,13 @@ const originalPriceStyle: any = {
 };
 
 
+
 const currentPriceStyle: any = { 
   fontSize: '1.2rem', 
   fontWeight: '900',
   color: '#1a1a1a'
 };
+
 
 
 const addToCartButton: any = { 
@@ -559,6 +606,7 @@ const addToCartButton: any = {
   fontSize: '1rem', 
   transition: '0.2s' 
 };
+
 
 
 const pagCenterContainer: any = { display: 'flex', justifyContent: 'center', marginTop: '40px', width: '100%' };
