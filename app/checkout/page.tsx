@@ -4,16 +4,17 @@ import { useCart } from '@/context/CartContext';
 import { supabase } from '@/app/lib/supabase';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { useAbandonedCart } from '@/hooks/useAbandonedCart';
 import { 
   User, MapPin, ShoppingCart, Loader2, CheckCircle, Car, Globe, Mail,
   Settings2, Calendar, Tags, Upload, ExternalLink, Plus, Gauge, 
   Banknote, CreditCard, Wallet, SmartphoneNfc, Ticket 
 } from 'lucide-react';
 
-
 export default function CheckoutPage() {
   const { cart, clearCart, isInitialized } = useCart();
   const router = useRouter();
+  const { markAsRecovered } = useAbandonedCart();
   const [loading, setLoading] = useState(false);
   const [isReady, setIsReady] = useState(false);
   
@@ -22,7 +23,6 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState('card_installments'); 
   const [screenshot, setScreenshot] = useState<File | null>(null);
 
-
   // --- Promo Code & Marketer States ---
   const [promoCode, setPromoCode] = useState('');
   const [discountAmount, setDiscountAmount] = useState(0);
@@ -30,11 +30,9 @@ export default function CheckoutPage() {
   const [appliedPromoType, setAppliedPromoType] = useState<string | null>(null); 
   const [promoLoading, setPromoLoading] = useState(false);
 
-
   const [carMileage, setCarMileage] = useState('');
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string>('new');
-
 
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
@@ -44,11 +42,9 @@ export default function CheckoutPage() {
     address: ''
   });
 
-
   // --- Keys & Presets ---
   const CLOUD_NAME = "dxtncdxfh";
   const UPLOAD_PRESET = "zaitandfiltersnew";
-
 
   useEffect(() => {
     async function initCheckout() {
@@ -83,7 +79,6 @@ export default function CheckoutPage() {
     initCheckout();
   }, []);
 
-
   const subtotal = useMemo(() => cart.reduce((sum: number, item: any) => sum + (parseFloat(item.price) * item.quantity), 0), [cart]);
   
   const finalTotal = useMemo(() => {
@@ -96,9 +91,26 @@ export default function CheckoutPage() {
     return total > 0 ? total : 0;
   }, [subtotal, selectedCity, discountAmount, appliedPromoType]);
 
-
   useEffect(() => { if (isInitialized) setTimeout(() => setIsReady(true), 800); }, [isInitialized]);
 
+  // --- 🛒 وظيفة تسجيل السلة المتروكة ---
+  const trackAbandonedCart = async () => {
+    if (!customerInfo.email || cart.length === 0) return;
+
+    try {
+      await supabase.from('abandoned_carts').upsert({
+        email: customerInfo.email,
+        customer_name: customerInfo.name,
+        customer_phone: customerInfo.phone,
+        cart_items: cart,
+        total_price: finalTotal,
+        status: 'abandoned',
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'email' });
+    } catch (err) {
+      console.error("Tracking abandoned cart failed:", err);
+    }
+  };
 
   const applyPromoCode = async () => {
     if (!promoCode.trim()) return;
@@ -111,7 +123,6 @@ export default function CheckoutPage() {
         .eq('is_active', true)
         .single();
 
-
       if (error || !data) {
         toast.error('كود الخصم غير صحيح أو منتهي');
         setDiscountAmount(0);
@@ -120,16 +131,13 @@ export default function CheckoutPage() {
         return;
       }
 
-
       if (data.expiry_date && new Date(data.expiry_date) < new Date()) {
         toast.error('هذا الكود قد انتهت صلاحيته');
         return;
       }
 
-
       setAppliedPromoType(data.discount_type);
       setAppliedPromo(data.code);
-
 
       if (data.discount_type === 'free_shipping') {
         setDiscountAmount(0);
@@ -141,13 +149,15 @@ export default function CheckoutPage() {
         setDiscountAmount(calculatedDiscount);
         toast.success(`تم تطبيق خصم بقيمة ${calculatedDiscount.toFixed(2)} ج.م ✅`);
       }
+      
+      // تحديث السلة المتروكة بالبيانات الجديدة (الخصم)
+      trackAbandonedCart();
     } catch (err) {
       toast.error('حدث خطأ أثناء التحقق من الكود');
     } finally {
       setPromoLoading(false);
     }
   };
-
 
   const uploadToCloudinary = async (file: File) => {
     const formData = new FormData();
@@ -158,7 +168,6 @@ export default function CheckoutPage() {
     return data.secure_url;
   };
 
-
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       setScreenshot(e.target.files[0]);
@@ -166,11 +175,9 @@ export default function CheckoutPage() {
     }
   };
 
-
   const initiateEasyKashPayment = async (orderId: string) => {
     try {
       console.log('[Client] Initiating payment for order:', orderId);
-      console.log('[Client] Amount:', finalTotal);
 
       const response = await fetch('/api/checkout', {
         method: 'POST',
@@ -184,21 +191,15 @@ export default function CheckoutPage() {
         })
       });
 
-      console.log('[Client] Response status:', response.status);
-
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('[Client] HTTP Error:', response.status, errorText);
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
       const data = await response.json();
-      console.log('[Client] Response data:', data);
       
       if (data.success && data.url) {
         toast.success('جاري التحويل لصفحة الدفع... 🚀');
-        
-        // Small delay to show the toast
         setTimeout(() => {
           window.location.href = data.url;
         }, 500);
@@ -206,28 +207,23 @@ export default function CheckoutPage() {
         throw new Error(data.message || data.error || 'لم يتم إرجاع رابط الدفع');
       }
     } catch (err: any) {
-      console.error('[Client] Payment Error:', err);
       toast.error('خطأ في بوابة الدفع: ' + err.message);
       setLoading(false);
     }
   };
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (subtotal <= 0) return toast.error('السلة فارغة');
     
-    // Fixed Validation logic for Manual Payments
     if (paymentMethod !== 'card_installments' && !screenshot) {
       return toast.error('يرجى رفع سكرين شوت التحويل');
     }
-
 
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       let uploadedImageUrl = screenshot ? await uploadToCloudinary(screenshot) : null;
-
 
       let finalMarketerId = null;
       if (appliedPromo) {
@@ -238,7 +234,6 @@ export default function CheckoutPage() {
           .single();
         if (marketerByPromo) finalMarketerId = marketerByPromo.id;
       }
-
 
       if (!finalMarketerId) {
         const savedRef = localStorage.getItem('zf_marketer_ref');
@@ -272,13 +267,20 @@ export default function CheckoutPage() {
         created_at: new Date().toISOString()
       };
 
-
       const { data: newOrder, error } = await supabase.from('orders').insert([orderData]).select().single();
       if (error) throw error;
 
+      // --- ✅ تحديث حالة السلة المتروكة إلى "Recovered" لأن العميل اشترى فعلاً ---
+      if (customerInfo.email) {
+        await supabase.from('abandoned_carts')
+          .update({ status: 'recovered' })
+          .eq('email', customerInfo.email);
+      }
+
+      // ✅ Mark abandoned cart as recovered using the new hook
+      await markAsRecovered(newOrder.id);
 
       localStorage.removeItem('zf_marketer_ref');
-
 
       if (paymentMethod === 'card_installments') {
         await initiateEasyKashPayment(newOrder.id);
@@ -293,9 +295,7 @@ export default function CheckoutPage() {
     }
   };
 
-
   if (!isReady || shippingRates.length === 0) return <div style={loaderStyle}><Loader2 className="animate-spin" size={40} color="#15803d" /> جاري تجهيز الطلب...</div>;
-
 
   return (
     <div style={container}>
@@ -340,7 +340,6 @@ export default function CheckoutPage() {
             })}
           </div>
 
-
           <div style={promoWrapper}>
             <label style={lab}><Ticket size={14} color="#15803d" /> هل لديك كود خصم؟</label>
             <div style={{ display: 'flex', gap: '8px', marginTop: '5px' }}>
@@ -351,7 +350,6 @@ export default function CheckoutPage() {
             </div>
             {appliedPromo && <p style={promoSuccessText}>تم تطبيق الكود "{appliedPromo}" بنجاح! {appliedPromoType === 'free_shipping' ? 'تم تصفير مصاريف الشحن 🚚' : `تم خصم ${discountAmount.toFixed(2)} ج.م`}</p>}
           </div>
-
 
           <div style={totalBox}>
             <div style={rowPrice}><span>إجمالي المنتجات:</span><span>{subtotal.toFixed(2)} ج.م</span></div>
@@ -372,16 +370,25 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-
         <form onSubmit={handleSubmit} style={formSide}>
           <h3 style={sectionTitle}><User size={18} /> بيانات المستلم</h3>
           <div style={inputGroup}>
             <label style={lab}>الاسم بالكامل</label>
-            <input value={customerInfo.name} onChange={(e)=>setCustomerInfo({...customerInfo, name: e.target.value})} required style={inp} />
+            <input 
+              value={customerInfo.name} 
+              onChange={(e)=>setCustomerInfo({...customerInfo, name: e.target.value})} 
+              onBlur={trackAbandonedCart}
+              required style={inp} 
+            />
           </div>
           <div style={inputGroup}>
             <label style={lab}>رقم الموبايل</label>
-            <input value={customerInfo.phone} onChange={(e)=>setCustomerInfo({...customerInfo, phone: e.target.value})} required style={inp} />
+            <input 
+              value={customerInfo.phone} 
+              onChange={(e)=>setCustomerInfo({...customerInfo, phone: e.target.value})} 
+              onBlur={trackAbandonedCart}
+              required style={inp} 
+            />
           </div>
           
           <div style={inputGroup}>
@@ -391,11 +398,11 @@ export default function CheckoutPage() {
               placeholder="example@mail.com"
               value={customerInfo.email} 
               onChange={(e)=>setCustomerInfo({...customerInfo, email: e.target.value})} 
+              onBlur={trackAbandonedCart}
               required 
               style={inp} 
             />
           </div>
-
 
           <div style={inputGroup}>
             <label style={lab}><Gauge size={14} /> قراءة العداد (اختياري)</label>
@@ -411,7 +418,6 @@ export default function CheckoutPage() {
             <label style={lab}>العنوان بالتفصيل</label>
             <textarea value={customerInfo.address} onChange={(e)=>setCustomerInfo({...customerInfo, address: e.target.value})} required style={{...inp, height: '80px', paddingTop: '12px'}} />
           </div>
-
 
           <div style={{ marginTop: '20px', marginBottom: '20px' }}>
             <h3 style={sectionTitle}><Banknote size={18} /> وسيلة الدفع</h3>
@@ -447,7 +453,6 @@ export default function CheckoutPage() {
                 </div>
               </label>
 
-
               <label style={paymentCard(paymentMethod === 'instapay')}>
                 <input type="radio" value="instapay" checked={paymentMethod === 'instapay'} onChange={(e) => setPaymentMethod(e.target.value)} style={hideRadio}/>
                 <div style={payCardInner}>
@@ -469,7 +474,6 @@ export default function CheckoutPage() {
                   )}
                 </div>
               </label>
-
 
               <label style={paymentCard(paymentMethod === 'wallets')}>
                 <input type="radio" value="wallets" checked={paymentMethod === 'wallets'} onChange={(e) => setPaymentMethod(e.target.value)} style={hideRadio}/>
@@ -495,10 +499,8 @@ export default function CheckoutPage() {
                 </div>
               </label>
 
-
             </div>
           </div>
-
 
           <button disabled={loading} type="submit" className="btn-hover" style={btnStyle}>
             {loading ? <Loader2 className="animate-spin" size={40} color="#15803d" /> : <><CheckCircle size={20} /> {paymentMethod === 'card_installments' ? 'الانتقال للدفع والتقسيط' : 'تأكيد وإتمام الطلب'}</>}
@@ -508,7 +510,6 @@ export default function CheckoutPage() {
     </div>
   );
 }
-
 
 // --- Styles ---
 const container: any = { padding: '40px 20px', maxWidth: '1200px', margin: '0 auto', direction: 'rtl' };
@@ -544,7 +545,6 @@ const hideRadio: any = { display: 'none' };
 const payDetailsBox: any = { marginTop: '12px', padding: '18px', background: '#fff', borderRadius: '15px', border: '1px dashed #15803d', display: 'flex', flexDirection: 'column', gap: '10px' };
 const actionBtnLink: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#1a1a1a', color: '#fff', padding: '12px', borderRadius: '12px', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 'bold', transition: '0.3s ease' };
 const uploadArea: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '2px dashed #15803d', color: '#15803d', padding: '12px', borderRadius: '12px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '900', transition: '0.3s ease' };
-
 
 // --- Promo Code Styling ---
 const promoWrapper: any = { marginTop: '20px', padding: '15px', background: '#fff', borderRadius: '20px', border: '1px dashed #ddd', marginBottom: '15px' };

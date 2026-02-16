@@ -5,12 +5,15 @@ import { Almarai } from 'next/font/google'
 import { CartProvider } from '@/context/CartContext'
 import CartDrawer from '@/components/CartDrawer'
 import { Toaster } from 'react-hot-toast'
+import { AbandonedCartTracker } from '@/components/AbandonedCartTracker'
+
 
 const almarai = Almarai({ 
   subsets: ['arabic'], 
   weight: ['300', '400', '700', '800'],
   display: 'swap',
 });
+
 
 // --- الـ Metadata المطورة لقطع الغيار الأصلية ---
 export const metadata = {
@@ -62,10 +65,11 @@ export const metadata = {
   },
 };
 
+
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.NodeNode
 }) {
   return (
     <html lang="ar" dir="rtl">
@@ -84,6 +88,7 @@ export default function RootLayout({
           })();
         `}} />
 
+
         <CartProvider>
           <Toaster 
             position="bottom-right"
@@ -97,12 +102,16 @@ export default function RootLayout({
             }}
           />
           
+          {/* ✅ Abandoned Cart Tracker - Tracks cart activity silently */}
+          <AbandonedCartTracker />
+          
           <ProfessionalNavbar />
           <CartDrawer />
           
           <main>
             {children}
           </main>
+
 
           <ProfessionalFooter />
           
