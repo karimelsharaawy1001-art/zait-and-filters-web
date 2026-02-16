@@ -48,36 +48,42 @@ export default function AdminOrders() {
     }
   }
 
-  // --- التعديل هنا: إضافة منطق عمولة المسوقين ---
   async function updateOrderStatus(orderId: string, newStatus: string) {
     try {
-      // 1. تحديد الطلب الحالي من المصفوفة
       const orderToUpdate = orders.find(o => o.id === orderId);
 
-      // 2. التحقق: لو الحالة اتغيرت لـ "تم التوصيل" ولم تكن كذلك، وكان فيه مسوق
-      if (newStatus === 'delivered' && orderToUpdate?.status !== 'delivered' && orderToUpdate?.marketer_id) {
-        const commission = orderToUpdate.total_price * 0.05; // حساب الـ 5%
+      // Update order status
+      const { error: orderError } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', orderId);
 
-        // استدعاء دالة زيادة الرصيد في Supabase
-        const { error: rpcError } = await supabase.rpc('increment_marketer_balance', {
-          m_id: orderToUpdate.marketer_id,
-          amount: commission
-        });
+      if (orderError) throw orderError;
 
-        if (rpcError) {
-          console.error('Commission Error:', rpcError);
-          toast.error('حدث خطأ أثناء إضافة عمولة المسوق');
+      // If status is delivered, set delivery date for commission (14-day hold)
+      if (newStatus === 'delivered' && orderToUpdate?.status !== 'delivered') {
+        const deliveryDate = new Date().toISOString();
+        const releaseDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+
+        // Update commission record
+        const { error: commError } = await supabase
+          .from('affiliate_commissions')
+          .update({ 
+            delivery_date: deliveryDate,
+            release_date: releaseDate
+          })
+          .eq('order_id', orderId);
+
+        if (commError) {
+          console.error('Commission update error:', commError);
         } else {
-          toast.success(`تمت إضافة عمولة ${commission.toFixed(2)} ج.م للمسوق ✅`);
+          toast.success('تم تحديث حالة الطلب - سيتم إصدار العمولة بعد 14 يوم! ✅');
         }
+      } else {
+        toast.success('تم تحديث حالة الطلب');
       }
 
-      // 3. تحديث حالة الطلب في الداتابيز
-      const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
-      if (error) throw error;
-
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
-      toast.success('تم تحديث حالة الطلب');
     } catch (err: any) {
       toast.error('فشل التحديث');
     }
@@ -261,9 +267,9 @@ const cityBadge: any = { display: 'flex', alignItems: 'center', gap: '6px', back
 const payTypeStyle: any = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#555' };
 
 const miniSelect = (s:string): any => ({ 
-  background: s === 'pending' ? '#fff7ed' : '#f0fdf4', 
-  color: s === 'pending' ? '#c2410c' : '#15803d', 
-  border: `1px solid ${s === 'pending' ? '#ffedd5' : '#dcfce7'}`, 
+  background: s === 'pending' ? '#fff7ed' : s === 'delivered' ? '#f0fdf4' : s === 'shipped' ? '#eff6ff' : '#fef3c7', 
+  color: s === 'pending' ? '#c2410c' : s === 'delivered' ? '#15803d' : s === 'shipped' ? '#1e40af' : '#ca8a04', 
+  border: `1px solid ${s === 'pending' ? '#ffedd5' : s === 'delivered' ? '#dcfce7' : s === 'shipped' ? '#dbeafe' : '#fef3c7'}`, 
   padding: '6px 10px', 
   borderRadius: '8px', 
   cursor: 'pointer', 

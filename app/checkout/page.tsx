@@ -29,6 +29,7 @@ export default function CheckoutPage() {
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
   const [appliedPromoType, setAppliedPromoType] = useState<string | null>(null); 
   const [promoLoading, setPromoLoading] = useState(false);
+  const [affiliateMarketerId, setAffiliateMarketerId] = useState<string | null>(null);
 
   const [carMileage, setCarMileage] = useState('');
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
@@ -75,9 +76,43 @@ export default function CheckoutPage() {
           }
         }
       }
+
+      // Check for referral tracking
+      const urlParams = new URLSearchParams(window.location.search);
+      const refCode = urlParams.get('ref');
+      const storedRef = localStorage.getItem('zf_marketer_ref');
+      
+      if (refCode) {
+        localStorage.setItem('zf_marketer_ref', refCode);
+        await trackReferralClick(refCode);
+      } else if (storedRef) {
+        // Use existing stored referral
+      }
     }
     initCheckout();
   }, []);
+
+  // Track referral clicks
+  const trackReferralClick = async (refCode: string) => {
+    try {
+      const { data: marketer } = await supabase
+        .from('marketers')
+        .select('id, total_clicks')
+        .eq('referral_id', refCode)
+        .single();
+      
+      if (marketer) {
+        await supabase
+          .from('marketers')
+          .update({ total_clicks: (marketer.total_clicks || 0) + 1 })
+          .eq('id', marketer.id);
+        
+        toast.success('تم تطبيق رابط الإحالة! ستحصل على خصم 5%');
+      }
+    } catch (error) {
+      console.error('Error tracking referral:', error);
+    }
+  };
 
   const subtotal = useMemo(() => cart.reduce((sum: number, item: any) => sum + (parseFloat(item.price) * item.quantity), 0), [cart]);
   
@@ -116,6 +151,36 @@ export default function CheckoutPage() {
     if (!promoCode.trim()) return;
     setPromoLoading(true);
     try {
+      // First check if it's an affiliate promo code
+      const { data: affiliatePromo } = await supabase
+        .from('promo_codes')
+        .select('*, marketers(id, full_name, commission_rate, tier_percentage)')
+        .eq('code', promoCode.trim().toUpperCase())
+        .eq('is_active', true)
+        .single();
+
+      if (affiliatePromo) {
+        const discountPercentage = affiliatePromo.discount_percentage || 5;
+        const calculatedDiscount = (subtotal * discountPercentage) / 100;
+        
+        setDiscountAmount(calculatedDiscount);
+        setAppliedPromo(affiliatePromo.code);
+        setAppliedPromoType('affiliate_percentage');
+        setAffiliateMarketerId(affiliatePromo.marketer_id);
+        
+        // Update usage count
+        await supabase
+          .from('promo_codes')
+          .update({ usage_count: (affiliatePromo.usage_count || 0) + 1 })
+          .eq('id', affiliatePromo.id);
+        
+        const tierPercentage = affiliatePromo.marketers?.tier_percentage || 5;
+        toast.success(`تم تطبيق كود المسوق "${affiliatePromo.marketers?.full_name}" - خصم ${discountPercentage}%! 🎉`);
+        trackAbandonedCart();
+        return;
+      }
+
+      // If not affiliate code, check regular coupons
       const { data, error } = await supabase
         .from('coupons')
         .select('*')
@@ -150,7 +215,6 @@ export default function CheckoutPage() {
         toast.success(`تم تطبيق خصم بقيمة ${calculatedDiscount.toFixed(2)} ج.م ✅`);
       }
       
-      // تحديث السلة المتروكة بالبيانات الجديدة (الخصم)
       trackAbandonedCart();
     } catch (err) {
       toast.error('حدث خطأ أثناء التحقق من الكود');
@@ -212,6 +276,47 @@ export default function CheckoutPage() {
     }
   };
 
+  const trackAffiliateCommission = async (orderId: string, marketerId: string) => {
+    try {
+      // Get marketer's current tier percentage
+      const { data: marketer } = await supabase
+        .from('marketers')
+        .select('tier_percentage, total_conversions, total_earnings, pending_balance')
+        .eq('id', marketerId)
+        .single();
+      
+      const commissionRate = marketer?.tier_percentage || 5;
+      const commissionAmount = subtotal * (commissionRate / 100);
+      
+      // Create commission record (will be pending for 14 days)
+      await supabase.from('affiliate_commissions').insert([{
+        marketer_id: marketerId,
+        order_id: orderId,
+        commission_amount: commissionAmount,
+        order_total: subtotal,
+        status: 'pending',
+        is_released: false,
+        delivery_date: null, // Will be set when order is delivered
+        release_date: null
+      }]);
+      
+      // Update marketer stats
+      await supabase
+        .from('marketers')
+        .update({
+          total_earnings: (marketer?.total_earnings || 0) + commissionAmount,
+          total_conversions: (marketer?.total_conversions || 0) + 1,
+          pending_balance: (marketer?.pending_balance || 0) + commissionAmount
+        })
+        .eq('id', marketerId);
+      
+      toast.success(`تم احتساب عمولة ${commissionRate}% للمسوق! سيتم إضافتها بعد 14 يوم من التوصيل 💰`);
+      console.log(`✅ Commission tracked: ${commissionAmount} EGP (${commissionRate}%) for marketer ${marketerId}`);
+    } catch (error) {
+      console.error('Error tracking commission:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (subtotal <= 0) return toast.error('السلة فارغة');
@@ -225,8 +330,11 @@ export default function CheckoutPage() {
       const { data: { user } } = await supabase.auth.getUser();
       let uploadedImageUrl = screenshot ? await uploadToCloudinary(screenshot) : null;
 
-      let finalMarketerId = null;
-      if (appliedPromo) {
+      // Determine final marketer ID
+      let finalMarketerId = affiliateMarketerId;
+
+      // Check if promo code was from affiliate
+      if (!finalMarketerId && appliedPromo) {
         const { data: marketerByPromo } = await supabase
           .from('marketers')
           .select('id')
@@ -235,6 +343,7 @@ export default function CheckoutPage() {
         if (marketerByPromo) finalMarketerId = marketerByPromo.id;
       }
 
+      // Check referral link
       if (!finalMarketerId) {
         const savedRef = localStorage.getItem('zf_marketer_ref');
         if (savedRef) {
@@ -270,16 +379,21 @@ export default function CheckoutPage() {
       const { data: newOrder, error } = await supabase.from('orders').insert([orderData]).select().single();
       if (error) throw error;
 
-      // --- ✅ تحديث حالة السلة المتروكة إلى "Recovered" لأن العميل اشترى فعلاً ---
+      // Track affiliate commission if marketer exists
+      if (finalMarketerId) {
+        await trackAffiliateCommission(newOrder.id, finalMarketerId);
+      }
+
+      // Update abandoned cart status
       if (customerInfo.email) {
         await supabase.from('abandoned_carts')
           .update({ status: 'recovered' })
           .eq('email', customerInfo.email);
       }
 
-      // ✅ Mark abandoned cart as recovered using the new hook
       await markAsRecovered(newOrder.id);
 
+      // Clear referral from storage
       localStorage.removeItem('zf_marketer_ref');
 
       if (paymentMethod === 'card_installments') {
@@ -341,14 +455,14 @@ export default function CheckoutPage() {
           </div>
 
           <div style={promoWrapper}>
-            <label style={lab}><Ticket size={14} color="#15803d" /> هل لديك كود خصم؟</label>
+            <label style={lab}><Ticket size={14} color="#15803d" /> هل لديك كود خصم أو كود مسوق؟</label>
             <div style={{ display: 'flex', gap: '8px', marginTop: '5px' }}>
               <input placeholder="ادخل الكود هنا" value={promoCode} onChange={(e) => setPromoCode(e.target.value)} style={{ ...inp, marginBottom: 0, flex: 1 }} disabled={!!appliedPromo} />
               <button type="button" onClick={applyPromoCode} disabled={promoLoading || !!appliedPromo || !promoCode} className="promo-btn" style={promoBtnStyle}>
                 {promoLoading ? <Loader2 size={16} className="animate-spin" /> : appliedPromo ? 'تم التطبيق' : 'تطبيق'}
               </button>
             </div>
-            {appliedPromo && <p style={promoSuccessText}>تم تطبيق الكود "{appliedPromo}" بنجاح! {appliedPromoType === 'free_shipping' ? 'تم تصفير مصاريف الشحن 🚚' : `تم خصم ${discountAmount.toFixed(2)} ج.م`}</p>}
+            {appliedPromo && <p style={promoSuccessText}>✅ تم تطبيق الكود "{appliedPromo}" بنجاح! {appliedPromoType === 'free_shipping' ? 'تم تصفير مصاريف الشحن 🚚' : appliedPromoType === 'affiliate_percentage' ? `خصم ${discountAmount.toFixed(2)} ج.م (المسوق سيحصل على عمولة بعد 14 يوم من التوصيل)` : `تم خصم ${discountAmount.toFixed(2)} ج.م`}</p>}
           </div>
 
           <div style={totalBox}>
@@ -362,7 +476,7 @@ export default function CheckoutPage() {
             {appliedPromoType === 'free_shipping' && <div style={{ ...rowPrice, color: '#27ae60', fontWeight: 'bold' }}><span>خصم الشحن المجاني:</span><span>-{(selectedCity?.price || 0).toFixed(2)} ج.م</span></div>}
             {discountAmount > 0 && (
               <div style={{ ...rowPrice, color: '#e74c3c', fontWeight: 'bold' }}>
-                <span>خصم البرومو كود:</span>
+                <span>{appliedPromoType === 'affiliate_percentage' ? 'خصم كود المسوق:' : 'خصم البرومو كود:'}</span>
                 <span>-{discountAmount.toFixed(2)} ج.م</span>
               </div>
             )}
@@ -514,7 +628,7 @@ export default function CheckoutPage() {
           </div>
 
           <button disabled={loading} type="submit" className="btn-hover" style={btnStyle}>
-            {loading ? <Loader2 className="animate-spin" size={40} color="#15803d" /> : <><CheckCircle size={20} /> {paymentMethod === 'card_installments' ? 'الانتقال للدفع والتقسيط' : 'تأكيد وإتمام الطلب'}</>}
+            {loading ? <Loader2 className="animate-spin" size={20} /> : <><CheckCircle size={20} /> {paymentMethod === 'card_installments' ? 'الانتقال للدفع والتقسيط' : 'تأكيد وإتمام الطلب'}</>}
           </button>
         </form>
       </div>
@@ -556,8 +670,6 @@ const hideRadio: any = { display: 'none' };
 const payDetailsBox: any = { marginTop: '12px', padding: '18px', background: '#fff', borderRadius: '15px', border: '1px dashed #15803d', display: 'flex', flexDirection: 'column', gap: '10px' };
 const actionBtnLink: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#1a1a1a', color: '#fff', padding: '12px', borderRadius: '12px', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 'bold', transition: '0.3s ease' };
 const uploadArea: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '2px dashed #15803d', color: '#15803d', padding: '12px', borderRadius: '12px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '900', transition: '0.3s ease' };
-
-// --- Promo Code Styling ---
 const promoWrapper: any = { marginTop: '20px', padding: '15px', background: '#fff', borderRadius: '20px', border: '1px dashed #ddd', marginBottom: '15px' };
 const promoBtnStyle: any = { padding: '0 25px', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', transition: '0.3s ease', fontSize: '0.9rem' };
 const promoSuccessText: any = { fontSize: '0.8rem', color: '#15803d', marginTop: '10px', fontWeight: 'bold' };
