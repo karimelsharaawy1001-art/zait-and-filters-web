@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { Loader2, UserPlus, Mail, Lock, User, Phone } from 'lucide-react';
+import { Loader2, UserPlus, Mail, User, Phone } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function AffiliateSignup() {
@@ -11,9 +11,7 @@ export default function AffiliateSignup() {
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
-    phone: '',
-    password: '',
-    confirmPassword: ''
+    phone: ''
   });
 
   const generateReferralCode = (name: string) => {
@@ -32,112 +30,51 @@ export default function AffiliateSignup() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (formData.password !== formData.confirmPassword) {
-      toast.error('كلمات المرور غير متطابقة');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      toast.error('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
-      return;
-    }
-
     setLoading(true);
 
     try {
-      // 1. Create auth user
-      console.log('Creating auth user...');
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.full_name,
-            phone: formData.phone
-          }
-        }
-      });
-
-      if (authError) {
-        console.error('Auth error:', authError);
-        throw new Error(authError.message);
-      }
-
-      if (!authData.user) {
-        throw new Error('فشل إنشاء المستخدم');
-      }
-
-      console.log('✅ Auth user created:', authData.user.id);
-
-      // 2. Generate codes
       const referralId = generateReferralCode(formData.full_name);
       const promoCode = generatePromoCode(formData.full_name);
 
-      console.log('Generated codes:', { referralId, promoCode });
-
-      // 3. Create marketer record
-      const marketerData = {
-        id: authData.user.id,
-        full_name: formData.full_name,
-        email: formData.email,
-        phone_number: formData.phone,
-        referral_id: referralId,
-        promo_code: promoCode,
-        balance: 0,
-        pending_balance: 0,
-        total_earnings: 0,
-        commission_rate: 5.00,
-        current_tier: 'bronze',
-        tier_percentage: 5.00,
-        total_clicks: 0,
-        total_conversions: 0,
-        status: 'active'
-      };
-
-      console.log('Inserting marketer:', marketerData);
-
-      const { data: marketerInsert, error: marketerError } = await supabase
+      // Insert without ID (auto-generated)
+      const { data, error } = await supabase
         .from('marketers')
-        .insert([marketerData])
+        .insert([{
+          full_name: formData.full_name,
+          email: formData.email,
+          phone_number: formData.phone,
+          referral_id: referralId,
+          promo_code: promoCode,
+          current_tier: 'bronze',
+          tier_percentage: 5.00,
+          status: 'active'
+        }])
         .select()
         .single();
 
-      if (marketerError) {
-        console.error('❌ Marketer creation error:', marketerError);
-        
-        // Delete the auth user if marketer creation fails
-        await supabase.auth.admin.deleteUser(authData.user.id);
-        
-        throw new Error(marketerError.message || 'فشل إنشاء حساب المسوق');
+      if (error) {
+        console.error('❌ Insert error:', error);
+        throw error;
       }
 
-      console.log('✅ Marketer created:', marketerInsert);
+      console.log('✅ Marketer created:', data);
 
-      // 4. Create promo code entry
-      const { error: promoError } = await supabase
-        .from('promo_codes')
-        .insert([{
-          code: promoCode,
-          marketer_id: authData.user.id,
-          discount_percentage: 5.00,
-          is_active: true,
-          usage_count: 0
-        }]);
+      // Create promo code
+      await supabase.from('promo_codes').insert([{
+        code: promoCode,
+        marketer_id: data.id,
+        discount_percentage: 5.00,
+        is_active: true,
+        usage_count: 0
+      }]);
 
-      if (promoError) {
-        console.error('Promo code error:', promoError);
-        // Don't fail the whole process for this
-      } else {
-        console.log('✅ Promo code created');
-      }
-
-      toast.success('تم إنشاء حسابك بنجاح! 🎉');
+      toast.success(`✅ تم إنشاء حسابك بنجاح!\n\nكود الإحالة: ${referralId}\nكود البرومو: ${promoCode}`, {
+        duration: 5000
+      });
       
-      // Redirect to dashboard
       setTimeout(() => {
-        router.push('/affiliate/dashboard');
-      }, 1500);
+        router.push('/admin/marketers');
+      }, 2000);
 
     } catch (error: any) {
       console.error('❌ Signup error:', error);
@@ -201,41 +138,7 @@ export default function AffiliateSignup() {
             />
           </div>
 
-          <div style={inputGroup}>
-            <label style={label}>
-              <Lock size={16} /> كلمة المرور
-            </label>
-            <input
-              type="password"
-              required
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              style={input}
-              placeholder="6 أحرف على الأقل"
-              minLength={6}
-            />
-          </div>
-
-          <div style={inputGroup}>
-            <label style={label}>
-              <Lock size={16} /> تأكيد كلمة المرور
-            </label>
-            <input
-              type="password"
-              required
-              value={formData.confirmPassword}
-              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-              style={input}
-              placeholder="أعد إدخال كلمة المرور"
-              minLength={6}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            style={submitBtn}
-          >
+          <button type="submit" disabled={loading} style={submitBtn}>
             {loading ? (
               <>
                 <Loader2 className="animate-spin" size={20} />
@@ -248,13 +151,6 @@ export default function AffiliateSignup() {
               </>
             )}
           </button>
-
-          <p style={loginLink}>
-            لديك حساب بالفعل؟{' '}
-            <a href="/affiliate/login" style={link}>
-              تسجيل الدخول
-            </a>
-          </p>
         </form>
       </div>
     </div>
@@ -272,5 +168,3 @@ const inputGroup: any = { display: 'flex', flexDirection: 'column', gap: '8px' }
 const label: any = { fontSize: '0.9rem', fontWeight: 'bold', color: '#475569', display: 'flex', alignItems: 'center', gap: '6px' };
 const input: any = { padding: '14px 18px', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem', outline: 'none', transition: '0.2s' };
 const submitBtn: any = { padding: '16px', background: 'linear-gradient(135deg, #27ae60 0%, #229954 100%)', color: '#fff', border: 'none', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', fontSize: '1.05rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', transition: '0.2s', marginTop: '10px' };
-const loginLink: any = { textAlign: 'center', color: '#64748b', fontSize: '0.9rem', marginTop: '10px' };
-const link: any = { color: '#27ae60', fontWeight: 'bold', textDecoration: 'none' };
