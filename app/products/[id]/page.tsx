@@ -63,7 +63,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         },
       ],
       locale: 'ar_EG',
-      type: 'product',
+      type: 'website',  // ✅ FIXED: Changed from 'product' to 'website'
     },
     twitter: {
       card: 'summary_large_image',
