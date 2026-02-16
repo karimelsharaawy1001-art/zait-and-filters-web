@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { createClient } from '@supabase/supabase-js';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Don't initialize at build time
+let resendClient: Resend | null = null;
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+function getResendClient() {
+  if (!resendClient && process.env.RESEND_API_KEY) {
+    resendClient = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resendClient;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,6 +22,19 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Initialize Supabase only at runtime
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Missing Supabase credentials');
+      return NextResponse.json({ 
+        error: 'Server configuration error' 
+      }, { status: 500 });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
     // Get cart details
     const { data: cart, error } = await supabase
       .from('abandoned_carts')
@@ -28,6 +45,16 @@ export async function POST(request: NextRequest) {
     if (error || !cart) {
       console.error('Cart not found:', error);
       return NextResponse.json({ error: 'Cart not found' }, { status: 404 });
+    }
+
+    // Get Resend client
+    const resend = getResendClient();
+    
+    if (!resend) {
+      console.error('Resend not configured');
+      return NextResponse.json({ 
+        error: 'Email service not configured' 
+      }, { status: 500 });
     }
 
     // Send email using Resend
@@ -67,23 +94,20 @@ export async function POST(request: NextRequest) {
 
               <!-- Products Section -->
               <div style="background: #f0fdf4; padding: 25px; border-radius: 15px; margin-bottom: 25px;">
-                <h3 style="color: #15803d; margin: 0 0 20px 0; font-size: 18px; display: flex; align-items: center; gap: 10px;">
-                  <span>📦</span> منتجاتك في انتظارك:
+                <h3 style="color: #15803d; margin: 0 0 20px 0; font-size: 18px;">
+                  📦 منتجاتك في انتظارك:
                 </h3>
                 <div style="display: flex; flex-direction: column; gap: 15px;">
                   ${cart.cart_items?.map((item: any) => `
-                    <div style="background: #ffffff; padding: 15px; border-radius: 12px; display: flex; gap: 15px; align-items: center; border: 1px solid #dcfce7;">
-                      ${item.image_url ? `<img src="${item.image_url}" alt="${item.name}" style="width: 60px; height: 60px; border-radius: 10px; object-fit: cover; border: 1px solid #eee;" />` : ''}
-                      <div style="flex: 1;">
-                        <div style="font-weight: bold; font-size: 15px; color: #1a1a1a; margin-bottom: 5px;">
-                          ${item.name}
-                        </div>
-                        <div style="font-size: 13px; color: #666; margin-bottom: 3px;">
-                          <strong>${item.brand}</strong> • ${item.car_make} ${item.car_model} ${item.car_model_year}
-                        </div>
-                        <div style="font-size: 14px; color: #15803d; font-weight: bold;">
-                          ${item.quantity} قطعة × ${parseFloat(item.price).toFixed(2)} ج.م = ${item.line_total?.toFixed(2)} ج.م
-                        </div>
+                    <div style="background: #ffffff; padding: 15px; border-radius: 12px; border: 1px solid #dcfce7;">
+                      <div style="font-weight: bold; font-size: 15px; color: #1a1a1a; margin-bottom: 5px;">
+                        ${item.name}
+                      </div>
+                      <div style="font-size: 13px; color: #666; margin-bottom: 3px;">
+                        <strong>${item.brand || ''}</strong> ${item.car_make || ''} ${item.car_model || ''} ${item.car_model_year || ''}
+                      </div>
+                      <div style="font-size: 14px; color: #15803d; font-weight: bold;">
+                        ${item.quantity} قطعة × ${parseFloat(item.price).toFixed(2)} ج.م = ${(item.quantity * parseFloat(item.price)).toFixed(2)} ج.م
                       </div>
                     </div>
                   `).join('')}
