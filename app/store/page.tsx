@@ -66,6 +66,7 @@ function StoreContent() {
   const [modelsOptions, setModelsOptions] = useState<any[]>([]);
   const [categoriesOptions, setCategoriesOptions] = useState<any[]>([]);
   const [brandsOptions, setBrandsOptions] = useState<any[]>([]);
+  const [subcategoryImages, setSubcategoryImages] = useState<Record<string, string>>({});
 
 
   const [selectedMake, setSelectedMake] = useState<any>(null);
@@ -111,32 +112,38 @@ function StoreContent() {
     try {
       setLoading(true);
       
-      // Fetch filter options
-      const { data, error } = await supabase
-        .from('products')
-        .select('car_make, category, brand')
-        .order('car_make', { ascending: true });
+      // Fetch filter options and subcategory images
+      const [productsRes, subcatRes] = await Promise.all([
+        supabase.from('products').select('car_make, category, brand').order('car_make', { ascending: true }),
+        supabase.from('category_images').select('name, image_url')
+      ]);
 
+      if (productsRes.error) throw productsRes.error;
 
-      if (error) throw error;
-
+      if (subcatRes.data) {
+        const imgMap: Record<string, string> = {};
+        subcatRes.data.forEach(item => {
+          if (item.name) imgMap[item.name.trim().toUpperCase()] = item.image_url;
+        });
+        setSubcategoryImages(imgMap);
+      }
 
       const uniqueMakes = Array.from(
-        new Set(data.map((p) => p.car_make?.trim()).filter(Boolean))
+        new Set(productsRes.data.map((p) => p.car_make?.trim()).filter(Boolean))
       );
       const makesOpts = uniqueMakes.map((make) => ({ value: make, label: make }));
       setMakesOptions(makesOpts);
 
 
       const uniqueCategories = Array.from(
-        new Set(data.map((p) => p.category?.trim()).filter(Boolean))
+        new Set(productsRes.data.map((p) => p.category?.trim()).filter(Boolean))
       );
       const catsOpts = uniqueCategories.map((cat) => ({ value: cat, label: cat }));
       setCategoriesOptions(catsOpts);
 
 
       const uniqueBrands = Array.from(
-        new Set(data.map((p) => p.brand?.trim()).filter(Boolean))
+        new Set(productsRes.data.map((p) => p.brand?.trim()).filter(Boolean))
       );
       const brandsOpts = uniqueBrands.map((brand) => ({ value: brand, label: brand }));
       setBrandsOptions(brandsOpts);
@@ -1096,7 +1103,7 @@ function StoreContent() {
                           }}
                         >
                           <img
-                            src={product.image_url || "/api/placeholder/400/320"}
+                            src={product.image_url || (product.category && subcategoryImages[product.category.trim().toUpperCase()]) || "/api/placeholder/400/320"}
                             alt={product.name}
                             style={{
                               width: '100%',
