@@ -3,13 +3,14 @@ import { useState, useEffect } from 'react';
 import { 
   Search, ShoppingCart, User, Home, Store, Package, 
   Menu as MenuIcon, X, Info, PhoneCall, ShieldCheck, Settings, LogIn, LogOut,
-  Handshake // إضافة أيقونة المصافحة للمسوقين
+  Handshake, Car 
 } from 'lucide-react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext'; 
 import { supabase } from '@/app/lib/supabase';
 import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast'; // FIXED: Added missing import
 
 export default function ProfessionalNavbar() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -19,15 +20,28 @@ export default function ProfessionalNavbar() {
   const controls = useAnimation();
   const router = useRouter();
 
+  // Garage Feature States
+  const [garageMode, setGarageMode] = useState(false);
+  const [userCar, setUserCar] = useState<any>(null);
+
   useEffect(() => {
     const checkUser = async () => {
       const { data } = await supabase.auth.getUser();
       setUser(data.user);
+      if (data.user) {
+        fetchGarageData(data.user.id);
+      }
     };
     checkUser();
 
+    // Sync Garage Mode from localStorage on mount
+    const savedMode = localStorage.getItem('garageMode') === 'true';
+    setGarageMode(savedMode);
+
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user || null);
+      if (session?.user) fetchGarageData(session.user.id);
+      else setUserCar(null);
     });
 
     if (cartItems.length > 0) {
@@ -41,9 +55,35 @@ export default function ProfessionalNavbar() {
     return () => authListener.subscription.unsubscribe();
   }, [cartItems.length, controls]);
 
+  const fetchGarageData = async (userId: string) => {
+    const { data } = await supabase
+      .from('user_garage')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (data) setUserCar(data);
+  };
+
+  const toggleGarage = () => {
+    if (!userCar) {
+      toast.error('يرجى إضافة سيارة إلى جراجك أولاً');
+      router.push('/account/garage');
+      return;
+    }
+    const newMode = !garageMode;
+    setGarageMode(newMode);
+    localStorage.setItem('garageMode', newMode.toString());
+    window.dispatchEvent(new Event('garageModeChanged'));
+    
+    if (newMode) toast.success(`تم تفعيل وضع جراجي لسيارة ${userCar.make}`);
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setIsSidebarOpen(false);
+    setGarageMode(false);
+    localStorage.setItem('garageMode', 'false');
+    window.dispatchEvent(new Event('garageModeChanged'));
     router.push('/');
   };
 
@@ -60,7 +100,7 @@ export default function ProfessionalNavbar() {
         }
       `}} />
 
-      {/* --- القائمة الجانبية (Sidebar) --- */}
+      {/* --- Sidebar --- */}
       <AnimatePresence>
         {isSidebarOpen && (
           <>
@@ -80,16 +120,20 @@ export default function ProfessionalNavbar() {
               </div>
               
               <div style={sidebarContent}>
+                <button onClick={toggleGarage} style={{...sidebarLink, backgroundColor: garageMode ? '#eefcf5' : 'transparent', color: garageMode ? '#27ae60' : '#444'}}>
+                  <Car size={20} color={garageMode ? '#27ae60' : '#444'}/> 
+                  جراجي {garageMode ? '(مفعل)' : ''}
+                </button>
+
                 <Link href="/" onClick={()=>setIsSidebarOpen(false)} style={sidebarLink}><Home size={20}/> الرئيسية</Link>
                 <Link href="/store" onClick={()=>setIsSidebarOpen(false)} style={sidebarLink}><Store size={20}/> المتجر</Link>
-                
-                {/* --- الرابط الجديد في الموبايل --- */}
                 <Link href="/affiliate" onClick={()=>setIsSidebarOpen(false)} style={{...sidebarLink, color: '#27ae60'}}><Handshake size={20}/> ابدأ الربح معنا</Link>
                 
                 <hr style={sidebarDivider} />
                 {user ? (
                   <>
                     <Link href="/profile" onClick={()=>setIsSidebarOpen(false)} style={sidebarLink}><User size={20}/> حسابي الشخصي</Link>
+                    <Link href="/account/garage" onClick={()=>setIsSidebarOpen(false)} style={sidebarLink}><Settings size={20}/> إعدادات جراجي</Link>
                     <button onClick={handleLogout} style={sidebarLogoutBtn}><LogOut size={20}/> تسجيل الخروج</button>
                   </>
                 ) : (
@@ -107,7 +151,7 @@ export default function ProfessionalNavbar() {
         )}
       </AnimatePresence>
 
-      {/* --- بار التنقل العلوي --- */}
+      {/* --- Top Navbar --- */}
       <nav style={navContainer}>
         <div style={navContent} className="nav-content">
           <button className="mobile-menu-btn" style={{...iconBtn, display:'none'}} onClick={() => setIsSidebarOpen(true)}><MenuIcon size={24} /></button>
@@ -129,11 +173,24 @@ export default function ProfessionalNavbar() {
 
           <div style={navLinks} className="desktop-links">
             <Link href="/store" style={linkItem}>المتجر</Link>
-            
-            {/* --- الرابط الجديد في الديسكتوب --- */}
             <Link href="/affiliate" style={{...linkItem, color: '#27ae60'}}>ابدأ الربح معنا</Link>
 
             <div style={iconGroup}>
+              {/* FIXED: Garage button moved to the left side, next to other action icons */}
+              <button 
+                onClick={toggleGarage}
+                style={{
+                  ...garageToggleBtn,
+                  backgroundColor: garageMode ? '#27ae60' : 'rgba(0,0,0,0.05)',
+                  color: garageMode ? '#fff' : '#1a1a1a',
+                  marginLeft: '10px'
+                }}
+                title={userCar ? `تصفية لسيارة ${userCar.make}` : "جراجي"}
+              >
+                <Car size={18} />
+                <span style={{fontWeight: '900', fontSize: '0.85rem'}}>جراجي</span>
+              </button>
+
               {user ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                    <Link href="/profile" style={iconBtn} title="حسابي"><User size={20} /></Link>
@@ -142,6 +199,7 @@ export default function ProfessionalNavbar() {
               ) : (
                 <Link href="/login" style={loginLinkBtn}><LogIn size={18} /> دخول</Link>
               )}
+              
               <Link href="/cart" style={{ ...iconBtn, position: 'relative', textDecoration: 'none', marginRight: '10px' }}>
                 <motion.div animate={controls}><ShoppingCart size={22} /></motion.div>
                 {cartItems.length > 0 && <span style={cartBadge}>{cartItems.length}</span>}
@@ -155,7 +213,7 @@ export default function ProfessionalNavbar() {
         </div>
       </nav>
 
-      {/* --- بار التنقل السفلي للموبايل --- */}
+      {/* --- Mobile Bottom Nav --- */}
       <div style={mobileBottomNav} className="mobile-bottom-nav">
         <Link href="/" style={bottomNavItem}><Home size={22} /><span>الرئيسية</span></Link>
         <Link href="/store" style={bottomNavItem}><Store size={22} /><span>المتجر</span></Link>
@@ -171,7 +229,7 @@ export default function ProfessionalNavbar() {
   );
 }
 
-// --- التنسيقات ---
+// --- Styles ---
 const navContainer: any = { position: 'sticky', top: 0, zIndex: 1000, width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(0, 0, 0, 0.08)', padding: '15px 0', direction: 'rtl' };
 const navContent: any = { maxWidth: '1200px', margin: '0 auto', padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px' };
 const logoStyle: any = { fontSize: '2.1rem', fontWeight: '900', fontStyle: 'italic', textDecoration: 'none', color: '#1a1a1a', letterSpacing: '-1.5px', flexShrink: 0, textTransform: 'uppercase' };
@@ -188,7 +246,7 @@ const overlayStyle: any = { position: 'fixed', inset: 0, background: 'rgba(0,0,0
 const sidebarStyle: any = { position: 'fixed', top: 0, right: 0, bottom: 0, width: '280px', background: '#fff', zIndex: 2001, display: 'flex', flexDirection: 'column', boxShadow: '-5px 0 25px rgba(0,0,0,0.1)', direction: 'rtl' };
 const sidebarHeader: any = { padding: '20px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
 const sidebarContent: any = { flex: 1, padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px' };
-const sidebarLink: any = { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', textDecoration: 'none', color: '#444', fontWeight: 'bold', borderRadius: '10px' };
+const sidebarLink: any = { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', textDecoration: 'none', color: '#444', fontWeight: 'bold', borderRadius: '10px', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'right', fontSize: '1rem' };
 const sidebarLogoutBtn: any = { ...sidebarLink, background: 'none', border: 'none', color: '#ff4d4d', cursor: 'pointer', width: '100%', textAlign: 'right' };
 const sidebarDivider: any = { border: 'none', borderTop: '1px solid #f5f5f5', margin: '10px 0' };
 const sidebarFooter: any = { padding: '20px', fontSize: '0.7rem', color: '#ccc', textAlign: 'center' };
@@ -197,3 +255,14 @@ const mobileBottomNav: any = { display: 'none', position: 'fixed', bottom: 0, le
 const bottomNavItem: any = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', textDecoration: 'none', color: '#666', fontSize: '0.7rem', fontWeight: 'bold' };
 const bottomNavItemBtn: any = { ...bottomNavItem, background:'none', border:'none' };
 const cartBadgeMobile: any = { position: 'absolute', top: '-5px', right: '5px', backgroundColor: '#27ae60', color: '#fff', fontSize: '9px', borderRadius: '50%', width: '15px', height: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center' };
+
+const garageToggleBtn: any = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  padding: '8px 16px',
+  borderRadius: '12px',
+  border: 'none',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease'
+};

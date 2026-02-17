@@ -9,7 +9,7 @@ import {
   Globe, Settings2, Calendar, Flame, 
   LayoutGrid, Tags, Sparkles, Shield, TrendingUp
 } from 'lucide-react';
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/context/CartContext'; 
 import toast from 'react-hot-toast'; 
 
@@ -144,6 +144,10 @@ export default function HomePage() {
   const [bestSellers, setBestSellers] = useState<any[]>([]); 
   const [loadingMessage, setLoadingMessage] = useState(0);
 
+  // GARAGE FEATURES STATE
+  const [garageMode, setGarageMode] = useState(false);
+  const [userCar, setUserCar] = useState<any>(null);
+
 
   const loadingMessages = [
     { icon: <Shield size={22} color="#22c55e" />, text: 'منتجات أصلية 100%' },
@@ -156,13 +160,24 @@ export default function HomePage() {
     setIsMounted(true);
     setSelectLoaded(true); 
     fetchInitialData();
+    fetchGarageData();
+
+    // LISTEN FOR NAVBAR TOGGLE (GLOBAL SYNC)
+    const syncGarageMode = () => {
+      setGarageMode(localStorage.getItem('garageMode') === 'true');
+    };
+    syncGarageMode();
+    window.addEventListener('garageModeChanged', syncGarageMode);
     
     const messageInterval = setInterval(() => {
       setLoadingMessage((prev) => (prev + 1) % loadingMessages.length);
     }, 1500);
 
 
-    return () => clearInterval(messageInterval);
+    return () => {
+      clearInterval(messageInterval);
+      window.removeEventListener('garageModeChanged', syncGarageMode);
+    };
   }, []);
 
 
@@ -183,6 +198,23 @@ export default function HomePage() {
 
 
   const isValidImg = (url: any) => url && String(url).trim().startsWith('http');
+
+  // GARAGE FEATURE: Fetch user car
+  async function fetchGarageData() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('user_garage')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (data) setUserCar(data);
+      }
+    } catch (err) {
+      console.error('Garage fetch error:', err);
+    }
+  }
 
 
   async function fetchInitialData() {
@@ -220,7 +252,7 @@ export default function HomePage() {
           Number(p.sale_price) > 0 && 
           Number(p.regular_price) > Number(p.sale_price) && 
           isValidImg(p.image_url)
-        ).slice(0, 20)); // Show first 20 sale products
+        ));
 
 
         const { data: orders } = await supabase.from('orders').select('items').limit(100);
@@ -241,10 +273,9 @@ export default function HomePage() {
             ...bestSellersList, 
             ...products
               .filter(p => !bestSellersList.find(b => b?.id === p.id) && isValidImg(p.image_url))
-              .slice(0, 20)
           ];
         }
-        setBestSellers(bestSellersList.slice(0, 20)); // Show first 20 best sellers
+        setBestSellers(bestSellersList);
 
         // Get unique categories from ALL products
         const uniqueCats = Array.from(new Set(
@@ -381,6 +412,23 @@ export default function HomePage() {
 
 
   if (!isMounted) return null;
+
+  // GARAGE FILTER LOGIC (NOW INCLUDES UNIVERSAL PRODUCTS)
+  const filteredSaleProducts = garageMode && userCar 
+    ? saleProducts.filter(p => 
+        (p.car_make?.toUpperCase() === userCar.make?.toUpperCase() && 
+         p.car_model?.toUpperCase() === userCar.model?.toUpperCase()) ||
+        (!p.car_make || p.car_make?.toUpperCase() === 'UNIVERSAL' || p.car_make?.toUpperCase() === 'عام')
+      ).slice(0, 6)
+    : saleProducts.slice(0, 6);
+
+  const filteredBestSellers = garageMode && userCar
+    ? bestSellers.filter(p => 
+        (p.car_make?.toUpperCase() === userCar.make?.toUpperCase() && 
+         p.car_model?.toUpperCase() === userCar.model?.toUpperCase()) ||
+        (!p.car_make || p.car_make?.toUpperCase() === 'UNIVERSAL' || p.car_make?.toUpperCase() === 'عام')
+      ).slice(0, 6)
+    : bestSellers.slice(0, 6);
 
 
   return (
@@ -690,7 +738,6 @@ export default function HomePage() {
             .category-grid-v3 { grid-template-columns: repeat(2, 1fr); gap: 10px; }
             .img-container { height: 140px !important; }
             
-            /* ADJUSTED: Show 2 product cards per row on mobile for Special Offers and Trending */
             .product-grid-carousel { 
               display: grid !important; 
               grid-template-columns: repeat(2, 1fr) !important; 
@@ -721,11 +768,6 @@ export default function HomePage() {
               padding: 8px !important;
             }
 
-            .product-card-mdrn .cart-price-wrap span:first-of-type {
-               font-size: 0.7rem !important;
-            }
-
-            /* COMPLETE FIX FOR HERO ON MOBILE */
             section:first-of-type { 
               min-height: auto !important;
               overflow: visible !important;
@@ -863,11 +905,19 @@ export default function HomePage() {
               <ScrollReveal direction="up" delay={0.1}>
                 <section style={{ padding: '25px 0', maxWidth: '1200px', margin: '0 auto' }}>
                   <div style={{ padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '15px' }}>
-                    <div><div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ff4d4d', marginBottom: '4px' }}><Zap size={16} fill="#ff4d4d" /><span style={{ fontWeight: '800', fontSize: '0.85rem' }}>أقوى الخصومات</span></div><h2 style={{ fontSize: '1.8rem', fontWeight: '900', margin: 0 }}>عروض حصرية 🔥</h2></div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ff4d4d', marginBottom: '4px' }}>
+                        <Zap size={16} fill="#ff4d4d" />
+                        <span style={{ fontWeight: '800', fontSize: '0.85rem' }}>
+                          {garageMode && userCar ? `عروض لسيارتك ${userCar.make}` : 'أقوى الخصومات'}
+                        </span>
+                      </div>
+                      <h2 style={{ fontSize: '1.8rem', fontWeight: '900', margin: 0 }}>عروض حصرية 🔥</h2>
+                    </div>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><Link href="/store?filter=sales" style={{ color: '#22c55e', fontWeight: '800', textDecoration: 'none', marginLeft: '15px', fontSize: '0.9rem' }}>عرض الكل</Link><button onClick={() => scroll(scrollRef, 'right')} style={arrowBtnSmall}><ChevronRight size={14}/></button><button onClick={() => scroll(scrollRef, 'left')} style={arrowBtnSmall}><ChevronLeft size={14}/></button></div>
                   </div>
                   <div ref={scrollRef} className="no-scrollbar product-grid-carousel">
-                    {saleProducts.slice(0, 6).map((p) => {
+                    {filteredSaleProducts.map((p) => {
                       const country = p.country_origin || p.country_of_origin || p.origin || 'أصلي';
                       return (
                         <div key={p.id} className="product-card-mdrn">
@@ -907,11 +957,19 @@ export default function HomePage() {
               <ScrollReveal direction="up" delay={0.15}>
                 <section style={{ padding: '25px 0', maxWidth: '1200px', margin: '0 auto', background: '#fff', borderRadius: '30px' }}>
                   <div style={{ padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '15px' }}>
-                    <div><div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#22c55e', marginBottom: '4px' }}><Flame size={16} fill="#22c55e" /><span style={{ fontWeight: '800', fontSize: '0.85rem' }}>الأكثر طلباً</span></div><h2 style={{ fontSize: '1.8rem', fontWeight: '900', margin: 0 }}>تريند الآن 🔥</h2></div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#22c55e', marginBottom: '4px' }}>
+                        <Flame size={16} fill="#22c55e" />
+                        <span style={{ fontWeight: '800', fontSize: '0.85rem' }}>
+                          {garageMode && userCar ? `تريند لسيارتك ${userCar.make}` : 'الأكثر طلباً'}
+                        </span>
+                      </div>
+                      <h2 style={{ fontSize: '1.8rem', fontWeight: '900', margin: 0 }}>تريند الآن 🔥</h2>
+                    </div>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><button onClick={() => scroll(bestSellerRef, 'right')} style={arrowBtnSmall}><ChevronRight size={14}/></button><button onClick={() => scroll(bestSellerRef, 'left')} style={arrowBtnSmall}><ChevronLeft size={14}/></button></div>
                   </div>
                   <div ref={bestSellerRef} className="no-scrollbar product-grid-carousel">
-                    {bestSellers.slice(0, 6).map((p) => {
+                    {filteredBestSellers.map((p) => {
                       const country = p.country_origin || p.country_of_origin || p.origin || 'أصلي';
                       return (
                         <div key={p.id} className="product-card-mdrn">
@@ -969,6 +1027,32 @@ export default function HomePage() {
             </ScrollReveal>
           </div>
         )}
+
+        {/* STICKY GARAGE NOTIFICATION */}
+        <AnimatePresence>
+          {garageMode && userCar && (
+            <motion.div 
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              style={stickyNotificationStyle}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={garageIconWrapMini}>
+                  <Car size={18} color="#fff" />
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '0.9rem', fontWeight: '900', color: '#fff', lineHeight: '1.2' }}>
+                    وضع جراجي مفعل لسيارة {userCar.make}
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.8)', fontWeight: '700' }}>
+                    نعرض المنتجات المتوافقة والعامة فقط
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </>
   );
@@ -1003,3 +1087,32 @@ const featurePills: any = { display: 'flex', gap: '15px', justifyContent: 'cente
 const pill: any = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', backgroundColor: 'rgba(34, 197, 94, 0.15)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '25px', fontSize: '0.85rem', fontWeight: '700', color: '#22c55e', backdropFilter: 'blur(10px)' };
 const arrowBtnSmall = { width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#fff', border: '1px solid #eee', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' };
 const cartBtnStyleSmall: any = { width: '100%', padding: '12px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '1rem' };
+
+const stickyNotificationStyle: any = {
+  position: 'fixed',
+  bottom: '85px',
+  left: '50%',
+  transform: 'translateX(-50%)',
+  backgroundColor: 'rgba(39, 174, 96, 0.95)',
+  backdropFilter: 'blur(12px)',
+  WebkitBackdropFilter: 'blur(12px)',
+  color: '#fff',
+  padding: '12px 20px',
+  borderRadius: '20px',
+  zIndex: 1000,
+  boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+  width: 'max-content',
+  maxWidth: '90%',
+  border: '1px solid rgba(255,255,255,0.2)',
+  direction: 'rtl'
+};
+
+const garageIconWrapMini: any = {
+  width: '32px',
+  height: '32px',
+  borderRadius: '10px',
+  backgroundColor: 'rgba(255,255,255,0.2)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center'
+};

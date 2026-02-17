@@ -2,12 +2,20 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { 
   User, Phone, Mail, Package, LogOut, 
-  Loader2, Save, Clock, CheckCircle, Smartphone, Banknote, ImageIcon, MapPin, Trash2, Plus,
-  ChevronDown, ChevronUp, ShoppingBag, Factory, CarFront, Gauge, CreditCard
+  Loader2, Save, Clock, CheckCircle, MapPin, Trash2, Plus,
+  ChevronDown, ChevronUp, ShoppingBag, Gauge, CreditCard, Car, Settings,
+  CarFront // FIXED: Added missing import
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+// Dynamic import for Select to avoid SSR issues
+const Select = dynamic(() => import('react-select'), {
+  ssr: false,
+  loading: () => <div style={{ height: '48px', backgroundColor: '#f8f8f8', borderRadius: '10px', padding: '0 15px', display: 'flex', alignItems: 'center', color: '#999' }}>جاري التحميل...</div>
+});
 
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
@@ -15,6 +23,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]); 
   const [myAddresses, setMyAddresses] = useState<any[]>([]);
+  const [myCars, setMyCars] = useState<any[]>([]);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null); 
   const [profile, setProfile] = useState({
     full_name: '',
@@ -23,6 +32,13 @@ export default function ProfilePage() {
 
   const [newAddr, setNewAddr] = useState({ name: '', val: '', city: '' });
   const [showAddForm, setShowAddForm] = useState(false);
+
+  const [makesOptions, setMakesOptions] = useState<any[]>([]);
+  const [modelsOptions, setModelsOptions] = useState<any[]>([]);
+  const [selectedMake, setSelectedMake] = useState<any>(null);
+  const [selectedModel, setSelectedModel] = useState<any>(null);
+  const [newCarYear, setNewCarYear] = useState('');
+  const [showCarForm, setShowCarForm] = useState(false);
 
   const router = useRouter();
 
@@ -61,18 +77,41 @@ export default function ProfilePage() {
         }
       }
 
-      const { data: addrData } = await supabase
-        .from('addresses')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      const [addrRes, garageRes, productsRes] = await Promise.all([
+        supabase.from('addresses').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('user_garage').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('products').select('car_make').not('car_make', 'is', null)
+      ]);
       
-      setMyAddresses(addrData || []);
+      setMyAddresses(addrRes.data || []);
+      setMyCars(garageRes.data || []);
+
+      if (productsRes.data) {
+        const uniqueMakes = Array.from(new Set(productsRes.data.map(p => p.car_make?.trim()).filter(Boolean)));
+        setMakesOptions(uniqueMakes.sort().map(m => ({ value: m, label: m })));
+      }
 
     } catch (error) {
       toast.error('خطأ في جلب البيانات');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleMakeChange(opt: any) {
+    setSelectedMake(opt);
+    setSelectedModel(null);
+    if (opt) {
+      const { data } = await supabase
+        .from('products')
+        .select('car_model')
+        .ilike('car_make', opt.value.trim());
+      if (data) {
+        const uniqueModels = Array.from(new Set(data.map(p => p.car_model?.trim()).filter(Boolean)));
+        setModelsOptions(uniqueModels.sort().map(m => ({ value: m, label: m })));
+      }
+    } else {
+      setModelsOptions([]);
     }
   }
 
@@ -130,125 +169,134 @@ export default function ProfilePage() {
     }
   }
 
+  async function handleAddCar() {
+    if (!selectedMake || !selectedModel) return toast.error('يرجى اختيار الماركة والموديل');
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('user_garage').insert({
+        user_id: user.id,
+        make: selectedMake.value,
+        model: selectedModel.value,
+        year: newCarYear
+      });
+      if (error) throw error;
+      toast.success('تمت إضافة السيارة للجراج');
+      setSelectedMake(null);
+      setSelectedModel(null);
+      setNewCarYear('');
+      setShowCarForm(false);
+      fetchProfileData();
+    } catch (error) {
+      toast.error('فشل إضافة السيارة');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteCar(id: string) {
+    if (!confirm('هل تريد إزالة هذه السيارة من جراجك؟')) return;
+    try {
+      await supabase.from('user_garage').delete().eq('id', id);
+      toast.success('تمت الإزالة');
+      fetchProfileData();
+    } catch (error) {
+      toast.error('فشل الإزالة');
+    }
+  }
+
+  const customSelectStyles = {
+    control: (base: any) => ({ ...base, height: '48px', borderRadius: '12px', border: '1px solid #f0f0f0', background: '#fdfdfd', textAlign: 'right', display: 'flex', flexDirection: 'row-reverse' }),
+    option: (base: any, state: any) => ({ ...base, padding: '10px 15px', backgroundColor: state.isFocused ? '#eefcf5' : '#fff', color: '#1a1a1a', cursor: 'pointer', textAlign: 'right' }),
+    valueContainer: (base: any) => ({ ...base, display: 'flex', flexDirection: 'row-reverse' }),
+    singleValue: (base: any) => ({ ...base, display: 'flex', flexDirection: 'row-reverse' })
+  };
+
   if (loading) return <div style={centerStyle}><Loader2 className="animate-spin" size={40} color="#22c55e" /></div>;
 
   return (
     <div style={container}>
-      {/* هيدر الصفحة الاحترافي */}
-      <div style={profileHeader}>
-        <div style={avatarGradient}>
-          <div style={avatarInternal}><User size={40} color="#22c55e" /></div>
+      {/* Premium Header */}
+      <div style={headerCard}>
+        <div style={profileInfoWrap}>
+          <div style={avatarWrap}>
+            <User size={35} color="#22c55e" />
+          </div>
+          <div>
+            <h1 style={titleName}>{profile.full_name || 'الاسم غير محدد'}</h1>
+            <p style={emailText}>{user?.email}</p>
+          </div>
         </div>
-        <h1 style={userName}>{profile.full_name || 'عميلنا المميز'}</h1>
-        <p style={userEmail}><Mail size={12} style={{marginLeft: '5px'}} /> {user?.email}</p>
-        <div style={statsRow}>
-          <div style={statBox}><strong>{orders.length}</strong> <span>طلبات</span></div>
-          <div style={statBox}><strong>{myAddresses.length}</strong> <span>عناوين</span></div>
+        <div style={headerStatsRow}>
+           <div style={headerStatItem}><strong>{orders.length}</strong> <span>طلبات</span></div>
+           <div style={headerDivider} />
+           <div style={headerStatItem}><strong>{myCars.length}</strong> <span>جراجي</span></div>
         </div>
       </div>
 
-      <div style={gridContent}>
-        {/* العمود الأيمن: البيانات والعناوين */}
-        <div style={rightSide}>
-          <div style={sectionCard}>
-            <h3 style={sectionTitle}><SettingsIcon size={18} /> البيانات الشخصية</h3>
-            <form onSubmit={handleUpdateProfile} style={form}>
-              <div style={inputGroup}>
-                <label style={lab}>الاسم بالكامل</label>
-                <input style={inp} value={profile.full_name} onChange={(e) => setProfile({...profile, full_name: e.target.value})} />
-              </div>
-              <div style={inputGroup}>
-                <label style={lab}>رقم الموبايل</label>
-                <input style={inp} value={profile.phone_number} onChange={(e) => setProfile({...profile, phone_number: e.target.value})} />
-              </div>
-              <button disabled={saving} type="submit" style={saveBtn}>
-                {saving ? <Loader2 size={18} className="animate-spin"/> : <><Save size={16} /> حفظ التغييرات</>}
-              </button>
-            </form>
-          </div>
-
-          <div style={sectionCard}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ ...sectionTitle, marginBottom: 0 }}><MapPin size={18} /> العناوين</h3>
-              <button onClick={() => setShowAddForm(!showAddForm)} style={addToggleBtn}>
-                {showAddForm ? 'إلغاء' : <><Plus size={14} /> جديد</>}
-              </button>
-            </div>
-
-            {showAddForm && (
-              <div style={addFormBox}>
-                <input style={inp} placeholder="اسم العنوان (بيت، شغل)" value={newAddr.name} onChange={(e)=>setNewAddr({...newAddr, name: e.target.value})} />
-                <input style={inp} placeholder="المحافظة" value={newAddr.city} onChange={(e)=>setNewAddr({...newAddr, city: e.target.value})} />
-                <textarea style={{...inp, height:'60px'}} placeholder="العنوان بالتفصيل" value={newAddr.val} onChange={(e)=>setNewAddr({...newAddr, val: e.target.value})} />
-                <button onClick={handleAddAddress} style={saveBtnGreen}>إضافة</button>
-              </div>
-            )}
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {myAddresses.map(addr => (
-                <div key={addr.id} style={addressItem}>
-                  <div style={{flex: 1}}>
-                    <div style={{fontWeight:'900', fontSize:'0.9rem', color: '#1a1a1a'}}>{addr.address_name}</div>
-                    <div style={{fontSize:'0.8rem', color:'#666', marginTop: '2px'}}>{addr.city_name}، {addr.full_address}</div>
-                  </div>
-                  <button onClick={() => handleDeleteAddress(addr.id)} style={delIconBtn}><Trash2 size={16} /></button>
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* Horizontal Garage Bar */}
+      <div style={garageSection}>
+        <div style={sectionTopRow}>
+          <h3 style={compactSectionTitle}><Car size={18} /> جراجي الخاص</h3>
+          <button onClick={() => setShowCarForm(!showCarForm)} style={miniAddBtn}>
+            {showCarForm ? 'إلغاء' : <Plus size={16} />}
+          </button>
         </div>
 
-        {/* العمود الأيسر: سجل الطلبات */}
-        <div style={leftSide}>
-          <div style={sectionCard}>
-            <h3 style={sectionTitle}><ShoppingBag size={18} /> سجل الطلبات</h3>
-            {orders.length === 0 ? <p style={noOrders}>لا توجد طلبات سابقة.</p> : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {showCarForm && (
+          <div style={compactAddBox}>
+            <div style={compactInputGrid}>
+              <Select options={makesOptions} styles={customSelectStyles} placeholder="الماركة" isRtl={true} value={selectedMake} onChange={handleMakeChange} />
+              <Select options={modelsOptions} styles={customSelectStyles} placeholder="الموديل" isRtl={true} value={selectedModel} onChange={(opt) => setSelectedModel(opt)} isDisabled={!selectedMake} />
+              <input style={compactInp} placeholder="السنة" value={newCarYear} onChange={(e)=>setNewCarYear(e.target.value)} />
+            </div>
+            <button onClick={handleAddCar} disabled={saving} style={compactSaveBtn}>
+               {saving ? <Loader2 size={16} className="animate-spin"/> : 'إضافة للجراج'}
+            </button>
+          </div>
+        )}
+
+        <div style={garageScroll}>
+          {myCars.map(car => (
+            <div key={car.id} style={carCard}>
+              <div style={carIconWrap}><CarFront size={20} color="#22c55e" /></div>
+              <div style={carDetails}>
+                <div style={carNameText}>{car.make} {car.model}</div>
+                <div style={carYearText}>{car.year || 'عام'}</div>
+              </div>
+              <button onClick={() => handleDeleteCar(car.id)} style={carDeleteBtn}><Trash2 size={14} /></button>
+            </div>
+          ))}
+          {myCars.length === 0 && !showCarForm && <p style={emptyText}>لا توجد سيارات مضافة حالياً</p>}
+        </div>
+      </div>
+
+      <div style={gridSplit}>
+        {/* Left Side: Orders */}
+        <div style={orderColumn}>
+          <div style={mainCard}>
+            <h3 style={compactSectionTitle}><ShoppingBag size={18} /> سجل الطلبات</h3>
+            {orders.length === 0 ? <p style={emptyText}>لم تقم بأي طلبات بعد.</p> : (
+              <div style={orderList}>
                 {orders.map((order) => (
-                  <div key={order.id} style={orderDetailedCard(expandedOrder === order.id)}>
-                    <div 
-                      style={orderSummaryRow} 
-                      onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
-                    >
-                      <div>
-                        <div style={statusBadge(order.status)}>
-                          {order.status === 'pending' ? <Clock size={10}/> : <CheckCircle size={10}/>}
-                          {order.status === 'pending' ? 'قيد المراجعة' : 'تم الشحن'}
-                        </div>
-                        <div style={orderDateLabel}>{new Date(order.created_at).toLocaleDateString('ar-EG')}</div>
+                  <div key={order.id} style={orderMiniCard(expandedOrder === order.id)}>
+                    <div style={miniOrderHeader} onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}>
+                      <div style={orderMeta}>
+                        <span style={statusBadge(order.status)}>{order.status === 'pending' ? 'قيد المراجعة' : 'تم الشحن'}</span>
+                        <span style={dateText}>{new Date(order.created_at).toLocaleDateString('ar-EG')}</span>
                       </div>
-                      <div style={{ textAlign: 'left' }}>
-                        <div style={orderPriceLabel}>{order.total_price} ج.م</div>
-                        <div style={{fontSize: '0.7rem', color: '#999'}}>{order.items?.length} منتجات</div>
-                      </div>
+                      <div style={priceText}>{order.total_price} ج.م</div>
                     </div>
-
                     {expandedOrder === order.id && (
-                      <div style={expandedDetails}>
-                        <div style={productList}>
-                          {order.items?.map((item: any, idx: number) => (
-                            <div key={idx} style={productItemRow}>
-                              <div style={productImgBox}>
-                                <img src={item.image || item.image_url || '/placeholder.png'} alt="" style={{width:'100%', height:'100%', objectFit:'cover'}} />
-                              </div>
-                              <div style={{ flex: 1 }}>
-                                <div style={productNameStyle}>{item.name} <span style={{color: '#22c55e'}}>×{item.quantity}</span></div>
-                                <div style={productMetaStyle}>
-                                  <span>{item.brand}</span> • <span>{item.car_model}</span>
-                                </div>
-                              </div>
-                              <div style={productPriceStyle}>{(parseFloat(item.price) * item.quantity).toFixed(0)} ج.م</div>
+                      <div style={orderBody}>
+                        {order.items?.map((item: any, i: number) => (
+                          <div key={i} style={miniItemRow}>
+                            <img src={item.image || item.image_url || '/api/placeholder/40/40'} alt="" style={miniItemImg} />
+                            <div style={{flex:1}}>
+                              <div style={miniItemName}>{item.name} <span style={{color:'#22c55e'}}>×{item.quantity}</span></div>
                             </div>
-                          ))}
-                        </div>
-
-                        <div style={orderFooterBox}>
-                          {order.car_mileage && (
-                            <div style={footerRow}><Gauge size={14} color="#22c55e" /> <strong>العداد:</strong> {order.car_mileage} كم</div>
-                          )}
-                          <div style={footerRow}><MapPin size={14} color="#22c55e" /> {order.city}، {order.customer_address}</div>
-                          <div style={footerRow}><CreditCard size={14} color="#22c55e" /> {order.payment_method === 'instapay' ? 'انستا باي' : 'كاش'}</div>
-                        </div>
+                            <div style={miniItemPrice}>{parseFloat(item.price) * item.quantity} ج.م</div>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -257,70 +305,104 @@ export default function ProfilePage() {
             )}
           </div>
         </div>
+
+        {/* Right Side: Info & Addresses */}
+        <div style={infoColumn}>
+          <div style={mainCard}>
+            <h3 style={compactSectionTitle}><Settings size={18} /> الحساب</h3>
+            <form onSubmit={handleUpdateProfile} style={compactForm}>
+              <input style={compactInp} value={profile.full_name} onChange={(e) => setProfile({...profile, full_name: e.target.value})} placeholder="الاسم بالكامل" />
+              <input style={compactInp} value={profile.phone_number} onChange={(e) => setProfile({...profile, phone_number: e.target.value})} placeholder="رقم الموبايل" />
+              <button disabled={saving} type="submit" style={saveActionBtn}>
+                {saving ? <Loader2 size={16} className="animate-spin"/> : 'حفظ التعديلات'}
+              </button>
+            </form>
+          </div>
+
+          <div style={mainCard}>
+            <div style={sectionTopRow}>
+              <h3 style={compactSectionTitle}><MapPin size={18} /> العناوين</h3>
+              <button onClick={() => setShowAddForm(!showAddForm)} style={miniAddBtn}><Plus size={16} /></button>
+            </div>
+            {showAddForm && (
+              <div style={compactAddBox}>
+                <input style={compactInp} placeholder="اسم العنوان (منزل...)" value={newAddr.name} onChange={(e)=>setNewAddr({...newAddr, name: e.target.value})} />
+                <input style={compactInp} placeholder="المحافظة" value={newAddr.city} onChange={(e)=>setNewAddr({...newAddr, city: e.target.value})} />
+                <textarea style={compactArea} placeholder="العنوان بالتفصيل" value={newAddr.val} onChange={(e)=>setNewAddr({...newAddr, val: e.target.value})} />
+                <button onClick={handleAddAddress} style={compactSaveBtn}>إضافة العنوان</button>
+              </div>
+            )}
+            <div style={addressList}>
+              {myAddresses.map(addr => (
+                <div key={addr.id} style={addressCard}>
+                  <div style={{flex:1}}>
+                    <div style={addrName}>{addr.address_name}</div>
+                    <div style={addrFull}>{addr.city_name}، {addr.full_address}</div>
+                  </div>
+                  <button onClick={() => handleDeleteAddress(addr.id)} style={addrDelBtn}><Trash2 size={14} /></button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))} style={logoutBtn}>
-        <LogOut size={18} /> تسجيل الخروج من الحساب
+      <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))} style={elegantLogout}>
+        <LogOut size={16} /> تسجيل الخروج
       </button>
     </div>
   );
 }
 
-// أيقونة الإعدادات بسيطة
-const SettingsIcon = ({size}:any) => <User size={size} />;
-
-// --- نظام التنسيقات (Design System) ---
-const container: any = { padding: '40px 20px', maxWidth: '1000px', margin: '0 auto', direction: 'rtl', minHeight: '100vh' };
-
-// هيدر الصفحة
-const profileHeader: any = { textAlign: 'center', marginBottom: '40px', background: '#fff', padding: '40px', borderRadius: '30px', boxShadow: '0 10px 40px rgba(0,0,0,0.03)', border: '1px solid #f0f0f0' };
-const avatarGradient: any = { width: '100px', height: '100px', borderRadius: '35px', background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)', margin: '0 auto 20px', padding: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center' };
-const avatarInternal: any = { width: '100%', height: '100%', background: '#fff', borderRadius: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' };
-const userName: any = { fontSize: '1.8rem', fontWeight: '900', color: '#1a1a1a', marginBottom: '8px' };
-const userEmail: any = { color: '#888', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center' };
-const statsRow: any = { display: 'flex', justifyContent: 'center', gap: '30px', marginTop: '25px', paddingTop: '20px', borderTop: '1px solid #f5f5f5' };
-const statBox: any = { display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'center' };
-
-// تقسيم الصفحة
-const gridContent: any = { display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '25px' };
-const rightSide: any = { display: 'flex', flexDirection: 'column', gap: '25px' };
-const leftSide: any = { display: 'flex', flexDirection: 'column' };
-
-// الكروت والأقسام
-const sectionCard: any = { background: '#fff', padding: '25px', borderRadius: '25px', border: '1px solid #f0f0f0', boxShadow: '0 4px 20px rgba(0,0,0,0.01)' };
-const sectionTitle: any = { marginBottom: '25px', fontSize: '1.1rem', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '10px', color: '#1a1a1a' };
-const form: any = { display: 'flex', flexDirection: 'column', gap: '18px' };
-const inputGroup: any = { display: 'flex', flexDirection: 'column', gap: '8px' };
-const inp: any = { padding: '14px', borderRadius: '14px', border: '1px solid #eee', background: '#fcfcfc', outline: 'none', fontSize: '0.95rem', transition: '0.3s' };
-const lab: any = { fontSize: '0.8rem', fontWeight: 'bold', color: '#555', marginRight: '5px' };
-const saveBtn: any = { padding: '14px', background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' };
-const saveBtnGreen: any = { padding: '12px', background: '#22c55e', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' };
-
-// العناوين
-const addToggleBtn: any = { background: '#f0fdf4', color: '#22c55e', border: 'none', padding: '8px 15px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' };
-const addFormBox: any = { background: '#f9f9f9', padding: '15px', borderRadius: '18px', marginBottom: '15px', display: 'flex', flexDirection: 'column', gap: '10px', border: '1px dashed #22c55e' };
-const addressItem: any = { padding: '15px', background: '#fcfcfc', borderRadius: '15px', border: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
-const delIconBtn: any = { background: '#fff1f1', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '8px', borderRadius: '10px' };
-
-// سجل الطلبات
-const orderDetailedCard = (expanded:boolean):any => ({ background: expanded ? '#fff' : '#fcfcfc', border: expanded ? '1px solid #22c55e' : '1px solid #f0f0f0', borderRadius: '20px', overflow: 'hidden', transition: '0.3s' });
-const orderSummaryRow: any = { padding: '18px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' };
-const orderDateLabel: any = { fontSize: '0.75rem', color: '#999', marginTop: '4px' };
-const orderPriceLabel: any = { fontWeight: '900', fontSize: '1.05rem', color: '#1a1a1a' };
-const statusBadge = (s:string):any => ({ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.65rem', fontWeight: 'bold', padding: '4px 10px', borderRadius: '8px', background: s==='pending'?'#fff7ed':'#f0fdf4', color: s==='pending'?'#c2410c':'#166534', width: 'fit-content' });
-
-const expandedDetails: any = { padding: '0 20px 20px', borderTop: '1px solid #f5f5f5', background: '#fff' };
-const productList: any = { display: 'flex', flexDirection: 'column' };
-const productItemRow: any = { display: 'flex', gap: '12px', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #f9f9f9' };
-const productImgBox: any = { width: '50px', height: '50px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #f0f0f0', flexShrink: 0 };
-const productNameStyle: any = { fontSize: '0.85rem', fontWeight: 'bold', color: '#333' };
-const productMetaStyle: any = { fontSize: '0.7rem', color: '#aaa', marginTop: '2px' };
-const productPriceStyle: any = { fontSize: '0.85rem', fontWeight: '900', color: '#1a1a1a' };
-
-const orderFooterBox: any = { marginTop: '15px', padding: '15px', background: '#f9f9f9', borderRadius: '15px', display: 'flex', flexDirection: 'column', gap: '10px' };
-const footerRow: any = { fontSize: '0.75rem', color: '#555', display: 'flex', alignItems: 'center', gap: '10px' };
-const proofLink: any = { color: '#22c55e', textDecoration: 'none', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px', marginRight: 'auto' };
-
-const logoutBtn: any = { width: '100%', marginTop: '30px', padding: '18px', background: '#fff', border: '1px solid #fee2e2', color: '#ef4444', borderRadius: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontWeight: 'bold', transition: '0.3s' };
+// --- Style Objects ---
+const container: any = { padding: '30px 15px', maxWidth: '1100px', margin: '0 auto', direction: 'rtl', minHeight: '100vh', backgroundColor: '#fafafa' };
+const headerCard: any = { background: '#fff', borderRadius: '24px', padding: '25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', border: '1px solid #f0f0f0', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' };
+const profileInfoWrap: any = { display: 'flex', alignItems: 'center', gap: '20px' };
+const avatarWrap: any = { width: '70px', height: '70px', borderRadius: '20px', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #eefcf5' };
+const titleName: any = { fontSize: '1.4rem', fontWeight: '900', color: '#1a1a1a', marginBottom: '4px' };
+const emailText: any = { fontSize: '0.85rem', color: '#888' };
+const headerStatsRow: any = { display: 'flex', gap: '20px', alignItems: 'center' };
+const headerStatItem: any = { textAlign: 'center', display: 'flex', flexDirection: 'column' };
+const headerDivider: any = { width: '1px', height: '30px', background: '#eee' };
+const garageSection: any = { background: '#fff', borderRadius: '24px', padding: '20px', marginBottom: '25px', border: '1px solid #f0f0f0' };
+const garageScroll: any = { display: 'flex', gap: '15px', overflowX: 'auto', padding: '5px 0', scrollbarWidth: 'none' };
+const carCard: any = { flex: '0 0 200px', background: '#fdfdfd', border: '1px solid #f0f0f0', borderRadius: '18px', padding: '15px', display: 'flex', alignItems: 'center', gap: '12px', position: 'relative' };
+const carIconWrap: any = { width: '40px', height: '40px', borderRadius: '12px', background: '#fff', border: '1px solid #f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' };
+const carNameText: any = { fontSize: '0.9rem', fontWeight: '800', color: '#333' };
+const carYearText: any = { fontSize: '0.75rem', color: '#aaa' };
+const carDeleteBtn: any = { position: 'absolute', top: '10px', left: '10px', color: '#ff4d4d', background: 'none', border: 'none', cursor: 'pointer' };
+const gridSplit: any = { display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '25px' };
+const mainCard: any = { background: '#fff', borderRadius: '24px', padding: '20px', marginBottom: '25px', border: '1px solid #f0f0f0' };
+const compactSectionTitle: any = { fontSize: '1rem', fontWeight: '900', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' };
+const sectionTopRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' };
+const miniOrderHeader: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', cursor: 'pointer' };
+const orderMiniCard = (expanded: boolean) => ({ background: '#fff', border: expanded ? '1px solid #22c55e' : '1px solid #f5f5f5', borderRadius: '18px', marginBottom: '10px', overflow: 'hidden' });
+const statusBadge = (s: string) => ({ fontSize: '0.65rem', fontWeight: '900', padding: '4px 10px', borderRadius: '8px', background: s === 'pending' ? '#fff7ed' : '#f0fdf4', color: s === 'pending' ? '#c2410c' : '#166534' });
+const carDetails: any = { flex: 1 };
+const orderList: any = { display: 'flex', flexDirection: 'column' };
+const orderMeta: any = { display: 'flex', gap: '10px', alignItems: 'center' };
+const dateText: any = { fontSize: '0.75rem', color: '#bbb' };
+const priceText: any = { fontSize: '1rem', fontWeight: '900' };
+const orderBody: any = { padding: '15px', background: '#fafafa', borderTop: '1px solid #f5f5f5' };
+const miniItemRow: any = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' };
+const miniItemImg: any = { width: '35px', height: '35px', borderRadius: '8px', objectFit: 'cover' };
+const miniItemName: any = { fontSize: '0.8rem', fontWeight: '700' };
+const miniItemPrice: any = { fontSize: '0.8rem', fontWeight: '800' };
+const compactForm: any = { display: 'flex', flexDirection: 'column', gap: '12px' };
+const compactInp: any = { width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #f0f0f0', background: '#fdfdfd', fontSize: '0.9rem', outline: 'none' };
+const compactArea: any = { ...compactInp, height: '60px', resize: 'none' };
+const saveActionBtn: any = { padding: '12px', background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' };
+const miniAddBtn: any = { width: '30px', height: '30px', borderRadius: '10px', background: '#f0fdf4', color: '#22c55e', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' };
+const compactAddBox: any = { background: '#f9f9f9', padding: '15px', borderRadius: '18px', marginBottom: '15px', border: '1px dashed #22c55e' };
+const compactInputGrid: any = { display: 'grid', gridTemplateColumns: '1fr 1fr 0.5fr', gap: '10px', marginBottom: '10px' };
+const compactSaveBtn: any = { width: '100%', padding: '10px', background: '#22c55e', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold' };
+const addressList: any = { display: 'flex', flexDirection: 'column', gap: '10px' };
+const addressCard: any = { padding: '12px', border: '1px solid #f5f5f5', borderRadius: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
+const addrName: any = { fontSize: '0.85rem', fontWeight: '900' };
+const addrFull: any = { fontSize: '0.75rem', color: '#888' };
+const addrDelBtn: any = { color: '#ff4d4d', background: 'none', border: 'none', cursor: 'pointer' };
+const elegantLogout: any = { width: '100%', padding: '15px', background: 'none', border: '1px solid #fee2e2', color: '#ef4444', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontWeight: '900', fontSize: '0.9rem', cursor: 'pointer', transition: '0.2s' };
 const centerStyle: any = { display: 'flex', justifyContent: 'center', padding: '100px' };
-const noOrders: any = { color: '#999', fontSize: '0.85rem', textAlign: 'center', padding: '40px 0' };
+const emptyText: any = { textAlign: 'center', color: '#ccc', fontSize: '0.85rem', padding: '20px 0' };
+const infoColumn: any = { display: 'flex', flexDirection: 'column' };
+const orderColumn: any = { display: 'flex', flexDirection: 'column' };
