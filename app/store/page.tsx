@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -47,7 +47,7 @@ const Select = dynamic(() => import('react-select'), {
 });
 
 
-export default function StorePage() {
+function StoreContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addToCart } = useCart();
@@ -1287,5 +1287,18 @@ export default function StorePage() {
         </>
       )}
     </div>
+  );
+}
+
+
+export default function StorePage() {
+  return (
+    <Suspense fallback={
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Loader2 size={60} color="#22c55e" style={{ animation: 'spin 1s linear infinite' }} />
+      </div>
+    }>
+      <StoreContent />
+    </Suspense>
   );
 }
