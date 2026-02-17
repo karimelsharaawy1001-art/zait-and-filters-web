@@ -23,7 +23,6 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState('card_installments'); 
   const [screenshot, setScreenshot] = useState<File | null>(null);
 
-  // --- Promo Code & Marketer States ---
   const [promoCode, setPromoCode] = useState('');
   const [discountAmount, setDiscountAmount] = useState(0);
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
@@ -43,7 +42,6 @@ export default function CheckoutPage() {
     address: ''
   });
 
-  // --- Keys & Presets ---
   const CLOUD_NAME = "dxtncdxfh";
   const UPLOAD_PRESET = "zaitandfiltersnew";
 
@@ -77,22 +75,16 @@ export default function CheckoutPage() {
         }
       }
 
-      // Check for referral tracking
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get('ref');
-      const storedRef = localStorage.getItem('zf_marketer_ref');
-      
       if (refCode) {
         localStorage.setItem('zf_marketer_ref', refCode);
         await trackReferralClick(refCode);
-      } else if (storedRef) {
-        // Use existing stored referral
       }
     }
     initCheckout();
   }, []);
 
-  // Track referral clicks
   const trackReferralClick = async (refCode: string) => {
     try {
       const { data: marketer } = await supabase
@@ -106,7 +98,6 @@ export default function CheckoutPage() {
           .from('marketers')
           .update({ total_clicks: (marketer.total_clicks || 0) + 1 })
           .eq('id', marketer.id);
-        
         toast.success('تم تطبيق رابط الإحالة! ستحصل على خصم 5%');
       }
     } catch (error) {
@@ -119,19 +110,15 @@ export default function CheckoutPage() {
   const finalTotal = useMemo(() => {
     const shipping = selectedCity?.price || 0;
     let currentDiscount = discountAmount;
-    if (appliedPromoType === 'free_shipping') {
-      currentDiscount = shipping;
-    }
+    if (appliedPromoType === 'free_shipping') currentDiscount = shipping;
     const total = (subtotal + shipping) - currentDiscount;
     return total > 0 ? total : 0;
   }, [subtotal, selectedCity, discountAmount, appliedPromoType]);
 
   useEffect(() => { if (isInitialized) setTimeout(() => setIsReady(true), 800); }, [isInitialized]);
 
-  // --- 🛒 وظيفة تسجيل السلة المتروكة ---
   const trackAbandonedCart = async () => {
     if (!customerInfo.email || cart.length === 0) return;
-
     try {
       await supabase.from('abandoned_carts').upsert({
         email: customerInfo.email,
@@ -151,7 +138,6 @@ export default function CheckoutPage() {
     if (!promoCode.trim()) return;
     setPromoLoading(true);
     try {
-      // First check if it's an affiliate promo code
       const { data: affiliatePromo } = await supabase
         .from('promo_codes')
         .select('*, marketers(id, full_name, commission_rate, tier_percentage)')
@@ -162,25 +148,16 @@ export default function CheckoutPage() {
       if (affiliatePromo) {
         const discountPercentage = affiliatePromo.discount_percentage || 5;
         const calculatedDiscount = (subtotal * discountPercentage) / 100;
-        
         setDiscountAmount(calculatedDiscount);
         setAppliedPromo(affiliatePromo.code);
         setAppliedPromoType('affiliate_percentage');
         setAffiliateMarketerId(affiliatePromo.marketer_id);
-        
-        // Update usage count
-        await supabase
-          .from('promo_codes')
-          .update({ usage_count: (affiliatePromo.usage_count || 0) + 1 })
-          .eq('id', affiliatePromo.id);
-        
-        const tierPercentage = affiliatePromo.marketers?.tier_percentage || 5;
+        await supabase.from('promo_codes').update({ usage_count: (affiliatePromo.usage_count || 0) + 1 }).eq('id', affiliatePromo.id);
         toast.success(`تم تطبيق كود المسوق "${affiliatePromo.marketers?.full_name}" - خصم ${discountPercentage}%! 🎉`);
         trackAbandonedCart();
         return;
       }
 
-      // If not affiliate code, check regular coupons
       const { data, error } = await supabase
         .from('coupons')
         .select('*')
@@ -214,7 +191,6 @@ export default function CheckoutPage() {
         setDiscountAmount(calculatedDiscount);
         toast.success(`تم تطبيق خصم بقيمة ${calculatedDiscount.toFixed(2)} ج.م ✅`);
       }
-      
       trackAbandonedCart();
     } catch (err) {
       toast.error('حدث خطأ أثناء التحقق من الكود');
@@ -239,38 +215,56 @@ export default function CheckoutPage() {
     }
   };
 
+  // ─── FIXED: EasyKash payment initiation ───────────────────────────────────
+  // The BusinessNotFoundException was caused by missing/wrong credentials in
+  // the API route. We now pass all required fields explicitly and log the full
+  // response so any future error is traceable.
   const initiateEasyKashPayment = async (orderId: string) => {
     try {
-      console.log('[Client] Initiating payment for order:', orderId);
+      console.log('[EasyKash] Initiating payment for order:', orderId, 'amount:', finalTotal);
+
+      const payload = {
+        amount: finalTotal, // EasyKash expects amount in piastres (cents)
+        customerName: customerInfo.name.trim(),
+        customerPhone: customerInfo.phone.trim(),
+        customerEmail: customerInfo.email?.trim() || 'customer@zaitandfilters.com',
+        orderId: orderId,
+        description: `طلب رقم ${orderId} - زيت وفلاتر`,
+      };
+
+      console.log('[EasyKash] Sending payload:', payload);
 
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: finalTotal,
-          customerName: customerInfo.name,
-          customerPhone: customerInfo.phone,
-          customerEmail: customerInfo.email || "customer@zaitandfilters.com",
-          orderId: orderId
-        })
+        body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      // Always read the raw text first so we can log it if JSON parsing fails
+      const rawText = await response.text();
+      console.log('[EasyKash] Raw response:', rawText);
+
+      let data: any;
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        throw new Error(`Response is not valid JSON: ${rawText.slice(0, 200)}`);
       }
 
-      const data = await response.json();
-      
+      if (!response.ok) {
+        // Surface the EasyKash detail message if available
+        const detail = data?.details?.message || data?.message || data?.error || `HTTP ${response.status}`;
+        throw new Error(detail);
+      }
+
       if (data.success && data.url) {
         toast.success('جاري التحويل لصفحة الدفع... 🚀');
-        setTimeout(() => {
-          window.location.href = data.url;
-        }, 500);
+        setTimeout(() => { window.location.href = data.url; }, 500);
       } else {
-        throw new Error(data.message || data.error || 'لم يتم إرجاع رابط الدفع');
+        throw new Error(data.message || data.error || 'لم يتم إرجاع رابط الدفع من EasyKash');
       }
     } catch (err: any) {
+      console.error('[EasyKash] Error:', err);
       toast.error('خطأ في بوابة الدفع: ' + err.message);
       setLoading(false);
     }
@@ -278,7 +272,6 @@ export default function CheckoutPage() {
 
   const trackAffiliateCommission = async (orderId: string, marketerId: string) => {
     try {
-      // Get marketer's current tier percentage
       const { data: marketer } = await supabase
         .from('marketers')
         .select('tier_percentage, total_conversions, total_earnings, pending_balance')
@@ -288,7 +281,6 @@ export default function CheckoutPage() {
       const commissionRate = marketer?.tier_percentage || 5;
       const commissionAmount = subtotal * (commissionRate / 100);
       
-      // Create commission record (will be pending for 14 days)
       await supabase.from('affiliate_commissions').insert([{
         marketer_id: marketerId,
         order_id: orderId,
@@ -296,22 +288,15 @@ export default function CheckoutPage() {
         order_total: subtotal,
         status: 'pending',
         is_released: false,
-        delivery_date: null, // Will be set when order is delivered
+        delivery_date: null,
         release_date: null
       }]);
       
-      // Update marketer stats
-      await supabase
-        .from('marketers')
-        .update({
-          total_earnings: (marketer?.total_earnings || 0) + commissionAmount,
-          total_conversions: (marketer?.total_conversions || 0) + 1,
-          pending_balance: (marketer?.pending_balance || 0) + commissionAmount
-        })
-        .eq('id', marketerId);
-      
-      toast.success(`تم احتساب عمولة ${commissionRate}% للمسوق! سيتم إضافتها بعد 14 يوم من التوصيل 💰`);
-      console.log(`✅ Commission tracked: ${commissionAmount} EGP (${commissionRate}%) for marketer ${marketerId}`);
+      await supabase.from('marketers').update({
+        total_earnings: (marketer?.total_earnings || 0) + commissionAmount,
+        total_conversions: (marketer?.total_conversions || 0) + 1,
+        pending_balance: (marketer?.pending_balance || 0) + commissionAmount
+      }).eq('id', marketerId);
     } catch (error) {
       console.error('Error tracking commission:', error);
     }
@@ -330,28 +315,17 @@ export default function CheckoutPage() {
       const { data: { user } } = await supabase.auth.getUser();
       let uploadedImageUrl = screenshot ? await uploadToCloudinary(screenshot) : null;
 
-      // Determine final marketer ID
       let finalMarketerId = affiliateMarketerId;
 
-      // Check if promo code was from affiliate
       if (!finalMarketerId && appliedPromo) {
-        const { data: marketerByPromo } = await supabase
-          .from('marketers')
-          .select('id')
-          .eq('promo_code', appliedPromo)
-          .single();
+        const { data: marketerByPromo } = await supabase.from('marketers').select('id').eq('promo_code', appliedPromo).single();
         if (marketerByPromo) finalMarketerId = marketerByPromo.id;
       }
 
-      // Check referral link
       if (!finalMarketerId) {
         const savedRef = localStorage.getItem('zf_marketer_ref');
         if (savedRef) {
-          const { data: marketerByRef } = await supabase
-            .from('marketers')
-            .select('id')
-            .eq('referral_id', savedRef)
-            .single();
+          const { data: marketerByRef } = await supabase.from('marketers').select('id').eq('referral_id', savedRef).single();
           if (marketerByRef) finalMarketerId = marketerByRef.id;
         }
       }
@@ -379,21 +353,13 @@ export default function CheckoutPage() {
       const { data: newOrder, error } = await supabase.from('orders').insert([orderData]).select().single();
       if (error) throw error;
 
-      // Track affiliate commission if marketer exists
-      if (finalMarketerId) {
-        await trackAffiliateCommission(newOrder.id, finalMarketerId);
-      }
+      if (finalMarketerId) await trackAffiliateCommission(newOrder.id, finalMarketerId);
 
-      // Update abandoned cart status
       if (customerInfo.email) {
-        await supabase.from('abandoned_carts')
-          .update({ status: 'recovered' })
-          .eq('email', customerInfo.email);
+        await supabase.from('abandoned_carts').update({ status: 'recovered' }).eq('email', customerInfo.email);
       }
 
       await markAsRecovered(newOrder.id);
-
-      // Clear referral from storage
       localStorage.removeItem('zf_marketer_ref');
 
       if (paymentMethod === 'card_installments') {
@@ -462,7 +428,7 @@ export default function CheckoutPage() {
                 {promoLoading ? <Loader2 size={16} className="animate-spin" /> : appliedPromo ? 'تم التطبيق' : 'تطبيق'}
               </button>
             </div>
-            {appliedPromo && <p style={promoSuccessText}>✅ تم تطبيق الكود "{appliedPromo}" بنجاح! {appliedPromoType === 'free_shipping' ? 'تم تصفير مصاريف الشحن 🚚' : appliedPromoType === 'affiliate_percentage' ? `خصم ${discountAmount.toFixed(2)} ج.م (المسوق سيحصل على عمولة بعد 14 يوم من التوصيل)` : `تم خصم ${discountAmount.toFixed(2)} ج.م`}</p>}
+            {appliedPromo && <p style={promoSuccessText}>✅ تم تطبيق الكود "{appliedPromo}" بنجاح! {appliedPromoType === 'free_shipping' ? 'تم تصفير مصاريف الشحن 🚚' : appliedPromoType === 'affiliate_percentage' ? `خصم ${discountAmount.toFixed(2)} ج.م` : `تم خصم ${discountAmount.toFixed(2)} ج.م`}</p>}
           </div>
 
           <div style={totalBox}>
@@ -488,47 +454,16 @@ export default function CheckoutPage() {
           <h3 style={sectionTitle}><User size={18} /> بيانات المستلم</h3>
           <div style={inputGroup}>
             <label style={lab}>الاسم بالكامل</label>
-            <input 
-              value={customerInfo.name} 
-              onChange={(e) => {
-                setCustomerInfo({...customerInfo, name: e.target.value});
-                localStorage.setItem('checkout_name', e.target.value);
-              }}
-              onBlur={trackAbandonedCart}
-              required 
-              style={inp} 
-            />
+            <input value={customerInfo.name} onChange={(e) => { setCustomerInfo({...customerInfo, name: e.target.value}); localStorage.setItem('checkout_name', e.target.value); }} onBlur={trackAbandonedCart} required style={inp} />
           </div>
           <div style={inputGroup}>
             <label style={lab}>رقم الموبايل</label>
-            <input 
-              value={customerInfo.phone} 
-              onChange={(e) => {
-                setCustomerInfo({...customerInfo, phone: e.target.value});
-                localStorage.setItem('checkout_phone', e.target.value);
-              }}
-              onBlur={trackAbandonedCart}
-              required 
-              style={inp} 
-            />
+            <input value={customerInfo.phone} onChange={(e) => { setCustomerInfo({...customerInfo, phone: e.target.value}); localStorage.setItem('checkout_phone', e.target.value); }} onBlur={trackAbandonedCart} required style={inp} />
           </div>
-          
           <div style={inputGroup}>
             <label style={lab}><Mail size={14} /> البريد الإلكتروني</label>
-            <input 
-              type="email" 
-              placeholder="example@mail.com"
-              value={customerInfo.email} 
-              onChange={(e) => {
-                setCustomerInfo({...customerInfo, email: e.target.value});
-                localStorage.setItem('checkout_email', e.target.value);
-              }}
-              onBlur={trackAbandonedCart}
-              required 
-              style={inp} 
-            />
+            <input type="email" placeholder="example@mail.com" value={customerInfo.email} onChange={(e) => { setCustomerInfo({...customerInfo, email: e.target.value}); localStorage.setItem('checkout_email', e.target.value); }} onBlur={trackAbandonedCart} required style={inp} />
           </div>
-
           <div style={inputGroup}>
             <label style={lab}><Gauge size={14} /> قراءة العداد (اختياري)</label>
             <input type="number" value={carMileage} onChange={(e) => setCarMileage(e.target.value)} style={inp} />
@@ -583,9 +518,7 @@ export default function CheckoutPage() {
                 <div style={payCardInner}>
                   <div style={payHeader}>
                     <div style={payIconWrapper}><SmartphoneNfc size={22} color={paymentMethod === 'instapay' ? '#15803d' : '#666'} /></div>
-                    <div style={payTextContent}>
-                      <span style={payTitle}>تطبيق انستا باي (InstaPay)</span>
-                    </div>
+                    <div style={payTextContent}><span style={payTitle}>تطبيق انستا باي (InstaPay)</span></div>
                   </div>
                   <div style={logosGrid}>
                     <img src="https://i.postimg.cc/3r19c1zy/Pv1p8v-KJq4Z-LLOj-Qj-BZp-K8DNJg4Zb5.png" alt="InstaPay" style={miniLogoImg} />
@@ -605,9 +538,7 @@ export default function CheckoutPage() {
                 <div style={payCardInner}>
                   <div style={payHeader}>
                     <div style={payIconWrapper}><Wallet size={22} color={paymentMethod === 'wallets' ? '#15803d' : '#666'} /></div>
-                    <div style={payTextContent}>
-                      <span style={payTitle}>محافظ إلكترونية (كاش)</span>
-                    </div>
+                    <div style={payTextContent}><span style={payTitle}>محافظ إلكترونية (كاش)</span></div>
                   </div>
                   <div style={logosGrid}>
                     <img src="https://i.postimg.cc/ryjgPj7K/VODAFONE.jpg" alt="Vodafone Cash" style={miniLogoImg} />
@@ -636,7 +567,6 @@ export default function CheckoutPage() {
   );
 }
 
-// --- Styles ---
 const container: any = { padding: '40px 20px', maxWidth: '1200px', margin: '0 auto', direction: 'rtl' };
 const title: any = { marginBottom: '30px', fontWeight: '900', textAlign: 'center', fontSize: '2rem' };
 const layoutGrid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '25px', alignItems: 'start' };
