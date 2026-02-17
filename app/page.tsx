@@ -867,7 +867,7 @@ export default function HomePage() {
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><Link href="/store?filter=sales" style={{ color: '#22c55e', fontWeight: '800', textDecoration: 'none', marginLeft: '15px', fontSize: '0.9rem' }}>عرض الكل</Link><button onClick={() => scroll(scrollRef, 'right')} style={arrowBtnSmall}><ChevronRight size={14}/></button><button onClick={() => scroll(scrollRef, 'left')} style={arrowBtnSmall}><ChevronLeft size={14}/></button></div>
                   </div>
                   <div ref={scrollRef} className="no-scrollbar product-grid-carousel">
-                    {saleProducts.map((p) => {
+                    {saleProducts.slice(0, 6).map((p) => {
                       const country = p.country_origin || p.country_of_origin || p.origin || 'أصلي';
                       return (
                         <div key={p.id} className="product-card-mdrn">
@@ -911,7 +911,7 @@ export default function HomePage() {
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><button onClick={() => scroll(bestSellerRef, 'right')} style={arrowBtnSmall}><ChevronRight size={14}/></button><button onClick={() => scroll(bestSellerRef, 'left')} style={arrowBtnSmall}><ChevronLeft size={14}/></button></div>
                   </div>
                   <div ref={bestSellerRef} className="no-scrollbar product-grid-carousel">
-                    {bestSellers.map((p) => {
+                    {bestSellers.slice(0, 6).map((p) => {
                       const country = p.country_origin || p.country_of_origin || p.origin || 'أصلي';
                       return (
                         <div key={p.id} className="product-card-mdrn">
