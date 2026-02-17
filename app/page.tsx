@@ -154,10 +154,9 @@ export default function HomePage() {
 
   useEffect(() => {
     setIsMounted(true);
-    setSelectLoaded(true); // Mark Select as ready to load
+    setSelectLoaded(true); 
     fetchInitialData();
     
-    // Rotate loading messages
     const messageInterval = setInterval(() => {
       setLoadingMessage((prev) => (prev + 1) % loadingMessages.length);
     }, 1500);
@@ -189,28 +188,42 @@ export default function HomePage() {
   async function fetchInitialData() {
     try {
       setLoading(true);
-      const [heroRes, productsRes, catListRes, customImgRes, partBrandsRes, carBrandsRes] = await Promise.all([
+      
+      // FIXED: Fetch ALL products but optimize other queries
+      const [heroRes, customImgRes, partBrandsRes, carBrandsRes, makesRes] = await Promise.all([
         supabase.from('hero_settings').select('*').order('id', { ascending: true }),
-        supabase.from('products').select('*').range(0, 1000).order('created_at', { ascending: false }),
-        supabase.from('products').select('category'),
         supabase.from('category_images').select('name, image_url'),
         supabase.from('part_brands').select('name, logo_url').neq('logo_url', ''),
-        supabase.from('car_brands').select('name, logo_url')
+        supabase.from('car_brands').select('name, logo_url'),
+        supabase.from('products').select('car_make').not('car_make', 'is', null) // Only fetch makes column
       ]);
-
 
       if (heroRes.data) setSlides(heroRes.data);
       if (partBrandsRes.data) setBrandLogos(partBrandsRes.data);
 
+      // FIXED: Fetch ALL products without range limit
+      const { data: allProducts, error: productsError } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      const allProducts = productsRes.data || [];
+      if (productsError) {
+        console.error('Products fetch error:', productsError);
+      }
+
+      const products = allProducts || [];
       const customImages = customImgRes.data || [];
       
-      if (allProducts.length > 0) {
-        setSaleProducts(allProducts.filter(p => Number(p.sale_price) > 0 && Number(p.regular_price) > Number(p.sale_price) && isValidImg(p.image_url)));
+      if (products.length > 0) {
+        // Filter sale products from ALL products
+        setSaleProducts(products.filter(p => 
+          Number(p.sale_price) > 0 && 
+          Number(p.regular_price) > Number(p.sale_price) && 
+          isValidImg(p.image_url)
+        ).slice(0, 20)); // Show first 20 sale products
 
 
-        const { data: orders } = await supabase.from('orders').select('items').limit(50);
+        const { data: orders } = await supabase.from('orders').select('items').limit(100);
         const productCounts: Record<string, number> = {};
         orders?.forEach((order: any) => {
           order.items?.forEach((item: any) => {
@@ -218,43 +231,84 @@ export default function HomePage() {
           });
         });
         const sortedBestIds = Object.entries(productCounts).sort(([, a], [, b]) => b - a).map(([id]) => id);
-        let bestSellersList = sortedBestIds.map(id => allProducts.find(p => p.id === id)).filter(p => p && isValidImg(p.image_url));
+        let bestSellersList = sortedBestIds
+          .map(id => products.find(p => p.id === id))
+          .filter(p => p && isValidImg(p.image_url));
 
 
         if (bestSellersList.length < 4) {
-          bestSellersList = [...bestSellersList, ...allProducts.filter(p => !bestSellersList.find(b => b?.id === p.id) && isValidImg(p.image_url)).slice(0, 10)];
+          bestSellersList = [
+            ...bestSellersList, 
+            ...products
+              .filter(p => !bestSellersList.find(b => b?.id === p.id) && isValidImg(p.image_url))
+              .slice(0, 20)
+          ];
         }
-        setBestSellers(bestSellersList);
-      }
+        setBestSellers(bestSellersList.slice(0, 20)); // Show first 20 best sellers
 
-
-      if (catListRes.data) {
-        const uniqueCats = Array.from(new Set(catListRes.data.map(i => i.category?.trim()).filter(Boolean)));
+        // Get unique categories from ALL products
+        const uniqueCats = Array.from(new Set(
+          products
+            .map(i => i.category?.trim())
+            .filter(Boolean)
+        ));
+        
         setCategories(uniqueCats.map(cat => {
           const imgObj = customImages.find(img => img.name?.trim().toUpperCase() === cat.toUpperCase());
-          const prodObj = allProducts.find(p => p.category?.trim().toUpperCase() === cat.toUpperCase() && isValidImg(p.image_url));
-          return { name: cat, image: imgObj?.image_url || prodObj?.image_url || "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?q=80&w=500" };
+          const prodObj = products.find(p => p.category?.trim().toUpperCase() === cat.toUpperCase() && isValidImg(p.image_url));
+          return { 
+            name: cat, 
+            image: imgObj?.image_url || prodObj?.image_url || "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?q=80&w=500" 
+          };
         }));
       }
 
 
-      if (carBrandsRes.data) {
-        const uniqueMakes = Array.from(new Set(allProducts.map(i => i.car_make?.trim()).filter(Boolean)));
+      // Process makes efficiently from dedicated query
+      if (carBrandsRes.data && makesRes.data) {
+        const uniqueMakes = Array.from(new Set(
+          makesRes.data
+            .map(i => i.car_make?.trim())
+            .filter(Boolean)
+        )).sort();
+        
         setMakesOptions(uniqueMakes.map(makeName => {
-          const brandInfo = carBrandsRes.data?.find(b => b.name?.trim().toLowerCase() === makeName.toString().toLowerCase());
-          return { value: makeName, label: makeName, logo: brandInfo?.logo_url || null };
+          const brandInfo = carBrandsRes.data?.find(b => b.name?.trim().toLowerCase() === makeName.toLowerCase());
+          return { 
+            value: makeName, 
+            label: makeName, 
+            logo: brandInfo?.logo_url || null 
+          };
         }));
       }
-    } catch (err) { console.error(err); } finally { 
+    } catch (err) { 
+      console.error('Fetch error:', err); 
+    } finally { 
       setTimeout(() => setLoading(false), 800); 
     }
   }
 
 
+  // Fetch models only when needed
   async function fetchModels(make: string) {
-    const { data } = await supabase.from('products').select('car_model').ilike('car_make', make.trim());
-    if (data) {
-      setModelsOptions(Array.from(new Set(data.map(i => i.car_model?.trim()).filter(Boolean))).sort().map(m => ({ value: m, label: m })));
+    try {
+      const { data } = await supabase
+        .from('products')
+        .select('car_model')
+        .ilike('car_make', make.trim())
+        .not('car_model', 'is', null);
+      
+      if (data) {
+        const uniqueModels = Array.from(new Set(
+          data
+            .map(i => i.car_model?.trim())
+            .filter(Boolean)
+        )).sort();
+        
+        setModelsOptions(uniqueModels.map(m => ({ value: m, label: m })));
+      }
+    } catch (err) {
+      console.error('Error fetching models:', err);
     }
   }
 
@@ -278,11 +332,51 @@ export default function HomePage() {
 
 
   const customSelectStyles = {
-    control: (base: any) => ({ ...base, height: '52px', borderRadius: '12px', border: 'none', backgroundColor: '#f8f8f8', fontSize: '1rem', textAlign: 'right', display: 'flex', flexDirection: 'row-reverse' }),
-    option: (base: any, state: any) => ({ ...base, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', flexDirection: 'row-reverse', gap: '8px', padding: '10px 15px', fontSize: '0.95rem', backgroundColor: state.isFocused ? '#eefcf5' : '#fff', color: '#1a1a1a', cursor: 'pointer' }),
-    singleValue: (base: any) => ({ ...base, display: 'flex', alignItems: 'center', gap: '8px', flexDirection: 'row-reverse' }),
-    valueContainer: (base: any) => ({ ...base, padding: '0 12px', display: 'flex', flexDirection: 'row-reverse' }),
-    menu: (base: any) => ({ ...base, zIndex: 9999 })
+    control: (base: any) => ({ 
+      ...base, 
+      height: '52px', 
+      borderRadius: '12px', 
+      border: 'none', 
+      backgroundColor: '#f8f8f8', 
+      fontSize: '1rem', 
+      textAlign: 'right', 
+      display: 'flex', 
+      flexDirection: 'row-reverse' 
+    }),
+    option: (base: any, state: any) => ({ 
+      ...base, 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'flex-start', 
+      flexDirection: 'row-reverse', 
+      gap: '8px', 
+      padding: '10px 15px', 
+      fontSize: '0.95rem', 
+      backgroundColor: state.isFocused ? '#eefcf5' : '#fff', 
+      color: '#1a1a1a', 
+      cursor: 'pointer'
+    }),
+    singleValue: (base: any) => ({ 
+      ...base, 
+      display: 'flex', 
+      alignItems: 'center', 
+      gap: '8px', 
+      flexDirection: 'row-reverse' 
+    }),
+    valueContainer: (base: any) => ({ 
+      ...base, 
+      padding: '0 12px', 
+      display: 'flex', 
+      flexDirection: 'row-reverse' 
+    }),
+    menu: (base: any) => ({ 
+      ...base, 
+      zIndex: 10000 
+    }),
+    menuList: (base: any) => ({
+      ...base,
+      maxHeight: '250px'
+    })
   };
 
 
@@ -303,7 +397,6 @@ export default function HomePage() {
             style={fullPageLoaderStyle}
           >
             <div style={{ textAlign: 'center', maxWidth: '600px' }}>
-              {/* Animated Logo */}
               <motion.div 
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -325,7 +418,7 @@ export default function HomePage() {
                 />
               </motion.div>
 
-              {/* Brand Name */}
+
               <motion.h1
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -336,7 +429,7 @@ export default function HomePage() {
                 <span style={{ color: '#22c55e' }}>&nbsp;& FILTERS</span>
               </motion.h1>
 
-              {/* Main Headline */}
+
               <motion.h2 
                 initial={{ y: 30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -347,7 +440,6 @@ export default function HomePage() {
               </motion.h2>
 
 
-              {/* Tagline */}
               <motion.p 
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -358,7 +450,6 @@ export default function HomePage() {
               </motion.p>
 
 
-              {/* Loading Bar */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -374,7 +465,6 @@ export default function HomePage() {
               </motion.div>
 
 
-              {/* Rotating Messages */}
               <motion.div
                 key={loadingMessage}
                 initial={{ opacity: 0, y: 10 }}
@@ -390,7 +480,6 @@ export default function HomePage() {
               </motion.div>
 
 
-              {/* Feature Pills */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -445,6 +534,7 @@ export default function HomePage() {
             background-position: center; 
             opacity: 0;
             transition: opacity 0.8s ease-in-out;
+            min-height: 100%;
           }
           
           .hero-slide.active { opacity: 1; }
@@ -600,14 +690,60 @@ export default function HomePage() {
             .category-grid-v3 { grid-template-columns: repeat(2, 1fr); gap: 10px; }
             .product-card-mdrn { flex: 0 0 280px !important; min-width: 280px !important; max-width: 280px !important; }
             .img-container { height: 180px; }
+            
+            /* COMPLETE FIX FOR HERO ON MOBILE */
+            section:first-of-type { 
+              min-height: auto !important;
+              overflow: visible !important;
+              padding-bottom: 30px !important;
+            }
+            
+            .hero-slide {
+              position: relative !important;
+              min-height: auto !important;
+              padding-top: 100px !important;
+              padding-bottom: 40px !important;
+            }
+            
+            .hero-content-wrapper {
+              flex-direction: column !important;
+              gap: 20px !important;
+            }
+            
+            .hero-content-right {
+              text-align: center !important;
+              order: 1 !important;
+              min-width: 100% !important;
+              padding: 0 10px !important;
+            }
+            
+            .hero-content-left {
+              width: 100% !important;
+              max-width: 100% !important;
+              padding: 20px !important;
+              order: 2 !important;
+              margin: 0 auto !important;
+            }
+
+            .hero-content-right h1 {
+              font-size: 2rem !important;
+              line-height: 1.3 !important;
+            }
+            
+            .hero-content-right p {
+              margin-left: auto !important;
+              margin-right: auto !important;
+              font-size: 1rem !important;
+              max-width: 90% !important;
+            }
           }
         `}} />
 
 
         {!loading && (
           <div className="page-container">
-            {/* Hero Section - Pure CSS Transitions */}
-            <section style={{ position: 'relative', minHeight: '500px', overflow: 'hidden', backgroundColor: '#000' }}>
+            {/* Hero Section */}
+            <section style={{ position: 'relative', minHeight: '600px', overflow: 'hidden', backgroundColor: '#000' }}>
               {slides.map((slide, index) => (
                 <div 
                   key={index}
@@ -618,20 +754,54 @@ export default function HomePage() {
                     alignItems: 'center'
                   }}
                 >
-                  <div style={{ position: 'relative', zIndex: 5, width: '100%', maxWidth: '1100px', margin: '0 auto', padding: '0 20px' }}>
-                    <div style={{ display: 'flex', gap: '40px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                  <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
+                    <div className="hero-content-wrapper" style={{ display: 'flex', gap: '40px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                       <div className="hero-content-right" style={{ flex: '1', textAlign: 'right', minWidth: '300px' }}>
-                        <h1 style={{ fontSize: '3rem', fontWeight: '900', lineHeight: '1.4', marginBottom: '15px', color: '#22c55e' }} dangerouslySetInnerHTML={{ __html: slide.title || '' }} />
+                        {slide.title && (
+                          <h1 style={{ fontSize: '3rem', fontWeight: '900', lineHeight: '1.4', marginBottom: '15px', color: '#22c55e' }}>
+                            {slide.title.replace(/<[^>]*>/g, '')}
+                          </h1>
+                        )}
                         <p style={{ color: '#fff', fontSize: '1.2rem', fontWeight: '500', marginBottom: '25px', maxWidth: '550px', lineHeight: '1.5' }}>{slide.subtitle}</p>
                         <Link href={slide.button_link || '/store'} style={{ padding: '12px 30px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.95rem', display: 'inline-block' }}>{slide.button_text || 'تصفح المتجر'}</Link>
                       </div>
                       
-                      <div className="hero-content-left" style={{ width: '400px', backgroundColor: '#fff', padding: '30px', borderRadius: '30px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+                      <div className="hero-content-left" style={{ width: '400px', maxWidth: '100%', backgroundColor: '#fff', padding: '30px', borderRadius: '30px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)', position: 'relative', zIndex: 100 }}>
                         <h3 style={{ marginBottom: '20px', fontSize: '1.2rem', fontWeight: '900', textAlign: 'center' }}>ابحث بمواصفات سيارتك</h3>
                         {selectLoaded && (
                           <>
-                            <div style={{marginBottom: '12px'}}><label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>الماركة</label><Select instanceId="make-select" options={makesOptions} styles={customSelectStyles} placeholder="اختر الماركة" isRtl={true} onChange={(opt) => setSelectedMake(opt)} formatOptionLabel={(brand: any) => (<div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>{brand.logo ? <img src={brand.logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} /> : <Car size={20} color="#ccc" />}<span>{brand.label}</span></div>)} /></div>
-                            <div style={{marginBottom: '12px'}}><label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>الموديل</label><Select instanceId="model-select" options={modelsOptions} styles={customSelectStyles} placeholder="اختر الموديل" isRtl={true} value={selectedModel} isDisabled={!selectedMake} onChange={(opt) => setSelectedModel(opt)} /></div>
+                            <div style={{marginBottom: '12px'}}>
+                              <label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>الماركة</label>
+                              <Select 
+                                instanceId="make-select" 
+                                options={makesOptions} 
+                                styles={customSelectStyles} 
+                                placeholder="اختر الماركة" 
+                                isRtl={true} 
+                                isSearchable={true}
+                                onChange={(opt) => setSelectedMake(opt)} 
+                                formatOptionLabel={(brand: any) => (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    {brand.logo ? <img src={brand.logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} /> : <Car size={20} color="#ccc" />}
+                                    <span>{brand.label}</span>
+                                  </div>
+                                )} 
+                              />
+                            </div>
+                            <div style={{marginBottom: '12px'}}>
+                              <label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>الموديل</label>
+                              <Select 
+                                instanceId="model-select" 
+                                options={modelsOptions} 
+                                styles={customSelectStyles} 
+                                placeholder="اختر الموديل" 
+                                isRtl={true} 
+                                isSearchable={true}
+                                value={selectedModel} 
+                                isDisabled={!selectedMake} 
+                                onChange={(opt) => setSelectedModel(opt)}
+                              />
+                            </div>
                           </>
                         )}
                         <div style={{marginBottom: '12px'}}><label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>سنة الصنع</label><input type="text" placeholder="مثلاً: 2024" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} style={{ width: '100%', height: '52px', padding: '0 15px', backgroundColor: '#f8f8f8', border: 'none', borderRadius: '12px', fontSize: '1rem', outline: 'none' }} /></div>
@@ -647,14 +817,14 @@ export default function HomePage() {
             {/* Brand Logos */}
             {brandLogos.length > 0 && (
               <ScrollReveal direction="up" delay={0.05}>
-                <section style={{ padding: '12px 0', background: '#fff', borderBottom: '1px solid #f5f5f5' }}>
+                <section style={{ padding: '12px 0', background: '#fff', borderBottom: '1px solid #f5f5f5', position: 'relative', zIndex: 1 }}>
                   <div style={{ overflow: 'hidden', direction: 'ltr' }}><div className="marquee-inner">{[...brandLogos, ...brandLogos].map((brand, index) => (<div key={index} className="brand-logo-wrap"><Link href={`/store?brand=${brand.name}`}><img src={brand.logo_url} alt={brand.name} className="logo-img-v3" loading="lazy"/></Link></div>))}</div></div>
                 </section>
               </ScrollReveal>
             )}
 
 
-            {/* عروض حصرية */}
+            {/* Offers Section */}
             {saleProducts.length > 0 && (
               <ScrollReveal direction="up" delay={0.1}>
                 <section style={{ padding: '25px 0', maxWidth: '1200px', margin: '0 auto' }}>
@@ -695,7 +865,7 @@ export default function HomePage() {
             )}
 
 
-            {/* تريند الآن */}
+            {/* Trending Section */}
             {bestSellers.length > 0 && (
               <ScrollReveal direction="up" delay={0.15}>
                 <section style={{ padding: '25px 0', maxWidth: '1200px', margin: '0 auto', background: '#fff', borderRadius: '30px' }}>
@@ -736,7 +906,7 @@ export default function HomePage() {
             )}
 
 
-            {/* Categories */}
+            {/* Categories Section */}
             <ScrollReveal direction="up" delay={0.2}>
               <section style={{ padding: '40px 20px 80px', maxWidth: '1200px', margin: '0 auto' }}>
                 <div style={{ textAlign: 'right', marginBottom: '30px' }}><h2 style={{ fontSize: '2.2rem', fontWeight: '900', margin: 0 }}>تسوق حسب الفئة</h2></div>
@@ -760,8 +930,6 @@ export default function HomePage() {
                 </div>
               </section>
             </ScrollReveal>
-
-
           </div>
         )}
       </div>
@@ -770,6 +938,7 @@ export default function HomePage() {
 }
 
 
+// Styles
 const fullPageLoaderStyle: any = { 
   position: 'fixed', 
   top: 0, 
@@ -784,103 +953,16 @@ const fullPageLoaderStyle: any = {
 };
 
 
-const logoContainer: any = { 
-  marginBottom: '30px'
-};
-
-
-const logoImage: any = {
-  width: '180px',
-  height: 'auto',
-  filter: 'drop-shadow(0 20px 40px rgba(34, 197, 94, 0.3))'
-};
-
-const brandNameText: any = {
-  fontSize: '4rem',
-  fontWeight: '900',
-  fontStyle: 'italic',
-  letterSpacing: '-2px',
-  marginBottom: '25px',
-  lineHeight: '1',
-  textTransform: 'uppercase',
-  filter: 'drop-shadow(0 10px 30px rgba(34, 197, 94, 0.4))'
-};
-
-
-const mainHeadline: any = { 
-  color: '#fff', 
-  fontWeight: '900', 
-  fontSize: '3.5rem', 
-  marginBottom: '20px',
-  letterSpacing: '-1px',
-  lineHeight: '1.2',
-  textShadow: '0 4px 20px rgba(34, 197, 94, 0.3)'
-};
-
-
-const tagline: any = { 
-  color: '#a0a0a0', 
-  fontSize: '1.3rem', 
-  fontWeight: '600', 
-  marginBottom: '45px',
-  lineHeight: '1.7'
-};
-
-
-const loadingBarContainer: any = {
-  width: '100%',
-  height: '5px',
-  backgroundColor: 'rgba(255,255,255,0.1)',
-  borderRadius: '10px',
-  overflow: 'hidden',
-  marginBottom: '40px',
-  boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.3)'
-};
-
-
-const loadingBar: any = {
-  height: '100%',
-  background: 'linear-gradient(90deg, #22c55e 0%, #16a34a 50%, #22c55e 100%)',
-  borderRadius: '10px',
-  boxShadow: '0 0 20px rgba(34, 197, 94, 0.5)'
-};
-
-
-const messageContainer: any = {
-  marginBottom: '35px',
-  minHeight: '35px'
-};
-
-
-const messageText: any = {
-  fontSize: '1.15rem',
-  fontWeight: '700',
-  color: '#fff'
-};
-
-
-const featurePills: any = {
-  display: 'flex',
-  gap: '15px',
-  justifyContent: 'center',
-  flexWrap: 'wrap'
-};
-
-
-const pill: any = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  padding: '10px 20px',
-  backgroundColor: 'rgba(34, 197, 94, 0.15)',
-  border: '1px solid rgba(34, 197, 94, 0.3)',
-  borderRadius: '25px',
-  fontSize: '0.85rem',
-  fontWeight: '700',
-  color: '#22c55e',
-  backdropFilter: 'blur(10px)'
-};
-
-
-const arrowBtnSmall = { width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#fff', border: '1px solid #eee', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.2s' };
-const cartBtnStyleSmall: any = { width: '100%', padding: '12px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '1rem', transition: '0.2s' };
+const logoContainer: any = { marginBottom: '30px' };
+const logoImage: any = { width: '180px', height: 'auto', filter: 'drop-shadow(0 20px 40px rgba(34, 197, 94, 0.3))' };
+const brandNameText: any = { fontSize: '4rem', fontWeight: '900', fontStyle: 'italic', letterSpacing: '-2px', marginBottom: '25px', lineHeight: '1', textTransform: 'uppercase', filter: 'drop-shadow(0 10px 30px rgba(34, 197, 94, 0.4))' };
+const mainHeadline: any = { color: '#fff', fontWeight: '900', fontSize: '3.5rem', marginBottom: '20px', letterSpacing: '-1px', lineHeight: '1.2', textShadow: '0 4px 20px rgba(34, 197, 94, 0.3)' };
+const tagline: any = { color: '#a0a0a0', fontSize: '1.3rem', fontWeight: '600', marginBottom: '45px', lineHeight: '1.7' };
+const loadingBarContainer: any = { width: '100%', height: '5px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '10px', overflow: 'hidden', marginBottom: '40px' };
+const loadingBar: any = { height: '100%', background: 'linear-gradient(90deg, #22c55e 0%, #16a34a 50%, #22c55e 100%)', borderRadius: '10px' };
+const messageContainer: any = { marginBottom: '35px', minHeight: '35px' };
+const messageText: any = { fontSize: '1.15rem', fontWeight: '700', color: '#fff' };
+const featurePills: any = { display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' };
+const pill: any = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', backgroundColor: 'rgba(34, 197, 94, 0.15)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '25px', fontSize: '0.85rem', fontWeight: '700', color: '#22c55e', backdropFilter: 'blur(10px)' };
+const arrowBtnSmall = { width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#fff', border: '1px solid #eee', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' };
+const cartBtnStyleSmall: any = { width: '100%', padding: '12px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '1rem' };

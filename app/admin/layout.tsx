@@ -3,11 +3,14 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
 
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
+
   // لا تظهر القائمة في صفحة تسجيل الدخول
   if (pathname === '/admin/login') return <>{children}</>;
+
 
   const menuItems = [
     { name: 'الإحصائيات', href: '/admin/dashboard', icon: '📊' },
@@ -17,6 +20,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'إدارة المنتجات', href: '/admin/products', icon: '📦' },
     { name: 'إدارة الماركات', href: '/admin/brands', icon: '🏎️' },
     { name: 'إعدادات الهيرو', href: '/admin/hero', icon: '🖼️' },
+    { name: 'صور السيارات', href: '/admin/car-images', icon: '🚗' },
     { name: 'أكواد الخصم', href: '/admin/promo-codes', icon: '🎫' },
     /* --- الزرار الجديد المضاف لإدارة المسوقين --- */
     { name: 'إدارة المسوقين', href: '/admin/marketers', icon: '👥' },
@@ -24,6 +28,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'السلات المتروكة', href: '/admin/abandoned-carts', icon: '🛒' },
     { name: 'رسائل العملاء', href: '/admin/messages', icon: '💬' },
   ];
+
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', direction: 'rtl', backgroundColor: '#f8fafc' }}>
@@ -37,14 +42,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         height: '100vh',
         right: 0,
         zIndex: 100,
-        boxShadow: '-2px 0 10px rgba(0,0,0,0.02)'
+        boxShadow: '-2px 0 10px rgba(0,0,0,0.02)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflowY: 'auto',
+        overflowX: 'hidden'
       }}>
-        <div style={{ marginBottom: '40px', padding: '0 10px' }}>
+        <div style={{ marginBottom: '40px', padding: '0 10px', flexShrink: 0 }}>
           <h2 style={{ color: '#27ae60', fontWeight: '900', fontStyle: 'italic', fontSize: '1.2rem', letterSpacing: '1px' }}>ZAIT & FILTERS</h2>
           <p style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '5px' }}>لوحة الإدارة الاحترافية</p>
         </div>
 
-        <nav>
+
+        <nav style={{ flex: 1, overflowY: 'auto', paddingBottom: '80px' }}>
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -67,6 +77,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             );
           })}
         </nav>
+
 
         {/* زر تسجيل الخروج الثابت في الأسفل */}
         <button 
@@ -94,7 +105,37 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <span>تسجيل الخروج</span>
           <span>🚪</span>
         </button>
+
+        <style jsx>{`
+          aside::-webkit-scrollbar {
+            width: 6px;
+          }
+          aside::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          aside::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+          }
+          aside::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+          }
+          nav::-webkit-scrollbar {
+            width: 6px;
+          }
+          nav::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          nav::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+          }
+          nav::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+          }
+        `}</style>
       </aside>
+
 
       {/* Main Content Area Area - تم تعديل الألوان للوضع الفاتح */}
       <main style={{ 

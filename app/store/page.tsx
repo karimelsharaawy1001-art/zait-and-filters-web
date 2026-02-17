@@ -1,616 +1,1291 @@
 'use client';
-import { useEffect, useState, Suspense, useMemo, memo } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/app/lib/supabase';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useCart } from '@/context/CartContext'; 
-import { 
-  Loader2, Car, ShoppingCart, ChevronRight, ChevronLeft, Filter, Globe, Settings2, Calendar, LayoutGrid, Tags, X
+import dynamic from 'next/dynamic';
+import {
+  Car,
+  ChevronLeft,
+  Filter,
+  X,
+  Search,
+  ShoppingCart,
+  Globe,
+  Settings2,
+  Calendar,
+  LayoutGrid,
+  Tags,
+  CheckCircle2,
+  Loader2,
+  ChevronDown,
+  ChevronUp,
+  AlertCircle,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useCart } from '@/context/CartContext';
 import toast from 'react-hot-toast';
 
 
-
-
-// --- مكون كارت المنتج (نفس تصميم الصفحة الرئيسية) ---
-const ProductCard = memo(({ p }: { p: any }) => {
-  const { addToCart } = useCart(); 
-  const country = p.country_origin || p.country_of_origin || p.origin || 'أصلي';
-  const price = Number(p.sale_price || p.regular_price || 0);
-  const regularPrice = Number(p.regular_price || 0);
-  const salePrice = Number(p.sale_price || 0);
-  const hasDiscount = salePrice > 0 && regularPrice > salePrice;
-  const discountPercent = hasDiscount ? Math.round(((regularPrice - salePrice) / regularPrice) * 100) : 0;
-
-
-
-  return (
-    <div style={productCardModern}>
-      {/* Discount or Trending Badge */}
-      {hasDiscount ? (
-        <div style={discountBadge}>-{discountPercent}%</div>
-      ) : (
-        <div style={trendingBadge}>تريند ✨</div>
-      )}
-
-
-
-      {/* Product Image */}
-      <Link href={`/products/${p.id}`} style={imgContainerStyle}>
-        {p.image_url ? (
-          <img src={p.image_url} alt={p.name} style={imgFillStyle} loading="lazy" />
-        ) : (
-          <div style={{ background: '#f9f9f9', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Car size={40} color="#ccc" />
-          </div>
-        )}
-        <div style={carMakeBadge}>
-          <Car size={9} /> {p.car_make}
-        </div>
-      </Link>
-
-
-
-      {/* Product Details */}
-      <div style={productDetailsArea}>
-        {/* Brand and Origin */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <span style={brandTextStyle}>{p.brand}</span>
-          <div style={originBadgeStyle}>
-            <Globe size={14} color="#22c55e" />
-            <span>{country}</span>
-          </div>
-        </div>
-
-
-
-        {/* Product Name */}
-        <h3 style={productNameStyle}>{p.name}</h3>
-
-
-
-        {/* Car Info Box */}
-        <div style={carInfoBox}>
-          <div style={carInfoItem}>
-            <Settings2 size={14} color="#22c55e" />
-            <span>{p.car_make} {p.car_model}</span>
-          </div>
-          <div style={carInfoItem}>
-            <Calendar size={14} color="#22c55e" />
-            <span>{p.car_model_year || 'الكل'}</span>
-          </div>
-          <div style={carInfoItemGreen}>
-            <LayoutGrid size={14} />
-            <span>{p.category}</span>
-          </div>
-          <div style={carInfoItemSecondary}>
-            <Tags size={14} />
-            <span>{p.subcategory || 'عام'}</span>
-          </div>
-        </div>
-
-
-
-        {/* Pricing */}
-        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div>
-            {hasDiscount && (
-              <span style={originalPriceStyle}>{regularPrice} ج.م</span>
-            )}
-            <span style={currentPriceStyle}>{price} ج.م</span>
-          </div>
-
-
-
-          {/* Add to Cart Button */}
-          <button 
-            onClick={(e) => { e.preventDefault(); addToCart({...p, price}, 1); toast.success('تمت الإضافة'); }} 
-            style={addToCartButton}
-          >
-            <ShoppingCart size={16} /> أضف إلى السلة
-          </button>
-        </div>
-      </div>
+const Select = dynamic(() => import('react-select'), {
+  ssr: false,
+  loading: () => (
+    <div
+      style={{
+        height: '48px',
+        backgroundColor: '#f8f8f8',
+        borderRadius: '10px',
+        display: 'flex',
+        alignItems: 'center',
+        padding: '0 15px',
+        color: '#999',
+      }}
+    >
+      جاري التحميل...
     </div>
-  );
+  ),
 });
 
 
-
-
-function StoreContent() {
-  const searchParams = useSearchParams();
+export default function StorePage() {
   const router = useRouter();
-  const [allProducts, setAllProducts] = useState<any[]>([]); 
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [filterOpen, setFilterOpen] = useState(false);
-  const itemsPerPage = 16;
+  const searchParams = useSearchParams();
+  const { addToCart } = useCart();
 
 
+  const [isMounted, setIsMounted] = useState(false);
+  const [selectLoaded, setSelectLoaded] = useState(false);
+  const [products, setProducts] = useState<any[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [initializing, setInitializing] = useState(true); // NEW: Track initialization
+
+
+  const [makesOptions, setMakesOptions] = useState<any[]>([]);
+  const [modelsOptions, setModelsOptions] = useState<any[]>([]);
+  const [categoriesOptions, setCategoriesOptions] = useState<any[]>([]);
+  const [brandsOptions, setBrandsOptions] = useState<any[]>([]);
+
+
+  const [selectedMake, setSelectedMake] = useState<any>(null);
+  const [selectedModel, setSelectedModel] = useState<any>(null);
+  const [selectedYear, setSelectedYear] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [selectedBrand, setSelectedBrand] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+
+  const [carHeroImage, setCarHeroImage] = useState<string | null>(null);
+  const [showHero, setShowHero] = useState(false);
+
+
+  // Get URL params once on mount
+  const urlMake = searchParams.get('make');
+  const urlModel = searchParams.get('model');
+  const urlYear = searchParams.get('year');
+  const urlCategory = searchParams.get('category');
+  const urlBrand = searchParams.get('brand');
+  const urlSearch = searchParams.get('q');
 
 
   useEffect(() => {
-    async function init() {
-      setLoading(true);
-      const { data } = await supabase.from('products').select('*').range(0, 9999).order('created_at', { ascending: false });
-      if (data) setAllProducts(data);
-      setLoading(false);
-    }
-    init();
+    setIsMounted(true);
+    setSelectLoaded(true);
+    initializePage();
   }, []);
 
 
+  useEffect(() => {
+    if (selectedMake && selectedModel) {
+      setShowHero(true);
+      fetchCarImage(selectedMake.value, selectedModel.value);
+    } else {
+      setShowHero(false);
+      setCarHeroImage(null);
+    }
+  }, [selectedMake, selectedModel]);
 
 
-  const filteredProducts = useMemo(() => {
-    let list = [...allProducts];
-    const m = searchParams.get('make')?.toLowerCase();
-    const mo = searchParams.get('model')?.toLowerCase();
-    const c = searchParams.get('cat')?.toLowerCase();
-    const s = searchParams.get('sub')?.toLowerCase();
-    const y = searchParams.get('year');
+  async function initializePage() {
+    try {
+      setLoading(true);
+      
+      // Fetch filter options
+      const { data, error } = await supabase
+        .from('products')
+        .select('car_make, category, brand')
+        .order('car_make', { ascending: true });
 
 
-
-    if (m) list = list.filter(p => p.car_make?.toLowerCase().trim() === m);
-    if (mo) list = list.filter(p => p.car_model?.toLowerCase().trim() === mo);
-    if (c) list = list.filter(p => p.category?.toLowerCase().trim() === c);
-    if (s) list = list.filter(p => p.subcategory?.toLowerCase().trim() === s);
-    if (y) list = list.filter(p => p.car_model_year?.toString().includes(y));
+      if (error) throw error;
 
 
-
-    return list;
-  }, [allProducts, searchParams]);
-
-
-
-
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-  const displayProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+      const uniqueMakes = Array.from(
+        new Set(data.map((p) => p.car_make?.trim()).filter(Boolean))
+      );
+      const makesOpts = uniqueMakes.map((make) => ({ value: make, label: make }));
+      setMakesOptions(makesOpts);
 
 
+      const uniqueCategories = Array.from(
+        new Set(data.map((p) => p.category?.trim()).filter(Boolean))
+      );
+      const catsOpts = uniqueCategories.map((cat) => ({ value: cat, label: cat }));
+      setCategoriesOptions(catsOpts);
 
-  useEffect(() => { setCurrentPage(1); }, [searchParams]);
+
+      const uniqueBrands = Array.from(
+        new Set(data.map((p) => p.brand?.trim()).filter(Boolean))
+      );
+      const brandsOpts = uniqueBrands.map((brand) => ({ value: brand, label: brand }));
+      setBrandsOptions(brandsOpts);
 
 
+      // Apply URL filters if they exist
+      await applyURLFilters(makesOpts, catsOpts, brandsOpts);
+      
+    } catch (error) {
+      console.error('Error initializing page:', error);
+      toast.error('حدث خطأ في تحميل الصفحة');
+    } finally {
+      setLoading(false);
+      setInitializing(false); // Mark initialization complete
+    }
+  }
 
-  const filterOptions = useMemo(() => {
-    const getUnique = (key: string) => Array.from(new Set(allProducts.map(i => i[key]?.trim()).filter(Boolean))).sort();
+
+  async function applyURLFilters(makes: any[], cats: any[], brands: any[]) {
+    let makeOption = null;
+    let modelOption = null;
+    let catOption = null;
+    let brandOption = null;
+
+
+    // Set year
+    if (urlYear) {
+      setSelectedYear(urlYear);
+    }
+
+
+    // Set category
+    if (urlCategory && cats.length > 0) {
+      catOption = cats.find(
+        (opt) => opt.value.toUpperCase() === urlCategory.toUpperCase()
+      );
+      if (catOption) {
+        setSelectedCategory(catOption);
+      }
+    }
+
+
+    // Set brand
+    if (urlBrand && brands.length > 0) {
+      brandOption = brands.find(
+        (opt) => opt.value.toUpperCase() === urlBrand.toUpperCase()
+      );
+      if (brandOption) {
+        setSelectedBrand(brandOption);
+      }
+    }
+
+
+    // Set search
+    if (urlSearch) {
+      setSearchQuery(urlSearch);
+    }
+
+
+    // Set make and model
+    if (urlMake && makes.length > 0) {
+      makeOption = makes.find(
+        (opt) => opt.value.toUpperCase() === urlMake.toUpperCase()
+      );
+      
+      if (makeOption) {
+        setSelectedMake(makeOption);
+        
+        // Fetch models for this make
+        const { data } = await supabase
+          .from('products')
+          .select('car_model')
+          .ilike('car_make', makeOption.value.trim());
+
+
+        if (data) {
+          const uniqueModels = Array.from(
+            new Set(data.map((p) => p.car_model?.trim()).filter(Boolean))
+          );
+          const modelOptions = uniqueModels.sort().map((model) => ({ value: model, label: model }));
+          setModelsOptions(modelOptions);
+
+
+          // Set model if in URL
+          if (urlModel) {
+            modelOption = modelOptions.find(
+              (opt) => opt.value.toUpperCase() === urlModel.toUpperCase()
+            );
+            if (modelOption) {
+              setSelectedModel(modelOption);
+            }
+          }
+        }
+      }
+    }
+
+
+    // Fetch products if minimum filters are met
+    const hasMinimumFilters = (urlMake && urlModel) || urlCategory;
+    if (hasMinimumFilters) {
+      await fetchProducts({
+        make: urlMake,
+        model: urlModel,
+        year: urlYear,
+        category: urlCategory,
+        brand: urlBrand,
+        search: urlSearch,
+      });
+    }
+  }
+
+
+  async function fetchCarImage(make: string, model: string) {
+    try {
+      const { data } = await supabase
+        .from('car_images')
+        .select('image_url')
+        .ilike('car_make', make.trim())
+        .ilike('car_model', model.trim())
+        .single();
+
+
+      if (data && data.image_url) {
+        setCarHeroImage(data.image_url);
+      } else {
+        setCarHeroImage(null);
+      }
+    } catch (error) {
+      setCarHeroImage(null);
+    }
+  }
+
+
+  async function fetchProducts(filters: any) {
+    try {
+      // Don't show loading spinner if this is initial load with URL params
+      if (!initializing) {
+        setLoading(true);
+      }
+      
+      let query = supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+
+      if (filters.make) {
+        query = query.ilike('car_make', filters.make.trim());
+      }
+
+
+      if (filters.model) {
+        query = query.ilike('car_model', filters.model.trim());
+      }
+
+
+      if (filters.year) {
+        query = query.ilike('car_model_year', `%${filters.year.trim()}%`);
+      }
+
+
+      if (filters.category) {
+        query = query.ilike('category', filters.category.trim());
+      }
+
+
+      if (filters.brand) {
+        query = query.ilike('brand', filters.brand.trim());
+      }
+
+
+      const { data, error } = await query;
+
+
+      if (error) throw error;
+
+
+      let allFetchedProducts = data || [];
+
+
+      if (filters.search) {
+        allFetchedProducts = allFetchedProducts.filter((p) =>
+          p.name?.toLowerCase().includes(filters.search.toLowerCase())
+        );
+      }
+
+
+      setProducts(allFetchedProducts);
+      setFilteredProducts(allFetchedProducts);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toast.error('حدث خطأ في تحميل المنتجات');
+    } finally {
+      if (!initializing) {
+        setLoading(false);
+      }
+    }
+  }
+
+
+  // Manual filter change from user interaction
+  async function handleMakeChange(opt: any) {
+    setSelectedMake(opt);
+    setSelectedModel(null);
     
-    const selMake = searchParams.get('make')?.toLowerCase();
-    const models = Array.from(new Set(
-      allProducts.filter(p => !selMake || p.car_make?.toLowerCase().trim() === selMake).map(i => i.car_model?.trim()).filter(Boolean)
-    )).sort();
+    if (opt) {
+      const { data } = await supabase
+        .from('products')
+        .select('car_model')
+        .ilike('car_make', opt.value.trim());
 
 
-
-    const selCat = searchParams.get('cat')?.toLowerCase();
-    const subCats = Array.from(new Set(
-      allProducts.filter(p => !selCat || p.category?.toLowerCase().trim() === selCat).map(i => i.subcategory?.trim()).filter(Boolean)
-    )).sort();
-
-
-
-    return {
-      makes: getUnique('car_make'),
-      models,
-      cats: getUnique('category'),
-      subCats,
-      years: Array.from(new Set(allProducts.map(i => i.car_model_year?.toString().match(/\d{4}/g)).flat().filter(Boolean))).sort().reverse()
-    };
-  }, [allProducts, searchParams]);
+      if (data) {
+        const uniqueModels = Array.from(
+          new Set(data.map((p) => p.car_model?.trim()).filter(Boolean))
+        );
+        setModelsOptions(uniqueModels.sort().map((model) => ({ value: model, label: model })));
+      }
+    } else {
+      setModelsOptions([]);
+    }
+  }
 
 
+  function handleFilterChange() {
+    const hasMinimumFilters = (selectedMake && selectedModel) || selectedCategory;
 
-  const onFilterChange = (key: string, val: string) => {
-    const p = new URLSearchParams(window.location.search);
-    if (val) p.set(key, val); else p.delete(key);
-    if (key === 'make') p.delete('model');
-    if (key === 'cat') p.delete('sub');
-    router.push(`/store?${p.toString()}`);
+
+    if (!hasMinimumFilters) {
+      toast.error('يرجى اختيار (الماركة والموديل) أو (الفئة) على الأقل');
+      return;
+    }
+
+
+    const params = new URLSearchParams();
+    if (selectedMake) params.set('make', selectedMake.value.trim().toUpperCase());
+    if (selectedModel) params.set('model', selectedModel.value.trim().toUpperCase());
+    if (selectedYear) params.set('year', selectedYear.trim());
+    if (selectedCategory) params.set('category', selectedCategory.value.trim());
+    if (selectedBrand) params.set('brand', selectedBrand.value.trim());
+    if (searchQuery) params.set('q', searchQuery.trim());
+
+
+    router.push(`/store?${params.toString()}`);
+
+
+    fetchProducts({
+      make: selectedMake?.value,
+      model: selectedModel?.value,
+      year: selectedYear,
+      category: selectedCategory?.value,
+      brand: selectedBrand?.value,
+      search: searchQuery,
+    });
+
+
+    setFiltersOpen(false);
+  }
+
+
+  function clearFilters() {
+    setSelectedMake(null);
+    setSelectedModel(null);
+    setSelectedYear('');
+    setSelectedCategory(null);
+    setSelectedBrand(null);
+    setSearchQuery('');
+    setFilteredProducts([]);
+    setProducts([]);
+    setModelsOptions([]);
+    router.push('/store');
+  }
+
+
+  const customSelectStyles = {
+    control: (base: any) => ({
+      ...base,
+      height: '48px',
+      borderRadius: '10px',
+      border: '1px solid #e5e5e5',
+      backgroundColor: '#fff',
+      fontSize: '0.9rem',
+      textAlign: 'right',
+      display: 'flex',
+      flexDirection: 'row-reverse',
+    }),
+    option: (base: any, state: any) => ({
+      ...base,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      flexDirection: 'row-reverse',
+      gap: '8px',
+      padding: '10px 15px',
+      fontSize: '0.85rem',
+      backgroundColor: state.isFocused ? '#eefcf5' : '#fff',
+      color: '#1a1a1a',
+      cursor: 'pointer',
+    }),
+    singleValue: (base: any) => ({
+      ...base,
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      flexDirection: 'row-reverse',
+    }),
+    valueContainer: (base: any) => ({
+      ...base,
+      padding: '0 12px',
+      display: 'flex',
+      flexDirection: 'row-reverse',
+    }),
+    menu: (base: any) => ({ ...base, zIndex: 9999 }),
   };
 
 
+  if (!isMounted) return null;
+
+
+  const hasMinimumFilters = (selectedMake && selectedModel) || selectedCategory;
+  const showEmptyState = !loading && !initializing && !hasMinimumFilters && filteredProducts.length === 0;
+  const showNoResults = !loading && !initializing && hasMinimumFilters && filteredProducts.length === 0;
+
+
+  const FilterSection = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+      {selectLoaded && (
+        <>
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: '800', color: '#555' }}>
+              الماركة <span style={{ color: '#22c55e' }}>*</span>
+            </label>
+            <Select 
+              instanceId="store-make-select" 
+              options={makesOptions} 
+              styles={customSelectStyles} 
+              placeholder="اختر الماركة" 
+              isRtl={true} 
+              value={selectedMake} 
+              onChange={handleMakeChange} 
+              isClearable 
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: '800', color: '#555' }}>
+              الموديل <span style={{ color: '#22c55e' }}>*</span>
+            </label>
+            <Select 
+              instanceId="store-model-select" 
+              options={modelsOptions} 
+              styles={customSelectStyles} 
+              placeholder="اختر الموديل" 
+              isRtl={true} 
+              value={selectedModel} 
+              onChange={(opt) => setSelectedModel(opt)} 
+              isDisabled={!selectedMake} 
+              isClearable 
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: '800', color: '#555' }}>سنة الصنع</label>
+            <input 
+              type="text" 
+              placeholder="مثلاً: 2024" 
+              value={selectedYear} 
+              onChange={(e) => setSelectedYear(e.target.value)} 
+              style={{ width: '100%', height: '48px', padding: '0 15px', backgroundColor: '#fff', border: '1px solid #e5e5e5', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }} 
+            />
+          </div>
+
+          <div style={{ textAlign: 'center', color: '#888', fontSize: '0.85rem', fontWeight: '700', padding: '10px 0', borderTop: '1px solid #eee', borderBottom: '1px solid #eee', margin: '5px 0' }}>
+            أو
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: '800', color: '#555' }}>
+              الفئة <span style={{ color: '#22c55e' }}>*</span>
+            </label>
+            <Select 
+              instanceId="store-category-select" 
+              options={categoriesOptions} 
+              styles={customSelectStyles} 
+              placeholder="اختر الفئة" 
+              isRtl={true} 
+              value={selectedCategory} 
+              onChange={(opt) => setSelectedCategory(opt)} 
+              isClearable 
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: '800', color: '#555' }}>العلامة التجارية</label>
+            <Select 
+              instanceId="store-brand-select" 
+              options={brandsOptions} 
+              styles={customSelectStyles} 
+              placeholder="اختر العلامة" 
+              isRtl={true} 
+              value={selectedBrand} 
+              onChange={(opt) => setSelectedBrand(opt)} 
+              isClearable 
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: '800', color: '#555' }}>البحث</label>
+            <div style={{ position: 'relative' }}>
+              <input 
+                type="text" 
+                placeholder="ابحث عن منتج..." 
+                value={searchQuery} 
+                onChange={(e) => setSearchQuery(e.target.value)} 
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleFilterChange();
+                  }
+                }}
+                style={{ width: '100%', height: '48px', padding: '0 45px 0 15px', backgroundColor: '#fff', border: '1px solid #e5e5e5', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }} 
+              />
+              <Search size={18} color="#999" style={{ position: 'absolute', right: '15px', top: '15px' }} />
+            </div>
+          </div>
+
+          <div style={{ backgroundColor: '#f0f9ff', padding: '12px', borderRadius: '10px', fontSize: '0.75rem', color: '#0369a1', display: 'flex', alignItems: 'start', gap: '8px' }}>
+            <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+            <span>يجب اختيار (الماركة + الموديل) أو (الفئة) على الأقل</span>
+          </div>
+        </>
+      )}
+
+      <button onClick={handleFilterChange} style={{ width: '100%', padding: '14px', backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '900', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginTop: '10px' }}>
+        <Search size={18} />
+        تطبيق الفلاتر
+      </button>
+
+      {(selectedMake || selectedModel || selectedYear || selectedCategory || selectedBrand || searchQuery) && (
+        <button onClick={clearFilters} style={{ width: '100%', padding: '12px', backgroundColor: '#fee', color: '#dc2626', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.9rem' }}>
+          <X size={16} />
+          مسح الفلاتر
+        </button>
+      )}
+    </div>
+  );
+
 
   return (
-    <div style={{ backgroundColor: '#fcfcfc', minHeight: '100vh', direction: 'rtl', padding: '20px' }}>
-      <style dangerouslySetInnerHTML={{ __html: `
-        .modern-grid-responsive {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 20px;
-        }
-        
-        .mobile-filter-overlay {
-          display: none;
-        }
-        
-        .mobile-filter-toggle {
-          display: none;
-        }
-        
-        .mobile-filter-panel {
-          display: none;
-        }
-        
-        @media (max-width: 968px) {
-          .modern-grid-responsive {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-          }
+    <div style={{ direction: 'rtl', backgroundColor: '#f9f9f9', minHeight: '100vh', paddingTop: '80px' }}>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
           
-          .desktop-sidebar {
-            display: none !important;
-          }
-          
-          .mobile-filter-toggle {
-            display: flex !important;
-            position: fixed;
-            bottom: 90px;
-            left: 20px;
-            z-index: 998;
-            background: #22c55e;
-            color: #fff;
-            border: none;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
-            cursor: pointer;
-            align-items: center;
-            justify-content: center;
-          }
-          
-          .mobile-filter-overlay {
-            display: block;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-          }
-          
-          .mobile-filter-overlay.open {
-            opacity: 1;
-            visibility: visible;
-          }
-          
-          .mobile-filter-panel {
-            display: block;
-            position: fixed;
-            top: 0;
-            right: -100%;
-            width: 85%;
-            max-width: 350px;
-            height: 100%;
+          .store-product-card {
             background: #fff;
-            z-index: 1000;
-            transition: right 0.3s ease;
-            overflow-y: auto;
-            box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            border: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
           }
           
-          .mobile-filter-panel.open {
-            right: 0;
+          .store-product-card:hover {
+            transform: translateY(-5px);
+            border-color: #22c55e;
+            box-shadow: 0 10px 30px rgba(34, 197, 94, 0.15);
           }
-        }
-      `}} />
-      
-      {/* Mobile Filter Toggle Button */}
-      <button 
-        className="mobile-filter-toggle" 
-        onClick={() => setFilterOpen(true)}
-        aria-label="فتح الفلاتر"
-      >
-        <Filter size={24} />
-      </button>
-      
-      {/* Mobile Filter Overlay */}
-      <div 
-        className={`mobile-filter-overlay ${filterOpen ? 'open' : ''}`}
-        onClick={() => setFilterOpen(false)}
-      />
-      
-      {/* Mobile Filter Panel */}
-      <aside className={`mobile-filter-panel ${filterOpen ? 'open' : ''}`}>
-        <div style={{...sidebarHeader, justifyContent: 'space-between'}}>
-          <span style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-            <Filter size={16} /> تصفية البحث
-          </span>
-          <button 
-            onClick={() => setFilterOpen(false)}
-            style={{background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '5px'}}
+          
+          /* Products Grid - 2 columns on mobile */
+          .products-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+          }
+          
+          @media (min-width: 640px) {
+            .products-grid {
+              grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+              gap: 20px;
+            }
+          }
+          
+          @media (max-width: 768px) {
+            .desktop-filters { display: none !important; }
+            .mobile-filter-btn { display: block !important; }
+            
+            /* Adjust product card for mobile 2-column layout */
+            .store-product-card {
+              border-radius: 12px;
+            }
+            
+            .store-product-card h3 {
+              font-size: 0.85rem !important;
+              height: 38px !important;
+            }
+            
+            .store-product-card img {
+              padding: 10px !important;
+            }
+          }
+          
+          @media (min-width: 769px) {
+            .desktop-filters { display: block !important; }
+            .mobile-filter-btn { display: none !important; }
+          }
+        `,
+      }} />
+
+
+      {/* Loading Screen - Show during initialization OR manual loading */}
+      <AnimatePresence>
+        {(loading || initializing) && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 9999,
+            }}
           >
-            <X size={20} />
-          </button>
-        </div>
-        <div style={{padding: '15px', display:'flex', flexDirection:'column', gap:'15px'}}>
-           <div><label style={labelS}>الماركة</label><select style={selectS} value={searchParams.get('make') || ''} onChange={e => onFilterChange('make', e.target.value)}><option value="">الكل</option>{filterOptions.makes.map(i => <option key={i} value={i}>{i}</option>)}</select></div>
-           <div><label style={labelS}>الموديل</label><select style={selectS} value={searchParams.get('model') || ''} onChange={e => onFilterChange('model', e.target.value)}><option value="">الكل</option>{filterOptions.models.map(i => <option key={i} value={i}>{i}</option>)}</select></div>
-           <div><label style={labelS}>سنة الصنع</label><select style={selectS} value={searchParams.get('year') || ''} onChange={e => onFilterChange('year', e.target.value)}><option value="">الكل</option>{filterOptions.years.map(i => <option key={i} value={i}>{i}</option>)}</select></div>
-           <div><label style={labelS}>القسم الرئيسي</label><select style={selectS} value={searchParams.get('cat') || ''} onChange={e => onFilterChange('cat', e.target.value)}><option value="">الكل</option>{filterOptions.cats.map(i => <option key={i} value={i}>{i}</option>)}</select></div>
-           <div><label style={labelS}>القسم الفرعي</label><select style={selectS} value={searchParams.get('sub') || ''} onChange={e => onFilterChange('sub', e.target.value)}><option value="">الكل</option>{filterOptions.subCats.map(i => <option key={i} value={i}>{i}</option>)}</select></div>
-           <button style={resetBtn} onClick={() => { router.push('/store'); setFilterOpen(false); }}>إعادة ضبط</button>
-        </div>
-      </aside>
-      
-      <div style={mainLayoutWrapper}>
-        {/* Desktop Sidebar */}
-        <aside className="desktop-sidebar" style={sidebarStyle}>
-          <div style={sidebarHeader}><Filter size={16} /> تصفية البحث</div>
-          <div style={{padding: '15px', display:'flex', flexDirection:'column', gap:'15px'}}>
-             <div><label style={labelS}>الماركة</label><select style={selectS} value={searchParams.get('make') || ''} onChange={e => onFilterChange('make', e.target.value)}><option value="">الكل</option>{filterOptions.makes.map(i => <option key={i} value={i}>{i}</option>)}</select></div>
-             <div><label style={labelS}>الموديل</label><select style={selectS} value={searchParams.get('model') || ''} onChange={e => onFilterChange('model', e.target.value)}><option value="">الكل</option>{filterOptions.models.map(i => <option key={i} value={i}>{i}</option>)}</select></div>
-             <div><label style={labelS}>سنة الصنع</label><select style={selectS} value={searchParams.get('year') || ''} onChange={e => onFilterChange('year', e.target.value)}><option value="">الكل</option>{filterOptions.years.map(i => <option key={i} value={i}>{i}</option>)}</select></div>
-             <div><label style={labelS}>القسم الرئيسي</label><select style={selectS} value={searchParams.get('cat') || ''} onChange={e => onFilterChange('cat', e.target.value)}><option value="">الكل</option>{filterOptions.cats.map(i => <option key={i} value={i}>{i}</option>)}</select></div>
-             <div><label style={labelS}>القسم الفرعي</label><select style={selectS} value={searchParams.get('sub') || ''} onChange={e => onFilterChange('sub', e.target.value)}><option value="">الكل</option>{filterOptions.subCats.map(i => <option key={i} value={i}>{i}</option>)}</select></div>
-             <button style={resetBtn} onClick={() => router.push('/store')}>إعادة ضبط</button>
-          </div>
-        </aside>
+            <div style={{ textAlign: 'center' }}>
+              <Loader2
+                size={60}
+                color="#22c55e"
+                style={{
+                  animation: 'spin 1s linear infinite',
+                  marginBottom: '20px',
+                }}
+              />
+              <h3 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#1a1a1a' }}>
+                جاري تحميل المنتجات...
+              </h3>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
 
+      {/* Only render content after initialization is complete */}
+      {!initializing && (
+        <>
+          {showHero && !loading && (
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              style={{
+                maxWidth: '1400px',
+                margin: '0 auto 30px',
+                padding: '0 20px',
+              }}
+            >
+              <div
+                style={{
+                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                  borderRadius: '20px',
+                  padding: window.innerWidth <= 768 ? '25px' : '35px',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  boxShadow: '0 10px 40px rgba(34, 197, 94, 0.25)',
+                }}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    right: 0,
+                    width: '100%',
+                    height: '100%',
+                    opacity: 0.08,
+                    backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)',
+                    backgroundSize: '20px 20px',
+                  }}
+                />
 
-        <main style={{ flex: 1, minWidth: 0 }}>
-          {loading ? (
-            <div style={{textAlign:'center', padding:'100px'}}><Loader2 className="animate-spin" size={40} color="#22c55e" /></div>
-          ) : (
-            <>
-              <div className="modern-grid-responsive">
-                {displayProducts.map(p => <ProductCard p={p} key={p.id} />)}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: carHeroImage && window.innerWidth > 768 ? '2fr 1fr' : '1fr',
+                    gap: '25px',
+                    alignItems: 'center',
+                    position: 'relative',
+                    zIndex: 2,
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginBottom: '12px',
+                      }}
+                    >
+                      <CheckCircle2 size={20} color="#fff" />
+                      <span
+                        style={{
+                          color: '#fff',
+                          fontSize: '0.85rem',
+                          fontWeight: '700',
+                        }}
+                      >
+                        تم اختيار السيارة
+                      </span>
+                    </div>
+
+                    <h1
+                      style={{
+                        color: '#fff',
+                        fontSize: window.innerWidth <= 768 ? '1.6rem' : '2rem',
+                        fontWeight: '900',
+                        marginBottom: '12px',
+                        lineHeight: '1.2',
+                        textShadow: '0 2px 10px rgba(0,0,0,0.15)',
+                      }}
+                    >
+                      قطع غيار {selectedMake?.label}
+                    </h1>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        flexWrap: 'wrap',
+                        marginBottom: '15px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                          padding: '8px 15px',
+                          borderRadius: '10px',
+                          backdropFilter: 'blur(10px)',
+                        }}
+                      >
+                        <Car size={18} color="#fff" />
+                        <span
+                          style={{
+                            color: '#fff',
+                            fontSize: window.innerWidth <= 768 ? '0.95rem' : '1.1rem',
+                            fontWeight: '800',
+                          }}
+                        >
+                          {selectedMake?.label} {selectedModel?.label}
+                        </span>
+                      </div>
+
+                      {selectedYear && (
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                            padding: '8px 15px',
+                            borderRadius: '10px',
+                            backdropFilter: 'blur(10px)',
+                          }}
+                        >
+                          <Calendar size={18} color="#fff" />
+                          <span
+                            style={{
+                              color: '#fff',
+                              fontSize: '0.95rem',
+                              fontWeight: '700',
+                            }}
+                          >
+                            {selectedYear}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                        padding: '10px 18px',
+                        borderRadius: '10px',
+                        backdropFilter: 'blur(10px)',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: '1.5rem',
+                          fontWeight: '900',
+                          color: '#fff',
+                          marginLeft: '8px',
+                        }}
+                      >
+                        {filteredProducts.length}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '0.85rem',
+                          color: 'rgba(255, 255, 255, 0.95)',
+                          fontWeight: '600',
+                        }}
+                      >
+                        منتج متاح
+                      </div>
+                    </div>
+                  </div>
+
+                  {carHeroImage && window.innerWidth > 768 && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.2, duration: 0.4 }}
+                      style={{
+                        height: '200px',
+                        borderRadius: '15px',
+                        overflow: 'hidden',
+                        boxShadow: '0 15px 40px rgba(0, 0, 0, 0.3)',
+                      }}
+                    >
+                      <img
+                        src={carHeroImage}
+                        alt={`${selectedMake?.label} ${selectedModel?.label}`}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                        }}
+                      />
+                    </motion.div>
+                  )}
+                </div>
               </div>
+            </motion.section>
+          )}
 
 
+          <div className="mobile-filter-btn" style={{ display: 'none', maxWidth: '1400px', margin: '0 auto 20px', padding: '0 20px' }}>
+            <button
+              onClick={() => setFiltersOpen(!filtersOpen)}
+              style={{
+                width: '100%',
+                padding: '15px',
+                backgroundColor: '#fff',
+                color: '#1a1a1a',
+                border: '1px solid #e5e5e5',
+                borderRadius: '12px',
+                fontWeight: '800',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Filter size={20} color="#22c55e" />
+                <span>الفلاتر</span>
+                {hasMinimumFilters && (
+                  <span
+                    style={{
+                      backgroundColor: '#22c55e',
+                      color: '#fff',
+                      padding: '2px 8px',
+                      borderRadius: '8px',
+                      fontSize: '0.75rem',
+                      fontWeight: '900',
+                    }}
+                  >
+                    نشط
+                  </span>
+                )}
+              </div>
+              {filtersOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
 
-              {totalPages > 1 && (
-                <div style={pagCenterContainer}>
-                  <div style={compactPagBox}>
-                    <button disabled={currentPage === totalPages} onClick={() => { setCurrentPage(v => v + 1); window.scrollTo(0,0); }} style={currentPage === totalPages ? pagBtnDisabled : pagBtnSmall}>التالي</button>
-                    <span style={pagInfoText}>صفحة <b>{currentPage}</b> من {totalPages}</span>
-                    <button disabled={currentPage === 1} onClick={() => { setCurrentPage(v => v - 1); window.scrollTo(0,0); }} style={currentPage === 1 ? pagBtnDisabled : pagBtnSmall}>السابق</button>
+            <AnimatePresence>
+              {filtersOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div
+                    style={{
+                      backgroundColor: '#fff',
+                      padding: '20px',
+                      borderRadius: '12px',
+                      marginTop: '10px',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+                    }}
+                  >
+                    <FilterSection />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+
+          <div
+            style={{
+              maxWidth: '1400px',
+              margin: '0 auto',
+              padding: '0 20px 80px',
+              display: 'flex',
+              gap: '25px',
+              alignItems: 'flex-start',
+            }}
+          >
+            <aside
+              className="desktop-filters"
+              style={{
+                display: 'none',
+                width: '280px',
+                flexShrink: 0,
+                position: 'sticky',
+                top: '100px',
+              }}
+            >
+              <div
+                style={{
+                  backgroundColor: '#fff',
+                  padding: '25px',
+                  borderRadius: '15px',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                }}
+              >
+                <h2
+                  style={{
+                    fontSize: '1.3rem',
+                    fontWeight: '900',
+                    marginBottom: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                  }}
+                >
+                  <Filter size={22} color="#22c55e" />
+                  الفلاتر
+                </h2>
+                <FilterSection />
+              </div>
+            </aside>
+
+
+            <div style={{ flex: 1 }}>
+              {showEmptyState ? (
+                <div
+                  style={{
+                    textAlign: 'center',
+                    padding: '100px 20px',
+                    backgroundColor: '#fff',
+                    borderRadius: '20px',
+                  }}
+                >
+                  <Filter size={80} color="#22c55e" style={{ margin: '0 auto 20px', opacity: 0.5 }} />
+                  <h3 style={{ fontSize: '1.8rem', fontWeight: '900', marginBottom: '15px', color: '#1a1a1a' }}>
+                    ابدأ بتحديد الفلاتر
+                  </h3>
+                  <p style={{ color: '#666', fontSize: '1.1rem', marginBottom: '10px' }}>
+                    اختر الماركة والموديل أو الفئة للبحث عن المنتجات
+                  </p>
+                  <div style={{ backgroundColor: '#f0f9ff', padding: '15px', borderRadius: '12px', maxWidth: '500px', margin: '20px auto', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}>
+                    <AlertCircle size={20} color="#0369a1" />
+                    <span style={{ color: '#0369a1', fontSize: '0.9rem', fontWeight: '700' }}>
+                      هذا يساعد في تحسين سرعة التصفح
+                    </span>
                   </div>
                 </div>
-              )}
-            </>
-          )}
-        </main>
-      </div>
+              ) : showNoResults ? (
+                <div
+                  style={{
+                    textAlign: 'center',
+                    padding: '80px 20px',
+                    backgroundColor: '#fff',
+                    borderRadius: '20px',
+                  }}
+                >
+                  <Car size={70} color="#ccc" style={{ margin: '0 auto 15px' }} />
+                  <h3 style={{ fontSize: '1.6rem', fontWeight: '900', marginBottom: '8px' }}>
+                    لا توجد منتجات
+                  </h3>
+                  <p style={{ color: '#666', fontSize: '1rem' }}>
+                    جرب تغيير الفلاتر للعثور على المنتجات
+                  </p>
+                </div>
+              ) : filteredProducts.length > 0 ? (
+                <div className="products-grid">
+                  {filteredProducts.map((product) => {
+                    const country =
+                      product.country_origin ||
+                      product.country_of_origin ||
+                      product.origin ||
+                      'أصلي';
+                    const price = product.sale_price || product.regular_price;
+
+
+                    return (
+                      <motion.div
+                        key={product.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4 }}
+                        className="store-product-card"
+                      >
+                        {product.sale_price > 0 &&
+                          product.regular_price > product.sale_price && (
+                            <div
+                              style={{
+                                position: 'absolute',
+                                top: '10px',
+                                right: '10px',
+                                backgroundColor: '#ff4d4d',
+                                color: '#fff',
+                                padding: '4px 10px',
+                                borderRadius: '8px',
+                                fontSize: '0.7rem',
+                                fontWeight: '900',
+                                zIndex: 10,
+                              }}
+                            >
+                              -
+                              {Math.round(
+                                ((product.regular_price - product.sale_price) /
+                                  product.regular_price) *
+                                  100
+                              )}
+                              %
+                            </div>
+                          )}
+
+
+                        <Link
+                          href={`/products/${product.id}`}
+                          style={{
+                            display: 'block',
+                            height: '200px',
+                            backgroundColor: '#f9f9f9',
+                            overflow: 'hidden',
+                            position: 'relative',
+                          }}
+                        >
+                          <img
+                            src={product.image_url || "/api/placeholder/400/320"}
+                            alt={product.name}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'contain',
+                              padding: '15px',
+                              transition: 'transform 0.3s ease',
+                            }}
+                            loading="lazy"
+                          />
+                        </Link>
+
+
+                        <div
+                          style={{
+                            padding: '18px',
+                            flex: 1,
+                            display: 'flex',
+                            flexDirection: 'column',
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              marginBottom: '10px',
+                            }}
+                          >
+                            <span
+                              style={{
+                                color: '#22c55e',
+                                fontWeight: '800',
+                                fontSize: '0.8rem',
+                              }}
+                            >
+                              {product.brand}
+                            </span>
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                color: '#666',
+                                fontWeight: '700',
+                                fontSize: '0.75rem',
+                              }}
+                            >
+                              <Globe size={13} color="#22c55e" />
+                              <span>{country}</span>
+                            </div>
+                          </div>
+
+
+                          <h3
+                            style={{
+                              fontSize: '0.95rem',
+                              fontWeight: '900',
+                              marginBottom: '10px',
+                              height: '45px',
+                              overflow: 'hidden',
+                              lineHeight: '1.4',
+                            }}
+                          >
+                            {product.name}
+                          </h3>
+
+
+                          <div
+                            style={{
+                              background: '#f9f9f9',
+                              padding: '10px',
+                              borderRadius: '10px',
+                              marginBottom: '12px',
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontSize: '0.75rem',
+                                color: '#1a1a1a',
+                                fontWeight: '800',
+                                marginBottom: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                              }}
+                            >
+                              <Settings2 size={12} color="#22c55e" />
+                              {product.car_make} {product.car_model}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: '0.75rem',
+                                color: '#666',
+                                fontWeight: '700',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                marginBottom: '4px',
+                              }}
+                            >
+                              <Calendar size={12} color="#22c55e" />
+                              {product.car_model_year || 'الكل'}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: '0.75rem',
+                                color: '#22c55e',
+                                fontWeight: '800',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                              }}
+                            >
+                              <LayoutGrid size={12} />
+                              {product.category}
+                            </div>
+                          </div>
+
+
+                          <div
+                            style={{
+                              marginTop: 'auto',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '10px',
+                            }}
+                          >
+                            {product.sale_price > 0 &&
+                            product.regular_price > product.sale_price ? (
+                              <div>
+                                <span
+                                  style={{
+                                    display: 'block',
+                                    color: '#bbb',
+                                    textDecoration: 'line-through',
+                                    fontSize: '0.75rem',
+                                  }}
+                                >
+                                  {product.regular_price} ج.م
+                                </span>
+                                <span style={{ fontSize: '1.2rem', fontWeight: '900' }}>
+                                  {product.sale_price} ج.م
+                                </span>
+                              </div>
+                            ) : (
+                              <span style={{ fontSize: '1.2rem', fontWeight: '900' }}>
+                                {price} ج.م
+                              </span>
+                            )}
+
+
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                addToCart({ ...product, price }, 1);
+                                toast.success('تمت الإضافة');
+                              }}
+                              style={{
+                                width: '100%',
+                                padding: '11px',
+                                backgroundColor: '#1a1a1a',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '10px',
+                                fontWeight: 'bold',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                cursor: 'pointer',
+                                fontSize: '0.9rem',
+                                transition: '0.2s',
+                              }}
+                            >
+                              <ShoppingCart size={16} />
+                              أضف إلى السلة
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
-
-
-
-export default function StorePage() { return <Suspense fallback={null}><StoreContent /></Suspense>; }
-
-
-
-// --- الأنماط (Updated to match homepage) ---
-const mainLayoutWrapper: any = { maxWidth: '1200px', margin: '0 auto', display: 'flex', gap: '25px', flexWrap: 'wrap' };
-const sidebarStyle: any = { width: '250px', background: '#fff', borderRadius: '16px', border: '1px solid #eee', height: 'fit-content', position: 'sticky', top: '20px', flexShrink: 0 };
-const sidebarHeader: any = { padding: '15px', background: '#22c55e', color: '#fff', borderRadius: '16px 16px 0 0', fontWeight: 'bold', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' };
-const labelS = { display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '5px', color: '#555' };
-const selectS = { width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '0.85rem', outline: 'none' };
-const resetBtn = { width: '100%', marginTop: '10px', padding: '10px', border: 'none', background: '#fef2f2', borderRadius: '8px', cursor: 'pointer', color: '#ef4444', fontWeight: 'bold' };
-
-
-
-// Product Card Styles (matching homepage exactly)
-const productCardModern: any = { 
-  background: '#fff', 
-  borderRadius: '18px', 
-  border: '1px solid #f2f2f2', 
-  overflow: 'hidden',
-  position: 'relative',
-  display: 'flex',
-  flexDirection: 'column',
-  transition: 'all 0.3s ease'
-};
-
-
-
-const discountBadge: any = { 
-  position: 'absolute', 
-  top: '8px', 
-  right: '8px', 
-  backgroundColor: '#ff4d4d', 
-  color: '#fff', 
-  padding: '2px 6px', 
-  borderRadius: '5px', 
-  fontSize: '0.6rem', 
-  fontWeight: '900', 
-  zIndex: 10 
-};
-
-
-
-const trendingBadge: any = { 
-  position: 'absolute', 
-  top: '8px', 
-  right: '8px', 
-  backgroundColor: '#22c55e', 
-  color: '#fff', 
-  padding: '2px 6px', 
-  borderRadius: '5px', 
-  fontSize: '0.6rem', 
-  fontWeight: '900', 
-  zIndex: 10 
-};
-
-
-
-const imgContainerStyle: any = { 
-  background: '#f9f9f9', 
-  height: '200px', 
-  width: '100%', 
-  display: 'flex', 
-  alignItems: 'center', 
-  justifyContent: 'center', 
-  position: 'relative', 
-  cursor: 'pointer', 
-  overflow: 'hidden',
-  textDecoration: 'none'
-};
-
-
-
-const imgFillStyle: any = { 
-  width: '100%', 
-  height: '100%', 
-  objectFit: 'contain', 
-  padding: '15px', 
-  transition: 'transform 0.3s ease' 
-};
-
-
-
-const carMakeBadge: any = { 
-  position: 'absolute', 
-  bottom: '6px', 
-  left: '6px', 
-  background: 'rgba(255,255,255,0.9)', 
-  padding: '2px 6px', 
-  borderRadius: '5px', 
-  fontSize: '0.65rem', 
-  fontWeight: '800',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '4px'
-};
-
-
-
-const productDetailsArea: any = { 
-  padding: '15px', 
-  flex: 1, 
-  display: 'flex', 
-  flexDirection: 'column' 
-};
-
-
-
-const brandTextStyle: any = { 
-  color: '#22c55e', 
-  fontWeight: '800', 
-  fontSize: '0.8rem' 
-};
-
-
-
-const originBadgeStyle: any = { 
-  display: 'flex', 
-  alignItems: 'center', 
-  gap: '4px', 
-  color: '#666', 
-  fontWeight: '700',
-  fontSize: '0.75rem'
-};
-
-
-
-const productNameStyle: any = { 
-  fontSize: '1rem', 
-  fontWeight: '900', 
-  marginBottom: '4px', 
-  height: '45px', 
-  overflow: 'hidden',
-  lineHeight: '1.4',
-  display: '-webkit-box',
-  WebkitLineClamp: 2,
-  WebkitBoxOrient: 'vertical'
-};
-
-
-
-const carInfoBox: any = { 
-  background: '#f9f9f9', 
-  padding: '10px', 
-  borderRadius: '10px', 
-  marginBottom: '10px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '3px'
-};
-
-
-
-const carInfoItem: any = {
-  fontSize: '0.8rem', 
-  color: '#1a1a1a', 
-  fontWeight: '800', 
-  display: 'flex', 
-  alignItems: 'center', 
-  gap: '6px'
-};
-
-
-
-const carInfoItemGreen: any = {
-  fontSize: '0.8rem', 
-  color: '#22c55e', 
-  fontWeight: '800', 
-  display: 'flex', 
-  alignItems: 'center', 
-  gap: '6px'
-};
-
-
-
-const carInfoItemSecondary: any = {
-  fontSize: '0.8rem', 
-  color: '#888', 
-  fontWeight: '700', 
-  display: 'flex', 
-  alignItems: 'center', 
-  gap: '6px'
-};
-
-
-
-const originalPriceStyle: any = { 
-  display: 'block', 
-  color: '#bbb', 
-  textDecoration: 'line-through', 
-  fontSize: '0.75rem' 
-};
-
-
-
-const currentPriceStyle: any = { 
-  fontSize: '1.2rem', 
-  fontWeight: '900',
-  color: '#1a1a1a'
-};
-
-
-
-const addToCartButton: any = { 
-  width: '100%', 
-  padding: '12px', 
-  backgroundColor: '#1a1a1a', 
-  color: '#fff', 
-  border: 'none', 
-  borderRadius: '10px', 
-  fontWeight: 'bold', 
-  display: 'flex', 
-  alignItems: 'center', 
-  justifyContent: 'center', 
-  gap: '8px', 
-  cursor: 'pointer', 
-  fontSize: '1rem', 
-  transition: '0.2s' 
-};
-
-
-
-const pagCenterContainer: any = { display: 'flex', justifyContent: 'center', marginTop: '40px', width: '100%' };
-const compactPagBox: any = { display: 'flex', alignItems: 'center', gap: '15px', background: '#fff', padding: '8px 20px', borderRadius: '30px', border: '1px solid #eee', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' };
-const pagBtnSmall: any = { padding: '6px 15px', borderRadius: '20px', border: '1px solid #eee', background: '#fcfcfc', color: '#1a1a1a', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.8rem' };
-const pagBtnDisabled: any = { ...pagBtnSmall, opacity: 0.3, cursor: 'not-allowed', background: '#eee' };
-const pagInfoText = { fontSize: '0.85rem', color: '#666' };
