@@ -709,78 +709,83 @@ function StoreContent() {
             >
               <div
                 style={{
-                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-                  borderRadius: '20px',
-                  padding: window.innerWidth <= 768 ? '25px' : '35px',
+                  background: 'rgba(255, 255, 255, 0.4)',
+                  backdropFilter: 'blur(20px) saturate(180%)',
+                  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                  border: '1px solid rgba(255, 255, 255, 0.4)',
+                  borderRadius: '30px',
+                  padding: window.innerWidth <= 768 ? '25px' : '40px',
                   position: 'relative',
                   overflow: 'hidden',
-                  boxShadow: '0 10px 40px rgba(34, 197, 94, 0.25)',
+                  boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
                 }}
               >
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    width: '100%',
-                    height: '100%',
-                    opacity: 0.08,
-                    backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)',
-                    backgroundSize: '20px 20px',
-                  }}
-                />
+                {/* Accent glow behind content */}
+                <div style={{
+                  position: 'absolute',
+                  top: '-50%',
+                  right: '-10%',
+                  width: '600px',
+                  height: '600px',
+                  background: 'radial-gradient(circle, rgba(34, 197, 94, 0.15) 0%, transparent 70%)',
+                  zIndex: 0,
+                  pointerEvents: 'none'
+                }} />
 
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: carHeroImage && window.innerWidth > 768 ? '2fr 1fr' : '1fr',
-                    gap: '25px',
+                    gridTemplateColumns: carHeroImage && window.innerWidth > 768 ? '1.5fr 1fr' : '1fr',
+                    gap: '40px',
                     alignItems: 'center',
                     position: 'relative',
                     zIndex: 2,
                   }}
                 >
-                  <div>
+                  <div style={{ textAlign: 'right' }}>
                     <div
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px',
-                        marginBottom: '12px',
+                        marginBottom: '16px',
+                        justifyContent: 'flex-start',
                       }}
                     >
-                      <CheckCircle2 size={20} color="#fff" />
+                      <CheckCircle2 size={20} color="#22c55e" />
                       <span
                         style={{
-                          color: '#fff',
-                          fontSize: '0.85rem',
+                          color: '#444',
+                          fontSize: '0.9rem',
                           fontWeight: '700',
+                          letterSpacing: '0.5px'
                         }}
                       >
-                        تم اختيار السيارة
+                        تم تحديد مواصفات السيارة
                       </span>
                     </div>
 
                     <h1
                       style={{
-                        color: '#fff',
-                        fontSize: window.innerWidth <= 768 ? '1.6rem' : '2rem',
+                        color: '#1a1a1a',
+                        fontSize: window.innerWidth <= 768 ? '1.8rem' : '2.8rem',
                         fontWeight: '900',
-                        marginBottom: '12px',
+                        marginBottom: '16px',
                         lineHeight: '1.2',
-                        textShadow: '0 2px 10px rgba(0,0,0,0.15)',
+                        letterSpacing: '-1px'
                       }}
                     >
-                      قطع غيار {selectedMake?.label}
+                      قطع غيار <span style={{ color: '#22c55e' }}>{selectedMake?.label}</span> الأصلية
                     </h1>
 
                     <div
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '10px',
+                        gap: '12px',
                         flexWrap: 'wrap',
-                        marginBottom: '15px',
+                        marginBottom: '24px',
                       }}
                     >
                       <div
@@ -788,16 +793,17 @@ function StoreContent() {
                           display: 'flex',
                           alignItems: 'center',
                           gap: '8px',
-                          backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                          padding: '8px 15px',
-                          borderRadius: '10px',
-                          backdropFilter: 'blur(10px)',
+                          background: 'rgba(255, 255, 255, 0.8)',
+                          padding: '10px 20px',
+                          borderRadius: '15px',
+                          boxShadow: '0 4px 15px rgba(0,0,0,0.03)',
+                          border: '1px solid rgba(255,255,255,0.5)'
                         }}
                       >
-                        <Car size={18} color="#fff" />
+                        <Car size={18} color="#22c55e" />
                         <span
                           style={{
-                            color: '#fff',
+                            color: '#1a1a1a',
                             fontSize: window.innerWidth <= 768 ? '0.95rem' : '1.1rem',
                             fontWeight: '800',
                           }}
@@ -812,17 +818,18 @@ function StoreContent() {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '8px',
-                            backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                            padding: '8px 15px',
-                            borderRadius: '10px',
-                            backdropFilter: 'blur(10px)',
+                            background: 'rgba(255, 255, 255, 0.8)',
+                            padding: '10px 20px',
+                            borderRadius: '15px',
+                            boxShadow: '0 4px 15px rgba(0,0,0,0.03)',
+                            border: '1px solid rgba(255,255,255,0.5)'
                           }}
                         >
-                          <Calendar size={18} color="#fff" />
+                          <Calendar size={18} color="#22c55e" />
                           <span
                             style={{
-                              color: '#fff',
-                              fontSize: '0.95rem',
+                              color: '#1a1a1a',
+                              fontSize: window.innerWidth <= 768 ? '0.95rem' : '1.1rem',
                               fontWeight: '700',
                             }}
                           >
@@ -836,44 +843,43 @@ function StoreContent() {
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        backgroundColor: 'rgba(255, 255, 255, 0.25)',
-                        padding: '10px 18px',
-                        borderRadius: '10px',
-                        backdropFilter: 'blur(10px)',
+                        background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                        padding: '12px 24px',
+                        borderRadius: '15px',
+                        boxShadow: '0 10px 20px rgba(34, 197, 94, 0.2)',
                       }}
                     >
                       <div
                         style={{
-                          fontSize: '1.5rem',
+                          fontSize: '1.6rem',
                           fontWeight: '900',
                           color: '#fff',
-                          marginLeft: '8px',
+                          marginLeft: '10px',
                         }}
                       >
                         {filteredProducts.length}
                       </div>
                       <div
                         style={{
-                          fontSize: '0.85rem',
-                          color: 'rgba(255, 255, 255, 0.95)',
+                          fontSize: '0.9rem',
+                          color: '#fff',
                           fontWeight: '600',
                         }}
                       >
-                        منتج متاح
+                        قطعة غيار متاحة
                       </div>
                     </div>
                   </div>
 
                   {carHeroImage && window.innerWidth > 768 && (
                     <motion.div
-                      initial={{ opacity: 0, scale: 0.95 }}
+                      initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.2, duration: 0.4 }}
+                      transition={{ delay: 0.2, duration: 0.6 }}
                       style={{
-                        height: '200px',
-                        borderRadius: '15px',
-                        overflow: 'hidden',
-                        boxShadow: '0 15px 40px rgba(0, 0, 0, 0.3)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
                       }}
                     >
                       <img
@@ -881,8 +887,9 @@ function StoreContent() {
                         alt={`${selectedMake?.label} ${selectedModel?.label}`}
                         style={{
                           width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
+                          maxHeight: '280px',
+                          objectFit: 'contain',
+                          filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))',
                         }}
                       />
                     </motion.div>
