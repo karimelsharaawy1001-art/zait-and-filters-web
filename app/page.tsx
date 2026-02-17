@@ -688,9 +688,43 @@ export default function HomePage() {
           
           @media (max-width: 768px) { 
             .category-grid-v3 { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-            .product-card-mdrn { flex: 0 0 280px !important; min-width: 280px !important; max-width: 280px !important; }
-            .img-container { height: 180px; }
+            .img-container { height: 140px !important; }
             
+            /* ADJUSTED: Show 2 product cards per row on mobile for Special Offers and Trending */
+            .product-grid-carousel { 
+              display: grid !important; 
+              grid-template-columns: repeat(2, 1fr) !important; 
+              gap: 10px !important; 
+              padding: 10px !important; 
+              overflow-x: visible !important;
+            }
+            
+            .product-card-mdrn { 
+              flex: 0 0 100% !important; 
+              min-width: 0 !important; 
+              max-width: 100% !important; 
+              width: 100% !important;
+              border-radius: 12px !important;
+            }
+
+            .product-card-mdrn h3 {
+              font-size: 0.85rem !important;
+              height: 38px !important;
+            }
+
+            .product-card-mdrn span {
+              font-size: 0.9rem !important;
+            }
+            
+            .product-card-mdrn button {
+              font-size: 0.8rem !important;
+              padding: 8px !important;
+            }
+
+            .product-card-mdrn .cart-price-wrap span:first-of-type {
+               font-size: 0.7rem !important;
+            }
+
             /* COMPLETE FIX FOR HERO ON MOBILE */
             section:first-of-type { 
               min-height: auto !important;
@@ -845,14 +879,17 @@ export default function HomePage() {
                               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#666', fontWeight: '700' }}><Globe size={14} color="#22c55e" /><span>{country}</span></div>
                             </div>
                             <h3 style={{ fontSize: '1rem', fontWeight: '900', marginBottom: '4px', height: '45px', overflow: 'hidden' }}>{p.name}</h3>
-                            <div style={{ background: '#f9f9f9', padding: '10px', borderRadius: '10px', marginBottom: '10px' }}>
+                            <div className="md-hidden" style={{ background: '#f9f9f9', padding: '10px', borderRadius: '10px', marginBottom: '10px' }}>
                               <div style={{fontSize:'0.8rem', color:'#1a1a1a', fontWeight:'800', marginBottom:'3px', display:'flex', alignItems:'center', gap:'6px'}}><Settings2 size={14} color="#22c55e"/> {p.car_make} {p.car_model}</div>
                               <div style={{fontSize:'0.8rem', color:'#666', fontWeight:'700', display:'flex', alignItems:'center', gap:'6px', marginBottom:'3px'}}><Calendar size={14} color="#22c55e"/> {p.car_model_year || 'الكل'}</div>
                               <div style={{fontSize:'0.8rem', color:'#22c55e', fontWeight:'800', display:'flex', alignItems:'center', gap:'6px', marginBottom:'3px'}}><LayoutGrid size={14}/> {p.category}</div>
                               <div style={{fontSize:'0.8rem', color:'#888', fontWeight:'700', display:'flex', alignItems:'center', gap:'6px'}}><Tags size={14}/> {p.subcategory || 'عام'}</div>
                             </div>
                             <div style={{ marginTop: 'auto', display:'flex', flexDirection:'column', gap:'12px' }}>
-                              <div><span style={{ display: 'block', color: '#bbb', textDecoration: 'line-through', fontSize: '0.75rem' }}>{p.regular_price} ج.م</span><span style={{ fontSize: '1.2rem', fontWeight: '900' }}>{p.sale_price} ج.م</span></div>
+                              <div className="cart-price-wrap">
+                                <span style={{ display: 'block', color: '#bbb', textDecoration: 'line-through', fontSize: '0.75rem' }}>{p.regular_price} ج.م</span>
+                                <span style={{ fontSize: '1.2rem', fontWeight: '900' }}>{p.sale_price} ج.م</span>
+                              </div>
                               <button style={cartBtnStyleSmall} onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, 1); toast.success('تمت الإضافة'); }}><ShoppingCart size={16} /> أضف إلى السلة</button>
                             </div>
                           </div>
@@ -886,7 +923,7 @@ export default function HomePage() {
                               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#666', fontWeight: '700' }}><Globe size={14} color="#22c55e" /><span>{country}</span></div>
                             </div>
                             <h3 style={{ fontSize: '1rem', fontWeight: '900', marginBottom: '4px', height: '45px', overflow: 'hidden' }}>{p.name}</h3>
-                            <div style={{ background: '#f9f9f9', padding: '8px', borderRadius: '10px', marginBottom: '10px' }}>
+                            <div className="md-hidden" style={{ background: '#f9f9f9', padding: '8px', borderRadius: '10px', marginBottom: '10px' }}>
                               <div style={{fontSize:'0.8rem', color:'#1a1a1a', fontWeight:'800', marginBottom:'3px', display:'flex', alignItems:'center', gap:'6px'}}><Settings2 size={14} color="#22c55e"/> {p.car_make} {p.car_model}</div>
                               <div style={{fontSize:'0.8rem', color:'#666', fontWeight:'700', display:'flex', alignItems:'center', gap:'6px', marginBottom:'3px'}}><Calendar size={14} color="#22c55e"/> {p.car_model_year || 'الكل'}</div>
                               <div style={{fontSize:'0.8rem', color:'#22c55e', fontWeight:'800', display:'flex', alignItems:'center', gap:'6px', marginBottom:'3px'}}><LayoutGrid size={14}/> {p.category}</div>
