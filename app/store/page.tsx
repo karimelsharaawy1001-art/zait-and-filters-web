@@ -65,6 +65,7 @@ function StoreContent() {
   const [makesOptions, setMakesOptions] = useState<any[]>([]);
   const [modelsOptions, setModelsOptions] = useState<any[]>([]);
   const [categoriesOptions, setCategoriesOptions] = useState<any[]>([]);
+  const [subcategoriesOptions, setSubcategoriesOptions] = useState<any[]>([]);
   const [brandsOptions, setBrandsOptions] = useState<any[]>([]);
   const [subcategoryImages, setSubcategoryImages] = useState<Record<string, string>>({});
 
@@ -73,6 +74,7 @@ function StoreContent() {
   const [selectedModel, setSelectedModel] = useState<any>(null);
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<any>(null);
   const [selectedBrand, setSelectedBrand] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -86,6 +88,7 @@ function StoreContent() {
   const urlModel = searchParams.get('model');
   const urlYear = searchParams.get('year');
   const urlCategory = searchParams.get('category');
+  const urlSubcategory = searchParams.get('subcategory');
   const urlBrand = searchParams.get('brand');
   const urlSearch = searchParams.get('q');
 
@@ -166,6 +169,7 @@ function StoreContent() {
     let makeOption = null;
     let modelOption = null;
     let catOption = null;
+    let subcatOption = null;
     let brandOption = null;
 
 
@@ -182,6 +186,23 @@ function StoreContent() {
       );
       if (catOption) {
         setSelectedCategory(catOption);
+        
+        // Fetch subcategories for this category from URL
+        const { data } = await supabase
+          .from('products')
+          .select('subcategory')
+          .ilike('category', catOption.value.trim());
+
+        if (data) {
+          const uniqueSubcats = Array.from(new Set(data.map((p) => p.subcategory?.trim()).filter(Boolean)));
+          const subcatOpts = uniqueSubcats.sort().map((s) => ({ value: s, label: s }));
+          setSubcategoriesOptions(subcatOpts);
+          
+          if (urlSubcategory) {
+            subcatOption = subcatOpts.find(opt => opt.value.toUpperCase() === urlSubcategory.toUpperCase());
+            if (subcatOption) setSelectedSubcategory(subcatOption);
+          }
+        }
       }
     }
 
@@ -249,6 +270,7 @@ function StoreContent() {
         model: urlModel,
         year: urlYear,
         category: urlCategory,
+        subcategory: urlSubcategory,
         brand: urlBrand,
         search: urlSearch,
       });
@@ -309,6 +331,10 @@ function StoreContent() {
         query = query.ilike('category', filters.category.trim());
       }
 
+      if (filters.subcategory) {
+        query = query.ilike('subcategory', filters.subcategory.trim());
+      }
+
 
       if (filters.brand) {
         query = query.ilike('brand', filters.brand.trim());
@@ -367,6 +393,25 @@ function StoreContent() {
     }
   }
 
+  async function handleCategoryChange(opt: any) {
+    setSelectedCategory(opt);
+    setSelectedSubcategory(null);
+
+    if (opt) {
+        const { data } = await supabase
+          .from('products')
+          .select('subcategory')
+          .ilike('category', opt.value.trim());
+
+        if (data) {
+          const uniqueSubcats = Array.from(new Set(data.map((p) => p.subcategory?.trim()).filter(Boolean)));
+          setSubcategoriesOptions(uniqueSubcats.sort().map((s) => ({ value: s, label: s })));
+        }
+    } else {
+        setSubcategoriesOptions([]);
+    }
+  }
+
 
   function handleFilterChange() {
     const hasMinimumFilters = (selectedMake && selectedModel) || selectedCategory;
@@ -383,6 +428,7 @@ function StoreContent() {
     if (selectedModel) params.set('model', selectedModel.value.trim().toUpperCase());
     if (selectedYear) params.set('year', selectedYear.trim());
     if (selectedCategory) params.set('category', selectedCategory.value.trim());
+    if (selectedSubcategory) params.set('subcategory', selectedSubcategory.value.trim());
     if (selectedBrand) params.set('brand', selectedBrand.value.trim());
     if (searchQuery) params.set('q', searchQuery.trim());
 
@@ -395,6 +441,7 @@ function StoreContent() {
       model: selectedModel?.value,
       year: selectedYear,
       category: selectedCategory?.value,
+      subcategory: selectedSubcategory?.value,
       brand: selectedBrand?.value,
       search: searchQuery,
     });
@@ -409,11 +456,13 @@ function StoreContent() {
     setSelectedModel(null);
     setSelectedYear('');
     setSelectedCategory(null);
+    setSelectedSubcategory(null);
     setSelectedBrand(null);
     setSearchQuery('');
     setFilteredProducts([]);
     setProducts([]);
     setModelsOptions([]);
+    setSubcategoriesOptions([]);
     router.push('/store');
   }
 
@@ -531,7 +580,22 @@ function StoreContent() {
               placeholder="اختر الفئة" 
               isRtl={true} 
               value={selectedCategory} 
-              onChange={(opt) => setSelectedCategory(opt)} 
+              onChange={handleCategoryChange} 
+              isClearable 
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: '800', color: '#555' }}>القسم الفرعي</label>
+            <Select 
+              instanceId="store-subcategory-select" 
+              options={subcategoriesOptions} 
+              styles={customSelectStyles} 
+              placeholder="اختر القسم الفرعي" 
+              isRtl={true} 
+              value={selectedSubcategory} 
+              onChange={(opt) => setSelectedSubcategory(opt)} 
+              isDisabled={!selectedCategory} 
               isClearable 
             />
           </div>
@@ -581,7 +645,7 @@ function StoreContent() {
         تطبيق الفلاتر
       </button>
 
-      {(selectedMake || selectedModel || selectedYear || selectedCategory || selectedBrand || searchQuery) && (
+      {(selectedMake || selectedModel || selectedYear || selectedCategory || selectedSubcategory || selectedBrand || searchQuery) && (
         <button onClick={clearFilters} style={{ width: '100%', padding: '12px', backgroundColor: '#fee', color: '#dc2626', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.9rem' }}>
           <X size={16} />
           مسح الفلاتر
