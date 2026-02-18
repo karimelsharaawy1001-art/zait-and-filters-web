@@ -28,15 +28,32 @@ export default function AdminMessages() {
       .update({ status: newStatus })
       .eq('id', id);
 
-    if (!error) {
-      setMessages(messages.map(m => m.id === id ? { ...m, status: newStatus } : m));
+    if (error) {
+      alert('فشل تحديث الحالة: ' + error.message);
+      return;
     }
+    setMessages(prev => prev.map(m => m.id === id ? { ...m, status: newStatus } : m));
   };
 
+  // ✅ FIXED: now checks count to confirm actual DB deletion
   const deleteMessage = async (id: string) => {
     if (confirm('هل أنت متأكد من حذف هذه الرسالة؟')) {
-      const { error } = await supabase.from('contact_messages').delete().eq('id', id);
-      if (!error) setMessages(messages.filter(m => m.id !== id));
+      const { error, count } = await supabase
+        .from('contact_messages')
+        .delete({ count: 'exact' })
+        .eq('id', id);
+
+      if (error) {
+        alert('فشل الحذف: ' + error.message);
+        return;
+      }
+
+      if (count === 0) {
+        alert('لم يتم الحذف — تحقق من صلاحيات RLS في Supabase');
+        return;
+      }
+
+      setMessages(prev => prev.filter(m => m.id !== id));
     }
   };
 
@@ -73,7 +90,9 @@ export default function AdminMessages() {
               <tr><td colSpan={5} style={{ textAlign: 'center', padding: '50px', color: '#aaa' }}>لا توجد رسائل بعد</td></tr>
             ) : messages.map((msg) => (
               <tr key={msg.id} style={{ borderBottom: '1px solid #f0f0f0', backgroundColor: msg.status === 'new' || !msg.status ? '#f0fdf4' : '#fff' }}>
-                <td style={tdStyle}><span style={{ fontSize: '0.85rem', color: '#888' }}>{new Date(msg.created_at).toLocaleDateString('ar-EG')}</span></td>
+                <td style={tdStyle}>
+                  <span style={{ fontSize: '0.85rem', color: '#888' }}>{new Date(msg.created_at).toLocaleDateString('ar-EG')}</span>
+                </td>
                 <td style={tdStyle}>
                   <div style={{ fontWeight: 'bold', color: '#1a1a1a' }}>{msg.full_name}</div>
                   <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '4px' }}>{msg.phone}</div>
@@ -100,7 +119,12 @@ export default function AdminMessages() {
                   </select>
                 </td>
                 <td style={tdStyle}>
-                  <button onClick={() => deleteMessage(msg.id)} style={{ color: '#ef4444', background: 'none', border: '1px solid #fee2e2', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem' }}>حذف</button>
+                  <button
+                    onClick={() => deleteMessage(msg.id)}
+                    style={{ color: '#ef4444', background: 'none', border: '1px solid #fee2e2', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem' }}
+                  >
+                    حذف
+                  </button>
                 </td>
               </tr>
             ))}
