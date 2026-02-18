@@ -3,14 +3,15 @@ import { useState, useEffect } from 'react';
 import { 
   Search, ShoppingCart, User, Home, Store, Package, 
   Menu as MenuIcon, X, Info, PhoneCall, ShieldCheck, Settings, LogIn, LogOut,
-  Handshake, Car 
+  Handshake, Car, BookOpen
 } from 'lucide-react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext'; 
 import { supabase } from '@/app/lib/supabase';
 import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast'; // FIXED: Added missing import
+import toast from 'react-hot-toast';
+
 
 export default function ProfessionalNavbar() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -20,7 +21,6 @@ export default function ProfessionalNavbar() {
   const controls = useAnimation();
   const router = useRouter();
 
-  // Garage Feature States
   const [garageMode, setGarageMode] = useState(false);
   const [userCar, setUserCar] = useState<any>(null);
 
@@ -34,7 +34,6 @@ export default function ProfessionalNavbar() {
     };
     checkUser();
 
-    // Sync Garage Mode from localStorage on mount
     const savedMode = localStorage.getItem('garageMode') === 'true';
     setGarageMode(savedMode);
 
@@ -74,7 +73,6 @@ export default function ProfessionalNavbar() {
     setGarageMode(newMode);
     localStorage.setItem('garageMode', newMode.toString());
     window.dispatchEvent(new Event('garageModeChanged'));
-    
     if (newMode) toast.success(`تم تفعيل وضع جراجي لسيارة ${userCar.make}`);
   };
 
@@ -115,34 +113,39 @@ export default function ProfessionalNavbar() {
               style={sidebarStyle}
             >
               <div style={sidebarHeader}>
-                <span style={{fontWeight:'900', fontSize:'1.2rem'}}>القائمة</span>
+                <span style={{ fontWeight: '900', fontSize: '1.2rem' }}>القائمة</span>
                 <button onClick={() => setIsSidebarOpen(false)} style={closeBtn}><X size={24}/></button>
               </div>
-              
+
               <div style={sidebarContent}>
-                <button onClick={toggleGarage} style={{...sidebarLink, backgroundColor: garageMode ? '#eefcf5' : 'transparent', color: garageMode ? '#27ae60' : '#444'}}>
+                <button onClick={toggleGarage} style={{ ...sidebarLink, backgroundColor: garageMode ? '#eefcf5' : 'transparent', color: garageMode ? '#27ae60' : '#444' }}>
                   <Car size={20} color={garageMode ? '#27ae60' : '#444'}/> 
                   جراجي {garageMode ? '(مفعل)' : ''}
                 </button>
 
-                <Link href="/" onClick={()=>setIsSidebarOpen(false)} style={sidebarLink}><Home size={20}/> الرئيسية</Link>
-                <Link href="/store" onClick={()=>setIsSidebarOpen(false)} style={sidebarLink}><Store size={20}/> المتجر</Link>
-                <Link href="/affiliate" onClick={()=>setIsSidebarOpen(false)} style={{...sidebarLink, color: '#27ae60'}}><Handshake size={20}/> ابدأ الربح معنا</Link>
-                
+                <Link href="/" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}><Home size={20}/> الرئيسية</Link>
+                <Link href="/store" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}><Store size={20}/> المتجر</Link>
+
+                {/* ✅ Blog link in sidebar */}
+                <Link href="/blog" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}><BookOpen size={20}/> المدونة</Link>
+
+                <Link href="/affiliate" onClick={() => setIsSidebarOpen(false)} style={{ ...sidebarLink, color: '#27ae60' }}><Handshake size={20}/> ابدأ الربح معنا</Link>
+
                 <hr style={sidebarDivider} />
                 {user ? (
                   <>
-                    <Link href="/profile" onClick={()=>setIsSidebarOpen(false)} style={sidebarLink}><User size={20}/> حسابي الشخصي</Link>
-                    <Link href="/account/garage" onClick={()=>setIsSidebarOpen(false)} style={sidebarLink}><Settings size={20}/> إعدادات جراجي</Link>
+                    <Link href="/profile" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}><User size={20}/> حسابي الشخصي</Link>
+                    <Link href="/account/garage" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}><Settings size={20}/> إعدادات جراجي</Link>
                     <button onClick={handleLogout} style={sidebarLogoutBtn}><LogOut size={20}/> تسجيل الخروج</button>
                   </>
                 ) : (
-                  <Link href="/login" onClick={()=>setIsSidebarOpen(false)} style={{...sidebarLink, color: '#27ae60'}}><LogIn size={20}/> تسجيل الدخول</Link>
+                  <Link href="/login" onClick={() => setIsSidebarOpen(false)} style={{ ...sidebarLink, color: '#27ae60' }}><LogIn size={20}/> تسجيل الدخول</Link>
                 )}
                 <hr style={sidebarDivider} />
-                <Link href="/about" onClick={()=>setIsSidebarOpen(false)} style={sidebarLink}><Info size={20}/> عن زيت أند فلترز</Link>
-                <Link href="/contact" onClick={()=>setIsSidebarOpen(false)} style={sidebarLink}><PhoneCall size={20}/> اتصل بنا</Link>
+                <Link href="/about" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}><Info size={20}/> عن زيت أند فلترز</Link>
+                <Link href="/contact" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}><PhoneCall size={20}/> اتصل بنا</Link>
               </div>
+
               <div style={sidebarFooter}>
                 <p>زيت أند فلترز - v1.1.0</p>
               </div>
@@ -154,7 +157,7 @@ export default function ProfessionalNavbar() {
       {/* --- Top Navbar --- */}
       <nav style={navContainer}>
         <div style={navContent} className="nav-content">
-          <button className="mobile-menu-btn" style={{...iconBtn, display:'none'}} onClick={() => setIsSidebarOpen(true)}><MenuIcon size={24} /></button>
+          <button className="mobile-menu-btn" style={{ ...iconBtn, display: 'none' }} onClick={() => setIsSidebarOpen(true)}><MenuIcon size={24} /></button>
 
           <Link href="/" style={logoStyle} className="logo-text">
             ZAIT <span style={{ color: '#27ae60' }}>& FILTERS</span>
@@ -173,10 +176,13 @@ export default function ProfessionalNavbar() {
 
           <div style={navLinks} className="desktop-links">
             <Link href="/store" style={linkItem}>المتجر</Link>
-            <Link href="/affiliate" style={{...linkItem, color: '#27ae60'}}>ابدأ الربح معنا</Link>
+
+            {/* ✅ Blog link in desktop nav */}
+            <Link href="/blog" style={linkItem}>المدونة</Link>
+
+            <Link href="/affiliate" style={{ ...linkItem, color: '#27ae60' }}>ابدأ الربح معنا</Link>
 
             <div style={iconGroup}>
-              {/* FIXED: Garage button moved to the left side, next to other action icons */}
               <button 
                 onClick={toggleGarage}
                 style={{
@@ -188,18 +194,18 @@ export default function ProfessionalNavbar() {
                 title={userCar ? `تصفية لسيارة ${userCar.make}` : "جراجي"}
               >
                 <Car size={18} />
-                <span style={{fontWeight: '900', fontSize: '0.85rem'}}>جراجي</span>
+                <span style={{ fontWeight: '900', fontSize: '0.85rem' }}>جراجي</span>
               </button>
 
               {user ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                   <Link href="/profile" style={iconBtn} title="حسابي"><User size={20} /></Link>
-                   <button onClick={handleLogout} style={logoutIconBtn} title="خروج"><LogOut size={18} /></button>
+                  <Link href="/profile" style={iconBtn} title="حسابي"><User size={20} /></Link>
+                  <button onClick={handleLogout} style={logoutIconBtn} title="خروج"><LogOut size={18} /></button>
                 </div>
               ) : (
                 <Link href="/login" style={loginLinkBtn}><LogIn size={18} /> دخول</Link>
               )}
-              
+
               <Link href="/cart" style={{ ...iconBtn, position: 'relative', textDecoration: 'none', marginRight: '10px' }}>
                 <motion.div animate={controls}><ShoppingCart size={22} /></motion.div>
                 {cartItems.length > 0 && <span style={cartBadge}>{cartItems.length}</span>}
@@ -207,7 +213,7 @@ export default function ProfessionalNavbar() {
             </div>
           </div>
 
-          <Link href={user ? "/profile" : "/login"} className="mobile-menu-btn" style={{...iconBtn, display:'none'}}>
+          <Link href={user ? "/profile" : "/login"} className="mobile-menu-btn" style={{ ...iconBtn, display: 'none' }}>
             <User size={24}/>
           </Link>
         </div>
@@ -217,6 +223,10 @@ export default function ProfessionalNavbar() {
       <div style={mobileBottomNav} className="mobile-bottom-nav">
         <Link href="/" style={bottomNavItem}><Home size={22} /><span>الرئيسية</span></Link>
         <Link href="/store" style={bottomNavItem}><Store size={22} /><span>المتجر</span></Link>
+
+        {/* ✅ Blog link in mobile bottom nav */}
+        <Link href="/blog" style={bottomNavItem}><BookOpen size={22} /><span>المدونة</span></Link>
+
         <Link href="/cart" style={{ ...bottomNavItem, position: 'relative' }}>
           <motion.div animate={controls}><ShoppingCart size={22} /></motion.div>
           {cartItems.length > 0 && <span style={cartBadgeMobile}>{cartItems.length}</span>}
@@ -253,16 +263,6 @@ const sidebarFooter: any = { padding: '20px', fontSize: '0.7rem', color: '#ccc',
 const closeBtn: any = { background: 'none', border: 'none', color: '#1a1a1a', cursor: 'pointer' };
 const mobileBottomNav: any = { display: 'none', position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', borderTop: '1px solid #eee', padding: '10px 5px', justifyContent: 'space-around', alignItems: 'center', zIndex: 1001, direction: 'rtl' };
 const bottomNavItem: any = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', textDecoration: 'none', color: '#666', fontSize: '0.7rem', fontWeight: 'bold' };
-const bottomNavItemBtn: any = { ...bottomNavItem, background:'none', border:'none' };
+const bottomNavItemBtn: any = { ...bottomNavItem, background: 'none', border: 'none' };
 const cartBadgeMobile: any = { position: 'absolute', top: '-5px', right: '5px', backgroundColor: '#27ae60', color: '#fff', fontSize: '9px', borderRadius: '50%', width: '15px', height: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center' };
-
-const garageToggleBtn: any = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  padding: '8px 16px',
-  borderRadius: '12px',
-  border: 'none',
-  cursor: 'pointer',
-  transition: 'all 0.3s ease'
-};
+const garageToggleBtn: any = { display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '12px', border: 'none', cursor: 'pointer', transition: 'all 0.3s ease' };
