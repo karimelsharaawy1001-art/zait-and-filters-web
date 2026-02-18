@@ -5,7 +5,7 @@ import {
   Phone, MapPin, ShoppingCart, Trash2, CreditCard, Banknote,
   Image as ImageIcon, ExternalLink, Eye, X, User, Hash,
   CarFront, Factory, Smartphone, Plus, Edit2, Save, Tag,
-  Truck, AlertCircle, RefreshCw
+  Truck, AlertCircle, RefreshCw, Search
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -32,6 +32,7 @@ export default function AdminOrders() {
   const [addItemFilter, setAddItemFilter] = useState({
     brand: '', car_make: '', car_model: '', car_year: ''
   });
+  const [productSearchQuery, setProductSearchQuery] = useState('');
   const [loadingBrands, setLoadingBrands] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
 
@@ -109,10 +110,15 @@ export default function AdminOrders() {
     setFilteredProducts([]);
     try {
       let query = supabase.from('products').select('*');
-      if (addItemFilter.brand) query = query.eq('brand', addItemFilter.brand);
-      if (addItemFilter.car_make) query = query.eq('car_make', addItemFilter.car_make);
-      if (addItemFilter.car_model) query = query.eq('car_model', addItemFilter.car_model);
-      if (addItemFilter.car_year) query = query.eq('car_year', addItemFilter.car_year);
+      // Text search by name takes priority
+      if (productSearchQuery.trim()) {
+        query = query.ilike('name', `%${productSearchQuery.trim()}%`);
+      } else {
+        if (addItemFilter.brand) query = query.eq('brand', addItemFilter.brand);
+        if (addItemFilter.car_make) query = query.eq('car_make', addItemFilter.car_make);
+        if (addItemFilter.car_model) query = query.eq('car_model', addItemFilter.car_model);
+        if (addItemFilter.car_year) query = query.eq('car_year', addItemFilter.car_year);
+      }
       const { data, error } = await query.limit(50);
       if (error) { toast.error('فشل البحث: ' + error.message); return; }
       setFilteredProducts(data || []);
@@ -213,6 +219,7 @@ export default function AdminOrders() {
     setRemoveShipping(order.shipping_removed || false);
     setShowAddItem(false);
     setFilteredProducts([]);
+    setProductSearchQuery('');
     setAddItemFilter({ brand: '', car_make: '', car_model: '', car_year: '' });
     fetchCustomerAddresses(order.customer_phone);
     setEditMode(true);
@@ -428,11 +435,47 @@ export default function AdminOrders() {
                       <button onClick={() => setShowAddItem(!showAddItem)} style={addItemBtnStyle}>
                         <Plus size={16} /> {showAddItem ? 'إخفاء البحث' : 'إضافة منتج'}
                       </button>
+
                       {showAddItem && (
                         <div style={{ background: '#f0fdf4', borderRadius: '16px', padding: '20px', marginTop: '12px', border: '1px solid #dcfce7' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
 
-                            {/* Part Brand */}
+                          {/* ====== SEARCH BAR ====== */}
+                          <div style={{ marginBottom: '16px' }}>
+                            <label style={labelStyle}>🔍 بحث سريع باسم المنتج</label>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <div style={{ position: 'relative', flex: 1 }}>
+                                <Search size={16} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#999', pointerEvents: 'none' }} />
+                                <input
+                                  value={productSearchQuery}
+                                  onChange={e => setProductSearchQuery(e.target.value)}
+                                  onKeyDown={e => e.key === 'Enter' && fetchFilteredProducts()}
+                                  placeholder="اكتب اسم المنتج... مثال: زيت موبيل"
+                                  style={{ ...inputStyle, paddingRight: '38px', background: '#fff' }}
+                                />
+                              </div>
+                              <button onClick={fetchFilteredProducts} style={saveBtnStyle}>
+                                <Search size={15} /> بحث
+                              </button>
+                              {productSearchQuery && (
+                                <button onClick={() => { setProductSearchQuery(''); setFilteredProducts([]); }} style={cancelBtnStyle}>
+                                  <X size={15} />
+                                </button>
+                              )}
+                            </div>
+                            <p style={{ fontSize: '0.75rem', color: '#888', margin: '5px 0 0' }}>
+                              أو استخدم الفلاتر أدناه للبحث بماركة القطعة أو السيارة
+                            </p>
+                          </div>
+
+                          {/* DIVIDER */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                            <div style={{ flex: 1, height: '1px', background: '#d1fae5' }} />
+                            <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '600' }}>أو فلتر بالتصنيف</span>
+                            <div style={{ flex: 1, height: '1px', background: '#d1fae5' }} />
+                          </div>
+
+                          {/* FILTER GRID */}
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
                             <div>
                               <label style={labelStyle}>
                                 ماركة القطعة {loadingBrands && <span style={{ color: '#999' }}>جاري التحميل...</span>}
@@ -443,8 +486,6 @@ export default function AdminOrders() {
                                 {partBrands.map((b: any) => <option key={b.id} value={b.name}>{b.name}</option>)}
                               </select>
                             </div>
-
-                            {/* Car Make */}
                             <div>
                               <label style={labelStyle}>ماركة السيارة</label>
                               <select style={inputStyle} value={addItemFilter.car_make}
@@ -457,8 +498,6 @@ export default function AdminOrders() {
                                 {carMakes.map((m: string) => <option key={m} value={m}>{m}</option>)}
                               </select>
                             </div>
-
-                            {/* Car Model */}
                             <div>
                               <label style={labelStyle}>موديل السيارة</label>
                               <select
@@ -474,8 +513,6 @@ export default function AdminOrders() {
                                 {carModels.map((m: string) => <option key={m} value={m}>{m}</option>)}
                               </select>
                             </div>
-
-                            {/* Car Year */}
                             <div>
                               <label style={labelStyle}>سنة السيارة</label>
                               <select
@@ -489,17 +526,21 @@ export default function AdminOrders() {
                             </div>
                           </div>
 
-                          {/* Search Button */}
+                          {/* FILTER SEARCH BUTTON */}
                           <button onClick={fetchFilteredProducts}
-                            style={{ ...saveBtnStyle, width: '100%', justifyContent: 'center', marginBottom: '12px' }}>
-                            {loadingProducts ? 'جاري البحث...' : 'بحث عن المنتجات'}
+                            style={{ ...saveBtnStyle, width: '100%', justifyContent: 'center', marginBottom: '14px' }}>
+                            {loadingProducts ? 'جاري البحث...' : 'بحث بالفلاتر'}
                           </button>
 
-                          {/* Results */}
-                          <div style={{ display: 'grid', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
-                            {loadingProducts && <p style={{ color: '#27ae60', textAlign: 'center', padding: '20px' }}>جاري البحث...</p>}
+                          {/* RESULTS */}
+                          <div style={{ display: 'grid', gap: '8px', maxHeight: '320px', overflowY: 'auto' }}>
+                            {loadingProducts && (
+                              <p style={{ color: '#27ae60', textAlign: 'center', padding: '20px' }}>جاري البحث...</p>
+                            )}
                             {!loadingProducts && filteredProducts.length === 0 && (
-                              <p style={{ color: '#999', textAlign: 'center', padding: '20px' }}>اضغط "بحث عن المنتجات" لعرض النتائج</p>
+                              <p style={{ color: '#999', textAlign: 'center', padding: '20px' }}>
+                                ابحث باسم المنتج أو استخدم الفلاتر أعلاه
+                              </p>
                             )}
                             {filteredProducts.map((prod: any) => (
                               <div key={prod.id} style={searchProductRow}>
