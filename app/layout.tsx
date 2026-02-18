@@ -9,6 +9,9 @@ import { AbandonedCartTracker } from '@/components/AbandonedCartTracker'
 import PageTransition from '@/components/PageTransition'
 import ScrollProgress from '@/components/ScrollProgress'
 import type { Metadata } from 'next'
+import Script from 'next/script'
+import { GA_MEASUREMENT_ID } from '@/lib/gtag'
+import { GAProvider } from './ga-provider'
 
 const almarai = Almarai({ 
   subsets: ['arabic'], 
@@ -105,9 +108,30 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#2ecc71" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        {GA_MEASUREMENT_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){window.dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA_MEASUREMENT_ID}', {
+                  page_path: window.location.pathname,
+                });
+              `}
+            </Script>
+          </>
+        )}
       </head>
       <body className={almarai.className}>
-        <script dangerouslySetInnerHTML={{ __html: `
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
           (function() {
             try {
               const urlParams = new URLSearchParams(window.location.search);
@@ -118,10 +142,13 @@ export default function RootLayout({
               }
             } catch (e) { console.error('Affiliate error:', e); }
           })();
-        `}} />
+        `,
+          }}
+        />
+
+        <GAProvider />
 
         <CartProvider>
-          {/* Scroll Progress Bar */}
           <ScrollProgress />
           
           <Toaster 
