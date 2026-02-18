@@ -12,6 +12,7 @@ import type { Metadata } from 'next'
 import Script from 'next/script'
 import { GA_MEASUREMENT_ID } from '@/lib/gtag'
 import { GAProvider } from './ga-provider'
+import { Suspense } from 'react'
 
 const almarai = Almarai({ 
   subsets: ['arabic'], 
@@ -146,7 +147,9 @@ export default function RootLayout({
           }}
         />
 
-        <GAProvider />
+        <Suspense fallback={null}>
+          <GAProvider />
+        </Suspense>
 
         <CartProvider>
           <ScrollProgress />
