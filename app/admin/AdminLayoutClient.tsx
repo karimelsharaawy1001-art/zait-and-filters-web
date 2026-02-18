@@ -1,15 +1,21 @@
 'use client';
+import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
 
 
-export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
+
+type Props = { children: React.ReactNode };
+
+export default function AdminLayoutClient({ children }: Props) {
   const pathname = usePathname();
+
 
 
   // لا تظهر القائمة في صفحة تسجيل الدخول
   if (pathname === '/admin/login') return <>{children}</>;
+
 
 
   const menuItems = [
@@ -28,6 +34,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     { name: 'السلات المتروكة', href: '/admin/abandoned-carts', icon: '🛒' },
     { name: 'رسائل العملاء', href: '/admin/messages', icon: '💬' },
   ];
+
 
 
   return (
@@ -54,6 +61,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
         </div>
 
 
+
         <nav style={{ flex: 1, overflowY: 'auto', paddingBottom: '80px' }}>
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
@@ -77,6 +85,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
             );
           })}
         </nav>
+
 
 
         {/* زر تسجيل الخروج الثابت في الأسفل */}
@@ -107,6 +116,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
         </button>
 
 
+
         <style jsx>{`
           aside::-webkit-scrollbar { width: 6px; }
           aside::-webkit-scrollbar-track { background: transparent; }
@@ -118,6 +128,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
           nav::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         `}</style>
       </aside>
+
 
 
       {/* Main Content Area - تم تعديل الألوان للوضع الفاتح */}
