@@ -4,11 +4,13 @@ import { supabase } from '@/app/lib/supabase';
 import { useRouter } from 'next/navigation';
 
 
+
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
+
 
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -17,9 +19,11 @@ export default function AdminLogin() {
     if (error) {
       setError('بيانات الدخول غير صحيحة');
     } else {
-      router.push('/admin/dashboard');
+      // ✅ Full reload so server can read the new session cookie
+      window.location.href = '/admin/dashboard';
     }
   };
+
 
 
   return (
