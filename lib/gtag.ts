@@ -3,9 +3,12 @@ export const GA_MEASUREMENT_ID =
 
 export const pageview = (url: string) => {
   if (!GA_MEASUREMENT_ID || typeof window === "undefined") return;
-  window.gtag?.("config", GA_MEASUREMENT_ID, {
-    page_path: url,
-  });
+
+  if (typeof window.gtag === "function") {
+    window.gtag("config", GA_MEASUREMENT_ID, {
+      page_path: url,
+    });
+  }
 };
 
 export const event = ({
@@ -20,9 +23,12 @@ export const event = ({
   value?: number;
 }) => {
   if (typeof window === "undefined") return;
-  window.gtag?.("event", action, {
-    event_category: category,
-    event_label: label,
-    value,
-  });
+
+  if (typeof window.gtag === "function") {
+    window.gtag("event", action, {
+      event_category: category,
+      event_label: label,
+      value,
+    });
+  }
 };
