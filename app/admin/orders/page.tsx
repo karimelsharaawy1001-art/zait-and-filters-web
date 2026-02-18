@@ -14,17 +14,15 @@ export default function AdminOrders() {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
 
-  // Edit mode state
   const [editMode, setEditMode] = useState(false);
   const [editedItems, setEditedItems] = useState<any[]>([]);
   const [editedAddress, setEditedAddress] = useState('');
   const [editedCity, setEditedCity] = useState('');
-  const [discount, setDiscount] = useState<{ type: 'amount' | 'percent' | 'shipping'; value: number }>({ type: 'amount', value: 0 });
+  const [discount, setDiscount] = useState<{ type: 'amount' | 'percent'; value: number }>({ type: 'amount', value: 0 });
   const [extraFee, setExtraFee] = useState<{ amount: number; reason: string }>({ amount: 0, reason: '' });
   const [removeShipping, setRemoveShipping] = useState(false);
   const [customerAddresses, setCustomerAddresses] = useState<any[]>([]);
 
-  // Add item state
   const [showAddItem, setShowAddItem] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [subcategories, setSubcategories] = useState<any[]>([]);
@@ -35,6 +33,9 @@ export default function AdminOrders() {
   const [addItemFilter, setAddItemFilter] = useState({
     category: '', subcategory: '', car_make: '', car_model: '', car_year: ''
   });
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [loadingSubcategories, setLoadingSubcategories] = useState(false);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
   const paymentLabels: any = {
     'card_installments': 'بطاقة / تقسيط',
@@ -56,62 +57,117 @@ export default function AdminOrders() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  async function fetchOrders() {
+  // ✅ FIXED: added error handling + toast + console log
+  async function fetchCategories() {
+    setLoadingCategories(true);
     try {
-      const { data, error } = await supabase
-        .from('orders').select('*').order('created_at', { ascending: false });
-      if (error) throw error;
-      if (data) setOrders(data);
-    } catch (err: any) {
-      toast.error('خطأ في جلب الطلبات: ' + err.message);
+      const { data, error } = await supabase.from('categories').select('*').order('name');
+      if (error) {
+        console.error('fetchCategories error:', error);
+        toast.error('فشل تحميل الفئات: ' + error.message);
+        return;
+      }
+      console.log('categories loaded:', data);
+      setCategories(data || []);
     } finally {
-      setLoading(false);
+      setLoadingCategories(false);
     }
   }
 
-  async function fetchCategories() {
-    const { data } = await supabase.from('categories').select('*');
-    if (data) setCategories(data);
+  // ✅ FIXED: guard for empty categoryId + error handling
+  async function fetchSubcategories(categoryId: string) {
+    setSubcategories([]);
+    setAddItemFilter(f => ({ ...f, subcategory: '' }));
+    if (!categoryId) return;
+    setLoadingSubcategories(true);
+    try {
+      const { data, error } = await supabase
+        .from('subcategories')
+        .select('*')
+        .eq('category_id', categoryId)
+        .order('name');
+      if (error) {
+        console.error('fetchSubcategories error:', error);
+        toast.error('فشل تحميل الفئات الفرعية: ' + error.message);
+        return;
+      }
+      console.log('subcategories loaded:', data);
+      setSubcategories(data || []);
+    } finally {
+      setLoadingSubcategories(false);
+    }
   }
 
   async function fetchCarMakes() {
-    const { data } = await supabase.from('products').select('car_make').not('car_make', 'is', null);
+    const { data, error } = await supabase
+      .from('products')
+      .select('car_make')
+      .not('car_make', 'is', null)
+      .neq('car_make', '');
+    if (error) { console.error('fetchCarMakes error:', error); return; }
     if (data) {
-      const unique = [...new Set(data.map((d: any) => d.car_make).filter(Boolean))];
+      const unique = [...new Set(data.map((d: any) => d.car_make).filter(Boolean))].sort();
       setCarMakes(unique);
     }
   }
 
-  async function fetchSubcategories(categoryId: string) {
-    const { data } = await supabase.from('subcategories').select('*').eq('category_id', categoryId);
-    if (data) setSubcategories(data);
-  }
-
   async function fetchCarModels(make: string) {
-    const { data } = await supabase.from('products').select('car_model').eq('car_make', make).not('car_model', 'is', null);
+    setCarModels([]);
+    setCarYears([]);
+    if (!make) return;
+    const { data, error } = await supabase
+      .from('products')
+      .select('car_model')
+      .eq('car_make', make)
+      .not('car_model', 'is', null)
+      .neq('car_model', '');
+    if (error) { console.error('fetchCarModels error:', error); return; }
     if (data) {
-      const unique = [...new Set(data.map((d: any) => d.car_model).filter(Boolean))];
+      const unique = [...new Set(data.map((d: any) => d.car_model).filter(Boolean))].sort();
       setCarModels(unique);
     }
   }
 
   async function fetchCarYears(make: string, model: string) {
-    const { data } = await supabase.from('products').select('car_year').eq('car_make', make).eq('car_model', model).not('car_year', 'is', null);
+    setCarYears([]);
+    if (!make || !model) return;
+    const { data, error } = await supabase
+      .from('products')
+      .select('car_year')
+      .eq('car_make', make)
+      .eq('car_model', model)
+      .not('car_year', 'is', null)
+      .neq('car_year', '');
+    if (error) { console.error('fetchCarYears error:', error); return; }
     if (data) {
-      const unique = [...new Set(data.map((d: any) => d.car_year).filter(Boolean))];
+      const unique = [...new Set(data.map((d: any) => d.car_year).filter(Boolean))].sort();
       setCarYears(unique);
     }
   }
 
+  // ✅ FIXED: shows loading state + error toast
   async function fetchFilteredProducts() {
-    let query = supabase.from('products').select('*');
-    if (addItemFilter.category) query = query.eq('category_id', addItemFilter.category);
-    if (addItemFilter.subcategory) query = query.eq('subcategory_id', addItemFilter.subcategory);
-    if (addItemFilter.car_make) query = query.eq('car_make', addItemFilter.car_make);
-    if (addItemFilter.car_model) query = query.eq('car_model', addItemFilter.car_model);
-    if (addItemFilter.car_year) query = query.eq('car_year', addItemFilter.car_year);
-    const { data } = await query.limit(30);
-    if (data) setFilteredProducts(data);
+    setLoadingProducts(true);
+    setFilteredProducts([]);
+    try {
+      let query = supabase.from('products').select('*');
+      if (addItemFilter.category) query = query.eq('category_id', addItemFilter.category);
+      if (addItemFilter.subcategory) query = query.eq('subcategory_id', addItemFilter.subcategory);
+      if (addItemFilter.car_make) query = query.eq('car_make', addItemFilter.car_make);
+      if (addItemFilter.car_model) query = query.eq('car_model', addItemFilter.car_model);
+      if (addItemFilter.car_year) query = query.eq('car_year', addItemFilter.car_year);
+      const { data, error } = await query.limit(50);
+      if (error) {
+        console.error('fetchFilteredProducts error:', error);
+        toast.error('فشل البحث عن المنتجات: ' + error.message);
+        return;
+      }
+      console.log('filtered products:', data);
+      setFilteredProducts(data || []);
+      if (!data || data.length === 0) toast('لا توجد منتجات بهذه الفلاتر', { icon: '🔍' });
+    } finally {
+      setLoadingProducts(false);
+    }
   }
 
   async function fetchCustomerAddresses(phone: string) {
@@ -128,6 +184,8 @@ export default function AdminOrders() {
     setRemoveShipping(order.shipping_removed || false);
     setShowAddItem(false);
     setFilteredProducts([]);
+    setSubcategories([]);
+    setAddItemFilter({ category: '', subcategory: '', car_make: '', car_model: '', car_year: '' });
     fetchCustomerAddresses(order.customer_phone);
     setEditMode(true);
   }
@@ -146,7 +204,7 @@ export default function AdminOrders() {
       const origShipping = selectedOrder.shipping_fee || 0;
       const newTotal = calcTotal(editedItems, discount, extraFee, removeShipping, origShipping);
       const discAmount = discount.type === 'amount' ? discount.value :
-        discount.type === 'percent' ? (editedItems.reduce((s: number, i: any) => s + parseFloat(i.price) * i.quantity, 0) * discount.value / 100) : 0;
+        (editedItems.reduce((s: number, i: any) => s + parseFloat(i.price) * i.quantity, 0) * discount.value / 100);
 
       const updatePayload: any = {
         items: editedItems,
@@ -197,7 +255,7 @@ export default function AdminOrders() {
         car_model: product.car_model,
       }]);
     }
-    toast.success('تمت إضافة المنتج');
+    toast.success('تمت إضافة المنتج ✅');
   }
 
   async function updateOrderStatus(orderId: string, newStatus: string) {
@@ -205,7 +263,6 @@ export default function AdminOrders() {
       const orderToUpdate = orders.find(o => o.id === orderId);
       const { error: orderError } = await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
       if (orderError) throw orderError;
-
       if (newStatus === 'delivered' && orderToUpdate?.status !== 'delivered') {
         const deliveryDate = new Date().toISOString();
         const releaseDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
@@ -303,7 +360,6 @@ export default function AdminOrders() {
         </table>
       </div>
 
-      {/* ==================== ORDER DETAIL MODAL ==================== */}
       {selectedOrder && (
         <div style={modalOverlay}>
           <div style={{ ...modalContent, maxWidth: editMode ? '900px' : '750px' }}>
@@ -329,7 +385,7 @@ export default function AdminOrders() {
 
             <div style={modalBody}>
 
-              {/* ===== ADDRESS CARD ===== */}
+              {/* ADDRESS CARD */}
               <div style={modalCard}>
                 <h3 style={cardTitle}><User size={18}/> بيانات العميل والتوصيل</h3>
                 {!editMode ? (
@@ -361,7 +417,8 @@ export default function AdminOrders() {
                         <label style={labelStyle}>أو اختر من عناوين العميل المحفوظة</label>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
                           {customerAddresses.map((addr: any, i: number) => (
-                            <button key={i} onClick={() => { setEditedAddress(addr.address); setEditedCity(addr.city); }}
+                            <button key={i}
+                              onClick={() => { setEditedAddress(addr.address); setEditedCity(addr.city); }}
                               style={{ ...addrBtnStyle, border: editedAddress === addr.address ? '2px solid #27ae60' : '1px solid #eee' }}>
                               <MapPin size={14} color="#27ae60" />
                               <span><strong>{addr.city}</strong> — {addr.address}</span>
@@ -374,7 +431,7 @@ export default function AdminOrders() {
                 )}
               </div>
 
-              {/* ===== ITEMS CARD ===== */}
+              {/* ITEMS CARD */}
               <div style={modalCard}>
                 <h3 style={cardTitle}><ShoppingCart size={18}/> المنتجات المطلوبة</h3>
                 <div style={itemsContainer}>
@@ -407,73 +464,149 @@ export default function AdminOrders() {
                     </div>
                   ))}
 
-                  {/* Add Item Section */}
+                  {/* ADD ITEM */}
                   {editMode && (
                     <div>
                       <button onClick={() => setShowAddItem(!showAddItem)} style={addItemBtnStyle}>
                         <Plus size={16} /> {showAddItem ? 'إخفاء البحث' : 'إضافة منتج'}
                       </button>
+
                       {showAddItem && (
                         <div style={{ background: '#f0fdf4', borderRadius: '16px', padding: '20px', marginTop: '12px', border: '1px solid #dcfce7' }}>
+
+                          {/* Filter Grid */}
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+
+                            {/* Category */}
                             <div>
-                              <label style={labelStyle}>الفئة</label>
-                              <select style={inputStyle} value={addItemFilter.category}
-                                onChange={e => { setAddItemFilter(f => ({ ...f, category: e.target.value, subcategory: '' })); fetchSubcategories(e.target.value); }}>
-                                <option value="">كل الفئات</option>
-                                {categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                              <label style={labelStyle}>
+                                الفئة {loadingCategories && <span style={{ color: '#999' }}>جاري التحميل...</span>}
+                              </label>
+                              <select
+                                style={inputStyle}
+                                value={addItemFilter.category}
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  setAddItemFilter(f => ({ ...f, category: val, subcategory: '' }));
+                                  fetchSubcategories(val);
+                                }}
+                              >
+                                <option value="">
+                                  {loadingCategories ? 'جاري التحميل...' : categories.length === 0 ? 'لا توجد فئات' : 'كل الفئات'}
+                                </option>
+                                {categories.map((c: any) => (
+                                  <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
                               </select>
                             </div>
+
+                            {/* Subcategory */}
                             <div>
-                              <label style={labelStyle}>الفئة الفرعية</label>
-                              <select style={inputStyle} value={addItemFilter.subcategory}
-                                onChange={e => setAddItemFilter(f => ({ ...f, subcategory: e.target.value }))}>
-                                <option value="">الكل</option>
-                                {subcategories.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                              <label style={labelStyle}>
+                                الفئة الفرعية {loadingSubcategories && <span style={{ color: '#999' }}>جاري التحميل...</span>}
+                              </label>
+                              <select
+                                style={{ ...inputStyle, opacity: !addItemFilter.category ? 0.5 : 1 }}
+                                value={addItemFilter.subcategory}
+                                disabled={!addItemFilter.category}
+                                onChange={e => setAddItemFilter(f => ({ ...f, subcategory: e.target.value }))}
+                              >
+                                <option value="">
+                                  {!addItemFilter.category ? 'اختر فئة أولاً' :
+                                   loadingSubcategories ? 'جاري التحميل...' :
+                                   subcategories.length === 0 ? 'لا توجد فئات فرعية' : 'الكل'}
+                                </option>
+                                {subcategories.map((s: any) => (
+                                  <option key={s.id} value={s.id}>{s.name}</option>
+                                ))}
                               </select>
                             </div>
+
+                            {/* Car Make */}
                             <div>
                               <label style={labelStyle}>ماركة السيارة</label>
-                              <select style={inputStyle} value={addItemFilter.car_make}
-                                onChange={e => { setAddItemFilter(f => ({ ...f, car_make: e.target.value, car_model: '', car_year: '' })); fetchCarModels(e.target.value); }}>
+                              <select
+                                style={inputStyle}
+                                value={addItemFilter.car_make}
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  setAddItemFilter(f => ({ ...f, car_make: val, car_model: '', car_year: '' }));
+                                  fetchCarModels(val);
+                                }}
+                              >
                                 <option value="">الكل</option>
                                 {carMakes.map((m: string) => <option key={m} value={m}>{m}</option>)}
                               </select>
                             </div>
+
+                            {/* Car Model */}
                             <div>
                               <label style={labelStyle}>موديل السيارة</label>
-                              <select style={inputStyle} value={addItemFilter.car_model}
-                                onChange={e => { setAddItemFilter(f => ({ ...f, car_model: e.target.value, car_year: '' })); fetchCarYears(addItemFilter.car_make, e.target.value); }}>
-                                <option value="">الكل</option>
+                              <select
+                                style={{ ...inputStyle, opacity: !addItemFilter.car_make ? 0.5 : 1 }}
+                                value={addItemFilter.car_model}
+                                disabled={!addItemFilter.car_make}
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  setAddItemFilter(f => ({ ...f, car_model: val, car_year: '' }));
+                                  fetchCarYears(addItemFilter.car_make, val);
+                                }}
+                              >
+                                <option value="">{!addItemFilter.car_make ? 'اختر ماركة أولاً' : 'الكل'}</option>
                                 {carModels.map((m: string) => <option key={m} value={m}>{m}</option>)}
                               </select>
                             </div>
+
+                            {/* Car Year */}
                             <div>
                               <label style={labelStyle}>سنة السيارة</label>
-                              <select style={inputStyle} value={addItemFilter.car_year}
-                                onChange={e => setAddItemFilter(f => ({ ...f, car_year: e.target.value }))}>
-                                <option value="">الكل</option>
+                              <select
+                                style={{ ...inputStyle, opacity: !addItemFilter.car_model ? 0.5 : 1 }}
+                                value={addItemFilter.car_year}
+                                disabled={!addItemFilter.car_model}
+                                onChange={e => setAddItemFilter(f => ({ ...f, car_year: e.target.value }))}
+                              >
+                                <option value="">{!addItemFilter.car_model ? 'اختر موديل أولاً' : 'الكل'}</option>
                                 {carYears.map((y: string) => <option key={y} value={y}>{y}</option>)}
                               </select>
                             </div>
+
+                            {/* Search Button */}
                             <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-                              <button onClick={fetchFilteredProducts} style={saveBtnStyle}>بحث</button>
+                              <button onClick={fetchFilteredProducts} style={{ ...saveBtnStyle, width: '100%', justifyContent: 'center' }}>
+                                {loadingProducts ? 'جاري البحث...' : 'بحث عن المنتجات'}
+                              </button>
                             </div>
                           </div>
+
+                          {/* Results */}
                           <div style={{ display: 'grid', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
-                            {filteredProducts.length === 0 && <p style={{ color: '#999', textAlign: 'center', padding: '20px' }}>اضغط بحث لعرض المنتجات</p>}
+                            {loadingProducts && (
+                              <p style={{ color: '#27ae60', textAlign: 'center', padding: '20px' }}>جاري البحث...</p>
+                            )}
+                            {!loadingProducts && filteredProducts.length === 0 && (
+                              <p style={{ color: '#999', textAlign: 'center', padding: '20px' }}>اضغط "بحث عن المنتجات" لعرض النتائج</p>
+                            )}
                             {filteredProducts.map((prod: any) => (
                               <div key={prod.id} style={searchProductRow}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                  <img src={prod.image_url || 'https://via.placeholder.com/50'} style={{ width: '45px', height: '45px', borderRadius: '8px', objectFit: 'contain', border: '1px solid #eee' }} alt="" />
+                                  <img
+                                    src={prod.image_url || 'https://via.placeholder.com/50'}
+                                    style={{ width: '45px', height: '45px', borderRadius: '8px', objectFit: 'contain', border: '1px solid #eee' }}
+                                    alt=""
+                                  />
                                   <div>
                                     <div style={{ fontWeight: '700', fontSize: '0.9rem', color: '#1a1a1a' }}>{prod.name}</div>
-                                    <div style={{ fontSize: '0.75rem', color: '#888' }}>{prod.brand} • {prod.car_make} {prod.car_model}</div>
+                                    <div style={{ fontSize: '0.75rem', color: '#888' }}>
+                                      {prod.brand}{prod.car_make ? ` • ${prod.car_make} ${prod.car_model}` : ''}
+                                    </div>
                                   </div>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                   <span style={{ color: '#15803d', fontWeight: '900' }}>{prod.price} ج.م</span>
-                                  <button onClick={() => addProductToOrder(prod)} style={saveBtnStyle}><Plus size={14} /> إضافة</button>
+                                  <button onClick={() => addProductToOrder(prod)} style={saveBtnStyle}>
+                                    <Plus size={14} /> إضافة
+                                  </button>
                                 </div>
                               </div>
                             ))}
@@ -483,12 +616,10 @@ export default function AdminOrders() {
                     </div>
                   )}
 
-                  {/* ===== PRICING ADJUSTMENTS ===== */}
+                  {/* PRICING ADJUSTMENTS */}
                   {editMode && (
                     <div style={{ background: '#fffbeb', borderRadius: '16px', padding: '20px', border: '1px solid #fef3c7', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <h4 style={{ margin: 0, color: '#92400e', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}><Tag size={16}/> تعديلات السعر</h4>
-
-                      {/* Discount */}
                       <div>
                         <label style={labelStyle}>الخصم</label>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -496,32 +627,29 @@ export default function AdminOrders() {
                             <option value="amount">خصم بمبلغ (ج.م)</option>
                             <option value="percent">خصم بنسبة (%)</option>
                           </select>
-                          <input type="number" min={0} value={discount.value || ''} onChange={e => setDiscount(d => ({ ...d, value: parseFloat(e.target.value) || 0 }))}
-                            placeholder={discount.type === 'percent' ? 'مثال: 10' : 'مثال: 50'} style={{ ...inputStyle, width: '120px' }} />
+                          <input type="number" min={0} value={discount.value || ''}
+                            onChange={e => setDiscount(d => ({ ...d, value: parseFloat(e.target.value) || 0 }))}
+                            placeholder={discount.type === 'percent' ? 'مثال: 10' : 'مثال: 50'}
+                            style={{ ...inputStyle, width: '120px' }} />
                           <span style={{ color: '#888', fontSize: '0.85rem' }}>{discount.type === 'percent' ? '%' : 'ج.م'}</span>
                         </div>
                       </div>
-
-                      {/* Remove Shipping */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <input type="checkbox" id="removeShip" checked={removeShipping} onChange={e => setRemoveShipping(e.target.checked)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
                         <label htmlFor="removeShip" style={{ cursor: 'pointer', fontWeight: '600', color: '#555' }}>
                           إلغاء رسوم الشحن ({origShipping} ج.م)
                         </label>
                       </div>
-
-                      {/* Extra Fee */}
                       <div>
                         <label style={labelStyle}>رسوم إضافية</label>
                         <div style={{ display: 'flex', gap: '8px' }}>
-                          <input type="number" min={0} value={extraFee.amount || ''} onChange={e => setExtraFee(f => ({ ...f, amount: parseFloat(e.target.value) || 0 }))}
+                          <input type="number" min={0} value={extraFee.amount || ''}
+                            onChange={e => setExtraFee(f => ({ ...f, amount: parseFloat(e.target.value) || 0 }))}
                             placeholder="المبلغ (ج.م)" style={{ ...inputStyle, width: '130px' }} />
                           <input value={extraFee.reason} onChange={e => setExtraFee(f => ({ ...f, reason: e.target.value }))}
                             placeholder="سبب الرسوم الإضافية..." style={{ ...inputStyle, flex: 1 }} />
                         </div>
                       </div>
-
-                      {/* Live Total */}
                       <div style={{ borderTop: '2px dashed #fde68a', paddingTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ fontWeight: '800', color: '#92400e', fontSize: '1rem' }}>الإجمالي الجديد:</span>
                         <span style={{ fontSize: '1.6rem', fontWeight: '900', color: '#15803d' }}>{liveTotal.toFixed(2)} ج.م</span>
@@ -529,7 +657,6 @@ export default function AdminOrders() {
                     </div>
                   )}
 
-                  {/* Static total in view mode */}
                   {!editMode && (
                     <div style={modalTotalRow}>
                       <span>الإجمالي النهائي:</span>
@@ -539,7 +666,7 @@ export default function AdminOrders() {
                 </div>
               </div>
 
-              {/* ===== PAYMENT CARD ===== */}
+              {/* PAYMENT CARD */}
               <div style={modalCard}>
                 <h3 style={cardTitle}><CreditCard size={18}/> إثبات وتفاصيل الدفع</h3>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
