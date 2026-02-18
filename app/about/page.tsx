@@ -52,7 +52,7 @@ export default function AboutPage() {
     { value: '100%', label: 'قطع غيار أصلية' },
     { value: '+12,000', label: 'منتج متاح' },
     { value: '27', label: 'محافظة توصيل' },
-    { value: '⭐ 4.9', label: 'تقييم العملاء' },
+    { value: '4.9', label: 'تقييم العملاء' },
   ];
 
   return (
