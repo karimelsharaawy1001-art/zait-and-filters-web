@@ -24,17 +24,15 @@ export default function AdminOrders() {
   const [customerAddresses, setCustomerAddresses] = useState<any[]>([]);
 
   const [showAddItem, setShowAddItem] = useState(false);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [subcategories, setSubcategories] = useState<any[]>([]);
+  const [partBrands, setPartBrands] = useState<any[]>([]);
   const [carMakes, setCarMakes] = useState<string[]>([]);
   const [carModels, setCarModels] = useState<string[]>([]);
   const [carYears, setCarYears] = useState<string[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [addItemFilter, setAddItemFilter] = useState({
-    category: '', subcategory: '', car_make: '', car_model: '', car_year: ''
+    brand: '', car_make: '', car_model: '', car_year: ''
   });
-  const [loadingCategories, setLoadingCategories] = useState(false);
-  const [loadingSubcategories, setLoadingSubcategories] = useState(false);
+  const [loadingBrands, setLoadingBrands] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
 
   const paymentLabels: any = {
@@ -43,7 +41,7 @@ export default function AdminOrders() {
     'wallets': 'محفظة إلكترونية'
   };
 
-  // ✅ ALL FUNCTIONS DEFINED FIRST
+  // ===================== FUNCTIONS FIRST =====================
 
   async function fetchOrders() {
     try {
@@ -58,19 +56,14 @@ export default function AdminOrders() {
     }
   }
 
-  async function fetchCategories() {
-    setLoadingCategories(true);
+  async function fetchPartBrands() {
+    setLoadingBrands(true);
     try {
-      const { data, error } = await supabase.from('categories').select('*').order('name');
-      if (error) {
-        console.error('fetchCategories error:', error);
-        toast.error('فشل تحميل الفئات: ' + error.message);
-        return;
-      }
-      console.log('categories loaded:', data);
-      setCategories(data || []);
+      const { data, error } = await supabase.from('part_brands').select('*').order('name');
+      if (error) { toast.error('فشل تحميل ماركات القطع: ' + error.message); return; }
+      setPartBrands(data || []);
     } finally {
-      setLoadingCategories(false);
+      setLoadingBrands(false);
     }
   }
 
@@ -84,32 +77,13 @@ export default function AdminOrders() {
     }
   }
 
-  async function fetchSubcategories(categoryId: string) {
-    setSubcategories([]);
-    setAddItemFilter(f => ({ ...f, subcategory: '' }));
-    if (!categoryId) return;
-    setLoadingSubcategories(true);
-    try {
-      const { data, error } = await supabase
-        .from('subcategories').select('*').eq('category_id', categoryId).order('name');
-      if (error) {
-        console.error('fetchSubcategories error:', error);
-        toast.error('فشل تحميل الفئات الفرعية: ' + error.message);
-        return;
-      }
-      console.log('subcategories loaded:', data);
-      setSubcategories(data || []);
-    } finally {
-      setLoadingSubcategories(false);
-    }
-  }
-
   async function fetchCarModels(make: string) {
     setCarModels([]);
     setCarYears([]);
     if (!make) return;
     const { data, error } = await supabase
-      .from('products').select('car_model').eq('car_make', make).not('car_model', 'is', null).neq('car_model', '');
+      .from('products').select('car_model').eq('car_make', make)
+      .not('car_model', 'is', null).neq('car_model', '');
     if (error) { console.error('fetchCarModels error:', error); return; }
     if (data) {
       const unique = [...new Set(data.map((d: any) => d.car_model).filter(Boolean))].sort();
@@ -121,7 +95,8 @@ export default function AdminOrders() {
     setCarYears([]);
     if (!make || !model) return;
     const { data, error } = await supabase
-      .from('products').select('car_year').eq('car_make', make).eq('car_model', model).not('car_year', 'is', null).neq('car_year', '');
+      .from('products').select('car_year').eq('car_make', make).eq('car_model', model)
+      .not('car_year', 'is', null).neq('car_year', '');
     if (error) { console.error('fetchCarYears error:', error); return; }
     if (data) {
       const unique = [...new Set(data.map((d: any) => d.car_year).filter(Boolean))].sort();
@@ -134,17 +109,12 @@ export default function AdminOrders() {
     setFilteredProducts([]);
     try {
       let query = supabase.from('products').select('*');
-      if (addItemFilter.category) query = query.eq('category_id', addItemFilter.category);
-      if (addItemFilter.subcategory) query = query.eq('subcategory_id', addItemFilter.subcategory);
+      if (addItemFilter.brand) query = query.eq('brand', addItemFilter.brand);
       if (addItemFilter.car_make) query = query.eq('car_make', addItemFilter.car_make);
       if (addItemFilter.car_model) query = query.eq('car_model', addItemFilter.car_model);
       if (addItemFilter.car_year) query = query.eq('car_year', addItemFilter.car_year);
       const { data, error } = await query.limit(50);
-      if (error) {
-        console.error('fetchFilteredProducts error:', error);
-        toast.error('فشل البحث عن المنتجات: ' + error.message);
-        return;
-      }
+      if (error) { toast.error('فشل البحث: ' + error.message); return; }
       setFilteredProducts(data || []);
       if (!data || data.length === 0) toast('لا توجد منتجات بهذه الفلاتر', { icon: '🔍' });
     } finally {
@@ -219,10 +189,10 @@ export default function AdminOrders() {
     }
   }
 
-  // ✅ useEffect AFTER all function definitions
+  // ===================== useEffect AFTER functions =====================
   useEffect(() => {
     fetchOrders();
-    fetchCategories();
+    fetchPartBrands();
     fetchCarMakes();
     const channel = supabase
       .channel('orders-channel')
@@ -243,8 +213,7 @@ export default function AdminOrders() {
     setRemoveShipping(order.shipping_removed || false);
     setShowAddItem(false);
     setFilteredProducts([]);
-    setSubcategories([]);
-    setAddItemFilter({ category: '', subcategory: '', car_make: '', car_model: '', car_year: '' });
+    setAddItemFilter({ brand: '', car_make: '', car_model: '', car_year: '' });
     fetchCustomerAddresses(order.customer_phone);
     setEditMode(true);
   }
@@ -461,40 +430,21 @@ export default function AdminOrders() {
                       </button>
                       {showAddItem && (
                         <div style={{ background: '#f0fdf4', borderRadius: '16px', padding: '20px', marginTop: '12px', border: '1px solid #dcfce7' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+
+                            {/* Part Brand */}
                             <div>
                               <label style={labelStyle}>
-                                الفئة {loadingCategories && <span style={{ color: '#999' }}>جاري التحميل...</span>}
+                                ماركة القطعة {loadingBrands && <span style={{ color: '#999' }}>جاري التحميل...</span>}
                               </label>
-                              <select style={inputStyle} value={addItemFilter.category}
-                                onChange={e => {
-                                  const val = e.target.value;
-                                  setAddItemFilter(f => ({ ...f, category: val, subcategory: '' }));
-                                  fetchSubcategories(val);
-                                }}>
-                                <option value="">
-                                  {loadingCategories ? 'جاري التحميل...' : categories.length === 0 ? 'لا توجد فئات' : 'كل الفئات'}
-                                </option>
-                                {categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                              <select style={inputStyle} value={addItemFilter.brand}
+                                onChange={e => setAddItemFilter(f => ({ ...f, brand: e.target.value }))}>
+                                <option value="">{loadingBrands ? 'جاري التحميل...' : 'كل الماركات'}</option>
+                                {partBrands.map((b: any) => <option key={b.id} value={b.name}>{b.name}</option>)}
                               </select>
                             </div>
-                            <div>
-                              <label style={labelStyle}>
-                                الفئة الفرعية {loadingSubcategories && <span style={{ color: '#999' }}>جاري التحميل...</span>}
-                              </label>
-                              <select
-                                style={{ ...inputStyle, opacity: !addItemFilter.category ? 0.5 : 1 }}
-                                value={addItemFilter.subcategory}
-                                disabled={!addItemFilter.category}
-                                onChange={e => setAddItemFilter(f => ({ ...f, subcategory: e.target.value }))}>
-                                <option value="">
-                                  {!addItemFilter.category ? 'اختر فئة أولاً' :
-                                   loadingSubcategories ? 'جاري التحميل...' :
-                                   subcategories.length === 0 ? 'لا توجد فئات فرعية' : 'الكل'}
-                                </option>
-                                {subcategories.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                              </select>
-                            </div>
+
+                            {/* Car Make */}
                             <div>
                               <label style={labelStyle}>ماركة السيارة</label>
                               <select style={inputStyle} value={addItemFilter.car_make}
@@ -507,6 +457,8 @@ export default function AdminOrders() {
                                 {carMakes.map((m: string) => <option key={m} value={m}>{m}</option>)}
                               </select>
                             </div>
+
+                            {/* Car Model */}
                             <div>
                               <label style={labelStyle}>موديل السيارة</label>
                               <select
@@ -522,6 +474,8 @@ export default function AdminOrders() {
                                 {carModels.map((m: string) => <option key={m} value={m}>{m}</option>)}
                               </select>
                             </div>
+
+                            {/* Car Year */}
                             <div>
                               <label style={labelStyle}>سنة السيارة</label>
                               <select
@@ -533,12 +487,15 @@ export default function AdminOrders() {
                                 {carYears.map((y: string) => <option key={y} value={y}>{y}</option>)}
                               </select>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-                              <button onClick={fetchFilteredProducts} style={{ ...saveBtnStyle, width: '100%', justifyContent: 'center' }}>
-                                {loadingProducts ? 'جاري البحث...' : 'بحث عن المنتجات'}
-                              </button>
-                            </div>
                           </div>
+
+                          {/* Search Button */}
+                          <button onClick={fetchFilteredProducts}
+                            style={{ ...saveBtnStyle, width: '100%', justifyContent: 'center', marginBottom: '12px' }}>
+                            {loadingProducts ? 'جاري البحث...' : 'بحث عن المنتجات'}
+                          </button>
+
+                          {/* Results */}
                           <div style={{ display: 'grid', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
                             {loadingProducts && <p style={{ color: '#27ae60', textAlign: 'center', padding: '20px' }}>جاري البحث...</p>}
                             {!loadingProducts && filteredProducts.length === 0 && (
