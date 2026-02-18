@@ -2,13 +2,19 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/app/lib/supabase';
 
+
+
 export default function AdminMessages() {
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+
+
   useEffect(() => {
     fetchMessages();
   }, []);
+
+
 
   async function fetchMessages() {
     setLoading(true);
@@ -22,6 +28,8 @@ export default function AdminMessages() {
     setLoading(false);
   }
 
+
+
   const updateStatus = async (id: string, newStatus: string) => {
     const { error } = await supabase
       .from('contact_messages')
@@ -34,6 +42,8 @@ export default function AdminMessages() {
     }
     setMessages(prev => prev.map(m => m.id === id ? { ...m, status: newStatus } : m));
   };
+
+
 
   // ✅ FIXED: now checks count to confirm actual DB deletion
   const deleteMessage = async (id: string) => {
@@ -57,11 +67,15 @@ export default function AdminMessages() {
     }
   };
 
+
+
   const openWhatsApp = (phone: string, name: string) => {
     const cleanPhone = phone.replace(/\D/g, '');
     const message = encodeURIComponent(`أهلاً يا أستاذ ${name}، بخصوص استفسارك على موقع زيت أند فلترز...`);
     window.open(`https://wa.me/2${cleanPhone}?text=${message}`, '_blank');
   };
+
+
 
   return (
     <div style={{ direction: 'rtl', color: '#1a1a1a', fontFamily: 'sans-serif', padding: '20px', backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
@@ -134,6 +148,8 @@ export default function AdminMessages() {
     </div>
   );
 }
+
+
 
 const thStyle: any = { padding: '16px 20px', fontSize: '0.9rem', fontWeight: '700' };
 const tdStyle: any = { padding: '15px 20px', verticalAlign: 'top' };

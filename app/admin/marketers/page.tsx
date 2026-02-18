@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+
+
 const TIER_CONFIG: any = {
   bronze: { name: 'برونزي', color: '#cd7f32', percentage: 5, minConversions: 0, icon: '🥉' },
   silver: { name: 'فضي', color: '#c0c0c0', percentage: 7, minConversions: 10, icon: '🥈' },
@@ -14,13 +16,21 @@ const TIER_CONFIG: any = {
   diamond: { name: 'ماسي', color: '#b9f2ff', percentage: 10, minConversions: 30, icon: '💎' }
 };
 
+
+
 export default function AdminMarketers() {
   const [marketers, setMarketers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedMarketer, setSelectedMarketer] = useState<any>(null);
 
-  useEffect(() => { fetchMarketers(); }, []);
+
+
+  useEffect(() => {
+    fetchMarketers();
+  }, []);
+
+
 
   async function fetchMarketers() {
     setLoading(true);
@@ -49,6 +59,8 @@ export default function AdminMarketers() {
     }
   }
 
+
+
   const handlePayout = async (id: string, amount: number) => {
     if (amount <= 0) {
       toast.error('لا يوجد رصيد متاح للصرف');
@@ -73,14 +85,20 @@ export default function AdminMarketers() {
     }
   };
 
+
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`تم نسخ ${label}!`);
   };
 
+
+
   const getTierInfo = (tier: string) => {
     return TIER_CONFIG[tier] || TIER_CONFIG.bronze;
   };
+
+
 
   const filteredMarketers = marketers.filter(m => 
     m.full_name?.toLowerCase().includes(search.toLowerCase()) || 
@@ -88,6 +106,8 @@ export default function AdminMarketers() {
     m.referral_id?.toUpperCase().includes(search.toUpperCase()) ||
     m.email?.toLowerCase().includes(search.toLowerCase())
   );
+
+
 
   if (loading) {
     return (
@@ -97,6 +117,8 @@ export default function AdminMarketers() {
       </div>
     );
   }
+
+
 
   return (
     <div style={container}>
@@ -115,6 +137,8 @@ export default function AdminMarketers() {
           />
         </div>
       </div>
+
+
 
       {filteredMarketers.length === 0 ? (
         <div style={emptyState}>
@@ -285,6 +309,8 @@ export default function AdminMarketers() {
         </div>
       )}
 
+
+
       {/* Modal for Marketer Details */}
       {selectedMarketer && (
         <div style={modalOverlay} onClick={() => setSelectedMarketer(null)}>
@@ -398,6 +424,8 @@ export default function AdminMarketers() {
     </div>
   );
 }
+
+
 
 // --- التنسيقات ---
 const container: any = { padding: '30px', direction: 'rtl', maxWidth: '1600px', margin: '0 auto', background: '#f8f9fa', minHeight: '100vh' };

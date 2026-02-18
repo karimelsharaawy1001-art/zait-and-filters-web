@@ -4,7 +4,9 @@ import { supabase } from '@/app/lib/supabase';
 import { Plus, Trash2, Eye, EyeOff, Save, X, Edit2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+
 const emptyPost = { title: '', slug: '', excerpt: '', content: '', cover_image: '', tags: '', published: false };
+
 
 export default function AdminBlog() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -13,12 +15,16 @@ export default function AdminBlog() {
   const [form, setForm] = useState(emptyPost);
   const [saving, setSaving] = useState(false);
 
+
   async function fetchPosts() {
     const { data } = await supabase.from('blog_posts').select('*').order('created_at', { ascending: false });
     if (data) setPosts(data);
   }
 
-  useEffect(() => { fetchPosts(); }, []);
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
 
   function openNew() {
     setForm(emptyPost);
@@ -32,7 +38,6 @@ export default function AdminBlog() {
     setShowForm(true);
   }
 
-  // Auto-generate slug from title
   function handleTitleChange(title: string) {
     const slug = title.trim()
       .replace(/\s+/g, '-')
@@ -81,6 +86,7 @@ export default function AdminBlog() {
     toast.success('تم الحذف ✅');
     fetchPosts();
   }
+
 
   return (
     <div style={{ padding: '30px', direction: 'rtl', maxWidth: '1100px', margin: '0 auto', background: '#f8f9fa', minHeight: '100vh' }}>
@@ -141,7 +147,7 @@ export default function AdminBlog() {
               </div>
               <div>
                 <label style={labelStyle}>Slug (رابط المقال) *</label>
-                <input value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} style={inputStyle} placeholder="مثال: mta-aghyr-zyt-arbyty" dir="ltr" />
+                <input value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} style={inputStyle} placeholder="mta-aghyr-zyt-arbyty" dir="ltr" />
               </div>
               <div>
                 <label style={labelStyle}>صورة الغلاف (URL)</label>
@@ -173,6 +179,7 @@ export default function AdminBlog() {
     </div>
   );
 }
+
 
 const th: any = { padding: '16px 20px', fontSize: '0.82rem', color: '#888', fontWeight: 'bold' };
 const td: any = { padding: '16px 20px', fontSize: '0.92rem', color: '#333', verticalAlign: 'middle' };

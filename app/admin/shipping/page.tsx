@@ -4,6 +4,8 @@ import { supabase } from '@/app/lib/supabase';
 import { Truck, Plus, Trash2, Edit2, Save, X, Loader2, MapPin, Search, RefreshCcw } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+
+
 export default function ShippingAdmin() {
   const [rates, setRates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -11,13 +13,16 @@ export default function ShippingAdmin() {
   const [searchTerm, setSearchTerm] = useState(''); 
   const [newCity, setNewCity] = useState({ city_name: '', price: '' });
 
+
+
   useEffect(() => {
     fetchRates();
   }, []);
 
+
+
   async function fetchRates() {
     setLoading(true);
-    // إجبار السيرفر على عدم استخدام الكاش القديم
     const { data, error } = await supabase
       .from('shipping_rates')
       .select('*')
@@ -28,8 +33,10 @@ export default function ShippingAdmin() {
     setLoading(false);
   }
 
+
+
   async function handleAddCity() {
-    const cleanName = newCity.city_name.trim(); // تنظيف المسافات
+    const cleanName = newCity.city_name.trim();
     if (!cleanName || !newCity.price) return toast.error('بيانات ناقصة');
     
     setLoading(true);
@@ -49,6 +56,8 @@ export default function ShippingAdmin() {
     setLoading(false);
   }
 
+
+
   async function handleUpdatePrice(id: string, newPrice: string) {
     if (!newPrice) return setEditingId(null);
     setLoading(true);
@@ -63,6 +72,8 @@ export default function ShippingAdmin() {
     setLoading(false);
   }
 
+
+
   async function handleDelete(id: string) {
     if (!confirm('حذف هذه المحافظة؟')) return;
     const { error } = await supabase.from('shipping_rates').delete().eq('id', id);
@@ -73,9 +84,13 @@ export default function ShippingAdmin() {
     }
   }
 
+
+
   const filteredRates = useMemo(() => {
     return rates.filter(r => r.city_name.includes(searchTerm));
   }, [rates, searchTerm]);
+
+
 
   return (
     <div style={container}>
@@ -127,6 +142,8 @@ export default function ShippingAdmin() {
     </div>
   );
 }
+
+
 
 // التنسيقات (مضبوطة تماماً مع الـ Sidebar الأسود)
 const container: any = { padding: '20px', direction: 'rtl' };

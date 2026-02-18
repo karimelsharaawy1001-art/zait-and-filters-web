@@ -4,7 +4,11 @@ import { supabase } from '@/app/lib/supabase';
 import Link from 'next/link';
 import { Eye, Edit3, DollarSign, Trash2, Check, X, FileDown, FileUp, ClipboardList } from 'lucide-react';
 
+
+
 const ITEMS_PER_PAGE = 20;
+
+
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<any[]>([]);
@@ -29,10 +33,14 @@ export default function AdminProducts() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState({ regular_price: '', sale_price: '' });
 
+
+
   useEffect(() => {
     fetchUniqueValues('car_make', setAvailableMakes);
     fetchUniqueValues('category', setAvailableCategories);
   }, []);
+
+
 
   useEffect(() => {
     if (filterMake) {
@@ -43,6 +51,8 @@ export default function AdminProducts() {
     }
   }, [filterMake]);
 
+
+
   useEffect(() => {
     if (filterCategory) {
       fetchUniqueValues('subcategory', setAvailableSubcategories, 'category', filterCategory);
@@ -52,9 +62,13 @@ export default function AdminProducts() {
     }
   }, [filterCategory]);
 
+
+
   useEffect(() => {
     fetchProducts();
   }, [currentPage, filterMake, filterModel, filterCategory, filterSubcategory, filterYear, sortBy, sortOrder]);
+
+
 
   async function fetchUniqueValues(column: string, setter: Function, filterCol?: string, filterVal?: string) {
     let query = supabase.from('products').select(column);
@@ -65,6 +79,8 @@ export default function AdminProducts() {
       setter(uniqueValues.sort());
     }
   }
+
+
 
   // وظيفة لبناء الاستعلام بناءً على الفلاتر الحالية (تستخدم في العرض والتصدير)
   const buildFilteredQuery = () => {
@@ -77,6 +93,8 @@ export default function AdminProducts() {
     if (filterYear) query = query.ilike('car_model_year', `%${filterYear}%`);
     return query;
   };
+
+
 
   async function fetchProducts() {
     setLoading(true);
@@ -92,12 +110,16 @@ export default function AdminProducts() {
     setLoading(false);
   }
 
+
+
   const toggleStatus = async (id: string, currentStatus: boolean) => {
     const { error } = await supabase.from('products').update({ is_active: !currentStatus }).eq('id', id);
     if (!error) {
       setProducts(products.map(p => p.id === id ? { ...p, is_active: !currentStatus } : p));
     }
   };
+
+
 
   const handleUpdatePrice = async (id: string) => {
     const { error } = await supabase.from('products').update({ 
@@ -110,12 +132,16 @@ export default function AdminProducts() {
     }
   };
 
+
+
   const deleteProduct = async (id: string) => {
     if (confirm('هل أنت متأكد من حذف هذا المنتج نهائياً؟')) {
       const { error } = await supabase.from('products').delete().eq('id', id);
       if (!error) fetchProducts();
     }
   };
+
+
 
   // --- وظيفة التصدير المحدثة لتدعم الفلترة الحالية ---
   const exportToCSV = async () => {
@@ -143,6 +169,8 @@ export default function AdminProducts() {
     setLoading(false);
   };
 
+
+
   const downloadTemplate = () => {
     const headers = 'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url\n';
     const example = ',تيل فرامل صني,Hi-Q,فرامل,تيل,نيسان,صني,2015-2024,1200,1100,6,1,كوري,https://res.cloudinary.com/example.jpg';
@@ -153,6 +181,8 @@ export default function AdminProducts() {
     link.download = 'قالب_المنتجات.csv';
     link.click();
   };
+
+
 
   const handleImport = async (e: any) => {
     const file = e.target.files[0];
@@ -189,6 +219,8 @@ export default function AdminProducts() {
     };
     reader.readAsText(file);
   };
+
+
 
   return (
     <div style={{ direction: 'rtl', color: '#fff', fontFamily: 'sans-serif' }}>
@@ -274,7 +306,7 @@ export default function AdminProducts() {
                 <td style={tdStyle}>{product.car_model}</td>
                 <td style={tdStyle}>{product.car_model_year}</td>
                 <td style={tdStyle}>
-                   {editingId === product.id ? (
+                  {editingId === product.id ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                       <input type="number" placeholder="الأساسي" value={editData.regular_price} onChange={(e) => setEditData({...editData, regular_price: e.target.value})} style={miniInputStyle} autoFocus />
                       <input type="number" placeholder="الخصم" value={editData.sale_price} onChange={(e) => setEditData({...editData, sale_price: e.target.value})} style={{ ...miniInputStyle, borderColor: '#2ecc71' }} />
@@ -312,6 +344,8 @@ export default function AdminProducts() {
     </div>
   );
 }
+
+
 
 const labelStyle = { display: 'block', fontSize: '0.8rem', color: '#555', marginBottom: '8px' };
 const filterInputStyle = { width: '100%', padding: '12px', backgroundColor: '#000', border: '1px solid #222', color: '#fff', borderRadius: '10px', outline: 'none', fontSize: '0.85rem' };

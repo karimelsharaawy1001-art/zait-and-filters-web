@@ -3,15 +3,18 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import { Save, Trash2, Plus, Loader2, Image as ImageIcon, Layout as LayoutIcon, CheckCircle } from 'lucide-react';
 
+
 export default function AdminHero() {
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<number | null>(null);
   const [slides, setSlides] = useState<any[]>([]);
   const [status, setStatus] = useState({ id: null as number | null, msg: '' });
 
+
   useEffect(() => {
     fetchSlides();
   }, []);
+
 
   async function fetchSlides() {
     setLoading(true);
@@ -20,7 +23,7 @@ export default function AdminHero() {
     setLoading(false);
   }
 
-  // إضافة سلايد جديد فارغ
+
   const handleAddSlide = async () => {
     const newSlide = {
       title: 'عنوان السلايد الجديد',
@@ -38,37 +41,40 @@ export default function AdminHero() {
     }
   };
 
-  // حفظ تعديلات سلايد معين
+
   const handleSaveSlide = async (id: number) => {
     setSavingId(id);
     const slideToSave = slides.find(s => s.id === id);
     const { error } = await supabase.from('hero_settings').update(slideToSave).eq('id', id);
-    
     setSavingId(null);
     showStatus(id, error ? 'خطأ في الحفظ' : 'تم الحفظ بنجاح! ✅');
   };
 
-  // حذف سلايد
+
   const handleDeleteSlide = async (id: number) => {
     if (!confirm('هل أنت متأكد من حذف هذا السلايد؟')) return;
     const { error } = await supabase.from('hero_settings').delete().eq('id', id);
     if (!error) setSlides(slides.filter(s => s.id !== id));
   };
 
+
   const updateSlideState = (id: number, field: string, value: string) => {
     setSlides(slides.map(s => s.id === id ? { ...s, [field]: value } : s));
   };
+
 
   const showStatus = (id: number, msg: string) => {
     setStatus({ id, msg });
     setTimeout(() => setStatus({ id: null, msg: '' }), 3000);
   };
 
+
   if (loading) return <div style={{ color: '#fff', padding: '100px', textAlign: 'center' }}>جاري تحميل السلايدات...</div>;
+
 
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', color: '#fff', paddingBottom: '50px' }}>
-      
+
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '30px', borderBottom: '1px solid #111', paddingBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -93,20 +99,20 @@ export default function AdminHero() {
             <div style={formGridStyle}>
               <div style={inputGroup}>
                 <label style={labelStyle}>العنوان (استخدم &lt;br/&gt; للسطر الجديد)</label>
-                <input 
-                  type="text" 
-                  value={slide.title} 
-                  onChange={e => updateSlideState(slide.id, 'title', e.target.value)} 
+                <input
+                  type="text"
+                  value={slide.title}
+                  onChange={e => updateSlideState(slide.id, 'title', e.target.value)}
                   style={inputStyle}
                 />
               </div>
 
               <div style={inputGroup}>
                 <label style={labelStyle}>النص الوصفي</label>
-                <textarea 
-                  rows={2} 
-                  value={slide.subtitle} 
-                  onChange={e => updateSlideState(slide.id, 'subtitle', e.target.value)} 
+                <textarea
+                  rows={2}
+                  value={slide.subtitle}
+                  onChange={e => updateSlideState(slide.id, 'subtitle', e.target.value)}
                   style={inputStyle}
                 />
               </div>
@@ -125,10 +131,10 @@ export default function AdminHero() {
               <div style={inputGroup}>
                 <label style={labelStyle}>رابط صورة الخلفية</label>
                 <div style={{ display: 'flex', gap: '10px' }}>
-                  <input 
-                    type="text" 
-                    value={slide.bg_image_url} 
-                    onChange={e => updateSlideState(slide.id, 'bg_image_url', e.target.value)} 
+                  <input
+                    type="text"
+                    value={slide.bg_image_url}
+                    onChange={e => updateSlideState(slide.id, 'bg_image_url', e.target.value)}
                     style={inputStyle}
                   />
                   {slide.bg_image_url && (
@@ -143,9 +149,9 @@ export default function AdminHero() {
               </div>
             </div>
 
-            <button 
-              onClick={() => handleSaveSlide(slide.id)} 
-              disabled={savingId === slide.id} 
+            <button
+              onClick={() => handleSaveSlide(slide.id)}
+              disabled={savingId === slide.id}
               style={{ ...saveBtnStyle, backgroundColor: status.id === slide.id && !status.msg.includes('خطأ') ? '#1db954' : '#2ecc71' }}
             >
               {savingId === slide.id ? <Loader2 className="animate-spin" /> : <Save size={20} />}
@@ -164,11 +170,12 @@ export default function AdminHero() {
   );
 }
 
+
 // التنسيقات (Dark Theme Professional)
-const slideCardStyle = { 
-  backgroundColor: '#050505', 
-  padding: '30px', 
-  borderRadius: '25px', 
+const slideCardStyle = {
+  backgroundColor: '#050505',
+  padding: '30px',
+  borderRadius: '25px',
   border: '1px solid #111',
   position: 'relative' as const
 };
@@ -180,18 +187,18 @@ const inputGroup = { display: 'flex', flexDirection: 'column' as const, gap: '8p
 const labelStyle = { fontSize: '0.85rem', color: '#666', fontWeight: 'bold' };
 const inputStyle = { width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #1a1a1a', backgroundColor: '#0a0a0a', color: '#fff', outline: 'none' };
 
-const addBtnStyle = { 
-  display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#2ecc71', color: '#000', 
-  border: 'none', padding: '12px 20px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' 
+const addBtnStyle = {
+  display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#2ecc71', color: '#000',
+  border: 'none', padding: '12px 20px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'
 };
 
-const saveBtnStyle = { 
-  width: '100%', padding: '15px', color: '#000', border: 'none', borderRadius: '12px', 
-  fontWeight: 'bold', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', transition: '0.3s' 
+const saveBtnStyle = {
+  width: '100%', padding: '15px', color: '#000', border: 'none', borderRadius: '12px',
+  fontWeight: 'bold', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', transition: '0.3s'
 };
 
-const deleteBtnStyle = { 
-  display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: 'transparent', 
-  color: '#ff4d4d', border: '1px solid #200', padding: '5px 10px', borderRadius: '8px', 
-  cursor: 'pointer', fontSize: '0.8rem' 
+const deleteBtnStyle = {
+  display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: 'transparent',
+  color: '#ff4d4d', border: '1px solid #200', padding: '5px 10px', borderRadius: '8px',
+  cursor: 'pointer', fontSize: '0.8rem'
 };

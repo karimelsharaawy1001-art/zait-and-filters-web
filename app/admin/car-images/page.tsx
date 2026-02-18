@@ -4,20 +4,23 @@ import { supabase } from '@/app/lib/supabase';
 import { Upload, Trash2, Save, Image as ImageIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+
 export default function CarImagesAdmin() {
   const [carImages, setCarImages] = useState<any[]>([]);
   const [makes, setMakes] = useState<string[]>([]);
   const [models, setModels] = useState<string[]>([]);
-  
+
   const [selectedMake, setSelectedMake] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [uploading, setUploading] = useState(false);
 
+
   useEffect(() => {
     fetchCarImages();
     fetchMakesAndModels();
   }, []);
+
 
   async function fetchCarImages() {
     const { data } = await supabase
@@ -26,6 +29,7 @@ export default function CarImagesAdmin() {
       .order('created_at', { ascending: false });
     setCarImages(data || []);
   }
+
 
   async function fetchMakesAndModels() {
     const { data } = await supabase.from('products').select('car_make, car_model');
@@ -37,6 +41,7 @@ export default function CarImagesAdmin() {
     }
   }
 
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedMake || !selectedModel || !imageUrl) {
@@ -46,7 +51,6 @@ export default function CarImagesAdmin() {
 
     setUploading(true);
 
-    // Check if combination exists
     const { data: existing } = await supabase
       .from('car_images')
       .select('id')
@@ -55,7 +59,6 @@ export default function CarImagesAdmin() {
       .single();
 
     if (existing) {
-      // Update existing
       const { error } = await supabase
         .from('car_images')
         .update({ image_url: imageUrl, updated_at: new Date().toISOString() })
@@ -69,7 +72,6 @@ export default function CarImagesAdmin() {
         resetForm();
       }
     } else {
-      // Insert new
       const { error } = await supabase.from('car_images').insert({
         car_make: selectedMake,
         car_model: selectedModel,
@@ -88,6 +90,7 @@ export default function CarImagesAdmin() {
     setUploading(false);
   }
 
+
   async function handleDelete(id: string) {
     if (confirm('هل أنت متأكد من الحذف؟')) {
       const { error } = await supabase.from('car_images').delete().eq('id', id);
@@ -100,11 +103,13 @@ export default function CarImagesAdmin() {
     }
   }
 
+
   function resetForm() {
     setSelectedMake('');
     setSelectedModel('');
     setImageUrl('');
   }
+
 
   return (
     <div style={{ direction: 'rtl', padding: '100px 20px 40px', maxWidth: '1200px', margin: '0 auto' }}>
@@ -135,20 +140,12 @@ export default function CarImagesAdmin() {
               <select
                 value={selectedMake}
                 onChange={(e) => setSelectedMake(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  borderRadius: '10px',
-                  border: '1px solid #e5e5e5',
-                  fontSize: '1rem',
-                }}
+                style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e5e5e5', fontSize: '1rem' }}
                 required
               >
                 <option value="">اختر الماركة</option>
                 {makes.map((make) => (
-                  <option key={make} value={make}>
-                    {make}
-                  </option>
+                  <option key={make} value={make}>{make}</option>
                 ))}
               </select>
             </div>
@@ -160,20 +157,12 @@ export default function CarImagesAdmin() {
               <select
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  borderRadius: '10px',
-                  border: '1px solid #e5e5e5',
-                  fontSize: '1rem',
-                }}
+                style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e5e5e5', fontSize: '1rem' }}
                 required
               >
                 <option value="">اختر الموديل</option>
                 {models.map((model) => (
-                  <option key={model} value={model}>
-                    {model}
-                  </option>
+                  <option key={model} value={model}>{model}</option>
                 ))}
               </select>
             </div>
@@ -187,13 +176,7 @@ export default function CarImagesAdmin() {
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
                 placeholder="https://example.com/image.jpg"
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  borderRadius: '10px',
-                  border: '1px solid #e5e5e5',
-                  fontSize: '1rem',
-                }}
+                style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e5e5e5', fontSize: '1rem' }}
                 required
               />
             </div>
@@ -239,30 +222,15 @@ export default function CarImagesAdmin() {
           {carImages.map((car) => (
             <div
               key={car.id}
-              style={{
-                border: '1px solid #e5e5e5',
-                borderRadius: '15px',
-                overflow: 'hidden',
-                backgroundColor: '#f9f9f9',
-              }}
+              style={{ border: '1px solid #e5e5e5', borderRadius: '15px', overflow: 'hidden', backgroundColor: '#f9f9f9' }}
             >
               <div
-                style={{
-                  height: '200px',
-                  backgroundColor: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+                style={{ height: '200px', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 <img
                   src={car.image_url}
                   alt={`${car.car_make} ${car.car_model}`}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                  }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               </div>
 

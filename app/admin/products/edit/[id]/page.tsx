@@ -4,6 +4,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
 import { Save, ArrowRight, Loader2, Image as ImageIcon, Car, Tag, Globe, Upload } from 'lucide-react';
 
+
+
 export default function EditProduct() {
   const { id } = useParams();
   const router = useRouter();
@@ -25,6 +27,8 @@ export default function EditProduct() {
     is_active: true, country_of_origin: ''
   });
 
+
+
   useEffect(() => {
     if (id) {
       fetchProduct();
@@ -32,10 +36,11 @@ export default function EditProduct() {
     }
   }, [id]);
 
+
+
   async function fetchFilterOptions() {
     const { data } = await supabase.from('products').select('car_make, car_model, category, subcategory');
     if (data) {
-      // تم تعديل السطر التالي لحل مشكلة الـ TypeScript وتجاوز خطأ الـ Indexing
       const getUnique = (field: string) => Array.from(new Set(data.map((i: any) => i[field]).filter(Boolean))).sort() as string[];
       setOptions({
         makes: getUnique('car_make'),
@@ -45,6 +50,8 @@ export default function EditProduct() {
       });
     }
   }
+
+
 
   async function fetchProduct() {
     setLoading(true);
@@ -58,6 +65,8 @@ export default function EditProduct() {
     }
     setLoading(false);
   }
+
+
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -87,6 +96,8 @@ export default function EditProduct() {
     }
   };
 
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -103,7 +114,11 @@ export default function EditProduct() {
     setSaving(false);
   };
 
+
+
   if (loading) return <div style={fullPageCenter}><Loader2 className="animate-spin" size={40} color="#2ecc71" /></div>;
+
+
 
   return (
     <div style={{ direction: 'rtl', color: '#fff', fontFamily: 'sans-serif', padding: '40px 20px', backgroundColor: '#050505', minHeight: '100vh' }}>
@@ -213,6 +228,8 @@ export default function EditProduct() {
     </div>
   );
 }
+
+
 
 // الستايلات
 const gridContainer = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '25px', marginBottom: '40px' };

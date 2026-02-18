@@ -7,12 +7,13 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+
+
 export default function PromoCodesAdmin() {
   const [coupons, setCoupons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [btnLoading, setBtnLoading] = useState(false);
 
-  // حالة الفورم الجديد
   const [newCoupon, setNewCoupon] = useState({
     code: '',
     discount_type: 'percentage',
@@ -21,9 +22,13 @@ export default function PromoCodesAdmin() {
     is_active: true
   });
 
+
+
   useEffect(() => {
     fetchCoupons();
   }, []);
+
+
 
   async function fetchCoupons() {
     try {
@@ -41,10 +46,11 @@ export default function PromoCodesAdmin() {
     }
   }
 
+
+
   async function handleAddCoupon(e: React.FormEvent) {
     e.preventDefault();
     
-    // التحقق من البيانات: لو شحن مجاني مش لازم يدخل قيمة
     const isFreeShipping = newCoupon.discount_type === 'free_shipping';
     if (!newCoupon.code || (!isFreeShipping && !newCoupon.discount_value)) {
       return toast.error('أكمل البيانات المطلوبة');
@@ -55,7 +61,6 @@ export default function PromoCodesAdmin() {
       const { error } = await supabase.from('coupons').insert([{
         code: newCoupon.code.toUpperCase().trim(),
         discount_type: newCoupon.discount_type,
-        // لو شحن مجاني بنخلي القيمة 0 أوتوماتيك
         discount_value: isFreeShipping ? 0 : parseFloat(newCoupon.discount_value),
         expiry_date: newCoupon.expiry_date || null,
         is_active: newCoupon.is_active
@@ -73,6 +78,8 @@ export default function PromoCodesAdmin() {
     }
   }
 
+
+
   async function toggleStatus(id: string, currentStatus: boolean) {
     try {
       const { error } = await supabase.from('coupons').update({ is_active: !currentStatus }).eq('id', id);
@@ -83,6 +90,8 @@ export default function PromoCodesAdmin() {
       toast.error(err.message);
     }
   }
+
+
 
   async function deleteCoupon(id: string) {
     if (!confirm('هل أنت متأكد من حذف هذا الكود؟')) return;
@@ -95,6 +104,8 @@ export default function PromoCodesAdmin() {
       toast.error(err.message);
     }
   }
+
+
 
   return (
     <div style={container}>
@@ -132,7 +143,6 @@ export default function PromoCodesAdmin() {
                 </select>
               </div>
               
-              {/* إخفاء القيمة في حالة الشحن المجاني */}
               {newCoupon.discount_type !== 'free_shipping' && (
                 <div style={{ flex: 1 }}>
                   <label style={label}>القيمة</label>
@@ -221,6 +231,8 @@ export default function PromoCodesAdmin() {
   );
 }
 
+
+
 // --- التنسيقات ---
 const container: any = { padding: '40px', direction: 'rtl', minHeight: '100vh', background: '#f8fafc' };
 const header: any = { marginBottom: '30px' };
@@ -243,7 +255,6 @@ const tr: any = { borderBottom: '1px solid #f1f5f9' };
 const td: any = { padding: '15px 10px', fontSize: '0.9rem' };
 const badgePercent: any = { background: '#f0fdf4', color: '#15803d', padding: '5px 10px', borderRadius: '8px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '5px', width: 'fit-content' };
 const badgeFixed: any = { background: '#eff6ff', color: '#1d4ed8', padding: '5px 10px', borderRadius: '8px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '5px', width: 'fit-content' };
-// ستايل بادج الشحن المجاني الجديد
 const badgeFree: any = { background: '#fff7ed', color: '#c2410c', padding: '5px 10px', borderRadius: '8px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '5px', width: 'fit-content', border: '1px solid #ffedd5' };
 const statusActive: any = { background: '#dcfce7', color: '#15803d', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '700' };
 const statusInactive: any = { background: '#fee2e2', color: '#b91c1c', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '700' };

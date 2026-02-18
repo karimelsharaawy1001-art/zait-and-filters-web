@@ -3,16 +3,19 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import Link from 'next/link';
 
+
 type UserRow = {
   id: string;
   email: string | null;
   full_name: string | null;
 };
 
+
 type RoleRow = {
   user_id: string;
   role: 'user' | 'admin';
 };
+
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({ products: 0, messages: 0 });
@@ -24,12 +27,12 @@ export default function AdminDashboard() {
   const [adminError, setAdminError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  // Create admin form state
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createSuccess, setCreateSuccess] = useState<string | null>(null);
+
 
   useEffect(() => {
     async function getStats() {
@@ -50,13 +53,13 @@ export default function AdminDashboard() {
     getStats();
   }, []);
 
+
   useEffect(() => {
     async function loadAdminData() {
       try {
         setAdminLoading(true);
         setAdminError(null);
 
-        // Retry getting session up to 5 times with 500ms delay
         let session = null;
         for (let i = 0; i < 5; i++) {
           const { data } = await supabase.auth.getSession();
@@ -138,10 +141,12 @@ export default function AdminDashboard() {
     loadAdminData();
   }, []);
 
+
   const getRoleForUser = (userId: string): 'user' | 'admin' => {
     const row = roles.find((r) => r.user_id === userId);
     return row?.role || 'user';
   };
+
 
   const toggleRole = async (userId: string) => {
     if (userId === currentUserId) {
@@ -189,6 +194,7 @@ export default function AdminDashboard() {
       setAdminLoading(false);
     }
   };
+
 
   const createAdmin = async () => {
     if (!newEmail || !newPassword) {
@@ -239,12 +245,14 @@ export default function AdminDashboard() {
     }
   };
 
+
   if (loading)
     return (
       <div style={{ padding: '50px', color: '#333', textAlign: 'center', fontWeight: 'bold' }}>
         جاري تحميل الإحصائيات...
       </div>
     );
+
 
   return (
     <main style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', padding: '40px', direction: 'rtl', fontFamily: 'sans-serif' }}>

@@ -8,6 +8,7 @@ import {
   User, Smartphone, Car
 } from 'lucide-react';
 
+
 interface AbandonedCart {
   id: string;
   customer_email: string;
@@ -28,6 +29,7 @@ interface AbandonedCart {
   created_at: string;
 }
 
+
 export default function AbandonedCartsAdmin() {
   const [carts, setCarts] = useState<AbandonedCart[]>([]);
   const [filteredCarts, setFilteredCarts] = useState<AbandonedCart[]>([]);
@@ -37,13 +39,16 @@ export default function AbandonedCartsAdmin() {
   const [expandedCart, setExpandedCart] = useState<string | null>(null);
   const [sendingEmail, setSendingEmail] = useState<string | null>(null);
 
+
   useEffect(() => {
     fetchAbandonedCarts();
   }, []);
 
+
   useEffect(() => {
     applyFilters();
   }, [carts, filter, searchTerm]);
+
 
   const fetchAbandonedCarts = async () => {
     setLoading(true);
@@ -61,6 +66,7 @@ export default function AbandonedCartsAdmin() {
       setLoading(false);
     }
   };
+
 
   const applyFilters = () => {
     let filtered = [...carts];
@@ -81,6 +87,7 @@ export default function AbandonedCartsAdmin() {
 
     setFilteredCarts(filtered);
   };
+
 
   const sendRecoveryEmail = async (cartId: string, customerEmail: string) => {
     setSendingEmail(cartId);
@@ -110,6 +117,7 @@ export default function AbandonedCartsAdmin() {
     }
   };
 
+
   const sendWhatsAppMessage = (phone: string, cartTotal: number) => {
     const message = encodeURIComponent(
       `مرحباً! 👋\n\nلاحظنا أنك تركت منتجات في سلتك بقيمة ${cartTotal.toFixed(2)} ج.م\n\nأكمل طلبك الآن واحصل على خصم 10% باستخدام كود: COMEBACK10\n\nرابط إتمام الطلب:\nhttps://zaitandfilters.com/checkout`
@@ -117,9 +125,11 @@ export default function AbandonedCartsAdmin() {
     window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
   };
 
+
   const callCustomer = (phone: string) => {
     window.open(`tel:${phone}`, '_self');
   };
+
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -134,6 +144,7 @@ export default function AbandonedCartsAdmin() {
     return `منذ ${diffDays} أيام`;
   };
 
+
   const stats = {
     total: carts.length,
     pending: carts.filter(c => !c.recovered).length,
@@ -142,14 +153,16 @@ export default function AbandonedCartsAdmin() {
     recoveredValue: carts.filter(c => c.recovered).reduce((sum, c) => sum + (c.cart_total || 0), 0)
   };
 
+
   if (loading) {
     return (
       <div style={loaderStyle}>
-        <RefreshCw className="animate-spin" size={40} color="#15803d" />
+        <RefreshCw size={40} color="#15803d" />
         <span>جاري تحميل السلات المتروكة...</span>
       </div>
     );
   }
+
 
   return (
     <div style={container}>
@@ -218,25 +231,13 @@ export default function AbandonedCartsAdmin() {
           />
         </div>
         <div style={filterButtons}>
-          <button 
-            onClick={() => setFilter('all')} 
-            style={filterBtn(filter === 'all')}
-            className="filter-btn"
-          >
+          <button onClick={() => setFilter('all')} style={filterBtn(filter === 'all')} className="filter-btn">
             الكل ({stats.total})
           </button>
-          <button 
-            onClick={() => setFilter('pending')} 
-            style={filterBtn(filter === 'pending')}
-            className="filter-btn"
-          >
+          <button onClick={() => setFilter('pending')} style={filterBtn(filter === 'pending')} className="filter-btn">
             قيد الانتظار ({stats.pending})
           </button>
-          <button 
-            onClick={() => setFilter('recovered')} 
-            style={filterBtn(filter === 'recovered')}
-            className="filter-btn"
-          >
+          <button onClick={() => setFilter('recovered')} style={filterBtn(filter === 'recovered')} className="filter-btn">
             تم الاسترجاع ({stats.recovered})
           </button>
         </div>
@@ -266,7 +267,7 @@ export default function AbandonedCartsAdmin() {
           {filteredCarts.map((cart) => (
             <div key={cart.id}>
               <div className="cart-row" style={tableRow(cart.recovered)}>
-                
+
                 {/* Customer Info */}
                 <div style={{...tableCell, flex: 2}}>
                   <div style={customerColumn}>
@@ -421,65 +422,42 @@ export default function AbandonedCartsAdmin() {
   );
 }
 
+
 // Styles
 const container: any = { padding: '30px', maxWidth: '1600px', margin: '0 auto', direction: 'rtl' };
 const header: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' };
 const title: any = { fontSize: '2rem', fontWeight: '900', color: '#1a1a1a', marginBottom: '5px' };
 const subtitle: any = { fontSize: '0.95rem', color: '#666' };
 const refreshBtn: any = { padding: '12px 24px', background: '#15803d', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.3s' };
-
 const statsGrid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '30px' };
 const statCard = (color: string) => ({ background: color, padding: '25px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '20px', color: '#fff', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' });
 const statValue: any = { fontSize: '2rem', fontWeight: '900' };
 const statLabel: any = { fontSize: '0.9rem', opacity: 0.9, marginTop: '5px' };
-
 const filtersBar: any = { background: '#fff', padding: '20px', borderRadius: '20px', marginBottom: '25px', display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'center', border: '1px solid #eee' };
 const searchBox: any = { flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 15px', background: '#f9fafb', borderRadius: '12px', minWidth: '300px' };
 const searchInput: any = { flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: '0.95rem' };
 const filterButtons: any = { display: 'flex', gap: '10px' };
 const filterBtn = (active: boolean) => ({ padding: '10px 20px', background: active ? '#15803d' : '#f3f4f6', color: active ? '#fff' : '#666', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', transition: '0.3s', fontSize: '0.9rem' });
-
 const listContainer: any = { background: '#fff', borderRadius: '20px', border: '1px solid #eee', overflow: 'hidden' };
 const tableHeader: any = { display: 'flex', padding: '15px 20px', background: '#f0fdf4', borderBottom: '2px solid #dcfce7', fontWeight: 'bold', fontSize: '0.85rem', color: '#15803d' };
 const tableRow = (recovered: boolean) => ({ display: 'flex', padding: '20px', borderBottom: '1px solid #f0f0f0', transition: '0.3s', background: recovered ? '#f0fdf4' : '#fff', cursor: 'pointer' });
 const tableCell: any = { display: 'flex', alignItems: 'center', padding: '0 10px', fontSize: '0.85rem' };
-
 const customerColumn: any = { display: 'flex', alignItems: 'center', gap: '10px' };
 const customerName: any = { fontWeight: 'bold', fontSize: '0.9rem', color: '#1a1a1a' };
 const customerMeta: any = { fontSize: '0.75rem', color: '#999', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '3px' };
-
 const contactColumn: any = { display: 'flex', flexDirection: 'column' as const, gap: '5px' };
 const contactItem: any = { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#666' };
-
 const productsColumn: any = { display: 'flex', flexDirection: 'column' as const, gap: '5px', width: '100%' };
 const productsHeader: any = { display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '0.85rem' };
 const expandBtn: any = { marginLeft: 'auto', padding: '4px 8px', background: 'transparent', border: '1px solid #ddd', borderRadius: '6px', cursor: 'pointer', fontSize: '0.7rem', transition: '0.3s' };
 const productQuickView: any = { fontSize: '0.75rem', color: '#666' };
-
 const totalAmount: any = { fontSize: '1.1rem', fontWeight: 'bold', color: '#15803d' };
 const cityBadge: any = { display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem', color: '#999', marginTop: '4px' };
-
 const timeColumn: any = { display: 'flex', flexDirection: 'column' as const, gap: '4px', fontSize: '0.75rem', color: '#666' };
-
 const statusBadge = (recovered: boolean) => ({ padding: '6px 12px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 'bold', background: recovered ? '#d1fae5' : '#fef3c7', color: recovered ? '#065f46' : '#92400e', textAlign: 'center' as const });
-
 const actionsColumn: any = { display: 'flex', gap: '8px' };
-const actionBtn = (color: string, disabled?: boolean) => ({ 
-  padding: '8px 12px', 
-  background: disabled ? '#e5e7eb' : color, 
-  color: '#fff', 
-  border: 'none', 
-  borderRadius: '8px', 
-  cursor: disabled ? 'not-allowed' : 'pointer', 
-  display: 'flex', 
-  alignItems: 'center', 
-  justifyContent: 'center',
-  transition: '0.3s',
-  opacity: disabled ? 0.6 : 1
-});
-
+const actionBtn = (color: string, disabled?: boolean) => ({ padding: '8px 12px', background: disabled ? '#e5e7eb' : color, color: '#fff', border: 'none', borderRadius: '8px', cursor: disabled ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: '0.3s', opacity: disabled ? 0.6 : 1 });
 const recoveredText: any = { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#10b981', fontWeight: 'bold' };
-
 const expandedSection: any = { padding: '20px 40px', background: '#f9fafb', borderBottom: '1px solid #eee' };
 const expandedTitle: any = { marginBottom: '15px', fontSize: '0.9rem', fontWeight: 'bold', color: '#15803d' };
 const expandedProduct: any = { display: 'flex', gap: '15px', padding: '15px', background: '#fff', borderRadius: '12px', marginBottom: '10px', border: '1px solid #eee' };
@@ -488,6 +466,5 @@ const productDetails: any = { flex: 1, display: 'flex', flexDirection: 'column' 
 const productName: any = { fontWeight: 'bold', fontSize: '0.9rem', color: '#1a1a1a' };
 const productSpecs: any = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: '#666' };
 const productPrice: any = { fontSize: '0.85rem', color: '#15803d', fontWeight: 'bold' };
-
 const emptyState: any = { textAlign: 'center' as const, padding: '60px 20px', color: '#999' };
 const loaderStyle: any = { display: 'flex', flexDirection: 'column' as const, justifyContent: 'center', alignItems: 'center', height: '80vh', gap: '15px', color: '#15803d', fontWeight: 'bold' };
