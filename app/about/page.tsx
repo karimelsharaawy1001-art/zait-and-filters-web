@@ -108,8 +108,7 @@ export default function AboutPage() {
               <Heart size={24} color="#15803d" />
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: '0.78rem', color: '#15803d', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>من إحنا؟</p>
-              <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '900', color: '#1a1a1a' }}>المقدمة</h2>
+              <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '900', color: '#1a1a1a' }}>إحنا مين</h2>
             </div>
           </div>
 
@@ -151,7 +150,7 @@ export default function AboutPage() {
         {/* ===== WHY US ===== */}
         <div style={{ marginBottom: '40px' }}>
           <div style={{ textAlign: 'center', marginBottom: '35px' }}>
-            <p style={{ margin: '0 0 8px', fontSize: '0.78rem', color: '#15803d', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>ليه تختارنا؟</p>
+            <p style={{ margin: '0 0 8px', fontSize: '0.78rem', color: '#15803d', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}> </p>
             <h2 style={{ margin: 0, fontSize: '1.9rem', fontWeight: '900', color: '#1a1a1a' }}>إيه اللي بيميزنا؟</h2>
             <p style={{ margin: '10px 0 0', color: '#888', fontSize: '0.95rem' }}>بنينا خدماتنا على 4 قواعد أساسية عشان نستاهل ثقتك</p>
           </div>
