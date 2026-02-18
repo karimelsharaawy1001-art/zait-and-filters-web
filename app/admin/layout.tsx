@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import AdminLayoutClient from './AdminLayoutClient';
 
 
+
 async function getServerSupabase() {
   const cookieStore = await cookies();
   return createServerClient(
@@ -18,13 +19,14 @@ async function getServerSupabase() {
 }
 
 
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await getServerSupabase();
 
   const { data: { user } } = await supabase.auth.getUser();
 
   // ✅ غير مسجل → روجعه لصفحة الدخول
-  if (!user) redirect('/admin/login');
+  if (!user) redirect('/admin-login');
 
   const { data: roleRow } = await supabase
     .from('user_roles')
@@ -33,7 +35,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     .maybeSingle();
 
   // ✅ مش أدمن → روجعه لصفحة الدخول
-  if (roleRow?.role !== 'admin') redirect('/admin/login');
+  if (roleRow?.role !== 'admin') redirect('/admin-login');
 
   // ✅ أدمن متحقق → اعرض اللاي آوت
   return <AdminLayoutClient>{children}</AdminLayoutClient>;
