@@ -43,21 +43,21 @@ export default function AdminOrders() {
     'wallets': 'محفظة إلكترونية'
   };
 
-  useEffect(() => {
-    fetchOrders();
-    fetchCategories();
-    fetchCarMakes();
-    const channel = supabase
-      .channel('orders-channel')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
-        setOrders(prev => [payload.new, ...prev]);
-        toast.success('وصل طلب جديد الآن! 🛍️', { duration: 5000, position: 'top-center' });
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, []);
+  // ✅ ALL FUNCTIONS DEFINED FIRST
 
-  // ✅ FIXED: added error handling + toast + console log
+  async function fetchOrders() {
+    try {
+      const { data, error } = await supabase
+        .from('orders').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      if (data) setOrders(data);
+    } catch (err: any) {
+      toast.error('خطأ في جلب الطلبات: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function fetchCategories() {
     setLoadingCategories(true);
     try {
@@ -74,7 +74,16 @@ export default function AdminOrders() {
     }
   }
 
-  // ✅ FIXED: guard for empty categoryId + error handling
+  async function fetchCarMakes() {
+    const { data, error } = await supabase
+      .from('products').select('car_make').not('car_make', 'is', null).neq('car_make', '');
+    if (error) { console.error('fetchCarMakes error:', error); return; }
+    if (data) {
+      const unique = [...new Set(data.map((d: any) => d.car_make).filter(Boolean))].sort();
+      setCarMakes(unique);
+    }
+  }
+
   async function fetchSubcategories(categoryId: string) {
     setSubcategories([]);
     setAddItemFilter(f => ({ ...f, subcategory: '' }));
@@ -82,10 +91,7 @@ export default function AdminOrders() {
     setLoadingSubcategories(true);
     try {
       const { data, error } = await supabase
-        .from('subcategories')
-        .select('*')
-        .eq('category_id', categoryId)
-        .order('name');
+        .from('subcategories').select('*').eq('category_id', categoryId).order('name');
       if (error) {
         console.error('fetchSubcategories error:', error);
         toast.error('فشل تحميل الفئات الفرعية: ' + error.message);
@@ -98,29 +104,12 @@ export default function AdminOrders() {
     }
   }
 
-  async function fetchCarMakes() {
-    const { data, error } = await supabase
-      .from('products')
-      .select('car_make')
-      .not('car_make', 'is', null)
-      .neq('car_make', '');
-    if (error) { console.error('fetchCarMakes error:', error); return; }
-    if (data) {
-      const unique = [...new Set(data.map((d: any) => d.car_make).filter(Boolean))].sort();
-      setCarMakes(unique);
-    }
-  }
-
   async function fetchCarModels(make: string) {
     setCarModels([]);
     setCarYears([]);
     if (!make) return;
     const { data, error } = await supabase
-      .from('products')
-      .select('car_model')
-      .eq('car_make', make)
-      .not('car_model', 'is', null)
-      .neq('car_model', '');
+      .from('products').select('car_model').eq('car_make', make).not('car_model', 'is', null).neq('car_model', '');
     if (error) { console.error('fetchCarModels error:', error); return; }
     if (data) {
       const unique = [...new Set(data.map((d: any) => d.car_model).filter(Boolean))].sort();
@@ -132,12 +121,7 @@ export default function AdminOrders() {
     setCarYears([]);
     if (!make || !model) return;
     const { data, error } = await supabase
-      .from('products')
-      .select('car_year')
-      .eq('car_make', make)
-      .eq('car_model', model)
-      .not('car_year', 'is', null)
-      .neq('car_year', '');
+      .from('products').select('car_year').eq('car_make', make).eq('car_model', model).not('car_year', 'is', null).neq('car_year', '');
     if (error) { console.error('fetchCarYears error:', error); return; }
     if (data) {
       const unique = [...new Set(data.map((d: any) => d.car_year).filter(Boolean))].sort();
@@ -145,7 +129,6 @@ export default function AdminOrders() {
     }
   }
 
-  // ✅ FIXED: shows loading state + error toast
   async function fetchFilteredProducts() {
     setLoadingProducts(true);
     setFilteredProducts([]);
@@ -162,7 +145,6 @@ export default function AdminOrders() {
         toast.error('فشل البحث عن المنتجات: ' + error.message);
         return;
       }
-      console.log('filtered products:', data);
       setFilteredProducts(data || []);
       if (!data || data.length === 0) toast('لا توجد منتجات بهذه الفلاتر', { icon: '🔍' });
     } finally {
@@ -173,89 +155,6 @@ export default function AdminOrders() {
   async function fetchCustomerAddresses(phone: string) {
     const { data } = await supabase.from('addresses').select('*').eq('phone', phone);
     if (data) setCustomerAddresses(data);
-  }
-
-  function openEditMode(order: any) {
-    setEditedItems(order.items ? JSON.parse(JSON.stringify(order.items)) : []);
-    setEditedAddress(order.customer_address || '');
-    setEditedCity(order.city || '');
-    setDiscount({ type: 'amount', value: order.discount_amount || 0 });
-    setExtraFee({ amount: order.extra_fee || 0, reason: order.extra_fee_reason || '' });
-    setRemoveShipping(order.shipping_removed || false);
-    setShowAddItem(false);
-    setFilteredProducts([]);
-    setSubcategories([]);
-    setAddItemFilter({ category: '', subcategory: '', car_make: '', car_model: '', car_year: '' });
-    fetchCustomerAddresses(order.customer_phone);
-    setEditMode(true);
-  }
-
-  function calcTotal(items: any[], disc: any, extra: any, noShipping: boolean, origShipping: number) {
-    const itemsTotal = items.reduce((sum: number, i: any) => sum + parseFloat(i.price) * i.quantity, 0);
-    let discValue = 0;
-    if (disc.type === 'amount') discValue = disc.value;
-    else if (disc.type === 'percent') discValue = (itemsTotal * disc.value) / 100;
-    const shipping = noShipping ? 0 : (origShipping || 0);
-    return Math.max(0, itemsTotal - discValue + extra.amount + shipping);
-  }
-
-  async function saveOrderEdits() {
-    try {
-      const origShipping = selectedOrder.shipping_fee || 0;
-      const newTotal = calcTotal(editedItems, discount, extraFee, removeShipping, origShipping);
-      const discAmount = discount.type === 'amount' ? discount.value :
-        (editedItems.reduce((s: number, i: any) => s + parseFloat(i.price) * i.quantity, 0) * discount.value / 100);
-
-      const updatePayload: any = {
-        items: editedItems,
-        customer_address: editedAddress,
-        city: editedCity,
-        total_price: newTotal.toFixed(2),
-        discount_amount: discAmount,
-        extra_fee: extraFee.amount,
-        extra_fee_reason: extraFee.reason,
-        shipping_removed: removeShipping,
-      };
-
-      const { error } = await supabase.from('orders').update(updatePayload).eq('id', selectedOrder.id);
-      if (error) throw error;
-
-      const updated = { ...selectedOrder, ...updatePayload };
-      setSelectedOrder(updated);
-      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? updated : o));
-      setEditMode(false);
-      toast.success('تم حفظ التعديلات ✅');
-    } catch (err: any) {
-      toast.error('فشل الحفظ: ' + err.message);
-    }
-  }
-
-  function updateItemQuantity(index: number, qty: number) {
-    if (qty < 1) return;
-    setEditedItems(prev => prev.map((item, i) => i === index ? { ...item, quantity: qty } : item));
-  }
-
-  function removeItem(index: number) {
-    setEditedItems(prev => prev.filter((_, i) => i !== index));
-  }
-
-  function addProductToOrder(product: any) {
-    const exists = editedItems.findIndex(i => i.id === product.id);
-    if (exists >= 0) {
-      updateItemQuantity(exists, editedItems[exists].quantity + 1);
-    } else {
-      setEditedItems(prev => [...prev, {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        quantity: 1,
-        image_url: product.image_url,
-        brand: product.brand,
-        car_make: product.car_make,
-        car_model: product.car_model,
-      }]);
-    }
-    toast.success('تمت إضافة المنتج ✅');
   }
 
   async function updateOrderStatus(orderId: string, newStatus: string) {
@@ -290,6 +189,96 @@ export default function AdminOrders() {
     } catch (err: any) {
       toast.error('فشل الحذف: ' + err.message);
     }
+  }
+
+  async function saveOrderEdits() {
+    try {
+      const origShipping = selectedOrder.shipping_fee || 0;
+      const newTotal = calcTotal(editedItems, discount, extraFee, removeShipping, origShipping);
+      const discAmount = discount.type === 'amount' ? discount.value :
+        (editedItems.reduce((s: number, i: any) => s + parseFloat(i.price) * i.quantity, 0) * discount.value / 100);
+      const updatePayload: any = {
+        items: editedItems,
+        customer_address: editedAddress,
+        city: editedCity,
+        total_price: newTotal.toFixed(2),
+        discount_amount: discAmount,
+        extra_fee: extraFee.amount,
+        extra_fee_reason: extraFee.reason,
+        shipping_removed: removeShipping,
+      };
+      const { error } = await supabase.from('orders').update(updatePayload).eq('id', selectedOrder.id);
+      if (error) throw error;
+      const updated = { ...selectedOrder, ...updatePayload };
+      setSelectedOrder(updated);
+      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? updated : o));
+      setEditMode(false);
+      toast.success('تم حفظ التعديلات ✅');
+    } catch (err: any) {
+      toast.error('فشل الحفظ: ' + err.message);
+    }
+  }
+
+  // ✅ useEffect AFTER all function definitions
+  useEffect(() => {
+    fetchOrders();
+    fetchCategories();
+    fetchCarMakes();
+    const channel = supabase
+      .channel('orders-channel')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
+        setOrders(prev => [payload.new, ...prev]);
+        toast.success('وصل طلب جديد الآن! 🛍️', { duration: 5000, position: 'top-center' });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  function openEditMode(order: any) {
+    setEditedItems(order.items ? JSON.parse(JSON.stringify(order.items)) : []);
+    setEditedAddress(order.customer_address || '');
+    setEditedCity(order.city || '');
+    setDiscount({ type: 'amount', value: order.discount_amount || 0 });
+    setExtraFee({ amount: order.extra_fee || 0, reason: order.extra_fee_reason || '' });
+    setRemoveShipping(order.shipping_removed || false);
+    setShowAddItem(false);
+    setFilteredProducts([]);
+    setSubcategories([]);
+    setAddItemFilter({ category: '', subcategory: '', car_make: '', car_model: '', car_year: '' });
+    fetchCustomerAddresses(order.customer_phone);
+    setEditMode(true);
+  }
+
+  function calcTotal(items: any[], disc: any, extra: any, noShipping: boolean, origShipping: number) {
+    const itemsTotal = items.reduce((sum: number, i: any) => sum + parseFloat(i.price) * i.quantity, 0);
+    let discValue = 0;
+    if (disc.type === 'amount') discValue = disc.value;
+    else if (disc.type === 'percent') discValue = (itemsTotal * disc.value) / 100;
+    const shipping = noShipping ? 0 : (origShipping || 0);
+    return Math.max(0, itemsTotal - discValue + extra.amount + shipping);
+  }
+
+  function updateItemQuantity(index: number, qty: number) {
+    if (qty < 1) return;
+    setEditedItems(prev => prev.map((item, i) => i === index ? { ...item, quantity: qty } : item));
+  }
+
+  function removeItem(index: number) {
+    setEditedItems(prev => prev.filter((_, i) => i !== index));
+  }
+
+  function addProductToOrder(product: any) {
+    const exists = editedItems.findIndex(i => i.id === product.id);
+    if (exists >= 0) {
+      updateItemQuantity(exists, editedItems[exists].quantity + 1);
+    } else {
+      setEditedItems(prev => [...prev, {
+        id: product.id, name: product.name, price: product.price,
+        quantity: 1, image_url: product.image_url, brand: product.brand,
+        car_make: product.car_make, car_model: product.car_model,
+      }]);
+    }
+    toast.success('تمت إضافة المنتج ✅');
   }
 
   if (loading) return <div style={loaderStyle}>جاري تحميل الطلبات...</div>;
@@ -470,37 +459,25 @@ export default function AdminOrders() {
                       <button onClick={() => setShowAddItem(!showAddItem)} style={addItemBtnStyle}>
                         <Plus size={16} /> {showAddItem ? 'إخفاء البحث' : 'إضافة منتج'}
                       </button>
-
                       {showAddItem && (
                         <div style={{ background: '#f0fdf4', borderRadius: '16px', padding: '20px', marginTop: '12px', border: '1px solid #dcfce7' }}>
-
-                          {/* Filter Grid */}
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '12px' }}>
-
-                            {/* Category */}
                             <div>
                               <label style={labelStyle}>
                                 الفئة {loadingCategories && <span style={{ color: '#999' }}>جاري التحميل...</span>}
                               </label>
-                              <select
-                                style={inputStyle}
-                                value={addItemFilter.category}
+                              <select style={inputStyle} value={addItemFilter.category}
                                 onChange={e => {
                                   const val = e.target.value;
                                   setAddItemFilter(f => ({ ...f, category: val, subcategory: '' }));
                                   fetchSubcategories(val);
-                                }}
-                              >
+                                }}>
                                 <option value="">
                                   {loadingCategories ? 'جاري التحميل...' : categories.length === 0 ? 'لا توجد فئات' : 'كل الفئات'}
                                 </option>
-                                {categories.map((c: any) => (
-                                  <option key={c.id} value={c.id}>{c.name}</option>
-                                ))}
+                                {categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
                               </select>
                             </div>
-
-                            {/* Subcategory */}
                             <div>
                               <label style={labelStyle}>
                                 الفئة الفرعية {loadingSubcategories && <span style={{ color: '#999' }}>جاري التحميل...</span>}
@@ -509,37 +486,27 @@ export default function AdminOrders() {
                                 style={{ ...inputStyle, opacity: !addItemFilter.category ? 0.5 : 1 }}
                                 value={addItemFilter.subcategory}
                                 disabled={!addItemFilter.category}
-                                onChange={e => setAddItemFilter(f => ({ ...f, subcategory: e.target.value }))}
-                              >
+                                onChange={e => setAddItemFilter(f => ({ ...f, subcategory: e.target.value }))}>
                                 <option value="">
                                   {!addItemFilter.category ? 'اختر فئة أولاً' :
                                    loadingSubcategories ? 'جاري التحميل...' :
                                    subcategories.length === 0 ? 'لا توجد فئات فرعية' : 'الكل'}
                                 </option>
-                                {subcategories.map((s: any) => (
-                                  <option key={s.id} value={s.id}>{s.name}</option>
-                                ))}
+                                {subcategories.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
                               </select>
                             </div>
-
-                            {/* Car Make */}
                             <div>
                               <label style={labelStyle}>ماركة السيارة</label>
-                              <select
-                                style={inputStyle}
-                                value={addItemFilter.car_make}
+                              <select style={inputStyle} value={addItemFilter.car_make}
                                 onChange={e => {
                                   const val = e.target.value;
                                   setAddItemFilter(f => ({ ...f, car_make: val, car_model: '', car_year: '' }));
                                   fetchCarModels(val);
-                                }}
-                              >
+                                }}>
                                 <option value="">الكل</option>
                                 {carMakes.map((m: string) => <option key={m} value={m}>{m}</option>)}
                               </select>
                             </div>
-
-                            {/* Car Model */}
                             <div>
                               <label style={labelStyle}>موديل السيارة</label>
                               <select
@@ -550,51 +517,38 @@ export default function AdminOrders() {
                                   const val = e.target.value;
                                   setAddItemFilter(f => ({ ...f, car_model: val, car_year: '' }));
                                   fetchCarYears(addItemFilter.car_make, val);
-                                }}
-                              >
+                                }}>
                                 <option value="">{!addItemFilter.car_make ? 'اختر ماركة أولاً' : 'الكل'}</option>
                                 {carModels.map((m: string) => <option key={m} value={m}>{m}</option>)}
                               </select>
                             </div>
-
-                            {/* Car Year */}
                             <div>
                               <label style={labelStyle}>سنة السيارة</label>
                               <select
                                 style={{ ...inputStyle, opacity: !addItemFilter.car_model ? 0.5 : 1 }}
                                 value={addItemFilter.car_year}
                                 disabled={!addItemFilter.car_model}
-                                onChange={e => setAddItemFilter(f => ({ ...f, car_year: e.target.value }))}
-                              >
+                                onChange={e => setAddItemFilter(f => ({ ...f, car_year: e.target.value }))}>
                                 <option value="">{!addItemFilter.car_model ? 'اختر موديل أولاً' : 'الكل'}</option>
                                 {carYears.map((y: string) => <option key={y} value={y}>{y}</option>)}
                               </select>
                             </div>
-
-                            {/* Search Button */}
                             <div style={{ display: 'flex', alignItems: 'flex-end' }}>
                               <button onClick={fetchFilteredProducts} style={{ ...saveBtnStyle, width: '100%', justifyContent: 'center' }}>
                                 {loadingProducts ? 'جاري البحث...' : 'بحث عن المنتجات'}
                               </button>
                             </div>
                           </div>
-
-                          {/* Results */}
                           <div style={{ display: 'grid', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
-                            {loadingProducts && (
-                              <p style={{ color: '#27ae60', textAlign: 'center', padding: '20px' }}>جاري البحث...</p>
-                            )}
+                            {loadingProducts && <p style={{ color: '#27ae60', textAlign: 'center', padding: '20px' }}>جاري البحث...</p>}
                             {!loadingProducts && filteredProducts.length === 0 && (
                               <p style={{ color: '#999', textAlign: 'center', padding: '20px' }}>اضغط "بحث عن المنتجات" لعرض النتائج</p>
                             )}
                             {filteredProducts.map((prod: any) => (
                               <div key={prod.id} style={searchProductRow}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                  <img
-                                    src={prod.image_url || 'https://via.placeholder.com/50'}
-                                    style={{ width: '45px', height: '45px', borderRadius: '8px', objectFit: 'contain', border: '1px solid #eee' }}
-                                    alt=""
-                                  />
+                                  <img src={prod.image_url || 'https://via.placeholder.com/50'}
+                                    style={{ width: '45px', height: '45px', borderRadius: '8px', objectFit: 'contain', border: '1px solid #eee' }} alt="" />
                                   <div>
                                     <div style={{ fontWeight: '700', fontSize: '0.9rem', color: '#1a1a1a' }}>{prod.name}</div>
                                     <div style={{ fontSize: '0.75rem', color: '#888' }}>
@@ -604,9 +558,7 @@ export default function AdminOrders() {
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                   <span style={{ color: '#15803d', fontWeight: '900' }}>{prod.price} ج.م</span>
-                                  <button onClick={() => addProductToOrder(prod)} style={saveBtnStyle}>
-                                    <Plus size={14} /> إضافة
-                                  </button>
+                                  <button onClick={() => addProductToOrder(prod)} style={saveBtnStyle}><Plus size={14} /> إضافة</button>
                                 </div>
                               </div>
                             ))}
