@@ -10,7 +10,9 @@ export default function AdminLayoutClient({ children }: Props) {
   const pathname = usePathname();
 
   // لا تظهر القائمة في صفحة تسجيل الدخول
-  if (pathname === '/admin/login') return <>{children}</>;
+  if (pathname === '/admin-login' || pathname === '/admin/login') {
+    return <>{children}</>;
+  }
 
   const menuItems = [
     { name: 'الإحصائيات', href: '/admin/dashboard', icon: '📊' },
@@ -18,22 +20,27 @@ export default function AdminLayoutClient({ children }: Props) {
     { name: 'إدارة الشحن', href: '/admin/shipping', icon: '🚚' },
     { name: 'إضافة منتج', href: '/admin/add-product', icon: '➕' },
     { name: 'إدارة المنتجات', href: '/admin/products', icon: '📦' },
+    // زر المدونة
+    { name: 'المدونة', href: '/admin/blog', icon: '📝' },
     { name: 'إدارة الماركات', href: '/admin/brands', icon: '🏎️' },
     { name: 'إعدادات الهيرو', href: '/admin/hero', icon: '🖼️' },
     { name: 'صور السيارات', href: '/admin/car-images', icon: '🚗' },
     { name: 'أكواد الخصم', href: '/admin/promo-codes', icon: '🎫' },
-    /* --- الزرار الجديد المضاف لإدارة المسوقين --- */
     { name: 'إدارة المسوقين', href: '/admin/marketers', icon: '👥' },
-    /* ----------------------------------------- */
     { name: 'السلات المتروكة', href: '/admin/abandoned-carts', icon: '🛒' },
     { name: 'رسائل العملاء', href: '/admin/messages', icon: '💬' },
-    /* --- الزرار الجديد لإدارة المدونة --- */
-    { name: 'إدارة المدونة', href: '/admin/blog', icon: '📝' },
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', direction: 'rtl', backgroundColor: '#f8fafc' }}>
-      {/* Side Menu - تم تعديل الألوان للوضع الفاتح */}
+    <div
+      style={{
+        display: 'flex',
+        minHeight: '100vh',
+        direction: 'rtl',
+        backgroundColor: '#f8fafc',
+      }}
+    >
+      {/* Side Menu */}
       <aside
         style={{
           width: '260px',
@@ -63,7 +70,15 @@ export default function AdminLayoutClient({ children }: Props) {
           >
             ZAIT & FILTERS
           </h2>
-          <p style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '5px' }}>لوحة الإدارة الاحترافية</p>
+          <p
+            style={{
+              color: '#64748b',
+              fontSize: '0.8rem',
+              marginTop: '5px',
+            }}
+          >
+            لوحة الإدارة الاحترافية
+          </p>
         </div>
 
         <nav style={{ flex: 1, overflowY: 'auto', paddingBottom: '80px' }}>
@@ -94,7 +109,7 @@ export default function AdminLayoutClient({ children }: Props) {
           })}
         </nav>
 
-        {/* زر تسجيل الخروج الثابت في الأسفل */}
+        {/* زر تسجيل الخروج */}
         <button
           onClick={() => supabase.auth.signOut()}
           style={{
@@ -114,8 +129,12 @@ export default function AdminLayoutClient({ children }: Props) {
             gap: '10px',
             transition: '0.3s',
           }}
-          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#fff0f0')}
-          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#fff5f5')}
+          onMouseOver={(e) =>
+            (e.currentTarget.style.backgroundColor = '#fff0f0')
+          }
+          onMouseOut={(e) =>
+            (e.currentTarget.style.backgroundColor = '#fff5f5')
+          }
         >
           <span>تسجيل الخروج</span>
           <span>🚪</span>
@@ -151,7 +170,7 @@ export default function AdminLayoutClient({ children }: Props) {
         `}</style>
       </aside>
 
-      {/* Main Content Area - تم تعديل الألوان للوضع الفاتح */}
+      {/* Main content */}
       <main
         style={{
           flex: 1,
