@@ -28,7 +28,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/context/CartContext';
 import toast from 'react-hot-toast';
 
-const PRODUCTS_PER_PAGE = 10;
+const PRODUCTS_PER_PAGE = 12;
 
 const Select = dynamic(() => import('react-select'), {
   ssr: false,
