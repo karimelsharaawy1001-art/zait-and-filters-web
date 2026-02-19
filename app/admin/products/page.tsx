@@ -202,7 +202,7 @@ export default function AdminProducts() {
 
 
 
-  // ✅ Updated: routes through service role API to bypass anon key permission issues
+  // ✅ Updated: proper CSV parser + raw response logging
   const handleImport = async (e: any) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -210,11 +210,29 @@ export default function AdminProducts() {
     const reader = new FileReader();
     reader.onload = async (event: any) => {
       const text = event.target.result;
-      const rows = text.split('\n').slice(1);
+      const lines = text.split('\n').slice(1);
       const products: any[] = [];
 
-      for (const row of rows) {
-        const cols = row.split(',').map((c: string) => c.trim().replace(/"/g, ''));
+      for (const line of lines) {
+        if (!line.trim()) continue;
+
+        // ✅ Proper CSV parser that handles commas inside quoted fields
+        const cols: string[] = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            cols.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        cols.push(current.trim());
+
         if (cols.length < 6 || !cols[1]) continue;
 
         let warrantyVal = cols[10];
@@ -233,6 +251,13 @@ export default function AdminProducts() {
         });
       }
 
+      if (products.length === 0) {
+        alert('❌ لم يتم العثور على منتجات صالحة في الملف');
+        return;
+      }
+
+      console.log('Sending products:', products.length, products[0]);
+
       setLoading(true);
       const res = await fetch('/api/admin/import-products', {
         method: 'POST',
@@ -240,14 +265,21 @@ export default function AdminProducts() {
         body: JSON.stringify({ products })
       });
 
-      const result = await res.json();
-      setLoading(false);
+      const rawText = await res.text();
+      console.log('Raw API response:', rawText);
 
-      if (result.error) {
-        alert('❌ خطأ: ' + result.error);
-      } else {
-        alert(`✅ اكتملت العملية:\n- تحديث ${result.updateCount} منتج\n- إضافة ${result.insertCount} جديد`);
-        fetchProducts();
+      try {
+        const result = JSON.parse(rawText);
+        setLoading(false);
+        if (result.error) {
+          alert('❌ خطأ: ' + result.error);
+        } else {
+          alert(`✅ اكتملت العملية:\n- تحديث ${result.updateCount} منتج\n- إضافة ${result.insertCount} جديد`);
+          fetchProducts();
+        }
+      } catch {
+        setLoading(false);
+        alert('❌ خطأ في الاستجابة: ' + rawText);
       }
     };
 
