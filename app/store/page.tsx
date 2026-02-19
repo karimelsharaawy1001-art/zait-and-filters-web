@@ -1364,8 +1364,9 @@ function StoreContent() {
                             <img
                               src={
                                 product.image_url ||
+                                (product.subcategory && subcategoryImages[product.subcategory.trim().toUpperCase()]) ||
                                 (product.category && subcategoryImages[product.category.trim().toUpperCase()]) ||
-                                '/api/placeholder/400/320'
+                                undefined
                               }
                               alt={product.name}
                               className="product-card-image"
