@@ -6,7 +6,9 @@ import { Eye, Edit3, DollarSign, Trash2, Check, X, FileDown, FileUp, ClipboardLi
 
 
 
+
 const ITEMS_PER_PAGE = 20;
+
 
 
 
@@ -21,6 +23,7 @@ export default function AdminProducts() {
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [availableSubcategories, setAvailableSubcategories] = useState<string[]>([]);
 
+
   const [searchName, setSearchName] = useState('');
   const [filterMake, setFilterMake] = useState('');
   const [filterModel, setFilterModel] = useState('');
@@ -30,8 +33,10 @@ export default function AdminProducts() {
   const [sortBy, setSortBy] = useState('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState({ regular_price: '', sale_price: '' });
+
 
 
 
@@ -39,6 +44,7 @@ export default function AdminProducts() {
     fetchUniqueValues('car_make', setAvailableMakes);
     fetchUniqueValues('category', setAvailableCategories);
   }, []);
+
 
 
 
@@ -53,6 +59,7 @@ export default function AdminProducts() {
 
 
 
+
   useEffect(() => {
     if (filterCategory) {
       fetchUniqueValues('subcategory', setAvailableSubcategories, 'category', filterCategory);
@@ -64,9 +71,11 @@ export default function AdminProducts() {
 
 
 
+
   useEffect(() => {
     fetchProducts();
   }, [currentPage, filterMake, filterModel, filterCategory, filterSubcategory, filterYear, sortBy, sortOrder]);
+
 
 
 
@@ -79,6 +88,7 @@ export default function AdminProducts() {
       setter(uniqueValues.sort());
     }
   }
+
 
 
 
@@ -96,6 +106,7 @@ export default function AdminProducts() {
 
 
 
+
   async function fetchProducts() {
     setLoading(true);
     let query = buildFilteredQuery();
@@ -103,6 +114,7 @@ export default function AdminProducts() {
     const from = (currentPage - 1) * ITEMS_PER_PAGE;
     const to = from + ITEMS_PER_PAGE - 1;
     query = query.range(from, to);
+
 
     const { data, count } = await query;
     if (data) setProducts(data);
@@ -112,12 +124,14 @@ export default function AdminProducts() {
 
 
 
+
   const toggleStatus = async (id: string, currentStatus: boolean) => {
     const { error } = await supabase.from('products').update({ is_active: !currentStatus }).eq('id', id);
     if (!error) {
       setProducts(products.map(p => p.id === id ? { ...p, is_active: !currentStatus } : p));
     }
   };
+
 
 
 
@@ -134,6 +148,7 @@ export default function AdminProducts() {
 
 
 
+
   const deleteProduct = async (id: string) => {
     if (confirm('هل أنت متأكد من حذف هذا المنتج نهائياً؟')) {
       const { error } = await supabase.from('products').delete().eq('id', id);
@@ -143,10 +158,10 @@ export default function AdminProducts() {
 
 
 
+
   // --- وظيفة التصدير المحدثة لتدعم الفلترة الحالية ---
   const exportToCSV = async () => {
     setLoading(true);
-    // جلب البيانات بناءً على الفلاتر الحالية بدون التقيد بالـ pagination
     const { data } = await buildFilteredQuery();
     
     if (!data || data.length === 0) {
@@ -154,6 +169,7 @@ export default function AdminProducts() {
       setLoading(false);
       return;
     }
+
 
     const headers = 'ID,الاسم,الماركة,القسم الرئيسي,القسم الفرعي,ماركة السيارة,الموديل,السنة,السعر الأساسي,سعر الخصم,الضمان,الحالة,المنشأ,رابط الصورة\n';
     const rows = data.map(p => 
@@ -171,6 +187,7 @@ export default function AdminProducts() {
 
 
 
+
   const downloadTemplate = () => {
     const headers = 'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url\n';
     const example = ',تيل فرامل صني,Hi-Q,فرامل,تيل,نيسان,صني,2015-2024,1200,1100,6,1,كوري,https://res.cloudinary.com/example.jpg';
@@ -184,41 +201,59 @@ export default function AdminProducts() {
 
 
 
+
+  // ✅ Updated: routes through service role API to bypass anon key permission issues
   const handleImport = async (e: any) => {
     const file = e.target.files[0];
     if (!file) return;
+
     const reader = new FileReader();
     reader.onload = async (event: any) => {
       const text = event.target.result;
       const rows = text.split('\n').slice(1);
-      let updateCount = 0; let insertCount = 0;
+      const products: any[] = [];
+
       for (const row of rows) {
-        // تم تعديل السطر التالي لإضافة (c: string) لتجنب خطأ TypeScript Implicit Any
         const cols = row.split(',').map((c: string) => c.trim().replace(/"/g, ''));
         if (cols.length < 6 || !cols[1]) continue;
+
         let warrantyVal = cols[10];
         if (warrantyVal && !isNaN(Number(warrantyVal))) warrantyVal = `${warrantyVal} شهور`;
-        const productData = {
+
+        products.push({
+          id: cols[0],
           name: cols[1], brand: cols[2], category: cols[3], subcategory: cols[4],
           car_make: cols[5], car_model: cols[6], car_model_year: cols[7],
-          regular_price: parseFloat(cols[8]), sale_price: cols[9] ? parseFloat(cols[9]) : null,
-          warranty: warrantyVal, is_active: cols[11] === '1' || cols[11]?.toLowerCase() === 'true',
-          country_of_origin: cols[12], image_url: cols[13]
-        };
-        const productId = cols[0];
-        if (productId && productId.length > 10) {
-          const { error } = await supabase.from('products').update(productData).eq('id', productId);
-          if (!error) updateCount++;
-        } else {
-          const { error } = await supabase.from('products').insert([productData]);
-          if (!error) insertCount++;
-        }
+          regular_price: parseFloat(cols[8]),
+          sale_price: cols[9] ? parseFloat(cols[9]) : null,
+          warranty: warrantyVal,
+          is_active: cols[11] === '1' || cols[11]?.toLowerCase() === 'true',
+          country_of_origin: cols[12],
+          image_url: cols[13]
+        });
       }
-      alert(`✅ اكتملت العملية:\n- تحديث ${updateCount} منتج\n- إضافة ${insertCount} جديد`);
-      fetchProducts();
+
+      setLoading(true);
+      const res = await fetch('/api/admin/import-products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ products })
+      });
+
+      const result = await res.json();
+      setLoading(false);
+
+      if (result.error) {
+        alert('❌ خطأ: ' + result.error);
+      } else {
+        alert(`✅ اكتملت العملية:\n- تحديث ${result.updateCount} منتج\n- إضافة ${result.insertCount} جديد`);
+        fetchProducts();
+      }
     };
+
     reader.readAsText(file);
   };
+
 
 
 
@@ -238,6 +273,7 @@ export default function AdminProducts() {
           </button>
         </div>
       </div>
+
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px', marginBottom: '25px', backgroundColor: '#0a0a0a', padding: '20px', borderRadius: '12px' }}>
         <div>
@@ -277,6 +313,7 @@ export default function AdminProducts() {
           <input type="text" placeholder="2020" value={filterYear} onChange={(e) => setFilterYear(e.target.value)} style={filterInputStyle} />
         </div>
       </div>
+
 
       <div style={{ backgroundColor: '#0a0a0a', borderRadius: '15px', border: '1px solid #111', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right' }}>
@@ -336,6 +373,7 @@ export default function AdminProducts() {
         </table>
       </div>
 
+
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', marginTop: '30px', paddingBottom: '30px' }}>
         <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} style={pageBtnStyle}>السابق</button>
         <span style={{color: '#666'}}>صفحة {currentPage}</span>
@@ -344,6 +382,7 @@ export default function AdminProducts() {
     </div>
   );
 }
+
 
 
 
