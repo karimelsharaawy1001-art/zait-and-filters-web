@@ -370,7 +370,6 @@ interface PaginationProps {
 function Pagination({ currentPage, totalPages, totalItems, onPageChange }: PaginationProps) {
   if (totalPages <= 1) return null;
 
-  // Build visible page numbers with ellipsis logic
   const getPageNumbers = () => {
     const pages: (number | 'ellipsis')[] = [];
     if (totalPages <= 7) {
@@ -393,15 +392,12 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
 
   return (
     <div style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-      {/* Items count info */}
       <p style={{ color: '#888', fontSize: '0.85rem', fontWeight: '600' }}>
         عرض <span style={{ color: '#1a1a1a', fontWeight: '800' }}>{startItem}–{endItem}</span> من{' '}
         <span style={{ color: '#22c55e', fontWeight: '800' }}>{totalItems}</span> منتج
       </p>
 
-      {/* Page buttons */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
-        {/* Prev */}
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
@@ -461,7 +457,6 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
           )
         )}
 
-        {/* Next */}
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
@@ -484,7 +479,6 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
         </button>
       </div>
 
-      {/* Page jump */}
       {totalPages > 7 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
           <span style={{ fontSize: '0.8rem', color: '#888', fontWeight: '600' }}>الانتقال إلى صفحة:</span>
@@ -532,7 +526,6 @@ function StoreContent() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [initializing, setInitializing] = useState(true);
 
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
 
   const [yearInput, setYearInput] = useState('');
@@ -567,7 +560,6 @@ function StoreContent() {
   const urlBrand = searchParams.get('brand');
   const urlSearch = searchParams.get('q');
 
-  // ── FIX: All deps listed statically. No dynamic array size. ──
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
     setIsMounted(true);
@@ -586,7 +578,6 @@ function StoreContent() {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── FIX: Static dep array — always 4 items, always same order ──
   useEffect(() => {
     const make = selectedMake?.value ?? null;
     const model = selectedModel?.value ?? null;
@@ -603,14 +594,12 @@ function StoreContent() {
       setShowHero(false);
       setCarHeroImage(null);
     }
-  }, [selectedMake, selectedModel, garageMode, userCar]); // 4 items, always present
+  }, [selectedMake, selectedModel, garageMode, userCar]);
 
-  // Reset to page 1 when products change
   useEffect(() => {
     setCurrentPage(1);
   }, [filteredProducts]);
 
-  // ── Combined: fetch garage first, then init ──
   async function fetchGarageDataAndInit() {
     let resolvedGarageMode = localStorage.getItem('garageMode') === 'true';
     let resolvedUserCar: any = null;
@@ -685,7 +674,6 @@ function StoreContent() {
   ) {
     const hasURLParams = urlMake || urlCategory;
 
-    // FIX 2: Detect conflict immediately on load
     if (hasURLParams && resolvedGarageMode && resolvedUserCar) {
       const urlMakeLower = urlMake?.trim().toLowerCase();
       const garageMakeLower = resolvedUserCar.make.trim().toLowerCase();
@@ -770,7 +758,6 @@ function StoreContent() {
         _userCar: resolvedUserCar,
       });
     } else if (resolvedGarageMode && resolvedUserCar) {
-      // FIX 1: Auto-load garage products
       await fetchProducts({
         make: resolvedUserCar.make,
         model: resolvedUserCar.model,
@@ -1063,7 +1050,6 @@ function StoreContent() {
   const heroModelLabel = selectedModel?.label || (garageMode && userCar?.model) || '';
   const heroYear = appliedYear || (garageMode && userCar?.year ? String(userCar.year) : '');
 
-  // Pagination slicing
   const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
   const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * PRODUCTS_PER_PAGE,
@@ -1136,7 +1122,6 @@ function StoreContent() {
             .mobile-filter-btn { display: block !important; }
             .store-product-card { border-radius: 12px; }
             .store-product-card h3 { font-size: 0.85rem !important; height: 38px !important; }
-            .store-product-card img { padding: 0px !important; }
           }
           @media (min-width: 769px) {
             .desktop-filters { display: block !important; }
@@ -1145,6 +1130,16 @@ function StoreContent() {
           .page-btn:hover:not(:disabled) {
             border-color: #22c55e !important;
             color: #22c55e !important;
+          }
+
+          /* ── Product image: contain so the full image is visible ── */
+          .product-card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 12px;
+            transition: transform 0.3s ease;
+            background-color: #fff;
           }
         `,
         }}
@@ -1354,14 +1349,30 @@ function StoreContent() {
                               -{Math.round(((product.regular_price - product.sale_price) / product.regular_price) * 100)}%
                             </div>
                           )}
-                          <Link href={`/products/${product.id}`} style={{ display: 'block', height: '200px', backgroundColor: '#f9f9f9', overflow: 'hidden', position: 'relative' }}>
+
+                          {/* ── IMAGE CONTAINER: white bg, fixed height, contain fit ── */}
+                          <Link
+                            href={`/products/${product.id}`}
+                            style={{
+                              display: 'block',
+                              height: '200px',
+                              backgroundColor: '#ffffff',
+                              overflow: 'hidden',
+                              position: 'relative',
+                            }}
+                          >
                             <img
-                              src={product.image_url || (product.category && subcategoryImages[product.category.trim().toUpperCase()]) || '/api/placeholder/400/320'}
+                              src={
+                                product.image_url ||
+                                (product.category && subcategoryImages[product.category.trim().toUpperCase()]) ||
+                                '/api/placeholder/400/320'
+                              }
                               alt={product.name}
-                              style={{ width: '100%', height: '100%', objectFit: 'cover', padding: '0px', transition: 'transform 0.3s ease' }}
+                              className="product-card-image"
                               loading="lazy"
                             />
                           </Link>
+
                           <div style={{ padding: '18px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                               <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.8rem' }}>{product.brand}</span>
@@ -1414,7 +1425,6 @@ function StoreContent() {
                     })}
                   </div>
 
-                  {/* ── Premium Pagination ── */}
                   <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
