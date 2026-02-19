@@ -240,7 +240,7 @@ function FilterSection({
               placeholder="اختر القسم الفرعي"
               isRtl={true}
               value={selectedSubcategory}
-              onChange={(opt: any) => setSelectedSubcategory(opt)}
+              onChange={(opt) => setSelectedSubcategory(opt)}
               isDisabled={!selectedCategory}
               isClearable
             />
@@ -257,7 +257,7 @@ function FilterSection({
               placeholder="اختر العلامة"
               isRtl={true}
               value={selectedBrand}
-              onChange={(opt: any) => setSelectedBrand(opt)}
+              onChange={(opt) => setSelectedBrand(opt)}
               isClearable
             />
           </div>
@@ -1136,7 +1136,7 @@ function StoreContent() {
             .mobile-filter-btn { display: block !important; }
             .store-product-card { border-radius: 12px; }
             .store-product-card h3 { font-size: 0.85rem !important; height: 38px !important; }
-            .store-product-card img { padding: 10px !important; }
+            .store-product-card img { padding: 0px !important; }
           }
           @media (min-width: 769px) {
             .desktop-filters { display: block !important; }
@@ -1358,7 +1358,7 @@ function StoreContent() {
                             <img
                               src={product.image_url || (product.category && subcategoryImages[product.category.trim().toUpperCase()]) || '/api/placeholder/400/320'}
                               alt={product.name}
-                              style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '15px', transition: 'transform 0.3s ease' }}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', padding: '0px', transition: 'transform 0.3s ease' }}
                               loading="lazy"
                             />
                           </Link>
