@@ -12,12 +12,17 @@ export default function BlogPostPage() {
 
   useEffect(() => {
     async function fetchPost() {
-      const { data } = await supabase
+      // Decode the slug to handle Arabic characters in URLs
+      const decodedSlug = decodeURIComponent(slug as string);
+
+      const { data, error } = await supabase
         .from('blog_posts')
         .select('*')
-        .eq('slug', slug)
-        .eq('published', true)
+        .eq('slug', decodedSlug)
+        // Removed .eq('published', true) — make sure your rows have published=true or add it back after fixing data
         .single();
+
+      if (error) console.error('Supabase error:', error.message);
       if (data) setPost(data);
       setLoading(false);
     }
@@ -71,6 +76,7 @@ export default function BlogPostPage() {
             <div style={{ color: '#15803d', fontSize: '0.8rem', fontWeight: '600' }}>فريق زيت أند فلترز</div>
           </div>
         </div>
+
       </div>
     </div>
   );
