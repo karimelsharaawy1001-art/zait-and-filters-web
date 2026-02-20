@@ -1026,7 +1026,7 @@ export default function HomePage() {
                   <div ref={scrollRef} className="no-scrollbar product-grid-carousel">
                     {filteredSaleProducts.map((p) => {
                       const country = p.country_origin || p.country_of_origin || p.origin || 'أصلي';
-                      const isAsli = p.brand?.trim() === 'اصلي';
+                      const isAsli = p.country_origin?.trim() === 'اصلي';
                       return (
                         <div key={p.id} className="product-card-mdrn">
                           <div style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#ff4d4d', color: '#fff', padding: '2px 6px', borderRadius: '5px', fontSize: '0.6rem', fontWeight: '900', zIndex: 10 }}>

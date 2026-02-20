@@ -1462,7 +1462,7 @@ function StoreContent() {
                   <div className="products-grid">
                     {paginatedProducts.map((product) => {
                       const price = product.sale_price || product.regular_price;
-                      const isAsli = product.brand?.trim() === 'اصلي';
+                      const isAsli = product.country_origin?.trim() === 'اصلي';
                       return (
                         <motion.div
                           key={product.id}
