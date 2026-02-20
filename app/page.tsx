@@ -605,12 +605,12 @@ export default function HomePage() {
           .img-fill-100 { 
             width: 100%; 
             height: 100%; 
-            object-fit: contain; 
-            padding: 15px; 
+            object-fit: cover; 
+            padding: 0; 
             transition: transform 0.3s ease; 
           }
           
-          .img-container:hover .img-fill-100 { transform: scale(1.05); }
+          .img-container:hover .img-fill-100 { transform: scale(1.02); }
           
           .category-grid-v3 { 
             display: grid; 
