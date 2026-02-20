@@ -11,28 +11,86 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 
-function RelatedProductCard({ p }: { p: any }) {
+function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImages: Record<string, string> }) {
   const [qty, setQty] = useState(1);
   const { addToCart } = useCart();
-  const displayImage = p.image_url || 'https://via.placeholder.com/400?text=Zait+And+Filters';
+
+  // Fallback: product image → subcategory image → placeholder
+  const subcatKey = p.subcategory?.trim().toUpperCase();
+  const fallbackImage = subcategoryImages[subcatKey] || null;
+  const displayImage = p.image_url || fallbackImage || null;
+
+  const country = p.country_of_origin || p.country_origin || p.origin || null;
 
   return (
     <div style={premiumCardStyle}>
+      {/* Image */}
       <Link href={`/products/${p.id}`} style={{ textDecoration: 'none' }}>
         <div style={premiumImageArea}>
-          <img src={displayImage} alt={p.name} style={premiumImgFit} />
-          {p.sale_price && <div style={smallSaleBadge}>عرض</div>}
+          {displayImage ? (
+            <img src={displayImage} alt={p.name} style={premiumImgFit} />
+          ) : (
+            <div style={noImgPlaceholder}>
+              <Package size={32} color="#ddd" />
+            </div>
+          )}
+          {p.sale_price && Number(p.sale_price) > 0 && (
+            <div style={smallSaleBadge}>
+              -{Math.round(((p.regular_price - p.sale_price) / p.regular_price) * 100)}%
+            </div>
+          )}
         </div>
       </Link>
+
+      {/* Details */}
       <div style={premiumDetails}>
-        <span style={premiumBrand}>{p.brand}</span>
+        {/* Brand + Country */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={premiumBrand}>{p.brand}</span>
+          {country && (
+            <span style={countryBadge}>
+              <Globe size={10} /> {country}
+            </span>
+          )}
+        </div>
+
+        {/* Name */}
         <Link href={`/products/${p.id}`} style={{ textDecoration: 'none' }}>
           <h3 style={premiumName}>{p.name}</h3>
         </Link>
+
+        {/* Car info */}
+        <div style={carInfoBox}>
+          {p.car_make && (
+            <div style={carInfoRow}>
+              <Car size={11} color="#27ae60" />
+              <span>{p.car_make}{p.car_model ? ` · ${p.car_model}` : ''}</span>
+            </div>
+          )}
+          {p.car_model_year && (
+            <div style={carInfoRow}>
+              <Calendar size={11} color="#27ae60" />
+              <span>{p.car_model_year}</span>
+            </div>
+          )}
+          {p.subcategory && (
+            <div style={carInfoRow}>
+              <Layers size={11} color="#27ae60" />
+              <span>{p.subcategory}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Price + Stepper */}
         <div style={premiumPriceRow}>
           <div style={premiumPriceCol}>
-            <span style={premiumCurrentPrice}>{p.sale_price || p.regular_price} <small>ج.م</small></span>
-            {p.sale_price && <span style={premiumOldPrice}>{p.regular_price}</span>}
+            <span style={premiumCurrentPrice}>
+              {p.sale_price && Number(p.sale_price) > 0 ? p.sale_price : p.regular_price}
+              <small style={{ fontSize: '0.65rem', fontWeight: '600', marginRight: '2px' }}> ج.م</small>
+            </span>
+            {p.sale_price && Number(p.sale_price) > 0 && (
+              <span style={premiumOldPrice}>{p.regular_price} ج.م</span>
+            )}
           </div>
           <div style={premiumStepper}>
             <button onClick={() => setQty(prev => prev + 1)} style={miniStepBtn}><Plus size={12} /></button>
@@ -40,7 +98,14 @@ function RelatedProductCard({ p }: { p: any }) {
             <button onClick={() => qty > 1 && setQty(prev => prev - 1)} style={miniStepBtn}><Minus size={12} /></button>
           </div>
         </div>
-        <button onClick={() => addToCart(p, qty)} style={premiumAddBtn}><ShoppingCart size={14} /> إضافة</button>
+
+        {/* Add to cart */}
+        <button
+          onClick={() => addToCart({ ...p, price: p.sale_price || p.regular_price }, qty)}
+          style={premiumAddBtn}
+        >
+          <ShoppingCart size={14} /> إضافة
+        </button>
       </div>
     </div>
   );
@@ -49,6 +114,7 @@ function RelatedProductCard({ p }: { p: any }) {
 export default function ProductDetailsClient({ initialProduct, productId }: { initialProduct: any, productId: string }) {
   const [product, setProduct] = useState<any>(initialProduct);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
+  const [subcategoryImages, setSubcategoryImages] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(!initialProduct);
   const [qty, setQty] = useState(1);
   const [imgError, setImgError] = useState(false);
@@ -56,27 +122,42 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
 
   useEffect(() => {
     async function fetchRelated() {
-      if (product) {
-        const { data: related } = await supabase.from('products')
+      if (!product) return;
+
+      // Fetch related products + subcategory images in parallel
+      const [relatedRes, subcatRes] = await Promise.all([
+        supabase.from('products')
           .select('*')
           .eq('car_make', product.car_make)
           .eq('car_model', product.car_model)
           .neq('id', product.id)
           .order('created_at', { ascending: false })
-          .limit(50);
+          .limit(50),
+        supabase.from('category_images').select('name, image_url'),
+      ]);
 
-        if (related) {
-          const subcatCountMap = new Map();
-          const filtered = related.filter(item => {
-            const count = subcatCountMap.get(item.subcategory) || 0;
-            if (count < 2) {
-              subcatCountMap.set(item.subcategory, count + 1);
-              return true;
-            }
-            return false;
-          });
-          setRelatedProducts(filtered);
-        }
+      // Build subcategory image map (uppercased keys for easy lookup)
+      if (subcatRes.data) {
+        const map: Record<string, string> = {};
+        subcatRes.data.forEach(img => {
+          if (img.name && img.image_url) {
+            map[img.name.trim().toUpperCase()] = img.image_url;
+          }
+        });
+        setSubcategoryImages(map);
+      }
+
+      if (relatedRes.data) {
+        const subcatCountMap = new Map();
+        const filtered = relatedRes.data.filter(item => {
+          const count = subcatCountMap.get(item.subcategory) || 0;
+          if (count < 2) {
+            subcatCountMap.set(item.subcategory, count + 1);
+            return true;
+          }
+          return false;
+        });
+        setRelatedProducts(filtered);
       }
     }
     fetchRelated();
@@ -110,7 +191,6 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
 
   return (
     <>
-      {/* Responsive styles injected */}
       <style>{`
         .product-page-wrapper {
           max-width: 1200px;
@@ -199,6 +279,11 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           padding: 8px 14px;
           border-radius: 15px;
           flex-shrink: 0;
+        }
+
+        /* Related section swiper fix */
+        .related-swiper .swiper-slide {
+          height: auto !important;
         }
 
         @media (max-width: 768px) {
@@ -380,20 +465,26 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             <div style={swiperOuterContainer}>
               <Swiper
                 modules={[Navigation, Autoplay]}
-                spaceBetween={14}
-                slidesPerView={1.3}
+                spaceBetween={12}
+                slidesPerView={1}
                 navigation={{ prevEl: '#prev-related', nextEl: '#next-related' }}
                 breakpoints={{
-                  480: { slidesPerView: 2.2 },
-                  768: { slidesPerView: 3 },
-                  1024: { slidesPerView: 5 }
+                  // 1 full card on tiny phones
+                  0:   { slidesPerView: 1,   spaceBetween: 10 },
+                  // ~2 cards on larger phones
+                  480: { slidesPerView: 2,   spaceBetween: 12 },
+                  // 3 on tablet
+                  768: { slidesPerView: 3,   spaceBetween: 14 },
+                  // 4 on desktop
+                  1024:{ slidesPerView: 4,   spaceBetween: 16 },
                 }}
-                autoplay={{ delay: 3500 }}
-                style={{ padding: '10px 10px 30px' }}
+                autoplay={{ delay: 3500, disableOnInteraction: false }}
+                className="related-swiper"
+                style={{ padding: '10px 4px 30px' }}
               >
                 {relatedProducts.map((rp) => (
-                  <SwiperSlide key={rp.id}>
-                    <RelatedProductCard p={rp} />
+                  <SwiperSlide key={rp.id} style={{ height: 'auto' }}>
+                    <RelatedProductCard p={rp} subcategoryImages={subcategoryImages} />
                   </SwiperSlide>
                 ))}
               </Swiper>
@@ -405,28 +496,59 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
   );
 }
 
-// Styles
+// ─── Styles ────────────────────────────────────────────────────────────────────
+
 const carouselFullWrapper: any = { marginTop: '40px', borderTop: '1px solid #f0f0f0', paddingTop: '30px' };
 const relatedHeader: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' };
 const relatedTitle: any = { fontSize: '1.3rem', fontWeight: '900', color: '#1a1a1a', margin: 0 };
 const customNavWrapper: any = { display: 'flex', gap: '10px' };
 const navCircleBtn: any = { width: '38px', height: '38px', borderRadius: '50%', border: '1px solid #eee', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#1a1a1a' };
 const swiperOuterContainer: any = { position: 'relative', width: '100%' };
-const premiumCardStyle: any = { background: '#fff', borderRadius: '18px', border: '1px solid #f0f0f0', overflow: 'hidden', height: '100%', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column' };
-const premiumImageArea: any = { height: '150px', background: '#f8f9fa', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' };
-const premiumImgFit: any = { width: '100%', height: '100%', objectFit: 'cover' };
-const smallSaleBadge: any = { position: 'absolute', top: '8px', right: '8px', background: '#e74c3c', color: '#fff', padding: '2px 8px', borderRadius: '6px', fontSize: '0.6rem', fontWeight: 'bold' };
-const premiumDetails: any = { padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' };
-const premiumBrand: any = { fontSize: '0.7rem', fontWeight: 'bold', color: '#27ae60' };
-const premiumName: any = { fontSize: '0.88rem', fontWeight: '800', color: '#1a1a1a', height: '2.4em', overflow: 'hidden', lineHeight: '1.2' };
-const premiumPriceRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', background: '#f9f9f9', padding: '8px', borderRadius: '10px' };
+
+// Card
+const premiumCardStyle: any = {
+  background: '#fff',
+  borderRadius: '16px',
+  border: '1px solid #f0f0f0',
+  overflow: 'hidden',
+  height: '100%',
+  boxShadow: '0 4px 15px rgba(0,0,0,0.04)',
+  display: 'flex',
+  flexDirection: 'column',
+  width: '100%',
+};
+const premiumImageArea: any = {
+  height: '160px',
+  background: '#f8f9fa',
+  position: 'relative',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  overflow: 'hidden',
+  flexShrink: 0,
+};
+const premiumImgFit: any = { width: '100%', height: '100%', objectFit: 'contain', padding: '10px' };
+const noImgPlaceholder: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' };
+const smallSaleBadge: any = { position: 'absolute', top: '8px', right: '8px', background: '#e74c3c', color: '#fff', padding: '2px 7px', borderRadius: '6px', fontSize: '0.6rem', fontWeight: 'bold' };
+
+const premiumDetails: any = { padding: '10px 12px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '5px' };
+const premiumBrand: any = { fontSize: '0.7rem', fontWeight: '800', color: '#27ae60' };
+const countryBadge: any = { display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: '#888', fontWeight: '700', background: '#f5f5f5', padding: '2px 6px', borderRadius: '5px' };
+const premiumName: any = { fontSize: '0.85rem', fontWeight: '800', color: '#1a1a1a', lineHeight: '1.3', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', margin: '2px 0' };
+
+const carInfoBox: any = { background: '#f8fdf9', borderRadius: '8px', padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '2px' };
+const carInfoRow: any = { display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.68rem', color: '#555', fontWeight: '700' };
+
+const premiumPriceRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', background: '#f9f9f9', padding: '7px 8px', borderRadius: '10px' };
 const premiumPriceCol: any = { display: 'flex', flexDirection: 'column' };
 const premiumCurrentPrice: any = { fontSize: '0.95rem', fontWeight: '900', color: '#1a1a1a' };
-const premiumOldPrice: any = { fontSize: '0.7rem', color: '#bbb', textDecoration: 'line-through' };
+const premiumOldPrice: any = { fontSize: '0.65rem', color: '#bbb', textDecoration: 'line-through' };
 const premiumStepper: any = { display: 'flex', alignItems: 'center', gap: '5px' };
-const miniStepBtn: any = { width: '22px', height: '22px', borderRadius: '50%', border: 'none', background: '#27ae60', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' };
+const miniStepBtn: any = { width: '22px', height: '22px', borderRadius: '50%', border: 'none', background: '#27ae60', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 };
 const miniQty: any = { fontSize: '0.8rem', fontWeight: 'bold', color: '#27ae60', minWidth: '15px', textAlign: 'center' };
-const premiumAddBtn: any = { width: '100%', background: '#1a1a1a', color: '#fff', border: 'none', padding: '10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', marginTop: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontFamily: 'inherit' };
+const premiumAddBtn: any = { width: '100%', background: '#1a1a1a', color: '#fff', border: 'none', padding: '9px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', marginTop: '6px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', fontFamily: 'inherit' };
+
+// Page styles
 const navPath: any = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', fontSize: '0.88rem', color: '#888', flexWrap: 'wrap' };
 const backLink: any = { display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#1a1a1a', fontWeight: 'bold' };
 const pathDivider: any = { color: '#ccc' };
