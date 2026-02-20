@@ -91,6 +91,16 @@ export const metadata: Metadata = {
   verification: {
     google: 'your-google-verification-code',
   },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/icon-512.png', type: 'image/png', sizes: '512x512' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180' },
+    ],
+  },
   other: {
     'apple-mobile-web-app-title': 'Zait & Filters',
     'msapplication-TileColor': '#2ecc71',
@@ -105,7 +115,10 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" style={{ scrollBehavior: 'smooth' }}>
       <head>
+        {/* Favicon & app icons */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#2ecc71" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
