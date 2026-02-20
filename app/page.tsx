@@ -25,14 +25,12 @@ function ScrollReveal({ children, delay = 0, direction = 'up' }: { children: Rea
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-50px' });
 
-
   const directions = {
     up: { y: 40, x: 0 },
     down: { y: -40, x: 0 },
     left: { x: 40, y: 0 },
     right: { x: -40, y: 0 },
   };
-
 
   return (
     <motion.div
@@ -75,7 +73,6 @@ function StructuredData() {
     openingHours: 'Mo-Sa 09:00-21:00',
   };
 
-
   const websiteSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -87,7 +84,6 @@ function StructuredData() {
       'query-input': 'required name=search_term_string',
     },
   };
-
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -101,7 +97,6 @@ function StructuredData() {
       },
     ],
   };
-
 
   return (
     <>
@@ -162,7 +157,6 @@ export default function HomePage() {
     fetchInitialData();
     fetchGarageData();
 
-    // LISTEN FOR NAVBAR TOGGLE (GLOBAL SYNC)
     const syncGarageMode = () => {
       setGarageMode(localStorage.getItem('garageMode') === 'true');
     };
@@ -172,7 +166,6 @@ export default function HomePage() {
     const messageInterval = setInterval(() => {
       setLoadingMessage((prev) => (prev + 1) % loadingMessages.length);
     }, 1500);
-
 
     return () => {
       clearInterval(messageInterval);
@@ -199,7 +192,6 @@ export default function HomePage() {
 
   const isValidImg = (url: any) => url && String(url).trim().startsWith('http');
 
-  // GARAGE FEATURE: Fetch user car
   async function fetchGarageData() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -251,7 +243,6 @@ export default function HomePage() {
           isValidImg(p.image_url)
         ));
 
-
         const { data: orders } = await supabase.from('orders').select('items').limit(100);
         const productCounts: Record<string, number> = {};
         orders?.forEach((order: any) => {
@@ -263,7 +254,6 @@ export default function HomePage() {
         let bestSellersList = sortedBestIds
           .map(id => products.find(p => p.id === id))
           .filter(p => p && isValidImg(p.image_url));
-
 
         if (bestSellersList.length < 4) {
           bestSellersList = [
@@ -289,7 +279,6 @@ export default function HomePage() {
           };
         }));
       }
-
 
       if (carBrandsRes.data && makesRes.data) {
         const uniqueMakes = Array.from(new Set(
@@ -439,8 +428,6 @@ export default function HomePage() {
             style={fullPageLoaderStyle}
           >
             <div style={{ textAlign: 'center', maxWidth: '480px', width: '100%', padding: '0 24px', boxSizing: 'border-box' }}>
-
-              {/* Single brand name — no duplicate */}
               <motion.h1
                 initial={{ scale: 0.85, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -529,33 +516,133 @@ export default function HomePage() {
             to { opacity: 1; } 
           }
           
-          @keyframes slideIn { 
-            from { opacity: 0; transform: translateX(30px); } 
-            to { opacity: 1; transform: translateX(0); } 
-          }
-          
-          @keyframes slideUp { 
-            from { opacity: 0; transform: translateY(20px); } 
-            to { opacity: 1; transform: translateY(0); } 
-          }
-          
           .page-container { animation: pageLoad 0.4s ease-out; }
           
-          .hero-content-right { animation: slideIn 0.6s ease-out 0.15s both; }
-          .hero-content-left { animation: slideUp 0.6s ease-out 0.25s both; }
-          
-          .hero-slide { 
-            position: absolute; 
-            inset: 0; 
-            background-size: cover; 
-            background-position: center; 
+          /* ─── HERO SECTION ─────────────────────────────────────────────── */
+          /*
+           * The hero wrapper is always a fixed-height block-level container.
+           * Slides are absolutely stacked inside it and never escape it.
+           * On mobile we reduce the height so the card can sit below.
+           */
+          .hero-section {
+            position: relative;
+            width: 100%;
+            height: 600px;          /* desktop height */
+            overflow: hidden;
+            background: #000;
+          }
+
+          @media (max-width: 768px) {
+            .hero-section {
+              height: auto;           /* let content dictate height on mobile */
+              min-height: 0;
+            }
+          }
+
+          /*
+           * Each slide fills the wrapper absolutely on desktop.
+           * On mobile we switch to a stacked-block approach so only the
+           * active slide takes up space.
+           */
+          .hero-slide {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
             opacity: 0;
             transition: opacity 0.8s ease-in-out;
-            min-height: 100%;
+            display: flex;
+            align-items: center;
           }
-          
+
           .hero-slide.active { opacity: 1; }
-          
+
+          @media (max-width: 768px) {
+            /* On mobile all slides are stacked in normal flow;
+               non-active ones are hidden via visibility + zero height  */
+            .hero-slide {
+              position: relative;
+              inset: auto;
+              display: none;          /* hide non-active slides completely */
+              opacity: 1;
+              padding: 100px 0 40px;
+            }
+            .hero-slide.active {
+              display: flex;
+              flex-direction: column;
+              align-items: stretch;
+            }
+          }
+
+          /* ── hero inner layout ── */
+          .hero-content-wrapper {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+          }
+
+          .hero-content-right {
+            flex: 1;
+            text-align: right;
+            min-width: 300px;
+            animation: slideIn 0.6s ease-out 0.15s both;
+          }
+
+          .hero-content-left {
+            width: 400px;
+            max-width: 100%;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 100;
+            animation: slideUp 0.6s ease-out 0.25s both;
+          }
+
+          @keyframes slideIn { 
+            from { opacity: 0; transform: translateX(30px); } 
+            to   { opacity: 1; transform: translateX(0); } 
+          }
+          @keyframes slideUp { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to   { opacity: 1; transform: translateY(0); } 
+          }
+
+          @media (max-width: 768px) {
+            .hero-content-wrapper {
+              flex-direction: column;
+              gap: 20px;
+            }
+            .hero-content-right {
+              text-align: center;
+              min-width: 100%;
+              padding: 0 16px;
+            }
+            .hero-content-right h1 {
+              font-size: 2rem !important;
+              line-height: 1.3 !important;
+            }
+            .hero-content-right p {
+              margin-left: auto !important;
+              margin-right: auto !important;
+              font-size: 1rem !important;
+              max-width: 90% !important;
+            }
+            .hero-content-left {
+              width: 100%;
+              max-width: 100%;
+              padding: 20px 16px;
+              border-radius: 20px;
+              box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+              margin: 0 16px;
+              box-sizing: border-box;
+            }
+          }
+          /* ─────────────────────────────────────────────────────────────── */
+
           .no-scrollbar::-webkit-scrollbar { display: none; }
           .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
           
@@ -753,87 +840,46 @@ export default function HomePage() {
               font-size: 0.8rem !important;
               padding: 8px !important;
             }
-
-            section:first-of-type { 
-              min-height: auto !important;
-              overflow: visible !important;
-              padding-bottom: 30px !important;
-            }
-            
-            .hero-slide {
-              position: relative !important;
-              min-height: auto !important;
-              padding-top: 100px !important;
-              padding-bottom: 40px !important;
-            }
-            
-            .hero-content-wrapper {
-              flex-direction: column !important;
-              gap: 20px !important;
-            }
-            
-            .hero-content-right {
-              text-align: center !important;
-              order: 1 !important;
-              min-width: 100% !important;
-              padding: 0 10px !important;
-            }
-            
-            .hero-content-left {
-              width: 100% !important;
-              max-width: 100% !important;
-              padding: 20px !important;
-              order: 2 !important;
-              margin: 0 auto !important;
-            }
-
-            .hero-content-right h1 {
-              font-size: 2rem !important;
-              line-height: 1.3 !important;
-            }
-            
-            .hero-content-right p {
-              margin-left: auto !important;
-              margin-right: auto !important;
-              font-size: 1rem !important;
-              max-width: 90% !important;
-            }
           }
         `}} />
 
 
         {!loading && (
           <div className="page-container">
-            {/* Hero Section */}
-            <section style={{ position: 'relative', minHeight: '600px', overflow: 'hidden', backgroundColor: '#000' }}>
+
+            {/* ── Hero Section ────────────────────────────────────────────── */}
+            <section className="hero-section">
               {slides.map((slide, index) => (
                 <div 
                   key={index}
                   className={`hero-slide ${index === currentSlide ? 'active' : ''}`}
                   style={{ 
-                    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("${slide.bg_image_url}")`,
-                    display: 'flex',
-                    alignItems: 'center'
+                    backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url("${slide.bg_image_url}")`,
                   }}
                 >
                   <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
-                    <div className="hero-content-wrapper" style={{ display: 'flex', gap: '40px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                      <div className="hero-content-right" style={{ flex: '1', textAlign: 'right', minWidth: '300px' }}>
+                    <div className="hero-content-wrapper">
+
+                      <div className="hero-content-right">
                         {slide.title && (
                           <h1 style={{ fontSize: '3rem', fontWeight: '900', lineHeight: '1.4', marginBottom: '15px', color: '#22c55e' }}>
                             {slide.title.replace(/<[^>]*>/g, '')}
                           </h1>
                         )}
-                        <p style={{ color: '#fff', fontSize: '1.2rem', fontWeight: '500', marginBottom: '25px', maxWidth: '550px', lineHeight: '1.5' }}>{slide.subtitle}</p>
-                        <Link href={slide.button_link || '/store'} style={{ padding: '12px 30px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.95rem', display: 'inline-block' }}>{slide.button_text || 'تصفح المتجر'}</Link>
+                        <p style={{ color: '#fff', fontSize: '1.2rem', fontWeight: '500', marginBottom: '25px', maxWidth: '550px', lineHeight: '1.5' }}>
+                          {slide.subtitle}
+                        </p>
+                        <Link href={slide.button_link || '/store'} style={{ padding: '12px 30px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.95rem', display: 'inline-block' }}>
+                          {slide.button_text || 'تصفح المتجر'}
+                        </Link>
                       </div>
                       
-                      <div className="hero-content-left" style={{ width: '400px', maxWidth: '100%', backgroundColor: '#fff', padding: '30px', borderRadius: '30px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)', position: 'relative', zIndex: 100 }}>
+                      <div className="hero-content-left">
                         <h3 style={{ marginBottom: '20px', fontSize: '1.2rem', fontWeight: '900', textAlign: 'center' }}>ابحث بمواصفات سيارتك</h3>
                         {selectLoaded && (
                           <>
-                            <div style={{marginBottom: '12px'}}>
-                              <label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>الماركة</label>
+                            <div style={{ marginBottom: '12px' }}>
+                              <label style={{ fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block' }}>الماركة</label>
                               <Select 
                                 instanceId="make-select" 
                                 options={makesOptions} 
@@ -850,8 +896,8 @@ export default function HomePage() {
                                 )} 
                               />
                             </div>
-                            <div style={{marginBottom: '12px'}}>
-                              <label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>الموديل</label>
+                            <div style={{ marginBottom: '12px' }}>
+                              <label style={{ fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block' }}>الموديل</label>
                               <Select 
                                 instanceId="model-select" 
                                 options={modelsOptions} 
@@ -866,21 +912,38 @@ export default function HomePage() {
                             </div>
                           </>
                         )}
-                        <div style={{marginBottom: '12px'}}><label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>سنة الصنع</label><input type="text" placeholder="مثلاً: 2024" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} style={{ width: '100%', height: '52px', padding: '0 15px', backgroundColor: '#f8f8f8', border: 'none', borderRadius: '12px', fontSize: '1rem', outline: 'none' }} /></div>
-                        <button onClick={handleSearch} style={{ width: '100%', marginTop: '15px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', padding: '16px', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontSize: '1.1rem' }}>بحث الآن <ChevronLeft size={22} /></button>
+                        <div style={{ marginBottom: '12px' }}>
+                          <label style={{ fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block' }}>سنة الصنع</label>
+                          <input type="text" placeholder="مثلاً: 2024" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} style={{ width: '100%', height: '52px', padding: '0 15px', backgroundColor: '#f8f8f8', border: 'none', borderRadius: '12px', fontSize: '1rem', outline: 'none' }} />
+                        </div>
+                        <button onClick={handleSearch} style={{ width: '100%', marginTop: '15px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', padding: '16px', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontSize: '1.1rem' }}>
+                          بحث الآن <ChevronLeft size={22} />
+                        </button>
                       </div>
+
                     </div>
                   </div>
                 </div>
               ))}
             </section>
+            {/* ──────────────────────────────────────────────────────────── */}
 
 
             {/* Brand Logos */}
             {brandLogos.length > 0 && (
               <ScrollReveal direction="up" delay={0.05}>
                 <section style={{ padding: '12px 0', background: '#fff', borderBottom: '1px solid #f5f5f5', position: 'relative', zIndex: 1 }}>
-                  <div style={{ overflow: 'hidden', direction: 'ltr' }}><div className="marquee-inner">{[...brandLogos, ...brandLogos].map((brand, index) => (<div key={index} className="brand-logo-wrap"><Link href={`/store?brand=${brand.name}`}><img src={brand.logo_url} alt={brand.name} className="logo-img-v3" loading="lazy"/></Link></div>))}</div></div>
+                  <div style={{ overflow: 'hidden', direction: 'ltr' }}>
+                    <div className="marquee-inner">
+                      {[...brandLogos, ...brandLogos].map((brand, index) => (
+                        <div key={index} className="brand-logo-wrap">
+                          <Link href={`/store?brand=${brand.name}`}>
+                            <img src={brand.logo_url} alt={brand.name} className="logo-img-v3" loading="lazy"/>
+                          </Link>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </section>
               </ScrollReveal>
             )}
@@ -900,15 +963,26 @@ export default function HomePage() {
                       </div>
                       <h2 style={{ fontSize: '1.8rem', fontWeight: '900', margin: 0 }}>عروض حصرية 🔥</h2>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><Link href="/store?filter=sales" style={{ color: '#22c55e', fontWeight: '800', textDecoration: 'none', marginLeft: '15px', fontSize: '0.9rem' }}>عرض الكل</Link><button onClick={() => scroll(scrollRef, 'right')} style={arrowBtnSmall}><ChevronRight size={14}/></button><button onClick={() => scroll(scrollRef, 'left')} style={arrowBtnSmall}><ChevronLeft size={14}/></button></div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <Link href="/store?filter=sales" style={{ color: '#22c55e', fontWeight: '800', textDecoration: 'none', marginLeft: '15px', fontSize: '0.9rem' }}>عرض الكل</Link>
+                      <button onClick={() => scroll(scrollRef, 'right')} style={arrowBtnSmall}><ChevronRight size={14}/></button>
+                      <button onClick={() => scroll(scrollRef, 'left')} style={arrowBtnSmall}><ChevronLeft size={14}/></button>
+                    </div>
                   </div>
                   <div ref={scrollRef} className="no-scrollbar product-grid-carousel">
                     {filteredSaleProducts.map((p) => {
                       const country = p.country_origin || p.country_of_origin || p.origin || 'أصلي';
                       return (
                         <div key={p.id} className="product-card-mdrn">
-                          <div style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#ff4d4d', color: '#fff', padding: '2px 6px', borderRadius: '5px', fontSize: '0.6rem', fontWeight: '900', zIndex: 10 }}>-{Math.round(((p.regular_price - p.sale_price) / p.regular_price) * 100)}%</div>
-                          <Link href={`/products/${p.id}`} className="img-container"><img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" /><div style={{ position: 'absolute', bottom: 6, left: 6, background: 'rgba(255,255,255,0.9)', padding: '2px 6px', borderRadius: '5px', fontSize: '0.65rem', fontWeight: '800' }}><Car size={9} /> {p.car_make}</div></Link>
+                          <div style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#ff4d4d', color: '#fff', padding: '2px 6px', borderRadius: '5px', fontSize: '0.6rem', fontWeight: '900', zIndex: 10 }}>
+                            -{Math.round(((p.regular_price - p.sale_price) / p.regular_price) * 100)}%
+                          </div>
+                          <Link href={`/products/${p.id}`} className="img-container">
+                            <img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" />
+                            <div style={{ position: 'absolute', bottom: 6, left: 6, background: 'rgba(255,255,255,0.9)', padding: '2px 6px', borderRadius: '5px', fontSize: '0.65rem', fontWeight: '800' }}>
+                              <Car size={9} /> {p.car_make}
+                            </div>
+                          </Link>
                           <div style={{ padding: '15px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                               <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.8rem' }}>{p.brand}</span>
@@ -922,11 +996,13 @@ export default function HomePage() {
                               <div style={{fontSize:'0.8rem', color:'#888', fontWeight:'700', display:'flex', alignItems:'center', gap:'6px'}}><Tags size={14}/> {p.subcategory || 'عام'}</div>
                             </div>
                             <div style={{ marginTop: 'auto', display:'flex', flexDirection:'column', gap:'12px' }}>
-                              <div className="cart-price-wrap">
+                              <div>
                                 <span style={{ display: 'block', color: '#bbb', textDecoration: 'line-through', fontSize: '0.75rem' }}>{p.regular_price} ج.م</span>
                                 <span style={{ fontSize: '1.2rem', fontWeight: '900' }}>{p.sale_price} ج.م</span>
                               </div>
-                              <button style={cartBtnStyleSmall} onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, 1); toast.success('تمت الإضافة'); }}><ShoppingCart size={16} /> أضف إلى السلة</button>
+                              <button style={cartBtnStyleSmall} onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, 1); toast.success('تمت الإضافة'); }}>
+                                <ShoppingCart size={16} /> أضف إلى السلة
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -952,7 +1028,10 @@ export default function HomePage() {
                       </div>
                       <h2 style={{ fontSize: '1.8rem', fontWeight: '900', margin: 0 }}>تريند الآن 🔥</h2>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><button onClick={() => scroll(bestSellerRef, 'right')} style={arrowBtnSmall}><ChevronRight size={14}/></button><button onClick={() => scroll(bestSellerRef, 'left')} style={arrowBtnSmall}><ChevronLeft size={14}/></button></div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <button onClick={() => scroll(bestSellerRef, 'right')} style={arrowBtnSmall}><ChevronRight size={14}/></button>
+                      <button onClick={() => scroll(bestSellerRef, 'left')} style={arrowBtnSmall}><ChevronLeft size={14}/></button>
+                    </div>
                   </div>
                   <div ref={bestSellerRef} className="no-scrollbar product-grid-carousel">
                     {filteredBestSellers.map((p) => {
@@ -960,7 +1039,9 @@ export default function HomePage() {
                       return (
                         <div key={p.id} className="product-card-mdrn">
                           <div style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#22c55e', color: '#fff', padding: '2px 6px', borderRadius: '5px', fontSize: '0.6rem', fontWeight: '900', zIndex: 10 }}>تريند ✨</div>
-                          <Link href={`/products/${p.id}`} className="img-container"><img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" /></Link>
+                          <Link href={`/products/${p.id}`} className="img-container">
+                            <img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" />
+                          </Link>
                           <div style={{ padding: '15px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                               <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.8rem' }}>{p.brand}</span>
@@ -975,7 +1056,9 @@ export default function HomePage() {
                             </div>
                             <div style={{ marginTop: 'auto', display:'flex', flexDirection:'column', gap:'12px' }}>
                               <span style={{ fontSize: '1.2rem', fontWeight: '900' }}>{p.sale_price || p.regular_price} ج.م</span>
-                              <button style={cartBtnStyleSmall} onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price || p.regular_price}, 1); toast.success('تمت الإضافة'); }}><ShoppingCart size={16} /> أضف إلى السلة</button>
+                              <button style={cartBtnStyleSmall} onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price || p.regular_price}, 1); toast.success('تمت الإضافة'); }}>
+                                <ShoppingCart size={16} /> أضف إلى السلة
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -990,7 +1073,9 @@ export default function HomePage() {
             {/* Categories Section */}
             <ScrollReveal direction="up" delay={0.2}>
               <section style={{ padding: '40px 20px 80px', maxWidth: '1200px', margin: '0 auto' }}>
-                <div style={{ textAlign: 'right', marginBottom: '30px' }}><h2 style={{ fontSize: '2.2rem', fontWeight: '900', margin: 0 }}>تسوق حسب الفئة</h2></div>
+                <div style={{ textAlign: 'right', marginBottom: '30px' }}>
+                  <h2 style={{ fontSize: '2.2rem', fontWeight: '900', margin: 0 }}>تسوق حسب الفئة</h2>
+                </div>
                 <div className="category-grid-v3">
                   {categories.map((cat, index) => (
                     <motion.div
@@ -1011,6 +1096,7 @@ export default function HomePage() {
                 </div>
               </section>
             </ScrollReveal>
+
           </div>
         )}
 
