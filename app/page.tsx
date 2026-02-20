@@ -438,33 +438,32 @@ export default function HomePage() {
       <div style={{ direction: 'rtl', backgroundColor: '#fdfdfd', color: '#1a1a1a', minHeight: '100vh', fontSize: '13px' }}>
         
         {loading && (
-          <motion.div 
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            style={fullPageLoaderStyle}
-          >
-            <div style={{ textAlign: 'center', maxWidth: '600px' }}>
-              <motion.div 
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.6, ease: 'easeOut' }}
-                style={logoContainer}
-              >
-                <motion.img
-                  src="/api/placeholder/200/200"
-                  alt="Zait and Filters"
-                  animate={{ 
-                    y: [0, -10, 0],
-                  }}
-                  transition={{ 
-                    duration: 2.5, 
-                    repeat: Infinity,
-                    ease: 'easeInOut'
-                  }}
-                  style={logoImage}
-                />
-              </motion.div>
+  <motion.div 
+    initial={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.5 }}
+    style={fullPageLoaderStyle}
+  >
+    <div style={{ textAlign: 'center', maxWidth: '600px' }}>
+      <motion.div 
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        style={logoContainer}
+      >
+        {/* Floating image removed */}
+        {/* You can optionally put a simple text logo here instead */}
+        <motion.h1
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.5 }}
+          style={brandNameText}
+        >
+          <span style={{ color: '#fff' }}>ZAIT</span>
+          <span style={{ color: '#22c55e' }}>&nbsp;FILTERS</span>
+        </motion.h1>
+      </motion.div>
+
 
 
               <motion.h1
@@ -817,250 +816,77 @@ export default function HomePage() {
 
 
         {!loading && (
-  <div className="page-container">
-    {/* Hero Section */}
-    <section
-      style={{
-        position: 'relative',
-        minHeight: '600px',
-        overflow: 'hidden',
-        backgroundColor: '#000',
-      }}
-    >
-      {slides.map((slide, index) => (
-        <div
-          key={index}
-          className={`hero-slide ${index === currentSlide ? 'active' : ''}`}
-          style={{
-            // removed url("${slide.bg_image_url}")
-            backgroundImage:
-              'linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9))',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          <div
-            style={{
-              position: 'relative',
-              zIndex: 2,
-              width: '100%',
-              maxWidth: '1200px',
-              margin: '0 auto',
-              padding: '40px 20px',
-            }}
-          >
-            <div
-              className="hero-content-wrapper"
-              style={{
-                display: 'flex',
-                gap: '40px',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-              }}
-            >
-              <div
-                className="hero-content-right"
-                style={{ flex: '1', textAlign: 'right', minWidth: '300px' }}
-              >
-                {slide.title && (
-                  <h1
-                    style={{
-                      fontSize: '3rem',
-                      fontWeight: '900',
-                      lineHeight: '1.4',
-                      marginBottom: '15px',
-                      color: '#22c55e',
-                    }}
-                  >
-                    {slide.title.replace(/<[^>]*>/g, '')}
-                  </h1>
-                )}
-                <p
-                  style={{
-                    color: '#fff',
-                    fontSize: '1.2rem',
-                    fontWeight: '500',
-                    marginBottom: '25px',
-                    maxWidth: '550px',
-                    lineHeight: '1.5',
-                  }}
-                >
-                  {slide.subtitle}
-                </p>
-                <Link
-                  href={slide.button_link || '/store'}
-                  style={{
-                    padding: '12px 30px',
-                    backgroundColor: '#22c55e',
-                    color: '#fff',
-                    borderRadius: '12px',
-                    textDecoration: 'none',
-                    fontWeight: 'bold',
-                    fontSize: '0.95rem',
-                    display: 'inline-block',
-                  }}
-                >
-                  {slide.button_text || 'تصفح المتجر'}
-                </Link>
-              </div>
-
-              <div
-                className="hero-content-left"
-                style={{
-                  width: '400px',
-                  maxWidth: '100%',
-                  backgroundColor: '#fff',
-                  padding: '30px',
-                  borderRadius: '30px',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-                  position: 'relative',
-                  zIndex: 100,
-                }}
-              >
-                <h3
-                  style={{
-                    marginBottom: '20px',
-                    fontSize: '1.2rem',
-                    fontWeight: '900',
-                    textAlign: 'center',
-                  }}
-                >
-                  ابحث بمواصفات سيارتك
-                </h3>
-                {selectLoaded && (
-                  <>
-                    <div style={{ marginBottom: '12px' }}>
-                      <label
-                        style={{
-                          fontSize: '0.8rem',
-                          fontWeight: '800',
-                          color: '#555',
-                          marginBottom: '6px',
-                          display: 'block',
-                        }}
-                      >
-                        الماركة
-                      </label>
-                      <Select
-                        instanceId="make-select"
-                        options={makesOptions}
-                        styles={customSelectStyles}
-                        placeholder="اختر الماركة"
-                        isRtl={true}
-                        isSearchable={true}
-                        onChange={(opt) => setSelectedMake(opt)}
-                        formatOptionLabel={(brand: any) => (
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '10px',
-                            }}
-                          >
-                            {brand.logo ? (
-                              <img
-                                src={brand.logo}
-                                alt=""
-                                style={{
-                                  width: '22px',
-                                  height: '22px',
-                                  objectFit: 'contain',
-                                }}
-                              />
-                            ) : (
-                              <Car size={20} color="#ccc" />
-                            )}
-                            <span>{brand.label}</span>
-                          </div>
-                        )}
-                      />
-                    </div>
-                    <div style={{ marginBottom: '12px' }}>
-                      <label
-                        style={{
-                          fontSize: '0.8rem',
-                          fontWeight: '800',
-                          color: '#555',
-                          marginBottom: '6px',
-                          display: 'block',
-                        }}
-                      >
-                        الموديل
-                      </label>
-                      <Select
-                        instanceId="model-select"
-                        options={modelsOptions}
-                        styles={customSelectStyles}
-                        placeholder="اختر الموديل"
-                        isRtl={true}
-                        isSearchable={true}
-                        value={selectedModel}
-                        isDisabled={!selectedMake}
-                        onChange={(opt) => setSelectedModel(opt)}
-                      />
-                    </div>
-                  </>
-                )}
-                <div style={{ marginBottom: '12px' }}>
-                  <label
-                    style={{
-                      fontSize: '0.8rem',
-                      fontWeight: '800',
-                      color: '#555',
-                      marginBottom: '6px',
-                      display: 'block',
-                    }}
-                  >
-                    سنة الصنع
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="مثلاً: 2024"
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                    style={{
-                      width: '100%',
-                      height: '52px',
-                      padding: '0 15px',
-                      backgroundColor: '#f8f8f8',
-                      border: 'none',
-                      borderRadius: '12px',
-                      fontSize: '1rem',
-                      outline: 'none',
-                    }}
-                  />
-                </div>
-                <button
-                  onClick={handleSearch}
-                  style={{
-                    width: '100%',
-                    marginTop: '15px',
-                    backgroundColor: '#1a1a1a',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '16px',
-                    borderRadius: '15px',
-                    fontWeight: '900',
-                    cursor: 'pointer',
+          <div className="page-container">
+            {/* Hero Section */}
+            <section style={{ position: 'relative', minHeight: '600px', overflow: 'hidden', backgroundColor: '#000' }}>
+              {slides.map((slide, index) => (
+                <div 
+                  key={index}
+                  className={`hero-slide ${index === currentSlide ? 'active' : ''}`}
+                  style={{ 
+                    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("${slide.bg_image_url}")`,
                     display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: '10px',
-                    fontSize: '1.1rem',
+                    alignItems: 'center'
                   }}
                 >
-                  بحث الآن <ChevronLeft size={22} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
-    </section>
-
-    {/* Brand Logos ... (rest of your page stays the same) */}
-
+                  <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
+                    <div className="hero-content-wrapper" style={{ display: 'flex', gap: '40px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                      <div className="hero-content-right" style={{ flex: '1', textAlign: 'right', minWidth: '300px' }}>
+                        {slide.title && (
+                          <h1 style={{ fontSize: '3rem', fontWeight: '900', lineHeight: '1.4', marginBottom: '15px', color: '#22c55e' }}>
+                            {slide.title.replace(/<[^>]*>/g, '')}
+                          </h1>
+                        )}
+                        <p style={{ color: '#fff', fontSize: '1.2rem', fontWeight: '500', marginBottom: '25px', maxWidth: '550px', lineHeight: '1.5' }}>{slide.subtitle}</p>
+                        <Link href={slide.button_link || '/store'} style={{ padding: '12px 30px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.95rem', display: 'inline-block' }}>{slide.button_text || 'تصفح المتجر'}</Link>
+                      </div>
+                      
+                      <div className="hero-content-left" style={{ width: '400px', maxWidth: '100%', backgroundColor: '#fff', padding: '30px', borderRadius: '30px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)', position: 'relative', zIndex: 100 }}>
+                        <h3 style={{ marginBottom: '20px', fontSize: '1.2rem', fontWeight: '900', textAlign: 'center' }}>ابحث بمواصفات سيارتك</h3>
+                        {selectLoaded && (
+                          <>
+                            <div style={{marginBottom: '12px'}}>
+                              <label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>الماركة</label>
+                              <Select 
+                                instanceId="make-select" 
+                                options={makesOptions} 
+                                styles={customSelectStyles} 
+                                placeholder="اختر الماركة" 
+                                isRtl={true} 
+                                isSearchable={true}
+                                onChange={(opt) => setSelectedMake(opt)} 
+                                formatOptionLabel={(brand: any) => (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    {brand.logo ? <img src={brand.logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} /> : <Car size={20} color="#ccc" />}
+                                    <span>{brand.label}</span>
+                                  </div>
+                                )} 
+                              />
+                            </div>
+                            <div style={{marginBottom: '12px'}}>
+                              <label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>الموديل</label>
+                              <Select 
+                                instanceId="model-select" 
+                                options={modelsOptions} 
+                                styles={customSelectStyles} 
+                                placeholder="اختر الموديل" 
+                                isRtl={true} 
+                                isSearchable={true}
+                                value={selectedModel} 
+                                isDisabled={!selectedMake} 
+                                onChange={(opt) => setSelectedModel(opt)}
+                              />
+                            </div>
+                          </>
+                        )}
+                        <div style={{marginBottom: '12px'}}><label style={{fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block'}}>سنة الصنع</label><input type="text" placeholder="مثلاً: 2024" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} style={{ width: '100%', height: '52px', padding: '0 15px', backgroundColor: '#f8f8f8', border: 'none', borderRadius: '12px', fontSize: '1rem', outline: 'none' }} /></div>
+                        <button onClick={handleSearch} style={{ width: '100%', marginTop: '15px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', padding: '16px', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontSize: '1.1rem' }}>بحث الآن <ChevronLeft size={22} /></button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </section>
 
 
             {/* Brand Logos */}
