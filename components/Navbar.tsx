@@ -12,7 +12,6 @@ import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
-
 export default function ProfessionalNavbar() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -40,7 +39,12 @@ export default function ProfessionalNavbar() {
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user || null);
       if (session?.user) fetchGarageData(session.user.id);
-      else setUserCar(null);
+      else {
+        setUserCar(null);
+        setGarageMode(false);
+        localStorage.setItem('garageMode', 'false');
+        window.dispatchEvent(new Event('garageModeChanged'));
+      }
     });
 
     if (cartItems.length > 0) {
@@ -51,7 +55,9 @@ export default function ProfessionalNavbar() {
       });
     }
 
-    return () => authListener.subscription.unsubscribe();
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, [cartItems.length, controls]);
 
   const fetchGarageData = async (userId: string) => {
@@ -64,16 +70,27 @@ export default function ProfessionalNavbar() {
   };
 
   const toggleGarage = () => {
-    if (!userCar) {
-      toast.error('يرجى إضافة سيارة إلى جراجك أولاً');
-      router.push('/account/garage');
+    if (!user) {
+      toast.error('يرجى تسجيل الدخول أولاً لاستخدام جراجي');
+      router.push('/login');
       return;
     }
+
+    if (!userCar) {
+      toast.error('يرجى الذهاب إلى حسابك الشخصي وإضافة سيارة إلى جراجك أولاً');
+      return;
+    }
+
     const newMode = !garageMode;
     setGarageMode(newMode);
     localStorage.setItem('garageMode', newMode.toString());
     window.dispatchEvent(new Event('garageModeChanged'));
-    if (newMode) toast.success(`تم تفعيل وضع جراجي لسيارة ${userCar.make}`);
+
+    if (newMode) {
+      toast.success(`تم تفعيل وضع جراجي لسيارة ${userCar.make}`);
+    } else {
+      toast('تم إيقاف وضع جراجي');
+    }
   };
 
   const handleLogout = async () => {
@@ -118,32 +135,68 @@ export default function ProfessionalNavbar() {
               </div>
 
               <div style={sidebarContent}>
-                <button onClick={toggleGarage} style={{ ...sidebarLink, backgroundColor: garageMode ? '#eefcf5' : 'transparent', color: garageMode ? '#27ae60' : '#444' }}>
+                {/* Garage toggle in sidebar */}
+                <button
+                  onClick={() => { toggleGarage(); }}
+                  style={{
+                    ...sidebarLink,
+                    backgroundColor: garageMode ? '#eefcf5' : 'transparent',
+                    color: garageMode ? '#27ae60' : '#444',
+                  }}
+                >
                   <Car size={20} color={garageMode ? '#27ae60' : '#444'}/> 
                   جراجي {garageMode ? '(مفعل)' : ''}
                 </button>
 
-                <Link href="/" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}><Home size={20}/> الرئيسية</Link>
-                <Link href="/store" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}><Store size={20}/> المتجر</Link>
+                <Link href="/" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}>
+                  <Home size={20}/> الرئيسية
+                </Link>
+                <Link href="/store" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}>
+                  <Store size={20}/> المتجر
+                </Link>
 
-                {/* ✅ Blog link in sidebar */}
-                <Link href="/blog" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}><BookOpen size={20}/> المدونة</Link>
+                {/* Blog link in sidebar */}
+                <Link href="/blog" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}>
+                  <BookOpen size={20}/> المدونة
+                </Link>
 
-                <Link href="/affiliate" onClick={() => setIsSidebarOpen(false)} style={{ ...sidebarLink, color: '#27ae60' }}><Handshake size={20}/> ابدأ الربح معنا</Link>
+                <Link href="/affiliate" onClick={() => setIsSidebarOpen(false)} style={{ ...sidebarLink, color: '#27ae60' }}>
+                  <Handshake size={20}/> ابدأ الربح معنا
+                </Link>
 
                 <hr style={sidebarDivider} />
                 {user ? (
                   <>
-                    <Link href="/profile" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}><User size={20}/> حسابي الشخصي</Link>
-                    <Link href="/account/garage" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}><Settings size={20}/> إعدادات جراجي</Link>
-                    <button onClick={handleLogout} style={sidebarLogoutBtn}><LogOut size={20}/> تسجيل الخروج</button>
+                    <Link href="/profile" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}>
+                      <User size={20}/> حسابي الشخصي
+                    </Link>
+                    {/* No /account/garage route – point user to profile */}
+                    <button
+                      onClick={() => {
+                        setIsSidebarOpen(false);
+                        router.push('/profile');
+                        toast('اذهب إلى حسابك الشخصي لإضافة أو تعديل سيارتك في الجراج');
+                      }}
+                      style={sidebarLink}
+                    >
+                      <Settings size={20}/> إعدادات جراجي
+                    </button>
+                    <button onClick={handleLogout} style={sidebarLogoutBtn}>
+                      <LogOut size={20}/> تسجيل الخروج
+                    </button>
                   </>
                 ) : (
-                  <Link href="/login" onClick={() => setIsSidebarOpen(false)} style={{ ...sidebarLink, color: '#27ae60' }}><LogIn size={20}/> تسجيل الدخول</Link>
+                  <Link href="/login" onClick={() => setIsSidebarOpen(false)} style={{ ...sidebarLink, color: '#27ae60' }}>
+                    <LogIn size={20}/> تسجيل الدخول
+                  </Link>
                 )}
                 <hr style={sidebarDivider} />
-                <Link href="/about" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}><Info size={20}/> عن زيت أند فلترز</Link>
-                <Link href="/contact" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}><PhoneCall size={20}/> اتصل بنا</Link>
+                <Link href="/about" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}>
+                  <Info size={20}/> عن زيت أند فلترز
+                </Link>
+                <Link href="/contact" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}>
+                  <PhoneCall size={20}/> اتصل بنا
+                </Link>
               </div>
 
               <div style={sidebarFooter}>
@@ -157,13 +210,22 @@ export default function ProfessionalNavbar() {
       {/* --- Top Navbar --- */}
       <nav style={navContainer}>
         <div style={navContent} className="nav-content">
-          <button className="mobile-menu-btn" style={{ ...iconBtn, display: 'none' }} onClick={() => setIsSidebarOpen(true)}><MenuIcon size={24} /></button>
+          <button
+            className="mobile-menu-btn"
+            style={{ ...iconBtn, display: 'none' }}
+            onClick={() => setIsSidebarOpen(true)}
+          >
+            <MenuIcon size={24} />
+          </button>
 
           <Link href="/" style={logoStyle} className="logo-text">
             ZAIT <span style={{ color: '#27ae60' }}>& FILTERS</span>
           </Link>
 
-          <div style={{ ...searchWrapper, borderColor: isSearchFocused ? '#27ae60' : '#eee' }} className="search-wrapper">
+          <div
+            style={{ ...searchWrapper, borderColor: isSearchFocused ? '#27ae60' : '#eee' }}
+            className="search-wrapper"
+          >
             <Search size={18} color={isSearchFocused ? '#27ae60' : '#999'} />
             <input 
               type="text" 
@@ -177,10 +239,12 @@ export default function ProfessionalNavbar() {
           <div style={navLinks} className="desktop-links">
             <Link href="/store" style={linkItem}>المتجر</Link>
 
-            {/* ✅ Blog link in desktop nav */}
+            {/* Blog link in desktop nav */}
             <Link href="/blog" style={linkItem}>المدونة</Link>
 
-            <Link href="/affiliate" style={{ ...linkItem, color: '#27ae60' }}>ابدأ الربح معنا</Link>
+            <Link href="/affiliate" style={{ ...linkItem, color: '#27ae60' }}>
+              ابدأ الربح معنا
+            </Link>
 
             <div style={iconGroup}>
               <button 
@@ -189,9 +253,13 @@ export default function ProfessionalNavbar() {
                   ...garageToggleBtn,
                   backgroundColor: garageMode ? '#27ae60' : 'rgba(0,0,0,0.05)',
                   color: garageMode ? '#fff' : '#1a1a1a',
-                  marginLeft: '10px'
+                  marginLeft: '10px',
                 }}
-                title={userCar ? `تصفية لسيارة ${userCar.make}` : "جراجي"}
+                title={
+                  userCar
+                    ? `تصفية لسيارة ${userCar.make}`
+                    : 'جراجي (أضف سيارة من حسابك الشخصي)'
+                }
               >
                 <Car size={18} />
                 <span style={{ fontWeight: '900', fontSize: '0.85rem' }}>جراجي</span>
@@ -199,21 +267,34 @@ export default function ProfessionalNavbar() {
 
               {user ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Link href="/profile" style={iconBtn} title="حسابي"><User size={20} /></Link>
-                  <button onClick={handleLogout} style={logoutIconBtn} title="خروج"><LogOut size={18} /></button>
+                  <Link href="/profile" style={iconBtn} title="حسابي">
+                    <User size={20} />
+                  </Link>
+                  <button onClick={handleLogout} style={logoutIconBtn} title="خروج">
+                    <LogOut size={18} />
+                  </button>
                 </div>
               ) : (
-                <Link href="/login" style={loginLinkBtn}><LogIn size={18} /> دخول</Link>
+                <Link href="/login" style={loginLinkBtn}>
+                  <LogIn size={18} /> دخول
+                </Link>
               )}
 
-              <Link href="/cart" style={{ ...iconBtn, position: 'relative', textDecoration: 'none', marginRight: '10px' }}>
+              <Link
+                href="/cart"
+                style={{ ...iconBtn, position: 'relative', textDecoration: 'none', marginRight: '10px' }}
+              >
                 <motion.div animate={controls}><ShoppingCart size={22} /></motion.div>
                 {cartItems.length > 0 && <span style={cartBadge}>{cartItems.length}</span>}
               </Link>
             </div>
           </div>
 
-          <Link href={user ? "/profile" : "/login"} className="mobile-menu-btn" style={{ ...iconBtn, display: 'none' }}>
+          <Link
+            href={user ? '/profile' : '/login'}
+            className="mobile-menu-btn"
+            style={{ ...iconBtn, display: 'none' }}
+          >
             <User size={24}/>
           </Link>
         </div>
@@ -224,7 +305,7 @@ export default function ProfessionalNavbar() {
         <Link href="/" style={bottomNavItem}><Home size={22} /><span>الرئيسية</span></Link>
         <Link href="/store" style={bottomNavItem}><Store size={22} /><span>المتجر</span></Link>
 
-        {/* ✅ Blog link in mobile bottom nav */}
+        {/* Blog link in mobile bottom nav */}
         <Link href="/blog" style={bottomNavItem}><BookOpen size={22} /><span>المدونة</span></Link>
 
         <Link href="/cart" style={{ ...bottomNavItem, position: 'relative' }}>
@@ -232,37 +313,238 @@ export default function ProfessionalNavbar() {
           {cartItems.length > 0 && <span style={cartBadgeMobile}>{cartItems.length}</span>}
           <span>السلة</span>
         </Link>
-        <Link href={user ? "/profile" : "/login"} style={bottomNavItem}><User size={22} /><span>حسابي</span></Link>
-        <button onClick={() => setIsSidebarOpen(true)} style={bottomNavItemBtn}><MenuIcon size={22} /><span>المزيد</span></button>
+        <Link href={user ? '/profile' : '/login'} style={bottomNavItem}>
+          <User size={22} /><span>حسابي</span>
+        </Link>
+        <button onClick={() => setIsSidebarOpen(true)} style={bottomNavItemBtn}>
+          <MenuIcon size={22} /><span>المزيد</span>
+        </button>
       </div>
     </>
   );
 }
 
 // --- Styles ---
-const navContainer: any = { position: 'sticky', top: 0, zIndex: 1000, width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(0, 0, 0, 0.08)', padding: '15px 0', direction: 'rtl' };
-const navContent: any = { maxWidth: '1200px', margin: '0 auto', padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px' };
-const logoStyle: any = { fontSize: '2.1rem', fontWeight: '900', fontStyle: 'italic', textDecoration: 'none', color: '#1a1a1a', letterSpacing: '-1.5px', flexShrink: 0, textTransform: 'uppercase' };
-const searchWrapper: any = { flex: 1, maxWidth: '400px', display: 'flex', alignItems: 'center', backgroundColor: '#f5f5f5', padding: '8px 16px', borderRadius: '12px', border: '1px solid transparent', transition: 'all 0.3s ease', gap: '10px' };
-const searchInput: any = { width: '100%', border: 'none', backgroundColor: 'transparent', outline: 'none', fontSize: '0.9rem' };
+const navContainer: any = {
+  position: 'sticky',
+  top: 0,
+  zIndex: 1000,
+  width: '100%',
+  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  backdropFilter: 'blur(20px)',
+  borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+  padding: '15px 0',
+  direction: 'rtl',
+};
+const navContent: any = {
+  maxWidth: '1200px',
+  margin: '0 auto',
+  padding: '0 20px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '20px',
+};
+const logoStyle: any = {
+  fontSize: '2.1rem',
+  fontWeight: '900',
+  fontStyle: 'italic',
+  textDecoration: 'none',
+  color: '#1a1a1a',
+  letterSpacing: '-1.5px',
+  flexShrink: 0,
+  textTransform: 'uppercase',
+};
+const searchWrapper: any = {
+  flex: 1,
+  maxWidth: '400px',
+  display: 'flex',
+  alignItems: 'center',
+  backgroundColor: '#f5f5f5',
+  padding: '8px 16px',
+  borderRadius: '12px',
+  border: '1px solid transparent',
+  transition: 'all 0.3s ease',
+  gap: '10px',
+};
+const searchInput: any = {
+  width: '100%',
+  border: 'none',
+  backgroundColor: 'transparent',
+  outline: 'none',
+  fontSize: '0.9rem',
+};
 const navLinks: any = { display: 'flex', alignItems: 'center', gap: '25px' };
-const linkItem: any = { textDecoration: 'none', color: '#444', fontSize: '0.95rem', fontWeight: 'bold' };
-const iconGroup: any = { display: 'flex', alignItems: 'center', gap: '12px', borderRight: '1px solid #eee', paddingRight: '15px' };
-const iconBtn: any = { background: 'none', border: 'none', color: '#1a1a1a', cursor: 'pointer', display: 'flex', alignItems: 'center' };
-const loginLinkBtn: any = { display: 'flex', alignItems: 'center', gap: '5px', background: '#1a1a1a', color: '#fff', padding: '6px 15px', borderRadius: '10px', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 'bold' };
+const linkItem: any = {
+  textDecoration: 'none',
+  color: '#444',
+  fontSize: '0.95rem',
+  fontWeight: 'bold',
+};
+const iconGroup: any = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px',
+  borderRight: '1px solid #eee',
+  paddingRight: '15px',
+};
+const iconBtn: any = {
+  background: 'none',
+  border: 'none',
+  color: '#1a1a1a',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+};
+const loginLinkBtn: any = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '5px',
+  background: '#1a1a1a',
+  color: '#fff',
+  padding: '6px 15px',
+  borderRadius: '10px',
+  textDecoration: 'none',
+  fontSize: '0.85rem',
+  fontWeight: 'bold',
+};
 const logoutIconBtn: any = { ...iconBtn, color: '#ff4d4d' };
-const cartBadge: any = { position: 'absolute', top: '-5px', right: '-8px', backgroundColor: '#27ae60', color: '#fff', fontSize: '10px', fontWeight: 'bold', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' };
-const overlayStyle: any = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 2000 };
-const sidebarStyle: any = { position: 'fixed', top: 0, right: 0, bottom: 0, width: '280px', background: '#fff', zIndex: 2001, display: 'flex', flexDirection: 'column', boxShadow: '-5px 0 25px rgba(0,0,0,0.1)', direction: 'rtl' };
-const sidebarHeader: any = { padding: '20px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
-const sidebarContent: any = { flex: 1, padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px' };
-const sidebarLink: any = { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', textDecoration: 'none', color: '#444', fontWeight: 'bold', borderRadius: '10px', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'right', fontSize: '1rem' };
-const sidebarLogoutBtn: any = { ...sidebarLink, background: 'none', border: 'none', color: '#ff4d4d', cursor: 'pointer', width: '100%', textAlign: 'right' };
-const sidebarDivider: any = { border: 'none', borderTop: '1px solid #f5f5f5', margin: '10px 0' };
-const sidebarFooter: any = { padding: '20px', fontSize: '0.7rem', color: '#ccc', textAlign: 'center' };
-const closeBtn: any = { background: 'none', border: 'none', color: '#1a1a1a', cursor: 'pointer' };
-const mobileBottomNav: any = { display: 'none', position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', borderTop: '1px solid #eee', padding: '10px 5px', justifyContent: 'space-around', alignItems: 'center', zIndex: 1001, direction: 'rtl' };
-const bottomNavItem: any = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', textDecoration: 'none', color: '#666', fontSize: '0.7rem', fontWeight: 'bold' };
+const cartBadge: any = {
+  position: 'absolute',
+  top: '-5px',
+  right: '-8px',
+  backgroundColor: '#27ae60',
+  color: '#fff',
+  fontSize: '10px',
+  fontWeight: 'bold',
+  borderRadius: '50%',
+  width: '18px',
+  height: '18px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+const overlayStyle: any = {
+  position: 'fixed',
+  inset: 0,
+  background: 'rgba(0,0,0,0.5)',
+  backdropFilter: 'blur(4px)',
+  zIndex: 2000,
+};
+const sidebarStyle: any = {
+  position: 'fixed',
+  top: 0,
+  right: 0,
+  bottom: 0,
+  width: '280px',
+  background: '#fff',
+  zIndex: 2001,
+  display: 'flex',
+  flexDirection: 'column',
+  boxShadow: '-5px 0 25px rgba(0,0,0,0.1)',
+  direction: 'rtl',
+};
+const sidebarHeader: any = {
+  padding: '20px',
+  borderBottom: '1px solid #eee',
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+};
+const sidebarContent: any = {
+  flex: 1,
+  padding: '20px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '10px',
+};
+const sidebarLink: any = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px',
+  padding: '12px',
+  textDecoration: 'none',
+  color: '#444',
+  fontWeight: 'bold',
+  borderRadius: '10px',
+  border: 'none',
+  width: '100%',
+  cursor: 'pointer',
+  textAlign: 'right',
+  fontSize: '1rem',
+};
+const sidebarLogoutBtn: any = {
+  ...sidebarLink,
+  background: 'none',
+  border: 'none',
+  color: '#ff4d4d',
+  cursor: 'pointer',
+  width: '100%',
+  textAlign: 'right',
+};
+const sidebarDivider: any = {
+  border: 'none',
+  borderTop: '1px solid #f5f5f5',
+  margin: '10px 0',
+};
+const sidebarFooter: any = {
+  padding: '20px',
+  fontSize: '0.7rem',
+  color: '#ccc',
+  textAlign: 'center',
+};
+const closeBtn: any = {
+  background: 'none',
+  border: 'none',
+  color: '#1a1a1a',
+  cursor: 'pointer',
+};
+const mobileBottomNav: any = {
+  display: 'none',
+  position: 'fixed',
+  bottom: 0,
+  left: 0,
+  right: 0,
+  backgroundColor: '#fff',
+  borderTop: '1px solid #eee',
+  padding: '10px 5px',
+  justifyContent: 'space-around',
+  alignItems: 'center',
+  zIndex: 1001,
+  direction: 'rtl',
+};
+const bottomNavItem: any = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: '4px',
+  textDecoration: 'none',
+  color: '#666',
+  fontSize: '0.7rem',
+  fontWeight: 'bold',
+};
 const bottomNavItemBtn: any = { ...bottomNavItem, background: 'none', border: 'none' };
-const cartBadgeMobile: any = { position: 'absolute', top: '-5px', right: '5px', backgroundColor: '#27ae60', color: '#fff', fontSize: '9px', borderRadius: '50%', width: '15px', height: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center' };
-const garageToggleBtn: any = { display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '12px', border: 'none', cursor: 'pointer', transition: 'all 0.3s ease' };
+const cartBadgeMobile: any = {
+  position: 'absolute',
+  top: '-5px',
+  right: '5px',
+  backgroundColor: '#27ae60',
+  color: '#fff',
+  fontSize: '9px',
+  borderRadius: '50%',
+  width: '15px',
+  height: '15px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+const garageToggleBtn: any = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  padding: '8px 16px',
+  borderRadius: '12px',
+  border: 'none',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease',
+};
