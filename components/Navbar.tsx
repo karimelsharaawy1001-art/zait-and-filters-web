@@ -77,7 +77,46 @@ export default function ProfessionalNavbar() {
     }
 
     if (!userCar) {
-      toast.error('يرجى الذهاب إلى حسابك الشخصي وإضافة سيارة إلى جراجك أولاً');
+      toast.custom((t) => (
+        <div
+          style={{
+            direction: 'rtl',
+            background: '#fff',
+            padding: '14px 16px',
+            borderRadius: '12px',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.12)',
+            border: '1px solid #fee2e2',
+            maxWidth: '280px',
+            fontSize: '0.85rem',
+            color: '#7f1d1d',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+          }}
+        >
+          <span>لا يوجد أي سيارة في جراجك حالياً.</span>
+          <span>أضف سيارتك من صفحة حسابك الشخصي لاستخدام ميزة جراجي.</span>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              router.push('/profile');
+            }}
+            style={{
+              marginTop: '4px',
+              padding: '8px 10px',
+              borderRadius: '10px',
+              border: 'none',
+              background: '#15803d',
+              color: '#fff',
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontSize: '0.8rem',
+            }}
+          >
+            الذهاب إلى حسابي
+          </button>
+        </div>
+      ));
       return;
     }
 
@@ -170,12 +209,11 @@ export default function ProfessionalNavbar() {
                     <Link href="/profile" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}>
                       <User size={20}/> حسابي الشخصي
                     </Link>
-                    {/* No /account/garage route – point user to profile */}
+                    {/* Hint button to manage garage from profile */}
                     <button
                       onClick={() => {
                         setIsSidebarOpen(false);
                         router.push('/profile');
-                        toast('اذهب إلى حسابك الشخصي لإضافة أو تعديل سيارتك في الجراج');
                       }}
                       style={sidebarLink}
                     >
@@ -305,6 +343,15 @@ export default function ProfessionalNavbar() {
         <Link href="/" style={bottomNavItem}><Home size={22} /><span>الرئيسية</span></Link>
         <Link href="/store" style={bottomNavItem}><Store size={22} /><span>المتجر</span></Link>
 
+        {/* Garage icon in mobile bottom nav */}
+        <button
+          onClick={toggleGarage}
+          style={bottomNavItemBtn}
+        >
+          <Car size={22} color={garageMode ? '#27ae60' : '#555'} />
+          <span style={{ color: garageMode ? '#27ae60' : '#555' }}>جراجي</span>
+        </button>
+
         {/* Blog link in mobile bottom nav */}
         <Link href="/blog" style={bottomNavItem}><BookOpen size={22} /><span>المدونة</span></Link>
 
@@ -385,7 +432,7 @@ const iconGroup: any = {
   display: 'flex',
   alignItems: 'center',
   gap: '12px',
-  borderRight: '1px solid #eee',
+  borderRight: '1px solid #eee', // ✅ closing quote and comma
   paddingRight: '15px',
 };
 const iconBtn: any = {
