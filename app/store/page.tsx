@@ -65,7 +65,7 @@ interface FilterSectionProps {
   selectedModel: any;
   yearInput: string;
   selectedCategory: any;
-  selectedSubcategory: any;
+  selectedSubcategories: any[]; // ← changed to array
   selectedBrand: any;
   searchQuery: string;
   customSelectStyles: any;
@@ -73,7 +73,7 @@ interface FilterSectionProps {
   setSelectedModel: (opt: any) => void;
   setYearInput: (val: string) => void;
   handleCategoryChange: (opt: any) => void;
-  setSelectedSubcategory: (opt: any) => void;
+  setSelectedSubcategories: (opts: any[]) => void; // ← changed to array setter
   setSelectedBrand: (opt: any) => void;
   setSearchQuery: (val: string) => void;
   handleFilterChange: () => void;
@@ -93,7 +93,7 @@ function FilterSection({
   selectedModel,
   yearInput,
   selectedCategory,
-  selectedSubcategory,
+  selectedSubcategories,
   selectedBrand,
   searchQuery,
   customSelectStyles,
@@ -101,14 +101,20 @@ function FilterSection({
   setSelectedModel,
   setYearInput,
   handleCategoryChange,
-  setSelectedSubcategory,
+  setSelectedSubcategories,
   setSelectedBrand,
   setSearchQuery,
   handleFilterChange,
   clearFilters,
 }: FilterSectionProps) {
   const hasAnyFilter =
-    selectedMake || selectedModel || yearInput || selectedCategory || selectedSubcategory || selectedBrand || searchQuery;
+    selectedMake ||
+    selectedModel ||
+    yearInput ||
+    selectedCategory ||
+    (selectedSubcategories && selectedSubcategories.length > 0) ||
+    selectedBrand ||
+    searchQuery;
 
   const garageMakeConflict =
     garageMode &&
@@ -232,18 +238,60 @@ function FilterSection({
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: '800', color: '#555' }}>
               القسم الفرعي
+              {selectedSubcategories && selectedSubcategories.length > 0 && (
+                <span
+                  style={{
+                    marginRight: '8px',
+                    backgroundColor: '#22c55e',
+                    color: '#fff',
+                    padding: '2px 8px',
+                    borderRadius: '8px',
+                    fontSize: '0.7rem',
+                    fontWeight: '900',
+                  }}
+                >
+                  {selectedSubcategories.length} مختار
+                </span>
+              )}
             </label>
             <Select
               instanceId="store-subcategory-select"
               options={subcategoriesOptions}
-              styles={customSelectStyles}
-              placeholder="اختر القسم الفرعي"
+              styles={{
+                ...customSelectStyles,
+                // Override control height to allow multi-value chips to expand
+                control: (base: any) => ({
+                  ...customSelectStyles.control(base),
+                  height: 'auto',
+                  minHeight: '48px',
+                }),
+              }}
+              placeholder="اختر قسم فرعي أو أكثر"
               isRtl={true}
-              value={selectedSubcategory}
-              onChange={(opt) => setSelectedSubcategory(opt)}
+              isMulti
+              value={selectedSubcategories}
+              onChange={(opts: any) => setSelectedSubcategories(opts ? (opts as any[]) : [])}
               isDisabled={!selectedCategory}
               isClearable
+              closeMenuOnSelect={false}
+              hideSelectedOptions={false}
             />
+            {selectedSubcategories && selectedSubcategories.length > 1 && (
+              <p
+                style={{
+                  marginTop: '6px',
+                  fontSize: '0.72rem',
+                  color: '#0369a1',
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                }}
+              >
+                <AlertCircle size={13} />
+                سيتم عرض منتجات كل الأقسام المختارة
+              </p>
+            )}
           </div>
 
           <div>
@@ -542,7 +590,7 @@ function StoreContent() {
   const [selectedMake, setSelectedMake] = useState<any>(null);
   const [selectedModel, setSelectedModel] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
-  const [selectedSubcategory, setSelectedSubcategory] = useState<any>(null);
+  const [selectedSubcategories, setSelectedSubcategories] = useState<any[]>([]); // ← now an array
   const [selectedBrand, setSelectedBrand] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -556,7 +604,7 @@ function StoreContent() {
   const urlModel = searchParams.get('model');
   const urlYear = searchParams.get('year');
   const urlCategory = searchParams.get('category');
-  const urlSubcategory = searchParams.get('subcategory');
+  const urlSubcategory = searchParams.get('subcategory'); // comma-separated for multi
   const urlBrand = searchParams.get('brand');
   const urlSearch = searchParams.get('q');
 
@@ -711,9 +759,13 @@ function StoreContent() {
           const uniqueSubcats = Array.from(new Set(data.map((p) => p.subcategory?.trim()).filter(Boolean)));
           const subcatOpts = uniqueSubcats.sort().map((s) => ({ value: s, label: s }));
           setSubcategoriesOptions(subcatOpts);
+          // Support comma-separated multi subcategories in URL
           if (urlSubcategory) {
-            const subOption = subcatOpts.find((opt) => opt.value.toUpperCase() === urlSubcategory.toUpperCase());
-            if (subOption) setSelectedSubcategory(subOption);
+            const urlSubcatValues = urlSubcategory.split(',').map((s) => s.trim().toUpperCase());
+            const matchedSubcats = subcatOpts.filter((opt) =>
+              urlSubcatValues.includes(opt.value.toUpperCase())
+            );
+            if (matchedSubcats.length > 0) setSelectedSubcategories(matchedSubcats);
           }
         }
       }
@@ -746,12 +798,17 @@ function StoreContent() {
     const hasMinimumURLFilters = (urlMake && urlModel) || urlCategory;
 
     if (hasMinimumURLFilters) {
+      // Build subcategory values array from URL
+      const urlSubcatValues = urlSubcategory
+        ? urlSubcategory.split(',').map((s) => s.trim()).filter(Boolean)
+        : [];
+
       await fetchProducts({
         make: urlMake,
         model: urlModel,
         year: urlYear,
         category: urlCategory,
-        subcategory: urlSubcategory,
+        subcategories: urlSubcatValues, // ← array
         brand: urlBrand,
         search: urlSearch,
         _garageMode: resolvedGarageMode,
@@ -861,7 +918,14 @@ function StoreContent() {
       }
 
       if (filters.category) query = query.ilike('category', filters.category.trim());
-      if (filters.subcategory) query = query.ilike('subcategory', filters.subcategory.trim());
+
+      // ── Multi-subcategory: only add DB filter when exactly 1 selected
+      // For multiple, we filter client-side below (OR logic across subcategories)
+      const subcatsArray: string[] = filters.subcategories ?? [];
+      if (subcatsArray.length === 1) {
+        query = query.ilike('subcategory', subcatsArray[0].trim());
+      }
+
       if (filters.brand) query = query.ilike('brand', filters.brand.trim());
 
       const { data, error } = await query;
@@ -880,6 +944,14 @@ function StoreContent() {
           const matchesYear = yearToMatch ? isYearCompatible(p.car_model_year, yearToMatch) : true;
           return matchesSearch && matchesYear;
         });
+      }
+
+      // ── Client-side multi-subcategory filter (OR logic)
+      if (subcatsArray.length > 1) {
+        const lowerSubcats = subcatsArray.map((s) => s.toLowerCase());
+        fetchedProducts = fetchedProducts.filter((p) =>
+          lowerSubcats.includes((p.subcategory ?? '').trim().toLowerCase())
+        );
       }
 
       if (filters.search) {
@@ -914,7 +986,7 @@ function StoreContent() {
 
   async function handleCategoryChange(opt: any) {
     setSelectedCategory(opt);
-    setSelectedSubcategory(null);
+    setSelectedSubcategories([]); // ← reset to empty array
     if (opt) {
       const { data } = await supabase.from('products').select('subcategory').ilike('category', opt.value.trim());
       if (data) {
@@ -941,7 +1013,10 @@ function StoreContent() {
     if (selectedModel) params.set('model', selectedModel.value.trim().toUpperCase());
     if (yearToApply) params.set('year', yearToApply);
     if (selectedCategory) params.set('category', selectedCategory.value.trim());
-    if (selectedSubcategory) params.set('subcategory', selectedSubcategory.value.trim());
+    // ← serialize multiple subcategories as comma-separated
+    if (selectedSubcategories && selectedSubcategories.length > 0) {
+      params.set('subcategory', selectedSubcategories.map((s) => s.value.trim()).join(','));
+    }
     if (selectedBrand) params.set('brand', selectedBrand.value.trim());
     if (searchQuery) params.set('q', searchQuery.trim());
     if (garageMode && userCar) {
@@ -956,7 +1031,7 @@ function StoreContent() {
       model: selectedModel?.value ?? (garageMode ? userCar?.model : undefined),
       year: yearToApply,
       category: selectedCategory?.value,
-      subcategory: selectedSubcategory?.value,
+      subcategories: selectedSubcategories?.map((s) => s.value) ?? [], // ← array
       brand: selectedBrand?.value,
       search: searchQuery,
       _garageMode: garageMode,
@@ -972,7 +1047,7 @@ function StoreContent() {
     setYearInput('');
     setAppliedYear('');
     setSelectedCategory(null);
-    setSelectedSubcategory(null);
+    setSelectedSubcategories([]); // ← reset to empty array
     setSelectedBrand(null);
     setSearchQuery('');
     setModelsOptions([]);
@@ -1036,6 +1111,29 @@ function StoreContent() {
       padding: '0 12px',
       display: 'flex',
       flexDirection: 'row-reverse',
+      flexWrap: 'wrap',
+    }),
+    multiValue: (base: any) => ({
+      ...base,
+      backgroundColor: '#dcfce7',
+      borderRadius: '6px',
+      margin: '2px',
+    }),
+    multiValueLabel: (base: any) => ({
+      ...base,
+      color: '#166534',
+      fontWeight: '700',
+      fontSize: '0.78rem',
+      padding: '2px 6px',
+    }),
+    multiValueRemove: (base: any) => ({
+      ...base,
+      color: '#166534',
+      cursor: 'pointer',
+      ':hover': {
+        backgroundColor: '#bbf7d0',
+        color: '#14532d',
+      },
     }),
     menu: (base: any) => ({ ...base, zIndex: 9999 }),
   };
@@ -1069,7 +1167,7 @@ function StoreContent() {
     selectedModel,
     yearInput,
     selectedCategory,
-    selectedSubcategory,
+    selectedSubcategories, // ← array
     selectedBrand,
     searchQuery,
     customSelectStyles,
@@ -1077,7 +1175,7 @@ function StoreContent() {
     setSelectedModel,
     setYearInput,
     handleCategoryChange,
-    setSelectedSubcategory,
+    setSelectedSubcategories, // ← array setter
     setSelectedBrand,
     setSearchQuery,
     handleFilterChange,
@@ -1292,7 +1390,7 @@ function StoreContent() {
                             model: selectedModel?.value,
                             year: appliedYear,
                             category: selectedCategory?.value,
-                            subcategory: selectedSubcategory?.value,
+                            subcategories: selectedSubcategories?.map((s) => s.value) ?? [],
                             brand: selectedBrand?.value,
                             search: searchQuery,
                             _garageMode: false,
