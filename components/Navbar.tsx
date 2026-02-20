@@ -16,6 +16,7 @@ export default function ProfessionalNavbar() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [user, setUser] = useState<any>(null); 
+  const [searchQuery, setSearchQuery] = useState('');
   const { cartItems } = useCart();
   const controls = useAnimation();
   const router = useRouter();
@@ -68,6 +69,20 @@ export default function ProfessionalNavbar() {
       .maybeSingle();
     if (data) setUserCar(data);
   };
+
+  // ── Search handler ────────────────────────────────────────────────────────
+  const handleSearch = () => {
+    const trimmed = searchQuery.trim();
+    if (!trimmed) return;
+    router.push(`/store?q=${encodeURIComponent(trimmed)}`);
+    setSearchQuery('');
+    setIsSearchFocused(false);
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') handleSearch();
+  };
+  // ─────────────────────────────────────────────────────────────────────────
 
   const toggleGarage = () => {
     if (!user) {
@@ -151,6 +166,24 @@ export default function ProfessionalNavbar() {
           .search-wrapper { display: none !important; }
           .logo-text { font-size: 1.5rem !important; } 
           .mobile-menu-btn { display: flex !important; }
+        }
+        .search-go-btn {
+          background: none;
+          border: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          padding: 0 4px;
+          color: #999;
+          transition: color 0.2s;
+          border-radius: 6px;
+        }
+        .search-go-btn:hover {
+          color: #27ae60;
+        }
+        .search-input-field:focus + .search-go-btn,
+        .search-go-btn:focus {
+          color: #27ae60;
         }
       `}} />
 
@@ -260,18 +293,29 @@ export default function ProfessionalNavbar() {
             ZAIT <span style={{ color: '#27ae60' }}>& FILTERS</span>
           </Link>
 
+          {/* ── Search bar with working handler ── */}
           <div
             style={{ ...searchWrapper, borderColor: isSearchFocused ? '#27ae60' : '#eee' }}
             className="search-wrapper"
           >
-            <Search size={18} color={isSearchFocused ? '#27ae60' : '#999'} />
             <input 
               type="text" 
               placeholder="ابحث عن قطعة غيار..." 
               style={searchInput}
+              className="search-input-field"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setIsSearchFocused(false)}
             />
+            <button
+              className="search-go-btn"
+              onClick={handleSearch}
+              title="بحث"
+            >
+              <Search size={18} color={isSearchFocused ? '#27ae60' : '#999'} />
+            </button>
           </div>
 
           <div style={navLinks} className="desktop-links">
@@ -420,6 +464,8 @@ const searchInput: any = {
   backgroundColor: 'transparent',
   outline: 'none',
   fontSize: '0.9rem',
+  textAlign: 'right',
+  direction: 'rtl',
 };
 const navLinks: any = { display: 'flex', alignItems: 'center', gap: '25px' };
 const linkItem: any = {
@@ -432,7 +478,7 @@ const iconGroup: any = {
   display: 'flex',
   alignItems: 'center',
   gap: '12px',
-  borderRight: '1px solid #eee', // ✅ closing quote and comma
+  borderRight: '1px solid #eee',
   paddingRight: '15px',
 };
 const iconBtn: any = {
