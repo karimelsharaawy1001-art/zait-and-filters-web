@@ -470,7 +470,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                 navigation={{ prevEl: '#prev-related', nextEl: '#next-related' }}
                 breakpoints={{
                   // 1 full card on tiny phones
-                  0:   { slidesPerView: 1,   spaceBetween: 10 },
+                  0:   { slidesPerView: 2,   spaceBetween: 10 },
                   // ~2 cards on larger phones
                   480: { slidesPerView: 2,   spaceBetween: 12 },
                   // 3 on tablet
