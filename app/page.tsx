@@ -117,6 +117,88 @@ function StructuredData() {
 }
 
 
+// ─── Search Card ──────────────────────────────────────────────────────────────
+// Extracted OUTSIDE slides.map() so it mounts exactly ONCE and never resets
+// when the background slide changes. State (make/model/year) is fully preserved.
+function SearchCard({
+  selectLoaded,
+  makesOptions,
+  modelsOptions,
+  selectedMake,
+  selectedModel,
+  selectedYear,
+  setSelectedMake,
+  setSelectedModel,
+  setSelectedYear,
+  handleSearch,
+  customSelectStyles,
+}: any) {
+  return (
+    <>
+      <h3 style={{ marginBottom: '20px', fontSize: '1.2rem', fontWeight: '900', textAlign: 'center' }}>
+        ابحث بمواصفات سيارتك
+      </h3>
+      {selectLoaded && (
+        <>
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block' }}>الماركة</label>
+            <Select
+              instanceId="make-select"
+              options={makesOptions}
+              styles={customSelectStyles}
+              placeholder="اختر الماركة"
+              isRtl={true}
+              isSearchable={true}
+              value={selectedMake}
+              onChange={(opt: any) => setSelectedMake(opt)}
+              formatOptionLabel={(brand: any) => (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {brand.logo
+                    ? <img src={brand.logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
+                    : <Car size={20} color="#ccc" />}
+                  <span>{brand.label}</span>
+                </div>
+              )}
+            />
+          </div>
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block' }}>الموديل</label>
+            <Select
+              instanceId="model-select"
+              options={modelsOptions}
+              styles={customSelectStyles}
+              placeholder="اختر الموديل"
+              isRtl={true}
+              isSearchable={true}
+              value={selectedModel}
+              isDisabled={!selectedMake}
+              onChange={(opt: any) => setSelectedModel(opt)}
+            />
+          </div>
+        </>
+      )}
+      <div style={{ marginBottom: '12px' }}>
+        <label style={{ fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block' }}>سنة الصنع</label>
+        <input
+          type="text"
+          placeholder="مثلاً: 2024"
+          value={selectedYear}
+          onChange={(e) => setSelectedYear(e.target.value)}
+          style={{ width: '100%', height: '52px', padding: '0 15px', backgroundColor: '#f8f8f8', border: 'none', borderRadius: '12px', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }}
+        />
+      </div>
+      <button
+        onClick={handleSearch}
+        style={{ width: '100%', marginTop: '15px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', padding: '16px', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontSize: '1.1rem' }}
+      >
+        بحث الآن <ChevronLeft size={22} />
+      </button>
+    </>
+  );
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+
 export default function HomePage() {
   const router = useRouter();
   const { addToCart } = useCart(); 
@@ -413,6 +495,24 @@ export default function HomePage() {
       ).slice(0, 6)
     : bestSellers.slice(0, 6);
 
+  // Current slide text — read directly, never causes SearchCard to remount
+  const activeSlide = slides[currentSlide] ?? {};
+
+  // Shared props passed to both SearchCard instances (desktop + mobile)
+  const searchCardProps = {
+    selectLoaded,
+    makesOptions,
+    modelsOptions,
+    selectedMake,
+    selectedModel,
+    selectedYear,
+    setSelectedMake,
+    setSelectedModel,
+    setSelectedYear,
+    handleSearch,
+    customSelectStyles,
+  };
+
 
   return (
     <>
@@ -511,134 +611,80 @@ export default function HomePage() {
         <style dangerouslySetInnerHTML={{ __html: `
           * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
           
-          @keyframes pageLoad { 
-            from { opacity: 0; } 
-            to { opacity: 1; } 
-          }
+          @keyframes pageLoad { from { opacity: 0; } to { opacity: 1; } }
+          @keyframes slideIn  { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+          @keyframes slideUp  { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
           
           .page-container { animation: pageLoad 0.4s ease-out; }
-          
-          /* ─── HERO SECTION ─────────────────────────────────────────────── */
-          /*
-           * The hero wrapper is always a fixed-height block-level container.
-           * Slides are absolutely stacked inside it and never escape it.
-           * On mobile we reduce the height so the card can sit below.
-           */
+
+          /* ─── HERO ───────────────────────────────────────────────────────
+           *
+           * FIX 1 — NO REMOUNT ON SLIDE CHANGE
+           * The hero is split into two independent layers:
+           *   .hero-bg-layer      purely visual divs that fade in/out
+           *   .hero-content-layer text + SearchCard, mounted exactly ONCE
+           *
+           * SearchCard is NOT inside slides.map(), so changing currentSlide
+           * only swaps background images — the form is never destroyed.
+           *
+           * FIX 2 — MOBILE CENTERING
+           * On mobile, .hero-card-mobile is full-width with box-sizing:border-box
+           * and symmetric padding on the parent, so it is perfectly centered.
+           * ─────────────────────────────────────────────────────────────── */
+
           .hero-section {
             position: relative;
             width: 100%;
-            height: 600px;          /* desktop height */
-            overflow: hidden;
             background: #000;
           }
 
-          @media (max-width: 768px) {
-            .hero-section {
-              height: auto;           /* let content dictate height on mobile */
-              min-height: 0;
-            }
+          /* Background layer — absolutely fills the section, pointer-events off */
+          .hero-bg-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
           }
-
-          /*
-           * Each slide fills the wrapper absolutely on desktop.
-           * On mobile we switch to a stacked-block approach so only the
-           * active slide takes up space.
-           */
-          .hero-slide {
+          .hero-bg-slide {
             position: absolute;
             inset: 0;
             background-size: cover;
             background-position: center;
             opacity: 0;
             transition: opacity 0.8s ease-in-out;
-            display: flex;
-            align-items: center;
+          }
+          .hero-bg-slide.active { opacity: 1; }
+
+          /* ── Desktop ── */
+          @media (min-width: 769px) {
+            .hero-section          { height: 600px; overflow: hidden; }
+            .hero-content-layer    { position: absolute; inset: 0; z-index: 10; display: flex; align-items: center; }
+            .hero-inner            { width: 100%; max-width: 1200px; margin: 0 auto; padding: 40px 20px; display: flex; gap: 40px; align-items: center; justify-content: space-between; }
+            .hero-text             { flex: 1; text-align: right; min-width: 300px; animation: slideIn 0.6s ease-out 0.15s both; }
+            .hero-card-desktop     { width: 400px; flex-shrink: 0; background: #fff; padding: 30px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); animation: slideUp 0.6s ease-out 0.25s both; }
+            /* mobile card hidden on desktop */
+            .hero-card-mobile      { display: none; }
           }
 
-          .hero-slide.active { opacity: 1; }
-
+          /* ── Mobile ── */
           @media (max-width: 768px) {
-            /* On mobile all slides are stacked in normal flow;
-               non-active ones are hidden via visibility + zero height  */
-            .hero-slide {
-              position: relative;
-              inset: auto;
-              display: none;          /* hide non-active slides completely */
-              opacity: 1;
-              padding: 100px 0 40px;
-            }
-            .hero-slide.active {
-              display: flex;
-              flex-direction: column;
-              align-items: stretch;
-            }
-          }
-
-          /* ── hero inner layout ── */
-          .hero-content-wrapper {
-            display: flex;
-            gap: 40px;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-          }
-
-          .hero-content-right {
-            flex: 1;
-            text-align: right;
-            min-width: 300px;
-            animation: slideIn 0.6s ease-out 0.15s both;
-          }
-
-          .hero-content-left {
-            width: 400px;
-            max-width: 100%;
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-            position: relative;
-            z-index: 100;
-            animation: slideUp 0.6s ease-out 0.25s both;
-          }
-
-          @keyframes slideIn { 
-            from { opacity: 0; transform: translateX(30px); } 
-            to   { opacity: 1; transform: translateX(0); } 
-          }
-          @keyframes slideUp { 
-            from { opacity: 0; transform: translateY(20px); } 
-            to   { opacity: 1; transform: translateY(0); } 
-          }
-
-          @media (max-width: 768px) {
-            .hero-content-wrapper {
-              flex-direction: column;
-              gap: 20px;
-            }
-            .hero-content-right {
-              text-align: center;
-              min-width: 100%;
-              padding: 0 16px;
-            }
-            .hero-content-right h1 {
-              font-size: 2rem !important;
-              line-height: 1.3 !important;
-            }
-            .hero-content-right p {
-              margin-left: auto !important;
-              margin-right: auto !important;
-              font-size: 1rem !important;
-              max-width: 90% !important;
-            }
-            .hero-content-left {
+            /* section height = content; bg layer sits behind absolutely */
+            .hero-section          { height: auto; padding-bottom: 30px; }
+            /* content layer in normal flow so the section expands around it */
+            .hero-content-layer    { position: relative; z-index: 10; padding-top: 100px; }
+            .hero-inner            { width: 100%; padding: 0 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; }
+            .hero-text             { text-align: center; }
+            .hero-text h1          { font-size: 2rem !important; line-height: 1.3 !important; }
+            .hero-text p           { font-size: 1rem !important; max-width: 90%; margin-left: auto !important; margin-right: auto !important; }
+            /* desktop card hidden; mobile card full-width, perfectly centered */
+            .hero-card-desktop     { display: none; }
+            .hero-card-mobile      {
               width: 100%;
-              max-width: 100%;
+              box-sizing: border-box;
+              background: #fff;
               padding: 20px 16px;
               border-radius: 20px;
               box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-              margin: 0 16px;
-              box-sizing: border-box;
             }
           }
           /* ─────────────────────────────────────────────────────────────── */
@@ -847,86 +893,66 @@ export default function HomePage() {
         {!loading && (
           <div className="page-container">
 
-            {/* ── Hero Section ────────────────────────────────────────────── */}
+            {/* ── Hero Section ─────────────────────────────────────────────
+             *
+             * ARCHITECTURE:
+             *   .hero-bg-layer          background images only — no inputs
+             *   .hero-content-layer     text + search card, mounted ONCE
+             *
+             * Changing currentSlide only updates .hero-bg-slide opacity.
+             * SearchCard never remounts → dropdown selections are preserved.
+             * ─────────────────────────────────────────────────────────── */}
             <section className="hero-section">
-              {slides.map((slide, index) => (
-                <div 
-                  key={index}
-                  className={`hero-slide ${index === currentSlide ? 'active' : ''}`}
-                  style={{ 
-                    backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url("${slide.bg_image_url}")`,
-                  }}
-                >
-                  <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
-                    <div className="hero-content-wrapper">
 
-                      <div className="hero-content-right">
-                        {slide.title && (
-                          <h1 style={{ fontSize: '3rem', fontWeight: '900', lineHeight: '1.4', marginBottom: '15px', color: '#22c55e' }}>
-                            {slide.title.replace(/<[^>]*>/g, '')}
-                          </h1>
-                        )}
-                        <p style={{ color: '#fff', fontSize: '1.2rem', fontWeight: '500', marginBottom: '25px', maxWidth: '550px', lineHeight: '1.5' }}>
-                          {slide.subtitle}
-                        </p>
-                        <Link href={slide.button_link || '/store'} style={{ padding: '12px 30px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.95rem', display: 'inline-block' }}>
-                          {slide.button_text || 'تصفح المتجر'}
-                        </Link>
-                      </div>
-                      
-                      <div className="hero-content-left">
-                        <h3 style={{ marginBottom: '20px', fontSize: '1.2rem', fontWeight: '900', textAlign: 'center' }}>ابحث بمواصفات سيارتك</h3>
-                        {selectLoaded && (
-                          <>
-                            <div style={{ marginBottom: '12px' }}>
-                              <label style={{ fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block' }}>الماركة</label>
-                              <Select 
-                                instanceId="make-select" 
-                                options={makesOptions} 
-                                styles={customSelectStyles} 
-                                placeholder="اختر الماركة" 
-                                isRtl={true} 
-                                isSearchable={true}
-                                onChange={(opt) => setSelectedMake(opt)} 
-                                formatOptionLabel={(brand: any) => (
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    {brand.logo ? <img src={brand.logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} /> : <Car size={20} color="#ccc" />}
-                                    <span>{brand.label}</span>
-                                  </div>
-                                )} 
-                              />
-                            </div>
-                            <div style={{ marginBottom: '12px' }}>
-                              <label style={{ fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block' }}>الموديل</label>
-                              <Select 
-                                instanceId="model-select" 
-                                options={modelsOptions} 
-                                styles={customSelectStyles} 
-                                placeholder="اختر الموديل" 
-                                isRtl={true} 
-                                isSearchable={true}
-                                value={selectedModel} 
-                                isDisabled={!selectedMake} 
-                                onChange={(opt) => setSelectedModel(opt)}
-                              />
-                            </div>
-                          </>
-                        )}
-                        <div style={{ marginBottom: '12px' }}>
-                          <label style={{ fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block' }}>سنة الصنع</label>
-                          <input type="text" placeholder="مثلاً: 2024" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} style={{ width: '100%', height: '52px', padding: '0 15px', backgroundColor: '#f8f8f8', border: 'none', borderRadius: '12px', fontSize: '1rem', outline: 'none' }} />
-                        </div>
-                        <button onClick={handleSearch} style={{ width: '100%', marginTop: '15px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', padding: '16px', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontSize: '1.1rem' }}>
-                          بحث الآن <ChevronLeft size={22} />
-                        </button>
-                      </div>
+              {/* Background layer — purely visual, no interactive elements */}
+              <div className="hero-bg-layer">
+                {slides.map((slide, index) => (
+                  <div
+                    key={index}
+                    className={`hero-bg-slide ${index === currentSlide ? 'active' : ''}`}
+                    style={{
+                      backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url("${slide.bg_image_url}")`,
+                    }}
+                  />
+                ))}
+              </div>
 
-                    </div>
+              {/* Content layer — stable, mounted exactly once */}
+              <div className="hero-content-layer">
+                <div className="hero-inner">
+
+                  {/* Slide text — reads activeSlide so content updates without remounting */}
+                  <div className="hero-text">
+                    {activeSlide.title && (
+                      <h1 style={{ fontSize: '3rem', fontWeight: '900', lineHeight: '1.4', marginBottom: '15px', color: '#22c55e' }}>
+                        {activeSlide.title.replace(/<[^>]*>/g, '')}
+                      </h1>
+                    )}
+                    <p style={{ color: '#fff', fontSize: '1.2rem', fontWeight: '500', marginBottom: '25px', maxWidth: '550px', lineHeight: '1.5' }}>
+                      {activeSlide.subtitle}
+                    </p>
+                    <Link
+                      href={activeSlide.button_link || '/store'}
+                      style={{ padding: '12px 30px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.95rem', display: 'inline-block' }}
+                    >
+                      {activeSlide.button_text || 'تصفح المتجر'}
+                    </Link>
                   </div>
+
+                  {/* Search card — desktop only (hidden on mobile via CSS) */}
+                  <div className="hero-card-desktop">
+                    <SearchCard {...searchCardProps} />
+                  </div>
+
+                  {/* Search card — mobile only (hidden on desktop via CSS), full-width & centered */}
+                  <div className="hero-card-mobile">
+                    <SearchCard {...searchCardProps} />
+                  </div>
+
                 </div>
-              ))}
+              </div>
+
             </section>
-            {/* ──────────────────────────────────────────────────────────── */}
 
 
             {/* Brand Logos */}
