@@ -221,19 +221,17 @@ export default function HomePage() {
     try {
       setLoading(true);
       
-      // FIXED: Fetch ALL products but optimize other queries
       const [heroRes, customImgRes, partBrandsRes, carBrandsRes, makesRes] = await Promise.all([
         supabase.from('hero_settings').select('*').order('id', { ascending: true }),
         supabase.from('category_images').select('name, image_url'),
         supabase.from('part_brands').select('name, logo_url').neq('logo_url', ''),
         supabase.from('car_brands').select('name, logo_url'),
-        supabase.from('products').select('car_make').not('car_make', 'is', null) // Only fetch makes column
+        supabase.from('products').select('car_make').not('car_make', 'is', null)
       ]);
 
       if (heroRes.data) setSlides(heroRes.data);
       if (partBrandsRes.data) setBrandLogos(partBrandsRes.data);
 
-      // FIXED: Fetch ALL products without range limit
       const { data: allProducts, error: productsError } = await supabase
         .from('products')
         .select('*')
@@ -247,7 +245,6 @@ export default function HomePage() {
       const customImages = customImgRes.data || [];
       
       if (products.length > 0) {
-        // Filter sale products from ALL products
         setSaleProducts(products.filter(p => 
           Number(p.sale_price) > 0 && 
           Number(p.regular_price) > Number(p.sale_price) && 
@@ -277,7 +274,6 @@ export default function HomePage() {
         }
         setBestSellers(bestSellersList);
 
-        // Get unique categories from ALL products
         const uniqueCats = Array.from(new Set(
           products
             .map(i => i.category?.trim())
@@ -295,7 +291,6 @@ export default function HomePage() {
       }
 
 
-      // Process makes efficiently from dedicated query
       if (carBrandsRes.data && makesRes.data) {
         const uniqueMakes = Array.from(new Set(
           makesRes.data
@@ -320,7 +315,6 @@ export default function HomePage() {
   }
 
 
-  // Fetch models only when needed
   async function fetchModels(make: string) {
     try {
       const { data } = await supabase
@@ -413,7 +407,7 @@ export default function HomePage() {
 
   if (!isMounted) return null;
 
-  // GARAGE FILTER LOGIC (NOW INCLUDES UNIVERSAL PRODUCTS)
+  // GARAGE FILTER LOGIC
   const filteredSaleProducts = garageMode && userCar 
     ? saleProducts.filter(p => 
         (p.car_make?.toUpperCase() === userCar.make?.toUpperCase() && 
@@ -438,69 +432,47 @@ export default function HomePage() {
       <div style={{ direction: 'rtl', backgroundColor: '#fdfdfd', color: '#1a1a1a', minHeight: '100vh', fontSize: '13px' }}>
         
         {loading && (
-  <motion.div 
-    initial={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    transition={{ duration: 0.5 }}
-    style={fullPageLoaderStyle}
-  >
-    <div style={{ textAlign: 'center', maxWidth: '600px' }}>
-      <motion.div 
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-        style={logoContainer}
-      >
-        {/* Floating image removed */}
-        {/* You can optionally put a simple text logo here instead */}
-        <motion.h1
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1, duration: 0.5 }}
-          style={brandNameText}
-        >
-          <span style={{ color: '#fff' }}>ZAIT</span>
-          <span style={{ color: '#22c55e' }}>&nbsp;FILTERS</span>
-        </motion.h1>
-      </motion.div>
+          <motion.div 
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            style={fullPageLoaderStyle}
+          >
+            <div style={{ textAlign: 'center', maxWidth: '480px', width: '100%', padding: '0 24px', boxSizing: 'border-box' }}>
 
-
-
+              {/* Single brand name — no duplicate */}
               <motion.h1
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.6 }}
+                initial={{ scale: 0.85, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.6, ease: 'easeOut' }}
                 style={brandNameText}
               >
                 <span style={{ color: '#fff' }}>ZAIT</span>
-                <span style={{ color: '#22c55e' }}>&nbsp;& FILTERS</span>
+                <span style={{ color: '#22c55e' }}>&nbsp;&amp; FILTERS</span>
               </motion.h1>
-
 
               <motion.h2 
                 initial={{ y: 30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.3, duration: 0.6 }}
+                transition={{ delay: 0.2, duration: 0.6 }}
                 style={mainHeadline}
               >
                 قطع الغيار بضغطة زرار
               </motion.h2>
 
-
               <motion.p 
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.6 }}
+                transition={{ delay: 0.35, duration: 0.6 }}
                 style={tagline}
               >
                 وجهتك الأولى لقطع غيار السيارات الأصلية في مصر
               </motion.p>
 
-
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
+                transition={{ delay: 0.5 }}
                 style={loadingBarContainer}
               >
                 <motion.div
@@ -510,7 +482,6 @@ export default function HomePage() {
                   style={loadingBar}
                 />
               </motion.div>
-
 
               <motion.div
                 key={loadingMessage}
@@ -526,11 +497,10 @@ export default function HomePage() {
                 </div>
               </motion.div>
 
-
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.8 }}
+                transition={{ delay: 0.7 }}
                 style={featurePills}
               >
                 <div style={pill}>
@@ -731,6 +701,23 @@ export default function HomePage() {
             filter: grayscale(0%); 
             opacity: 1; 
             transform: scale(1.1); 
+          }
+
+          /* ── LOADING SCREEN MOBILE ── */
+          @media (max-width: 480px) {
+            .loader-brand-name {
+              font-size: 2.4rem !important;
+              letter-spacing: -1px !important;
+              margin-bottom: 16px !important;
+            }
+            .loader-headline {
+              font-size: 1.6rem !important;
+              margin-bottom: 12px !important;
+            }
+            .loader-tagline {
+              font-size: 0.95rem !important;
+              margin-bottom: 28px !important;
+            }
           }
           
           @media (max-width: 768px) { 
@@ -1069,21 +1056,79 @@ const fullPageLoaderStyle: any = {
   display: 'flex', 
   alignItems: 'center', 
   justifyContent: 'center', 
-  zIndex: 99999 
+  zIndex: 99999,
+  padding: '0 16px',
+  boxSizing: 'border-box',
 };
 
+const brandNameText: any = { 
+  fontSize: 'clamp(2.2rem, 8vw, 4rem)',
+  fontWeight: '900', 
+  fontStyle: 'italic', 
+  letterSpacing: '-2px', 
+  marginBottom: '20px', 
+  lineHeight: '1', 
+  textTransform: 'uppercase', 
+  filter: 'drop-shadow(0 10px 30px rgba(34, 197, 94, 0.4))',
+};
 
-const logoContainer: any = { marginBottom: '30px' };
-const logoImage: any = { width: '180px', height: 'auto', filter: 'drop-shadow(0 20px 40px rgba(34, 197, 94, 0.3))' };
-const brandNameText: any = { fontSize: '4rem', fontWeight: '900', fontStyle: 'italic', letterSpacing: '-2px', marginBottom: '25px', lineHeight: '1', textTransform: 'uppercase', filter: 'drop-shadow(0 10px 30px rgba(34, 197, 94, 0.4))' };
-const mainHeadline: any = { color: '#fff', fontWeight: '900', fontSize: '3.5rem', marginBottom: '20px', letterSpacing: '-1px', lineHeight: '1.2', textShadow: '0 4px 20px rgba(34, 197, 94, 0.3)' };
-const tagline: any = { color: '#a0a0a0', fontSize: '1.3rem', fontWeight: '600', marginBottom: '45px', lineHeight: '1.7' };
-const loadingBarContainer: any = { width: '100%', height: '5px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '10px', overflow: 'hidden', marginBottom: '40px' };
-const loadingBar: any = { height: '100%', background: 'linear-gradient(90deg, #22c55e 0%, #16a34a 50%, #22c55e 100%)', borderRadius: '10px' };
-const messageContainer: any = { marginBottom: '35px', minHeight: '35px' };
-const messageText: any = { fontSize: '1.15rem', fontWeight: '700', color: '#fff' };
-const featurePills: any = { display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' };
-const pill: any = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', backgroundColor: 'rgba(34, 197, 94, 0.15)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '25px', fontSize: '0.85rem', fontWeight: '700', color: '#22c55e', backdropFilter: 'blur(10px)' };
+const mainHeadline: any = { 
+  color: '#fff', 
+  fontWeight: '900', 
+  fontSize: 'clamp(1.6rem, 6vw, 3.5rem)',
+  marginBottom: '16px', 
+  letterSpacing: '-1px', 
+  lineHeight: '1.2', 
+  textShadow: '0 4px 20px rgba(34, 197, 94, 0.3)',
+};
+
+const tagline: any = { 
+  color: '#a0a0a0', 
+  fontSize: 'clamp(0.9rem, 3vw, 1.3rem)',
+  fontWeight: '600', 
+  marginBottom: '36px', 
+  lineHeight: '1.7',
+};
+
+const loadingBarContainer: any = { 
+  width: '100%', 
+  height: '5px', 
+  backgroundColor: 'rgba(255,255,255,0.1)', 
+  borderRadius: '10px', 
+  overflow: 'hidden', 
+  marginBottom: '32px',
+};
+
+const loadingBar: any = { 
+  height: '100%', 
+  background: 'linear-gradient(90deg, #22c55e 0%, #16a34a 50%, #22c55e 100%)', 
+  borderRadius: '10px',
+};
+
+const messageContainer: any = { marginBottom: '28px', minHeight: '35px' };
+const messageText: any = { fontSize: '1.1rem', fontWeight: '700', color: '#fff' };
+
+const featurePills: any = { 
+  display: 'flex', 
+  gap: '10px', 
+  justifyContent: 'center', 
+  flexWrap: 'wrap',
+};
+
+const pill: any = { 
+  display: 'flex', 
+  alignItems: 'center', 
+  gap: '8px', 
+  padding: '10px 16px', 
+  backgroundColor: 'rgba(34, 197, 94, 0.15)', 
+  border: '1px solid rgba(34, 197, 94, 0.3)', 
+  borderRadius: '25px', 
+  fontSize: '0.82rem', 
+  fontWeight: '700', 
+  color: '#22c55e', 
+  backdropFilter: 'blur(10px)',
+};
+
 const arrowBtnSmall = { width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#fff', border: '1px solid #eee', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' };
 const cartBtnStyleSmall: any = { width: '100%', padding: '12px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '1rem' };
 
