@@ -999,11 +999,11 @@ function StoreContent() {
   }
 
   function handleFilterChange() {
-  const hasMinimumFilters = (selectedMake && selectedModel) || selectedCategory || (garageMode && userCar) || searchQuery.trim();
-  if (!hasMinimumFilters) {
-    toast.error('يرجى اختيار (الماركة والموديل) أو (الفئة) على الأقل');
-    return;
-  }
+    const hasMinimumFilters = (selectedMake && selectedModel) || selectedCategory || (garageMode && userCar);
+    if (!hasMinimumFilters) {
+      toast.error('يرجى اختيار (الماركة والموديل) أو (الفئة) على الأقل');
+      return;
+    }
 
     const yearToApply = yearInput.trim() || (garageMode && userCar?.year ? String(userCar.year) : '');
     setAppliedYear(yearToApply);
@@ -1141,7 +1141,7 @@ function StoreContent() {
   if (!isMounted) return null;
 
   const hasMin = (selectedMake && selectedModel) || selectedCategory || (garageMode && userCar);
-  const showEmptyState = !loading && !initializing && !hasMin && !searchQuery.trim() && filteredProducts.length === 0 && !showGarageConflictBanner;
+  const showEmptyState = !loading && !initializing && !hasMin && filteredProducts.length === 0 && !showGarageConflictBanner;
   const showNoResults = !loading && !initializing && hasMin && filteredProducts.length === 0 && !showGarageConflictBanner;
 
   const heroMakeLabel = selectedMake?.label || (garageMode && userCar?.make) || '';
