@@ -16,14 +16,12 @@ export default function SubCategoriesPage() {
       try {
         setLoading(true);
         
-        // 1. جلب المنتجات التي تتبع هذه الفئة لاستخراج الفئات الفرعية subcategory
         const { data: productsData } = await supabase
           .from('products')
           .select('subcategory, image_url')
           .eq('category', categoryName)
           .neq('subcategory', null);
 
-        // 2. جلب الصور المخصصة من جدول الإعدادات
         const { data: customImages } = await supabase
           .from('category_images')
           .select('name, image_url');
@@ -87,13 +85,19 @@ export default function SubCategoriesPage() {
           gap: '15px' 
         }}>
           {subCategories.map((sub, index) => (
-            <Link href={`/store?cat=${categoryName}&sub=${encodeURIComponent(sub.name)}`} key={index} style={{ textDecoration: 'none' }}>
+            // ✅ FIX: changed ?cat= to ?category= and ?sub= to ?subcategory=
+            // to match what the store page reads with searchParams.get('category') / searchParams.get('subcategory')
+            <Link
+              href={`/store?category=${encodeURIComponent(categoryName)}&subcategory=${encodeURIComponent(sub.name)}`}
+              key={index}
+              style={{ textDecoration: 'none' }}
+            >
               <div className="sub-cat-card" style={{
                 position: 'relative',
                 height: '140px', 
                 borderRadius: '20px',
                 overflow: 'hidden',
-                backgroundColor: '#000', // جعل الخلفية سوداء تماماً لدعم التعتيم
+                backgroundColor: '#000',
                 transition: '0.3s ease',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
               }}>
@@ -104,14 +108,13 @@ export default function SubCategoriesPage() {
                     width: '100%', 
                     height: '100%', 
                     objectFit: 'cover', 
-                    opacity: 0.4, // تقليل الشفافية لزيادة التعتيم
-                    filter: 'brightness(0.5)' // تقليل السطوع للنصف
+                    opacity: 0.4,
+                    filter: 'brightness(0.5)'
                   }}
                 />
                 <div style={{
                   position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  // زيادة قوة التدرج الأسود (Dark Overlay)
                   background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 100%)',
                   padding: '10px'
                 }}>
@@ -120,7 +123,7 @@ export default function SubCategoriesPage() {
                     fontSize: '1.6rem', 
                     fontWeight: '900', 
                     textAlign: 'center', 
-                    textShadow: '3px 3px 15px rgba(0,0,0,1)', // تقوية الظل خلف النص
+                    textShadow: '3px 3px 15px rgba(0,0,0,1)',
                     lineHeight: '1.1'
                   }}>
                     {sub.name}
@@ -137,12 +140,18 @@ export default function SubCategoriesPage() {
           <LayoutGrid size={60} color="#eee" style={{ marginBottom: '20px' }} />
           <h3 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '10px' }}>لا توجد فئات فرعية</h3>
           <p style={{ color: '#888', marginBottom: '20px' }}>يمكنك تصفح جميع المنتجات في قسم {categoryName} مباشرة</p>
-          <Link href={`/store?cat=${categoryName}`} style={{ backgroundColor: '#22c55e', color: '#fff', padding: '12px 30px', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold' }}>عرض المنتجات</Link>
+          {/* ✅ FIX: same fix applied to the fallback "view all" link */}
+          <Link
+            href={`/store?category=${encodeURIComponent(categoryName)}`}
+            style={{ backgroundColor: '#22c55e', color: '#fff', padding: '12px 30px', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold' }}
+          >
+            عرض المنتجات
+          </Link>
         </div>
       )}
 
       <style dangerouslySetInnerHTML={{ __html: `
-        .sub-cat-card:hover { transform: translateY(-5px); boxShadow: 0 8px 20px rgba(0,0,0,0.15); }
+        .sub-cat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
         .sub-cat-card:hover img { opacity: 0.6; transform: scale(1.05); }
         img { transition: 0.6s ease; }
         @media (max-width: 768px) {
