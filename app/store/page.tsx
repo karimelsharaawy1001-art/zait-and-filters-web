@@ -1188,6 +1188,34 @@ function StoreContent() {
         dangerouslySetInnerHTML={{
           __html: `
           @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+          @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+          }
+
+          @keyframes badgePulse {
+            0%, 100% { box-shadow: 0 0 6px 2px rgba(255, 200, 0, 0.45), 0 2px 8px rgba(0,0,0,0.25); }
+            50% { box-shadow: 0 0 14px 5px rgba(255, 200, 0, 0.75), 0 2px 8px rgba(0,0,0,0.25); }
+          }
+
+          .badge-asli {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: linear-gradient(120deg, #b8860b 0%, #ffd700 25%, #fffacd 50%, #ffd700 75%, #b8860b 100%);
+            background-size: 200% auto;
+            animation: shimmer 2.5s linear infinite, badgePulse 2s ease-in-out infinite;
+            color: #3d2200;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 900;
+            z-index: 11;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255,215,0,0.7);
+            text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+          }
           
           .store-product-card {
             background: #fff;
@@ -1434,6 +1462,7 @@ function StoreContent() {
                   <div className="products-grid">
                     {paginatedProducts.map((product) => {
                       const price = product.sale_price || product.regular_price;
+                      const isAsli = product.brand?.trim() === 'اصلي';
                       return (
                         <motion.div
                           key={product.id}
@@ -1446,6 +1475,10 @@ function StoreContent() {
                             <div style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: '#ff4d4d', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '900', zIndex: 10 }}>
                               -{Math.round(((product.regular_price - product.sale_price) / product.regular_price) * 100)}%
                             </div>
+                          )}
+
+                          {isAsli && (
+                            <div className="badge-asli">✦ أصلي</div>
                           )}
 
                           {/* ── IMAGE CONTAINER: white bg, fixed height, contain fit ── */}

@@ -615,6 +615,34 @@ export default function HomePage() {
           @keyframes slideIn  { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
           @keyframes slideUp  { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
           
+          @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+          }
+
+          @keyframes badgePulse {
+            0%, 100% { box-shadow: 0 0 6px 2px rgba(255, 200, 0, 0.45), 0 2px 8px rgba(0,0,0,0.25); }
+            50% { box-shadow: 0 0 14px 5px rgba(255, 200, 0, 0.75), 0 2px 8px rgba(0,0,0,0.25); }
+          }
+
+          .badge-asli {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: linear-gradient(120deg, #b8860b 0%, #ffd700 25%, #fffacd 50%, #ffd700 75%, #b8860b 100%);
+            background-size: 200% auto;
+            animation: shimmer 2.5s linear infinite, badgePulse 2s ease-in-out infinite;
+            color: #3d2200;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 900;
+            z-index: 11;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255,215,0,0.7);
+            text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+          }
+
           .page-container { animation: pageLoad 0.4s ease-out; }
 
           /* ─── HERO ───────────────────────────────────────────────────────
@@ -998,11 +1026,15 @@ export default function HomePage() {
                   <div ref={scrollRef} className="no-scrollbar product-grid-carousel">
                     {filteredSaleProducts.map((p) => {
                       const country = p.country_origin || p.country_of_origin || p.origin || 'أصلي';
+                      const isAsli = p.brand?.trim() === 'اصلي';
                       return (
                         <div key={p.id} className="product-card-mdrn">
                           <div style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#ff4d4d', color: '#fff', padding: '2px 6px', borderRadius: '5px', fontSize: '0.6rem', fontWeight: '900', zIndex: 10 }}>
                             -{Math.round(((p.regular_price - p.sale_price) / p.regular_price) * 100)}%
                           </div>
+                          {isAsli && (
+                            <div className="badge-asli">✦ أصلي</div>
+                          )}
                           <Link href={`/products/${p.id}`} className="img-container">
                             <img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" />
                             <div style={{ position: 'absolute', bottom: 6, left: 6, background: 'rgba(255,255,255,0.9)', padding: '2px 6px', borderRadius: '5px', fontSize: '0.65rem', fontWeight: '800' }}>
@@ -1062,9 +1094,13 @@ export default function HomePage() {
                   <div ref={bestSellerRef} className="no-scrollbar product-grid-carousel">
                     {filteredBestSellers.map((p) => {
                       const country = p.country_origin || p.country_of_origin || p.origin || 'أصلي';
+                      const isAsli = p.brand?.trim() === 'اصلي';
                       return (
                         <div key={p.id} className="product-card-mdrn">
                           <div style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#22c55e', color: '#fff', padding: '2px 6px', borderRadius: '5px', fontSize: '0.6rem', fontWeight: '900', zIndex: 10 }}>تريند ✨</div>
+                          {isAsli && (
+                            <div className="badge-asli">✦ أصلي</div>
+                          )}
                           <Link href={`/products/${p.id}`} className="img-container">
                             <img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" />
                           </Link>
