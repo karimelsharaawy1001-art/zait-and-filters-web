@@ -1358,7 +1358,7 @@ function StoreContent() {
                     </div>
                   </div>
                   {/* ✅ FIX: was window.innerWidth — now uses isDesktop state — car image now shows correctly */}
-                  {carHeroImage && isDesktop && (
+                  {carHeroImage && (
                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.6 }} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                       <img src={carHeroImage} alt={`${heroMakeLabel} ${heroModelLabel}`} style={{ width: '100%', maxHeight: '280px', objectFit: 'contain', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))' }} />
                     </motion.div>
