@@ -22,6 +22,11 @@ export default function CheckoutPage() {
   // ── NEW: track completed order for invoice button ──
   const [completedOrderId, setCompletedOrderId] = useState<string | null>(null);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
+  // ── FIX: snapshot cart/totals before clearCart so invoice still renders ──
+  const [completedOrderItems, setCompletedOrderItems] = useState<any[]>([]);
+  const [completedSubtotal, setCompletedSubtotal] = useState(0);
+  const [completedFinalTotal, setCompletedFinalTotal] = useState(0);
   
   const [shippingRates, setShippingRates] = useState<any[]>([]);
   const [selectedCity, setSelectedCity] = useState<any>(null);
@@ -411,7 +416,10 @@ export default function CheckoutPage() {
       if (paymentMethod === 'card_installments') {
         await initiateEasyKashPayment(newOrder.id);
       } else {
-        // ── Show success + invoice instead of immediately navigating away ──
+        // ── FIX: snapshot cart & totals BEFORE clearCart so invoice renders correctly ──
+        setCompletedOrderItems([...cart]);
+        setCompletedSubtotal(subtotal);
+        setCompletedFinalTotal(finalTotal);
         setCompletedOrderId(newOrder.id);
         clearCart();
         toast.success('تم تسجيل طلبك بنجاح! 🎉');
@@ -435,7 +443,6 @@ export default function CheckoutPage() {
 
     return (
       <div style={{ direction: 'rtl', padding: '30px 20px', maxWidth: '820px', margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-
         {/* Success banner */}
         <div style={{
           background: 'linear-gradient(135deg, #0f172a, #14532d)',
@@ -551,7 +558,8 @@ export default function CheckoutPage() {
             {[
               { label: 'رقم الطلب', value: `#${orderNum}` },
               { label: 'تاريخ الطلب', value: orderDate },
-              { label: 'عدد المنتجات', value: `${cart.length} منتج` },
+              // ── FIX: use completedOrderItems instead of cart ──
+              { label: 'عدد المنتجات', value: `${completedOrderItems.length} منتج` },
             ].map((item, i) => (
               <div key={i} style={{ padding: '18px 22px', borderRight: i < 2 ? '1px solid #f0f0f0' : 'none' }}>
                 <div style={{ fontSize: '0.68rem', color: '#aaa', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '4px' }}>{item.label}</div>
@@ -561,7 +569,6 @@ export default function CheckoutPage() {
           </div>
 
           <div style={{ padding: '30px 44px' }}>
-
             {/* Customer info */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '28px' }}>
               <div style={{ backgroundColor: '#f9fafb', borderRadius: '14px', padding: '20px', border: '1px solid #f0f0f0' }}>
@@ -590,7 +597,8 @@ export default function CheckoutPage() {
                   <div key={i} style={{ fontSize: '0.68rem', fontWeight: '800', color: '#94a3b8', textAlign: i === 0 ? 'right' : 'center', textTransform: 'uppercase' }}>{h}</div>
                 ))}
               </div>
-              {cart.map((item: any, i: number) => (
+              {/* ── FIX: use completedOrderItems instead of cart ── */}
+              {completedOrderItems.map((item: any, i: number) => (
                 <div key={item.id} style={{
                   display: 'grid', gridTemplateColumns: '2.5fr 0.7fr 1fr 1fr',
                   padding: '12px 16px', backgroundColor: i % 2 === 0 ? '#fff' : '#fafafa',
@@ -616,7 +624,8 @@ export default function CheckoutPage() {
               <div style={{ width: '270px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.86rem' }}>
                   <span style={{ color: '#666', fontWeight: '700' }}>المجموع الجزئي</span>
-                  <span style={{ fontWeight: '800' }}>{subtotal.toFixed(2)} ج.م</span>
+                  {/* ── FIX: use completedSubtotal instead of subtotal ── */}
+                  <span style={{ fontWeight: '800' }}>{completedSubtotal.toFixed(2)} ج.م</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.86rem' }}>
                   <span style={{ color: '#666', fontWeight: '700' }}>الشحن</span>
@@ -637,7 +646,8 @@ export default function CheckoutPage() {
                   background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: '12px',
                 }}>
                   <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.82rem', fontWeight: '700' }}>الإجمالي الكلي</span>
-                  <span style={{ color: '#22c55e', fontSize: '1.35rem', fontWeight: '900' }}>{finalTotal.toFixed(2)} ج.م</span>
+                  {/* ── FIX: use completedFinalTotal instead of finalTotal ── */}
+                  <span style={{ color: '#22c55e', fontSize: '1.35rem', fontWeight: '900' }}>{completedFinalTotal.toFixed(2)} ج.م</span>
                 </div>
               </div>
             </div>
