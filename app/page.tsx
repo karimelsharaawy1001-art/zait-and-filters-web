@@ -118,8 +118,6 @@ function StructuredData() {
 
 
 // ─── Search Card ──────────────────────────────────────────────────────────────
-// Extracted OUTSIDE slides.map() so it mounts exactly ONCE and never resets
-// when the background slide changes. State (make/model/year) is fully preserved.
 function SearchCard({
   selectLoaded,
   makesOptions,
@@ -495,10 +493,8 @@ export default function HomePage() {
       ).slice(0, 6)
     : bestSellers.slice(0, 6);
 
-  // Current slide text — read directly, never causes SearchCard to remount
   const activeSlide = slides[currentSlide] ?? {};
 
-  // Shared props passed to both SearchCard instances (desktop + mobile)
   const searchCardProps = {
     selectLoaded,
     makesOptions,
@@ -645,19 +641,27 @@ export default function HomePage() {
 
           .page-container { animation: pageLoad 0.4s ease-out; }
 
-          /* ─── HERO ───────────────────────────────────────────────────────
+          /* ─── HERO ─────────────────────────────────────────────────────
            *
-           * FIX 1 — NO REMOUNT ON SLIDE CHANGE
-           * The hero is split into two independent layers:
-           *   .hero-bg-layer      purely visual divs that fade in/out
-           *   .hero-content-layer text + SearchCard, mounted exactly ONCE
+           * FIX: ZERO-GLITCH SLIDE TRANSITIONS ON MOBILE
            *
-           * SearchCard is NOT inside slides.map(), so changing currentSlide
-           * only swaps background images — the form is never destroyed.
+           * Root cause of the glitch:
+           *   On mobile, .hero-section used height:auto so its size was
+           *   determined by content. The background layer (position:absolute)
+           *   was outside normal flow, but any sub-pixel repaint during the
+           *   opacity transition could trigger a layout recalculation on the
+           *   content layer, causing a visible resize flicker.
            *
-           * FIX 2 — MOBILE CENTERING
-           * On mobile, .hero-card-mobile is full-width with box-sizing:border-box
-           * and symmetric padding on the parent, so it is perfectly centered.
+           * Solution — three-part fix:
+           *   1. Lock mobile hero to a fixed min-height (580px) so the
+           *      section dimensions never change during transitions.
+           *   2. Add transform:translateZ(0) to .hero-bg-layer to promote
+           *      it to its own GPU compositing layer, fully decoupling its
+           *      repaints from the content layer.
+           *   3. Add will-change:opacity to .hero-bg-slide so the browser
+           *      pre-allocates a compositor layer per slide before any
+           *      transition begins, eliminating mid-animation promotion cost.
+           *
            * ─────────────────────────────────────────────────────────────── */
 
           .hero-section {
@@ -666,13 +670,16 @@ export default function HomePage() {
             background: #000;
           }
 
-          /* Background layer — absolutely fills the section, pointer-events off */
+          /* Background layer — GPU-composited, purely visual, no layout impact */
           .hero-bg-layer {
             position: absolute;
             inset: 0;
             z-index: 0;
             pointer-events: none;
+            /* FIX 2: own compositing layer — repaints never reach content layer */
+            transform: translateZ(0);
           }
+
           .hero-bg-slide {
             position: absolute;
             inset: 0;
@@ -680,6 +687,8 @@ export default function HomePage() {
             background-position: center;
             opacity: 0;
             transition: opacity 0.8s ease-in-out;
+            /* FIX 3: pre-allocate compositor layer before transition starts */
+            will-change: opacity;
           }
           .hero-bg-slide.active { opacity: 1; }
 
@@ -690,21 +699,51 @@ export default function HomePage() {
             .hero-inner            { width: 100%; max-width: 1200px; margin: 0 auto; padding: 40px 20px; display: flex; gap: 40px; align-items: center; justify-content: space-between; }
             .hero-text             { flex: 1; text-align: right; min-width: 300px; animation: slideIn 0.6s ease-out 0.15s both; }
             .hero-card-desktop     { width: 400px; flex-shrink: 0; background: #fff; padding: 30px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); animation: slideUp 0.6s ease-out 0.25s both; }
-            /* mobile card hidden on desktop */
             .hero-card-mobile      { display: none; }
           }
 
           /* ── Mobile ── */
           @media (max-width: 768px) {
-            /* section height = content; bg layer sits behind absolutely */
-            .hero-section          { height: auto; padding-bottom: 30px; }
-            /* content layer in normal flow so the section expands around it */
-            .hero-content-layer    { position: relative; z-index: 10; padding-top: 100px; }
-            .hero-inner            { width: 100%; padding: 0 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; }
+            /*
+             * FIX 1: Fixed min-height locks the section size.
+             * The section no longer resizes during slide transitions
+             * because its dimensions are not derived from content flow.
+             * overflow:hidden clips the absolutely-positioned bg layer.
+             */
+            .hero-section {
+              min-height: 580px;
+              height: auto;
+              overflow: hidden;
+            }
+
+            /*
+             * Content layer uses absolute positioning (matching desktop)
+             * so it sits on top of the bg layer without contributing to
+             * the section's intrinsic height — eliminating any reflow.
+             */
+            .hero-content-layer {
+              position: absolute;
+              inset: 0;
+              z-index: 10;
+              display: flex;
+              align-items: flex-start;
+              padding-top: 90px;
+              overflow-y: auto;
+            }
+
+            .hero-inner {
+              width: 100%;
+              padding: 0 16px 24px;
+              box-sizing: border-box;
+              display: flex;
+              flex-direction: column;
+              gap: 20px;
+            }
+
             .hero-text             { text-align: center; }
             .hero-text h1          { font-size: 2rem !important; line-height: 1.3 !important; }
             .hero-text p           { font-size: 1rem !important; max-width: 90%; margin-left: auto !important; margin-right: auto !important; }
-            /* desktop card hidden; mobile card full-width, perfectly centered */
+
             .hero-card-desktop     { display: none; }
             .hero-card-mobile      {
               width: 100%;
@@ -924,15 +963,16 @@ export default function HomePage() {
             {/* ── Hero Section ─────────────────────────────────────────────
              *
              * ARCHITECTURE:
-             *   .hero-bg-layer          background images only — no inputs
-             *   .hero-content-layer     text + search card, mounted ONCE
+             *   .hero-bg-layer   GPU layer — background images only
+             *   .hero-content-layer  text + search card, mounted ONCE
              *
-             * Changing currentSlide only updates .hero-bg-slide opacity.
-             * SearchCard never remounts → dropdown selections are preserved.
+             * On mobile: both layers are position:absolute inside a
+             * fixed min-height container, so slide transitions NEVER
+             * cause any layout reflow or visible resize glitch.
              * ─────────────────────────────────────────────────────────── */}
             <section className="hero-section">
 
-              {/* Background layer — purely visual, no interactive elements */}
+              {/* Background layer — GPU composited, zero layout impact */}
               <div className="hero-bg-layer">
                 {slides.map((slide, index) => (
                   <div
@@ -949,7 +989,6 @@ export default function HomePage() {
               <div className="hero-content-layer">
                 <div className="hero-inner">
 
-                  {/* Slide text — reads activeSlide so content updates without remounting */}
                   <div className="hero-text">
                     {activeSlide.title && (
                       <h1 style={{ fontSize: '3rem', fontWeight: '900', lineHeight: '1.4', marginBottom: '15px', color: '#22c55e' }}>
@@ -967,12 +1006,12 @@ export default function HomePage() {
                     </Link>
                   </div>
 
-                  {/* Search card — desktop only (hidden on mobile via CSS) */}
+                  {/* Search card — desktop only */}
                   <div className="hero-card-desktop">
                     <SearchCard {...searchCardProps} />
                   </div>
 
-                  {/* Search card — mobile only (hidden on desktop via CSS), full-width & centered */}
+                  {/* Search card — mobile only */}
                   <div className="hero-card-mobile">
                     <SearchCard {...searchCardProps} />
                   </div>
@@ -1232,7 +1271,7 @@ const mainHeadline: any = {
 
 const tagline: any = { 
   color: '#a0a0a0', 
-  fontSize: 'clamp(0.9rem, 3vw, 1.3rem)',
+  fontSize: 'clamp(0.9rem, 3vw, 1.5rem)',
   fontWeight: '600', 
   marginBottom: '36px', 
   lineHeight: '1.7',
