@@ -58,9 +58,18 @@ export default function EditProduct() {
     const { data } = await supabase.from('products').select('*').eq('id', id).single();
     if (data) {
       setFormData({
-        ...data,
+        name: data.name || '',
+        brand: data.brand || '',
+        category: data.category || '',
+        subcategory: data.subcategory || '',
+        car_make: data.car_make || '',
+        car_model: data.car_model || '',
+        car_model_year: data.car_model_year || '',
         regular_price: data.regular_price?.toString() || '',
         sale_price: data.sale_price?.toString() || '',
+        image_url: data.image_url || '',
+        is_active: data.is_active ?? true,
+        country_of_origin: data.country_of_origin || '',
       });
     }
     setLoading(false);
@@ -88,7 +97,7 @@ export default function EditProduct() {
         .from('product-images')
         .getPublicUrl(filePath);
 
-      setFormData({ ...formData, image_url: publicUrl });
+      setFormData(prev => ({ ...prev, image_url: publicUrl }));
     } catch (error: any) {
       alert('خطأ في الرفع: ' + error.message);
     } finally {
@@ -101,17 +110,41 @@ export default function EditProduct() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    const { error } = await supabase.from('products').update({
-      ...formData,
-      regular_price: parseFloat(formData.regular_price),
-      sale_price: formData.sale_price ? parseFloat(formData.sale_price) : null,
-    }).eq('id', id);
 
-    if (!error) {
-      alert('✅ تم حفظ البيانات');
-      router.push('/admin/products');
+    try {
+      const updatePayload = {
+        name: formData.name,
+        brand: formData.brand,
+        category: formData.category,
+        subcategory: formData.subcategory,
+        car_make: formData.car_make,
+        car_model: formData.car_model,
+        car_model_year: formData.car_model_year,
+        regular_price: formData.regular_price ? parseFloat(formData.regular_price) : null,
+        sale_price: formData.sale_price ? parseFloat(formData.sale_price) : null,
+        image_url: formData.image_url,
+        is_active: formData.is_active,
+        country_of_origin: formData.country_of_origin,
+      };
+
+      const { error } = await supabase
+        .from('products')
+        .update(updatePayload)
+        .eq('id', id);
+
+      if (error) {
+        console.error('Supabase error:', error);
+        alert('❌ حدث خطأ أثناء الحفظ: ' + error.message);
+      } else {
+        alert('✅ تم حفظ البيانات');
+        router.push('/admin/products');
+      }
+    } catch (err: any) {
+      console.error('Unexpected error:', err);
+      alert('❌ خطأ غير متوقع: ' + err.message);
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
 
@@ -137,23 +170,23 @@ export default function EditProduct() {
               <h3 style={sectionTitle}><Tag size={18} /> التصنيف والبراند</h3>
               <div style={inputGroup}>
                 <label style={labelStyle}>اسم المنتج</label>
-                <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} style={inputStyle} required />
+                <input type="text" value={formData.name} onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))} style={inputStyle} required />
               </div>
               <div style={inputGroup}>
                 <label style={labelStyle}>الماركة المصنعة (Brand)</label>
-                <input type="text" value={formData.brand} onChange={(e) => setFormData({...formData, brand: e.target.value})} style={inputStyle} placeholder="أدخل الماركة..." />
+                <input type="text" value={formData.brand} onChange={(e) => setFormData(prev => ({...prev, brand: e.target.value}))} style={inputStyle} placeholder="أدخل الماركة..." />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                 <div style={inputGroup}>
                   <label style={labelStyle}>القسم الرئيسي</label>
-                  <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} style={inputStyle}>
+                  <select value={formData.category} onChange={(e) => setFormData(prev => ({...prev, category: e.target.value}))} style={inputStyle}>
                     <option value="">اختر القسم</option>
                     {options.categories.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                   </select>
                 </div>
                 <div style={inputGroup}>
                   <label style={labelStyle}>القسم الفرعي</label>
-                  <select value={formData.subcategory} onChange={(e) => setFormData({...formData, subcategory: e.target.value})} style={inputStyle}>
+                  <select value={formData.subcategory} onChange={(e) => setFormData(prev => ({...prev, subcategory: e.target.value}))} style={inputStyle}>
                     <option value="">اختر الفرعي</option>
                     {options.subcategories.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                   </select>
@@ -166,21 +199,21 @@ export default function EditProduct() {
               <h3 style={sectionTitle}><Car size={18} /> توافق السيارة</h3>
               <div style={inputGroup}>
                 <label style={labelStyle}>ماركة السيارة</label>
-                <select value={formData.car_make} onChange={(e) => setFormData({...formData, car_make: e.target.value})} style={inputStyle}>
+                <select value={formData.car_make} onChange={(e) => setFormData(prev => ({...prev, car_make: e.target.value}))} style={inputStyle}>
                   <option value="">اختر الماركة</option>
                   {options.makes.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                 </select>
               </div>
               <div style={inputGroup}>
                 <label style={labelStyle}>الموديل</label>
-                <select value={formData.car_model} onChange={(e) => setFormData({...formData, car_model: e.target.value})} style={inputStyle}>
+                <select value={formData.car_model} onChange={(e) => setFormData(prev => ({...prev, car_model: e.target.value}))} style={inputStyle}>
                   <option value="">اختر الموديل</option>
                   {options.models.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                 </select>
               </div>
               <div style={inputGroup}>
                 <label style={labelStyle}>سنة الموديل</label>
-                <input type="text" value={formData.car_model_year} onChange={(e) => setFormData({...formData, car_model_year: e.target.value})} style={inputStyle} placeholder="مثال: 2010-2015" />
+                <input type="text" value={formData.car_model_year} onChange={(e) => setFormData(prev => ({...prev, car_model_year: e.target.value}))} style={inputStyle} placeholder="مثال: 2010-2015" />
               </div>
             </section>
 
@@ -190,16 +223,16 @@ export default function EditProduct() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                 <div style={inputGroup}>
                   <label style={labelStyle}>السعر الأساسي</label>
-                  <input type="number" value={formData.regular_price} onChange={(e) => setFormData({...formData, regular_price: e.target.value})} style={inputStyle} />
+                  <input type="number" value={formData.regular_price} onChange={(e) => setFormData(prev => ({...prev, regular_price: e.target.value}))} style={inputStyle} />
                 </div>
                 <div style={inputGroup}>
                   <label style={labelStyle}>سعر الخصم</label>
-                  <input type="number" value={formData.sale_price} onChange={(e) => setFormData({...formData, sale_price: e.target.value})} style={inputStyle} />
+                  <input type="number" value={formData.sale_price} onChange={(e) => setFormData(prev => ({...prev, sale_price: e.target.value}))} style={inputStyle} />
                 </div>
               </div>
               <div style={inputGroup}>
                 <label style={labelStyle}>بلد المنشأ</label>
-                <input type="text" value={formData.country_of_origin} onChange={(e) => setFormData({...formData, country_of_origin: e.target.value})} style={inputStyle} />
+                <input type="text" value={formData.country_of_origin} onChange={(e) => setFormData(prev => ({...prev, country_of_origin: e.target.value}))} style={inputStyle} />
               </div>
             </section>
 
@@ -213,7 +246,7 @@ export default function EditProduct() {
                   {uploading ? 'جاري الرفع...' : 'رفع صورة من الجهاز'}
                   <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
                 </label>
-                <input type="text" value={formData.image_url} placeholder="أو ضع رابط خارجي مباشر" onChange={(e) => setFormData({...formData, image_url: e.target.value})} style={{ ...inputStyle, marginTop: '10px' }} />
+                <input type="text" value={formData.image_url} placeholder="أو ضع رابط خارجي مباشر" onChange={(e) => setFormData(prev => ({...prev, image_url: e.target.value}))} style={{ ...inputStyle, marginTop: '10px' }} />
               </div>
             </section>
 
