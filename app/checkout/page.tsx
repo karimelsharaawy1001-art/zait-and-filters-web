@@ -5,10 +5,11 @@ import { supabase } from '@/app/lib/supabase';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { useAbandonedCart } from '@/hooks/useAbandonedCart';
+import Link from 'next/link';
 import { 
   User, MapPin, ShoppingCart, Loader2, CheckCircle, Car, Globe, Mail,
   Settings2, Calendar, Tags, Upload, ExternalLink, Plus, Gauge, 
-  Banknote, CreditCard, Wallet, SmartphoneNfc, Ticket 
+  Banknote, CreditCard, Wallet, SmartphoneNfc, Ticket, FileText, Download
 } from 'lucide-react';
 
 export default function CheckoutPage() {
@@ -17,6 +18,10 @@ export default function CheckoutPage() {
   const { markAsRecovered } = useAbandonedCart();
   const [loading, setLoading] = useState(false);
   const [isReady, setIsReady] = useState(false);
+
+  // ── NEW: track completed order for invoice button ──
+  const [completedOrderId, setCompletedOrderId] = useState<string | null>(null);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   
   const [shippingRates, setShippingRates] = useState<any[]>([]);
   const [selectedCity, setSelectedCity] = useState<any>(null);
@@ -215,16 +220,12 @@ export default function CheckoutPage() {
     }
   };
 
-  // ─── FIXED: EasyKash payment initiation ───────────────────────────────────
-  // The BusinessNotFoundException was caused by missing/wrong credentials in
-  // the API route. We now pass all required fields explicitly and log the full
-  // response so any future error is traceable.
   const initiateEasyKashPayment = async (orderId: string) => {
     try {
       console.log('[EasyKash] Initiating payment for order:', orderId, 'amount:', finalTotal);
 
       const payload = {
-        amount: finalTotal, // EasyKash expects amount in piastres (cents)
+        amount: finalTotal,
         customerName: customerInfo.name.trim(),
         customerPhone: customerInfo.phone.trim(),
         customerEmail: customerInfo.email?.trim() || 'customer@zaitandfilters.com',
@@ -240,7 +241,6 @@ export default function CheckoutPage() {
         body: JSON.stringify(payload),
       });
 
-      // Always read the raw text first so we can log it if JSON parsing fails
       const rawText = await response.text();
       console.log('[EasyKash] Raw response:', rawText);
 
@@ -252,7 +252,6 @@ export default function CheckoutPage() {
       }
 
       if (!response.ok) {
-        // Surface the EasyKash detail message if available
         const detail = data?.details?.message || data?.message || data?.error || `HTTP ${response.status}`;
         throw new Error(detail);
       }
@@ -299,6 +298,53 @@ export default function CheckoutPage() {
       }).eq('id', marketerId);
     } catch (error) {
       console.error('Error tracking commission:', error);
+    }
+  };
+
+  // ── PDF download handler ───────────────────────────────────────────────────
+  const handleDownloadInvoice = async (orderId: string) => {
+    setIsDownloadingPdf(true);
+    try {
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas'),
+      ]);
+
+      const element = document.getElementById('order-invoice-preview');
+      if (!element) return;
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      const orderNum = orderId.slice(0, 8).toUpperCase();
+      pdf.save(`ORDER-${orderNum}.pdf`);
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+      toast.error('حدث خطأ في تحميل الـ PDF');
+    } finally {
+      setIsDownloadingPdf(false);
     }
   };
 
@@ -365,9 +411,12 @@ export default function CheckoutPage() {
       if (paymentMethod === 'card_installments') {
         await initiateEasyKashPayment(newOrder.id);
       } else {
-        toast.success('تم تسجيل طلبك بنجاح! 🎉');
+        // ── Show success + invoice instead of immediately navigating away ──
+        setCompletedOrderId(newOrder.id);
         clearCart();
-        router.push(`/order-success?orderId=${newOrder.id}`); 
+        toast.success('تم تسجيل طلبك بنجاح! 🎉');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setLoading(false);
       }
     } catch (err: any) {
       toast.error('Error: ' + err.message);
@@ -377,6 +426,252 @@ export default function CheckoutPage() {
 
   if (!isReady || shippingRates.length === 0) return <div style={loaderStyle}><Loader2 className="animate-spin" size={40} color="#15803d" /> جاري تجهيز الطلب...</div>;
 
+  // ── ORDER SUCCESS SCREEN with Invoice ─────────────────────────────────────
+  if (completedOrderId) {
+    const orderNum = completedOrderId.slice(0, 8).toUpperCase();
+    const orderDate = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+    const shipping = selectedCity?.price || 0;
+    const discount = appliedPromoType === 'free_shipping' ? shipping : discountAmount;
+
+    return (
+      <div style={{ direction: 'rtl', padding: '30px 20px', maxWidth: '820px', margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+
+        {/* Success banner */}
+        <div style={{
+          background: 'linear-gradient(135deg, #0f172a, #14532d)',
+          borderRadius: '20px', padding: '30px', textAlign: 'center',
+          marginBottom: '24px', color: '#fff',
+        }}>
+          <div style={{ fontSize: '3.5rem', marginBottom: '10px' }}>🎉</div>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: '900', marginBottom: '6px' }}>تم تسجيل طلبك بنجاح!</h1>
+          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.95rem' }}>
+            رقم الطلب: <span style={{ color: '#22c55e', fontWeight: '900' }}>#{orderNum}</span>
+          </p>
+        </div>
+
+        {/* Action buttons */}
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => handleDownloadInvoice(completedOrderId)}
+            disabled={isDownloadingPdf}
+            style={{
+              flex: 1, minWidth: '200px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+              padding: '14px 24px',
+              background: isDownloadingPdf ? '#ccc' : 'linear-gradient(135deg, #22c55e, #16a34a)',
+              color: '#fff', border: 'none', borderRadius: '14px',
+              fontWeight: '800', fontSize: '0.95rem',
+              cursor: isDownloadingPdf ? 'not-allowed' : 'pointer',
+              boxShadow: '0 4px 15px rgba(34,197,94,0.3)',
+            }}
+          >
+            {isDownloadingPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+            {isDownloadingPdf ? 'جاري التحميل...' : 'تحميل ORDER (PDF)'}
+          </button>
+
+          <Link
+            href={`/orders/${completedOrderId}/invoice`}
+            target="_blank"
+            style={{
+              flex: 1, minWidth: '200px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+              padding: '14px 24px',
+              background: '#0f172a',
+              color: '#fff', borderRadius: '14px',
+              fontWeight: '800', fontSize: '0.95rem',
+              textDecoration: 'none',
+            }}
+          >
+            <FileText size={18} color="#22c55e" />
+            عرض ORDER في صفحة جديدة
+            <ExternalLink size={14} style={{ opacity: 0.6 }} />
+          </Link>
+
+          <button
+            onClick={() => router.push('/')}
+            style={{
+              flex: 1, minWidth: '160px',
+              padding: '14px 24px',
+              background: '#fff', color: '#1a1a1a',
+              border: '1.5px solid #e5e5e5', borderRadius: '14px',
+              fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer',
+            }}
+          >
+            العودة للرئيسية
+          </button>
+        </div>
+
+        {/* ── INVOICE PREVIEW (also used by html2canvas for PDF) ── */}
+        <div
+          id="order-invoice-preview"
+          style={{
+            backgroundColor: '#fff',
+            borderRadius: '20px',
+            overflow: 'hidden',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.10)',
+            border: '1px solid #f0f0f0',
+          }}
+        >
+          {/* Header */}
+          <div style={{
+            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f4c2a 100%)',
+            padding: '36px 44px', position: 'relative', overflow: 'hidden',
+          }}>
+            <div style={{ position: 'absolute', top: '-60px', left: '-60px', width: '200px', height: '200px', borderRadius: '50%', backgroundColor: 'rgba(34,197,94,0.07)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', bottom: '-40px', right: '10%', width: '150px', height: '150px', borderRadius: '50%', backgroundColor: 'rgba(34,197,94,0.05)', pointerEvents: 'none' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
+              <div>
+                <div style={{ fontSize: '1.9rem', fontWeight: '900', fontStyle: 'italic', color: '#fff', letterSpacing: '-1px', marginBottom: '4px' }}>
+                  ZAIT <span style={{ color: '#22c55e' }}>& FILTERS</span>
+                </div>
+                <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.75rem', fontWeight: '600', letterSpacing: '2px' }}>
+                  AUTO PARTS · قطع غيار
+                </div>
+              </div>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontSize: '2.6rem', fontWeight: '900', color: '#22c55e', letterSpacing: '-1px', lineHeight: 1 }}>ORDER</div>
+                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', fontWeight: '700', marginTop: '4px', letterSpacing: '1px' }}>#{orderNum}</div>
+              </div>
+            </div>
+            <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '10px', position: 'relative', zIndex: 1 }}>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                backgroundColor: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)',
+                padding: '5px 14px', borderRadius: '20px',
+              }}>
+                <CheckCircle size={13} color="#22c55e" />
+                <span style={{ color: '#22c55e', fontSize: '0.78rem', fontWeight: '800' }}>تم تأكيد الطلب</span>
+              </div>
+              <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.78rem' }}>{orderDate}</span>
+            </div>
+          </div>
+
+          {/* Meta row */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderBottom: '1px solid #f0f0f0' }}>
+            {[
+              { label: 'رقم الطلب', value: `#${orderNum}` },
+              { label: 'تاريخ الطلب', value: orderDate },
+              { label: 'عدد المنتجات', value: `${cart.length} منتج` },
+            ].map((item, i) => (
+              <div key={i} style={{ padding: '18px 22px', borderRight: i < 2 ? '1px solid #f0f0f0' : 'none' }}>
+                <div style={{ fontSize: '0.68rem', color: '#aaa', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '4px' }}>{item.label}</div>
+                <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#1a1a1a' }}>{item.value}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ padding: '30px 44px' }}>
+
+            {/* Customer info */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '28px' }}>
+              <div style={{ backgroundColor: '#f9fafb', borderRadius: '14px', padding: '20px', border: '1px solid #f0f0f0' }}>
+                <div style={{ fontSize: '0.68rem', fontWeight: '900', color: '#888', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>بيانات العميل</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: '800', color: '#1a1a1a', marginBottom: '8px' }}>{customerInfo.name}</div>
+                <div style={{ fontSize: '0.82rem', color: '#555', fontWeight: '600', direction: 'ltr', marginBottom: '4px' }}>{customerInfo.phone}</div>
+                {customerInfo.email && <div style={{ fontSize: '0.8rem', color: '#888' }}>{customerInfo.email}</div>}
+              </div>
+              <div style={{ backgroundColor: '#f9fafb', borderRadius: '14px', padding: '20px', border: '1px solid #f0f0f0' }}>
+                <div style={{ fontSize: '0.68rem', fontWeight: '900', color: '#888', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>عنوان التوصيل</div>
+                <div style={{ fontSize: '0.85rem', color: '#1a1a1a', fontWeight: '700', lineHeight: '1.5', marginBottom: '8px' }}>{customerInfo.address}</div>
+                <div style={{ fontSize: '0.8rem', color: '#22c55e', fontWeight: '700' }}>{selectedCity?.city_name}</div>
+                <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e5e5e5' }}>
+                  طريقة الدفع: <span style={{ fontWeight: '800', color: '#1a1a1a' }}>
+                    {paymentMethod === 'card_installments' ? 'بطاقة / تقسيط' : paymentMethod === 'instapay' ? 'InstaPay' : 'محفظة إلكترونية'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Items table */}
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ fontSize: '0.68rem', fontWeight: '900', color: '#888', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>تفاصيل المنتجات</div>
+              <div style={{ backgroundColor: '#0f172a', borderRadius: '10px 10px 0 0', padding: '10px 16px', display: 'grid', gridTemplateColumns: '2.5fr 0.7fr 1fr 1fr' }}>
+                {['المنتج', 'الكمية', 'سعر الوحدة', 'الإجمالي'].map((h, i) => (
+                  <div key={i} style={{ fontSize: '0.68rem', fontWeight: '800', color: '#94a3b8', textAlign: i === 0 ? 'right' : 'center', textTransform: 'uppercase' }}>{h}</div>
+                ))}
+              </div>
+              {cart.map((item: any, i: number) => (
+                <div key={item.id} style={{
+                  display: 'grid', gridTemplateColumns: '2.5fr 0.7fr 1fr 1fr',
+                  padding: '12px 16px', backgroundColor: i % 2 === 0 ? '#fff' : '#fafafa',
+                  borderBottom: '1px solid #f0f0f0', borderRight: '1px solid #f0f0f0', borderLeft: '1px solid #f0f0f0',
+                  alignItems: 'center',
+                }}>
+                  <div>
+                    <div style={{ fontSize: '0.87rem', fontWeight: '800', color: '#1a1a1a' }}>{item.name}</div>
+                    {item.brand && <div style={{ fontSize: '0.7rem', color: '#22c55e', fontWeight: '700' }}>{item.brand}</div>}
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <span style={{ backgroundColor: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: '800' }}>×{item.quantity}</span>
+                  </div>
+                  <div style={{ textAlign: 'center', fontSize: '0.85rem', fontWeight: '700', color: '#444' }}>{parseFloat(item.price).toLocaleString('ar-EG')} ج.م</div>
+                  <div style={{ textAlign: 'center', fontSize: '0.9rem', fontWeight: '900', color: '#1a1a1a' }}>{(parseFloat(item.price) * item.quantity).toLocaleString('ar-EG')} ج.م</div>
+                </div>
+              ))}
+              <div style={{ height: '4px', backgroundColor: '#0f172a', borderRadius: '0 0 10px 10px' }} />
+            </div>
+
+            {/* Totals */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <div style={{ width: '270px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.86rem' }}>
+                  <span style={{ color: '#666', fontWeight: '700' }}>المجموع الجزئي</span>
+                  <span style={{ fontWeight: '800' }}>{subtotal.toFixed(2)} ج.م</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.86rem' }}>
+                  <span style={{ color: '#666', fontWeight: '700' }}>الشحن</span>
+                  {appliedPromoType === 'free_shipping'
+                    ? <span style={{ color: '#22c55e', fontWeight: '800' }}>مجاني 🚚</span>
+                    : <span style={{ fontWeight: '800' }}>{shipping.toFixed(2)} ج.م</span>
+                  }
+                </div>
+                {discount > 0 && appliedPromoType !== 'free_shipping' && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.86rem' }}>
+                    <span style={{ color: '#666', fontWeight: '700' }}>الخصم</span>
+                    <span style={{ color: '#ef4444', fontWeight: '800' }}>- {discount.toFixed(2)} ج.م</span>
+                  </div>
+                )}
+                <div style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  marginTop: '12px', padding: '14px 18px',
+                  background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: '12px',
+                }}>
+                  <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.82rem', fontWeight: '700' }}>الإجمالي الكلي</span>
+                  <span style={{ color: '#22c55e', fontSize: '1.35rem', fontWeight: '900' }}>{finalTotal.toFixed(2)} ج.م</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div style={{
+            background: 'linear-gradient(135deg, #0f172a, #1e293b)',
+            padding: '24px 44px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          }}>
+            <div>
+              <div style={{ fontSize: '1rem', fontWeight: '900', fontStyle: 'italic', color: '#fff' }}>
+                ZAIT <span style={{ color: '#22c55e' }}>& FILTERS</span>
+              </div>
+              <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.7rem', marginTop: '3px' }}>zaitandfilters.com</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ color: '#22c55e', fontSize: '0.78rem', fontWeight: '800' }}>شكراً لثقتكم بنا</div>
+              <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.68rem', marginTop: '2px' }}>Thank you for your order</div>
+            </div>
+            <div style={{
+              backgroundColor: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)',
+              borderRadius: '8px', padding: '6px 14px',
+              color: '#22c55e', fontSize: '0.72rem', fontWeight: '800', letterSpacing: '1px',
+            }}>
+              ORDER #{orderNum}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── NORMAL CHECKOUT FORM ──────────────────────────────────────────────────
   return (
     <div style={container}>
       <style dangerouslySetInnerHTML={{ __html: `
@@ -391,7 +686,8 @@ export default function CheckoutPage() {
       <div style={layoutGrid}>
         
         <div style={summarySide}>
-          <h3 style={sectionTitle}><ShoppingCart size={18} /> تفاصيل فاتورتك</h3>
+          {/* ── Changed فاتورتك → ORDER ── */}
+          <h3 style={sectionTitle}><ShoppingCart size={18} /> تفاصيل ORDER</h3>
           <div style={itemsList}>
             {cart.map((item: any) => {
                const country = item.country_origin || item.country_of_origin || 'أصلي';
