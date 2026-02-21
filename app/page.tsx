@@ -146,7 +146,7 @@ function SearchCard({
               styles={customSelectStyles}
               placeholder="اختر الماركة"
               isRtl={true}
-              isSearchable={true}
+              isSearchable={false}
               value={selectedMake}
               onChange={(opt: any) => setSelectedMake(opt)}
               formatOptionLabel={(brand: any) => (
@@ -167,7 +167,7 @@ function SearchCard({
               styles={customSelectStyles}
               placeholder="اختر الموديل"
               isRtl={true}
-              isSearchable={true}
+              isSearchable={false}
               value={selectedModel}
               isDisabled={!selectedMake}
               onChange={(opt: any) => setSelectedModel(opt)}
@@ -435,7 +435,8 @@ export default function HomePage() {
       fontSize: '1rem', 
       textAlign: 'right', 
       display: 'flex', 
-      flexDirection: 'row-reverse' 
+      flexDirection: 'row-reverse',
+      cursor: 'pointer',
     }),
     option: (base: any, state: any) => ({ 
       ...base, 
@@ -641,42 +642,17 @@ export default function HomePage() {
 
           .page-container { animation: pageLoad 0.4s ease-out; }
 
-          /* ─── HERO ─────────────────────────────────────────────────────
-           *
-           * FIX: ZERO-GLITCH SLIDE TRANSITIONS ON MOBILE
-           *
-           * Root cause of the glitch:
-           *   On mobile, .hero-section used height:auto so its size was
-           *   determined by content. The background layer (position:absolute)
-           *   was outside normal flow, but any sub-pixel repaint during the
-           *   opacity transition could trigger a layout recalculation on the
-           *   content layer, causing a visible resize flicker.
-           *
-           * Solution — three-part fix:
-           *   1. Lock mobile hero to a fixed min-height (580px) so the
-           *      section dimensions never change during transitions.
-           *   2. Add transform:translateZ(0) to .hero-bg-layer to promote
-           *      it to its own GPU compositing layer, fully decoupling its
-           *      repaints from the content layer.
-           *   3. Add will-change:opacity to .hero-bg-slide so the browser
-           *      pre-allocates a compositor layer per slide before any
-           *      transition begins, eliminating mid-animation promotion cost.
-           *
-           * ─────────────────────────────────────────────────────────────── */
-
           .hero-section {
             position: relative;
             width: 100%;
             background: #000;
           }
 
-          /* Background layer — GPU-composited, purely visual, no layout impact */
           .hero-bg-layer {
             position: absolute;
             inset: 0;
             z-index: 0;
             pointer-events: none;
-            /* FIX 2: own compositing layer — repaints never reach content layer */
             transform: translateZ(0);
           }
 
@@ -687,7 +663,6 @@ export default function HomePage() {
             background-position: center;
             opacity: 0;
             transition: opacity 0.8s ease-in-out;
-            /* FIX 3: pre-allocate compositor layer before transition starts */
             will-change: opacity;
           }
           .hero-bg-slide.active { opacity: 1; }
@@ -697,30 +672,29 @@ export default function HomePage() {
             .hero-section          { height: 600px; overflow: hidden; }
             .hero-content-layer    { position: absolute; inset: 0; z-index: 10; display: flex; align-items: center; }
             .hero-inner            { width: 100%; max-width: 1200px; margin: 0 auto; padding: 40px 20px; display: flex; gap: 40px; align-items: center; justify-content: space-between; }
-            .hero-text             { flex: 1; text-align: right; min-width: 300px; animation: slideIn 0.6s ease-out 0.15s both; }
-            .hero-card-desktop     { width: 400px; flex-shrink: 0; background: #fff; padding: 30px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); animation: slideUp 0.6s ease-out 0.25s both; }
+            .hero-text             { flex: 1; text-align: right; min-width: 300px; animation: slideIn 0.6s ease-out 0.15s both; display: flex; flex-direction: column; }
+
+            /*
+             * FIX: .hero-text-title has a fixed min-height so the search
+             * card never shifts when a slide has more or fewer lines.
+             * 200px comfortably fits h1 (3rem × 1.4 line-height × 3 lines)
+             * + subtitle (1.2rem × 1.5 × 2 lines) + their margins.
+             * overflow:hidden clips any extreme outliers gracefully.
+             */
+            .hero-text-title       { min-height: 200px; overflow: hidden; }
+
+            .hero-card-desktop     { width: 400px; flex-shrink: 0; background: #fff; padding: 30px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); animation: slideUp 0.6s ease-out 0.25s both; align-self: center; }
             .hero-card-mobile      { display: none; }
           }
 
           /* ── Mobile ── */
           @media (max-width: 768px) {
-            /*
-             * FIX 1: Fixed min-height locks the section size.
-             * The section no longer resizes during slide transitions
-             * because its dimensions are not derived from content flow.
-             * overflow:hidden clips the absolutely-positioned bg layer.
-             */
             .hero-section {
               min-height: 580px;
               height: auto;
               overflow: hidden;
             }
 
-            /*
-             * Content layer uses absolute positioning (matching desktop)
-             * so it sits on top of the bg layer without contributing to
-             * the section's intrinsic height — eliminating any reflow.
-             */
             .hero-content-layer {
               position: absolute;
               inset: 0;
@@ -740,7 +714,15 @@ export default function HomePage() {
               gap: 20px;
             }
 
-            .hero-text             { text-align: center; }
+            .hero-text             { text-align: center; display: flex; flex-direction: column; }
+
+            /*
+             * FIX: Same idea on mobile — fixed min-height on the text
+             * wrapper so the search card below never jumps.
+             * 140px = ~2 lines of h1 at 2rem + subtitle at 1rem.
+             */
+            .hero-text-title       { min-height: 140px; overflow: hidden; }
+
             .hero-text h1          { font-size: 2rem !important; line-height: 1.3 !important; }
             .hero-text p           { font-size: 1rem !important; max-width: 90%; margin-left: auto !important; margin-right: auto !important; }
 
@@ -754,7 +736,6 @@ export default function HomePage() {
               box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             }
           }
-          /* ─────────────────────────────────────────────────────────────── */
 
           .no-scrollbar::-webkit-scrollbar { display: none; }
           .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -960,16 +941,6 @@ export default function HomePage() {
         {!loading && (
           <div className="page-container">
 
-            {/* ── Hero Section ─────────────────────────────────────────────
-             *
-             * ARCHITECTURE:
-             *   .hero-bg-layer   GPU layer — background images only
-             *   .hero-content-layer  text + search card, mounted ONCE
-             *
-             * On mobile: both layers are position:absolute inside a
-             * fixed min-height container, so slide transitions NEVER
-             * cause any layout reflow or visible resize glitch.
-             * ─────────────────────────────────────────────────────────── */}
             <section className="hero-section">
 
               {/* Background layer — GPU composited, zero layout impact */}
@@ -990,14 +961,22 @@ export default function HomePage() {
                 <div className="hero-inner">
 
                   <div className="hero-text">
-                    {activeSlide.title && (
-                      <h1 style={{ fontSize: '3rem', fontWeight: '900', lineHeight: '1.4', marginBottom: '15px', color: '#22c55e' }}>
-                        {activeSlide.title.replace(/<[^>]*>/g, '')}
-                      </h1>
-                    )}
-                    <p style={{ color: '#fff', fontSize: '1.2rem', fontWeight: '500', marginBottom: '25px', maxWidth: '550px', lineHeight: '1.5' }}>
-                      {activeSlide.subtitle}
-                    </p>
+                    {/*
+                      FIX: .hero-text-title wraps the title + subtitle
+                      with a fixed min-height so the search card (below
+                      the hero-text div, and the card on desktop) never
+                      shifts position when slides have different line counts.
+                    */}
+                    <div className="hero-text-title">
+                      {activeSlide.title && (
+                        <h1 style={{ fontSize: '3rem', fontWeight: '900', lineHeight: '1.4', marginBottom: '15px', color: '#22c55e' }}>
+                          {activeSlide.title.replace(/<[^>]*>/g, '')}
+                        </h1>
+                      )}
+                      <p style={{ color: '#fff', fontSize: '1.2rem', fontWeight: '500', marginBottom: '25px', maxWidth: '550px', lineHeight: '1.5' }}>
+                        {activeSlide.subtitle}
+                      </p>
+                    </div>
                     <Link
                       href={activeSlide.button_link || '/store'}
                       style={{ padding: '12px 30px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.95rem', display: 'inline-block' }}
