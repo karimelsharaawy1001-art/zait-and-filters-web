@@ -600,6 +600,9 @@ function StoreContent() {
   const [garageMode, setGarageMode] = useState(false);
   const [userCar, setUserCar] = useState<any>(null);
 
+  // ✅ FIX: track desktop breakpoint in state — avoids window.innerWidth in JSX (SSR-safe)
+  const [isDesktop, setIsDesktop] = useState(false);
+
   const urlMake = searchParams.get('make');
   const urlModel = searchParams.get('model');
   const urlYear = searchParams.get('year');
@@ -613,6 +616,11 @@ function StoreContent() {
     setIsMounted(true);
     setSelectLoaded(true);
 
+    // ✅ FIX: set isDesktop on mount and keep it updated on resize
+    const handleResize = () => setIsDesktop(window.innerWidth > 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
     const syncGarageMode = () => {
       const mode = localStorage.getItem('garageMode') === 'true';
       setGarageMode(mode);
@@ -622,6 +630,7 @@ function StoreContent() {
     fetchGarageDataAndInit();
 
     return () => {
+      window.removeEventListener('resize', handleResize);
       window.removeEventListener('garageModeChanged', syncGarageMode);
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -1312,20 +1321,23 @@ function StoreContent() {
                   backgroundColor: 'rgba(255,255,255,0.5)',
                   border: '1px solid rgba(255,255,255,0.4)',
                   borderRadius: '30px',
-                  padding: typeof window !== 'undefined' && window.innerWidth <= 768 ? '25px' : '40px',
+                  // ✅ FIX: was window.innerWidth — now uses isDesktop state
+                  padding: isDesktop ? '40px' : '25px',
                   position: 'relative',
                   overflow: 'hidden',
                   boxShadow: '0 8px 32px 0 rgba(31,38,135,0.07)',
                 }}
               >
                 <div style={{ position: 'absolute', top: '-50%', right: '-10%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(34,197,94,0.15) 0%, transparent 70%)', zIndex: 0, pointerEvents: 'none' }} />
-                <div style={{ display: 'grid', gridTemplateColumns: carHeroImage && typeof window !== 'undefined' && window.innerWidth > 768 ? '1.5fr 1fr' : '1fr', gap: '40px', alignItems: 'center', position: 'relative', zIndex: 2 }}>
+                {/* ✅ FIX: was window.innerWidth — now uses isDesktop state */}
+                <div style={{ display: 'grid', gridTemplateColumns: carHeroImage && isDesktop ? '1.5fr 1fr' : '1fr', gap: '40px', alignItems: 'center', position: 'relative', zIndex: 2 }}>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', justifyContent: 'flex-start' }}>
                       <CheckCircle2 size={20} color="#22c55e" />
                       <span style={{ color: '#444', fontSize: '0.9rem', fontWeight: '700', letterSpacing: '0.5px' }}>تم تحديد مواصفات السيارة</span>
                     </div>
-                    <h1 style={{ color: '#1a1a1a', fontSize: typeof window !== 'undefined' && window.innerWidth <= 768 ? '1.8rem' : '2.8rem', fontWeight: '900', marginBottom: '16px', lineHeight: '1.2', letterSpacing: '-1px' }}>
+                    {/* ✅ FIX: was window.innerWidth — now uses isDesktop state */}
+                    <h1 style={{ color: '#1a1a1a', fontSize: isDesktop ? '2.8rem' : '1.8rem', fontWeight: '900', marginBottom: '16px', lineHeight: '1.2', letterSpacing: '-1px' }}>
                       قطع غيار <span style={{ color: '#22c55e' }}>{heroMakeLabel}</span> الأصلية
                     </h1>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '24px' }}>
@@ -1345,7 +1357,8 @@ function StoreContent() {
                       <div style={{ fontSize: '0.9rem', color: '#fff', fontWeight: '600' }}>قطعة غيار متاحة</div>
                     </div>
                   </div>
-                  {carHeroImage && typeof window !== 'undefined' && window.innerWidth > 768 && (
+                  {/* ✅ FIX: was window.innerWidth — now uses isDesktop state — car image now shows correctly */}
+                  {carHeroImage && isDesktop && (
                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.6 }} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                       <img src={carHeroImage} alt={`${heroMakeLabel} ${heroModelLabel}`} style={{ width: '100%', maxHeight: '280px', objectFit: 'contain', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))' }} />
                     </motion.div>
