@@ -11,7 +11,7 @@
 // ============================================================
 
 import { useEffect, useRef, useState } from 'react';
-import { Download, Printer, CheckCircle, Package, Truck, User, Phone, MapPin, Calendar, Hash } from 'lucide-react';
+import { Download, Printer, CheckCircle, Package, Truck, User, Phone, MapPin, Calendar, Hash, Car, Globe } from 'lucide-react';
 
 interface OrderItem {
   id: string;
@@ -20,6 +20,11 @@ interface OrderItem {
   price: number;
   brand?: string;
   image_url?: string;
+  // ✅ FIX 2: Added missing car + origin fields
+  car_make?: string;
+  car_model?: string;
+  car_model_year?: string;
+  country_origin?: string;
 }
 
 interface Order {
@@ -70,11 +75,16 @@ export default function OrderInvoice({ order }: Props) {
       const element = invoiceRef.current;
       if (!element) return;
 
+      // ✅ FIX 1: Wait for Cairo font to fully load before capturing canvas
+      await document.fonts.ready;
+
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
+        // ✅ FIX 1: Ensure cloned document also has fonts ready
+        onclone: (_clonedDoc) => document.fonts.ready,
       });
 
       const imgData = canvas.toDataURL('image/png');
@@ -116,7 +126,19 @@ export default function OrderInvoice({ order }: Props) {
   };
 
   return (
-    <div style={{ direction: 'rtl', backgroundColor: '#f0f0f0', minHeight: '100vh', padding: '30px 20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    // ✅ FIX 1: Use Cairo font for proper Arabic letter shaping
+    <div style={{ direction: 'rtl', backgroundColor: '#f0f0f0', minHeight: '100vh', padding: '30px 20px', fontFamily: "'Cairo', system-ui, -apple-system, sans-serif" }}>
+
+      {/* ✅ FIX 1: Load Cairo Arabic font from Google Fonts */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+
+        @media print {
+          .no-print { display: none !important; }
+          body { background: white !important; }
+          #invoice-content { box-shadow: none !important; border-radius: 0 !important; }
+        }
+      `}</style>
 
       {/* ── Action buttons (hidden when printing) ── */}
       <div className="no-print" style={{ maxWidth: '800px', margin: '0 auto 20px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
@@ -128,6 +150,7 @@ export default function OrderInvoice({ order }: Props) {
             color: '#1a1a1a', border: '1.5px solid #ddd',
             borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem',
             cursor: 'pointer', transition: 'all 0.2s',
+            fontFamily: "'Cairo', system-ui, sans-serif",
           }}
         >
           <Printer size={18} />
@@ -145,6 +168,7 @@ export default function OrderInvoice({ order }: Props) {
             cursor: isGenerating ? 'not-allowed' : 'pointer',
             boxShadow: '0 4px 15px rgba(34,197,94,0.35)',
             transition: 'all 0.2s',
+            fontFamily: "'Cairo', system-ui, sans-serif",
           }}
         >
           <Download size={18} />
@@ -165,6 +189,8 @@ export default function OrderInvoice({ order }: Props) {
           borderRadius: '20px',
           overflow: 'hidden',
           boxShadow: '0 20px 60px rgba(0,0,0,0.12)',
+          // ✅ FIX 1: Enforce Cairo font inside the captured element too
+          fontFamily: "'Cairo', system-ui, -apple-system, sans-serif",
         }}
       >
         {/* ── HEADER ── */}
@@ -242,7 +268,7 @@ export default function OrderInvoice({ order }: Props) {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                 {item.icon}
-                <span style={{ fontSize: '0.72rem', color: '#999', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase' }}>{item.label}</span>
+                <span style={{ fontSize: '0.72rem', color: '#999', fontWeight: '700', letterSpacing: '0.5px' }}>{item.label}</span>
               </div>
               <div style={{ fontSize: '0.95rem', fontWeight: '800', color: '#1a1a1a' }}>{item.value}</div>
             </div>
@@ -265,7 +291,7 @@ export default function OrderInvoice({ order }: Props) {
                 <div style={{ width: '28px', height: '28px', borderRadius: '8px', backgroundColor: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <User size={14} color="#fff" />
                 </div>
-                <span style={{ fontSize: '0.75rem', fontWeight: '900', color: '#555', letterSpacing: '1px', textTransform: 'uppercase' }}>بيانات العميل</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: '900', color: '#555', letterSpacing: '1px' }}>بيانات العميل</span>
               </div>
               <div style={{ fontSize: '1rem', fontWeight: '800', color: '#1a1a1a', marginBottom: '10px' }}>{order.customer_name}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -290,7 +316,7 @@ export default function OrderInvoice({ order }: Props) {
                 <div style={{ width: '28px', height: '28px', borderRadius: '8px', backgroundColor: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Truck size={14} color="#22c55e" />
                 </div>
-                <span style={{ fontSize: '0.75rem', fontWeight: '900', color: '#555', letterSpacing: '1px', textTransform: 'uppercase' }}>عنوان التوصيل</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: '900', color: '#555', letterSpacing: '1px' }}>عنوان التوصيل</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                 <MapPin size={14} color="#22c55e" style={{ marginTop: '3px', flexShrink: 0 }} />
@@ -307,7 +333,7 @@ export default function OrderInvoice({ order }: Props) {
 
           {/* ── ITEMS TABLE ── */}
           <div style={{ marginBottom: '30px' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: '900', color: '#555', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '14px' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: '900', color: '#555', letterSpacing: '1px', marginBottom: '14px' }}>
               تفاصيل المنتجات
             </div>
 
@@ -322,7 +348,7 @@ export default function OrderInvoice({ order }: Props) {
               {['المنتج', 'الكمية', 'سعر الوحدة', 'الإجمالي'].map((h, i) => (
                 <div key={i} style={{
                   fontSize: '0.72rem', fontWeight: '800', color: '#94a3b8',
-                  letterSpacing: '0.5px', textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
                   textAlign: i === 0 ? 'right' : 'center',
                 }}>
                   {h}
@@ -345,13 +371,36 @@ export default function OrderInvoice({ order }: Props) {
                   borderLeft: '1px solid #f0f0f0',
                 }}
               >
-                {/* Product name */}
+                {/* ✅ FIX 2: Product name + brand + car make/model + country */}
                 <div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#1a1a1a', marginBottom: '2px' }}>{item.name}</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#1a1a1a', marginBottom: '3px' }}>
+                    {item.name}
+                  </div>
                   {item.brand && (
-                    <div style={{ fontSize: '0.72rem', color: '#22c55e', fontWeight: '700' }}>{item.brand}</div>
+                    <div style={{ fontSize: '0.72rem', color: '#22c55e', fontWeight: '700', marginBottom: '3px' }}>
+                      {item.brand}
+                    </div>
+                  )}
+                  {/* ✅ Car make + model */}
+                  {(item.car_make || item.car_model) && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
+                      <Car size={11} color="#6b7280" />
+                      <span style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: '700' }}>
+                        {[item.car_make, item.car_model, item.car_model_year].filter(Boolean).join(' · ')}
+                      </span>
+                    </div>
+                  )}
+                  {/* ✅ Country of origin */}
+                  {item.country_origin && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Globe size={11} color="#6b7280" />
+                      <span style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: '700' }}>
+                        {item.country_origin}
+                      </span>
+                    </div>
                   )}
                 </div>
+
                 {/* Qty */}
                 <div style={{ textAlign: 'center' }}>
                   <span style={{
@@ -389,7 +438,7 @@ export default function OrderInvoice({ order }: Props) {
               {/* Shipping */}
               {shipping > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px dashed #e5e5e5' }}>
-                  <span style={{ color: '#666', fontSize: '0.88rem', fontWeight: '700' }}>
+                  <span style={{ color: '#666', fontSize: '0.88rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Truck size={13} style={{ marginLeft: '4px', verticalAlign: 'middle' }} />
                     الشحن
                   </span>
@@ -433,7 +482,7 @@ export default function OrderInvoice({ order }: Props) {
               backgroundColor: '#fffbeb', borderRadius: '12px',
               border: '1px solid #fde68a',
             }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: '900', color: '#92400e', letterSpacing: '0.5px', marginBottom: '8px', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: '900', color: '#92400e', letterSpacing: '0.5px', marginBottom: '8px' }}>
                 ملاحظات
               </div>
               <p style={{ fontSize: '0.9rem', color: '#78350f', lineHeight: '1.6', margin: 0 }}>{order.notes}</p>
@@ -470,15 +519,6 @@ export default function OrderInvoice({ order }: Props) {
           </div>
         </div>
       </div>
-
-      {/* Print styles */}
-      <style>{`
-        @media print {
-          .no-print { display: none !important; }
-          body { background: white !important; }
-          #invoice-content { box-shadow: none !important; border-radius: 0 !important; }
-        }
-      `}</style>
     </div>
   );
 }
