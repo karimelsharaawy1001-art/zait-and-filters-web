@@ -4,22 +4,185 @@ import { supabase } from '@/app/lib/supabase';
 import { useCart } from '@/context/CartContext';
 import {
   ShoppingCart, Car, Calendar, ShieldCheck,
-  ArrowRight, Globe, Plus, Minus, CheckCircle2, Layers, Info, Package, Loader2, ChevronRight, ChevronLeft, Timer
+  ArrowRight, Globe, Plus, Minus, CheckCircle2, Layers, Info, Package, Loader2, ChevronRight, ChevronLeft, Timer,
+  Share2, Check, Copy, Facebook, Twitter
 } from 'lucide-react';
 import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 
+
+// ─── Share Buttons ─────────────────────────────────────────────────────────────
+function ShareButtons({ productName, productBrand, price, carMake, carModel, productId }: {
+  productName: string;
+  productBrand: string;
+  price: number | string;
+  carMake?: string;
+  carModel?: string;
+  productId: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const url = `https://zaitandfilters.com/products/${productId}`;
+
+  const whatsappText = encodeURIComponent(
+    `🛒 ${productName} - ${productBrand}\n💰 السعر: ${price} ج.م${carMake ? `\n🚗 لسيارة: ${carMake} ${carModel || ''}` : ''}\n🔗 ${url}`
+  );
+  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+  const twitterUrl  = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`${productName} - ${productBrand} | ${price} ج.م`)}&url=${encodeURIComponent(url)}`;
+  const whatsappUrl = `https://wa.me/?text=${whatsappText}`;
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      const el = document.createElement('textarea');
+      el.value = url;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${productName} - ${productBrand}`,
+          text: `${productName} - ${productBrand}\n💰 ${price} ج.م`,
+          url,
+        });
+      } catch { /* user cancelled */ }
+    } else {
+      setOpen(prev => !prev);
+    }
+  };
+
+  return (
+    <div style={{ position: 'relative', display: 'inline-block', flexShrink: 0 }}>
+
+      {/* Main button */}
+      <button
+        onClick={handleShare}
+        title="مشاركة المنتج"
+        style={{
+          display: 'flex', alignItems: 'center', gap: '8px',
+          padding: '14px 18px',
+          backgroundColor: '#f3f4f6',
+          border: '1px solid #e5e7eb',
+          borderRadius: '15px',
+          cursor: 'pointer',
+          fontWeight: '800',
+          fontSize: '0.95rem',
+          color: '#1a1a1a',
+          fontFamily: 'inherit',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <Share2 size={18} /> مشاركة
+      </button>
+
+      {/* Desktop dropdown */}
+      {open && (
+        <>
+          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 999 }} />
+          <div style={{
+            position: 'absolute',
+            bottom: 'calc(100% + 10px)',
+            right: 0,
+            backgroundColor: '#fff',
+            borderRadius: '16px',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+            border: '1px solid #f0f0f0',
+            padding: '10px',
+            zIndex: 1000,
+            minWidth: '195px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '6px',
+            direction: 'rtl',
+          }}>
+            <p style={{ fontSize: '0.72rem', color: '#aaa', fontWeight: '700', margin: '0 4px 4px', textAlign: 'right' }}>
+              شارك المنتج عبر
+            </p>
+
+            {/* WhatsApp */}
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+              onClick={() => setOpen(false)} style={shareBtnStyle('#25D366')}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="white">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              </svg>
+              واتساب
+            </a>
+
+            {/* Facebook */}
+            <a href={facebookUrl} target="_blank" rel="noopener noreferrer"
+              onClick={() => setOpen(false)} style={shareBtnStyle('#1877F2')}>
+              <Facebook size={17} fill="white" color="white" /> فيسبوك
+            </a>
+
+            {/* Twitter / X */}
+            <a href={twitterUrl} target="_blank" rel="noopener noreferrer"
+              onClick={() => setOpen(false)} style={shareBtnStyle('#000')}>
+              <Twitter size={17} fill="white" color="white" /> تويتر / X
+            </a>
+
+            <div style={{ height: '1px', backgroundColor: '#f0f0f0', margin: '2px 0' }} />
+
+            {/* Copy link */}
+            <button
+              onClick={() => { copyLink(); setOpen(false); }}
+              style={{ ...shareBtnStyle('#6b7280'), border: 'none', cursor: 'pointer', width: '100%', fontFamily: 'inherit' } as React.CSSProperties}
+            >
+              {copied ? <Check size={17} /> : <Copy size={17} />}
+              {copied ? 'تم النسخ!' : 'نسخ الرابط'}
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Copied toast */}
+      {copied && !open && (
+        <div style={{
+          position: 'absolute', bottom: 'calc(100% + 8px)', right: 0,
+          backgroundColor: '#1a1a1a', color: '#fff',
+          padding: '6px 14px', borderRadius: '8px',
+          fontSize: '0.8rem', fontWeight: '700',
+          whiteSpace: 'nowrap', zIndex: 1000,
+          display: 'flex', alignItems: 'center', gap: '6px',
+        }}>
+          <Check size={13} color="#22c55e" /> تم نسخ الرابط!
+        </div>
+      )}
+    </div>
+  );
+}
+
+function shareBtnStyle(bg: string): React.CSSProperties {
+  return {
+    display: 'flex', alignItems: 'center', gap: '9px',
+    padding: '9px 12px',
+    backgroundColor: bg, color: '#fff',
+    borderRadius: '10px', textDecoration: 'none',
+    fontWeight: '800', fontSize: '0.88rem',
+    direction: 'rtl',
+  };
+}
+// ──────────────────────────────────────────────────────────────────────────────
+
+
 function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImages: Record<string, string> }) {
   const [qty, setQty] = useState(1);
   const { addToCart } = useCart();
 
-  // Fallback: product image → subcategory image → placeholder
   const subcatKey = p.subcategory?.trim().toUpperCase();
   const fallbackImage = subcategoryImages[subcatKey] || null;
   const displayImage = p.image_url || fallbackImage || null;
-
   const country = p.country_of_origin || p.country_origin || p.origin || null;
 
   return (
@@ -44,22 +207,17 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
 
       {/* Details */}
       <div style={premiumDetails}>
-        {/* Brand + Country */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={premiumBrand}>{p.brand}</span>
           {country && (
-            <span style={countryBadge}>
-              <Globe size={10} /> {country}
-            </span>
+            <span style={countryBadge}><Globe size={10} /> {country}</span>
           )}
         </div>
 
-        {/* Name */}
         <Link href={`/products/${p.id}`} style={{ textDecoration: 'none' }}>
           <h3 style={premiumName}>{p.name}</h3>
         </Link>
 
-        {/* Car info */}
         <div style={carInfoBox}>
           {p.car_make && (
             <div style={carInfoRow}>
@@ -68,20 +226,13 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
             </div>
           )}
           {p.car_model_year && (
-            <div style={carInfoRow}>
-              <Calendar size={11} color="#27ae60" />
-              <span>{p.car_model_year}</span>
-            </div>
+            <div style={carInfoRow}><Calendar size={11} color="#27ae60" /><span>{p.car_model_year}</span></div>
           )}
           {p.subcategory && (
-            <div style={carInfoRow}>
-              <Layers size={11} color="#27ae60" />
-              <span>{p.subcategory}</span>
-            </div>
+            <div style={carInfoRow}><Layers size={11} color="#27ae60" /><span>{p.subcategory}</span></div>
           )}
         </div>
 
-        {/* Price + Stepper */}
         <div style={premiumPriceRow}>
           <div style={premiumPriceCol}>
             <span style={premiumCurrentPrice}>
@@ -99,17 +250,14 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
           </div>
         </div>
 
-        {/* Add to cart */}
-        <button
-          onClick={() => addToCart({ ...p, price: p.sale_price || p.regular_price }, qty)}
-          style={premiumAddBtn}
-        >
+        <button onClick={() => addToCart({ ...p, price: p.sale_price || p.regular_price }, qty)} style={premiumAddBtn}>
           <ShoppingCart size={14} /> إضافة
         </button>
       </div>
     </div>
   );
 }
+
 
 export default function ProductDetailsClient({ initialProduct, productId }: { initialProduct: any, productId: string }) {
   const [product, setProduct] = useState<any>(initialProduct);
@@ -124,7 +272,6 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
     async function fetchRelated() {
       if (!product) return;
 
-      // Fetch related products + subcategory images in parallel
       const [relatedRes, subcatRes] = await Promise.all([
         supabase.from('products')
           .select('*')
@@ -136,7 +283,6 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         supabase.from('category_images').select('name, image_url'),
       ]);
 
-      // Build subcategory image map (uppercased keys for easy lookup)
       if (subcatRes.data) {
         const map: Record<string, string> = {};
         subcatRes.data.forEach(img => {
@@ -170,14 +316,12 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
     const make = product.car_make || "";
     const model = product.car_model || "";
     const year = product.car_model_year ? `موديل ${product.car_model_year}` : "";
-
     let origin = product.country_of_origin || "";
     const originMap: Record<string, string> = {
       'صيني': 'الصين', 'كوري': 'كوريا', 'ياباني': 'اليابان',
       'ألماني': 'ألمانيا', 'تركي': 'تركيا', 'إيطالي': 'إيطاليا'
     };
     const correctedOrigin = originMap[origin] || origin;
-
     let desc = `احصل الآن على ${name} بجودة عالية من ماركة ${brand}.`;
     if (make || model) desc += ` تم تصميم هذه القطعة خصيصاً لتناسب سيارات ${make} ${model} ${year}.`;
     if (correctedOrigin) desc += ` تتميز هذه القطعة بأنها مصنعة في ${correctedOrigin}، مما يضمن لك أداءً مثالياً وعمراً افتراضياً طويلاً على الطريق.`;
@@ -188,6 +332,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
   if (!product) return <div style={{ textAlign: 'center', padding: '100px' }}>المنتج غير موجود.</div>;
 
   const imageUrl = !imgError && product.image_url ? product.image_url : null;
+  const displayPrice = product.sale_price && Number(product.sale_price) > 0 ? product.sale_price : product.regular_price;
 
   return (
     <>
@@ -281,6 +426,13 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           flex-shrink: 0;
         }
 
+        /* Share row — sits below the cart button */
+        .share-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
         /* Related section swiper fix */
         .related-swiper .swiper-slide {
           height: auto !important;
@@ -334,6 +486,18 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
 
           .qty-stepper {
             width: 100%;
+            justify-content: center;
+          }
+
+          /* Full-width share button on mobile */
+          .share-row {
+            width: 100%;
+          }
+          .share-row > div {
+            width: 100%;
+          }
+          .share-row > div > button:first-child {
+            width: 100% !important;
             justify-content: center;
           }
 
@@ -434,6 +598,18 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
               </button>
             </div>
 
+            {/* Share row — directly below cart button */}
+            <div className="share-row">
+              <ShareButtons
+                productName={product.name}
+                productBrand={product.brand}
+                price={displayPrice}
+                carMake={product.car_make}
+                carModel={product.car_model}
+                productId={productId}
+              />
+            </div>
+
             {/* Trust Badges */}
             <div style={trustBadges}>
               <div style={badgeItem}><ShieldCheck size={16} color="#27ae60" /> قطع غيار أصلية ومختبرة</div>
@@ -469,14 +645,10 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                 slidesPerView={1}
                 navigation={{ prevEl: '#prev-related', nextEl: '#next-related' }}
                 breakpoints={{
-                  // 1 full card on tiny phones
-                  0:   { slidesPerView: 2,   spaceBetween: 10 },
-                  // ~2 cards on larger phones
-                  480: { slidesPerView: 2,   spaceBetween: 12 },
-                  // 3 on tablet
-                  768: { slidesPerView: 3,   spaceBetween: 14 },
-                  // 4 on desktop
-                  1024:{ slidesPerView: 4,   spaceBetween: 16 },
+                  0:    { slidesPerView: 2,  spaceBetween: 10 },
+                  480:  { slidesPerView: 2,  spaceBetween: 12 },
+                  768:  { slidesPerView: 3,  spaceBetween: 14 },
+                  1024: { slidesPerView: 4,  spaceBetween: 16 },
                 }}
                 autoplay={{ delay: 3500, disableOnInteraction: false }}
                 className="related-swiper"
@@ -496,6 +668,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
   );
 }
 
+
 // ─── Styles ────────────────────────────────────────────────────────────────────
 
 const carouselFullWrapper: any = { marginTop: '40px', borderTop: '1px solid #f0f0f0', paddingTop: '30px' };
@@ -505,40 +678,17 @@ const customNavWrapper: any = { display: 'flex', gap: '10px' };
 const navCircleBtn: any = { width: '38px', height: '38px', borderRadius: '50%', border: '1px solid #eee', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#1a1a1a' };
 const swiperOuterContainer: any = { position: 'relative', width: '100%' };
 
-// Card
-const premiumCardStyle: any = {
-  background: '#fff',
-  borderRadius: '16px',
-  border: '1px solid #f0f0f0',
-  overflow: 'hidden',
-  height: '100%',
-  boxShadow: '0 4px 15px rgba(0,0,0,0.04)',
-  display: 'flex',
-  flexDirection: 'column',
-  width: '100%',
-};
-const premiumImageArea: any = {
-  height: '160px',
-  background: '#f8f9fa',
-  position: 'relative',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  overflow: 'hidden',
-  flexShrink: 0,
-};
+const premiumCardStyle: any = { background: '#fff', borderRadius: '16px', border: '1px solid #f0f0f0', overflow: 'hidden', height: '100%', boxShadow: '0 4px 15px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', width: '100%' };
+const premiumImageArea: any = { height: '160px', background: '#f8f9fa', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', flexShrink: 0 };
 const premiumImgFit: any = { width: '100%', height: '100%', objectFit: 'contain', padding: '10px' };
 const noImgPlaceholder: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' };
 const smallSaleBadge: any = { position: 'absolute', top: '8px', right: '8px', background: '#e74c3c', color: '#fff', padding: '2px 7px', borderRadius: '6px', fontSize: '0.6rem', fontWeight: 'bold' };
-
 const premiumDetails: any = { padding: '10px 12px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '5px' };
 const premiumBrand: any = { fontSize: '0.7rem', fontWeight: '800', color: '#27ae60' };
 const countryBadge: any = { display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: '#888', fontWeight: '700', background: '#f5f5f5', padding: '2px 6px', borderRadius: '5px' };
 const premiumName: any = { fontSize: '0.85rem', fontWeight: '800', color: '#1a1a1a', lineHeight: '1.3', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', margin: '2px 0' };
-
 const carInfoBox: any = { background: '#f8fdf9', borderRadius: '8px', padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '2px' };
 const carInfoRow: any = { display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.68rem', color: '#555', fontWeight: '700' };
-
 const premiumPriceRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', background: '#f9f9f9', padding: '7px 8px', borderRadius: '10px' };
 const premiumPriceCol: any = { display: 'flex', flexDirection: 'column' };
 const premiumCurrentPrice: any = { fontSize: '0.95rem', fontWeight: '900', color: '#1a1a1a' };
@@ -548,7 +698,6 @@ const miniStepBtn: any = { width: '22px', height: '22px', borderRadius: '50%', b
 const miniQty: any = { fontSize: '0.8rem', fontWeight: 'bold', color: '#27ae60', minWidth: '15px', textAlign: 'center' };
 const premiumAddBtn: any = { width: '100%', background: '#1a1a1a', color: '#fff', border: 'none', padding: '9px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', marginTop: '6px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', fontFamily: 'inherit' };
 
-// Page styles
 const navPath: any = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', fontSize: '0.88rem', color: '#888', flexWrap: 'wrap' };
 const backLink: any = { display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#1a1a1a', fontWeight: 'bold' };
 const pathDivider: any = { color: '#ccc' };
