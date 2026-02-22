@@ -702,7 +702,7 @@ export default function HomePage() {
               display: flex;
               align-items: flex-start;
               padding-top: 90px;
-              overflow-y: hidden;
+              overflow-y: auto;
             }
 
             .hero-inner {
