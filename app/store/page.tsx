@@ -2,11 +2,6 @@ import { Metadata } from 'next';
 import { supabase } from '@/app/lib/supabase';
 import StoreClient from './StoreClient';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Server component — handles SEO metadata only.
-// All store logic lives in StoreClient.tsx (the 'use client' file).
-// ─────────────────────────────────────────────────────────────────────────────
-
 type SearchParams = {
   make?: string;
   model?: string;
@@ -29,7 +24,6 @@ export async function generateMetadata({
   const brand    = sp.brand    || '';
   const query    = sp.q        || '';
 
-  // ── Build title + description from active filters ──────────────────────────
   let title       = 'زيت أند فلترز | قطع غيار السيارات الأصلية';
   let description = 'تسوق أفضل قطع غيار السيارات الأصلية في مصر بأفضل الأسعار. شحن لباب البيت.';
   let ogImage     = 'https://zaitandfilters.com/og-image.jpg';
@@ -48,20 +42,33 @@ export async function generateMetadata({
     description = `نتائج البحث عن "${query}" في متجر زيت أند فلترز لقطع غيار السيارات الأصلية.`;
   }
 
-  // ── Fetch the best OG image from Supabase ─────────────────────────────────
   try {
     if (make) {
-      // 1. Car brand logo
-      const { data: carBrand } = await supabase
-        .from('car_brands')
-        .select('logo_url')
-        .ilike('name', make.trim())
-        .single();
+      // 1. Car image with make + model
+      if (model) {
+        const { data: carImg } = await supabase
+          .from('car_images')
+          .select('image_url')
+          .ilike('car_make', make.trim())
+          .ilike('car_model', model.trim())
+          .limit(1)
+          .single();
+        if (carImg?.image_url) ogImage = carImg.image_url;
+      }
 
-      if (carBrand?.logo_url) {
-        ogImage = carBrand.logo_url;
-      } else {
-        // 2. First product image for this make
+      // 2. Any car image for this make
+      if (ogImage === 'https://zaitandfilters.com/og-image.jpg') {
+        const { data: carImg } = await supabase
+          .from('car_images')
+          .select('image_url')
+          .ilike('car_make', make.trim())
+          .limit(1)
+          .single();
+        if (carImg?.image_url) ogImage = carImg.image_url;
+      }
+
+      // 3. Fallback: first product image for this make
+      if (ogImage === 'https://zaitandfilters.com/og-image.jpg') {
         const { data: product } = await supabase
           .from('products')
           .select('image_url')
@@ -72,7 +79,7 @@ export async function generateMetadata({
         if (product?.image_url) ogImage = product.image_url;
       }
     } else if (category) {
-      // 3. Category image table
+      // Category image table
       const { data: catImg } = await supabase
         .from('category_images')
         .select('image_url')
@@ -82,7 +89,6 @@ export async function generateMetadata({
       if (catImg?.image_url) {
         ogImage = catImg.image_url;
       } else {
-        // 4. First product image in this category
         const { data: product } = await supabase
           .from('products')
           .select('image_url')
@@ -93,7 +99,6 @@ export async function generateMetadata({
         if (product?.image_url) ogImage = product.image_url;
       }
     } else if (brand) {
-      // 5. First product image for this brand
       const { data: product } = await supabase
         .from('products')
         .select('image_url')
@@ -103,7 +108,6 @@ export async function generateMetadata({
         .single();
       if (product?.image_url) ogImage = product.image_url;
     } else if (query) {
-      // 6. First product image matching the search
       const { data: product } = await supabase
         .from('products')
         .select('image_url')
@@ -148,7 +152,6 @@ export async function generateMetadata({
   };
 }
 
-// ── Default export: just renders the client component ─────────────────────────
 export default function StorePage() {
   return <StoreClient />;
 }
