@@ -1,8 +1,7 @@
 import { supabase } from '@/app/lib/supabase';
 
-// ── Auto-updates every 6 hours — picks up new products automatically ──
-export const revalidate = 21600;
 export const dynamic = 'force-dynamic';
+export const revalidate = 21600; // auto-refresh every 6 hours
 
 export async function GET() {
   const baseUrl = 'https://zaitandfilters.com';
@@ -12,37 +11,20 @@ export async function GET() {
     let from = 0;
     const batchSize = 1000;
 
-    // ── Paginate through ALL products in batches of 1000 ──
+    // ── Paginate through ALL 12K+ products in batches of 1000 ──
     while (true) {
       const { data, error } = await supabase
         .from('products')
         .select('id, updated_at, created_at')
-        .eq('available', true)        // only available products
         .order('created_at', { ascending: false })
         .range(from, from + batchSize - 1);
 
-      if (error) {
-        console.error('Supabase error fetching products for sitemap:', error.message);
-        break;
-      }
-
-      if (!data || data.length === 0) break;
+      if (error || !data || data.length === 0) break;
 
       allProducts = [...allProducts, ...data];
       from += batchSize;
 
-      if (data.length < batchSize) break; // last batch
-    }
-
-    // ── Fallback: if still empty, try without the available filter ──
-    if (allProducts.length === 0) {
-      const { data: fallback } = await supabase
-        .from('products')
-        .select('id, updated_at, created_at')
-        .order('created_at', { ascending: false })
-        .range(0, 999);
-
-      if (fallback) allProducts = fallback;
+      if (data.length < batchSize) break;
     }
 
     const urls = allProducts
@@ -72,19 +54,7 @@ ${urls}
 
   } catch (err: any) {
     console.error('Sitemap generation failed:', err.message);
-
-    // ── Return a valid but minimal sitemap so Google doesn't error ──
-    const fallbackXml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${baseUrl}/store</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-</urlset>`;
-
-    return new Response(fallbackXml, {
+    return new Response(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>`, {
       status: 200,
       headers: { 'Content-Type': 'application/xml; charset=utf-8' },
     });
