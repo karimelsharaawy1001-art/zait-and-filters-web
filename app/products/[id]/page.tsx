@@ -13,9 +13,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   const title = `زيت أند فلترز | 🛒 ${product.name} - ${product.brand}`;
 
+  // ── FIX 1: null guard for car_make / car_model ──
+  const carInfo = [product.car_make, product.car_model, product.car_model_year]
+    .filter(Boolean)
+    .join(' ');
+
   const description = `
 💰 السعر: ${price} ج.م
-🚗 لسيارة: ${product.car_make} ${product.car_model} ${product.car_model_year || ''}
+${carInfo ? `🚗 لسيارة: ${carInfo}` : '🔧 قطعة غيار أصلية متوافقة مع عدة موديلات'}
 ✅ قطعة أصلية من ماركة ${product.brand} - المنشأ: ${product.country_of_origin || 'أصلي'}
 🛡️ اطلبها الآن من "زيت أند فلترز" بأفضل جودة وشحن لباب البيت.
   `.trim();
@@ -127,7 +132,13 @@ function ProductSchema({ product }: { product: any }) {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
-    description: `${product.name} - ${product.brand} قطعة أصلية لسيارة ${product.car_make} ${product.car_model} ${product.car_model_year || ''}`,
+    // ── FIX 2: null guard for car_make / car_model in schema description ──
+    description: [
+      `${product.name} - ${product.brand} قطعة أصلية`,
+      product.car_make && product.car_model
+        ? `لسيارة ${product.car_make} ${product.car_model} ${product.car_model_year || ''}`.trim()
+        : 'متوافقة مع عدة موديلات',
+    ].join(' '),
     image: product.image_url,
     brand: {
       '@type': 'Brand',
@@ -149,7 +160,6 @@ function ProductSchema({ product }: { product: any }) {
         name: 'Zait and Filters',
         url: 'https://zaitandfilters.com',
       },
-      // ── FIX 1 & 2: Added hasMerchantReturnPolicy + shippingDetails ──
       hasMerchantReturnPolicy: merchantReturnPolicy,
       shippingDetails: shippingDetails,
     },
