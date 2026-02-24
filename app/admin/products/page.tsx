@@ -188,29 +188,49 @@ export default function AdminProducts() {
   };
 
   // ── EXPORT ──
-  const exportToCSV = async () => {
-    setLoading(true);
-    const { data } = await buildFilteredQuery();
+  // ── Paste this to REPLACE the exportToCSV function in your AdminProducts file ──
 
-    if (!data || data.length === 0) {
-      alert('لا توجد منتجات مطابقة للفلاتر الحالية لتصديرها');
-      setLoading(false);
-      return;
-    }
+const exportToCSV = async () => {
+  setLoading(true);
+  const { data } = await buildFilteredQuery();
 
-    const headers = 'ID,الاسم,الماركة,القسم الرئيسي,القسم الفرعي,ماركة السيارة,الموديل,السنة,السعر الأساسي,سعر الخصم,الضمان,الحالة,المنشأ,رابط الصورة\n';
-    const rows = data.map(p =>
-      `"${p.id}","${p.name}","${p.brand}","${p.category || ''}","${p.subcategory || ''}","${p.car_make}","${p.car_model}","${p.car_model_year}",${p.regular_price},${p.sale_price || ''},"${p.warranty || ''}",${p.is_active ? 1 : 0},"${p.country_of_origin || ''}","${p.image_url || ''}"`
-    ).join('\n');
-
-    const csvContent = '\uFEFF' + headers + rows;
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `مخزن_مصدر_${new Date().toLocaleDateString('ar-EG')}.csv`;
-    link.click();
+  if (!data || data.length === 0) {
+    alert('لا توجد منتجات مطابقة للفلاتر الحالية لتصديرها');
     setLoading(false);
-  };
+    return;
+  }
+
+  // Helper: converts null/undefined to empty string (never writes "null")
+  const safe = (val: any) => (val === null || val === undefined ? '' : String(val));
+
+  const headers = 'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url\n';
+  const rows = data.map(p =>
+    [
+      `"${safe(p.id)}"`,
+      `"${safe(p.name)}"`,
+      `"${safe(p.brand)}"`,
+      `"${safe(p.category)}"`,
+      `"${safe(p.subcategory)}"`,
+      `"${safe(p.car_make)}"`,
+      `"${safe(p.car_model)}"`,
+      `"${safe(p.car_model_year)}"`,   // ← never "null" anymore
+      safe(p.regular_price),
+      safe(p.sale_price),
+      `"${safe(p.warranty)}"`,
+      p.is_active ? 1 : 0,
+      `"${safe(p.country_of_origin)}"`,
+      `"${safe(p.image_url)}"`,
+    ].join(',')
+  ).join('\n');
+
+  const csvContent = '\uFEFF' + headers + rows;
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `مخزن_مصدر_${new Date().toLocaleDateString('ar-EG')}.csv`;
+  link.click();
+  setLoading(false);
+};
 
   const downloadTemplate = () => {
     const headers = 'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url\n';

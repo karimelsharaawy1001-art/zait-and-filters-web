@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-
 function getSupabaseAdmin() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,51 +8,112 @@ function getSupabaseAdmin() {
   );
 }
 
+// ── Cleans a single value: converts "null", "", undefined → null ──────────────
+function clean(val: any): any {
+  if (val === undefined) return null;
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (trimmed === '' || trimmed.toLowerCase() === 'null') return null;
+    return trimmed;
+  }
+  return val;
+}
 
 export async function POST(req: Request) {
   try {
-    console.log('✅ import-products route hit');
-    console.log('SUPABASE_URL exists:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
-    console.log('SERVICE_ROLE_KEY exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
-
-    const body = await req.json();
-    console.log('Products received:', body?.products?.length ?? 0);
-
-    const { products } = body;
-
-    if (!products || !Array.isArray(products)) {
-      return NextResponse.json({ error: 'Invalid products data' }, { status: 400 });
-    }
-
     const supabaseAdmin = getSupabaseAdmin();
+    const { products } = await req.json();
+
     let updateCount = 0;
     let insertCount = 0;
     const errors: string[] = [];
 
     for (const product of products) {
-      const { id, ...productData } = product;
+      const { id, ...rawData } = product;
 
-      if (id && id.length > 10) {
-        const { error } = await supabaseAdmin.from('products').update(productData).eq('id', id);
-        if (!error) updateCount++;
-        else {
-          console.error('Update error:', error.message);
-          errors.push(`Update error: ${error.message}`);
+      // ── Clean every field: turn "null" strings and "" into actual null ────
+      const cleanData: any = {};
+      for (const [key, val] of Object.entries(rawData)) {
+        cleanData[key] = clean(val);
+      }
+
+      // ── Also clean numeric fields properly ────────────────────────────────
+      if (cleanData.regular_price !== null) {
+        const n = parseFloat(cleanData.regular_price);
+        cleanData.regular_price = isNaN(n) ? null : n;
+      }
+      if (cleanData.sale_price !== null) {
+        const n = parseFloat(cleanData.sale_price);
+        cleanData.sale_price = isNaN(n) ? null : n;
+      }
+      if (cleanData.is_active !== null && cleanData.is_active !== undefined) {
+        cleanData.is_active = cleanData.is_active === true ||
+          cleanData.is_active === 1 ||
+          cleanData.is_active === '1' ||
+          String(cleanData.is_active).toLowerCase() === 'true';
+      }
+
+      const cleanId = clean(id);
+
+      if (cleanId && String(cleanId).length > 10) {
+        // ── Check if row exists ───────────────────────────────────────────
+        const { data: existing, error: fetchError } = await supabaseAdmin
+          .from('products')
+          .select('id')
+          .eq('id', cleanId)
+          .maybeSingle();
+
+        if (fetchError) {
+          errors.push(`خطأ في البحث عن id ${cleanId}: ${fetchError.message}`);
+          continue;
+        }
+
+        if (existing) {
+          // ── UPDATE ───────────────────────────────────────────────────────
+          const { error: updateError } = await supabaseAdmin
+            .from('products')
+            .update(cleanData)
+            .eq('id', cleanId);
+
+          if (updateError) {
+            errors.push(`خطأ في التحديث ${cleanId}: ${updateError.message}`);
+          } else {
+            updateCount++;
+          }
+        } else {
+          // ── INSERT with provided id ───────────────────────────────────────
+          const { error: insertError } = await supabaseAdmin
+            .from('products')
+            .insert([{ id: cleanId, ...cleanData }]);
+
+          if (insertError) {
+            errors.push(`خطأ في الإضافة ${cleanData.name}: ${insertError.message}`);
+          } else {
+            insertCount++;
+          }
         }
       } else {
-        const { error } = await supabaseAdmin.from('products').insert([productData]);
-        if (!error) insertCount++;
-        else {
-          console.error('Insert error:', error.message);
-          errors.push(`Insert error: ${error.message}`);
+        // ── INSERT new product (no id) ────────────────────────────────────
+        const { error: insertError } = await supabaseAdmin
+          .from('products')
+          .insert([cleanData]);
+
+        if (insertError) {
+          errors.push(`خطأ في الإضافة ${cleanData.name}: ${insertError.message}`);
+        } else {
+          insertCount++;
         }
       }
     }
 
-    console.log(`Done: ${updateCount} updated, ${insertCount} inserted, ${errors.length} errors`);
-    return NextResponse.json({ updateCount, insertCount, errors });
+    return NextResponse.json({
+      updateCount,
+      insertCount,
+      errors,
+      message: `✅ تم تحديث ${updateCount} منتج وإضافة ${insertCount} جديد${errors.length > 0 ? `\n⚠️ ${errors.length} أخطاء` : ''}`,
+    });
+
   } catch (e: any) {
-    console.error('❌ Caught exception:', e.message);
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
