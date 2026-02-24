@@ -2,6 +2,7 @@ import { supabase } from '@/app/lib/supabase';
 import ProductDetailsClient from './ProductDetailsClient';
 import { Metadata } from 'next';
 
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const { data: product } = await supabase.from('products').select('*').eq('id', id).single();
@@ -10,10 +11,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   const price = product.sale_price || product.regular_price;
 
-  // اسم الموقع في بداية العنوان لضمان ظهوره على واتساب
   const title = `زيت أند فلترز | 🛒 ${product.name} - ${product.brand}`;
 
-  // السعر والبيانات الأساسية في أول الوصف لأن واتساب يقص النص
   const description = `
 💰 السعر: ${price} ج.م
 🚗 لسيارة: ${product.car_make} ${product.car_model} ${product.car_model_year || ''}
@@ -83,6 +82,47 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 // SEO: Product Structured Data Component
 function ProductSchema({ product }: { product: any }) {
+  const price = product.sale_price || product.regular_price;
+
+  // ── FIX 1: hasMerchantReturnPolicy is required for Merchant Listings ──
+  const merchantReturnPolicy = {
+    '@type': 'MerchantReturnPolicy',
+    applicableCountry: 'EG',
+    returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+    merchantReturnDays: 14,
+    returnMethod: 'https://schema.org/ReturnByMail',
+    returnFees: 'https://schema.org/FreeReturn',
+  };
+
+  // ── FIX 2: shippingDetails is required for Merchant Listings ──
+  const shippingDetails = {
+    '@type': 'OfferShippingDetails',
+    shippingRate: {
+      '@type': 'MonetaryAmount',
+      value: 60,
+      currency: 'EGP',
+    },
+    shippingDestination: {
+      '@type': 'DefinedRegion',
+      addressCountry: 'EG',
+    },
+    deliveryTime: {
+      '@type': 'ShippingDeliveryTime',
+      handlingTime: {
+        '@type': 'QuantitativeValue',
+        minValue: 0,
+        maxValue: 1,
+        unitCode: 'DAY',
+      },
+      transitTime: {
+        '@type': 'QuantitativeValue',
+        minValue: 1,
+        maxValue: 3,
+        unitCode: 'DAY',
+      },
+    },
+  };
+
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -100,7 +140,7 @@ function ProductSchema({ product }: { product: any }) {
       '@type': 'Offer',
       url: `https://zaitandfilters.com/products/${product.id}`,
       priceCurrency: 'EGP',
-      price: product.sale_price || product.regular_price,
+      price: price,
       priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
       availability: product.available ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       itemCondition: 'https://schema.org/NewCondition',
@@ -109,6 +149,9 @@ function ProductSchema({ product }: { product: any }) {
         name: 'Zait and Filters',
         url: 'https://zaitandfilters.com',
       },
+      // ── FIX 1 & 2: Added hasMerchantReturnPolicy + shippingDetails ──
+      hasMerchantReturnPolicy: merchantReturnPolicy,
+      shippingDetails: shippingDetails,
     },
     aggregateRating: {
       '@type': 'AggregateRating',
