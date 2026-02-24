@@ -65,7 +65,7 @@ interface FilterSectionProps {
   selectedModel: any;
   yearInput: string;
   selectedCategory: any;
-  selectedSubcategories: any[]; // ← changed to array
+  selectedSubcategories: any[];
   selectedBrand: any;
   searchQuery: string;
   customSelectStyles: any;
@@ -73,7 +73,7 @@ interface FilterSectionProps {
   setSelectedModel: (opt: any) => void;
   setYearInput: (val: string) => void;
   handleCategoryChange: (opt: any) => void;
-  setSelectedSubcategories: (opts: any[]) => void; // ← changed to array setter
+  setSelectedSubcategories: (opts: any[]) => void;
   setSelectedBrand: (opt: any) => void;
   setSearchQuery: (val: string) => void;
   handleFilterChange: () => void;
@@ -263,7 +263,6 @@ function FilterSection({
               options={subcategoriesOptions}
               styles={{
                 ...customSelectStyles,
-                // Override control height to allow multi-value chips to expand
                 control: (base: any) => ({
                   ...customSelectStyles.control(base),
                   height: 'auto',
@@ -455,16 +454,12 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
           style={{
-            width: '42px',
-            height: '42px',
-            borderRadius: '12px',
+            width: '42px', height: '42px', borderRadius: '12px',
             border: '1.5px solid #e5e5e5',
             backgroundColor: currentPage === 1 ? '#f5f5f5' : '#fff',
             color: currentPage === 1 ? '#ccc' : '#1a1a1a',
             cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
             transition: 'all 0.2s',
             boxShadow: currentPage === 1 ? 'none' : '0 2px 8px rgba(0,0,0,0.06)',
           }}
@@ -474,34 +469,19 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
 
         {pages.map((page, idx) =>
           page === 'ellipsis' ? (
-            <span
-              key={`ellipsis-${idx}`}
-              style={{ width: '42px', textAlign: 'center', color: '#aaa', fontWeight: '700', fontSize: '1rem' }}
-            >
-              …
-            </span>
+            <span key={`ellipsis-${idx}`} style={{ width: '42px', textAlign: 'center', color: '#aaa', fontWeight: '700', fontSize: '1rem' }}>…</span>
           ) : (
             <button
               key={page}
               onClick={() => onPageChange(page as number)}
               style={{
-                width: '42px',
-                height: '42px',
-                borderRadius: '12px',
+                width: '42px', height: '42px', borderRadius: '12px',
                 border: currentPage === page ? 'none' : '1.5px solid #e5e5e5',
-                background:
-                  currentPage === page
-                    ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
-                    : '#fff',
+                background: currentPage === page ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' : '#fff',
                 color: currentPage === page ? '#fff' : '#1a1a1a',
-                fontWeight: '900',
-                fontSize: '0.9rem',
-                cursor: 'pointer',
+                fontWeight: '900', fontSize: '0.9rem', cursor: 'pointer',
                 transition: 'all 0.2s',
-                boxShadow:
-                  currentPage === page
-                    ? '0 4px 14px rgba(34,197,94,0.4)'
-                    : '0 2px 8px rgba(0,0,0,0.06)',
+                boxShadow: currentPage === page ? '0 4px 14px rgba(34,197,94,0.4)' : '0 2px 8px rgba(0,0,0,0.06)',
                 transform: currentPage === page ? 'scale(1.1)' : 'scale(1)',
               }}
             >
@@ -514,16 +494,12 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
           style={{
-            width: '42px',
-            height: '42px',
-            borderRadius: '12px',
+            width: '42px', height: '42px', borderRadius: '12px',
             border: '1.5px solid #e5e5e5',
             backgroundColor: currentPage === totalPages ? '#f5f5f5' : '#fff',
             color: currentPage === totalPages ? '#ccc' : '#1a1a1a',
             cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
             transition: 'all 0.2s',
             boxShadow: currentPage === totalPages ? 'none' : '0 2px 8px rgba(0,0,0,0.06)',
           }}
@@ -536,34 +512,20 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
           <span style={{ fontSize: '0.8rem', color: '#888', fontWeight: '600' }}>الانتقال إلى صفحة:</span>
           <input
-            type="number"
-            min={1}
-            max={totalPages}
-            defaultValue={currentPage}
-            key={currentPage}
+            type="number" min={1} max={totalPages} defaultValue={currentPage} key={currentPage}
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
                 const val = parseInt((e.target as HTMLInputElement).value);
                 if (val >= 1 && val <= totalPages) onPageChange(val);
               }
             }}
-            style={{
-              width: '60px',
-              height: '36px',
-              textAlign: 'center',
-              border: '1.5px solid #e5e5e5',
-              borderRadius: '10px',
-              fontSize: '0.9rem',
-              fontWeight: '700',
-              outline: 'none',
-            }}
+            style={{ width: '60px', height: '36px', textAlign: 'center', border: '1.5px solid #e5e5e5', borderRadius: '10px', fontSize: '0.9rem', fontWeight: '700', outline: 'none' }}
           />
         </div>
       )}
     </div>
   );
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 
 function StoreContent() {
@@ -595,7 +557,7 @@ function StoreContent() {
   const [selectedMake, setSelectedMake] = useState<any>(null);
   const [selectedModel, setSelectedModel] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
-  const [selectedSubcategories, setSelectedSubcategories] = useState<any[]>([]); // ← now an array
+  const [selectedSubcategories, setSelectedSubcategories] = useState<any[]>([]);
   const [selectedBrand, setSelectedBrand] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -605,14 +567,13 @@ function StoreContent() {
   const [garageMode, setGarageMode] = useState(false);
   const [userCar, setUserCar] = useState<any>(null);
 
-  // ✅ FIX: track desktop breakpoint in state — avoids window.innerWidth in JSX (SSR-safe)
   const [isDesktop, setIsDesktop] = useState(false);
 
   const urlMake = searchParams.get('make');
   const urlModel = searchParams.get('model');
   const urlYear = searchParams.get('year');
   const urlCategory = searchParams.get('category');
-  const urlSubcategory = searchParams.get('subcategory'); // comma-separated for multi
+  const urlSubcategory = searchParams.get('subcategory');
   const urlBrand = searchParams.get('brand');
   const urlSearch = searchParams.get('q');
 
@@ -621,7 +582,6 @@ function StoreContent() {
     setIsMounted(true);
     setSelectLoaded(true);
 
-    // ✅ FIX: set isDesktop on mount and keep it updated on resize
     const handleResize = () => setIsDesktop(window.innerWidth > 768);
     handleResize();
     window.addEventListener('resize', handleResize);
@@ -686,12 +646,13 @@ function StoreContent() {
     await initializePage(resolvedGarageMode, resolvedUserCar);
   }
 
+  // ── UPDATED: pulls makes from compatibility table ──────────────────────────
   async function initializePage(resolvedGarageMode: boolean, resolvedUserCar: any) {
     try {
       setLoading(true);
 
       const [productsRes, subcatRes] = await Promise.all([
-        supabase.from('products').select('car_make, category, brand').order('car_make', { ascending: true }),
+        supabase.from('products').select('category, brand, car_make').order('car_make', { ascending: true }),
         supabase.from('category_images').select('name, image_url'),
       ]);
 
@@ -705,15 +666,28 @@ function StoreContent() {
         setSubcategoryImages(imgMap);
       }
 
-      const uniqueMakes = Array.from(new Set(productsRes.data.map((p) => p.car_make?.trim()).filter(Boolean)));
+      // Makes: pull from compatibility table for accuracy
+      const { data: compatMakes } = await supabase
+        .from('product_car_compatibility')
+        .select('car_make')
+        .not('car_make', 'is', null)
+        .neq('car_make', '');
+
+      const uniqueMakes = Array.from(
+        new Set((compatMakes || []).map((r: any) => r.car_make?.trim()).filter(Boolean))
+      ).sort() as string[];
       const makesOpts = uniqueMakes.map((make) => ({ value: make, label: make }));
       setMakesOptions(makesOpts);
 
-      const uniqueCategories = Array.from(new Set(productsRes.data.map((p) => p.category?.trim()).filter(Boolean)));
+      const uniqueCategories = Array.from(
+        new Set(productsRes.data.map((p) => p.category?.trim()).filter(Boolean))
+      );
       const catsOpts = uniqueCategories.map((cat) => ({ value: cat, label: cat }));
       setCategoriesOptions(catsOpts);
 
-      const uniqueBrands = Array.from(new Set(productsRes.data.map((p) => p.brand?.trim()).filter(Boolean)));
+      const uniqueBrands = Array.from(
+        new Set(productsRes.data.map((p) => p.brand?.trim()).filter(Boolean))
+      );
       const brandsOpts = uniqueBrands.map((brand) => ({ value: brand, label: brand }));
       setBrandsOptions(brandsOpts);
 
@@ -744,10 +718,16 @@ function StoreContent() {
           const makeOption = makes.find((opt) => opt.value.toUpperCase() === urlMake.toUpperCase());
           if (makeOption) {
             setSelectedMake(makeOption);
-            const { data } = await supabase.from('products').select('car_model').ilike('car_make', makeOption.value.trim());
+            // Pull models from compatibility table
+            const { data } = await supabase
+              .from('product_car_compatibility')
+              .select('car_model')
+              .ilike('car_make', makeOption.value.trim())
+              .not('car_model', 'is', null)
+              .neq('car_model', '');
             if (data) {
-              const uniqueModels = Array.from(new Set(data.map((p) => p.car_model?.trim()).filter(Boolean)));
-              const modelOptions = uniqueModels.sort().map((model) => ({ value: model, label: model }));
+              const uniqueModels = Array.from(new Set(data.map((r: any) => r.car_model?.trim()).filter(Boolean))).sort() as string[];
+              const modelOptions = uniqueModels.map((model) => ({ value: model, label: model }));
               setModelsOptions(modelOptions);
               if (urlModel) {
                 const modelOption = modelOptions.find((opt) => opt.value.toUpperCase() === urlModel.toUpperCase());
@@ -773,12 +753,9 @@ function StoreContent() {
           const uniqueSubcats = Array.from(new Set(data.map((p) => p.subcategory?.trim()).filter(Boolean)));
           const subcatOpts = uniqueSubcats.sort().map((s) => ({ value: s, label: s }));
           setSubcategoriesOptions(subcatOpts);
-          // Support comma-separated multi subcategories in URL
           if (urlSubcategory) {
             const urlSubcatValues = urlSubcategory.split(',').map((s) => s.trim().toUpperCase());
-            const matchedSubcats = subcatOpts.filter((opt) =>
-              urlSubcatValues.includes(opt.value.toUpperCase())
-            );
+            const matchedSubcats = subcatOpts.filter((opt) => urlSubcatValues.includes(opt.value.toUpperCase()));
             if (matchedSubcats.length > 0) setSelectedSubcategories(matchedSubcats);
           }
         }
@@ -792,14 +769,20 @@ function StoreContent() {
 
     if (urlSearch) setSearchQuery(urlSearch);
 
+    // ── UPDATED: pull models from compatibility table ──
     if (urlMake && makes.length > 0) {
       const makeOption = makes.find((opt) => opt.value.toUpperCase() === urlMake.toUpperCase());
       if (makeOption) {
         setSelectedMake(makeOption);
-        const { data } = await supabase.from('products').select('car_model').ilike('car_make', makeOption.value.trim());
+        const { data } = await supabase
+          .from('product_car_compatibility')
+          .select('car_model')
+          .ilike('car_make', makeOption.value.trim())
+          .not('car_model', 'is', null)
+          .neq('car_model', '');
         if (data) {
-          const uniqueModels = Array.from(new Set(data.map((p) => p.car_model?.trim()).filter(Boolean)));
-          const modelOptions = uniqueModels.sort().map((model) => ({ value: model, label: model }));
+          const uniqueModels = Array.from(new Set(data.map((r: any) => r.car_model?.trim()).filter(Boolean))).sort() as string[];
+          const modelOptions = uniqueModels.map((model) => ({ value: model, label: model }));
           setModelsOptions(modelOptions);
           if (urlModel) {
             const modelOption = modelOptions.find((opt) => opt.value.toUpperCase() === urlModel.toUpperCase());
@@ -812,7 +795,6 @@ function StoreContent() {
     const hasMinimumURLFilters = (urlMake && urlModel) || urlCategory;
 
     if (hasMinimumURLFilters) {
-      // Build subcategory values array from URL
       const urlSubcatValues = urlSubcategory
         ? urlSubcategory.split(',').map((s) => s.trim()).filter(Boolean)
         : [];
@@ -822,7 +804,7 @@ function StoreContent() {
         model: urlModel,
         year: urlYear,
         category: urlCategory,
-        subcategories: urlSubcatValues, // ← array
+        subcategories: urlSubcatValues,
         brand: urlBrand,
         search: urlSearch,
         _garageMode: resolvedGarageMode,
@@ -901,6 +883,7 @@ function StoreContent() {
     return true;
   }
 
+  // ── UPDATED: queries compatibility table first to get matching product IDs ──
   async function fetchProducts(filters: any) {
     try {
       if (!initializing) setLoading(true);
@@ -920,28 +903,50 @@ function StoreContent() {
         return;
       }
 
+      // ── Step 1: resolve matching product IDs via compatibility table ────────
+      let matchingProductIds: string[] | null = null;
+
+      const activeMake = gMode && gCar ? gCar.make : filters.make;
+      const activeModel = gMode && gCar ? gCar.model : filters.model;
+
+      if (activeMake) {
+        let compatQuery = supabase
+          .from('product_car_compatibility')
+          .select('product_id')
+          .ilike('car_make', activeMake.trim());
+
+        if (activeModel) {
+          compatQuery = compatQuery.ilike('car_model', activeModel.trim());
+        }
+
+        const { data: compatData } = await compatQuery;
+        const compatIds = (compatData || []).map((r: any) => r.product_id);
+
+        // Also include universal products (no car_make)
+        const { data: universalData } = await supabase
+          .from('products')
+          .select('id')
+          .or('car_make.is.null,car_make.eq.');
+        const universalIds = (universalData || []).map((r: any) => r.id);
+
+        matchingProductIds = Array.from(new Set([...compatIds, ...universalIds]));
+      }
+
+      // ── Step 2: fetch products ──────────────────────────────────────────────
       let query = supabase.from('products').select('*').order('created_at', { ascending: false });
 
-      if (gMode && gCar) {
-        query = query.or(
-          [`car_make.ilike.${gCar.make}`, `car_make.is.null`, `car_make.ilike.universal`, `car_make.ilike.عام`].join(',')
-        );
-      } else {
-        if (filters.make) {
-          // ── FIX: fetch make-specific AND universal (no car_make) products together
-          query = query.or(
-            `car_make.ilike.${filters.make.trim()},car_make.is.null,car_make.eq.`
-          );
-          if (filters.model) {
-            // filter model only on non-universal rows client-side (see below)
-          }
+      if (matchingProductIds !== null) {
+        if (matchingProductIds.length === 0) {
+          setProducts([]);
+          setFilteredProducts([]);
+          if (!initializing) setLoading(false);
+          return;
         }
+        query = query.in('id', matchingProductIds);
       }
 
       if (filters.category) query = query.ilike('category', filters.category.trim());
 
-      // ── Multi-subcategory: only add DB filter when exactly 1 selected
-      // For multiple, we filter client-side below (OR logic across subcategories)
       const subcatsArray: string[] = filters.subcategories ?? [];
       if (subcatsArray.length === 1) {
         query = query.ilike('subcategory', subcatsArray[0].trim());
@@ -954,36 +959,49 @@ function StoreContent() {
 
       let fetchedProducts = data || [];
 
-      if (gMode && gCar) {
-        fetchedProducts = fetchedProducts.filter((p) => isProductCompatibleWithGarage(p, gCar));
-      } else {
-        const yearToMatch = filters.year || '';
-        const filterModel = filters.model?.trim().toLowerCase();
-        fetchedProducts = fetchedProducts.filter((p) => {
+      // ── Step 3: year filter ─────────────────────────────────────────────────
+      const yearToMatch = filters.year || (gMode && gCar?.year ? String(gCar.year) : '');
+
+      if (yearToMatch && activeMake) {
+        const { data: yearData } = await supabase
+          .from('product_car_compatibility')
+          .select('product_id, car_model_year')
+          .in('product_id', fetchedProducts.map((p: any) => p.id))
+          .ilike('car_make', activeMake.trim());
+
+        const yearMap: Record<string, string[]> = {};
+        for (const row of yearData || []) {
+          if (!yearMap[row.product_id]) yearMap[row.product_id] = [];
+          if (row.car_model_year) yearMap[row.product_id].push(row.car_model_year);
+        }
+
+        fetchedProducts = fetchedProducts.filter((p: any) => {
           const isUniversal = !p.car_make || p.car_make.trim() === '';
-          // Universal products always pass the model filter
-          const matchesModel = !filterModel || isUniversal ||
-            (p.car_model ?? '').trim().toLowerCase() === filterModel;
-          const matchesSearch = filters.search
-            ? p.name?.toLowerCase().includes(filters.search.toLowerCase())
-            : true;
-          const matchesYear = yearToMatch ? isYearCompatible(p.car_model_year, yearToMatch) : true;
-          return matchesModel && matchesSearch && matchesYear;
+          if (isUniversal) return true;
+          const yearStrings = yearMap[p.id] || [];
+          if (yearStrings.length === 0) return true;
+          return yearStrings.some((ys) => isYearCompatible(ys, yearToMatch));
         });
       }
 
-      // ── Client-side multi-subcategory filter (OR logic)
+      // ── Step 4: search filter ───────────────────────────────────────────────
+      if (filters.search) {
+        fetchedProducts = fetchedProducts.filter((p: any) =>
+          p.name?.toLowerCase().includes(filters.search.toLowerCase())
+        );
+      }
+
+      // ── Step 5: multi-subcategory client-side filter ────────────────────────
       if (subcatsArray.length > 1) {
         const lowerSubcats = subcatsArray.map((s) => s.toLowerCase());
-        fetchedProducts = fetchedProducts.filter((p) =>
+        fetchedProducts = fetchedProducts.filter((p: any) =>
           lowerSubcats.includes((p.subcategory ?? '').trim().toLowerCase())
         );
       }
 
-      if (filters.search) {
-        fetchedProducts = fetchedProducts.filter((p) =>
-          p.name?.toLowerCase().includes(filters.search.toLowerCase())
-        );
+      // ── Step 6: garage deep compatibility filter ────────────────────────────
+      if (gMode && gCar) {
+        fetchedProducts = fetchedProducts.filter((p: any) => isProductCompatibleWithGarage(p, gCar));
       }
 
       setProducts(fetchedProducts);
@@ -996,14 +1014,23 @@ function StoreContent() {
     }
   }
 
+  // ── UPDATED: pulls models from compatibility table ─────────────────────────
   async function handleMakeChange(opt: any) {
     setSelectedMake(opt);
     setSelectedModel(null);
     if (opt) {
-      const { data } = await supabase.from('products').select('car_model').ilike('car_make', opt.value.trim());
+      const { data } = await supabase
+        .from('product_car_compatibility')
+        .select('car_model')
+        .ilike('car_make', opt.value.trim())
+        .not('car_model', 'is', null)
+        .neq('car_model', '');
+
       if (data) {
-        const uniqueModels = Array.from(new Set(data.map((p) => p.car_model?.trim()).filter(Boolean)));
-        setModelsOptions(uniqueModels.sort().map((model) => ({ value: model, label: model })));
+        const uniqueModels = Array.from(
+          new Set(data.map((r: any) => r.car_model?.trim()).filter(Boolean))
+        ).sort() as string[];
+        setModelsOptions(uniqueModels.map((model) => ({ value: model, label: model })));
       }
     } else {
       setModelsOptions([]);
@@ -1012,7 +1039,7 @@ function StoreContent() {
 
   async function handleCategoryChange(opt: any) {
     setSelectedCategory(opt);
-    setSelectedSubcategories([]); // ← reset to empty array
+    setSelectedSubcategories([]);
     if (opt) {
       const { data } = await supabase.from('products').select('subcategory').ilike('category', opt.value.trim());
       if (data) {
@@ -1039,7 +1066,6 @@ function StoreContent() {
     if (selectedModel) params.set('model', selectedModel.value.trim().toUpperCase());
     if (yearToApply) params.set('year', yearToApply);
     if (selectedCategory) params.set('category', selectedCategory.value.trim());
-    // ← serialize multiple subcategories as comma-separated
     if (selectedSubcategories && selectedSubcategories.length > 0) {
       params.set('subcategory', selectedSubcategories.map((s) => s.value.trim()).join(','));
     }
@@ -1057,7 +1083,7 @@ function StoreContent() {
       model: selectedModel?.value ?? (garageMode ? userCar?.model : undefined),
       year: yearToApply,
       category: selectedCategory?.value,
-      subcategories: selectedSubcategories?.map((s) => s.value) ?? [], // ← array
+      subcategories: selectedSubcategories?.map((s) => s.value) ?? [],
       brand: selectedBrand?.value,
       search: searchQuery,
       _garageMode: garageMode,
@@ -1073,7 +1099,7 @@ function StoreContent() {
     setYearInput('');
     setAppliedYear('');
     setSelectedCategory(null);
-    setSelectedSubcategories([]); // ← reset to empty array
+    setSelectedSubcategories([]);
     setSelectedBrand(null);
     setSearchQuery('');
     setModelsOptions([]);
@@ -1156,10 +1182,7 @@ function StoreContent() {
       ...base,
       color: '#166534',
       cursor: 'pointer',
-      ':hover': {
-        backgroundColor: '#bbf7d0',
-        color: '#14532d',
-      },
+      ':hover': { backgroundColor: '#bbf7d0', color: '#14532d' },
     }),
     menu: (base: any) => ({ ...base, zIndex: 9999 }),
   };
@@ -1193,7 +1216,7 @@ function StoreContent() {
     selectedModel,
     yearInput,
     selectedCategory,
-    selectedSubcategories, // ← array
+    selectedSubcategories,
     selectedBrand,
     searchQuery,
     customSelectStyles,
@@ -1201,7 +1224,7 @@ function StoreContent() {
     setSelectedModel,
     setYearInput,
     handleCategoryChange,
-    setSelectedSubcategories, // ← array setter
+    setSelectedSubcategories,
     setSelectedBrand,
     setSearchQuery,
     handleFilterChange,
@@ -1242,7 +1265,7 @@ function StoreContent() {
             border: 1px solid rgba(255,215,0,0.7);
             text-shadow: 0 1px 0 rgba(255,255,255,0.6);
           }
-          
+
           .store-product-card {
             background: #fff;
             border-radius: 16px;
@@ -1283,8 +1306,6 @@ function StoreContent() {
             border-color: #22c55e !important;
             color: #22c55e !important;
           }
-
-          /* ── Product image: contain so the full image is visible ── */
           .product-card-image {
             width: 100%;
             height: 100%;
@@ -1307,9 +1328,7 @@ function StoreContent() {
               position: 'fixed',
               top: 0, left: 0, right: 0, bottom: 0,
               backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
               zIndex: 9999,
             }}
           >
@@ -1338,7 +1357,6 @@ function StoreContent() {
                   backgroundColor: 'rgba(255,255,255,0.5)',
                   border: '1px solid rgba(255,255,255,0.4)',
                   borderRadius: '30px',
-                  // ✅ FIX: was window.innerWidth — now uses isDesktop state
                   padding: isDesktop ? '40px' : '25px',
                   position: 'relative',
                   overflow: 'hidden',
@@ -1346,14 +1364,12 @@ function StoreContent() {
                 }}
               >
                 <div style={{ position: 'absolute', top: '-50%', right: '-10%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(34,197,94,0.15) 0%, transparent 70%)', zIndex: 0, pointerEvents: 'none' }} />
-                {/* ✅ FIX: was window.innerWidth — now uses isDesktop state */}
                 <div style={{ display: 'grid', gridTemplateColumns: carHeroImage && isDesktop ? '1.5fr 1fr' : '1fr', gap: '40px', alignItems: 'center', position: 'relative', zIndex: 2 }}>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', justifyContent: 'flex-start' }}>
                       <CheckCircle2 size={20} color="#22c55e" />
                       <span style={{ color: '#444', fontSize: '0.9rem', fontWeight: '700', letterSpacing: '0.5px' }}>تم تحديد مواصفات السيارة</span>
                     </div>
-                    {/* ✅ FIX: was window.innerWidth — now uses isDesktop state */}
                     <h1 style={{ color: '#1a1a1a', fontSize: isDesktop ? '2.8rem' : '1.8rem', fontWeight: '900', marginBottom: '16px', lineHeight: '1.2', letterSpacing: '-1px' }}>
                       قطع غيار <span style={{ color: '#22c55e' }}>{heroMakeLabel}</span> الأصلية
                     </h1>
@@ -1374,7 +1390,6 @@ function StoreContent() {
                       <div style={{ fontSize: '0.9rem', color: '#fff', fontWeight: '600' }}>قطعة غيار متاحة</div>
                     </div>
                   </div>
-                  {/* ✅ FIX: was window.innerWidth — now uses isDesktop state — car image now shows correctly */}
                   {carHeroImage && (
                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.6 }} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                       <img src={carHeroImage} alt={`${heroMakeLabel} ${heroModelLabel}`} style={{ width: '100%', maxHeight: '280px', objectFit: 'contain', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))' }} />
@@ -1421,7 +1436,6 @@ function StoreContent() {
             </aside>
 
             <div style={{ flex: 1 }}>
-              {/* Garage conflict banner */}
               <AnimatePresence>
                 {showGarageConflictBanner && !loading && (
                   <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}
@@ -1507,20 +1521,11 @@ function StoreContent() {
                             </div>
                           )}
 
-                          {isAsli && (
-                            <div className="badge-asli">✦ أصلي</div>
-                          )}
+                          {isAsli && <div className="badge-asli">✦ أصلي</div>}
 
-                          {/* ── IMAGE CONTAINER: white bg, fixed height, contain fit ── */}
                           <Link
                             href={`/products/${product.id}`}
-                            style={{
-                              display: 'block',
-                              height: '200px',
-                              backgroundColor: '#ffffff',
-                              overflow: 'hidden',
-                              position: 'relative',
-                            }}
+                            style={{ display: 'block', height: '200px', backgroundColor: '#ffffff', overflow: 'hidden', position: 'relative' }}
                           >
                             <img
                               src={
@@ -1539,11 +1544,11 @@ function StoreContent() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                               <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.8rem' }}>{product.brand}</span>
                               {(product.country_origin || product.country_of_origin) && (
-  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#666', fontWeight: '700', fontSize: '0.75rem' }}>
-    <Globe size={13} color="#22c55e" />
-    <span>{product.country_origin || product.country_of_origin}</span>
-  </div>
-)}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#666', fontWeight: '700', fontSize: '0.75rem' }}>
+                                  <Globe size={13} color="#22c55e" />
+                                  <span>{product.country_origin || product.country_of_origin}</span>
+                                </div>
+                              )}
                             </div>
                             <h3 style={{ fontSize: '0.95rem', fontWeight: '900', marginBottom: '10px', height: '45px', overflow: 'hidden', lineHeight: '1.4' }}>
                               {product.name}
@@ -1602,7 +1607,6 @@ function StoreContent() {
         </>
       )}
 
-      {/* STICKY GARAGE NOTIFICATION */}
       <AnimatePresence>
         {garageMode && userCar && (
           <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }} style={stickyNotificationStyle}>

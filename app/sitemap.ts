@@ -1,56 +1,48 @@
 import { MetadataRoute } from 'next';
+import { supabase } from '@/app/lib/supabase';
+
+export const revalidate = 3600; // regenerate every 1 hour
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Base URLs that always exist
-  const baseUrls = [
-    {
-      url: 'https://zaitandfilters.com',
-      lastModified: new Date(),
-      changeFrequency: 'daily' as const,
-      priority: 1,
-    },
-    {
-      url: 'https://zaitandfilters.com/store',
-      lastModified: new Date(),
-      changeFrequency: 'daily' as const,
-      priority: 0.9,
-    },
-    {
-      url: 'https://zaitandfilters.com/brands',
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    },
+  const baseUrl = 'https://zaitandfilters.com';
+
+  // ── Fetch all products ──
+  const { data: products } = await supabase
+    .from('products')
+    .select('id, created_at, updated_at');
+
+  // ── Fetch all unique categories ──
+  const { data: categoryRows } = await supabase
+    .from('products')
+    .select('category');
+
+  const uniqueCategories = [
+    ...new Set(categoryRows?.map((p) => p.category?.trim()).filter(Boolean)),
   ];
 
-  // Only fetch products if Supabase is available (runtime)
-  try {
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      const { createClient } = await import('@supabase/supabase-js');
-      
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      );
+  // ── Static pages ──
+  const staticPages: MetadataRoute.Sitemap = [
+    { url: baseUrl, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
+    { url: `${baseUrl}/store`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+    { url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${baseUrl}/checkout`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+  ];
 
-      const { data: products } = await supabase
-        .from('products')
-        .select('id, updated_at')
-        .eq('available', true)
-        .limit(1000);
+  // ── Product pages ──
+  const productPages: MetadataRoute.Sitemap = (products ?? []).map((product) => ({
+    url: `${baseUrl}/products/${product.id}`,
+    lastModified: new Date(product.updated_at || product.created_at),
+    changeFrequency: 'weekly',
+    priority: 0.8,
+  }));
 
-      const productUrls = products?.map((product) => ({
-        url: `https://zaitandfilters.com/product/${product.id}`,
-        lastModified: new Date(product.updated_at),
-        changeFrequency: 'daily' as const,
-        priority: 0.8,
-      })) || [];
+  // ── Category pages ──
+  const categoryPages: MetadataRoute.Sitemap = uniqueCategories.map((cat) => ({
+    url: `${baseUrl}/categories/${encodeURIComponent(cat as string)}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly',
+    priority: 0.7,
+  }));
 
-      return [...baseUrls, ...productUrls];
-    }
-  } catch (error) {
-    console.log('Sitemap: Skipping dynamic URLs during build');
-  }
-
-  return baseUrls;
+  return [...staticPages, ...productPages, ...categoryPages];
 }
