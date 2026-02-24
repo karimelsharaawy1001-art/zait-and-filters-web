@@ -922,8 +922,15 @@ function StoreContent() {
           [`car_make.ilike.${gCar.make}`, `car_make.is.null`, `car_make.ilike.universal`, `car_make.ilike.عام`].join(',')
         );
       } else {
-        if (filters.make) query = query.ilike('car_make', filters.make.trim());
-        if (filters.model) query = query.ilike('car_model', filters.model.trim());
+        if (filters.make) {
+          // ── FIX: fetch make-specific AND universal (no car_make) products together
+          query = query.or(
+            `car_make.ilike.${filters.make.trim()},car_make.is.null,car_make.eq.`
+          );
+          if (filters.model) {
+            // filter model only on non-universal rows client-side (see below)
+          }
+        }
       }
 
       if (filters.category) query = query.ilike('category', filters.category.trim());
@@ -946,12 +953,17 @@ function StoreContent() {
         fetchedProducts = fetchedProducts.filter((p) => isProductCompatibleWithGarage(p, gCar));
       } else {
         const yearToMatch = filters.year || '';
+        const filterModel = filters.model?.trim().toLowerCase();
         fetchedProducts = fetchedProducts.filter((p) => {
+          const isUniversal = !p.car_make || p.car_make.trim() === '';
+          // Universal products always pass the model filter
+          const matchesModel = !filterModel || isUniversal ||
+            (p.car_model ?? '').trim().toLowerCase() === filterModel;
           const matchesSearch = filters.search
             ? p.name?.toLowerCase().includes(filters.search.toLowerCase())
             : true;
           const matchesYear = yearToMatch ? isYearCompatible(p.car_model_year, yearToMatch) : true;
-          return matchesSearch && matchesYear;
+          return matchesModel && matchesSearch && matchesYear;
         });
       }
 

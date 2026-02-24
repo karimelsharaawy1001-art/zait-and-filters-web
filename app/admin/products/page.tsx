@@ -82,7 +82,11 @@ export default function AdminProducts() {
   const buildFilteredQuery = () => {
     let query = supabase.from('products').select('*', { count: 'exact' });
     if (searchName) query = query.ilike('name', `%${searchName}%`);
-    if (filterMake) query = query.eq('car_make', filterMake);
+    if (filterMake === '__universal__') {
+      query = query.or('car_make.is.null,car_make.eq.');
+    } else if (filterMake) {
+      query = query.eq('car_make', filterMake);
+    }
     if (filterModel) query = query.eq('car_model', filterModel);
     if (filterCategory) query = query.eq('category', filterCategory);
     if (filterSubcategory) query = query.eq('subcategory', filterSubcategory);
@@ -338,6 +342,7 @@ export default function AdminProducts() {
           <label style={labelStyle}>الماركة</label>
           <select value={filterMake} onChange={(e) => { setFilterMake(e.target.value); setCurrentPage(1); }} style={filterInputStyle}>
             <option value="">الكل</option>
+            <option value="__universal__">🌐 عام (بدون سيارة)</option>
             {availableMakes.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
