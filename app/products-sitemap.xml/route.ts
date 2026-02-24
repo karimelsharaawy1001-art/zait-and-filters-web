@@ -1,21 +1,21 @@
 import { supabase } from '@/app/lib/supabase';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 21600; // auto-refresh every 6 hours
+export const revalidate = 21600;
 
 export async function GET() {
   const baseUrl = 'https://zaitandfilters.com';
 
   try {
-    let allProducts: { id: string; updated_at: string; created_at: string }[] = [];
+    let allProducts: { id: string; created_at: string }[] = [];
     let from = 0;
     const batchSize = 1000;
 
-    // ── Paginate through ALL 12K+ products in batches of 1000 ──
     while (true) {
       const { data, error } = await supabase
         .from('products')
-        .select('id, updated_at, created_at')
+        .select('id, created_at')
+        .eq('is_active', true)
         .order('created_at', { ascending: false })
         .range(from, from + batchSize - 1);
 
@@ -29,7 +29,7 @@ export async function GET() {
 
     const urls = allProducts
       .map((p) => {
-        const lastmod = new Date(p.updated_at || p.created_at || new Date()).toISOString();
+        const lastmod = new Date(p.created_at || new Date()).toISOString();
         return `  <url>
     <loc>${baseUrl}/products/${p.id}</loc>
     <lastmod>${lastmod}</lastmod>
@@ -54,9 +54,9 @@ ${urls}
 
   } catch (err: any) {
     console.error('Sitemap generation failed:', err.message);
-    return new Response(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>`, {
-      status: 200,
-      headers: { 'Content-Type': 'application/xml; charset=utf-8' },
-    });
+    return new Response(
+      `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>`,
+      { status: 200, headers: { 'Content-Type': 'application/xml; charset=utf-8' } }
+    );
   }
 }
