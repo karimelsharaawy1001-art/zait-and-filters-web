@@ -411,60 +411,6 @@ export default function AdminDashboard() {
         {createSuccess && <p style={{ color: '#16a34a', fontSize: '0.8rem', marginTop: '10px', fontWeight: '600' }}>✅ {createSuccess}</p>}
       </div>
 
-      {/* ── User Roles ── */}
-      <div className="section-card">
-        <div className="section-title">👥 إدارة الصلاحيات</div>
-        {adminError   && <p style={{ color: '#ef4444', fontSize: '0.82rem', marginBottom: '10px', fontWeight: '600' }}>{adminError}</p>}
-        {adminLoading && <p style={{ color: '#94a3b8', fontSize: '0.82rem' }}>جاري التحميل...</p>}
-        {!adminLoading && !adminError && (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
-              <thead>
-                <tr style={{ borderBottom: '2px solid #f1f5f9' }}>
-                  {['الاسم', 'البريد', 'الصلاحية', 'إجراء'].map(h => (
-                    <th key={h} style={{ padding: '8px 12px', textAlign: 'right', color: '#64748b', fontWeight: '700' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((u) => {
-                  const role = getRoleForUser(u.id);
-                  const isMe = u.id === currentUserId;
-                  return (
-                    <tr key={u.id} className="table-row" style={{ borderBottom: '1px solid #f8fafc', background: isMe ? '#f0fdf4' : 'transparent' }}>
-                      <td style={{ padding: '10px 12px', fontWeight: '700', color: '#0f172a' }}>
-                        {u.full_name || '—'}
-                        {isMe && <span style={{ marginRight: '6px', fontSize: '0.68rem', color: '#16a34a', fontWeight: '800', background: '#dcfce7', padding: '1px 6px', borderRadius: '4px' }}>أنت</span>}
-                      </td>
-                      <td style={{ padding: '10px 12px', color: '#64748b', direction: 'ltr' }}>{u.email || '—'}</td>
-                      <td style={{ padding: '10px 12px' }}>
-                        <span className="status-pill" style={{ background: role === 'admin' ? '#dcfce7' : '#f1f5f9', color: role === 'admin' ? '#16a34a' : '#64748b' }}>
-                          {role === 'admin' ? 'أدمن' : 'مستخدم'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '10px 12px' }}>
-                        {isMe ? (
-                          <span style={{ color: '#cbd5e1', fontSize: '0.75rem' }}>حسابك الرئيسي</span>
-                        ) : (
-                          <button onClick={() => toggleRole(u.id)} style={{
-                            padding: '5px 12px', borderRadius: '7px', border: 'none', cursor: 'pointer',
-                            fontWeight: '700', fontSize: '0.75rem', fontFamily: "'Cairo', sans-serif",
-                            background: role === 'admin' ? '#fee2e2' : '#dcfce7',
-                            color: role === 'admin' ? '#dc2626' : '#16a34a',
-                          }}>
-                            {role === 'admin' ? 'إزالة الأدمن' : 'جعله أدمن'}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
     </div>
   );
 }
