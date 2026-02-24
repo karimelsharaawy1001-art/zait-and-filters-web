@@ -54,10 +54,12 @@ export default function AdminLayoutClient({ children }: Props) {
     {
       label: 'المنتجات',
       items: [
-        { name: 'إضافة منتج',     href: '/admin/add-product',     icon: '➕', badge: 0 },
-        { name: 'إدارة المنتجات', href: '/admin/products',        icon: '📦', badge: 0 },
-        { name: 'إدارة الماركات', href: '/admin/brands',          icon: '🏎️', badge: 0 },
-        { name: 'صور السيارات',   href: '/admin/car-images',      icon: '🚗', badge: 0 },
+        { name: 'إضافة منتج',          href: '/admin/add-product',     icon: '➕', badge: 0 },
+        { name: 'إدارة المنتجات',      href: '/admin/products',        icon: '📦', badge: 0 },
+        { name: 'إدارة الفئات',        href: '/admin/categories',      icon: '🗂️', badge: 0 },
+        { name: 'إدارة الأقسام الفرعية', href: '/admin/subcategories', icon: '📂', badge: 0 },
+        { name: 'إدارة الماركات',      href: '/admin/brands',          icon: '🏎️', badge: 0 },
+        { name: 'صور السيارات',        href: '/admin/car-images',      icon: '🚗', badge: 0 },
       ]
     },
     {
