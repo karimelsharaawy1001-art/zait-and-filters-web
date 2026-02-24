@@ -72,8 +72,8 @@ export default function AdminLayoutClient({ children }: Props) {
     {
       label: 'العملاء',
       items: [
-        { name: 'السلات المتروكة',href: '/admin/abandoned-carts', icon: '🛒', badge: badges.abandonedCarts },
-        { name: 'رسائل العملاء',  href: '/admin/messages',        icon: '💬', badge: badges.messages },
+        { name: 'السلات المتروكة', href: '/admin/abandoned-carts', icon: '🛒', badge: badges.abandonedCarts },
+        { name: 'رسائل العملاء',   href: '/admin/messages',        icon: '💬', badge: badges.messages },
       ]
     },
   ];
@@ -81,32 +81,32 @@ export default function AdminLayoutClient({ children }: Props) {
   const sidebarW = collapsed ? '64px' : '232px';
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', direction: 'rtl', backgroundColor: '#080808', fontFamily: "'Cairo', sans-serif" }}>
+    <div style={{ display: 'flex', minHeight: '100vh', direction: 'rtl', backgroundColor: '#f1f5f9', fontFamily: "'Cairo', sans-serif" }}>
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { box-sizing: border-box; }
 
         @keyframes badgePulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
-          50%       { box-shadow: 0 0 0 4px rgba(239,68,68,0); }
+          0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.5); }
+          50%       { box-shadow: 0 0 0 4px rgba(220,38,38,0); }
         }
         @keyframes slideIn {
           from { opacity: 0; transform: translateX(4px); }
           to   { opacity: 1; transform: translateX(0); }
         }
         @keyframes dotPulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50%       { opacity: 0.6; transform: scale(0.8); }
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.4; }
         }
 
         .admin-sidebar {
           transition: width 0.22s cubic-bezier(0.4,0,0.2,1);
           scrollbar-width: thin;
-          scrollbar-color: #1f2937 transparent;
+          scrollbar-color: #e2e8f0 transparent;
         }
         .admin-sidebar::-webkit-scrollbar { width: 3px; }
-        .admin-sidebar::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 10px; }
+        .admin-sidebar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
 
         .admin-main { transition: margin-right 0.22s cubic-bezier(0.4,0,0.2,1); }
 
@@ -115,11 +115,11 @@ export default function AdminLayoutClient({ children }: Props) {
           align-items: center;
           gap: 9px;
           padding: 7px 9px;
-          border-radius: 7px;
+          border-radius: 8px;
           text-decoration: none;
           font-size: 0.8rem;
           font-weight: 600;
-          color: #4b5563;
+          color: #64748b;
           transition: background 0.12s, color 0.12s;
           position: relative;
           overflow: visible;
@@ -127,10 +127,11 @@ export default function AdminLayoutClient({ children }: Props) {
           margin-bottom: 1px;
           font-family: 'Cairo', sans-serif;
         }
-        .nav-item:hover { background: #141414; color: #9ca3af; }
+        .nav-item:hover { background: #f0fdf4; color: #15803d; }
         .nav-item.active {
-          background: #0f2d1a;
-          color: #4ade80;
+          background: #dcfce7;
+          color: #15803d;
+          font-weight: 700;
           box-shadow: inset 2px 0 0 #16a34a;
         }
         .nav-item .nav-icon {
@@ -147,7 +148,7 @@ export default function AdminLayoutClient({ children }: Props) {
         .badge {
           min-width: 17px;
           height: 17px;
-          padding: 0 4px;
+          padding: 0 5px;
           background: #dc2626;
           color: #fff;
           border-radius: 8px;
@@ -159,7 +160,6 @@ export default function AdminLayoutClient({ children }: Props) {
           margin-right: auto;
           flex-shrink: 0;
           animation: badgePulse 2.5s ease-in-out infinite;
-          letter-spacing: 0;
         }
         .dot-badge {
           position: absolute;
@@ -170,45 +170,45 @@ export default function AdminLayoutClient({ children }: Props) {
           background: #dc2626;
           border-radius: 50%;
           animation: dotPulse 2s ease-in-out infinite;
-          border: 1px solid #080808;
+          border: 1.5px solid #ffffff;
         }
         .section-label {
           font-size: 0.58rem;
           font-weight: 700;
           letter-spacing: 0.1em;
-          color: #1f2937;
+          color: #94a3b8;
           text-transform: uppercase;
           padding: 12px 9px 4px;
           font-family: 'Cairo', sans-serif;
         }
         .tooltip-wrap {
           position: absolute;
-          left: calc(100% + 8px);
+          left: calc(100% + 10px);
           top: 50%;
           transform: translateY(-50%);
-          background: #111827;
-          color: #f3f4f6;
-          padding: 4px 10px;
-          border-radius: 6px;
+          background: #1e293b;
+          color: #f8fafc;
+          padding: 5px 10px;
+          border-radius: 7px;
           font-size: 0.72rem;
           white-space: nowrap;
           pointer-events: none;
           opacity: 0;
           transition: opacity 0.12s;
           z-index: 200;
-          border: 1px solid #1f2937;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+          box-shadow: 0 4px 16px rgba(0,0,0,0.15);
           font-family: 'Cairo', sans-serif;
           font-weight: 600;
         }
         .nav-item:hover .tooltip-wrap { opacity: 1; }
+
         .collapse-btn {
           width: 22px; height: 22px;
-          background: #111;
-          border: 1px solid #1f1f1f;
-          border-radius: 5px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 6px;
           cursor: pointer;
-          color: #4b5563;
+          color: #94a3b8;
           font-size: 0.6rem;
           display: flex;
           align-items: center;
@@ -216,14 +216,15 @@ export default function AdminLayoutClient({ children }: Props) {
           transition: all 0.12s;
           flex-shrink: 0;
         }
-        .collapse-btn:hover { background: #1a1a1a; color: #9ca3af; }
+        .collapse-btn:hover { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+
         .logout-btn {
           width: 100%;
           padding: 8px;
           background: transparent;
-          color: #374151;
-          border: 1px solid #141414;
-          border-radius: 7px;
+          color: #94a3b8;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
           cursor: pointer;
           font-size: 0.78rem;
           font-weight: 700;
@@ -236,12 +237,9 @@ export default function AdminLayoutClient({ children }: Props) {
           overflow: hidden;
           white-space: nowrap;
         }
-        .logout-btn:hover { background: #1a0808; color: #ef4444; border-color: #2d0f0f; }
-        .divider {
-          height: 1px;
-          background: #111;
-          margin: 10px 0;
-        }
+        .logout-btn:hover { background: #fff5f5; color: #ef4444; border-color: #fecaca; }
+
+        .divider { height: 1px; background: #f1f5f9; margin: 8px 0; }
       `}</style>
 
       {/* ── Sidebar ── */}
@@ -249,8 +247,8 @@ export default function AdminLayoutClient({ children }: Props) {
         className="admin-sidebar"
         style={{
           width: sidebarW,
-          backgroundColor: '#0a0a0a',
-          borderLeft: '1px solid #111',
+          backgroundColor: '#ffffff',
+          borderLeft: '1px solid #e2e8f0',
           padding: '14px 8px',
           position: 'fixed',
           height: '100vh',
@@ -260,16 +258,17 @@ export default function AdminLayoutClient({ children }: Props) {
           flexDirection: 'column',
           overflowY: 'auto',
           overflowX: 'hidden',
+          boxShadow: '-1px 0 12px rgba(0,0,0,0.04)',
         }}
       >
-        {/* ── Logo row ── */}
+        {/* ── Logo ── */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', padding: '0 3px', flexShrink: 0, gap: '8px' }}>
           {!collapsed && (
             <div style={{ animation: 'slideIn 0.2s ease', minWidth: 0 }}>
               <div style={{ color: '#16a34a', fontWeight: '900', fontSize: '0.88rem', letterSpacing: '1.5px', fontStyle: 'italic', lineHeight: 1 }}>
                 ZAIT & FILTERS
               </div>
-              <div style={{ color: '#1f2937', fontSize: '0.6rem', marginTop: '3px', fontWeight: '600', letterSpacing: '0.05em' }}>
+              <div style={{ color: '#94a3b8', fontSize: '0.6rem', marginTop: '3px', fontWeight: '600', letterSpacing: '0.05em' }}>
                 لوحة الإدارة
               </div>
             </div>
@@ -279,7 +278,7 @@ export default function AdminLayoutClient({ children }: Props) {
           </button>
         </div>
 
-        {/* ── Navigation ── */}
+        {/* ── Nav ── */}
         <nav style={{ flex: 1, paddingBottom: '56px' }}>
           {sections.map((section) => (
             <div key={section.label}>
@@ -324,18 +323,24 @@ export default function AdminLayoutClient({ children }: Props) {
         </div>
       </aside>
 
-      {/* ── Main ── */}
+      {/* ── Main content ── */}
       <main
         className="admin-main"
-        style={{ flex: 1, marginRight: sidebarW, padding: '16px', backgroundColor: '#080808', minHeight: '100vh' }}
+        style={{
+          flex: 1,
+          marginRight: sidebarW,
+          padding: '20px',
+          backgroundColor: '#f1f5f9',
+          minHeight: '100vh',
+        }}
       >
         <div style={{
-          background: '#0e0e0e',
-          borderRadius: '14px',
-          padding: '24px',
-          border: '1px solid #161616',
-          minHeight: 'calc(100vh - 32px)',
-          color: '#e5e7eb',
+          background: '#ffffff',
+          borderRadius: '16px',
+          padding: '28px',
+          border: '1px solid #e2e8f0',
+          minHeight: 'calc(100vh - 40px)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
         }}>
           {children}
         </div>
