@@ -1533,10 +1533,12 @@ function StoreContent() {
                           <div style={{ padding: '18px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                               <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.8rem' }}>{product.brand}</span>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#666', fontWeight: '700', fontSize: '0.75rem' }}>
-                                <Globe size={13} color="#22c55e" />
-                                <span>{product.country_origin || 'أصلي'}</span>
-                              </div>
+                              {(product.country_origin || product.country_of_origin) && (
+  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#666', fontWeight: '700', fontSize: '0.75rem' }}>
+    <Globe size={13} color="#22c55e" />
+    <span>{product.country_origin || product.country_of_origin}</span>
+  </div>
+)}
                             </div>
                             <h3 style={{ fontSize: '0.95rem', fontWeight: '900', marginBottom: '10px', height: '45px', overflow: 'hidden', lineHeight: '1.4' }}>
                               {product.name}
