@@ -154,6 +154,7 @@ function FilterSection({
             </label>
             <Select
               instanceId="store-make-select"
+              isSearchable={false}
               options={makesOptions}
               styles={customSelectStyles}
               placeholder={garageMode ? userCar?.make : 'اختر الماركة'}
@@ -170,6 +171,7 @@ function FilterSection({
             </label>
             <Select
               instanceId="store-model-select"
+              isSearchable={false}
               options={modelsOptions}
               styles={customSelectStyles}
               placeholder={garageMode ? userCar?.model : 'اختر الموديل'}
@@ -225,6 +227,7 @@ function FilterSection({
             </label>
             <Select
               instanceId="store-category-select"
+              isSearchable={false}
               options={categoriesOptions}
               styles={customSelectStyles}
               placeholder="اختر الفئة"
@@ -256,6 +259,7 @@ function FilterSection({
             </label>
             <Select
               instanceId="store-subcategory-select"
+              isSearchable={false}
               options={subcategoriesOptions}
               styles={{
                 ...customSelectStyles,
@@ -300,6 +304,7 @@ function FilterSection({
             </label>
             <Select
               instanceId="store-brand-select"
+              isSearchable={false}
               options={brandsOptions}
               styles={customSelectStyles}
               placeholder="اختر العلامة"
