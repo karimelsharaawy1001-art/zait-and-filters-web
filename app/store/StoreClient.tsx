@@ -800,21 +800,23 @@ function StoreContent() {
     }
   }
 
-  // ── FIX: replaced .maybeSingle() with .limit(1) ───────────────────────────
-  // .maybeSingle() throws an error when multiple rows exist (one per year).
-  // .limit(1) safely returns the first matching row regardless of how many exist.
-  // Priority: if a year is provided, try to find a year-specific image first,
-  // then fall back to any image for that make+model.
+  // ── FIXED: uses year_from / year_to integer columns for range matching ──────
+  // The table has `year_from` (int) and `year_to` (int) — NOT a `year` text column.
+  // Step 1: if a year is selected, find the image whose range covers that year.
+  // Step 2: fallback to any image for that make+model (e.g. no year selected).
   async function fetchCarImage(make: string, model: string, year?: string) {
     try {
-      // Step 1: if year provided, look for a year-specific image first
-      if (year && year.trim()) {
+      const yearInt = year ? parseInt(year.trim()) : NaN;
+
+      // Step 1: year-specific — find image whose year_from <= year <= year_to
+      if (!isNaN(yearInt)) {
         const { data: yearData } = await supabase
           .from('car_images')
           .select('image_url')
           .ilike('car_make', make.trim())
           .ilike('car_model', model.trim())
-          .ilike('year', `%${year.trim()}%`)
+          .lte('year_from', yearInt)   // year_from <= selected year
+          .gte('year_to', yearInt)     // year_to   >= selected year
           .limit(1);
 
         if (yearData && yearData.length > 0 && yearData[0].image_url) {
@@ -823,13 +825,13 @@ function StoreContent() {
         }
       }
 
-      // Step 2: fallback — any image for this make+model (first one found)
+      // Step 2: fallback — any image for this make+model (first row, any year range)
       const { data } = await supabase
         .from('car_images')
         .select('image_url')
         .ilike('car_make', make.trim())
         .ilike('car_model', model.trim())
-        .limit(1); // ← THE FIX: was .maybeSingle() which breaks with multiple rows
+        .limit(1);
 
       setCarHeroImage(data && data.length > 0 ? data[0].image_url : null);
     } catch {
