@@ -913,7 +913,6 @@ function StoreContent() {
 
       let fetchedProducts = data || [];
 
-      // Multi-subcategory client-side filter
       if (subcatsArray.length > 1) {
         const lowerSubcats = subcatsArray.map((s) => s.toLowerCase());
         fetchedProducts = fetchedProducts.filter((p: any) =>
