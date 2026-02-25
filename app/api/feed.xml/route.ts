@@ -14,13 +14,13 @@ export async function GET() {
       <g:id>${p.id}</g:id>
       <title>${escapeXml(p.name)}</title>
       <description>${escapeXml(p.description || p.name)}</description>
-      <link>https://yoursite.com/products/${p.id}</link>
+      <link>https://zaitandfilters.com/products/${p.id}</link>
       <g:image_link>${p.image_url}</g:image_link>
       <g:price>${price} EGP</g:price>
       <g:availability>in_stock</g:availability>
       <g:condition>new</g:condition>
       <g:brand>${escapeXml(p.brand || '')}</g:brand>
-      <g:google_product_category>Vehicle Parts &amp; Accessories</g:google_product_category>
+      <g:google_product_category>899</g:google_product_category>
       <g:mpn>${escapeXml(p.part_number || p.id)}</g:mpn>
     </item>`;
   }).join('');
