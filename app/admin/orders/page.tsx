@@ -40,6 +40,9 @@ export default function AdminOrders() {
   const [loadingBrands, setLoadingBrands] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
 
+  // ── Delete confirmation modal state ──
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
   const paymentLabels: any = {
     'card_installments': 'بطاقة / تقسيط',
     'instapay': 'انستا باي',
@@ -136,34 +139,60 @@ export default function AdminOrders() {
     if (data) setCustomerAddresses(data);
   }
 
+  // ── FIX: verify update actually saved, update selectedOrder too ──
   async function updateOrderStatus(orderId: string, newStatus: string) {
     try {
       const orderToUpdate = orders.find(o => o.id === orderId);
-      const { error: orderError } = await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
+
+      const { error: orderError, count } = await supabase
+        .from('orders')
+        .update({ status: newStatus }, { count: 'exact' })
+        .eq('id', orderId);
+
       if (orderError) throw orderError;
+
+      // If count is 0, RLS silently blocked the update
+      if (count === 0) {
+        toast.error('فشل التحديث — تحقق من صلاحيات RLS في Supabase');
+        return;
+      }
+
       if (newStatus === 'delivered' && orderToUpdate?.status !== 'delivered') {
         const deliveryDate = new Date().toISOString();
         const releaseDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
-        const { error: commError } = await supabase.from('affiliate_commissions')
-          .update({ delivery_date: deliveryDate, release_date: releaseDate }).eq('order_id', orderId);
-        if (!commError) toast.success('تم تحديث حالة الطلب - سيتم إصدار العمولة بعد 14 يوم! ✅');
+        await supabase.from('affiliate_commissions')
+          .update({ delivery_date: deliveryDate, release_date: releaseDate })
+          .eq('order_id', orderId);
+        toast.success('تم تحديث حالة الطلب — سيتم إصدار العمولة بعد 14 يوم! ✅');
       } else {
-        toast.success('تم تحديث حالة الطلب');
+        toast.success('تم تحديث حالة الطلب ✅');
       }
+
+      // Update both the list and the open detail modal
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder((prev: any) => ({ ...prev, status: newStatus }));
+      }
     } catch (err: any) {
-      toast.error('فشل التحديث');
+      toast.error('فشل التحديث: ' + err.message);
     }
   }
 
-  async function deleteOrder(orderId: string) {
-    if (!confirm('هل أنت متأكد من حذف هذا الطلب نهائياً؟')) return;
+  // ── FIX: uses modal confirmation instead of confirm() ──
+  async function handleDelete(orderId: string) {
     try {
-      const { error, count } = await supabase.from('orders').delete({ count: 'exact' }).eq('id', orderId);
+      const { error, count } = await supabase
+        .from('orders')
+        .delete({ count: 'exact' })
+        .eq('id', orderId);
       if (error) throw error;
-      if (count === 0) { toast.error('لم يتم الحذف — تحقق من صلاحيات RLS في Supabase'); return; }
+      if (count === 0) {
+        toast.error('لم يتم الحذف — تحقق من صلاحيات RLS في Supabase');
+        return;
+      }
       setOrders(prev => prev.filter(o => o.id !== orderId));
       if (selectedOrder?.id === orderId) setSelectedOrder(null);
+      setDeleteConfirmId(null);
       toast.success('تم حذف الطلب ✅');
     } catch (err: any) {
       toast.error('فشل الحذف: ' + err.message);
@@ -198,7 +227,6 @@ export default function AdminOrders() {
     }
   }
 
-  // ── PDF download ──────────────────────────────────────────────────────────
   async function handleDownloadInvoice(order: any) {
     setIsDownloadingPdf(true);
     try {
@@ -317,14 +345,13 @@ export default function AdminOrders() {
     toast.success('تمت إضافة المنتج ✅');
   }
 
-  // ── Invoice renderer (used by both the modal preview and html2canvas) ──────
   function InvoicePreview({ order }: { order: any }) {
     const orderNum = order.id.slice(0, 8).toUpperCase();
     const orderDate = new Date(order.created_at).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
     const items: any[] = order.items || [];
     const subtotal = items.reduce((s: number, i: any) => s + parseFloat(i.price) * i.quantity, 0);
     const shipping = parseFloat(order.shipping_cost || order.shipping_fee || 0);
-    const discount = parseFloat(order.discount_applied || order.discount_amount || 0);
+    const discountVal = parseFloat(order.discount_applied || order.discount_amount || 0);
     const total = parseFloat(order.total_price || 0);
 
     const statusLabel =
@@ -334,7 +361,6 @@ export default function AdminOrders() {
 
     return (
       <div style={{ backgroundColor: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif', direction: 'rtl' }}>
-
         {/* Header */}
         <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f4c2a 100%)', padding: '36px 44px', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: '-60px', left: '-60px', width: '200px', height: '200px', borderRadius: '50%', backgroundColor: 'rgba(34,197,94,0.07)', pointerEvents: 'none' }} />
@@ -374,7 +400,6 @@ export default function AdminOrders() {
         </div>
 
         <div style={{ padding: '30px 44px' }}>
-
           {/* Customer info */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '28px' }}>
             <div style={{ backgroundColor: '#f9fafb', borderRadius: '14px', padding: '20px', border: '1px solid #f0f0f0' }}>
@@ -431,10 +456,10 @@ export default function AdminOrders() {
                   : <span style={{ fontWeight: '800' }}>{shipping.toLocaleString('ar-EG')} ج.م</span>
                 }
               </div>
-              {discount > 0 && (
+              {discountVal > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.86rem' }}>
                   <span style={{ color: '#666', fontWeight: '700' }}>الخصم</span>
-                  <span style={{ color: '#ef4444', fontWeight: '800' }}>- {discount.toLocaleString('ar-EG')} ج.م</span>
+                  <span style={{ color: '#ef4444', fontWeight: '800' }}>- {discountVal.toLocaleString('ar-EG')} ج.م</span>
                 </div>
               )}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', padding: '14px 18px', background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: '12px' }}>
@@ -472,7 +497,7 @@ export default function AdminOrders() {
     <div style={{ padding: '30px', direction: 'rtl', maxWidth: '1400px', margin: '0 auto', background: '#f8f9fa', minHeight: '100vh' }}>
       <div style={headerSection}>
         <h1 style={mainTitle}>📦 إدارة الطلبات <span style={badgeCount}>{orders.length}</span></h1>
-        <p style={{ color: '#666', fontSize: '0.95rem', marginTop: '5px' }}>متابعة عمليات البيع وحالة الشحن لـ "زيت أند فلترز"</p>
+        <p style={{ color: '#666', fontSize: '0.95rem', marginTop: '5px' }}>متابعة عمليات البيع وحالة الشحن لـ &quot;زيت أند فلترز&quot;</p>
       </div>
 
       <div style={tableWrapper}>
@@ -510,7 +535,11 @@ export default function AdminOrders() {
                   </div>
                 </td>
                 <td style={td}>
-                  <select value={order.status} onChange={(e) => updateOrderStatus(order.id, e.target.value)} style={miniSelect(order.status)}>
+                  <select
+                    value={order.status}
+                    onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                    style={miniSelect(order.status)}
+                  >
                     <option value="pending">جديد</option>
                     <option value="processing">تجهيز</option>
                     <option value="shipped">شحن</option>
@@ -527,14 +556,14 @@ export default function AdminOrders() {
                     >
                       <Eye size={16} />
                     </button>
-                    {/* ── ORDER button in table row ── */}
                     <button
                       onClick={() => { setSelectedOrder(order); setShowInvoice(true); setEditMode(false); }}
                       style={invoiceRowBtn} title="عرض ORDER"
                     >
                       <FileText size={15} />
                     </button>
-                    <button onClick={() => deleteOrder(order.id)} style={delBtn}><Trash2 size={16} /></button>
+                    {/* ── FIX: opens modal instead of confirm() ── */}
+                    <button onClick={() => setDeleteConfirmId(order.id)} style={delBtn}><Trash2 size={16} /></button>
                   </div>
                 </td>
               </tr>
@@ -543,13 +572,10 @@ export default function AdminOrders() {
         </table>
       </div>
 
-      {/* ════════════════════════════════════════════════════════
-          ORDER INVOICE MODAL
-      ════════════════════════════════════════════════════════ */}
+      {/* ── Invoice Modal ── */}
       {selectedOrder && showInvoice && (
         <div style={modalOverlay}>
           <div style={{ ...modalContent, maxWidth: '820px' }}>
-            {/* Invoice action bar */}
             <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', alignItems: 'center' }}>
               <div style={{ flex: 1 }}>
                 <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '900', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -570,15 +596,10 @@ export default function AdminOrders() {
               >
                 <Download size={16} /> {isDownloadingPdf ? 'جاري التحميل...' : 'تحميل PDF'}
               </button>
-              <button
-                onClick={() => { setShowInvoice(false); setSelectedOrder(null); }}
-                style={closeBtn}
-              >
+              <button onClick={() => { setShowInvoice(false); setSelectedOrder(null); }} style={closeBtn}>
                 <X size={22} />
               </button>
             </div>
-
-            {/* The actual invoice (also captured by html2canvas) */}
             <div ref={invoiceRef} style={{ borderRadius: '16px', overflow: 'hidden', border: '1px solid #f0f0f0', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
               <InvoicePreview order={selectedOrder} />
             </div>
@@ -586,9 +607,7 @@ export default function AdminOrders() {
         </div>
       )}
 
-      {/* ════════════════════════════════════════════════════════
-          ORDER DETAIL MODAL (existing)
-      ════════════════════════════════════════════════════════ */}
+      {/* ── Order Detail Modal ── */}
       {selectedOrder && !showInvoice && (
         <div style={modalOverlay}>
           <div style={{ ...modalContent, maxWidth: editMode ? '900px' : '750px' }}>
@@ -598,7 +617,6 @@ export default function AdminOrders() {
                 {editMode ? 'تعديل الطلب' : 'تفاصيل الطلب'}
               </h2>
               <div style={{ display: 'flex', gap: '10px' }}>
-                {/* ── ORDER button inside detail modal ── */}
                 {!editMode && (
                   <button
                     onClick={() => setShowInvoice(true)}
@@ -622,7 +640,6 @@ export default function AdminOrders() {
             </div>
 
             <div style={modalBody}>
-
               {/* ADDRESS CARD */}
               <div style={modalCard}>
                 <h3 style={cardTitle}><User size={18}/> بيانات العميل والتوصيل</h3>
@@ -854,6 +871,32 @@ export default function AdminOrders() {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete Confirmation Modal ── */}
+      {deleteConfirmId && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(4px)' }}>
+          <div style={{ backgroundColor: '#fff', borderRadius: '20px', padding: '40px 36px', maxWidth: '400px', width: '90%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
+            <div style={{ fontSize: '3.5rem', marginBottom: '16px' }}>🗑️</div>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: '900', marginBottom: '10px', color: '#1a1a1a' }}>تأكيد الحذف</h3>
+            <p style={{ color: '#666', fontSize: '0.95rem', marginBottom: '8px', lineHeight: 1.6 }}>هل أنت متأكد من حذف هذا الطلب نهائياً؟</p>
+            <p style={{ color: '#dc2626', fontWeight: '700', fontSize: '0.9rem', marginBottom: '28px' }}>لا يمكن التراجع عن هذا الإجراء</p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button
+                onClick={() => handleDelete(deleteConfirmId)}
+                style={{ padding: '12px 32px', backgroundColor: '#dc2626', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+              >
+                <Trash2 size={16} /> نعم، احذف
+              </button>
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                style={{ padding: '12px 32px', backgroundColor: '#f5f5f5', color: '#555', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer' }}
+              >
+                إلغاء
+              </button>
             </div>
           </div>
         </div>
