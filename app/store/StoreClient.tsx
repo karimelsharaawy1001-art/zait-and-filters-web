@@ -393,7 +393,6 @@ interface PaginationProps {
 function Pagination({ currentPage, totalPages, totalItems, onPageChange }: PaginationProps) {
   if (totalPages <= 1) return null;
 
-  // Build visible page numbers with ellipsis logic
   const getPageNumbers = () => {
     const pages: (number | 'ellipsis')[] = [];
     if (totalPages <= 7) {
@@ -416,15 +415,12 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
 
   return (
     <div style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-      {/* Items count info */}
       <p style={{ color: '#888', fontSize: '0.85rem', fontWeight: '600' }}>
         عرض <span style={{ color: '#1a1a1a', fontWeight: '800' }}>{startItem}–{endItem}</span> من{' '}
         <span style={{ color: '#22c55e', fontWeight: '800' }}>{totalItems}</span> منتج
       </p>
 
-      {/* Page buttons */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
-        {/* Prev */}
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
@@ -484,7 +480,6 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
           )
         )}
 
-        {/* Next */}
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
@@ -507,7 +502,6 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
         </button>
       </div>
 
-      {/* Page jump */}
       {totalPages > 7 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
           <span style={{ fontSize: '0.8rem', color: '#888', fontWeight: '600' }}>الانتقال إلى صفحة:</span>
@@ -539,7 +533,6 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
     </div>
   );
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 
 function StoreContent() {
@@ -548,6 +541,8 @@ function StoreContent() {
   const { addToCart } = useCart();
 
   const [isMounted, setIsMounted] = useState(false);
+  // ✅ FIX: Track desktop breakpoint via state, not window.innerWidth in JSX
+  const [isDesktop, setIsDesktop] = useState(false);
   const [selectLoaded, setSelectLoaded] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
@@ -555,7 +550,6 @@ function StoreContent() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [initializing, setInitializing] = useState(true);
 
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
 
   const [yearInput, setYearInput] = useState('');
@@ -590,11 +584,15 @@ function StoreContent() {
   const urlBrand = searchParams.get('brand');
   const urlSearch = searchParams.get('q');
 
-  // ── FIX: All deps listed statically. No dynamic array size. ──
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
     setIsMounted(true);
     setSelectLoaded(true);
+
+    // ✅ FIX: Set isDesktop state on mount and on resize
+    const handleResize = () => setIsDesktop(window.innerWidth > 768);
+    handleResize(); // set initial value
+    window.addEventListener('resize', handleResize);
 
     const syncGarageMode = () => {
       const mode = localStorage.getItem('garageMode') === 'true';
@@ -605,11 +603,11 @@ function StoreContent() {
     fetchGarageDataAndInit();
 
     return () => {
+      window.removeEventListener('resize', handleResize);
       window.removeEventListener('garageModeChanged', syncGarageMode);
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── FIX: Static dep array — always 4 items, always same order ──
   useEffect(() => {
     const make = selectedMake?.value ?? null;
     const model = selectedModel?.value ?? null;
@@ -626,14 +624,12 @@ function StoreContent() {
       setShowHero(false);
       setCarHeroImage(null);
     }
-  }, [selectedMake, selectedModel, garageMode, userCar]); // 4 items, always present
+  }, [selectedMake, selectedModel, garageMode, userCar]);
 
-  // Reset to page 1 when products change
   useEffect(() => {
     setCurrentPage(1);
   }, [filteredProducts]);
 
-  // ── Combined: fetch garage first, then init ──
   async function fetchGarageDataAndInit() {
     let resolvedGarageMode = localStorage.getItem('garageMode') === 'true';
     let resolvedUserCar: any = null;
@@ -708,7 +704,6 @@ function StoreContent() {
   ) {
     const hasURLParams = urlMake || urlCategory;
 
-    // FIX 2: Detect conflict immediately on load
     if (hasURLParams && resolvedGarageMode && resolvedUserCar) {
       const urlMakeLower = urlMake?.trim().toLowerCase();
       const garageMakeLower = resolvedUserCar.make.trim().toLowerCase();
@@ -794,7 +789,6 @@ function StoreContent() {
         _userCar: resolvedUserCar,
       });
     } else if (resolvedGarageMode && resolvedUserCar) {
-      // FIX 1: Auto-load garage products
       await fetchProducts({
         make: resolvedUserCar.make,
         model: resolvedUserCar.model,
@@ -1103,7 +1097,6 @@ function StoreContent() {
   const heroModelLabel = selectedModel?.label || (garageMode && userCar?.model) || '';
   const heroYear = appliedYear || (garageMode && userCar?.year ? String(userCar.year) : '');
 
-  // Pagination slicing
   const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
   const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * PRODUCTS_PER_PAGE,
@@ -1231,20 +1224,21 @@ function StoreContent() {
                   backgroundColor: 'rgba(255,255,255,0.5)',
                   border: '1px solid rgba(255,255,255,0.4)',
                   borderRadius: '30px',
-                  padding: typeof window !== 'undefined' && window.innerWidth <= 768 ? '25px' : '40px',
+                  padding: isDesktop ? '40px' : '25px',
                   position: 'relative',
                   overflow: 'hidden',
                   boxShadow: '0 8px 32px 0 rgba(31,38,135,0.07)',
                 }}
               >
                 <div style={{ position: 'absolute', top: '-50%', right: '-10%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(34,197,94,0.15) 0%, transparent 70%)', zIndex: 0, pointerEvents: 'none' }} />
-                <div style={{ display: 'grid', gridTemplateColumns: carHeroImage && typeof window !== 'undefined' && window.innerWidth > 768 ? '1.5fr 1fr' : '1fr', gap: '40px', alignItems: 'center', position: 'relative', zIndex: 2 }}>
+                {/* ✅ FIX: Use `isDesktop` state instead of `window.innerWidth` */}
+                <div style={{ display: 'grid', gridTemplateColumns: carHeroImage && isDesktop ? '1.5fr 1fr' : '1fr', gap: '40px', alignItems: 'center', position: 'relative', zIndex: 2 }}>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', justifyContent: 'flex-start' }}>
                       <CheckCircle2 size={20} color="#22c55e" />
                       <span style={{ color: '#444', fontSize: '0.9rem', fontWeight: '700', letterSpacing: '0.5px' }}>تم تحديد مواصفات السيارة</span>
                     </div>
-                    <h1 style={{ color: '#1a1a1a', fontSize: typeof window !== 'undefined' && window.innerWidth <= 768 ? '1.8rem' : '2.8rem', fontWeight: '900', marginBottom: '16px', lineHeight: '1.2', letterSpacing: '-1px' }}>
+                    <h1 style={{ color: '#1a1a1a', fontSize: isDesktop ? '2.8rem' : '1.8rem', fontWeight: '900', marginBottom: '16px', lineHeight: '1.2', letterSpacing: '-1px' }}>
                       قطع غيار <span style={{ color: '#22c55e' }}>{heroMakeLabel}</span> الأصلية
                     </h1>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '24px' }}>
@@ -1264,9 +1258,16 @@ function StoreContent() {
                       <div style={{ fontSize: '0.9rem', color: '#fff', fontWeight: '600' }}>قطعة غيار متاحة</div>
                     </div>
                   </div>
-                  {carHeroImage && typeof window !== 'undefined' && window.innerWidth > 768 && (
+                  {/* ✅ FIX: Use `isDesktop` state — image now renders correctly after mount */}
+                  {carHeroImage && isDesktop && (
                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.6 }} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                       <img src={carHeroImage} alt={`${heroMakeLabel} ${heroModelLabel}`} style={{ width: '100%', maxHeight: '280px', objectFit: 'contain', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))' }} />
+                    </motion.div>
+                  )}
+                  {/* ✅ FIX: Show image on mobile too, below text */}
+                  {carHeroImage && !isDesktop && (
+                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.6 }} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                      <img src={carHeroImage} alt={`${heroMakeLabel} ${heroModelLabel}`} style={{ width: '80%', maxHeight: '180px', objectFit: 'contain', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.12))' }} />
                     </motion.div>
                   )}
                 </div>
@@ -1454,7 +1455,6 @@ function StoreContent() {
                     })}
                   </div>
 
-                  {/* ── Premium Pagination ── */}
                   <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
