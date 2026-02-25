@@ -28,9 +28,9 @@ export async function GET() {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
   <channel>
-    <title>Your Store Name</title>
-    <link>https://yoursite.com</link>
-    <description>Car Parts Store</description>
+    <title>زيت اند فلترز</title>
+    <link>https://zaitandfilters.com</link>
+    <description>اكبر موقع في مصر لقطع غيار السيارات</description>
     ${items}
   </channel>
 </rss>`;
