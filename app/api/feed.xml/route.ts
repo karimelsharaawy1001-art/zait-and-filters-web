@@ -17,7 +17,7 @@ export async function GET() {
       <link>https://yoursite.com/products/${p.id}</link>
       <g:image_link>${p.image_url}</g:image_link>
       <g:price>${price} EGP</g:price>
-      <g:availability>${p.stock > 0 ? 'in_stock' : 'out_of_stock'}</g:availability>
+      <g:availability>in_stock</g:availability>
       <g:condition>new</g:condition>
       <g:brand>${escapeXml(p.brand || '')}</g:brand>
       <g:google_product_category>Vehicle Parts &amp; Accessories</g:google_product_category>
