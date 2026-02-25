@@ -17,6 +17,7 @@ export default function CarImagesAdmin() {
   const [allCars, setAllCars] = useState<CarEntry[]>([]);
   const [makes, setMakes] = useState<string[]>([]);
   const [models, setModels] = useState<string[]>([]);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   const [selectedMake, setSelectedMake] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
@@ -34,7 +35,6 @@ export default function CarImagesAdmin() {
   async function fetchData() {
     setLoading(true);
     try {
-      // 1. Get all unique make+model pairs from BOTH tables
       const [{ data: compatData }, { data: productData }] = await Promise.all([
         supabase
           .from('product_car_compatibility')
@@ -66,13 +66,11 @@ export default function CarImagesAdmin() {
         a.make.localeCompare(b.make) || a.model.localeCompare(b.model)
       );
 
-      // 2. Get all car images (multiple per make+model now)
       const { data: imagesData } = await supabase
         .from('car_images')
         .select('*')
         .order('car_make', { ascending: true });
 
-      // Group images by make|||model key
       const imageMap: Record<string, CarEntry[]> = {};
       for (const img of imagesData || []) {
         const key = `${img.car_make?.trim().toUpperCase()}|||${img.car_model?.trim().toUpperCase()}`;
@@ -87,24 +85,19 @@ export default function CarImagesAdmin() {
         });
       }
 
-      // 3. Build final list — base entries from products, enriched with images
       const result: CarEntry[] = [];
-
       for (const { make, model } of allPairs) {
         const key = `${make.toUpperCase()}|||${model.toUpperCase()}`;
         const images = imageMap[key];
         if (images && images.length > 0) {
-          // Push all image variants for this car
           images.forEach((img) => result.push(img));
         } else {
-          // No image at all — push placeholder
           result.push({ make, model, image_url: null });
         }
       }
 
       setAllCars(result);
 
-      // 4. Makes for the form dropdown
       const uniqueMakes = Array.from(new Set(allPairs.map((p) => p.make))).sort();
       setMakes(uniqueMakes as string[]);
     } catch (err) {
@@ -169,7 +162,6 @@ export default function CarImagesAdmin() {
     };
 
     if (editingId) {
-      // Update existing record
       const { error } = await supabase
         .from('car_images')
         .update(payload)
@@ -177,7 +169,6 @@ export default function CarImagesAdmin() {
       if (error) toast.error('حدث خطأ: ' + error.message);
       else { toast.success('تم التحديث بنجاح ✅'); fetchData(); resetForm(); }
     } else {
-      // Insert new record
       const { error } = await supabase.from('car_images').insert(payload);
       if (error) toast.error('حدث خطأ: ' + error.message);
       else { toast.success('تمت الإضافة بنجاح ✅'); fetchData(); resetForm(); }
@@ -186,11 +177,11 @@ export default function CarImagesAdmin() {
     setUploading(false);
   }
 
+  // ── Fixed: no confirm(), uses modal state instead ──
   async function handleDelete(id: string) {
-    if (!confirm('هل أنت متأكد من الحذف؟')) return;
     const { error } = await supabase.from('car_images').delete().eq('id', id);
     if (error) toast.error('حدث خطأ');
-    else { toast.success('تم الحذف'); fetchData(); }
+    else { toast.success('تم الحذف'); setDeleteConfirm(null); fetchData(); }
   }
 
   function resetForm() {
@@ -212,7 +203,6 @@ export default function CarImagesAdmin() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Group allCars by make+model for display
   const grouped: Record<string, CarEntry[]> = {};
   for (const car of allCars) {
     const key = `${car.make}|||${car.model}`;
@@ -396,6 +386,7 @@ export default function CarImagesAdmin() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
                 {withImage.map(([key, entries]) => (
                   <div key={key} style={{ border: '1px solid #e5e5e5', borderRadius: '16px', overflow: 'hidden', backgroundColor: '#f9f9f9' }}>
+
                     {/* Make + Model header */}
                     <div style={{ padding: '14px 16px', borderBottom: '1px solid #f0f0f0', backgroundColor: '#fff' }}>
                       <p style={{ fontWeight: '900', fontSize: '1rem', margin: 0 }}>
@@ -403,7 +394,7 @@ export default function CarImagesAdmin() {
                       </p>
                     </div>
 
-                    {/* All image variants for this car */}
+                    {/* All image variants */}
                     {entries.filter((e) => e.image_url).map((entry) => (
                       <div key={entry.id} style={{ padding: '14px 16px', borderBottom: '1px solid #f0f0f0', backgroundColor: '#fff', marginBottom: '2px' }}>
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
@@ -429,8 +420,9 @@ export default function CarImagesAdmin() {
                               >
                                 تعديل
                               </button>
+                              {/* ── Fixed: sets deleteConfirm instead of calling confirm() ── */}
                               <button
-                                onClick={() => handleDelete(entry.id!)}
+                                onClick={() => setDeleteConfirm(entry.id!)}
                                 style={{ flex: 1, padding: '7px', backgroundColor: '#fee', color: '#dc2626', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '0.82rem' }}
                               >
                                 <Trash2 size={13} /> حذف
@@ -444,7 +436,14 @@ export default function CarImagesAdmin() {
                     {/* Add another year variant */}
                     <div style={{ padding: '10px 16px' }}>
                       <button
-                        onClick={() => { handleMakeChange(entries[0].make).then(() => setSelectedModel(entries[0].model)); setEditingId(null); setImageUrl(''); setYearFrom(''); setYearTo(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                        onClick={() => {
+                          handleMakeChange(entries[0].make).then(() => setSelectedModel(entries[0].model));
+                          setEditingId(null);
+                          setImageUrl('');
+                          setYearFrom('');
+                          setYearTo('');
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
                         style={{ width: '100%', padding: '8px', backgroundColor: '#f0fdf4', color: '#16a34a', border: '1px dashed #86efac', borderRadius: '9px', fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem' }}
                       >
                         + إضافة سنة مختلفة
@@ -457,6 +456,55 @@ export default function CarImagesAdmin() {
           )}
         </>
       )}
+
+      {/* ── Delete Confirmation Modal ── */}
+      {deleteConfirm && (
+        <div style={{
+          position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
+        }}>
+          <div style={{
+            backgroundColor: '#fff', borderRadius: '20px', padding: '40px 36px',
+            maxWidth: '400px', width: '90%', textAlign: 'center',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.25)'
+          }}>
+            <div style={{ fontSize: '3.5rem', marginBottom: '16px' }}>🗑️</div>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: '900', marginBottom: '10px', color: '#1a1a1a' }}>
+              تأكيد الحذف
+            </h3>
+            <p style={{ color: '#666', fontSize: '0.95rem', marginBottom: '10px', lineHeight: 1.6 }}>
+              هل أنت متأكد من حذف هذه الصورة؟
+            </p>
+            <p style={{ color: '#dc2626', fontWeight: '700', fontSize: '0.9rem', marginBottom: '28px' }}>
+              لا يمكن التراجع عن هذا الإجراء
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button
+                onClick={() => handleDelete(deleteConfirm)}
+                style={{
+                  padding: '12px 32px', backgroundColor: '#dc2626', color: '#fff',
+                  border: 'none', borderRadius: '12px', fontWeight: '800',
+                  fontSize: '1rem', cursor: 'pointer', display: 'flex',
+                  alignItems: 'center', gap: '8px'
+                }}
+              >
+                <Trash2 size={16} /> نعم، احذف
+              </button>
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                style={{
+                  padding: '12px 32px', backgroundColor: '#f5f5f5', color: '#555',
+                  border: 'none', borderRadius: '12px', fontWeight: '700',
+                  fontSize: '1rem', cursor: 'pointer'
+                }}
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
