@@ -40,7 +40,6 @@ export default function AdminOrders() {
   const [loadingBrands, setLoadingBrands] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
 
-  // ── Delete confirmation modal state ──
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const paymentLabels: any = {
@@ -48,6 +47,18 @@ export default function AdminOrders() {
     'instapay': 'انستا باي',
     'wallets': 'محفظة إلكترونية'
   };
+
+  // ── FIX 2: Format date AND time ───────────────────────────────────────────
+  function formatDateTime(isoString: string) {
+    const date = new Date(isoString);
+    const datePart = date.toLocaleDateString('ar-EG', {
+      year: 'numeric', month: '2-digit', day: '2-digit'
+    });
+    const timePart = date.toLocaleTimeString('ar-EG', {
+      hour: '2-digit', minute: '2-digit', hour12: true
+    });
+    return { datePart, timePart };
+  }
 
   // ===================== FUNCTIONS =====================
 
@@ -139,36 +150,30 @@ export default function AdminOrders() {
     if (data) setCustomerAddresses(data);
   }
 
-  // ── FIX: verify update actually saved, update selectedOrder too ──
+  // ── FIX 1: Use server API route to bypass RLS ─────────────────────────────
+  // The anon key used by supabase client is blocked by RLS policies on orders.
+  // The server route uses SUPABASE_SERVICE_ROLE_KEY which bypasses RLS entirely.
   async function updateOrderStatus(orderId: string, newStatus: string) {
     try {
-      const orderToUpdate = orders.find(o => o.id === orderId);
+      const res = await fetch('/api/admin/update-order-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, newStatus }),
+      });
 
-      const { error: orderError, count } = await supabase
-        .from('orders')
-        .update({ status: newStatus }, { count: 'exact' })
-        .eq('id', orderId);
+      const result = await res.json();
 
-      if (orderError) throw orderError;
-
-      // If count is 0, RLS silently blocked the update
-      if (count === 0) {
-        toast.error('فشل التحديث — تحقق من صلاحيات RLS في Supabase');
+      if (!res.ok || result.error) {
+        toast.error('فشل التحديث: ' + (result.error || 'خطأ غير معروف'));
         return;
       }
 
-      if (newStatus === 'delivered' && orderToUpdate?.status !== 'delivered') {
-        const deliveryDate = new Date().toISOString();
-        const releaseDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
-        await supabase.from('affiliate_commissions')
-          .update({ delivery_date: deliveryDate, release_date: releaseDate })
-          .eq('order_id', orderId);
+      if (newStatus === 'delivered') {
         toast.success('تم تحديث حالة الطلب — سيتم إصدار العمولة بعد 14 يوم! ✅');
       } else {
         toast.success('تم تحديث حالة الطلب ✅');
       }
 
-      // Update both the list and the open detail modal
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
       if (selectedOrder?.id === orderId) {
         setSelectedOrder((prev: any) => ({ ...prev, status: newStatus }));
@@ -178,7 +183,6 @@ export default function AdminOrders() {
     }
   }
 
-  // ── FIX: uses modal confirmation instead of confirm() ──
   async function handleDelete(orderId: string) {
     try {
       const { error, count } = await supabase
@@ -508,66 +512,72 @@ export default function AdminOrders() {
               <th style={th}>المحافظة</th>
               <th style={th}>طريقة الدفع</th>
               <th style={th}>الحالة</th>
-              <th style={th}>التاريخ</th>
+              <th style={th}>التاريخ والوقت</th>
               <th style={th}>الإجمالي</th>
               <th style={th}>إجراءات</th>
             </tr>
           </thead>
           <tbody>
-            {orders.map((order) => (
-              <tr key={order.id} style={tr}>
-                <td style={td}>
-                  <div style={{ fontWeight: '800', color: '#1a1a1a' }}>{order.customer_name}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#777', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Phone size={12} /> {order.customer_phone}
-                  </div>
-                </td>
-                <td style={td}>
-                  <div style={cityBadge}><MapPin size={14} color="#15803d" /> {order.city || 'غير محدد'}</div>
-                </td>
-                <td style={td}>
-                  <div style={payTypeStyle}>
-                    {order.payment_method === 'instapay' ? <Banknote size={16} color="#9b59b6" /> :
-                     order.payment_method === 'wallets' ? <Smartphone size={16} color="#e74c3c" /> :
-                     <CreditCard size={16} color="#3498db" />}
-                    <span>{paymentLabels[order.payment_method] || order.payment_method}</span>
-                    {order.payment_screenshot_url && <ImageIcon size={14} color="#27ae60" />}
-                  </div>
-                </td>
-                <td style={td}>
-                  <select
-                    value={order.status}
-                    onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                    style={miniSelect(order.status)}
-                  >
-                    <option value="pending">جديد</option>
-                    <option value="processing">تجهيز</option>
-                    <option value="shipped">شحن</option>
-                    <option value="delivered">توصيل</option>
-                  </select>
-                </td>
-                <td style={td}><div style={{ fontSize: '0.85rem', color: '#666' }}>{new Date(order.created_at).toLocaleDateString('ar-EG')}</div></td>
-                <td style={td}><span style={{ color: '#15803d', fontWeight: '900', fontSize: '1rem' }}>{order.total_price} <small>ج.م</small></span></td>
-                <td style={td}>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <button
-                      onClick={() => { setSelectedOrder(order); setEditMode(false); setShowInvoice(false); }}
-                      style={iconBtn} title="عرض الطلب"
+            {orders.map((order) => {
+              const { datePart, timePart } = formatDateTime(order.created_at);
+              return (
+                <tr key={order.id} style={tr}>
+                  <td style={td}>
+                    <div style={{ fontWeight: '800', color: '#1a1a1a' }}>{order.customer_name}</div>
+                    <div style={{ fontSize: '0.8rem', color: '#777', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Phone size={12} /> {order.customer_phone}
+                    </div>
+                  </td>
+                  <td style={td}>
+                    <div style={cityBadge}><MapPin size={14} color="#15803d" /> {order.city || 'غير محدد'}</div>
+                  </td>
+                  <td style={td}>
+                    <div style={payTypeStyle}>
+                      {order.payment_method === 'instapay' ? <Banknote size={16} color="#9b59b6" /> :
+                       order.payment_method === 'wallets' ? <Smartphone size={16} color="#e74c3c" /> :
+                       <CreditCard size={16} color="#3498db" />}
+                      <span>{paymentLabels[order.payment_method] || order.payment_method}</span>
+                      {order.payment_screenshot_url && <ImageIcon size={14} color="#27ae60" />}
+                    </div>
+                  </td>
+                  <td style={td}>
+                    <select
+                      value={order.status}
+                      onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                      style={miniSelect(order.status)}
                     >
-                      <Eye size={16} />
-                    </button>
-                    <button
-                      onClick={() => { setSelectedOrder(order); setShowInvoice(true); setEditMode(false); }}
-                      style={invoiceRowBtn} title="عرض ORDER"
-                    >
-                      <FileText size={15} />
-                    </button>
-                    {/* ── FIX: opens modal instead of confirm() ── */}
-                    <button onClick={() => setDeleteConfirmId(order.id)} style={delBtn}><Trash2 size={16} /></button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                      <option value="pending">جديد</option>
+                      <option value="processing">تجهيز</option>
+                      <option value="shipped">شحن</option>
+                      <option value="delivered">توصيل</option>
+                    </select>
+                  </td>
+                  {/* ── FIX 2: date + time ── */}
+                  <td style={td}>
+                    <div style={{ fontSize: '0.85rem', color: '#444', fontWeight: '700' }}>{datePart}</div>
+                    <div style={{ fontSize: '0.78rem', color: '#22c55e', fontWeight: '700', marginTop: '2px' }}>{timePart}</div>
+                  </td>
+                  <td style={td}><span style={{ color: '#15803d', fontWeight: '900', fontSize: '1rem' }}>{order.total_price} <small>ج.م</small></span></td>
+                  <td style={td}>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button
+                        onClick={() => { setSelectedOrder(order); setEditMode(false); setShowInvoice(false); }}
+                        style={iconBtn} title="عرض الطلب"
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button
+                        onClick={() => { setSelectedOrder(order); setShowInvoice(true); setEditMode(false); }}
+                        style={invoiceRowBtn} title="عرض ORDER"
+                      >
+                        <FileText size={15} />
+                      </button>
+                      <button onClick={() => setDeleteConfirmId(order.id)} style={delBtn}><Trash2 size={16} /></button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
