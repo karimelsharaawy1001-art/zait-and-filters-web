@@ -880,47 +880,51 @@ function StoreContent() {
       }
 
       // ── Step 1: resolve matching product IDs ──────────────────────────────
-      let matchingProductIds: string[] | null = null;
+let matchingProductIds: string[] | null = null;
 
-      const activeMake = gMode && gCar ? gCar.make : filters.make;
-      const activeModel = gMode && gCar ? gCar.model : filters.model;
+const activeMake = gMode && gCar ? gCar.make : filters.make;
+const activeModel = gMode && gCar ? gCar.model : filters.model;
 
-      if (activeMake) {
-        // IDs from compatibility table
-        let compatQuery = supabase
-          .from('product_car_compatibility')
-          .select('product_id')
-          .ilike('car_make', activeMake.trim());
-        if (activeModel) compatQuery = compatQuery.ilike('car_model', activeModel.trim());
-        const { data: compatData } = await compatQuery;
-        const compatIds = (compatData || []).map((r: any) => r.product_id);
+if (activeMake) {
+  // IDs from compatibility table
+  let compatQuery = supabase
+    .from('product_car_compatibility')
+    .select('product_id')
+    .ilike('car_make', activeMake.trim());
+  if (activeModel) compatQuery = compatQuery.ilike('car_model', activeModel.trim());
+  const { data: compatData, error: compatError } = await compatQuery;
+  if (compatError) console.warn('compatQuery error:', compatError.message);
+  const compatIds = (compatData || []).map((r: any) => r.product_id).filter(Boolean);
 
-        // IDs from products table directly
-        let directQuery = supabase
-          .from('products')
-          .select('id')
-          .ilike('car_make', activeMake.trim());
-        if (activeModel) directQuery = directQuery.ilike('car_model', activeModel.trim());
-        const { data: directData } = await directQuery;
-        const directIds = (directData || []).map((r: any) => r.id);
+  // IDs from products table directly
+  let directQuery = supabase
+    .from('products')
+    .select('id')
+    .ilike('car_make', activeMake.trim());
+  if (activeModel) directQuery = directQuery.ilike('car_model', activeModel.trim());
+  const { data: directData, error: directError } = await directQuery;
+  if (directError) console.warn('directQuery error:', directError.message);
+  const directIds = (directData || []).map((r: any) => r.id).filter(Boolean);
 
-        // ── FIX: fetch universal products with two separate queries instead of .or() ──
-        const { data: nullMakeData } = await supabase
-          .from('products')
-          .select('id')
-          .is('car_make', null);
-        const { data: emptyMakeData } = await supabase
-          .from('products')
-          .select('id')
-          .eq('car_make', '');
+  // ✅ FIX: Two separate queries instead of .or('car_make.is.null,car_make.eq.')
+  const { data: nullMakeData } = await supabase
+    .from('products')
+    .select('id')
+    .is('car_make', null);
 
-        const universalIds = [
-          ...(nullMakeData || []).map((r: any) => r.id),
-          ...(emptyMakeData || []).map((r: any) => r.id),
-        ];
+  const { data: emptyMakeData } = await supabase
+    .from('products')
+    .select('id')
+    .eq('car_make', '');
 
-        matchingProductIds = Array.from(new Set([...compatIds, ...directIds, ...universalIds]));
-      }
+  const universalIds = [
+    ...(nullMakeData || []).map((r: any) => r.id),
+    ...(emptyMakeData || []).map((r: any) => r.id),
+  ];
+
+  matchingProductIds = Array.from(new Set([...compatIds, ...directIds, ...universalIds]));
+}
+
 
       // ── Step 2: fetch products ──────────────────────────────────────────────
       let query = supabase.from('products').select('*').order('created_at', { ascending: false });
@@ -950,29 +954,34 @@ function StoreContent() {
       let fetchedProducts = data || [];
 
       // ── Step 3: year filter ─────────────────────────────────────────────────
-      const yearToMatch = filters.year || (gMode && gCar?.year ? String(gCar.year) : '');
+const yearToMatch = filters.year || (gMode && gCar?.year ? String(gCar.year) : '');
 
-      if (yearToMatch && activeMake) {
-        const { data: yearData } = await supabase
-          .from('product_car_compatibility')
-          .select('product_id, car_model_year')
-          .in('product_id', fetchedProducts.map((p: any) => p.id))
-          .ilike('car_make', activeMake.trim());
+if (yearToMatch && activeMake && fetchedProducts.length > 0) {  // ✅ guard fetchedProducts.length > 0
+  const productIds = fetchedProducts.map((p: any) => p.id);
 
-        const yearMap: Record<string, string[]> = {};
-        for (const row of yearData || []) {
-          if (!yearMap[row.product_id]) yearMap[row.product_id] = [];
-          if (row.car_model_year) yearMap[row.product_id].push(row.car_model_year);
-        }
+  if (productIds.length > 0) {  // ✅ guard before .in()
+    const { data: yearData } = await supabase
+      .from('product_car_compatibility')
+      .select('product_id, car_model_year')
+      .in('product_id', productIds)
+      .ilike('car_make', activeMake.trim());
 
-        fetchedProducts = fetchedProducts.filter((p: any) => {
-          const isUniversal = !p.car_make || p.car_make.trim() === '';
-          if (isUniversal) return true;
-          const yearStrings = yearMap[p.id] || [];
-          if (yearStrings.length === 0) return true;
-          return yearStrings.some((ys) => isYearCompatible(ys, yearToMatch));
-        });
-      }
+    const yearMap: Record<string, string[]> = {};
+    for (const row of yearData || []) {
+      if (!yearMap[row.product_id]) yearMap[row.product_id] = [];
+      if (row.car_model_year) yearMap[row.product_id].push(row.car_model_year);
+    }
+
+    fetchedProducts = fetchedProducts.filter((p: any) => {
+      const isUniversal = !p.car_make || p.car_make.trim() === '';
+      if (isUniversal) return true;
+      const yearStrings = yearMap[p.id] || [];
+      if (yearStrings.length === 0) return true;
+      return yearStrings.some((ys) => isYearCompatible(ys, yearToMatch));
+    });
+  }
+}
+
 
       // ── Step 4: search filter ───────────────────────────────────────────────
       if (filters.search) {
