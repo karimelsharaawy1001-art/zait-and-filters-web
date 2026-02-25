@@ -648,58 +648,65 @@ function StoreContent() {
 
   // ── UPDATED: pulls makes from compatibility table ──────────────────────────
   async function initializePage(resolvedGarageMode: boolean, resolvedUserCar: any) {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const [productsRes, subcatRes] = await Promise.all([
-        supabase.from('products').select('category, brand, car_make').order('car_make', { ascending: true }),
-        supabase.from('category_images').select('name, image_url'),
-      ]);
+    const [productsRes, subcatRes] = await Promise.all([
+      supabase.from('products').select('category, brand, car_make').order('car_make', { ascending: true }),
+      supabase.from('category_images').select('name, image_url'),
+    ]);
 
-      if (productsRes.error) throw productsRes.error;
+    if (productsRes.error) throw productsRes.error;
 
-      if (subcatRes.data) {
-        const imgMap: Record<string, string> = {};
-        subcatRes.data.forEach((item) => {
-          if (item.name) imgMap[item.name.trim().toUpperCase()] = item.image_url;
-        });
-        setSubcategoryImages(imgMap);
-      }
-
-      // Makes: pull from compatibility table for accuracy
-      const { data: compatMakes } = await supabase
-        .from('product_car_compatibility')
-        .select('car_make')
-        .not('car_make', 'is', null)
-        .neq('car_make', '');
-
-      const uniqueMakes = Array.from(
-        new Set((compatMakes || []).map((r: any) => r.car_make?.trim()).filter(Boolean))
-      ).sort() as string[];
-      const makesOpts = uniqueMakes.map((make) => ({ value: make, label: make }));
-      setMakesOptions(makesOpts);
-
-      const uniqueCategories = Array.from(
-        new Set(productsRes.data.map((p) => p.category?.trim()).filter(Boolean))
-      );
-      const catsOpts = uniqueCategories.map((cat) => ({ value: cat, label: cat }));
-      setCategoriesOptions(catsOpts);
-
-      const uniqueBrands = Array.from(
-        new Set(productsRes.data.map((p) => p.brand?.trim()).filter(Boolean))
-      );
-      const brandsOpts = uniqueBrands.map((brand) => ({ value: brand, label: brand }));
-      setBrandsOptions(brandsOpts);
-
-      await applyURLFilters(makesOpts, catsOpts, brandsOpts, resolvedGarageMode, resolvedUserCar);
-    } catch (error) {
-      console.error('Error initializing page:', error);
-      toast.error('حدث خطأ في تحميل الصفحة');
-    } finally {
-      setLoading(false);
-      setInitializing(false);
+    if (subcatRes.data) {
+      const imgMap: Record<string, string> = {};
+      subcatRes.data.forEach((item) => {
+        if (item.name) imgMap[item.name.trim().toUpperCase()] = item.image_url;
+      });
+      setSubcategoryImages(imgMap);
     }
+
+    // ── Makes: merge from BOTH compatibility table AND products table ──
+    const { data: compatMakes } = await supabase
+      .from('product_car_compatibility')
+      .select('car_make')
+      .not('car_make', 'is', null)
+      .neq('car_make', '');
+
+    const compatMakeSet = new Set(
+      (compatMakes || []).map((r: any) => r.car_make?.trim()).filter(Boolean)
+    );
+
+    const productMakeSet = new Set(
+      (productsRes.data || []).map((p: any) => p.car_make?.trim()).filter(Boolean)
+    );
+
+    const uniqueMakes = Array.from(new Set([...compatMakeSet, ...productMakeSet])).sort() as string[];
+    const makesOpts = uniqueMakes.map((make) => ({ value: make, label: make }));
+    setMakesOptions(makesOpts);
+
+    const uniqueCategories = Array.from(
+      new Set(productsRes.data.map((p) => p.category?.trim()).filter(Boolean))
+    );
+    const catsOpts = uniqueCategories.map((cat) => ({ value: cat, label: cat }));
+    setCategoriesOptions(catsOpts);
+
+    const uniqueBrands = Array.from(
+      new Set(productsRes.data.map((p) => p.brand?.trim()).filter(Boolean))
+    );
+    const brandsOpts = uniqueBrands.map((brand) => ({ value: brand, label: brand }));
+    setBrandsOptions(brandsOpts);
+
+    await applyURLFilters(makesOpts, catsOpts, brandsOpts, resolvedGarageMode, resolvedUserCar);
+  } catch (error) {
+    console.error('Error initializing page:', error);
+    toast.error('حدث خطأ في تحميل الصفحة');
+  } finally {
+    setLoading(false);
+    setInitializing(false);
   }
+}
+
 
   async function applyURLFilters(
     makes: any[],
@@ -1016,26 +1023,39 @@ function StoreContent() {
 
   // ── UPDATED: pulls models from compatibility table ─────────────────────────
   async function handleMakeChange(opt: any) {
-    setSelectedMake(opt);
-    setSelectedModel(null);
-    if (opt) {
-      const { data } = await supabase
-        .from('product_car_compatibility')
-        .select('car_model')
-        .ilike('car_make', opt.value.trim())
-        .not('car_model', 'is', null)
-        .neq('car_model', '');
+  setSelectedMake(opt);
+  setSelectedModel(null);
+  if (opt) {
+    // Models from compatibility table
+    const { data: compatModels } = await supabase
+      .from('product_car_compatibility')
+      .select('car_model')
+      .ilike('car_make', opt.value.trim())
+      .not('car_model', 'is', null)
+      .neq('car_model', '');
 
-      if (data) {
-        const uniqueModels = Array.from(
-          new Set(data.map((r: any) => r.car_model?.trim()).filter(Boolean))
-        ).sort() as string[];
-        setModelsOptions(uniqueModels.map((model) => ({ value: model, label: model })));
-      }
-    } else {
-      setModelsOptions([]);
-    }
+    // Models from products table directly
+    const { data: productModels } = await supabase
+      .from('products')
+      .select('car_model')
+      .ilike('car_make', opt.value.trim())
+      .not('car_model', 'is', null)
+      .neq('car_model', '');
+
+    const compatSet = new Set(
+      (compatModels || []).map((r: any) => r.car_model?.trim()).filter(Boolean)
+    );
+    const productSet = new Set(
+      (productModels || []).map((r: any) => r.car_model?.trim()).filter(Boolean)
+    );
+
+    const uniqueModels = Array.from(new Set([...compatSet, ...productSet])).sort() as string[];
+    setModelsOptions(uniqueModels.map((model) => ({ value: model, label: model })));
+  } else {
+    setModelsOptions([]);
   }
+}
+
 
   async function handleCategoryChange(opt: any) {
     setSelectedCategory(opt);
