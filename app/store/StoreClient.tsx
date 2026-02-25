@@ -709,124 +709,106 @@ function StoreContent() {
 
 
   async function applyURLFilters(
-    makes: any[],
-    cats: any[],
-    brands: any[],
-    resolvedGarageMode: boolean,
-    resolvedUserCar: any,
-  ) {
-    const hasURLParams = urlMake || urlCategory;
+  makes: any[],
+  cats: any[],
+  brands: any[],
+  resolvedGarageMode: boolean,
+  resolvedUserCar: any,
+) {
+  const hasURLParams = urlMake || urlCategory;
 
-    if (hasURLParams && resolvedGarageMode && resolvedUserCar) {
-      const urlMakeLower = urlMake?.trim().toLowerCase();
-      const garageMakeLower = resolvedUserCar.make.trim().toLowerCase();
-      if (urlMakeLower && urlMakeLower !== garageMakeLower) {
-        if (urlMake && makes.length > 0) {
-          const makeOption = makes.find((opt) => opt.value.toUpperCase() === urlMake.toUpperCase());
-          if (makeOption) {
-            setSelectedMake(makeOption);
-            // Pull models from compatibility table
-            const { data } = await supabase
-              .from('product_car_compatibility')
-              .select('car_model')
-              .ilike('car_make', makeOption.value.trim())
-              .not('car_model', 'is', null)
-              .neq('car_model', '');
-            if (data) {
-              const uniqueModels = Array.from(new Set(data.map((r: any) => r.car_model?.trim()).filter(Boolean))).sort() as string[];
-              const modelOptions = uniqueModels.map((model) => ({ value: model, label: model }));
-              setModelsOptions(modelOptions);
-              if (urlModel) {
-                const modelOption = modelOptions.find((opt) => opt.value.toUpperCase() === urlModel.toUpperCase());
-                if (modelOption) setSelectedModel(modelOption);
-              }
-            }
-          }
-        }
-        if (urlYear) { setYearInput(urlYear); setAppliedYear(urlYear); }
-        setShowGarageConflictBanner(true);
-        return;
-      }
-    }
-
-    if (urlYear) { setYearInput(urlYear); setAppliedYear(urlYear); }
-
-    if (urlCategory && cats.length > 0) {
-      const catOption = cats.find((opt) => opt.value.toUpperCase() === urlCategory.toUpperCase());
-      if (catOption) {
-        setSelectedCategory(catOption);
-        const { data } = await supabase.from('products').select('subcategory').ilike('category', catOption.value.trim());
-        if (data) {
-          const uniqueSubcats = Array.from(new Set(data.map((p) => p.subcategory?.trim()).filter(Boolean)));
-          const subcatOpts = uniqueSubcats.sort().map((s) => ({ value: s, label: s }));
-          setSubcategoriesOptions(subcatOpts);
-          if (urlSubcategory) {
-            const urlSubcatValues = urlSubcategory.split(',').map((s) => s.trim().toUpperCase());
-            const matchedSubcats = subcatOpts.filter((opt) => urlSubcatValues.includes(opt.value.toUpperCase()));
-            if (matchedSubcats.length > 0) setSelectedSubcategories(matchedSubcats);
-          }
-        }
-      }
-    }
-
-    if (urlBrand && brands.length > 0) {
-      const brandOption = brands.find((opt) => opt.value.toUpperCase() === urlBrand.toUpperCase());
-      if (brandOption) setSelectedBrand(brandOption);
-    }
-
-    if (urlSearch) setSearchQuery(urlSearch);
-
-    // ── UPDATED: pull models from compatibility table ──
-    if (urlMake && makes.length > 0) {
-      const makeOption = makes.find((opt) => opt.value.toUpperCase() === urlMake.toUpperCase());
-      if (makeOption) {
-        setSelectedMake(makeOption);
-        const { data } = await supabase
-          .from('product_car_compatibility')
-          .select('car_model')
-          .ilike('car_make', makeOption.value.trim())
-          .not('car_model', 'is', null)
-          .neq('car_model', '');
-        if (data) {
-          const uniqueModels = Array.from(new Set(data.map((r: any) => r.car_model?.trim()).filter(Boolean))).sort() as string[];
-          const modelOptions = uniqueModels.map((model) => ({ value: model, label: model }));
-          setModelsOptions(modelOptions);
-          if (urlModel) {
-            const modelOption = modelOptions.find((opt) => opt.value.toUpperCase() === urlModel.toUpperCase());
-            if (modelOption) setSelectedModel(modelOption);
-          }
-        }
-      }
-    }
-
-    const hasMinimumURLFilters = (urlMake && urlModel) || urlCategory;
-
-    if (hasMinimumURLFilters) {
-      const urlSubcatValues = urlSubcategory
-        ? urlSubcategory.split(',').map((s) => s.trim()).filter(Boolean)
-        : [];
-
-      await fetchProducts({
-        make: urlMake,
-        model: urlModel,
-        year: urlYear,
-        category: urlCategory,
-        subcategories: urlSubcatValues,
-        brand: urlBrand,
-        search: urlSearch,
-        _garageMode: resolvedGarageMode,
-        _userCar: resolvedUserCar,
-      });
-    } else if (resolvedGarageMode && resolvedUserCar) {
-      await fetchProducts({
-        make: resolvedUserCar.make,
-        model: resolvedUserCar.model,
-        year: resolvedUserCar.year ? String(resolvedUserCar.year) : '',
-        _garageMode: true,
-        _userCar: resolvedUserCar,
-      });
+  if (hasURLParams && resolvedGarageMode && resolvedUserCar) {
+    const urlMakeLower = urlMake?.trim().toLowerCase();
+    const garageMakeLower = resolvedUserCar.make.trim().toLowerCase();
+    if (urlMakeLower && urlMakeLower !== garageMakeLower) {
+      setShowGarageConflictBanner(true);
+      return;
     }
   }
+
+  if (urlYear) { setYearInput(urlYear); setAppliedYear(urlYear); }
+
+  if (urlCategory && cats.length > 0) {
+    const catOption = cats.find((opt) => opt.value.toUpperCase() === urlCategory.toUpperCase());
+    if (catOption) {
+      setSelectedCategory(catOption);
+      const { data } = await supabase.from('products').select('subcategory').ilike('category', catOption.value.trim());
+      if (data) {
+        const uniqueSubcats = Array.from(new Set(data.map((p) => p.subcategory?.trim()).filter(Boolean)));
+        const subcatOpts = uniqueSubcats.sort().map((s) => ({ value: s, label: s }));
+        setSubcategoriesOptions(subcatOpts);
+        if (urlSubcategory) {
+          const urlSubcatValues = urlSubcategory.split(',').map((s) => s.trim().toUpperCase());
+          const matchedSubcats = subcatOpts.filter((opt) => urlSubcatValues.includes(opt.value.toUpperCase()));
+          if (matchedSubcats.length > 0) setSelectedSubcategories(matchedSubcats);
+        }
+      }
+    }
+  }
+
+  if (urlBrand && brands.length > 0) {
+    const brandOption = brands.find((opt) => opt.value.toUpperCase() === urlBrand.toUpperCase());
+    if (brandOption) setSelectedBrand(brandOption);
+  }
+
+  if (urlSearch) setSearchQuery(urlSearch);
+
+  if (urlMake && makes.length > 0) {
+    const makeOption = makes.find((opt) => opt.value.toUpperCase() === urlMake.toUpperCase());
+    if (makeOption) {
+      setSelectedMake(makeOption);
+
+      // ── Merge models from BOTH tables ──
+      const [{ data: compatModels }, { data: productModels }] = await Promise.all([
+        supabase.from('product_car_compatibility').select('car_model')
+          .ilike('car_make', makeOption.value.trim())
+          .not('car_model', 'is', null).neq('car_model', ''),
+        supabase.from('products').select('car_model')
+          .ilike('car_make', makeOption.value.trim())
+          .not('car_model', 'is', null).neq('car_model', ''),
+      ]);
+
+      const allModels = new Set([
+        ...(compatModels || []).map((r: any) => r.car_model?.trim()).filter(Boolean),
+        ...(productModels || []).map((r: any) => r.car_model?.trim()).filter(Boolean),
+      ]);
+      const modelOptions = Array.from(allModels).sort().map((m) => ({ value: m, label: m }));
+      setModelsOptions(modelOptions);
+
+      if (urlModel) {
+        const modelOption = modelOptions.find((opt) => opt.value.toUpperCase() === urlModel.toUpperCase());
+        if (modelOption) setSelectedModel(modelOption);
+      }
+    }
+  }
+
+  const hasMinimumURLFilters = (urlMake && urlModel) || urlCategory;
+
+  if (hasMinimumURLFilters) {
+    const urlSubcatValues = urlSubcategory
+      ? urlSubcategory.split(',').map((s) => s.trim()).filter(Boolean)
+      : [];
+    await fetchProducts({
+      make: urlMake,
+      model: urlModel,
+      year: urlYear,
+      category: urlCategory,
+      subcategories: urlSubcatValues,
+      brand: urlBrand,
+      search: urlSearch,
+      _garageMode: resolvedGarageMode,
+      _userCar: resolvedUserCar,
+    });
+  } else if (resolvedGarageMode && resolvedUserCar) {
+    await fetchProducts({
+      make: resolvedUserCar.make,
+      model: resolvedUserCar.model,
+      year: resolvedUserCar.year ? String(resolvedUserCar.year) : '',
+      _garageMode: true,
+      _userCar: resolvedUserCar,
+    });
+  }
+}
 
   async function fetchCarImage(make: string, model: string) {
     try {
@@ -910,34 +892,41 @@ function StoreContent() {
         return;
       }
 
-      // ── Step 1: resolve matching product IDs via compatibility table ────────
-      let matchingProductIds: string[] | null = null;
+      // ── Step 1: resolve matching product IDs from BOTH tables ──────────────
+let matchingProductIds: string[] | null = null;
 
-      const activeMake = gMode && gCar ? gCar.make : filters.make;
-      const activeModel = gMode && gCar ? gCar.model : filters.model;
+const activeMake = gMode && gCar ? gCar.make : filters.make;
+const activeModel = gMode && gCar ? gCar.model : filters.model;
 
-      if (activeMake) {
-        let compatQuery = supabase
-          .from('product_car_compatibility')
-          .select('product_id')
-          .ilike('car_make', activeMake.trim());
+if (activeMake) {
+  // IDs from compatibility table
+  let compatQuery = supabase
+    .from('product_car_compatibility')
+    .select('product_id')
+    .ilike('car_make', activeMake.trim());
+  if (activeModel) compatQuery = compatQuery.ilike('car_model', activeModel.trim());
+  const { data: compatData } = await compatQuery;
+  const compatIds = (compatData || []).map((r: any) => r.product_id);
 
-        if (activeModel) {
-          compatQuery = compatQuery.ilike('car_model', activeModel.trim());
-        }
+  // IDs from products table directly (new products not in compatibility table)
+  let directQuery = supabase
+    .from('products')
+    .select('id')
+    .ilike('car_make', activeMake.trim());
+  if (activeModel) directQuery = directQuery.ilike('car_model', activeModel.trim());
+  const { data: directData } = await directQuery;
+  const directIds = (directData || []).map((r: any) => r.id);
 
-        const { data: compatData } = await compatQuery;
-        const compatIds = (compatData || []).map((r: any) => r.product_id);
+  // Universal products (no car_make set)
+  const { data: universalData } = await supabase
+    .from('products')
+    .select('id')
+    .or('car_make.is.null,car_make.eq.');
+  const universalIds = (universalData || []).map((r: any) => r.id);
 
-        // Also include universal products (no car_make)
-        const { data: universalData } = await supabase
-          .from('products')
-          .select('id')
-          .or('car_make.is.null,car_make.eq.');
-        const universalIds = (universalData || []).map((r: any) => r.id);
+  matchingProductIds = Array.from(new Set([...compatIds, ...directIds, ...universalIds]));
+}
 
-        matchingProductIds = Array.from(new Set([...compatIds, ...universalIds]));
-      }
 
       // ── Step 2: fetch products ──────────────────────────────────────────────
       let query = supabase.from('products').select('*').order('created_at', { ascending: false });
