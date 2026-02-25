@@ -541,7 +541,6 @@ function StoreContent() {
   const { addToCart } = useCart();
 
   const [isMounted, setIsMounted] = useState(false);
-  // ✅ FIX: Track desktop breakpoint via state, not window.innerWidth in JSX
   const [isDesktop, setIsDesktop] = useState(false);
   const [selectLoaded, setSelectLoaded] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
@@ -589,9 +588,8 @@ function StoreContent() {
     setIsMounted(true);
     setSelectLoaded(true);
 
-    // ✅ FIX: Set isDesktop state on mount and on resize
     const handleResize = () => setIsDesktop(window.innerWidth > 768);
-    handleResize(); // set initial value
+    handleResize();
     window.addEventListener('resize', handleResize);
 
     const syncGarageMode = () => {
@@ -608,6 +606,7 @@ function StoreContent() {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── FIX: also depend on yearInput so hero image updates when year changes ──
   useEffect(() => {
     const make = selectedMake?.value ?? null;
     const model = selectedModel?.value ?? null;
@@ -616,15 +615,17 @@ function StoreContent() {
 
     const heroMake = make || garageMake;
     const heroModel = model || garageModel;
+    // Pass year so we can fetch the most relevant image
+    const heroYear = yearInput.trim() || (garageMode && userCar?.year ? String(userCar.year) : '');
 
     if (heroMake && heroModel) {
       setShowHero(true);
-      fetchCarImage(heroMake, heroModel);
+      fetchCarImage(heroMake, heroModel, heroYear);
     } else {
       setShowHero(false);
       setCarHeroImage(null);
     }
-  }, [selectedMake, selectedModel, garageMode, userCar]);
+  }, [selectedMake, selectedModel, yearInput, garageMode, userCar]); // ← added yearInput
 
   useEffect(() => {
     setCurrentPage(1);
@@ -799,15 +800,38 @@ function StoreContent() {
     }
   }
 
-  async function fetchCarImage(make: string, model: string) {
+  // ── FIX: replaced .maybeSingle() with .limit(1) ───────────────────────────
+  // .maybeSingle() throws an error when multiple rows exist (one per year).
+  // .limit(1) safely returns the first matching row regardless of how many exist.
+  // Priority: if a year is provided, try to find a year-specific image first,
+  // then fall back to any image for that make+model.
+  async function fetchCarImage(make: string, model: string, year?: string) {
     try {
+      // Step 1: if year provided, look for a year-specific image first
+      if (year && year.trim()) {
+        const { data: yearData } = await supabase
+          .from('car_images')
+          .select('image_url')
+          .ilike('car_make', make.trim())
+          .ilike('car_model', model.trim())
+          .ilike('year', `%${year.trim()}%`)
+          .limit(1);
+
+        if (yearData && yearData.length > 0 && yearData[0].image_url) {
+          setCarHeroImage(yearData[0].image_url);
+          return;
+        }
+      }
+
+      // Step 2: fallback — any image for this make+model (first one found)
       const { data } = await supabase
         .from('car_images')
         .select('image_url')
         .ilike('car_make', make.trim())
         .ilike('car_model', model.trim())
-        .maybeSingle();
-      setCarHeroImage(data?.image_url ?? null);
+        .limit(1); // ← THE FIX: was .maybeSingle() which breaks with multiple rows
+
+      setCarHeroImage(data && data.length > 0 ? data[0].image_url : null);
     } catch {
       setCarHeroImage(null);
     }
@@ -1137,7 +1161,6 @@ function StoreContent() {
         dangerouslySetInnerHTML={{
           __html: `
           @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-          
           .store-product-card {
             background: #fff;
             border-radius: 16px;
@@ -1231,7 +1254,6 @@ function StoreContent() {
                 }}
               >
                 <div style={{ position: 'absolute', top: '-50%', right: '-10%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(34,197,94,0.15) 0%, transparent 70%)', zIndex: 0, pointerEvents: 'none' }} />
-                {/* ✅ FIX: Use `isDesktop` state instead of `window.innerWidth` */}
                 <div style={{ display: 'grid', gridTemplateColumns: carHeroImage && isDesktop ? '1.5fr 1fr' : '1fr', gap: '40px', alignItems: 'center', position: 'relative', zIndex: 2 }}>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', justifyContent: 'flex-start' }}>
@@ -1258,13 +1280,11 @@ function StoreContent() {
                       <div style={{ fontSize: '0.9rem', color: '#fff', fontWeight: '600' }}>قطعة غيار متاحة</div>
                     </div>
                   </div>
-                  {/* ✅ FIX: Use `isDesktop` state — image now renders correctly after mount */}
                   {carHeroImage && isDesktop && (
                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.6 }} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                       <img src={carHeroImage} alt={`${heroMakeLabel} ${heroModelLabel}`} style={{ width: '100%', maxHeight: '280px', objectFit: 'contain', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))' }} />
                     </motion.div>
                   )}
-                  {/* ✅ FIX: Show image on mobile too, below text */}
                   {carHeroImage && !isDesktop && (
                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.6 }} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                       <img src={carHeroImage} alt={`${heroMakeLabel} ${heroModelLabel}`} style={{ width: '80%', maxHeight: '180px', objectFit: 'contain', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.12))' }} />
@@ -1406,10 +1426,12 @@ function StoreContent() {
                           <div style={{ padding: '18px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                               <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.8rem' }}>{product.brand}</span>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#666', fontWeight: '700', fontSize: '0.75rem' }}>
-                                <Globe size={13} color="#22c55e" />
-                                <span>{product.country_origin || 'أصلي'}</span>
-                              </div>
+                              {(product.country_origin || product.country_of_origin) && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#666', fontWeight: '700', fontSize: '0.75rem' }}>
+                                  <Globe size={13} color="#22c55e" />
+                                  <span>{product.country_origin || product.country_of_origin}</span>
+                                </div>
+                              )}
                             </div>
                             <h3 style={{ fontSize: '0.95rem', fontWeight: '900', marginBottom: '10px', height: '45px', overflow: 'hidden', lineHeight: '1.4' }}>
                               {product.name}
