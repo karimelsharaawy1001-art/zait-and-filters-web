@@ -660,7 +660,7 @@ export default function MaintenanceBundlePage() {
                                 >
                                   {slot.subcategories.length > 0 && (
                                     <div>
-                                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#666', marginBottom: '5px' }}>النوع / الفيسكوزيتي</label>
+                                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#666', marginBottom: '5px' }}>النوع / اللزوجة</label>
                                       <Select
                                         instanceId={`subcat-${slotIdx}-${itemIdx}`}
                                         options={slot.subcategories.map((s: string) => ({ value: s, label: s }))}

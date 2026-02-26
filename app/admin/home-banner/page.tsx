@@ -10,6 +10,7 @@ export default function AdminHomeBanner() {
     image_url: '',
     title: '',
     subtitle: '',
+    cta_text: '',
     link_url: '',
     is_active: true,
   });
@@ -35,6 +36,7 @@ export default function AdminHomeBanner() {
           image_url: data.image_url || '',
           title: data.title || '',
           subtitle: data.subtitle || '',
+          cta_text: data.cta_text || '',
           link_url: data.link_url || '',
           is_active: data.is_active ?? true,
         });
@@ -59,6 +61,7 @@ export default function AdminHomeBanner() {
         image_url: banner.image_url.trim(),
         title: banner.title.trim(),
         subtitle: banner.subtitle.trim(),
+        cta_text: banner.cta_text.trim(),
         link_url: banner.link_url.trim(),
         is_active: banner.is_active,
         updated_at: new Date().toISOString(),
@@ -175,6 +178,20 @@ export default function AdminHomeBanner() {
             />
           </div>
 
+          {/* CTA Button Text */}
+          <div style={cardStyle}>
+            <label style={labelStyle}>
+              <span style={{ fontSize: '1rem' }}>🟢</span> نص زر الدعوة للإجراء (CTA)
+            </label>
+            <input
+              value={banner.cta_text}
+              onChange={e => setBanner((b: any) => ({ ...b, cta_text: e.target.value }))}
+              placeholder="مثال: تسوق الآن"
+              style={inputStyle}
+            />
+            <p style={hintStyle}>سيظهر زر أخضر بهذا النص على البانر. إذا تُرك فارغاً، سيُعرض &quot;اكتشف الآن&quot; افتراضياً عند وجود رابط.</p>
+          </div>
+
           {/* Link */}
           <div style={cardStyle}>
             <label style={labelStyle}>
@@ -276,8 +293,13 @@ export default function AdminHomeBanner() {
                       </div>
                     )}
                     {banner.subtitle && (
-                      <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.75rem', fontWeight: '600', textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>
+                      <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.75rem', fontWeight: '600', textShadow: '0 1px 6px rgba(0,0,0,0.4)', marginBottom: '6px' }}>
                         {banner.subtitle}
+                      </div>
+                    )}
+                    {(banner.cta_text || banner.link_url) && (
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#22c55e', color: '#fff', padding: '4px 10px', borderRadius: '7px', fontSize: '0.65rem', fontWeight: '900' }}>
+                        {banner.cta_text || 'اكتشف الآن'} ←
                       </div>
                     )}
                     {!banner.title && !banner.subtitle && (
@@ -338,11 +360,15 @@ export default function AdminHomeBanner() {
   image_url text not null,
   title text,
   subtitle text,
+  cta_text text,
   link_url text,
   is_active boolean default true,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
-);`}</pre>
+);
+
+-- If table already exists, run this instead:
+-- alter table home_banners add column if not exists cta_text text;`}</pre>
           </div>
         </div>
       </div>

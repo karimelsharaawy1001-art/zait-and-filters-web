@@ -897,17 +897,17 @@ export default function HomePage() {
           .home-banner-inner {
             position: relative;
             width: 100%;
-            height: 140px;
+            height: 190px;
             border-radius: 20px;
             overflow: hidden;
             cursor: pointer;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
           }
 
           .home-banner-inner:hover {
             transform: translateY(-3px);
-            box-shadow: 0 14px 40px rgba(0,0,0,0.18);
+            box-shadow: 0 16px 44px rgba(0,0,0,0.22);
           }
 
           .home-banner-bg {
@@ -921,7 +921,7 @@ export default function HomePage() {
           .home-banner-overlay {
             position: absolute;
             inset: 0;
-            background: linear-gradient(to left, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
+            background: linear-gradient(to left, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.38) 55%, rgba(0,0,0,0.1) 100%);
           }
 
           .home-banner-content {
@@ -930,30 +930,56 @@ export default function HomePage() {
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            padding: 0 32px;
+            padding: 0 40px;
             direction: rtl;
           }
 
           .home-banner-text-block {
             text-align: right;
-            max-width: 60%;
+            max-width: 65%;
           }
 
           .home-banner-title {
             color: #fff;
-            font-size: 1.5rem;
+            font-size: 2rem;
             font-weight: 900;
-            line-height: 1.3;
-            text-shadow: 0 2px 12px rgba(0,0,0,0.5);
-            margin: 0 0 4px;
+            line-height: 1.25;
+            text-shadow: 0 3px 16px rgba(0,0,0,0.6);
+            margin: 0 0 6px;
+            letter-spacing: -0.5px;
           }
 
           .home-banner-subtitle {
-            color: rgba(255,255,255,0.9);
-            font-size: 0.95rem;
+            color: rgba(255,255,255,0.92);
+            font-size: 1.05rem;
             font-weight: 600;
-            text-shadow: 0 1px 8px rgba(0,0,0,0.4);
-            margin: 0;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            margin: 0 0 16px;
+            line-height: 1.5;
+          }
+
+          .home-banner-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #22c55e;
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 900;
+            text-decoration: none;
+            box-shadow: 0 4px 16px rgba(34,197,94,0.45);
+            transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+          }
+
+          .home-banner-cta:hover {
+            background: #16a34a;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 22px rgba(34,197,94,0.55);
           }
 
           @media (max-width: 768px) {
@@ -962,31 +988,38 @@ export default function HomePage() {
             }
 
             .home-banner-inner {
-              height: 110px;
-              border-radius: 14px;
+              height: 160px;
+              border-radius: 16px;
             }
 
             .home-banner-overlay {
-              background: linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.6) 100%);
+              background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.75) 100%);
             }
 
             .home-banner-content {
               align-items: flex-end;
               justify-content: center;
-              padding: 0 0 14px;
+              padding: 0 16px 18px;
             }
 
             .home-banner-text-block {
               text-align: center;
-              max-width: 90%;
+              max-width: 95%;
             }
 
             .home-banner-title {
-              font-size: 1.1rem;
+              font-size: 1.35rem;
+              margin-bottom: 4px;
             }
 
             .home-banner-subtitle {
-              font-size: 0.82rem;
+              font-size: 0.88rem;
+              margin-bottom: 12px;
+            }
+
+            .home-banner-cta {
+              padding: 8px 18px;
+              font-size: 0.85rem;
             }
           }
 
@@ -1136,6 +1169,9 @@ export default function HomePage() {
                           <div className="home-banner-text-block">
                             {homeBanner.title && <p className="home-banner-title">{homeBanner.title}</p>}
                             {homeBanner.subtitle && <p className="home-banner-subtitle">{homeBanner.subtitle}</p>}
+                            <span className="home-banner-cta">
+                              {homeBanner.cta_text || 'اكتشف الآن'} ←
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -1150,6 +1186,9 @@ export default function HomePage() {
                         <div className="home-banner-text-block">
                           {homeBanner.title && <p className="home-banner-title">{homeBanner.title}</p>}
                           {homeBanner.subtitle && <p className="home-banner-subtitle">{homeBanner.subtitle}</p>}
+                          {homeBanner.cta_text && (
+                            <span className="home-banner-cta">{homeBanner.cta_text} ←</span>
+                          )}
                         </div>
                       </div>
                     </div>
