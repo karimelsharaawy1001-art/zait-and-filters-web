@@ -20,6 +20,14 @@ const BUNDLE_CATEGORIES = [
   { name: 'بوجيهات و سلوك بوجيهات و موبينة', subcategories: ['بوجيهات'] },
 ];
 
+// ✅ These categories have universal products — NOT tied to a specific car
+const UNIVERSAL_CATEGORIES = [
+  'زيوت موتور',
+  'زيوت فرامل',
+  'زيوت فتيس و دبرياج و باور',
+  'فلاتر',
+];
+
 const DISCOUNT = 5;
 
 const makeInitialSlots = () =>
@@ -64,33 +72,40 @@ export default function MaintenanceBundlePage() {
     fetchMakes();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ✅ KEY FIX: Auto-fetch all slot products as soon as car is fully selected
   useEffect(() => {
     if (selectedMake && selectedModel && selectedYear) {
       fetchAllSlots(selectedMake, selectedModel, selectedYear);
     }
   }, [selectedMake, selectedModel, selectedYear]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ─── Fetch products for ALL slots at once when car is selected ────────────
+  // ─── THE KEY FIX: universal categories ignore car_make/car_model filter ──
   async function fetchAllSlots(make: any, model: any, year: any) {
     const yearNum = year ? parseInt(year.value) : null;
 
-    // Set all slots to loading
     setBundleSlots((prev) => prev.map((slot) => ({ ...slot, loading: true })));
 
     const updatedSlots = await Promise.all(
       BUNDLE_CATEGORIES.map(async (cat) => {
+        const isUniversal = UNIVERSAL_CATEGORIES.includes(cat.name);
+
+        // Universal (oils, filters): fetch by category only — no car filter
+        // Car-specific (spark plugs): fetch by category + make + model
         let query = supabase
           .from('products')
           .select('*')
-          .ilike('category', cat.name.trim())
-          .ilike('car_make', make.value.trim())
-          .ilike('car_model', model.value.trim());
+          .ilike('category', cat.name.trim());
+
+        if (!isUniversal) {
+          query = query
+            .ilike('car_make', make.value.trim())
+            .ilike('car_model', model.value.trim());
+        }
 
         const { data } = await query;
 
-        // Filter by year compatibility
+        // Year filter only applies to car-specific categories
         const filtered = (data || []).filter((p: any) => {
+          if (isUniversal) return true;
           if (!yearNum || !p.car_model_year) return true;
           return isYearCompatible(p.car_model_year, String(yearNum));
         });
@@ -186,7 +201,6 @@ export default function MaintenanceBundlePage() {
     return false;
   }
 
-  // ✅ handleSubcatChange now FILTERS already-fetched products (no new DB call needed)
   function handleSubcatChange(slotIndex: number, subcat: string | null) {
     const updated = [...bundleSlots];
     const slot = updated[slotIndex];
