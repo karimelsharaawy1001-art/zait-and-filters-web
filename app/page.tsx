@@ -219,6 +219,9 @@ export default function HomePage() {
   const [bestSellers, setBestSellers] = useState<any[]>([]); 
   const [loadingMessage, setLoadingMessage] = useState(0);
 
+  // ── BANNER STATE ──────────────────────────────────────────────────────────
+  const [homeBanner, setHomeBanner] = useState<any>(null);
+
   // GARAGE FEATURES STATE
   const [garageMode, setGarageMode] = useState(false);
   const [userCar, setUserCar] = useState<any>(null);
@@ -236,6 +239,7 @@ export default function HomePage() {
     setSelectLoaded(true); 
     fetchInitialData();
     fetchGarageData();
+    fetchHomeBanner();
 
     const syncGarageMode = () => {
       setGarageMode(localStorage.getItem('garageMode') === 'true');
@@ -285,6 +289,22 @@ export default function HomePage() {
       }
     } catch (err) {
       console.error('Garage fetch error:', err);
+    }
+  }
+
+  // ── FETCH BANNER ──────────────────────────────────────────────────────────
+  async function fetchHomeBanner() {
+    try {
+      const { data } = await supabase
+        .from('home_banners')
+        .select('*')
+        .eq('is_active', true)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (data) setHomeBanner(data);
+    } catch (err) {
+      console.error('Banner fetch error:', err);
     }
   }
 
@@ -673,16 +693,7 @@ export default function HomePage() {
             .hero-content-layer    { position: absolute; inset: 0; z-index: 10; display: flex; align-items: center; }
             .hero-inner            { width: 100%; max-width: 1200px; margin: 0 auto; padding: 40px 20px; display: flex; gap: 40px; align-items: center; justify-content: space-between; }
             .hero-text             { flex: 1; text-align: right; min-width: 300px; animation: slideIn 0.6s ease-out 0.15s both; display: flex; flex-direction: column; }
-
-            /*
-             * FIX: .hero-text-title has a fixed min-height so the search
-             * card never shifts when a slide has more or fewer lines.
-             * 200px comfortably fits h1 (3rem × 1.4 line-height × 3 lines)
-             * + subtitle (1.2rem × 1.5 × 2 lines) + their margins.
-             * overflow:hidden clips any extreme outliers gracefully.
-             */
             .hero-text-title       { min-height: 200px; overflow: hidden; }
-
             .hero-card-desktop     { width: 400px; flex-shrink: 0; background: #fff; padding: 30px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); animation: slideUp 0.6s ease-out 0.25s both; align-self: center; }
             .hero-card-mobile      { display: none; }
           }
@@ -715,17 +726,9 @@ export default function HomePage() {
             }
 
             .hero-text             { text-align: center; display: flex; flex-direction: column; }
-
-            /*
-             * FIX: Same idea on mobile — fixed min-height on the text
-             * wrapper so the search card below never jumps.
-             * 140px = ~2 lines of h1 at 2rem + subtitle at 1rem.
-             */
             .hero-text-title       { min-height: 140px; overflow: hidden; }
-
             .hero-text h1          { font-size: 2rem !important; line-height: 1.3 !important; }
             .hero-text p           { font-size: 1rem !important; max-width: 90%; margin-left: auto !important; margin-right: auto !important; }
-
             .hero-card-desktop     { display: none; }
             .hero-card-mobile      {
               width: 100%;
@@ -884,6 +887,109 @@ export default function HomePage() {
             transform: scale(1.1); 
           }
 
+          /* ── HOME BANNER ── */
+          .home-banner-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px 20px;
+          }
+
+          .home-banner-inner {
+            position: relative;
+            width: 100%;
+            height: 140px;
+            border-radius: 20px;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+          }
+
+          .home-banner-inner:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 14px 40px rgba(0,0,0,0.18);
+          }
+
+          .home-banner-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+
+          .home-banner-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to left, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
+          }
+
+          .home-banner-content {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 32px;
+            direction: rtl;
+          }
+
+          .home-banner-text-block {
+            text-align: right;
+            max-width: 60%;
+          }
+
+          .home-banner-title {
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: 900;
+            line-height: 1.3;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+            margin: 0 0 4px;
+          }
+
+          .home-banner-subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+            margin: 0;
+          }
+
+          @media (max-width: 768px) {
+            .home-banner-section {
+              padding: 12px 12px;
+            }
+
+            .home-banner-inner {
+              height: 110px;
+              border-radius: 14px;
+            }
+
+            .home-banner-overlay {
+              background: linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.6) 100%);
+            }
+
+            .home-banner-content {
+              align-items: flex-end;
+              justify-content: center;
+              padding: 0 0 14px;
+            }
+
+            .home-banner-text-block {
+              text-align: center;
+              max-width: 90%;
+            }
+
+            .home-banner-title {
+              font-size: 1.1rem;
+            }
+
+            .home-banner-subtitle {
+              font-size: 0.82rem;
+            }
+          }
+
           /* ── LOADING SCREEN MOBILE ── */
           @media (max-width: 480px) {
             .loader-brand-name {
@@ -961,12 +1067,6 @@ export default function HomePage() {
                 <div className="hero-inner">
 
                   <div className="hero-text">
-                    {/*
-                      FIX: .hero-text-title wraps the title + subtitle
-                      with a fixed min-height so the search card (below
-                      the hero-text div, and the card on desktop) never
-                      shifts position when slides have different line counts.
-                    */}
                     <div className="hero-text-title">
                       {activeSlide.title && (
                         <h1 style={{ fontSize: '3rem', fontWeight: '900', lineHeight: '1.4', marginBottom: '15px', color: '#22c55e' }}>
@@ -1017,6 +1117,44 @@ export default function HomePage() {
                     </div>
                   </div>
                 </section>
+              </ScrollReveal>
+            )}
+
+
+            {/* ── HOME BANNER (under brands carousel) ── */}
+            {homeBanner && (
+              <ScrollReveal direction="up" delay={0.07}>
+                <div className="home-banner-section">
+                  {homeBanner.link_url ? (
+                    <Link href={homeBanner.link_url} style={{ textDecoration: 'none' }}>
+                      <div className="home-banner-inner">
+                        {homeBanner.image_url && (
+                          <img src={homeBanner.image_url} alt={homeBanner.title || 'banner'} className="home-banner-bg" loading="lazy" />
+                        )}
+                        <div className="home-banner-overlay" />
+                        <div className="home-banner-content">
+                          <div className="home-banner-text-block">
+                            {homeBanner.title && <p className="home-banner-title">{homeBanner.title}</p>}
+                            {homeBanner.subtitle && <p className="home-banner-subtitle">{homeBanner.subtitle}</p>}
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  ) : (
+                    <div className="home-banner-inner">
+                      {homeBanner.image_url && (
+                        <img src={homeBanner.image_url} alt={homeBanner.title || 'banner'} className="home-banner-bg" loading="lazy" />
+                      )}
+                      <div className="home-banner-overlay" />
+                      <div className="home-banner-content">
+                        <div className="home-banner-text-block">
+                          {homeBanner.title && <p className="home-banner-title">{homeBanner.title}</p>}
+                          {homeBanner.subtitle && <p className="home-banner-subtitle">{homeBanner.subtitle}</p>}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </ScrollReveal>
             )}
 

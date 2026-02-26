@@ -67,6 +67,7 @@ export default function AdminLayoutClient({ children }: Props) {
       items: [
         { name: 'المدونة',         href: '/admin/blog',            icon: '📝', badge: 0 },
         { name: 'إعدادات الهيرو', href: '/admin/hero',            icon: '🖼️', badge: 0 },
+        { name: 'بانر الرئيسية',  href: '/admin/home-banner',    icon: '🏷️', badge: 0 },
         { name: 'أكواد الخصم',    href: '/admin/promo-codes',     icon: '🎫', badge: 0 },
         { name: 'إدارة المسوقين', href: '/admin/marketers',       icon: '👥', badge: 0 },
       ]
