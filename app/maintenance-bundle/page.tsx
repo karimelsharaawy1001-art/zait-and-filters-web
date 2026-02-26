@@ -29,7 +29,6 @@ const UNIVERSAL_CATEGORIES = [
 
 const DISCOUNT = 5;
 
-// Each slot has an array of "items" — starts with 1, user can add more
 const makeEmptyItem = () => ({
   selectedSubcat: null,
   selectedBrand: null,
@@ -45,7 +44,7 @@ const makeInitialSlots = () =>
     availableBrands: [] as any[],
     isIncluded: true,
     loading: false,
-    items: [makeEmptyItem()], // ← array of items per slot
+    items: [makeEmptyItem()],
   }));
 
 export default function MaintenanceBundlePage() {
@@ -60,9 +59,9 @@ export default function MaintenanceBundlePage() {
 
   const { addToCart } = useCart();
 
-  const carSelected = selectedMake && selectedModel && selectedYear;
+  // ✅ Year is now optional
+  const carSelected = selectedMake && selectedModel;
 
-  // All selected products across all slots and all items
   const allSelectedProducts = bundleSlots.flatMap((slot) =>
     slot.isIncluded ? slot.items.filter((item: any) => item.selectedProduct) : []
   );
@@ -80,8 +79,9 @@ export default function MaintenanceBundlePage() {
     fetchMakes();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ✅ Triggers as soon as make + model are selected (year optional)
   useEffect(() => {
-    if (selectedMake && selectedModel && selectedYear) {
+    if (selectedMake && selectedModel) {
       fetchAllSlots(selectedMake, selectedModel, selectedYear);
     }
   }, [selectedMake, selectedModel, selectedYear]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -201,8 +201,6 @@ export default function MaintenanceBundlePage() {
     return false;
   }
 
-  // ── Item-level handlers ────────────────────────────────────────────────
-
   function addItem(slotIndex: number) {
     const updated = [...bundleSlots];
     updated[slotIndex] = {
@@ -227,7 +225,6 @@ export default function MaintenanceBundlePage() {
           (p: any) => p.subcategory?.trim().toLowerCase() === subcat.trim().toLowerCase()
         )
       : slot.availableProducts;
-
     const newItems = [...slot.items];
     newItems[itemIndex] = {
       ...newItems[itemIndex],
@@ -245,13 +242,11 @@ export default function MaintenanceBundlePage() {
     const slot = updated[slotIndex];
     const item = slot.items[itemIndex];
     const sourceProducts = item.selectedSubcat ? item.filteredProducts : slot.availableProducts;
-
     const filtered = brand
       ? sourceProducts.filter(
           (p: any) => p.brand?.trim().toLowerCase() === brand.value.toLowerCase()
         )
       : sourceProducts;
-
     const newItems = [...slot.items];
     newItems[itemIndex] = {
       ...item,
@@ -272,13 +267,11 @@ export default function MaintenanceBundlePage() {
     setBundleSlots(updated);
   }
 
-  // ── Slot-level toggle ──────────────────────────────────────────────────
-
   function toggleSlot(slotIndex: number) {
     const currentlyIncluded = bundleSlots.filter((s) => s.isIncluded).length;
     const slot = bundleSlots[slotIndex];
     if (slot.isIncluded && currentlyIncluded <= 2) {
-      toast.error('يجب أن يحتوي الطقم على قسمين على الأقل');
+      toast.error('يجب أن تحتوي الباقة على قسمين على الأقل');
       return;
     }
     const updated = [...bundleSlots];
@@ -288,7 +281,7 @@ export default function MaintenanceBundlePage() {
 
   function addBundleToCart() {
     if (!canAddToCart) {
-      toast.error('يجب اختيار منتجين على الأقل لإتمام الطقم');
+      toast.error('يجب اختيار منتجين على الأقل لإتمام الباقة');
       return;
     }
     allSelectedProducts.forEach((item: any) => {
@@ -297,7 +290,7 @@ export default function MaintenanceBundlePage() {
       const discountedPrice = parseFloat((originalPrice * (1 - DISCOUNT / 100)).toFixed(2));
       addToCart({ ...p, price: discountedPrice }, 1);
     });
-    toast.success(`🛠️ تمت إضافة الطقم! وفرت ${savings.toFixed(0)} ج.م`);
+    toast.success(`🛠️ تمت إضافة الباقة! وفرت ${savings.toFixed(0)} ج.م`);
   }
 
   const customSelectStyles = {
@@ -306,7 +299,7 @@ export default function MaintenanceBundlePage() {
       minHeight: '44px',
       borderRadius: '10px',
       border: '1px solid #e5e5e5',
-      fontSize: '0.88rem',
+      fontSize: '0.85rem',
       direction: 'rtl',
     }),
     menu: (base: any) => ({ ...base, zIndex: 9999, direction: 'rtl' }),
@@ -314,11 +307,10 @@ export default function MaintenanceBundlePage() {
       ...base,
       backgroundColor: state.isFocused ? '#f0fdf4' : '#fff',
       color: '#1a1a1a',
-      fontSize: '0.88rem',
+      fontSize: '0.85rem',
     }),
   };
 
-  // Per-item brands: filter from slot brands by what's available in item's filteredProducts
   function getBrandsForItem(slot: any, item: any) {
     const source = item.selectedSubcat ? item.filteredProducts : slot.availableProducts;
     const unique = Array.from(
@@ -343,44 +335,153 @@ export default function MaintenanceBundlePage() {
   if (!isMounted) return null;
 
   return (
-    <div style={{ direction: 'rtl', backgroundColor: '#f9f9f9', minHeight: '100vh', paddingTop: '80px' }}>
+    <div style={{ direction: 'rtl', backgroundColor: '#f9f9f9', minHeight: '100vh', paddingTop: '70px' }}>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        /* ── Mobile responsive overrides ── */
+        @media (max-width: 640px) {
+          .bundle-header { padding: 32px 16px !important; }
+          .bundle-header h1 { font-size: 1.5rem !important; }
+          .bundle-header p { font-size: 0.9rem !important; }
+          .bundle-header-icon { padding: 10px !important; }
+
+          .car-selector-card { padding: 18px !important; border-radius: 14px !important; }
+          .car-selector-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+
+          .bundle-main { padding: 0 12px 100px !important; }
+
+          .slot-card { padding: 14px !important; border-radius: 12px !important; }
+          .slot-header-title { font-size: 0.88rem !important; }
+          .slot-toggle-btn span { display: none; }
+
+          .item-card { padding: 12px !important; border-radius: 10px !important; }
+          .item-grid-3 { grid-template-columns: 1fr !important; gap: 10px !important; }
+          .item-grid-2 { grid-template-columns: 1fr !important; gap: 10px !important; }
+
+          .summary-bar { padding: 16px !important; border-radius: 16px !important; bottom: 10px !important; }
+          .summary-bar-inner { flex-direction: column !important; align-items: stretch !important; gap: 12px !important; }
+          .summary-price { font-size: 1.6rem !important; }
+          .summary-btn { width: 100% !important; justify-content: center !important; padding: 14px 20px !important; font-size: 0.95rem !important; }
+          .summary-alert { justify-content: center !important; }
+
+          .empty-state { padding: 40px 16px !important; }
+          .add-item-btn { font-size: 0.82rem !important; padding: 10px 8px !important; }
+
+          .section-title { font-size: 1rem !important; }
+          .selected-count-badge { font-size: 0.78rem !important; padding: 4px 10px !important; }
+        }
+
+        @media (max-width: 400px) {
+          .bundle-header h1 { font-size: 1.25rem !important; }
+          .slot-header-title { font-size: 0.82rem !important; }
+        }
+      `}</style>
 
       {/* PAGE HEADER */}
-      <div style={{
-        background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
-        padding: '50px 20px', textAlign: 'center', marginBottom: '40px',
-      }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#22c55e', borderRadius: '20px', padding: '14px', marginBottom: '20px' }}>
-          <Wrench size={36} color="#fff" />
+      <div
+        className="bundle-header"
+        style={{
+          background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
+          padding: '50px 20px',
+          textAlign: 'center',
+          marginBottom: '28px',
+        }}
+      >
+        <div
+          className="bundle-header-icon"
+          style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            background: '#22c55e', borderRadius: '18px', padding: '14px', marginBottom: '16px',
+          }}
+        >
+          <Wrench size={32} color="#fff" />
         </div>
-        <h1 style={{ color: '#fff', fontSize: '2.2rem', fontWeight: '900', marginBottom: '10px' }}>
-          طقم الصيانة الذكي
+        <h1 style={{ color: '#fff', fontSize: '2rem', fontWeight: '900', marginBottom: '10px', lineHeight: 1.3 }}>
+          باقة الصيانة الذكية
         </h1>
-        <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1.05rem', maxWidth: '500px', margin: '0 auto' }}>
-          اختر سيارتك وخصص طقم الصيانة المناسب — واحصل على خصم {DISCOUNT}% على السعر الإجمالي
+        <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1rem', maxWidth: '480px', margin: '0 auto', lineHeight: 1.6 }}>
+          اختر سيارتك وخصص باقة الصيانة المناسبة — واحصل على خصم {DISCOUNT}% على السعر الإجمالي
         </p>
       </div>
 
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 20px 80px' }}>
+      <div className="bundle-main" style={{ maxWidth: '900px', margin: '0 auto', padding: '0 16px 100px' }}>
 
         {/* CAR SELECTOR */}
-        <div style={{ background: '#fff', borderRadius: '20px', padding: '28px', marginBottom: '28px', boxShadow: '0 4px 20px rgba(0,0,0,0.07)' }}>
-          <h2 style={{ fontWeight: '900', fontSize: '1.2rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Car size={22} color="#22c55e" />
+        <div
+          className="car-selector-card"
+          style={{
+            background: '#fff', borderRadius: '18px', padding: '22px',
+            marginBottom: '22px', boxShadow: '0 4px 20px rgba(0,0,0,0.07)',
+          }}
+        >
+          <h2 style={{
+            fontWeight: '900', fontSize: '1.1rem', marginBottom: '16px',
+            display: 'flex', alignItems: 'center', gap: '8px',
+          }}>
+            <Car size={20} color="#22c55e" />
             اختر سيارتك
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+          <div
+            className="car-selector-grid"
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}
+          >
             <div>
-              <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', marginBottom: '6px', color: '#555' }}>الماركة</label>
-              <Select instanceId="bundle-make" options={makesOptions} styles={customSelectStyles} placeholder="اختر الماركة" isRtl={true} value={selectedMake} onChange={(opt: any) => handleMakeChange(opt)} isClearable />
+              <label style={{ display: 'block', fontWeight: '700', fontSize: '0.8rem', marginBottom: '5px', color: '#555' }}>
+                الماركة
+              </label>
+              <Select
+                instanceId="bundle-make"
+                options={makesOptions}
+                styles={customSelectStyles}
+                placeholder="اختر الماركة"
+                isRtl={true}
+                value={selectedMake}
+                onChange={(opt: any) => handleMakeChange(opt)}
+                isClearable
+              />
             </div>
             <div>
-              <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', marginBottom: '6px', color: '#555' }}>الموديل</label>
-              <Select instanceId="bundle-model" options={modelsOptions} styles={customSelectStyles} placeholder="اختر الموديل" isRtl={true} value={selectedModel} onChange={(opt: any) => handleModelChange(opt)} isDisabled={!selectedMake} isClearable />
+              <label style={{ display: 'block', fontWeight: '700', fontSize: '0.8rem', marginBottom: '5px', color: '#555' }}>
+                الموديل
+              </label>
+              <Select
+                instanceId="bundle-model"
+                options={modelsOptions}
+                styles={customSelectStyles}
+                placeholder="اختر الموديل"
+                isRtl={true}
+                value={selectedModel}
+                onChange={(opt: any) => handleModelChange(opt)}
+                isDisabled={!selectedMake}
+                isClearable
+              />
             </div>
             <div>
-              <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', marginBottom: '6px', color: '#555' }}>سنة الصنع</label>
-              <Select instanceId="bundle-year" options={yearsOptions} styles={customSelectStyles} placeholder="اختر السنة" isRtl={true} value={selectedYear} onChange={(opt: any) => { setSelectedYear(opt); setBundleSlots(makeInitialSlots()); }} isDisabled={!selectedModel} isClearable />
+              <label style={{ display: 'block', fontWeight: '700', fontSize: '0.8rem', marginBottom: '5px', color: '#555' }}>
+                سنة الصنع{' '}
+                <span style={{ color: '#aaa', fontWeight: '500', fontSize: '0.75rem' }}>(اختياري)</span>
+              </label>
+              <Select
+                instanceId="bundle-year"
+                options={yearsOptions}
+                styles={customSelectStyles}
+                placeholder="اختر السنة"
+                isRtl={true}
+                value={selectedYear}
+                onChange={(opt: any) => {
+                  setSelectedYear(opt);
+                  if (selectedMake && selectedModel) {
+                    fetchAllSlots(selectedMake, selectedModel, opt);
+                  }
+                }}
+                isDisabled={!selectedModel}
+                isClearable
+              />
             </div>
           </div>
         </div>
@@ -388,75 +489,105 @@ export default function MaintenanceBundlePage() {
         {/* BUNDLE SLOTS */}
         <AnimatePresence>
           {carSelected && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <h2 style={{ fontWeight: '900', fontSize: '1.2rem' }}>🛠️ محتويات الطقم</h2>
-                <div style={{ background: '#f0fdf4', color: '#16a34a', padding: '6px 14px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: '800' }}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35 }}
+            >
+              {/* Section header */}
+              <div style={{
+                display: 'flex', alignItems: 'center',
+                justifyContent: 'space-between', marginBottom: '14px',
+              }}>
+                <h2 className="section-title" style={{ fontWeight: '900', fontSize: '1.1rem' }}>
+                  🛠️ محتويات الباقة
+                </h2>
+                <div
+                  className="selected-count-badge"
+                  style={{
+                    background: '#f0fdf4', color: '#16a34a',
+                    padding: '5px 12px', borderRadius: '10px',
+                    fontSize: '0.82rem', fontWeight: '800',
+                  }}
+                >
                   {allSelectedProducts.length} منتج مختار
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '28px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
                 {bundleSlots.map((slot, slotIdx) => (
                   <motion.div
                     key={slot.category}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: slotIdx * 0.07 }}
+                    transition={{ delay: slotIdx * 0.06 }}
+                    className="slot-card"
                     style={{
                       background: slot.isIncluded ? '#fff' : '#f5f5f5',
-                      borderRadius: '16px',
+                      borderRadius: '14px',
                       border: slot.isIncluded && slot.items.some((i: any) => i.selectedProduct)
                         ? '2px solid #22c55e'
                         : '1.5px solid #e5e5e5',
-                      padding: '20px',
+                      padding: '18px',
                       opacity: slot.isIncluded ? 1 : 0.55,
                       transition: 'all 0.2s',
                     }}
                   >
-                    {/* ── SLOT HEADER ── */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: slot.isIncluded ? '16px' : '0' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    {/* SLOT HEADER */}
+                    <div style={{
+                      display: 'flex', alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: slot.isIncluded ? '14px' : '0',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
                         {slot.isIncluded && slot.items.some((i: any) => i.selectedProduct)
-                          ? <CheckCircle2 size={20} color="#22c55e" />
+                          ? <CheckCircle2 size={18} color="#22c55e" style={{ flexShrink: 0 }} />
                           : slot.loading
-                            ? <div style={{ width: 20, height: 20, borderRadius: '50%', border: '3px solid #22c55e', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
-                            : <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid #ddd' }} />
+                            ? <div style={{ width: 18, height: 18, borderRadius: '50%', border: '2.5px solid #22c55e', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
+                            : <div style={{ width: 18, height: 18, borderRadius: '50%', border: '2px solid #ddd', flexShrink: 0 }} />
                         }
-                        <span style={{ fontWeight: '900', fontSize: '1rem' }}>{slot.category}</span>
-                        {slot.availableProducts.length === 0 && !slot.loading && (
-                          <span style={{ fontSize: '0.75rem', color: '#f97316', fontWeight: '700', background: '#fff7ed', padding: '2px 8px', borderRadius: '6px' }}>
-                            لا توجد منتجات
-                          </span>
-                        )}
-                        {slot.availableProducts.length > 0 && !slot.loading && (
-                          <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: '700', background: '#f0fdf4', padding: '2px 8px', borderRadius: '6px' }}>
-                            {slot.availableProducts.length} منتج
+                        <span
+                          className="slot-header-title"
+                          style={{ fontWeight: '900', fontSize: '0.92rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                        >
+                          {slot.category}
+                        </span>
+                        {!slot.loading && (
+                          <span style={{
+                            flexShrink: 0,
+                            fontSize: '0.72rem', fontWeight: '700',
+                            background: slot.availableProducts.length === 0 ? '#fff7ed' : '#f0fdf4',
+                            color: slot.availableProducts.length === 0 ? '#f97316' : '#16a34a',
+                            padding: '2px 7px', borderRadius: '6px',
+                          }}>
+                            {slot.availableProducts.length === 0 ? 'لا يوجد' : `${slot.availableProducts.length}`}
                           </span>
                         )}
                       </div>
                       <button
                         onClick={() => toggleSlot(slotIdx)}
+                        className="slot-toggle-btn"
                         style={{
+                          flexShrink: 0,
+                          marginRight: '8px',
                           background: slot.isIncluded ? '#fee2e2' : '#f0fdf4',
                           color: slot.isIncluded ? '#dc2626' : '#16a34a',
                           border: 'none', borderRadius: '8px',
-                          padding: '6px 12px', cursor: 'pointer',
-                          fontWeight: '700', fontSize: '0.8rem',
-                          display: 'flex', alignItems: 'center', gap: '5px',
+                          padding: '6px 10px', cursor: 'pointer',
+                          fontWeight: '700', fontSize: '0.78rem',
+                          display: 'flex', alignItems: 'center', gap: '4px',
                         }}
                       >
                         {slot.isIncluded
-                          ? <><Trash2 size={13} /> إزالة القسم</>
-                          : <><CheckCircle2 size={13} /> إضافة القسم</>
+                          ? <><Trash2 size={13} /><span>إزالة</span></>
+                          : <><CheckCircle2 size={13} /><span>إضافة</span></>
                         }
                       </button>
                     </div>
 
-                    {/* ── ITEMS ── */}
+                    {/* ITEMS */}
                     {slot.isIncluded && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         {slot.items.map((item: any, itemIdx: number) => {
                           const itemBrands = getBrandsForItem(slot, item);
                           const itemProducts = getProductsForItem(slot, item);
@@ -464,62 +595,59 @@ export default function MaintenanceBundlePage() {
                           return (
                             <div
                               key={itemIdx}
+                              className="item-card"
                               style={{
                                 background: '#f9f9f9',
                                 borderRadius: '12px',
-                                padding: '14px',
-                                border: item.selectedProduct ? '1.5px solid #bbf7d0' : '1.5px solid #f0f0f0',
+                                padding: '13px',
+                                border: item.selectedProduct ? '1.5px solid #bbf7d0' : '1.5px solid #efefef',
                                 position: 'relative',
                               }}
                             >
-                              {/* Remove item button (only if more than 1 item) */}
+                              {/* Item header row */}
                               {slot.items.length > 1 && (
-                                <button
-                                  onClick={() => removeItem(slotIdx, itemIdx)}
-                                  style={{
-                                    position: 'absolute',
-                                    top: '10px',
-                                    left: '10px',
-                                    background: '#fee2e2',
-                                    color: '#dc2626',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    width: '26px',
-                                    height: '26px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    cursor: 'pointer',
-                                    fontSize: '0.75rem',
-                                    fontWeight: '900',
-                                  }}
-                                  title="حذف هذا المنتج"
-                                >
-                                  <Trash2 size={12} />
-                                </button>
-                              )}
-
-                              {/* Item number badge */}
-                              {slot.items.length > 1 && (
-                                <div style={{ fontSize: '0.75rem', fontWeight: '800', color: '#888', marginBottom: '10px', marginRight: '0' }}>
-                                  منتج #{itemIdx + 1}
+                                <div style={{
+                                  display: 'flex', alignItems: 'center',
+                                  justifyContent: 'space-between', marginBottom: '10px',
+                                }}>
+                                  <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#888' }}>
+                                    منتج #{itemIdx + 1}
+                                  </span>
+                                  <button
+                                    onClick={() => removeItem(slotIdx, itemIdx)}
+                                    style={{
+                                      background: '#fee2e2', color: '#dc2626',
+                                      border: 'none', borderRadius: '6px',
+                                      width: '26px', height: '26px',
+                                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                      cursor: 'pointer',
+                                    }}
+                                    title="حذف هذا المنتج"
+                                  >
+                                    <Trash2 size={12} />
+                                  </button>
                                 </div>
                               )}
 
-                              <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: slot.subcategories.length > 0 ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)',
-                                gap: '10px',
-                              }}>
-                                {/* Subcategory */}
+                              {/* Selectors grid — stacks to 1 col on mobile */}
+                              <div
+                                className={slot.subcategories.length > 0 ? 'item-grid-3' : 'item-grid-2'}
+                                style={{
+                                  display: 'grid',
+                                  gridTemplateColumns: slot.subcategories.length > 0 ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)',
+                                  gap: '10px',
+                                }}
+                              >
                                 {slot.subcategories.length > 0 && (
                                   <div>
-                                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: '#666', marginBottom: '5px' }}>النوع / الفيسكوزيتي</label>
+                                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#666', marginBottom: '5px' }}>
+                                      النوع / الفيسكوزيتي
+                                    </label>
                                     <Select
                                       instanceId={`subcat-${slotIdx}-${itemIdx}`}
                                       options={slot.subcategories.map((s: string) => ({ value: s, label: s }))}
                                       styles={customSelectStyles}
-                                      placeholder="اختر النوع"
+                                      placeholder="النوع"
                                       isRtl={true}
                                       value={item.selectedSubcat ? { value: item.selectedSubcat, label: item.selectedSubcat } : null}
                                       onChange={(opt: any) => handleSubcatChange(slotIdx, itemIdx, opt?.value ?? null)}
@@ -527,27 +655,27 @@ export default function MaintenanceBundlePage() {
                                     />
                                   </div>
                                 )}
-
-                                {/* Brand */}
                                 <div>
-                                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: '#666', marginBottom: '5px' }}>العلامة التجارية</label>
+                                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#666', marginBottom: '5px' }}>
+                                    العلامة التجارية
+                                  </label>
                                   <Select
                                     instanceId={`brand-${slotIdx}-${itemIdx}`}
                                     options={itemBrands}
                                     styles={customSelectStyles}
-                                    placeholder={slot.loading ? 'جاري التحميل...' : itemBrands.length === 0 ? 'لا توجد منتجات' : 'اختر العلامة'}
+                                    placeholder={slot.loading ? 'جاري...' : itemBrands.length === 0 ? 'لا يوجد' : 'الماركة'}
                                     isRtl={true}
                                     value={item.selectedBrand}
                                     onChange={(opt: any) => handleBrandChange(slotIdx, itemIdx, opt)}
                                     isDisabled={slot.loading || itemBrands.length === 0}
                                     isClearable
-                                    noOptionsMessage={() => 'لا توجد علامات تجارية'}
+                                    noOptionsMessage={() => 'لا توجد علامات'}
                                   />
                                 </div>
-
-                                {/* Product */}
                                 <div>
-                                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: '#666', marginBottom: '5px' }}>المنتج</label>
+                                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#666', marginBottom: '5px' }}>
+                                    المنتج
+                                  </label>
                                   <Select
                                     instanceId={`product-${slotIdx}-${itemIdx}`}
                                     options={itemProducts}
@@ -561,19 +689,26 @@ export default function MaintenanceBundlePage() {
                                     onChange={(opt: any) => handleProductChange(slotIdx, itemIdx, opt?.product ?? null)}
                                     isDisabled={slot.loading || itemProducts.length === 0}
                                     isClearable
-                                    noOptionsMessage={() => 'اختر العلامة التجارية أولاً'}
+                                    noOptionsMessage={() => 'اختر الماركة أولاً'}
                                   />
                                 </div>
                               </div>
 
-                              {/* Price tag per item */}
+                              {/* Price tag */}
                               {item.selectedProduct && (
-                                <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                                  <span style={{ fontSize: '0.78rem', color: '#888' }}>السعر الأصلي:</span>
-                                  <span style={{ textDecoration: 'line-through', color: '#bbb', fontSize: '0.82rem' }}>
+                                <div style={{
+                                  marginTop: '10px',
+                                  display: 'flex', alignItems: 'center',
+                                  gap: '8px', flexWrap: 'wrap',
+                                  background: '#f0fdf4',
+                                  borderRadius: '8px',
+                                  padding: '8px 12px',
+                                }}>
+                                  <span style={{ fontSize: '0.76rem', color: '#888' }}>السعر:</span>
+                                  <span style={{ textDecoration: 'line-through', color: '#bbb', fontSize: '0.8rem' }}>
                                     {item.selectedProduct.sale_price > 0 ? item.selectedProduct.sale_price : item.selectedProduct.regular_price} ج.م
                                   </span>
-                                  <span style={{ color: '#22c55e', fontWeight: '900', fontSize: '0.95rem' }}>
+                                  <span style={{ color: '#16a34a', fontWeight: '900', fontSize: '1rem' }}>
                                     {(
                                       (item.selectedProduct.sale_price > 0
                                         ? item.selectedProduct.sale_price
@@ -581,7 +716,11 @@ export default function MaintenanceBundlePage() {
                                       (1 - DISCOUNT / 100)
                                     ).toFixed(0)} ج.م
                                   </span>
-                                  <span style={{ background: '#fef9c3', color: '#854d0e', padding: '2px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: '800' }}>
+                                  <span style={{
+                                    background: '#fef9c3', color: '#854d0e',
+                                    padding: '2px 7px', borderRadius: '6px',
+                                    fontSize: '0.72rem', fontWeight: '800',
+                                  }}>
                                     خصم {DISCOUNT}%
                                   </span>
                                 </div>
@@ -590,30 +729,26 @@ export default function MaintenanceBundlePage() {
                           );
                         })}
 
-                        {/* ── ADD ITEM BUTTON ── */}
+                        {/* ADD ITEM BUTTON */}
                         {slot.availableProducts.length > 0 && (
                           <button
+                            className="add-item-btn"
                             onClick={() => addItem(slotIdx)}
                             style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '8px',
-                              padding: '10px',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              gap: '7px', padding: '11px 8px',
                               background: 'transparent',
                               border: '2px dashed #22c55e',
                               borderRadius: '12px',
                               color: '#16a34a',
-                              fontWeight: '800',
-                              fontSize: '0.88rem',
-                              cursor: 'pointer',
+                              fontWeight: '800', fontSize: '0.85rem',
+                              cursor: 'pointer', width: '100%',
                               transition: 'background 0.2s',
-                              width: '100%',
                             }}
                             onMouseEnter={(e) => (e.currentTarget.style.background = '#f0fdf4')}
                             onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                           >
-                            <Plus size={16} />
+                            <Plus size={15} />
                             إضافة منتج آخر من {slot.category}
                           </button>
                         )}
@@ -623,32 +758,42 @@ export default function MaintenanceBundlePage() {
                 ))}
               </div>
 
-              {/* BUNDLE SUMMARY */}
+              {/* STICKY SUMMARY BAR */}
               {allSelectedProducts.length >= 1 && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
+                  className="summary-bar"
                   style={{
                     background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
-                    borderRadius: '20px', padding: '28px',
-                    position: 'sticky', bottom: '20px',
-                    boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+                    borderRadius: '18px', padding: '20px 24px',
+                    position: 'sticky', bottom: '16px',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.25)',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+                  <div
+                    className="summary-bar-inner"
+                    style={{
+                      display: 'flex', alignItems: 'center',
+                      justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px',
+                    }}
+                  >
                     <div>
-                      <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem', marginBottom: '4px' }}>
-                        إجمالي الطقم ({allSelectedProducts.length} منتج)
+                      <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.82rem', marginBottom: '4px' }}>
+                        إجمالي الباقة ({allSelectedProducts.length} منتج)
                       </p>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span style={{ fontSize: '2rem', fontWeight: '900', color: '#22c55e' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span
+                          className="summary-price"
+                          style={{ fontSize: '1.8rem', fontWeight: '900', color: '#22c55e' }}
+                        >
                           {totalDiscounted.toFixed(0)} ج.م
                         </span>
                         <div>
-                          <span style={{ textDecoration: 'line-through', color: 'rgba(255,255,255,0.4)', fontSize: '1rem', display: 'block' }}>
+                          <span style={{ textDecoration: 'line-through', color: 'rgba(255,255,255,0.35)', fontSize: '0.95rem', display: 'block' }}>
                             {totalOriginal.toFixed(0)} ج.م
                           </span>
-                          <span style={{ color: '#fbbf24', fontWeight: '800', fontSize: '0.85rem' }}>
+                          <span style={{ color: '#fbbf24', fontWeight: '800', fontSize: '0.82rem' }}>
                             وفرت {savings.toFixed(0)} ج.م
                           </span>
                         </div>
@@ -657,29 +802,37 @@ export default function MaintenanceBundlePage() {
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
                       {!canAddToCart && (
-                        <p style={{ color: '#f87171', fontSize: '0.8rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                          <AlertCircle size={14} />
+                        <p
+                          className="summary-alert"
+                          style={{
+                            color: '#f87171', fontSize: '0.78rem', fontWeight: '700',
+                            display: 'flex', alignItems: 'center', gap: '5px',
+                          }}
+                        >
+                          <AlertCircle size={13} />
                           اختر منتجين على الأقل للحصول على الخصم
                         </p>
                       )}
                       <button
+                        className="summary-btn"
                         onClick={addBundleToCart}
                         disabled={!canAddToCart}
                         style={{
-                          padding: '16px 32px',
+                          padding: '14px 28px',
                           background: canAddToCart
                             ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
                             : '#555',
-                          color: '#fff', border: 'none', borderRadius: '14px',
-                          fontWeight: '900', fontSize: '1.05rem',
+                          color: '#fff', border: 'none', borderRadius: '12px',
+                          fontWeight: '900', fontSize: '0.95rem',
                           cursor: canAddToCart ? 'pointer' : 'not-allowed',
-                          display: 'flex', alignItems: 'center', gap: '10px',
+                          display: 'flex', alignItems: 'center', gap: '8px',
                           boxShadow: canAddToCart ? '0 6px 20px rgba(34,197,94,0.4)' : 'none',
                           transition: 'all 0.2s',
+                          whiteSpace: 'nowrap',
                         }}
                       >
-                        <ShoppingCart size={22} />
-                        أضف الطقم للسلة — {totalDiscounted.toFixed(0)} ج.م
+                        <ShoppingCart size={20} />
+                        أضف الباقة للسلة — {totalDiscounted.toFixed(0)} ج.م
                       </button>
                     </div>
                   </div>
@@ -689,13 +842,19 @@ export default function MaintenanceBundlePage() {
           )}
         </AnimatePresence>
 
-        {/* Empty state */}
+        {/* EMPTY STATE */}
         {!carSelected && (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#aaa' }}>
-            <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
-            <Car size={70} color="#ddd" style={{ margin: '0 auto 16px' }} />
-            <p style={{ fontWeight: '700', fontSize: '1.1rem' }}>اختر ماركة وموديل وسنة سيارتك أولاً</p>
-            <p style={{ fontSize: '0.9rem', marginTop: '8px' }}>سيتم عرض قطع الصيانة المتوفرة لسيارتك تلقائياً</p>
+          <div
+            className="empty-state"
+            style={{ textAlign: 'center', padding: '50px 20px', color: '#aaa' }}
+          >
+            <Car size={64} color="#e0e0e0" style={{ margin: '0 auto 16px' }} />
+            <p style={{ fontWeight: '800', fontSize: '1.05rem', color: '#888', marginBottom: '8px' }}>
+              اختر ماركة وموديل سيارتك أولاً
+            </p>
+            <p style={{ fontSize: '0.88rem', color: '#bbb', lineHeight: 1.6 }}>
+              السنة اختيارية — ستظهر المنتجات المتوفرة لسيارتك تلقائياً
+            </p>
           </div>
         )}
 
