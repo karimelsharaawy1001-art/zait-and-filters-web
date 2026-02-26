@@ -7,7 +7,7 @@ import dynamic from 'next/dynamic';
 import toast from 'react-hot-toast';
 import {
   Wrench, ShoppingCart,
-  CheckCircle2, AlertCircle, Trash2, Car
+  CheckCircle2, AlertCircle, Trash2, Car, Plus
 } from 'lucide-react';
 
 const Select = dynamic(() => import('react-select'), { ssr: false });
@@ -20,7 +20,6 @@ const BUNDLE_CATEGORIES = [
   { name: 'بوجيهات و سلوك بوجيهات و موبينة', subcategories: ['بوجيهات'] },
 ];
 
-// ✅ These categories have universal products — NOT tied to a specific car
 const UNIVERSAL_CATEGORIES = [
   'زيوت موتور',
   'زيوت فرامل',
@@ -30,18 +29,23 @@ const UNIVERSAL_CATEGORIES = [
 
 const DISCOUNT = 5;
 
+// Each slot has an array of "items" — starts with 1, user can add more
+const makeEmptyItem = () => ({
+  selectedSubcat: null,
+  selectedBrand: null,
+  selectedProduct: null,
+  filteredProducts: [] as any[],
+});
+
 const makeInitialSlots = () =>
   BUNDLE_CATEGORIES.map((cat) => ({
     category: cat.name,
     subcategories: cat.subcategories,
-    selectedSubcat: null,
-    selectedBrand: null,
-    selectedProduct: null,
     availableProducts: [] as any[],
-    filteredProducts: [] as any[],
     availableBrands: [] as any[],
     isIncluded: true,
     loading: false,
+    items: [makeEmptyItem()], // ← array of items per slot
   }));
 
 export default function MaintenanceBundlePage() {
@@ -57,11 +61,15 @@ export default function MaintenanceBundlePage() {
   const { addToCart } = useCart();
 
   const carSelected = selectedMake && selectedModel && selectedYear;
-  const includedSlots = bundleSlots.filter((s) => s.isIncluded && s.selectedProduct);
-  const canAddToCart = includedSlots.length >= 2;
 
-  const totalOriginal = includedSlots.reduce((sum, s) => {
-    const p = s.selectedProduct;
+  // All selected products across all slots and all items
+  const allSelectedProducts = bundleSlots.flatMap((slot) =>
+    slot.isIncluded ? slot.items.filter((item: any) => item.selectedProduct) : []
+  );
+  const canAddToCart = allSelectedProducts.length >= 2;
+
+  const totalOriginal = allSelectedProducts.reduce((sum: number, item: any) => {
+    const p = item.selectedProduct;
     return sum + (p?.sale_price > 0 ? p.sale_price : p?.regular_price || 0);
   }, 0);
   const totalDiscounted = totalOriginal * (1 - DISCOUNT / 100);
@@ -78,18 +86,14 @@ export default function MaintenanceBundlePage() {
     }
   }, [selectedMake, selectedModel, selectedYear]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ─── THE KEY FIX: universal categories ignore car_make/car_model filter ──
   async function fetchAllSlots(make: any, model: any, year: any) {
     const yearNum = year ? parseInt(year.value) : null;
-
     setBundleSlots((prev) => prev.map((slot) => ({ ...slot, loading: true })));
 
     const updatedSlots = await Promise.all(
       BUNDLE_CATEGORIES.map(async (cat) => {
         const isUniversal = UNIVERSAL_CATEGORIES.includes(cat.name);
 
-        // Universal (oils, filters): fetch by category only — no car filter
-        // Car-specific (spark plugs): fetch by category + make + model
         let query = supabase
           .from('products')
           .select('*')
@@ -103,7 +107,6 @@ export default function MaintenanceBundlePage() {
 
         const { data } = await query;
 
-        // Year filter only applies to car-specific categories
         const filtered = (data || []).filter((p: any) => {
           if (isUniversal) return true;
           if (!yearNum || !p.car_model_year) return true;
@@ -117,14 +120,11 @@ export default function MaintenanceBundlePage() {
         return {
           category: cat.name,
           subcategories: cat.subcategories,
-          selectedSubcat: null,
-          selectedBrand: null,
-          selectedProduct: null,
           availableProducts: filtered,
-          filteredProducts: filtered,
           availableBrands: uniqueBrands.map((b) => ({ value: b, label: b })),
           isIncluded: true,
           loading: false,
+          items: [makeEmptyItem()],
         };
       })
     );
@@ -201,35 +201,50 @@ export default function MaintenanceBundlePage() {
     return false;
   }
 
-  function handleSubcatChange(slotIndex: number, subcat: string | null) {
+  // ── Item-level handlers ────────────────────────────────────────────────
+
+  function addItem(slotIndex: number) {
+    const updated = [...bundleSlots];
+    updated[slotIndex] = {
+      ...updated[slotIndex],
+      items: [...updated[slotIndex].items, makeEmptyItem()],
+    };
+    setBundleSlots(updated);
+  }
+
+  function removeItem(slotIndex: number, itemIndex: number) {
+    const updated = [...bundleSlots];
+    const newItems = updated[slotIndex].items.filter((_: any, i: number) => i !== itemIndex);
+    updated[slotIndex] = { ...updated[slotIndex], items: newItems };
+    setBundleSlots(updated);
+  }
+
+  function handleSubcatChange(slotIndex: number, itemIndex: number, subcat: string | null) {
     const updated = [...bundleSlots];
     const slot = updated[slotIndex];
-
     const filtered = subcat
       ? slot.availableProducts.filter(
           (p: any) => p.subcategory?.trim().toLowerCase() === subcat.trim().toLowerCase()
         )
       : slot.availableProducts;
 
-    const uniqueBrands = Array.from(
-      new Set(filtered.map((p: any) => p.brand?.trim()).filter(Boolean))
-    ) as string[];
-
-    updated[slotIndex] = {
-      ...slot,
+    const newItems = [...slot.items];
+    newItems[itemIndex] = {
+      ...newItems[itemIndex],
       selectedSubcat: subcat,
       selectedBrand: null,
       selectedProduct: null,
       filteredProducts: filtered,
-      availableBrands: uniqueBrands.map((b) => ({ value: b, label: b })),
     };
+    updated[slotIndex] = { ...slot, items: newItems };
     setBundleSlots(updated);
   }
 
-  function handleBrandChange(slotIndex: number, brand: any) {
+  function handleBrandChange(slotIndex: number, itemIndex: number, brand: any) {
     const updated = [...bundleSlots];
     const slot = updated[slotIndex];
-    const sourceProducts = slot.selectedSubcat ? slot.filteredProducts : slot.availableProducts;
+    const item = slot.items[itemIndex];
+    const sourceProducts = item.selectedSubcat ? item.filteredProducts : slot.availableProducts;
 
     const filtered = brand
       ? sourceProducts.filter(
@@ -237,26 +252,33 @@ export default function MaintenanceBundlePage() {
         )
       : sourceProducts;
 
-    updated[slotIndex] = {
-      ...slot,
+    const newItems = [...slot.items];
+    newItems[itemIndex] = {
+      ...item,
       selectedBrand: brand,
       selectedProduct: filtered.length === 1 ? filtered[0] : null,
       filteredProducts: filtered,
     };
+    updated[slotIndex] = { ...slot, items: newItems };
     setBundleSlots(updated);
   }
 
-  function handleProductChange(slotIndex: number, product: any) {
+  function handleProductChange(slotIndex: number, itemIndex: number, product: any) {
     const updated = [...bundleSlots];
-    updated[slotIndex] = { ...updated[slotIndex], selectedProduct: product };
+    const slot = updated[slotIndex];
+    const newItems = [...slot.items];
+    newItems[itemIndex] = { ...newItems[itemIndex], selectedProduct: product };
+    updated[slotIndex] = { ...slot, items: newItems };
     setBundleSlots(updated);
   }
+
+  // ── Slot-level toggle ──────────────────────────────────────────────────
 
   function toggleSlot(slotIndex: number) {
     const currentlyIncluded = bundleSlots.filter((s) => s.isIncluded).length;
     const slot = bundleSlots[slotIndex];
     if (slot.isIncluded && currentlyIncluded <= 2) {
-      toast.error('يجب أن يحتوي الطقم على قطعتين على الأقل');
+      toast.error('يجب أن يحتوي الطقم على قسمين على الأقل');
       return;
     }
     const updated = [...bundleSlots];
@@ -269,8 +291,8 @@ export default function MaintenanceBundlePage() {
       toast.error('يجب اختيار منتجين على الأقل لإتمام الطقم');
       return;
     }
-    includedSlots.forEach((slot) => {
-      const p = slot.selectedProduct;
+    allSelectedProducts.forEach((item: any) => {
+      const p = item.selectedProduct;
       const originalPrice = p.sale_price > 0 ? p.sale_price : p.regular_price;
       const discountedPrice = parseFloat((originalPrice * (1 - DISCOUNT / 100)).toFixed(2));
       addToCart({ ...p, price: discountedPrice }, 1);
@@ -281,7 +303,7 @@ export default function MaintenanceBundlePage() {
   const customSelectStyles = {
     control: (base: any) => ({
       ...base,
-      height: '44px',
+      minHeight: '44px',
       borderRadius: '10px',
       border: '1px solid #e5e5e5',
       fontSize: '0.88rem',
@@ -295,6 +317,28 @@ export default function MaintenanceBundlePage() {
       fontSize: '0.88rem',
     }),
   };
+
+  // Per-item brands: filter from slot brands by what's available in item's filteredProducts
+  function getBrandsForItem(slot: any, item: any) {
+    const source = item.selectedSubcat ? item.filteredProducts : slot.availableProducts;
+    const unique = Array.from(
+      new Set(source.map((p: any) => p.brand?.trim()).filter(Boolean))
+    ) as string[];
+    return unique.map((b) => ({ value: b, label: b }));
+  }
+
+  function getProductsForItem(slot: any, item: any) {
+    const source = item.selectedBrand
+      ? item.filteredProducts
+      : item.selectedSubcat
+      ? item.filteredProducts
+      : slot.availableProducts;
+    return source.map((p: any) => ({
+      value: p.id,
+      label: `${p.name}${p.part_number ? ` — ${p.part_number}` : ''} — ${p.sale_price > 0 ? p.sale_price : p.regular_price} ج.م`,
+      product: p,
+    }));
+  }
 
   if (!isMounted) return null;
 
@@ -328,44 +372,15 @@ export default function MaintenanceBundlePage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
             <div>
               <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', marginBottom: '6px', color: '#555' }}>الماركة</label>
-              <Select
-                instanceId="bundle-make"
-                options={makesOptions}
-                styles={customSelectStyles}
-                placeholder="اختر الماركة"
-                isRtl={true}
-                value={selectedMake}
-                onChange={(opt: any) => handleMakeChange(opt)}
-                isClearable
-              />
+              <Select instanceId="bundle-make" options={makesOptions} styles={customSelectStyles} placeholder="اختر الماركة" isRtl={true} value={selectedMake} onChange={(opt: any) => handleMakeChange(opt)} isClearable />
             </div>
             <div>
               <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', marginBottom: '6px', color: '#555' }}>الموديل</label>
-              <Select
-                instanceId="bundle-model"
-                options={modelsOptions}
-                styles={customSelectStyles}
-                placeholder="اختر الموديل"
-                isRtl={true}
-                value={selectedModel}
-                onChange={(opt: any) => handleModelChange(opt)}
-                isDisabled={!selectedMake}
-                isClearable
-              />
+              <Select instanceId="bundle-model" options={modelsOptions} styles={customSelectStyles} placeholder="اختر الموديل" isRtl={true} value={selectedModel} onChange={(opt: any) => handleModelChange(opt)} isDisabled={!selectedMake} isClearable />
             </div>
             <div>
               <label style={{ display: 'block', fontWeight: '700', fontSize: '0.82rem', marginBottom: '6px', color: '#555' }}>سنة الصنع</label>
-              <Select
-                instanceId="bundle-year"
-                options={yearsOptions}
-                styles={customSelectStyles}
-                placeholder="اختر السنة"
-                isRtl={true}
-                value={selectedYear}
-                onChange={(opt: any) => { setSelectedYear(opt); setBundleSlots(makeInitialSlots()); }}
-                isDisabled={!selectedModel}
-                isClearable
-              />
+              <Select instanceId="bundle-year" options={yearsOptions} styles={customSelectStyles} placeholder="اختر السنة" isRtl={true} value={selectedYear} onChange={(opt: any) => { setSelectedYear(opt); setBundleSlots(makeInitialSlots()); }} isDisabled={!selectedModel} isClearable />
             </div>
           </div>
         </div>
@@ -378,170 +393,238 @@ export default function MaintenanceBundlePage() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <h2 style={{ fontWeight: '900', fontSize: '1.2rem' }}>🛠️ محتويات الطقم</h2>
                 <div style={{ background: '#f0fdf4', color: '#16a34a', padding: '6px 14px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: '800' }}>
-                  {includedSlots.length} قطع مختارة
+                  {allSelectedProducts.length} منتج مختار
                 </div>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '28px' }}>
-                {bundleSlots.map((slot, idx) => {
-                  const displayProducts: any[] =
-                    slot.selectedSubcat || slot.selectedBrand
-                      ? slot.filteredProducts
-                      : slot.availableProducts;
-
-                  const productOptions = displayProducts.map((p: any) => ({
-                    value: p.id,
-                    label: `${p.name}${p.part_number ? ` — ${p.part_number}` : ''} — ${p.sale_price > 0 ? p.sale_price : p.regular_price} ج.م`,
-                    product: p,
-                  }));
-
-                  return (
-                    <motion.div
-                      key={slot.category}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.07 }}
-                      style={{
-                        background: slot.isIncluded ? '#fff' : '#f5f5f5',
-                        borderRadius: '16px',
-                        border: slot.selectedProduct && slot.isIncluded
-                          ? '2px solid #22c55e'
-                          : '1.5px solid #e5e5e5',
-                        padding: '20px',
-                        opacity: slot.isIncluded ? 1 : 0.55,
-                        transition: 'all 0.2s',
-                      }}
-                    >
-                      {/* Slot header */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: slot.isIncluded ? '16px' : '0' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          {slot.selectedProduct && slot.isIncluded
-                            ? <CheckCircle2 size={20} color="#22c55e" />
-                            : slot.loading
-                              ? <div style={{ width: 20, height: 20, borderRadius: '50%', border: '3px solid #22c55e', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
-                              : <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid #ddd' }} />
-                          }
-                          <span style={{ fontWeight: '900', fontSize: '1rem' }}>{slot.category}</span>
-                          {slot.availableProducts.length === 0 && !slot.loading && (
-                            <span style={{ fontSize: '0.75rem', color: '#f97316', fontWeight: '700', background: '#fff7ed', padding: '2px 8px', borderRadius: '6px' }}>
-                              لا توجد منتجات
-                            </span>
-                          )}
-                          {slot.availableProducts.length > 0 && !slot.loading && (
-                            <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: '700', background: '#f0fdf4', padding: '2px 8px', borderRadius: '6px' }}>
-                              {slot.availableProducts.length} منتج
-                            </span>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => toggleSlot(idx)}
-                          title={slot.isIncluded ? 'إزالة من الطقم' : 'إضافة للطقم'}
-                          style={{
-                            background: slot.isIncluded ? '#fee2e2' : '#f0fdf4',
-                            color: slot.isIncluded ? '#dc2626' : '#16a34a',
-                            border: 'none', borderRadius: '8px',
-                            padding: '6px 12px', cursor: 'pointer',
-                            fontWeight: '700', fontSize: '0.8rem',
-                            display: 'flex', alignItems: 'center', gap: '5px',
-                          }}
-                        >
-                          {slot.isIncluded
-                            ? <><Trash2 size={13} /> إزالة</>
-                            : <><CheckCircle2 size={13} /> إضافة</>
-                          }
-                        </button>
+                {bundleSlots.map((slot, slotIdx) => (
+                  <motion.div
+                    key={slot.category}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: slotIdx * 0.07 }}
+                    style={{
+                      background: slot.isIncluded ? '#fff' : '#f5f5f5',
+                      borderRadius: '16px',
+                      border: slot.isIncluded && slot.items.some((i: any) => i.selectedProduct)
+                        ? '2px solid #22c55e'
+                        : '1.5px solid #e5e5e5',
+                      padding: '20px',
+                      opacity: slot.isIncluded ? 1 : 0.55,
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {/* ── SLOT HEADER ── */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: slot.isIncluded ? '16px' : '0' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        {slot.isIncluded && slot.items.some((i: any) => i.selectedProduct)
+                          ? <CheckCircle2 size={20} color="#22c55e" />
+                          : slot.loading
+                            ? <div style={{ width: 20, height: 20, borderRadius: '50%', border: '3px solid #22c55e', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
+                            : <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid #ddd' }} />
+                        }
+                        <span style={{ fontWeight: '900', fontSize: '1rem' }}>{slot.category}</span>
+                        {slot.availableProducts.length === 0 && !slot.loading && (
+                          <span style={{ fontSize: '0.75rem', color: '#f97316', fontWeight: '700', background: '#fff7ed', padding: '2px 8px', borderRadius: '6px' }}>
+                            لا توجد منتجات
+                          </span>
+                        )}
+                        {slot.availableProducts.length > 0 && !slot.loading && (
+                          <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: '700', background: '#f0fdf4', padding: '2px 8px', borderRadius: '6px' }}>
+                            {slot.availableProducts.length} منتج
+                          </span>
+                        )}
                       </div>
+                      <button
+                        onClick={() => toggleSlot(slotIdx)}
+                        style={{
+                          background: slot.isIncluded ? '#fee2e2' : '#f0fdf4',
+                          color: slot.isIncluded ? '#dc2626' : '#16a34a',
+                          border: 'none', borderRadius: '8px',
+                          padding: '6px 12px', cursor: 'pointer',
+                          fontWeight: '700', fontSize: '0.8rem',
+                          display: 'flex', alignItems: 'center', gap: '5px',
+                        }}
+                      >
+                        {slot.isIncluded
+                          ? <><Trash2 size={13} /> إزالة القسم</>
+                          : <><CheckCircle2 size={13} /> إضافة القسم</>
+                        }
+                      </button>
+                    </div>
 
-                      {/* Slot inputs */}
-                      {slot.isIncluded && (
-                        <div style={{
-                          display: 'grid',
-                          gridTemplateColumns: slot.subcategories.length > 0 ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)',
-                          gap: '12px',
-                        }}>
-                          {/* Subcategory */}
-                          {slot.subcategories.length > 0 && (
-                            <div>
-                              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: '#666', marginBottom: '5px' }}>النوع / الفيسكوزيتي</label>
-                              <Select
-                                instanceId={`subcat-${idx}`}
-                                options={slot.subcategories.map((s: string) => ({ value: s, label: s }))}
-                                styles={customSelectStyles}
-                                placeholder="اختر النوع"
-                                isRtl={true}
-                                value={slot.selectedSubcat ? { value: slot.selectedSubcat, label: slot.selectedSubcat } : null}
-                                onChange={(opt: any) => handleSubcatChange(idx, opt?.value ?? null)}
-                                isClearable
-                              />
+                    {/* ── ITEMS ── */}
+                    {slot.isIncluded && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {slot.items.map((item: any, itemIdx: number) => {
+                          const itemBrands = getBrandsForItem(slot, item);
+                          const itemProducts = getProductsForItem(slot, item);
+
+                          return (
+                            <div
+                              key={itemIdx}
+                              style={{
+                                background: '#f9f9f9',
+                                borderRadius: '12px',
+                                padding: '14px',
+                                border: item.selectedProduct ? '1.5px solid #bbf7d0' : '1.5px solid #f0f0f0',
+                                position: 'relative',
+                              }}
+                            >
+                              {/* Remove item button (only if more than 1 item) */}
+                              {slot.items.length > 1 && (
+                                <button
+                                  onClick={() => removeItem(slotIdx, itemIdx)}
+                                  style={{
+                                    position: 'absolute',
+                                    top: '10px',
+                                    left: '10px',
+                                    background: '#fee2e2',
+                                    color: '#dc2626',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    width: '26px',
+                                    height: '26px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '900',
+                                  }}
+                                  title="حذف هذا المنتج"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              )}
+
+                              {/* Item number badge */}
+                              {slot.items.length > 1 && (
+                                <div style={{ fontSize: '0.75rem', fontWeight: '800', color: '#888', marginBottom: '10px', marginRight: '0' }}>
+                                  منتج #{itemIdx + 1}
+                                </div>
+                              )}
+
+                              <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: slot.subcategories.length > 0 ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)',
+                                gap: '10px',
+                              }}>
+                                {/* Subcategory */}
+                                {slot.subcategories.length > 0 && (
+                                  <div>
+                                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: '#666', marginBottom: '5px' }}>النوع / الفيسكوزيتي</label>
+                                    <Select
+                                      instanceId={`subcat-${slotIdx}-${itemIdx}`}
+                                      options={slot.subcategories.map((s: string) => ({ value: s, label: s }))}
+                                      styles={customSelectStyles}
+                                      placeholder="اختر النوع"
+                                      isRtl={true}
+                                      value={item.selectedSubcat ? { value: item.selectedSubcat, label: item.selectedSubcat } : null}
+                                      onChange={(opt: any) => handleSubcatChange(slotIdx, itemIdx, opt?.value ?? null)}
+                                      isClearable
+                                    />
+                                  </div>
+                                )}
+
+                                {/* Brand */}
+                                <div>
+                                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: '#666', marginBottom: '5px' }}>العلامة التجارية</label>
+                                  <Select
+                                    instanceId={`brand-${slotIdx}-${itemIdx}`}
+                                    options={itemBrands}
+                                    styles={customSelectStyles}
+                                    placeholder={slot.loading ? 'جاري التحميل...' : itemBrands.length === 0 ? 'لا توجد منتجات' : 'اختر العلامة'}
+                                    isRtl={true}
+                                    value={item.selectedBrand}
+                                    onChange={(opt: any) => handleBrandChange(slotIdx, itemIdx, opt)}
+                                    isDisabled={slot.loading || itemBrands.length === 0}
+                                    isClearable
+                                    noOptionsMessage={() => 'لا توجد علامات تجارية'}
+                                  />
+                                </div>
+
+                                {/* Product */}
+                                <div>
+                                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: '#666', marginBottom: '5px' }}>المنتج</label>
+                                  <Select
+                                    instanceId={`product-${slotIdx}-${itemIdx}`}
+                                    options={itemProducts}
+                                    styles={customSelectStyles}
+                                    placeholder="اختر المنتج"
+                                    isRtl={true}
+                                    value={item.selectedProduct
+                                      ? itemProducts.find((o: any) => o.value === item.selectedProduct.id) ?? null
+                                      : null
+                                    }
+                                    onChange={(opt: any) => handleProductChange(slotIdx, itemIdx, opt?.product ?? null)}
+                                    isDisabled={slot.loading || itemProducts.length === 0}
+                                    isClearable
+                                    noOptionsMessage={() => 'اختر العلامة التجارية أولاً'}
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Price tag per item */}
+                              {item.selectedProduct && (
+                                <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                                  <span style={{ fontSize: '0.78rem', color: '#888' }}>السعر الأصلي:</span>
+                                  <span style={{ textDecoration: 'line-through', color: '#bbb', fontSize: '0.82rem' }}>
+                                    {item.selectedProduct.sale_price > 0 ? item.selectedProduct.sale_price : item.selectedProduct.regular_price} ج.م
+                                  </span>
+                                  <span style={{ color: '#22c55e', fontWeight: '900', fontSize: '0.95rem' }}>
+                                    {(
+                                      (item.selectedProduct.sale_price > 0
+                                        ? item.selectedProduct.sale_price
+                                        : item.selectedProduct.regular_price) *
+                                      (1 - DISCOUNT / 100)
+                                    ).toFixed(0)} ج.م
+                                  </span>
+                                  <span style={{ background: '#fef9c3', color: '#854d0e', padding: '2px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: '800' }}>
+                                    خصم {DISCOUNT}%
+                                  </span>
+                                </div>
+                              )}
                             </div>
-                          )}
+                          );
+                        })}
 
-                          {/* Brand */}
-                          <div>
-                            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: '#666', marginBottom: '5px' }}>العلامة التجارية</label>
-                            <Select
-                              instanceId={`brand-${idx}`}
-                              options={slot.availableBrands}
-                              styles={customSelectStyles}
-                              placeholder={slot.loading ? 'جاري التحميل...' : slot.availableBrands.length === 0 ? 'لا توجد منتجات' : 'اختر العلامة'}
-                              isRtl={true}
-                              value={slot.selectedBrand}
-                              onChange={(opt: any) => handleBrandChange(idx, opt)}
-                              isDisabled={slot.loading || slot.availableBrands.length === 0}
-                              isClearable
-                              noOptionsMessage={() => 'لا توجد علامات تجارية'}
-                            />
-                          </div>
-
-                          {/* Product */}
-                          <div>
-                            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: '#666', marginBottom: '5px' }}>المنتج</label>
-                            <Select
-                              instanceId={`product-${idx}`}
-                              options={productOptions}
-                              styles={customSelectStyles}
-                              placeholder="اختر المنتج"
-                              isRtl={true}
-                              value={slot.selectedProduct
-                                ? productOptions.find((o: any) => o.value === slot.selectedProduct.id) ?? null
-                                : null
-                              }
-                              onChange={(opt: any) => handleProductChange(idx, opt?.product ?? null)}
-                              isDisabled={slot.loading || productOptions.length === 0}
-                              isClearable
-                              noOptionsMessage={() => 'اختر العلامة التجارية أولاً'}
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Price tag */}
-                      {slot.isIncluded && slot.selectedProduct && (
-                        <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '0.82rem', color: '#888' }}>السعر الأصلي:</span>
-                          <span style={{ textDecoration: 'line-through', color: '#bbb', fontSize: '0.85rem' }}>
-                            {slot.selectedProduct.sale_price > 0 ? slot.selectedProduct.sale_price : slot.selectedProduct.regular_price} ج.م
-                          </span>
-                          <span style={{ color: '#22c55e', fontWeight: '900', fontSize: '1rem' }}>
-                            {(
-                              (slot.selectedProduct.sale_price > 0
-                                ? slot.selectedProduct.sale_price
-                                : slot.selectedProduct.regular_price) *
-                              (1 - DISCOUNT / 100)
-                            ).toFixed(0)} ج.م
-                          </span>
-                          <span style={{ background: '#fef9c3', color: '#854d0e', padding: '3px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '800' }}>
-                            خصم {DISCOUNT}%
-                          </span>
-                        </div>
-                      )}
-                    </motion.div>
-                  );
-                })}
+                        {/* ── ADD ITEM BUTTON ── */}
+                        {slot.availableProducts.length > 0 && (
+                          <button
+                            onClick={() => addItem(slotIdx)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '8px',
+                              padding: '10px',
+                              background: 'transparent',
+                              border: '2px dashed #22c55e',
+                              borderRadius: '12px',
+                              color: '#16a34a',
+                              fontWeight: '800',
+                              fontSize: '0.88rem',
+                              cursor: 'pointer',
+                              transition: 'background 0.2s',
+                              width: '100%',
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = '#f0fdf4')}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                          >
+                            <Plus size={16} />
+                            إضافة منتج آخر من {slot.category}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
               </div>
 
               {/* BUNDLE SUMMARY */}
-              {includedSlots.length >= 1 && (
+              {allSelectedProducts.length >= 1 && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -555,7 +638,7 @@ export default function MaintenanceBundlePage() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
                       <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem', marginBottom: '4px' }}>
-                        إجمالي الطقم ({includedSlots.length} قطع)
+                        إجمالي الطقم ({allSelectedProducts.length} منتج)
                       </p>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <span style={{ fontSize: '2rem', fontWeight: '900', color: '#22c55e' }}>
