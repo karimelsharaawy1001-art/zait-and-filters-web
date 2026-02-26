@@ -64,6 +64,59 @@ export default function MaintenanceBundlePage() {
     fetchMakes();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ✅ KEY FIX: Auto-fetch all slot products as soon as car is fully selected
+  useEffect(() => {
+    if (selectedMake && selectedModel && selectedYear) {
+      fetchAllSlots(selectedMake, selectedModel, selectedYear);
+    }
+  }, [selectedMake, selectedModel, selectedYear]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ─── Fetch products for ALL slots at once when car is selected ────────────
+  async function fetchAllSlots(make: any, model: any, year: any) {
+    const yearNum = year ? parseInt(year.value) : null;
+
+    // Set all slots to loading
+    setBundleSlots((prev) => prev.map((slot) => ({ ...slot, loading: true })));
+
+    const updatedSlots = await Promise.all(
+      BUNDLE_CATEGORIES.map(async (cat) => {
+        let query = supabase
+          .from('products')
+          .select('*')
+          .ilike('category', cat.name.trim())
+          .ilike('car_make', make.value.trim())
+          .ilike('car_model', model.value.trim());
+
+        const { data } = await query;
+
+        // Filter by year compatibility
+        const filtered = (data || []).filter((p: any) => {
+          if (!yearNum || !p.car_model_year) return true;
+          return isYearCompatible(p.car_model_year, String(yearNum));
+        });
+
+        const uniqueBrands = Array.from(
+          new Set(filtered.map((p: any) => p.brand?.trim()).filter(Boolean))
+        ) as string[];
+
+        return {
+          category: cat.name,
+          subcategories: cat.subcategories,
+          selectedSubcat: null,
+          selectedBrand: null,
+          selectedProduct: null,
+          availableProducts: filtered,
+          filteredProducts: filtered,
+          availableBrands: uniqueBrands.map((b) => ({ value: b, label: b })),
+          isIncluded: true,
+          loading: false,
+        };
+      })
+    );
+
+    setBundleSlots(updatedSlots);
+  }
+
   async function fetchMakes() {
     const { data } = await supabase
       .from('products')
@@ -133,65 +186,42 @@ export default function MaintenanceBundlePage() {
     return false;
   }
 
-  async function handleSubcatChange(slotIndex: number, subcat: string | null) {
+  // ✅ handleSubcatChange now FILTERS already-fetched products (no new DB call needed)
+  function handleSubcatChange(slotIndex: number, subcat: string | null) {
     const updated = [...bundleSlots];
+    const slot = updated[slotIndex];
+
+    const filtered = subcat
+      ? slot.availableProducts.filter(
+          (p: any) => p.subcategory?.trim().toLowerCase() === subcat.trim().toLowerCase()
+        )
+      : slot.availableProducts;
+
+    const uniqueBrands = Array.from(
+      new Set(filtered.map((p: any) => p.brand?.trim()).filter(Boolean))
+    ) as string[];
+
     updated[slotIndex] = {
-      ...updated[slotIndex],
+      ...slot,
       selectedSubcat: subcat,
       selectedBrand: null,
       selectedProduct: null,
-      availableProducts: [],
-      filteredProducts: [],
-      availableBrands: [],
-      loading: true,
+      filteredProducts: filtered,
+      availableBrands: uniqueBrands.map((b) => ({ value: b, label: b })),
     };
     setBundleSlots(updated);
-
-    if (!selectedMake) {
-      const after = [...updated];
-      after[slotIndex] = { ...after[slotIndex], loading: false };
-      setBundleSlots(after);
-      return;
-    }
-
-    let query = supabase
-      .from('products')
-      .select('*')
-      .ilike('category', updated[slotIndex].category.trim());
-
-    if (subcat) query = query.ilike('subcategory', subcat.trim());
-    if (selectedMake) query = query.ilike('car_make', selectedMake.value.trim());
-    if (selectedModel) query = query.ilike('car_model', selectedModel.value.trim());
-
-    const { data } = await query;
-
-    const yearNum = selectedYear ? parseInt(selectedYear.value) : null;
-    const filtered = (data || []).filter((p: any) => {
-      if (!yearNum || !p.car_model_year) return true;
-      return isYearCompatible(p.car_model_year, String(yearNum));
-    });
-
-    const uniqueBrands = Array.from(new Set(filtered.map((p: any) => p.brand?.trim()).filter(Boolean)));
-
-    const updatedAfter = [...updated];
-    updatedAfter[slotIndex] = {
-      ...updatedAfter[slotIndex],
-      availableProducts: filtered,
-      filteredProducts: filtered,
-      availableBrands: (uniqueBrands as string[]).map((b) => ({ value: b, label: b })),
-      loading: false,
-    };
-    setBundleSlots(updatedAfter);
   }
 
   function handleBrandChange(slotIndex: number, brand: any) {
     const updated = [...bundleSlots];
     const slot = updated[slotIndex];
+    const sourceProducts = slot.selectedSubcat ? slot.filteredProducts : slot.availableProducts;
+
     const filtered = brand
-      ? slot.availableProducts.filter(
+      ? sourceProducts.filter(
           (p: any) => p.brand?.trim().toLowerCase() === brand.value.toLowerCase()
         )
-      : slot.availableProducts;
+      : sourceProducts;
 
     updated[slotIndex] = {
       ...slot,
@@ -340,8 +370,12 @@ export default function MaintenanceBundlePage() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '28px' }}>
                 {bundleSlots.map((slot, idx) => {
-                  const products: any[] = slot.filteredProducts?.length > 0 ? slot.filteredProducts : slot.availableProducts;
-                  const productOptions = products.map((p: any) => ({
+                  const displayProducts: any[] =
+                    slot.selectedSubcat || slot.selectedBrand
+                      ? slot.filteredProducts
+                      : slot.availableProducts;
+
+                  const productOptions = displayProducts.map((p: any) => ({
                     value: p.id,
                     label: `${p.name}${p.part_number ? ` — ${p.part_number}` : ''} — ${p.sale_price > 0 ? p.sale_price : p.regular_price} ج.م`,
                     product: p,
@@ -356,7 +390,9 @@ export default function MaintenanceBundlePage() {
                       style={{
                         background: slot.isIncluded ? '#fff' : '#f5f5f5',
                         borderRadius: '16px',
-                        border: slot.selectedProduct && slot.isIncluded ? '2px solid #22c55e' : '1.5px solid #e5e5e5',
+                        border: slot.selectedProduct && slot.isIncluded
+                          ? '2px solid #22c55e'
+                          : '1.5px solid #e5e5e5',
                         padding: '20px',
                         opacity: slot.isIncluded ? 1 : 0.55,
                         transition: 'all 0.2s',
@@ -367,9 +403,21 @@ export default function MaintenanceBundlePage() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           {slot.selectedProduct && slot.isIncluded
                             ? <CheckCircle2 size={20} color="#22c55e" />
-                            : <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid #ddd' }} />
+                            : slot.loading
+                              ? <div style={{ width: 20, height: 20, borderRadius: '50%', border: '3px solid #22c55e', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
+                              : <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid #ddd' }} />
                           }
                           <span style={{ fontWeight: '900', fontSize: '1rem' }}>{slot.category}</span>
+                          {slot.availableProducts.length === 0 && !slot.loading && (
+                            <span style={{ fontSize: '0.75rem', color: '#f97316', fontWeight: '700', background: '#fff7ed', padding: '2px 8px', borderRadius: '6px' }}>
+                              لا توجد منتجات
+                            </span>
+                          )}
+                          {slot.availableProducts.length > 0 && !slot.loading && (
+                            <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: '700', background: '#f0fdf4', padding: '2px 8px', borderRadius: '6px' }}>
+                              {slot.availableProducts.length} منتج
+                            </span>
+                          )}
                         </div>
                         <button
                           onClick={() => toggleSlot(idx)}
@@ -421,13 +469,13 @@ export default function MaintenanceBundlePage() {
                               instanceId={`brand-${idx}`}
                               options={slot.availableBrands}
                               styles={customSelectStyles}
-                              placeholder={slot.loading ? 'جاري التحميل...' : 'اختر الماركة'}
+                              placeholder={slot.loading ? 'جاري التحميل...' : slot.availableBrands.length === 0 ? 'لا توجد منتجات' : 'اختر العلامة'}
                               isRtl={true}
                               value={slot.selectedBrand}
                               onChange={(opt: any) => handleBrandChange(idx, opt)}
-                              isDisabled={slot.availableBrands.length === 0}
+                              isDisabled={slot.loading || slot.availableBrands.length === 0}
                               isClearable
-                              noOptionsMessage={() => 'لا توجد منتجات لهذه السيارة'}
+                              noOptionsMessage={() => 'لا توجد علامات تجارية'}
                             />
                           </div>
 
@@ -445,7 +493,7 @@ export default function MaintenanceBundlePage() {
                                 : null
                               }
                               onChange={(opt: any) => handleProductChange(idx, opt?.product ?? null)}
-                              isDisabled={productOptions.length === 0}
+                              isDisabled={slot.loading || productOptions.length === 0}
                               isClearable
                               noOptionsMessage={() => 'اختر العلامة التجارية أولاً'}
                             />
@@ -547,6 +595,7 @@ export default function MaintenanceBundlePage() {
         {/* Empty state */}
         {!carSelected && (
           <div style={{ textAlign: 'center', padding: '60px 20px', color: '#aaa' }}>
+            <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
             <Car size={70} color="#ddd" style={{ margin: '0 auto 16px' }} />
             <p style={{ fontWeight: '700', fontSize: '1.1rem' }}>اختر ماركة وموديل وسنة سيارتك أولاً</p>
             <p style={{ fontSize: '0.9rem', marginTop: '8px' }}>سيتم عرض قطع الصيانة المتوفرة لسيارتك تلقائياً</p>
