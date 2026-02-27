@@ -817,21 +817,14 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                   <div style={logosGrid}>
-                    <img src="https://i.postimg.cc/Njw3g5JW/visa-logo-png-seeklogo-149697.png" alt="Visa" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/sgRkVv64/1280px-Master-Card-Logo-svg.png" alt="Mastercard" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/wjdC67fn/VALU.jpg" alt="Valu" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/dVKbqLHB/AMAN.jpg" alt="Aman" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/pLtw2pGk/FAWRY.jpg" alt="Fawry" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/vZdJQcqN/SOHOOLA.jpg" alt="Souhoola" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/52Mhx67g/CONTACT.jpg" alt="Contact" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/FHQM97WT/HALAN.jpg" alt="Halan" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/kgd0nB1f/EL-AHLY.jpg" alt="NBE" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/7ZyFxfsB/MEEZA.jpg" alt="Meeza" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/VkcxYdGp/TAKKA.jpg" alt="Takka" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/wjdC67ff/lucky.jpg" alt="Lucky" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/qvdPkzbY/TRU.jpg" alt="Tru" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/RZzkMNsb/mogo.jpg" alt="Mogo" style={miniLogoImg} />
-                    <img src="https://i.postimg.cc/zG1sJVt2/apple-pay.png" alt="Apple Pay" style={miniLogoImg} />
+                    {[
+                      'فيزا', 'ماستر كارد', 'ميزة', 'Apple Pay', 'فاليو',
+                      'أمان', 'سهولة', 'فرصة', 'كونتاكت', 'ترو',
+                      'كليفر', 'كارت فوري', 'كارت حالا', 'كارت لاكي',
+                      'تقسيط البنك الأهلي', 'كارت تكة',
+                    ].map((label) => (
+                      <span key={label} style={paymentBadge}>{label}</span>
+                    ))}
                   </div>
                 </div>
               </label>
@@ -926,5 +919,6 @@ const uploadArea: any = { display: 'flex', alignItems: 'center', justifyContent:
 const promoWrapper: any = { marginTop: '20px', padding: '15px', background: '#fff', borderRadius: '20px', border: '1px dashed #ddd', marginBottom: '15px' };
 const promoBtnStyle: any = { padding: '0 25px', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', transition: '0.3s ease', fontSize: '0.9rem' };
 const promoSuccessText: any = { fontSize: '0.8rem', color: '#15803d', marginTop: '10px', fontWeight: 'bold' };
-const logosGrid: any = { display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '8px', paddingRight: '57px' };
+const logosGrid: any = { display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px', paddingRight: '57px' };
 const miniLogoImg: any = { height: '30px', width: 'auto', borderRadius: '6px', border: '1px solid #f0f0f0', padding: '2px', background: '#fff' };
+const paymentBadge: any = { display: 'inline-flex', alignItems: 'center', padding: '4px 10px', background: '#f0fdf4', color: '#15803d', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', border: '1px solid #dcfce7', whiteSpace: 'nowrap' };
