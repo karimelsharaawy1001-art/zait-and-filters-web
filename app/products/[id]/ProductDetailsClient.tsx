@@ -5,12 +5,13 @@ import { useCart } from '@/context/CartContext';
 import {
   ShoppingCart, Car, Calendar, ShieldCheck,
   ArrowRight, Globe, Plus, Minus, CheckCircle2, Layers, Info, Package, Loader2, ChevronRight, ChevronLeft, Timer,
-  Share2, Check, Copy, Facebook, Twitter
+  Share2, Check, Copy, Facebook, Twitter, Zap
 } from 'lucide-react';
 import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay } from 'swiper/modules';
 import 'swiper/css';
+
 
 
 // ─── Share Buttons ─────────────────────────────────────────────────────────────
@@ -25,7 +26,9 @@ function ShareButtons({ productName, productBrand, price, carMake, carModel, pro
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
 
+
   const url = `https://zaitandfilters.com/products/${productId}`;
+
 
   const whatsappText = encodeURIComponent(
     `🛒 ${productName} - ${productBrand}\n💰 السعر: ${price} ج.م${carMake ? `\n🚗 لسيارة: ${carMake} ${carModel || ''}` : ''}\n🔗 ${url}`
@@ -33,6 +36,7 @@ function ShareButtons({ productName, productBrand, price, carMake, carModel, pro
   const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
   const twitterUrl  = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`${productName} - ${productBrand} | ${price} ج.م`)}&url=${encodeURIComponent(url)}`;
   const whatsappUrl = `https://wa.me/?text=${whatsappText}`;
+
 
   const copyLink = async () => {
     try {
@@ -49,6 +53,7 @@ function ShareButtons({ productName, productBrand, price, carMake, carModel, pro
     setTimeout(() => setCopied(false), 2500);
   };
 
+
   const handleShare = async () => {
     if (navigator.share) {
       try {
@@ -63,8 +68,10 @@ function ShareButtons({ productName, productBrand, price, carMake, carModel, pro
     }
   };
 
+
   return (
     <div style={{ position: 'relative', display: 'inline-block', flexShrink: 0 }}>
+
 
       {/* Main button */}
       <button
@@ -86,6 +93,7 @@ function ShareButtons({ productName, productBrand, price, carMake, carModel, pro
       >
         <Share2 size={18} /> مشاركة
       </button>
+
 
       {/* Desktop dropdown */}
       {open && (
@@ -111,6 +119,7 @@ function ShareButtons({ productName, productBrand, price, carMake, carModel, pro
               شارك المنتج عبر
             </p>
 
+
             {/* WhatsApp */}
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
               onClick={() => setOpen(false)} style={shareBtnStyle('#25D366')}>
@@ -120,11 +129,13 @@ function ShareButtons({ productName, productBrand, price, carMake, carModel, pro
               واتساب
             </a>
 
+
             {/* Facebook */}
             <a href={facebookUrl} target="_blank" rel="noopener noreferrer"
               onClick={() => setOpen(false)} style={shareBtnStyle('#1877F2')}>
               <Facebook size={17} fill="white" color="white" /> فيسبوك
             </a>
+
 
             {/* Twitter / X */}
             <a href={twitterUrl} target="_blank" rel="noopener noreferrer"
@@ -132,7 +143,9 @@ function ShareButtons({ productName, productBrand, price, carMake, carModel, pro
               <Twitter size={17} fill="white" color="white" /> تويتر / X
             </a>
 
+
             <div style={{ height: '1px', backgroundColor: '#f0f0f0', margin: '2px 0' }} />
+
 
             {/* Copy link */}
             <button
@@ -145,6 +158,7 @@ function ShareButtons({ productName, productBrand, price, carMake, carModel, pro
           </div>
         </>
       )}
+
 
       {/* Copied toast */}
       {copied && !open && (
@@ -163,6 +177,7 @@ function ShareButtons({ productName, productBrand, price, carMake, carModel, pro
   );
 }
 
+
 function shareBtnStyle(bg: string): React.CSSProperties {
   return {
     display: 'flex', alignItems: 'center', gap: '9px',
@@ -176,14 +191,17 @@ function shareBtnStyle(bg: string): React.CSSProperties {
 // ──────────────────────────────────────────────────────────────────────────────
 
 
+
 function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImages: Record<string, string> }) {
   const [qty, setQty] = useState(1);
   const { addToCart } = useCart();
+
 
   const subcatKey = p.subcategory?.trim().toUpperCase();
   const fallbackImage = subcategoryImages[subcatKey] || null;
   const displayImage = p.image_url || fallbackImage || null;
   const country = p.country_of_origin || p.country_origin || p.origin || null;
+
 
   return (
     <div style={premiumCardStyle}>
@@ -205,6 +223,7 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
         </div>
       </Link>
 
+
       {/* Details */}
       <div style={premiumDetails}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -214,9 +233,11 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
           )}
         </div>
 
+
         <Link href={`/products/${p.id}`} style={{ textDecoration: 'none' }}>
           <h3 style={premiumName}>{p.name}</h3>
         </Link>
+
 
         <div style={carInfoBox}>
           {p.car_make && (
@@ -232,6 +253,7 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
             <div style={carInfoRow}><Layers size={11} color="#27ae60" /><span>{p.subcategory}</span></div>
           )}
         </div>
+
 
         <div style={premiumPriceRow}>
           <div style={premiumPriceCol}>
@@ -250,6 +272,7 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
           </div>
         </div>
 
+
         <button onClick={() => addToCart({ ...p, price: p.sale_price || p.regular_price }, qty)} style={premiumAddBtn}>
           <ShoppingCart size={14} /> إضافة
         </button>
@@ -257,6 +280,7 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
     </div>
   );
 }
+
 
 
 export default function ProductDetailsClient({ initialProduct, productId }: { initialProduct: any, productId: string }) {
@@ -268,9 +292,11 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
   const [imgError, setImgError] = useState(false);
   const { addToCart } = useCart();
 
+
   useEffect(() => {
     async function fetchRelated() {
       if (!product) return;
+
 
       const [relatedRes, subcatRes] = await Promise.all([
         supabase.from('products')
@@ -283,6 +309,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         supabase.from('category_images').select('name, image_url'),
       ]);
 
+
       if (subcatRes.data) {
         const map: Record<string, string> = {};
         subcatRes.data.forEach(img => {
@@ -292,6 +319,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         });
         setSubcategoryImages(map);
       }
+
 
       if (relatedRes.data) {
         const subcatCountMap = new Map();
@@ -308,6 +336,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
     }
     fetchRelated();
   }, [product]);
+
 
   const generateAutoDescription = () => {
     if (!product) return "";
@@ -328,11 +357,14 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
     return desc;
   };
 
+
   if (loading && !product) return <div style={loaderWrapper}><Loader2 className="animate-spin" color="#27ae60" size={50} /></div>;
   if (!product) return <div style={{ textAlign: 'center', padding: '100px' }}>المنتج غير موجود.</div>;
 
+
   const imageUrl = !imgError && product.image_url ? product.image_url : null;
   const displayPrice = product.sale_price && Number(product.sale_price) > 0 ? product.sale_price : product.regular_price;
+
 
   return (
     <>
@@ -346,12 +378,14 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           min-height: 100vh;
         }
 
+
         .product-main-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 50px;
           margin-bottom: 50px;
         }
+
 
         .product-image-box {
           background: #f9f9f9;
@@ -365,6 +399,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           position: relative;
         }
 
+
         .product-main-img {
           width: 100%;
           height: 100%;
@@ -372,6 +407,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           display: block;
           border-radius: 24px;
         }
+
 
         .product-img-placeholder {
           display: flex;
@@ -386,17 +422,20 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           text-align: center;
         }
 
+
         .product-info-section {
           display: flex;
           flex-direction: column;
           gap: 20px;
         }
 
+
         .action-row-mobile {
           display: flex;
           gap: 12px;
           align-items: center;
         }
+
 
         .add-to-cart-btn {
           flex: 1;
@@ -416,6 +455,42 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           font-family: inherit;
         }
 
+
+        .buy-now-btn {
+          width: 100%;
+          background: #22c55e;
+          color: #fff;
+          border: none;
+          border-radius: 15px;
+          padding: 16px 20px;
+          font-weight: 900;
+          font-size: 1rem;
+          cursor: pointer;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 10px;
+          box-shadow: 0 10px 20px rgba(34, 197, 94, 0.25);
+          font-family: inherit;
+          text-decoration: none;
+          transition: all 0.2s;
+        }
+
+        .buy-now-btn:hover {
+          background: #16a34a;
+          transform: translateY(-1px);
+          box-shadow: 0 14px 24px rgba(34,197,94,0.35);
+        }
+
+        @media (max-width: 768px) {
+          .buy-now-btn {
+            padding: 18px;
+            font-size: 1.1rem;
+            border-radius: 18px;
+          }
+        }
+
+
         .qty-stepper {
           display: flex;
           align-items: center;
@@ -426,6 +501,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           flex-shrink: 0;
         }
 
+
         /* Share row — sits below the cart button */
         .share-row {
           display: flex;
@@ -433,15 +509,18 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           gap: 12px;
         }
 
+
         /* Related section swiper fix */
         .related-swiper .swiper-slide {
           height: auto !important;
         }
 
+
         @media (max-width: 768px) {
           .product-page-wrapper {
             padding: 12px 12px 80px;
           }
+
 
           .product-main-grid {
             grid-template-columns: 1fr;
@@ -449,33 +528,40 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             margin-bottom: 30px;
           }
 
+
           .product-image-box {
             min-height: 260px;
             border-radius: 18px;
           }
 
+
           .product-main-img {
             border-radius: 18px;
           }
+
 
           .product-title-mobile {
             font-size: 1.6rem !important;
             line-height: 1.3 !important;
           }
 
+
           .product-price-mobile {
             font-size: 1.8rem !important;
           }
+
 
           .spec-grid-mobile {
             grid-template-columns: 1fr 1fr !important;
             gap: 12px !important;
           }
 
+
           .action-row-mobile {
             flex-direction: column;
             gap: 10px;
           }
+
 
           .add-to-cart-btn {
             width: 100%;
@@ -484,10 +570,12 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             border-radius: 18px;
           }
 
+
           .qty-stepper {
             width: 100%;
             justify-content: center;
           }
+
 
           /* Full-width share button on mobile */
           .share-row {
@@ -501,6 +589,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             justify-content: center;
           }
 
+
           .related-header-mobile {
             flex-direction: column !important;
             align-items: flex-start !important;
@@ -508,10 +597,12 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           }
         }
 
+
         @media (max-width: 480px) {
           .product-image-box {
             min-height: 220px;
           }
+
 
           .spec-grid-mobile {
             grid-template-columns: 1fr 1fr !important;
@@ -519,7 +610,9 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         }
       `}</style>
 
+
       <div className="product-page-wrapper">
+
 
         {/* Breadcrumb */}
         <div style={navPath}>
@@ -528,8 +621,10 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           <span style={currentPath}>{product.category}</span>
         </div>
 
+
         {/* Main Grid */}
         <div className="product-main-grid">
+
 
           {/* Image */}
           <div className="product-image-box">
@@ -548,15 +643,19 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             )}
           </div>
 
+
           {/* Info */}
           <div className="product-info-section">
+
 
             <div style={brandHeader}>
               <span style={brandTag}>{product.brand}</span>
               <div style={stockStatus}><CheckCircle2 size={16} /> متوفر</div>
             </div>
 
+
             <h1 className="product-title-mobile" style={productTitle}>{product.name}</h1>
+
 
             <div style={priceContainer}>
               {product.sale_price && Number(product.sale_price) > 0 ? (
@@ -568,6 +667,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                 <span className="product-price-mobile" style={currentPrice}>{product.regular_price} <small>ج.م</small></span>
               )}
             </div>
+
 
             {/* Specs */}
             <div style={specCard}>
@@ -586,6 +686,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
               </div>
             </div>
 
+
             {/* Qty + Cart */}
             <div className="action-row-mobile">
               <div className="qty-stepper">
@@ -597,6 +698,17 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                 <ShoppingCart size={20} /> إضافة للسلة
               </button>
             </div>
+            {/* ── BUY NOW ── */}
+            <Link
+              href={`/checkout?buyNow=true&productId=${productId}&price=${displayPrice}`}
+              onClick={() => addToCart({ ...product, price: displayPrice }, qty)}
+              className="buy-now-btn"
+            >
+              <Zap size={20} fill="#fff" />
+              اشتري الآن
+            </Link>
+            {/* ─────────── */}
+
 
             {/* Share row — directly below cart button */}
             <div className="share-row">
@@ -610,6 +722,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
               />
             </div>
 
+
             {/* Trust Badges */}
             <div style={trustBadges}>
               <div style={badgeItem}><ShieldCheck size={16} color="#27ae60" /> قطع غيار أصلية ومختبرة</div>
@@ -618,11 +731,13 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           </div>
         </div>
 
+
         {/* Description */}
         <div style={descriptionSection}>
           <h2 style={descTitle}>وصف المنتج</h2>
           <div style={descContent}>{generateAutoDescription()}</div>
         </div>
+
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
@@ -637,6 +752,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                 <button id="next-related" style={navCircleBtn}><ChevronLeft size={22} /></button>
               </div>
             </div>
+
 
             <div style={swiperOuterContainer}>
               <Swiper
@@ -669,7 +785,9 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
 }
 
 
+
 // ─── Styles ────────────────────────────────────────────────────────────────────
+
 
 const carouselFullWrapper: any = { marginTop: '40px', borderTop: '1px solid #f0f0f0', paddingTop: '30px' };
 const relatedHeader: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' };
@@ -677,6 +795,7 @@ const relatedTitle: any = { fontSize: '1.3rem', fontWeight: '900', color: '#1a1a
 const customNavWrapper: any = { display: 'flex', gap: '10px' };
 const navCircleBtn: any = { width: '38px', height: '38px', borderRadius: '50%', border: '1px solid #eee', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#1a1a1a' };
 const swiperOuterContainer: any = { position: 'relative', width: '100%' };
+
 
 const premiumCardStyle: any = { background: '#fff', borderRadius: '16px', border: '1px solid #f0f0f0', overflow: 'hidden', height: '100%', boxShadow: '0 4px 15px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', width: '100%' };
 const premiumImageArea: any = { height: '160px', background: '#f8f9fa', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', flexShrink: 0 };
@@ -697,6 +816,7 @@ const premiumStepper: any = { display: 'flex', alignItems: 'center', gap: '5px' 
 const miniStepBtn: any = { width: '22px', height: '22px', borderRadius: '50%', border: 'none', background: '#27ae60', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 };
 const miniQty: any = { fontSize: '0.8rem', fontWeight: 'bold', color: '#27ae60', minWidth: '15px', textAlign: 'center' };
 const premiumAddBtn: any = { width: '100%', background: '#1a1a1a', color: '#fff', border: 'none', padding: '9px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', marginTop: '6px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', fontFamily: 'inherit' };
+
 
 const navPath: any = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', fontSize: '0.88rem', color: '#888', flexWrap: 'wrap' };
 const backLink: any = { display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#1a1a1a', fontWeight: 'bold' };
