@@ -417,18 +417,18 @@ export default function HomePage() {
            */
           @media (max-width: 768px) {
             .hero-section {
-              height: 650px;        /* fixed — never grows */
+              height: 720px;        /* taller to show more of the background image */
             }
             .hero-content-layer {
               position: absolute; inset: 0; z-index: 10;
               display: flex; align-items: flex-start;
               padding-top: 68px;
-              overflow: hidden;     /* ← kills the inner scroll */
+              overflow: hidden;
             }
             .hero-inner {
               width: 100%; padding: 0 14px;
               box-sizing: border-box;
-              display: flex; flex-direction: column; gap: 12px;
+              display: flex; flex-direction: column; gap: 28px; /* more space between text and card */
             }
             .hero-text {
               text-align: center; display: flex;
@@ -444,7 +444,7 @@ export default function HomePage() {
               font-size: 0.88rem !important;
               max-width: 92%;
               margin-left: auto !important; margin-right: auto !important;
-              margin-bottom: 10px !important;
+              margin-bottom: 20px !important; /* more space between subtitle and CTA */
               line-height: 1.4 !important;
             }
             .hero-card-desktop { display: none; }
@@ -456,9 +456,9 @@ export default function HomePage() {
             }
           }
 
-          /* Very small phones — shave a touch more */
+          /* Very small phones */
           @media (max-width: 380px) {
-            .hero-section       { height: 680px; }
+            .hero-section       { height: 740px; }
             .hero-content-layer { padding-top: 54px; }
             .hero-text h1       { font-size: 1.45rem !important; }
             .hero-text p        { font-size: 0.82rem !important; }
