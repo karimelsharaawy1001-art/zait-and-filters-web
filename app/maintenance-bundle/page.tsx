@@ -375,6 +375,7 @@ export default function MaintenanceBundlePage() {
       fontSize: '0.85rem',
       direction: 'rtl',
       background: '#fff',
+      cursor: 'pointer', // ✅ shows pointer cursor since it's click-only now
     }),
     menu: (base: any) => ({ ...base, zIndex: 9999, direction: 'rtl' }),
     option: (base: any, state: any) => ({
@@ -382,6 +383,7 @@ export default function MaintenanceBundlePage() {
       backgroundColor: state.isFocused ? '#f0fdf4' : '#fff',
       color: '#1a1a1a',
       fontSize: '0.85rem',
+      cursor: 'pointer',
     }),
   };
 
@@ -490,11 +492,32 @@ export default function MaintenanceBundlePage() {
           <div className="car-selector-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
             <div>
               <label style={{ display: 'block', fontWeight: '700', fontSize: '0.8rem', marginBottom: '5px', color: '#555' }}>الماركة</label>
-              <Select instanceId="bundle-make" options={makesOptions} styles={customSelectStyles} placeholder="اختر الماركة" isRtl={true} value={selectedMake} onChange={(opt: any) => handleMakeChange(opt)} isClearable />
+              <Select
+                instanceId="bundle-make"
+                options={makesOptions}
+                styles={customSelectStyles}
+                placeholder="اختر الماركة"
+                isRtl={true}
+                isSearchable={false}
+                value={selectedMake}
+                onChange={(opt: any) => handleMakeChange(opt)}
+                isClearable
+              />
             </div>
             <div>
               <label style={{ display: 'block', fontWeight: '700', fontSize: '0.8rem', marginBottom: '5px', color: '#555' }}>الموديل</label>
-              <Select instanceId="bundle-model" options={modelsOptions} styles={customSelectStyles} placeholder="اختر الموديل" isRtl={true} value={selectedModel} onChange={(opt: any) => handleModelChange(opt)} isDisabled={!selectedMake} isClearable />
+              <Select
+                instanceId="bundle-model"
+                options={modelsOptions}
+                styles={customSelectStyles}
+                placeholder="اختر الموديل"
+                isRtl={true}
+                isSearchable={false}
+                value={selectedModel}
+                onChange={(opt: any) => handleModelChange(opt)}
+                isDisabled={!selectedMake}
+                isClearable
+              />
             </div>
             <div>
               <label style={{ display: 'block', fontWeight: '700', fontSize: '0.8rem', marginBottom: '5px', color: '#555' }}>
@@ -507,6 +530,7 @@ export default function MaintenanceBundlePage() {
                 styles={customSelectStyles}
                 placeholder="اختر السنة"
                 isRtl={true}
+                isSearchable={false}
                 value={selectedYear}
                 onChange={(opt: any) => {
                   setSelectedYear(opt);
@@ -555,8 +579,6 @@ export default function MaintenanceBundlePage() {
                       {/* SLOT HEADER */}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: slot.isIncluded ? '14px' : '0' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
-
-                          {/* Colored icon circle */}
                           <div style={{
                             width: 34, height: 34, borderRadius: '50%',
                             background: cs.iconBg,
@@ -571,11 +593,9 @@ export default function MaintenanceBundlePage() {
                                 : cs.icon
                             }
                           </div>
-
                           <span className="slot-header-title" style={{ fontWeight: '900', fontSize: '0.92rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {slot.category}
                           </span>
-
                           {!slot.loading && (
                             <span style={{
                               flexShrink: 0, fontSize: '0.72rem', fontWeight: '700',
@@ -587,7 +607,6 @@ export default function MaintenanceBundlePage() {
                             </span>
                           )}
                         </div>
-
                         <button
                           onClick={() => toggleSlot(slotIdx)}
                           className="slot-toggle-btn"
@@ -667,6 +686,7 @@ export default function MaintenanceBundlePage() {
                                         styles={customSelectStyles}
                                         placeholder="النوع"
                                         isRtl={true}
+                                        isSearchable={false}
                                         value={item.selectedSubcat ? { value: item.selectedSubcat, label: item.selectedSubcat } : null}
                                         onChange={(opt: any) => handleSubcatChange(slotIdx, itemIdx, opt?.value ?? null)}
                                         isClearable
@@ -681,6 +701,7 @@ export default function MaintenanceBundlePage() {
                                       styles={customSelectStyles}
                                       placeholder={slot.loading ? 'جاري...' : itemBrands.length === 0 ? 'لا يوجد' : 'الماركة'}
                                       isRtl={true}
+                                      isSearchable={false}
                                       value={item.selectedBrand}
                                       onChange={(opt: any) => handleBrandChange(slotIdx, itemIdx, opt)}
                                       isDisabled={slot.loading || itemBrands.length === 0}
@@ -696,6 +717,7 @@ export default function MaintenanceBundlePage() {
                                       styles={customSelectStyles}
                                       placeholder="اختر المنتج"
                                       isRtl={true}
+                                      isSearchable={false}
                                       value={item.selectedProduct
                                         ? itemProducts.find((o: any) => o.value === item.selectedProduct.id) ?? null
                                         : null
