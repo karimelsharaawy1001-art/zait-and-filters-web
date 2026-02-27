@@ -23,6 +23,7 @@ import {
   ChevronRight,
   AlertCircle,
   AlertTriangle,
+  Zap,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/context/CartContext';
@@ -1204,6 +1205,11 @@ function StoreContent() {
             border-color: #22c55e !important;
             color: #22c55e !important;
           }
+          .buy-now-btn:hover {
+            background: #16a34a !important;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(34,197,94,0.4) !important;
+          }
         `,
         }}
       />
@@ -1472,6 +1478,17 @@ function StoreContent() {
                                 <ShoppingCart size={16} />
                                 أضف إلى السلة
                               </button>
+                              {/* ── BUY NOW ── */}
+                              <Link
+                                href={`/checkout?buyNow=true&productId=${product.id}&price=${price}`}
+                                onClick={() => addToCart({ ...product, price }, 1)}
+                                className="buy-now-btn"
+                                style={{ width: '100%', padding: '11px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', textDecoration: 'none', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(34,197,94,0.3)' }}
+                              >
+                                <Zap size={16} fill="#fff" />
+                                اشتري الآن
+                              </Link>
+                              {/* ─────────── */}
                             </div>
                           </div>
                         </motion.div>
