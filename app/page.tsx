@@ -715,6 +715,9 @@ export default function HomePage() {
                               <button style={cartBtnStyleSmall} onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, 1); toast.success('تمت الإضافة'); }}>
                                 <ShoppingCart size={16} /> أضف إلى السلة
                               </button>
+                              <Link href={`/checkout?buyNow=true&productId=${p.id}&price=${p.sale_price}`} style={buyNowBtnStyle} onClick={() => { addToCart({...p, price: p.sale_price}, 1); }}>
+                                ⚡ اشتري الآن
+                              </Link>
                             </div>
                           </div>
                         </div>
@@ -771,6 +774,9 @@ export default function HomePage() {
                               <button style={cartBtnStyleSmall} onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price || p.regular_price}, 1); toast.success('تمت الإضافة'); }}>
                                 <ShoppingCart size={16} /> أضف إلى السلة
                               </button>
+                              <Link href={`/checkout?buyNow=true&productId=${p.id}&price=${p.sale_price || p.regular_price}`} style={buyNowBtnStyle} onClick={() => { addToCart({...p, price: p.sale_price || p.regular_price}, 1); }}>
+                                ⚡ اشتري الآن
+                              </Link>
                             </div>
                           </div>
                         </div>
@@ -842,3 +848,4 @@ const arrowBtnSmall = { width: '32px', height: '32px', borderRadius: '8px', back
 const cartBtnStyleSmall: any = { width: '100%', padding: '12px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '1rem' };
 const stickyNotificationStyle: any = { position: 'fixed', bottom: '85px', left: '50%', transform: 'translateX(-50%)', backgroundColor: 'rgba(39,174,96,0.95)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', color: '#fff', padding: '12px 20px', borderRadius: '20px', zIndex: 1000, boxShadow: '0 10px 30px rgba(0,0,0,0.2)', width: 'max-content', maxWidth: '90%', border: '1px solid rgba(255,255,255,0.2)', direction: 'rtl' };
 const garageIconWrapMini: any = { width: '32px', height: '32px', borderRadius: '10px', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' };
+const buyNowBtnStyle: any = { width: '100%', padding: '12px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '1rem', textDecoration: 'none' };

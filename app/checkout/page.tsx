@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useCart } from '@/context/CartContext'; 
 import { supabase } from '@/app/lib/supabase';
 import { useRouter } from 'next/navigation';
@@ -15,9 +16,38 @@ import {
 export default function CheckoutPage() {
   const { cart, clearCart, isInitialized } = useCart();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { markAsRecovered } = useAbandonedCart();
   const [loading, setLoading] = useState(false);
   const [isReady, setIsReady] = useState(false);
+
+  // ── BUY NOW mode ──────────────────────────────────────────────────────────
+  const isBuyNow = searchParams.get('buyNow') === 'true';
+  const buyNowProductId = searchParams.get('productId');
+  const buyNowPrice = searchParams.get('price');
+  const [buyNowProduct, setBuyNowProduct] = useState<any>(null);
+
+  // checkoutItems = single product (buyNow) OR full cart
+  const checkoutItems = useMemo(() => {
+    if (isBuyNow && buyNowProduct) {
+      return [{ ...buyNowProduct, price: buyNowPrice || buyNowProduct.sale_price || buyNowProduct.regular_price, quantity: 1 }];
+    }
+    return cart;
+  }, [isBuyNow, buyNowProduct, buyNowPrice, cart]);
+
+  // Fetch the buyNow product if needed
+  useEffect(() => {
+    if (isBuyNow && buyNowProductId) {
+      supabase
+        .from('products')
+        .select('*')
+        .eq('id', buyNowProductId)
+        .single()
+        .then(({ data }) => {
+          if (data) setBuyNowProduct(data);
+        });
+    }
+  }, [isBuyNow, buyNowProductId]);
 
   // ── NEW: track completed order for invoice button ──
   const [completedOrderId, setCompletedOrderId] = useState<string | null>(null);
@@ -115,7 +145,8 @@ export default function CheckoutPage() {
     }
   };
 
-  const subtotal = useMemo(() => cart.reduce((sum: number, item: any) => sum + (parseFloat(item.price) * item.quantity), 0), [cart]);
+  // ── subtotal and finalTotal now use checkoutItems ──
+  const subtotal = useMemo(() => checkoutItems.reduce((sum: number, item: any) => sum + (parseFloat(item.price) * item.quantity), 0), [checkoutItems]);
   
   const finalTotal = useMemo(() => {
     const shipping = selectedCity?.price || 0;
@@ -125,16 +156,23 @@ export default function CheckoutPage() {
     return total > 0 ? total : 0;
   }, [subtotal, selectedCity, discountAmount, appliedPromoType]);
 
-  useEffect(() => { if (isInitialized) setTimeout(() => setIsReady(true), 800); }, [isInitialized]);
+  useEffect(() => { 
+    if (isBuyNow) {
+      // In buyNow mode, ready as soon as shipping loads (product fetch is fast)
+      if (shippingRates.length > 0) setTimeout(() => setIsReady(true), 400);
+    } else {
+      if (isInitialized) setTimeout(() => setIsReady(true), 800); 
+    }
+  }, [isInitialized, isBuyNow, shippingRates]);
 
   const trackAbandonedCart = async () => {
-    if (!customerInfo.email || cart.length === 0) return;
+    if (!customerInfo.email || checkoutItems.length === 0) return;
     try {
       await supabase.from('abandoned_carts').upsert({
         email: customerInfo.email,
         customer_name: customerInfo.name,
         customer_phone: customerInfo.phone,
-        cart_items: cart,
+        cart_items: checkoutItems,
         total_price: finalTotal,
         status: 'abandoned',
         updated_at: new Date().toISOString()
@@ -355,7 +393,9 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (subtotal <= 0) return toast.error('السلة فارغة');
+
+    // Guard: need items (from cart or buyNow)
+    if (subtotal <= 0) return toast.error('لا توجد منتجات في الطلب');
     
     if (paymentMethod !== 'card_installments' && !screenshot) {
       return toast.error('يرجى رفع سكرين شوت التحويل');
@@ -392,7 +432,7 @@ export default function CheckoutPage() {
         discount_applied: appliedPromoType === 'free_shipping' ? selectedCity?.price : discountAmount, 
         promo_code: appliedPromo, 
         total_price: finalTotal,
-        items: cart, 
+        items: checkoutItems,   // ← uses checkoutItems (buyNow or cart)
         payment_method: paymentMethod,
         payment_screenshot_url: uploadedImageUrl,
         car_mileage: carMileage,
@@ -416,12 +456,13 @@ export default function CheckoutPage() {
       if (paymentMethod === 'card_installments') {
         await initiateEasyKashPayment(newOrder.id);
       } else {
-        // ── FIX: snapshot cart & totals BEFORE clearCart so invoice renders correctly ──
-        setCompletedOrderItems([...cart]);
+        // Snapshot before clearing
+        setCompletedOrderItems([...checkoutItems]);
         setCompletedSubtotal(subtotal);
         setCompletedFinalTotal(finalTotal);
         setCompletedOrderId(newOrder.id);
-        clearCart();
+        // Only clear cart if not in buyNow mode (buyNow doesn't touch the cart)
+        if (!isBuyNow) clearCart();
         toast.success('تم تسجيل طلبك بنجاح! 🎉');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         setLoading(false);
@@ -432,7 +473,12 @@ export default function CheckoutPage() {
     }
   };
 
-  if (!isReady || shippingRates.length === 0) return <div style={loaderStyle}><Loader2 className="animate-spin" size={40} color="#15803d" /> جاري تجهيز الطلب...</div>;
+  // ── Loading guard ──────────────────────────────────────────────────────────
+  // In buyNow mode wait for both shipping AND the product to load
+  const buyNowReady = isBuyNow ? (buyNowProduct !== null && shippingRates.length > 0) : true;
+  if (!isReady || shippingRates.length === 0 || !buyNowReady) {
+    return <div style={loaderStyle}><Loader2 className="animate-spin" size={40} color="#15803d" /> جاري تجهيز الطلب...</div>;
+  }
 
   // ── ORDER SUCCESS SCREEN with Invoice ─────────────────────────────────────
   if (completedOrderId) {
@@ -558,7 +604,6 @@ export default function CheckoutPage() {
             {[
               { label: 'رقم الطلب', value: `#${orderNum}` },
               { label: 'تاريخ الطلب', value: orderDate },
-              // ── FIX: use completedOrderItems instead of cart ──
               { label: 'عدد المنتجات', value: `${completedOrderItems.length} منتج` },
             ].map((item, i) => (
               <div key={i} style={{ padding: '18px 22px', borderRight: i < 2 ? '1px solid #f0f0f0' : 'none' }}>
@@ -597,7 +642,6 @@ export default function CheckoutPage() {
                   <div key={i} style={{ fontSize: '0.68rem', fontWeight: '800', color: '#94a3b8', textAlign: i === 0 ? 'right' : 'center', textTransform: 'uppercase' }}>{h}</div>
                 ))}
               </div>
-              {/* ── FIX: use completedOrderItems instead of cart ── */}
               {completedOrderItems.map((item: any, i: number) => (
                 <div key={item.id} style={{
                   display: 'grid', gridTemplateColumns: '2.5fr 0.7fr 1fr 1fr',
@@ -624,7 +668,6 @@ export default function CheckoutPage() {
               <div style={{ width: '270px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.86rem' }}>
                   <span style={{ color: '#666', fontWeight: '700' }}>المجموع الجزئي</span>
-                  {/* ── FIX: use completedSubtotal instead of subtotal ── */}
                   <span style={{ fontWeight: '800' }}>{completedSubtotal.toFixed(2)} ج.م</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.86rem' }}>
@@ -646,7 +689,6 @@ export default function CheckoutPage() {
                   background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: '12px',
                 }}>
                   <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.82rem', fontWeight: '700' }}>الإجمالي الكلي</span>
-                  {/* ── FIX: use completedFinalTotal instead of finalTotal ── */}
                   <span style={{ color: '#22c55e', fontSize: '1.35rem', fontWeight: '900' }}>{completedFinalTotal.toFixed(2)} ج.م</span>
                 </div>
               </div>
@@ -691,15 +733,29 @@ export default function CheckoutPage() {
         .promo-btn:hover { background: #1a1a1a !important; color: #fff !important; transform: scale(1.02); }
         input:focus, select:focus, textarea:focus { border-color: #15803d !important; box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1); }
       `}} />
+
+      {/* Buy Now banner */}
+      {isBuyNow && (
+        <div style={{ background: 'linear-gradient(135deg, #0f172a, #14532d)', color: '#fff', borderRadius: '16px', padding: '14px 24px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '1.5rem' }}>⚡</span>
+            <div>
+              <div style={{ fontWeight: '900', fontSize: '1rem' }}>شراء فوري</div>
+              <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>سيتم تخطي السلة والانتقال مباشرة للدفع</div>
+            </div>
+          </div>
+          <Link href="/cart" style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.5)', textDecoration: 'underline' }}>العودة للسلة</Link>
+        </div>
+      )}
       
       <h1 style={title}>🏁 إتمام عملية الشراء</h1>
       <div style={layoutGrid}>
         
         <div style={summarySide}>
-          {/* ── Changed فاتورتك → ORDER ── */}
           <h3 style={sectionTitle}><ShoppingCart size={18} /> تفاصيل ORDER</h3>
           <div style={itemsList}>
-            {cart.map((item: any) => {
+            {/* Use checkoutItems so buyNow shows only the single product */}
+            {checkoutItems.map((item: any) => {
                const country = item.country_origin || item.country_of_origin || 'أصلي';
                return (
                 <div key={item.id} style={cartItem}>
