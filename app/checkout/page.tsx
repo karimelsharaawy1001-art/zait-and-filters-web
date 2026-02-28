@@ -207,7 +207,6 @@ export default function CheckoutPage() {
 
       setAppliedPromoType(data.discount_type);
       setAppliedPromo(data.code);
-
       if (data.discount_type === 'free_shipping') {
         setDiscountAmount(0);
         toast.success(`مبروك! تم تطبيق الشحن المجاني 🚚`);
@@ -429,7 +428,6 @@ export default function CheckoutPage() {
 
       await markAsRecovered(newOrder.id);
       localStorage.removeItem('zf_marketer_ref');
-
       if (paymentMethod === 'card_installments') {
         await initiateEasyKashPayment(newOrder.id);
       } else {
@@ -569,7 +567,6 @@ export default function CheckoutPage() {
               <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.78rem' }}>{orderDate}</span>
             </div>
           </div>
-
           {/* Meta row */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderBottom: '1px solid #f0f0f0' }}>
             {[
@@ -635,7 +632,6 @@ export default function CheckoutPage() {
               ))}
               <div style={{ height: '4px', backgroundColor: '#0f172a', borderRadius: '0 0 10px 10px' }} />
             </div>
-
             {/* Totals */}
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <div style={{ width: '270px' }}>
@@ -753,7 +749,6 @@ export default function CheckoutPage() {
             </div>
             {appliedPromo && <p style={promoSuccessText}>✅ تم تطبيق الكود "{appliedPromo}" بنجاح! {appliedPromoType === 'free_shipping' ? 'تم تصفير مصاريف الشحن 🚚' : appliedPromoType === 'affiliate_percentage' ? `خصم ${discountAmount.toFixed(2)} ج.م` : `تم خصم ${discountAmount.toFixed(2)} ج.م`}</p>}
           </div>
-
           <div style={totalBox}>
             <div style={rowPrice}><span>إجمالي المنتجات:</span><span>{subtotal.toFixed(2)} ج.م</span></div>
             <div style={rowPrice}>
@@ -810,7 +805,7 @@ export default function CheckoutPage() {
                 <input type="radio" value="card_installments" checked={paymentMethod === 'card_installments'} onChange={(e) => setPaymentMethod(e.target.value)} style={hideRadio}/>
                 <div style={payCardInner}>
                   <div style={payHeader}>
-                    <div style={payIconWrapper}><CreditCard size={22} color={paymentMethod === 'card_installments' ? '#15803d' : '#666'} /></div>
+                    <div style={payIconWrapper}><CreditCard size={16} color={paymentMethod === 'card_installments' ? '#15803d' : '#666'} /></div>
                     <div style={payTextContent}>
                       <span style={payTitle}>دفع بالتقسيط أو البطاقة</span>
                       <span style={paySubTitle}>أمان، فوري، فاليو، كونتكت، البنك الأهلي والعديد..</span>
@@ -833,7 +828,7 @@ export default function CheckoutPage() {
                 <input type="radio" value="instapay" checked={paymentMethod === 'instapay'} onChange={(e) => setPaymentMethod(e.target.value)} style={hideRadio}/>
                 <div style={payCardInner}>
                   <div style={payHeader}>
-                    <div style={payIconWrapper}><SmartphoneNfc size={22} color={paymentMethod === 'instapay' ? '#15803d' : '#666'} /></div>
+                    <div style={payIconWrapper}><SmartphoneNfc size={16} color={paymentMethod === 'instapay' ? '#15803d' : '#666'} /></div>
                     <div style={payTextContent}><span style={payTitle}>تطبيق انستا باي (InstaPay)</span></div>
                   </div>
                   <div style={logosGrid}>
@@ -853,7 +848,7 @@ export default function CheckoutPage() {
                 <input type="radio" value="wallets" checked={paymentMethod === 'wallets'} onChange={(e) => setPaymentMethod(e.target.value)} style={hideRadio}/>
                 <div style={payCardInner}>
                   <div style={payHeader}>
-                    <div style={payIconWrapper}><Wallet size={22} color={paymentMethod === 'wallets' ? '#15803d' : '#666'} /></div>
+                    <div style={payIconWrapper}><Wallet size={16} color={paymentMethod === 'wallets' ? '#15803d' : '#666'} /></div>
                     <div style={payTextContent}><span style={payTitle}>محافظ إلكترونية (كاش)</span></div>
                   </div>
                   <div style={logosGrid}>
@@ -904,21 +899,23 @@ const itemsList: any = { maxHeight: '350px', overflowY: 'auto' };
 const detailsGrid = { display: 'flex', flexDirection: 'column' as const, gap: '3px', marginTop: '8px' };
 const detailItem = { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#666' };
 const qtyBadge = { backgroundColor: '#f0fdf4', color: '#15803d', padding: '4px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800' };
-const paymentContainer: any = { display: 'flex', flexDirection: 'column', gap: '12px' };
-const paymentCard = (isActive: boolean) => ({ display: 'block', padding: '18px', borderRadius: '20px', border: isActive ? '2.5px solid #15803d' : '1px solid #eee', background: isActive ? '#f7fff9' : '#fff', cursor: 'pointer', transition: '0.3s', boxShadow: isActive ? '0 5px 15px rgba(21, 128, 61, 0.1)' : 'none' });
-const payCardInner: any = { display: 'flex', flexDirection: 'column', gap: '10px' };
-const payHeader: any = { display: 'flex', alignItems: 'center', gap: '12px' };
-const payIconWrapper: any = { width: '45px', height: '45px', borderRadius: '14px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #f0f0f0', flexShrink: 0 };
+
+// ── Payment styles — compact & elegant ────────────────────────────────────────
+const paymentContainer: any = { display: 'flex', flexDirection: 'column', gap: '6px' };
+const paymentCard = (isActive: boolean) => ({ display: 'block', padding: '10px 14px', borderRadius: '12px', border: isActive ? '2px solid #15803d' : '1px solid #e8e8e8', borderRight: isActive ? '4px solid #15803d' : '1px solid #e8e8e8', background: isActive ? '#f7fff9' : '#fafafa', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: isActive ? '0 2px 10px rgba(21, 128, 61, 0.08)' : 'none' });
+const payCardInner: any = { display: 'flex', flexDirection: 'column', gap: '4px' };
+const payHeader: any = { display: 'flex', alignItems: 'center', gap: '10px' };
+const payIconWrapper: any = { width: '32px', height: '32px', borderRadius: '8px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #ececec', flexShrink: 0 };
 const payTextContent: any = { display: 'flex', flexDirection: 'column' };
-const payTitle: any = { fontWeight: '900', fontSize: '0.95rem', color: '#1a1a1a' };
-const paySubTitle: any = { fontSize: '0.75rem', color: '#777', fontWeight: '500' };
+const payTitle: any = { fontWeight: '800', fontSize: '0.85rem', color: '#1a1a1a' };
+const paySubTitle: any = { fontSize: '0.67rem', color: '#999', fontWeight: '500' };
 const hideRadio: any = { display: 'none' };
-const payDetailsBox: any = { marginTop: '12px', padding: '18px', background: '#fff', borderRadius: '15px', border: '1px dashed #15803d', display: 'flex', flexDirection: 'column', gap: '10px' };
-const actionBtnLink: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#1a1a1a', color: '#fff', padding: '12px', borderRadius: '12px', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 'bold', transition: '0.3s ease' };
-const uploadArea: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '2px dashed #15803d', color: '#15803d', padding: '12px', borderRadius: '12px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '900', transition: '0.3s ease' };
+const payDetailsBox: any = { marginTop: '6px', padding: '10px 12px', background: '#fff', borderRadius: '10px', border: '1px dashed #b6e9c8', display: 'flex', flexDirection: 'column', gap: '6px' };
+const actionBtnLink: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#1a1a1a', color: '#fff', padding: '9px 12px', borderRadius: '10px', textDecoration: 'none', fontSize: '0.82rem', fontWeight: 'bold', transition: '0.3s ease' };
+const uploadArea: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '1.5px dashed #15803d', color: '#15803d', padding: '8px 12px', borderRadius: '10px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: '800', transition: '0.3s ease' };
 const promoWrapper: any = { marginTop: '20px', padding: '15px', background: '#fff', borderRadius: '20px', border: '1px dashed #ddd', marginBottom: '15px' };
 const promoBtnStyle: any = { padding: '0 25px', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', transition: '0.3s ease', fontSize: '0.9rem' };
 const promoSuccessText: any = { fontSize: '0.8rem', color: '#15803d', marginTop: '10px', fontWeight: 'bold' };
-const logosGrid: any = { display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px', paddingRight: '57px' };
-const miniLogoImg: any = { height: '30px', width: 'auto', borderRadius: '6px', border: '1px solid #f0f0f0', padding: '2px', background: '#fff' };
-const paymentBadge: any = { display: 'inline-flex', alignItems: 'center', padding: '4px 10px', background: '#f0fdf4', color: '#15803d', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', border: '1px solid #dcfce7', whiteSpace: 'nowrap' };
+const logosGrid: any = { display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '3px', paddingRight: '42px' };
+const miniLogoImg: any = { height: '22px', width: 'auto', borderRadius: '4px', border: '1px solid #f0f0f0', padding: '1px', background: '#fff' };
+const paymentBadge: any = { display: 'inline-flex', alignItems: 'center', padding: '2px 7px', background: '#f0fdf4', color: '#15803d', borderRadius: '5px', fontSize: '0.65rem', fontWeight: '800', border: '1px solid #dcfce7', whiteSpace: 'nowrap' };
