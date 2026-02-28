@@ -807,7 +807,7 @@ export default function CheckoutPage() {
                   <div style={payHeader}>
                     <div style={payIconWrapper}><CreditCard size={16} color={paymentMethod === 'card_installments' ? '#15803d' : '#666'} /></div>
                     <div style={payTextContent}>
-                      <span style={payTitle}>دفع بالتقسيط أو البطاقة</span>
+                      <span style={payTitle}>دفع بالتقسيط أو الفيرا</span>
                     </div>
                   </div>
                   <div style={logosGrid}>
