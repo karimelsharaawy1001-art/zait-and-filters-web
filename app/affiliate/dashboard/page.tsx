@@ -10,12 +10,14 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+
 const TIER_CONFIG = {
   bronze: { name: 'برونزي', color: '#cd7f32', percentage: 5, minConversions: 0, icon: '🥉' },
   silver: { name: 'فضي', color: '#c0c0c0', percentage: 7, minConversions: 10, icon: '🥈' },
   gold: { name: 'ذهبي', color: '#ffd700', percentage: 10, minConversions: 20, icon: '🥇' },
   diamond: { name: 'ماسي', color: '#b9f2ff', percentage: 10, minConversions: 30, icon: '💎' }
 };
+
 
 export default function ProfessionalAffiliateDashboard() {
   const router = useRouter();
@@ -36,6 +38,7 @@ export default function ProfessionalAffiliateDashboard() {
   const [savingSettings, setSavingSettings] = useState(false);
   const hasRun = useRef(false);
 
+
   const generateReferralCode = (name: string) => {
     const cleaned = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
     const base = cleaned.slice(0, 4).padEnd(4, 'X');
@@ -43,12 +46,14 @@ export default function ProfessionalAffiliateDashboard() {
     return `${base}${random}`;
   };
 
+
   const generatePromoCode = (name: string) => {
     const cleaned = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
     const base = cleaned.slice(0, 5).padEnd(5, 'X');
     const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
     return `${base}${random}`;
   };
+
 
   useEffect(() => {
     if (hasRun.current) return;
@@ -62,24 +67,26 @@ export default function ProfessionalAffiliateDashboard() {
     async function loadDashboardData() {
       try {
         const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
+
         if (!user || userError) {
           toast.error('يجب تسجيل الدخول أولاً');
           router.push('/affiliate/login');
           return;
         }
 
+        // ── FIX 1: query by user_id, not id ──
         let { data: marketer, error: marketerError } = await supabase
           .from('marketers')
           .select('*')
-          .eq('id', user.id)
+          .eq('user_id', user.id)
           .single();
 
         if (marketerError || !marketer) {
           const userName = user.email?.split('@')[0] || 'User';
-          
+
+          // ── FIX 2: use user_id field, not id, so DB auto-generates the PK ──
           const newMarketer = {
-            id: user.id,
+            user_id: user.id,
             full_name: userName,
             email: user.email,
             referral_id: generateReferralCode(userName),
@@ -103,11 +110,11 @@ export default function ProfessionalAffiliateDashboard() {
 
           if (!insertError && inserted) {
             marketer = inserted;
-            
-            // Create promo code entry in promo_codes table
+
+            // ── FIX 3: use inserted.id (DB-generated PK) as marketer_id ──
             await supabase.from('promo_codes').insert([{
-              code: newMarketer.promo_code,
-              marketer_id: user.id,
+              code: inserted.promo_code,
+              marketer_id: inserted.id,
               discount_percentage: 5.00,
               is_active: true
             }]);
@@ -119,8 +126,7 @@ export default function ProfessionalAffiliateDashboard() {
         }
 
         setData(marketer);
-        
-        // Set withdrawal settings
+
         if (marketer.withdrawal_method) {
           setWithdrawalSettings({
             method: marketer.withdrawal_method,
@@ -128,19 +134,17 @@ export default function ProfessionalAffiliateDashboard() {
           });
         }
 
-        // Fetch commissions with pending calculation
         const { data: commissions, count } = await supabase
           .from('affiliate_commissions')
           .select('*', { count: 'exact' })
-          .eq('marketer_id', user.id)
+          .eq('marketer_id', marketer.id)
           .order('created_at', { ascending: false })
           .limit(10);
 
-        // Calculate pending commissions (not yet released)
         const { data: pendingComm } = await supabase
           .from('affiliate_commissions')
           .select('commission_amount')
-          .eq('marketer_id', user.id)
+          .eq('marketer_id', marketer.id)
           .eq('is_released', false);
 
         const pendingTotal = pendingComm?.reduce((sum, c) => sum + parseFloat(c.commission_amount), 0) || 0;
@@ -166,11 +170,12 @@ export default function ProfessionalAffiliateDashboard() {
         setLoading(false);
       }
     }
-    
+
     loadDashboardData();
 
     return () => clearTimeout(forceStopLoading);
   }, [router]);
+
 
   const saveWithdrawalSettings = async () => {
     if (!withdrawalSettings.phone || withdrawalSettings.phone.length < 11) {
@@ -181,17 +186,18 @@ export default function ProfessionalAffiliateDashboard() {
     setSavingSettings(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
+      // ── FIX 4: update by user_id, not id ──
       const { error } = await supabase
         .from('marketers')
         .update({
           withdrawal_method: withdrawalSettings.method,
           withdrawal_phone: withdrawalSettings.phone
         })
-        .eq('id', user?.id);
+        .eq('user_id', user?.id);
 
       if (error) throw error;
-      
+
       toast.success('تم حفظ إعدادات السحب بنجاح! ✅');
     } catch (error) {
       toast.error('حدث خطأ في حفظ الإعدادات');
@@ -200,10 +206,12 @@ export default function ProfessionalAffiliateDashboard() {
     }
   };
 
+
   const copyToClipboard = (text: string, msg: string) => {
     navigator.clipboard.writeText(text);
     toast.success(msg);
   };
+
 
   const referralLink = typeof window !== 'undefined' 
     ? `${window.location.origin}?ref=${data?.referral_id}` 
@@ -213,6 +221,7 @@ export default function ProfessionalAffiliateDashboard() {
   const nextTier = data?.total_conversions >= 30 ? null : 
                    data?.total_conversions >= 20 ? TIER_CONFIG.diamond :
                    data?.total_conversions >= 10 ? TIER_CONFIG.gold : TIER_CONFIG.silver;
+
 
   if (loading) {
     return (
@@ -224,6 +233,7 @@ export default function ProfessionalAffiliateDashboard() {
       </div>
     );
   }
+
 
   return (
     <div style={container}>
@@ -256,7 +266,6 @@ export default function ProfessionalAffiliateDashboard() {
         </div>
       </header>
 
-      {/* Tier Progress */}
       {nextTier && (
         <div style={tierProgress} className="slide-in">
           <div style={tierProgressHeader}>
@@ -272,45 +281,33 @@ export default function ProfessionalAffiliateDashboard() {
         </div>
       )}
 
-      {/* Stats Grid */}
       <div style={statsGrid} className="slide-in">
         <div style={{ ...statCard, borderTop: '4px solid #27ae60' }} className="stat-card">
-          <div style={statIconContainer}>
-            <DollarSign size={28} color="#27ae60" />
-          </div>
+          <div style={statIconContainer}><DollarSign size={28} color="#27ae60" /></div>
           <div style={statContent}>
             <p style={statLabel}>إجمالي الأرباح</p>
             <h2 style={statValue}>{data?.total_earnings?.toFixed(2) || '0.00'} ج.م</h2>
             <p style={statGrowth}>+{data?.tier_percentage || 5}% عمولة حالية</p>
           </div>
         </div>
-
         <div style={{ ...statCard, borderTop: '4px solid #3b82f6' }} className="stat-card">
-          <div style={{ ...statIconContainer, background: '#eff6ff' }}>
-            <Eye size={28} color="#3b82f6" />
-          </div>
+          <div style={{ ...statIconContainer, background: '#eff6ff' }}><Eye size={28} color="#3b82f6" /></div>
           <div style={statContent}>
             <p style={statLabel}>إجمالي النقرات</p>
             <h2 style={statValue}>{stats.total_clicks.toLocaleString()}</h2>
             <p style={statGrowth}>على رابط الإحالة</p>
           </div>
         </div>
-
         <div style={{ ...statCard, borderTop: '4px solid #f59e0b' }} className="stat-card">
-          <div style={{ ...statIconContainer, background: '#fef3c7' }}>
-            <ShoppingBag size={28} color="#f59e0b" />
-          </div>
+          <div style={{ ...statIconContainer, background: '#fef3c7' }}><ShoppingBag size={28} color="#f59e0b" /></div>
           <div style={statContent}>
             <p style={statLabel}>الإحالات الناجحة</p>
             <h2 style={statValue}>{stats.total_conversions}</h2>
             <p style={statGrowth}>{stats.conversion_rate}% معدل التحويل</p>
           </div>
         </div>
-
         <div style={{ ...statCard, borderTop: '4px solid #8b5cf6' }} className="stat-card">
-          <div style={{ ...statIconContainer, background: '#f3e8ff' }}>
-            <Wallet size={28} color="#8b5cf6" />
-          </div>
+          <div style={{ ...statIconContainer, background: '#f3e8ff' }}><Wallet size={28} color="#8b5cf6" /></div>
           <div style={statContent}>
             <p style={statLabel}>الرصيد المتاح</p>
             <h2 style={statValue}>{data?.balance?.toFixed(2) || '0.00'} ج.م</h2>
@@ -319,125 +316,68 @@ export default function ProfessionalAffiliateDashboard() {
         </div>
       </div>
 
-      {/* Pending Balance Notice */}
       {stats.pending_commissions > 0 && (
         <div style={pendingNotice} className="slide-in">
           <AlertCircle size={20} color="#f59e0b" />
           <div>
-            <p style={{ fontWeight: 'bold', marginBottom: '5px' }}>
-              لديك {stats.pending_commissions.toFixed(2)} ج.م عمولات معلقة
-            </p>
-            <p style={{ fontSize: '0.85rem', color: '#666' }}>
-              سيتم إضافتها للرصيد المتاح بعد 14 يوم من تاريخ التوصيل للتأكد من اكتمال البيع
-            </p>
+            <p style={{ fontWeight: 'bold', marginBottom: '5px' }}>لديك {stats.pending_commissions.toFixed(2)} ج.م عمولات معلقة</p>
+            <p style={{ fontSize: '0.85rem', color: '#666' }}>سيتم إضافتها للرصيد المتاح بعد 14 يوم من تاريخ التوصيل للتأكد من اكتمال البيع</p>
           </div>
         </div>
       )}
 
-      {/* Tools Section */}
       <div style={toolsSection} className="slide-in">
         <h3 style={sectionTitle}>🔗 أدواتك التسويقية</h3>
-        
         <div style={toolCard}>
-          <div style={toolHeader}>
-            <LinkIcon size={20} color="#27ae60" />
-            <span>رابط الإحالة الخاص بك</span>
-          </div>
+          <div style={toolHeader}><LinkIcon size={20} color="#27ae60" /><span>رابط الإحالة الخاص بك</span></div>
           <div style={codeBox}>
             <code style={codeText}>{referralLink}</code>
-            <button onClick={() => copyToClipboard(referralLink, 'تم نسخ الرابط!')} style={copyBtn} className="copy-btn">
-              <Copy size={16} />
-            </button>
+            <button onClick={() => copyToClipboard(referralLink, 'تم نسخ الرابط!')} style={copyBtn} className="copy-btn"><Copy size={16} /></button>
           </div>
           <p style={toolHint}>شارك هذا الرابط مع عملائك لتحصل على عمولة {currentTierConfig.percentage}% من كل عملية شراء</p>
         </div>
-
         <div style={toolCard}>
-          <div style={toolHeader}>
-            <Ticket size={20} color="#27ae60" />
-            <span>كود الخصم الحصري (خصم 5%)</span>
-          </div>
+          <div style={toolHeader}><Ticket size={20} color="#27ae60" /><span>كود الخصم الحصري (خصم 5%)</span></div>
           <div style={promoCodeDisplay}>
             <div style={promoCodeBadge}>{data?.promo_code || 'LOADING...'}</div>
-            <button onClick={() => copyToClipboard(data?.promo_code, 'تم نسخ الكود!')} style={copyBtn} className="copy-btn">
-              <Copy size={16} />
-            </button>
+            <button onClick={() => copyToClipboard(data?.promo_code, 'تم نسخ الكود!')} style={copyBtn} className="copy-btn"><Copy size={16} /></button>
           </div>
           <p style={toolHint}>أعطِ هذا الكود لعملائك للحصول على خصم 5% وتحصل أنت على عمولة {currentTierConfig.percentage}%</p>
         </div>
       </div>
 
-      {/* Withdrawal Settings */}
       <div style={withdrawalSection} className="slide-in">
         <h3 style={sectionTitle}>💳 إعدادات السحب</h3>
-        
         <div style={withdrawalCard}>
           <div style={inputGroup}>
             <label style={label}>طريقة السحب</label>
             <div style={radioGroup}>
               <label style={radioLabel}>
-                <input 
-                  type="radio" 
-                  value="instapay" 
-                  checked={withdrawalSettings.method === 'instapay'}
-                  onChange={(e) => setWithdrawalSettings({...withdrawalSettings, method: e.target.value})}
-                  style={radioInput}
-                />
-                <Smartphone size={18} />
-                <span>InstaPay</span>
+                <input type="radio" value="instapay" checked={withdrawalSettings.method === 'instapay'} onChange={(e) => setWithdrawalSettings({...withdrawalSettings, method: e.target.value})} style={radioInput} />
+                <Smartphone size={18} /><span>InstaPay</span>
               </label>
               <label style={radioLabel}>
-                <input 
-                  type="radio" 
-                  value="e-wallet" 
-                  checked={withdrawalSettings.method === 'e-wallet'}
-                  onChange={(e) => setWithdrawalSettings({...withdrawalSettings, method: e.target.value})}
-                  style={radioInput}
-                />
-                <CreditCardIcon size={18} />
-                <span>محفظة إلكترونية</span>
+                <input type="radio" value="e-wallet" checked={withdrawalSettings.method === 'e-wallet'} onChange={(e) => setWithdrawalSettings({...withdrawalSettings, method: e.target.value})} style={radioInput} />
+                <CreditCardIcon size={18} /><span>محفظة إلكترونية</span>
               </label>
             </div>
           </div>
-
           <div style={inputGroup}>
             <label style={label}>رقم الهاتف للسحب</label>
-            <input 
-              type="tel"
-              placeholder="01xxxxxxxxx"
-              value={withdrawalSettings.phone}
-              onChange={(e) => setWithdrawalSettings({...withdrawalSettings, phone: e.target.value})}
-              style={input}
-              maxLength={11}
-            />
+            <input type="tel" placeholder="01xxxxxxxxx" value={withdrawalSettings.phone} onChange={(e) => setWithdrawalSettings({...withdrawalSettings, phone: e.target.value})} style={input} maxLength={11} />
           </div>
-
-          <button 
-            onClick={saveWithdrawalSettings} 
-            disabled={savingSettings}
-            style={saveButton}
-            className="save-btn"
-          >
-            {savingSettings ? (
-              <Loader2 className="animate-spin" size={18} />
-            ) : (
-              <Save size={18} />
-            )}
+          <button onClick={saveWithdrawalSettings} disabled={savingSettings} style={saveButton} className="save-btn">
+            {savingSettings ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
             <span>{savingSettings ? 'جاري الحفظ...' : 'حفظ الإعدادات'}</span>
           </button>
         </div>
       </div>
 
-      {/* Recent Commissions */}
       <div style={commissionsSection} className="slide-in">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
           <h3 style={sectionTitle}>💰 آخر العمولات</h3>
-          <button style={refreshBtn} onClick={() => window.location.reload()}>
-            <RefreshCw size={16} />
-            <span>تحديث</span>
-          </button>
+          <button style={refreshBtn} onClick={() => window.location.reload()}><RefreshCw size={16} /><span>تحديث</span></button>
         </div>
-
         {stats.recent_commissions.length > 0 ? (
           <div style={tableWrapper}>
             <table style={table}>
@@ -456,29 +396,20 @@ export default function ProfessionalAffiliateDashboard() {
                   const releaseDate = comm.delivery_date 
                     ? new Date(new Date(comm.delivery_date).getTime() + 14 * 24 * 60 * 60 * 1000)
                     : null;
-                  
                   return (
                     <tr key={comm.id} style={tableRow}>
                       <td style={td}>{new Date(comm.created_at).toLocaleDateString('ar-EG')}</td>
                       <td style={td}>#{comm.order_id?.slice(0, 8)}</td>
                       <td style={td}>{comm.order_total.toFixed(2)} ج.م</td>
-                      <td style={{...td, color: '#27ae60', fontWeight: 'bold'}}>
-                        +{comm.commission_amount.toFixed(2)} ج.م
-                      </td>
+                      <td style={{...td, color: '#27ae60', fontWeight: 'bold'}}>+{comm.commission_amount.toFixed(2)} ج.م</td>
                       <td style={td}>
                         {comm.is_released ? (
-                          <div style={{...statusBadgeInTable, background: '#d1fae5', color: '#059669'}}>
-                            <CheckCircle size={14} /> متاح
-                          </div>
+                          <div style={{...statusBadgeInTable, background: '#d1fae5', color: '#059669'}}><CheckCircle size={14} /> متاح</div>
                         ) : (
-                          <div style={{...statusBadgeInTable, background: '#fef3c7', color: '#d97706'}}>
-                            <Clock size={14} /> معلق
-                          </div>
+                          <div style={{...statusBadgeInTable, background: '#fef3c7', color: '#d97706'}}><Clock size={14} /> معلق</div>
                         )}
                       </td>
-                      <td style={td}>
-                        {releaseDate ? releaseDate.toLocaleDateString('ar-EG') : 'قيد الانتظار'}
-                      </td>
+                      <td style={td}>{releaseDate ? releaseDate.toLocaleDateString('ar-EG') : 'قيد الانتظار'}</td>
                     </tr>
                   );
                 })}
@@ -496,6 +427,7 @@ export default function ProfessionalAffiliateDashboard() {
     </div>
   );
 }
+
 
 // Styles
 const container: any = { minHeight: '100vh', background: 'linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%)', padding: '40px 20px', direction: 'rtl' };
