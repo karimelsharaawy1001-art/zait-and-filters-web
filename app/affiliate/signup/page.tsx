@@ -14,7 +14,7 @@ export default function AffiliateSignup() {
     full_name: '',
     email: '',
     phone: '',
-    password: '',        // ── FIX: added password field ──
+    password: '',
   });
 
 
@@ -24,7 +24,6 @@ export default function AffiliateSignup() {
     const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
     return `${base}${random}`;
   };
-
 
   const generatePromoCode = (name: string) => {
     const cleaned = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
@@ -45,32 +44,79 @@ export default function AffiliateSignup() {
     setLoading(true);
 
     try {
-      // ── FIX 1: create a real Supabase Auth user first ──
+      // ── FIX 1: pre-check phone number BEFORE touching auth ──
+      // This prevents the unique constraint crash entirely
+      const { data: existingPhone } = await supabase
+        .from('marketers')
+        .select('id')
+        .eq('phone_number', formData.phone.trim())
+        .maybeSingle();
+
+      if (existingPhone) {
+        toast.error('رقم الموبايل مسجل بالفعل كمسوق');
+        setLoading(false);
+        return;
+      }
+
+      // ── FIX 2: pre-check email in marketers too ──
+      const { data: existingEmail } = await supabase
+        .from('marketers')
+        .select('id')
+        .eq('email', formData.email.trim().toLowerCase())
+        .maybeSingle();
+
+      if (existingEmail) {
+        toast.error('هذا البريد الإلكتروني مسجل بالفعل كمسوق');
+        setLoading(false);
+        return;
+      }
+
+      // ── FIX 3: handle case where user already has a normal account ──
+      // Try signUp first; if email already exists in auth, sign them in instead
+      let userId: string;
+
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
+        email: formData.email.trim(),
         password: formData.password,
         options: {
-          data: {
-            full_name: formData.full_name,
-            role: 'affiliate',
-          },
+          data: { full_name: formData.full_name, role: 'affiliate' },
         },
       });
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('فشل إنشاء المستخدم');
+      if (authError) {
+        // If email already registered in auth, sign them in to get their user_id
+        if (authError.message.includes('already registered') || authError.message.includes('already exists')) {
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email: formData.email.trim(),
+            password: formData.password,
+          });
+
+          if (signInError || !signInData.session) {
+            toast.error('هذا البريد مسجل مسبقاً — تأكد من كلمة المرور الصحيحة لحسابك');
+            setLoading(false);
+            return;
+          }
+
+          userId = signInData.session.user.id;
+        } else {
+          throw authError;
+        }
+      } else {
+        if (!authData.user) throw new Error('فشل إنشاء المستخدم');
+        userId = authData.user.id;
+      }
 
       const referralId = generateReferralCode(formData.full_name);
       const promoCode = generatePromoCode(formData.full_name);
 
-      // ── FIX 2: link the marketer row to the auth user via user_id ──
-      const { data, error } = await supabase
+      // Insert marketer row linked to auth user
+      const { data, error: marketerError } = await supabase
         .from('marketers')
         .insert([{
-          user_id: authData.user.id,          // ← ties auth account to marketer row
+          user_id: userId,
           full_name: formData.full_name,
-          email: formData.email,
-          phone_number: formData.phone,
+          email: formData.email.trim().toLowerCase(),
+          phone_number: formData.phone.trim(),
           referral_id: referralId,
           promo_code: promoCode,
           current_tier: 'bronze',
@@ -80,9 +126,9 @@ export default function AffiliateSignup() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (marketerError) throw marketerError;
 
-      // Create promo code
+      // Create promo code entry
       await supabase.from('promo_codes').insert([{
         code: promoCode,
         marketer_id: data.id,
@@ -96,18 +142,15 @@ export default function AffiliateSignup() {
         { duration: 5000 }
       );
 
-      setTimeout(() => {
-        router.push('/affiliate/dashboard');
-      }, 2000);
+      setTimeout(() => router.push('/affiliate/dashboard'), 2000);
 
     } catch (error: any) {
       console.error('❌ Signup error:', error);
-      // Friendly Arabic errors for common Supabase auth messages
       const msg = error.message || '';
-      if (msg.includes('already registered') || msg.includes('already exists')) {
-        toast.error('هذا البريد الإلكتروني مسجل بالفعل');
-      } else if (msg.includes('password')) {
-        toast.error('كلمة المرور ضعيفة — استخدم 8 أحرف على الأقل');
+      if (msg.includes('phone') || msg.includes('phone_number')) {
+        toast.error('رقم الموبايل مسجل بالفعل');
+      } else if (msg.includes('email')) {
+        toast.error('البريد الإلكتروني مسجل بالفعل');
       } else {
         toast.error(msg || 'حدث خطأ أثناء التسجيل');
       }
@@ -130,68 +173,39 @@ export default function AffiliateSignup() {
 
         <form onSubmit={handleSignup} style={form}>
           <div style={inputGroup}>
-            <label style={labelStyle}>
-              <User size={16} /> الاسم الكامل
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.full_name}
+            <label style={labelStyle}><User size={16} /> الاسم الكامل</label>
+            <input type="text" required value={formData.full_name}
               onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-              style={input}
-              placeholder="أدخل اسمك الكامل"
-            />
+              style={input} placeholder="أدخل اسمك الكامل" />
           </div>
 
           <div style={inputGroup}>
-            <label style={labelStyle}>
-              <Mail size={16} /> البريد الإلكتروني
-            </label>
-            <input
-              type="email"
-              required
-              value={formData.email}
+            <label style={labelStyle}><Mail size={16} /> البريد الإلكتروني</label>
+            <input type="email" required value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              style={input}
-              placeholder="example@email.com"
-            />
+              style={input} placeholder="example@email.com" />
           </div>
 
           <div style={inputGroup}>
-            <label style={labelStyle}>
-              <Phone size={16} /> رقم الموبايل
-            </label>
-            <input
-              type="tel"
-              required
-              value={formData.phone}
+            <label style={labelStyle}><Phone size={16} /> رقم الموبايل</label>
+            <input type="tel" required value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              style={input}
-              placeholder="01XXXXXXXXX"
-            />
+              style={input} placeholder="01XXXXXXXXX" />
           </div>
 
-          {/* ── FIX: password field with show/hide toggle ── */}
           <div style={inputGroup}>
-            <label style={labelStyle}>
-              <Lock size={16} /> كلمة المرور
-            </label>
+            <label style={labelStyle}><Lock size={16} /> كلمة المرور</label>
             <div style={passwordWrapper}>
               <input
                 type={showPassword ? 'text' : 'password'}
-                required
-                minLength={8}
+                required minLength={8}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 style={{ ...input, paddingLeft: '48px', marginBottom: 0 }}
                 placeholder="8 أحرف على الأقل"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={eyeBtn}
-                tabIndex={-1}
-              >
+              <button type="button" onClick={() => setShowPassword(!showPassword)}
+                style={eyeBtn} tabIndex={-1}>
                 {showPassword ? <EyeOff size={18} color="#94a3b8" /> : <Eye size={18} color="#94a3b8" />}
               </button>
             </div>
@@ -199,17 +213,9 @@ export default function AffiliateSignup() {
           </div>
 
           <button type="submit" disabled={loading} style={submitBtn}>
-            {loading ? (
-              <>
-                <Loader2 className="animate-spin" size={20} />
-                جاري التسجيل...
-              </>
-            ) : (
-              <>
-                <UserPlus size={20} />
-                إنشاء الحساب
-              </>
-            )}
+            {loading
+              ? <><Loader2 className="animate-spin" size={20} /> جاري التسجيل...</>
+              : <><UserPlus size={20} /> إنشاء الحساب</>}
           </button>
         </form>
       </div>
