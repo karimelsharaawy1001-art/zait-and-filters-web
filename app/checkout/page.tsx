@@ -165,32 +165,40 @@ export default function CheckoutPage() {
     if (!promoCode.trim()) return;
     setPromoLoading(true);
     try {
-      const { data: affiliatePromo } = await supabase
-        .from('promo_codes')
-        .select('*, marketers(id, full_name, commission_rate, tier_percentage)')
-        .eq('code', promoCode.trim().toUpperCase())
-        .eq('is_active', true)
-        .single();
+      // ── FIX: no embedded join — fetch promo_codes and marketer separately ──
+const { data: affiliatePromo } = await supabase
+  .from('promo_codes')
+  .select('*')
+  .eq('code', promoCode.trim().toUpperCase())
+  .eq('is_active', true)
+  .maybeSingle();
 
-      if (affiliatePromo) {
-        const discountPercentage = affiliatePromo.discount_percentage || 5;
-        const calculatedDiscount = (subtotal * discountPercentage) / 100;
-        setDiscountAmount(calculatedDiscount);
-        setAppliedPromo(affiliatePromo.code);
-        setAppliedPromoType('affiliate_percentage');
-        setAffiliateMarketerId(affiliatePromo.marketer_id);
-        await supabase.from('promo_codes').update({ usage_count: (affiliatePromo.usage_count || 0) + 1 }).eq('id', affiliatePromo.id);
-        toast.success(`تم تطبيق كود المسوق "${affiliatePromo.marketers?.full_name}" - خصم ${discountPercentage}%! 🎉`);
-        trackAbandonedCart();
-        return;
-      }
+if (affiliatePromo) {
+  const { data: marketerData } = await supabase
+    .from('marketers')
+    .select('id, full_name, tier_percentage')
+    .eq('id', affiliatePromo.marketer_id)
+    .maybeSingle();
 
-      const { data, error } = await supabase
-        .from('coupons')
-        .select('*')
-        .eq('code', promoCode.trim().toUpperCase())
-        .eq('is_active', true)
-        .single();
+  const discountPercentage = affiliatePromo.discount_percentage || 5;
+  const calculatedDiscount = (subtotal * discountPercentage) / 100;
+  setDiscountAmount(calculatedDiscount);
+  setAppliedPromo(affiliatePromo.code);
+  setAppliedPromoType('affiliate_percentage');
+  setAffiliateMarketerId(affiliatePromo.marketer_id);
+  await supabase.from('promo_codes').update({ usage_count: (affiliatePromo.usage_count || 0) + 1 }).eq('id', affiliatePromo.id);
+  toast.success(`تم تطبيق كود المسوق "${marketerData?.full_name || 'المسوق'}" - خصم ${discountPercentage}%! 🎉`);
+  trackAbandonedCart();
+  return;
+}
+
+const { data, error } = await supabase
+  .from('coupons')
+  .select('*')
+  .eq('code', promoCode.trim().toUpperCase())
+  .eq('is_active', true)
+  .maybeSingle();
+
 
       if (error || !data) {
         toast.error('كود الخصم غير صحيح أو منتهي');
