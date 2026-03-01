@@ -153,6 +153,7 @@ function FilterSection({
               styles={customSelectStyles}
               placeholder={garageMode ? userCar?.make : 'اختر الماركة'}
               isRtl={true}
+              isSearchable={false}
               value={selectedMake}
               onChange={handleMakeChange}
               isClearable
@@ -169,6 +170,7 @@ function FilterSection({
               styles={customSelectStyles}
               placeholder={garageMode ? userCar?.model : 'اختر الموديل'}
               isRtl={true}
+              isSearchable={false}
               value={selectedModel}
               onChange={(opt: any) => setSelectedModel(opt)}
               isDisabled={!selectedMake && !garageMode}
@@ -224,6 +226,7 @@ function FilterSection({
               styles={customSelectStyles}
               placeholder="اختر الفئة"
               isRtl={true}
+              isSearchable={false}
               value={selectedCategory}
               onChange={handleCategoryChange}
               isClearable
@@ -241,7 +244,7 @@ function FilterSection({
             </label>
             <Select
               instanceId="store-subcategory-select"
-              isSearchable={true}
+              isSearchable={false}
               options={subcategoriesOptions}
               styles={{
                 ...customSelectStyles,
@@ -280,6 +283,7 @@ function FilterSection({
               styles={customSelectStyles}
               placeholder="اختر العلامة"
               isRtl={true}
+              isSearchable={false}
               value={selectedBrand}
               onChange={(opt: any) => setSelectedBrand(opt)}
               isClearable
@@ -616,7 +620,6 @@ function StoreContent() {
 
     const heroMake = make || garageMake;
     const heroModel = model || garageModel;
-    // Pass year so we can fetch the most relevant image
     const heroYear = yearInput.trim() || (garageMode && userCar?.year ? String(userCar.year) : '');
 
     if (heroMake && heroModel) {
@@ -626,7 +629,7 @@ function StoreContent() {
       setShowHero(false);
       setCarHeroImage(null);
     }
-  }, [selectedMake, selectedModel, yearInput, garageMode, userCar]); // ← added yearInput
+  }, [selectedMake, selectedModel, yearInput, garageMode, userCar]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -801,23 +804,18 @@ function StoreContent() {
     }
   }
 
-  // ── FIXED: uses year_from / year_to integer columns for range matching ──────
-  // The table has `year_from` (int) and `year_to` (int) — NOT a `year` text column.
-  // Step 1: if a year is selected, find the image whose range covers that year.
-  // Step 2: fallback to any image for that make+model (e.g. no year selected).
   async function fetchCarImage(make: string, model: string, year?: string) {
     try {
       const yearInt = year ? parseInt(year.trim()) : NaN;
 
-      // Step 1: year-specific — find image whose year_from <= year <= year_to
       if (!isNaN(yearInt)) {
         const { data: yearData } = await supabase
           .from('car_images')
           .select('image_url')
           .ilike('car_make', make.trim())
           .ilike('car_model', model.trim())
-          .lte('year_from', yearInt)   // year_from <= selected year
-          .gte('year_to', yearInt)     // year_to   >= selected year
+          .lte('year_from', yearInt)
+          .gte('year_to', yearInt)
           .limit(1);
 
         if (yearData && yearData.length > 0 && yearData[0].image_url) {
@@ -826,7 +824,6 @@ function StoreContent() {
         }
       }
 
-      // Step 2: fallback — any image for this make+model (first row, any year range)
       const { data } = await supabase
         .from('car_images')
         .select('image_url')
@@ -1164,6 +1161,10 @@ function StoreContent() {
         dangerouslySetInnerHTML={{
           __html: `
           @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+          @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+          }
           .store-product-card {
             background: #fff;
             border-radius: 16px;
@@ -1209,6 +1210,11 @@ function StoreContent() {
             background: #16a34a !important;
             transform: translateY(-1px);
             box-shadow: 0 6px 18px rgba(34,197,94,0.4) !important;
+          }
+          .original-badge {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #f59e0b 100%);
+            background-size: 200% auto;
+            animation: shimmer 2.5s linear infinite;
           }
         `,
         }}
@@ -1410,6 +1416,8 @@ function StoreContent() {
                   <div className="products-grid">
                     {paginatedProducts.map((product) => {
                       const price = product.sale_price || product.regular_price;
+                      const origin = (product.country_origin || product.country_of_origin || '').trim();
+                      const isOriginal = ['اصلي', 'أصلي', 'original', 'اصلى'].includes(origin.toLowerCase());
                       return (
                         <motion.div
                           key={product.id}
@@ -1418,9 +1426,25 @@ function StoreContent() {
                           transition={{ duration: 0.4 }}
                           className="store-product-card"
                         >
+                          {/* Sale badge — top right */}
                           {product.sale_price > 0 && product.regular_price > product.sale_price && (
                             <div style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: '#ff4d4d', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '900', zIndex: 10 }}>
                               -{Math.round(((product.regular_price - product.sale_price) / product.regular_price) * 100)}%
+                            </div>
+                          )}
+                          {/* ── ORIGINAL badge — top left ── */}
+                          {isOriginal && (
+                            <div
+                              className="original-badge"
+                              style={{
+                                position: 'absolute', top: '10px', left: '10px', zIndex: 10,
+                                color: '#fff', padding: '4px 10px', borderRadius: '8px',
+                                fontSize: '0.7rem', fontWeight: '900', letterSpacing: '0.5px',
+                                boxShadow: '0 3px 10px rgba(245,158,11,0.5)',
+                                display: 'flex', alignItems: 'center', gap: '4px',
+                              }}
+                            >
+                              ✦ أصلي
                             </div>
                           )}
                           <Link href={`/products/${product.id}`} style={{ display: 'block', height: '200px', backgroundColor: '#f9f9f9', overflow: 'hidden', position: 'relative' }}>
@@ -1434,10 +1458,10 @@ function StoreContent() {
                           <div style={{ padding: '18px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                               <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.8rem' }}>{product.brand}</span>
-                              {(product.country_origin || product.country_of_origin) && (
+                              {origin && !isOriginal && (
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#666', fontWeight: '700', fontSize: '0.75rem' }}>
                                   <Globe size={13} color="#22c55e" />
-                                  <span>{product.country_origin || product.country_of_origin}</span>
+                                  <span>{origin}</span>
                                 </div>
                               )}
                             </div>
