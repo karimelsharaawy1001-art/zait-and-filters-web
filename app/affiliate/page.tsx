@@ -56,7 +56,7 @@ export default function AffiliateLanding() {
           style={mainTitle}
         >
           حول شبكة علاقاتك إلى <br />
-          <span style={highlightText}>أرباح تصل إلى 10%</span>
+          <span style={highlightText}>أرباح تصل إلى 20%</span>
         </motion.h1>
 
 
