@@ -2,17 +2,21 @@
 import { useState } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { Loader2, UserPlus, Mail, User, Phone } from 'lucide-react';
+import { Loader2, UserPlus, Mail, User, Phone, Lock, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
+
 
 export default function AffiliateSignup() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
-    phone: ''
+    phone: '',
+    password: '',        // ── FIX: added password field ──
   });
+
 
   const generateReferralCode = (name: string) => {
     const cleaned = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
@@ -21,6 +25,7 @@ export default function AffiliateSignup() {
     return `${base}${random}`;
   };
 
+
   const generatePromoCode = (name: string) => {
     const cleaned = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
     const base = cleaned.slice(0, 5).padEnd(5, 'X');
@@ -28,18 +33,41 @@ export default function AffiliateSignup() {
     return `${base}${random}`;
   };
 
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.password.length < 8) {
+      toast.error('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+      return;
+    }
+
     setLoading(true);
 
     try {
+      // ── FIX 1: create a real Supabase Auth user first ──
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.full_name,
+            role: 'affiliate',
+          },
+        },
+      });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error('فشل إنشاء المستخدم');
+
       const referralId = generateReferralCode(formData.full_name);
       const promoCode = generatePromoCode(formData.full_name);
 
-      // Insert without ID (auto-generated)
+      // ── FIX 2: link the marketer row to the auth user via user_id ──
       const { data, error } = await supabase
         .from('marketers')
         .insert([{
+          user_id: authData.user.id,          // ← ties auth account to marketer row
           full_name: formData.full_name,
           email: formData.email,
           phone_number: formData.phone,
@@ -52,12 +80,7 @@ export default function AffiliateSignup() {
         .select()
         .single();
 
-      if (error) {
-        console.error('❌ Insert error:', error);
-        throw error;
-      }
-
-      console.log('✅ Marketer created:', data);
+      if (error) throw error;
 
       // Create promo code
       await supabase.from('promo_codes').insert([{
@@ -68,21 +91,31 @@ export default function AffiliateSignup() {
         usage_count: 0
       }]);
 
-      toast.success(`✅ تم إنشاء حسابك بنجاح!\n\nكود الإحالة: ${referralId}\nكود البرومو: ${promoCode}`, {
-        duration: 5000
-      });
-      
+      toast.success(
+        `✅ تم إنشاء حسابك بنجاح!\n\nكود الإحالة: ${referralId}\nكود البرومو: ${promoCode}`,
+        { duration: 5000 }
+      );
+
       setTimeout(() => {
-        router.push('/admin/marketers');
+        router.push('/affiliate/dashboard');
       }, 2000);
 
     } catch (error: any) {
       console.error('❌ Signup error:', error);
-      toast.error(error.message || 'حدث خطأ أثناء التسجيل');
+      // Friendly Arabic errors for common Supabase auth messages
+      const msg = error.message || '';
+      if (msg.includes('already registered') || msg.includes('already exists')) {
+        toast.error('هذا البريد الإلكتروني مسجل بالفعل');
+      } else if (msg.includes('password')) {
+        toast.error('كلمة المرور ضعيفة — استخدم 8 أحرف على الأقل');
+      } else {
+        toast.error(msg || 'حدث خطأ أثناء التسجيل');
+      }
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div style={container}>
@@ -97,7 +130,7 @@ export default function AffiliateSignup() {
 
         <form onSubmit={handleSignup} style={form}>
           <div style={inputGroup}>
-            <label style={label}>
+            <label style={labelStyle}>
               <User size={16} /> الاسم الكامل
             </label>
             <input
@@ -111,7 +144,7 @@ export default function AffiliateSignup() {
           </div>
 
           <div style={inputGroup}>
-            <label style={label}>
+            <label style={labelStyle}>
               <Mail size={16} /> البريد الإلكتروني
             </label>
             <input
@@ -125,7 +158,7 @@ export default function AffiliateSignup() {
           </div>
 
           <div style={inputGroup}>
-            <label style={label}>
+            <label style={labelStyle}>
               <Phone size={16} /> رقم الموبايل
             </label>
             <input
@@ -136,6 +169,33 @@ export default function AffiliateSignup() {
               style={input}
               placeholder="01XXXXXXXXX"
             />
+          </div>
+
+          {/* ── FIX: password field with show/hide toggle ── */}
+          <div style={inputGroup}>
+            <label style={labelStyle}>
+              <Lock size={16} /> كلمة المرور
+            </label>
+            <div style={passwordWrapper}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                minLength={8}
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                style={{ ...input, paddingLeft: '48px', marginBottom: 0 }}
+                placeholder="8 أحرف على الأقل"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={eyeBtn}
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={18} color="#94a3b8" /> : <Eye size={18} color="#94a3b8" />}
+              </button>
+            </div>
+            <span style={hint}>يُستخدم لتسجيل الدخول لاحقاً</span>
           </div>
 
           <button type="submit" disabled={loading} style={submitBtn}>
@@ -157,6 +217,7 @@ export default function AffiliateSignup() {
   );
 }
 
+
 // Styles
 const container: any = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', padding: '20px', direction: 'rtl' };
 const card: any = { background: '#fff', padding: '40px', borderRadius: '30px', maxWidth: '500px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' };
@@ -165,6 +226,9 @@ const title: any = { fontSize: '2rem', fontWeight: '900', color: '#1e293b', disp
 const subtitle: any = { color: '#64748b', fontSize: '0.95rem', marginTop: '10px' };
 const form: any = { display: 'flex', flexDirection: 'column', gap: '20px' };
 const inputGroup: any = { display: 'flex', flexDirection: 'column', gap: '8px' };
-const label: any = { fontSize: '0.9rem', fontWeight: 'bold', color: '#475569', display: 'flex', alignItems: 'center', gap: '6px' };
-const input: any = { padding: '14px 18px', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem', outline: 'none', transition: '0.2s' };
+const labelStyle: any = { fontSize: '0.9rem', fontWeight: 'bold', color: '#475569', display: 'flex', alignItems: 'center', gap: '6px' };
+const input: any = { padding: '14px 18px', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem', outline: 'none', transition: '0.2s', width: '100%', boxSizing: 'border-box' };
+const passwordWrapper: any = { position: 'relative', display: 'flex', alignItems: 'center' };
+const eyeBtn: any = { position: 'absolute', left: '14px', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' };
+const hint: any = { fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' };
 const submitBtn: any = { padding: '16px', background: 'linear-gradient(135deg, #27ae60 0%, #229954 100%)', color: '#fff', border: 'none', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', fontSize: '1.05rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', transition: '0.2s', marginTop: '10px' };
