@@ -14,13 +14,18 @@ import { GA_MEASUREMENT_ID } from '@/lib/gtag'
 import { GAProvider } from './ga-provider'
 import { Suspense } from 'react'
 
+
 const almarai = Almarai({ 
   subsets: ['arabic'], 
   weight: ['300', '400', '700', '800'],
   display: 'swap',
 });
 
+
 export const metadata: Metadata = {
+  // ── FIX 1: metadataBase is required for OG images to resolve correctly ──
+  metadataBase: new URL('https://zaitandfilters.com'),
+
   title: {
     default: "زيت أند فلترز | اكبر موقع لقطع غيار السيارات في مصر",
     template: "%s | زيت أند فلترز"
@@ -69,10 +74,11 @@ export const metadata: Metadata = {
     siteName: "Zait & Filters",
     images: [
       {
-        url: "https://zaitandfilters.com/og-image.jpg",
+        // ── FIX 2: use relative path — metadataBase resolves it to the full URL ──
+        url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Zait & Filters - Original Car Spare Parts",
+        alt: "Zait & Filters - قطع غيار السيارات الأصلية في مصر",
       },
     ],
     locale: "ar_EG",
@@ -83,14 +89,13 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'زيت أند فلترز | قطع غيار السيارات الأصلية في مصر',
     description: 'المتجر الأول لبيع قطع غيار السيارات الأصلية في مصر',
-    images: ['https://zaitandfilters.com/og-image.jpg'],
+    // ── FIX 3: same fix — relative path ──
+    images: ['/og-image.jpg'],
   },
   alternates: {
     canonical: 'https://zaitandfilters.com',
   },
-  verification: {
-    google: 'your-google-verification-code',
-  },
+  // ── FIX 4: removed placeholder google verification — add the real code or delete this block ──
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
@@ -106,6 +111,7 @@ export const metadata: Metadata = {
     'msapplication-TileColor': '#2ecc71',
   },
 };
+
 
 export default function RootLayout({
   children,
@@ -166,7 +172,7 @@ export default function RootLayout({
 
         <CartProvider>
           <ScrollProgress />
-          
+
           <Toaster 
             position="bottom-right"
             toastOptions={{
@@ -178,12 +184,12 @@ export default function RootLayout({
               },
             }}
           />
-          
+
           <AbandonedCartTracker />
-          
+
           <ProfessionalNavbar />
           <CartDrawer />
-          
+
           <PageTransition>
             <main>
               {children}
