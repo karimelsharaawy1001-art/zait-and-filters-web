@@ -590,8 +590,8 @@ function StoreContent() {
   const urlSubcategory = searchParams.get('subcategory');
   const urlBrand = searchParams.get('brand');
   const urlSearch = searchParams.get('q');
-  // ── NEW: read sale param from URL ──
-  const urlSale = searchParams.get('sale');
+  // ── NEW: read sale param from URL — supports both ?sale=true and ?filter=sales ──
+  const urlSale = searchParams.get('sale') === 'true' || searchParams.get('filter') === 'sales';
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -712,10 +712,11 @@ function StoreContent() {
     resolvedGarageMode: boolean,
     resolvedUserCar: any,
   ) {
-    // ── NEW: if sale=true param is present, fetch all sale products inline and return early ──
-    // We fetch directly here (not via fetchProducts) so the initializing/loading guards don't interfere.
-    if (urlSale === 'true') {
+    // ── NEW: if sale param is present, fetch all sale products inline — bypasses all filters & garage ──
+    if (urlSale) {
       setSaleMode(true);
+      // Force garage mode off for sale page so it does not interfere
+      setShowGarageConflictBanner(false);
       try {
         const { data, error } = await supabase
           .from('products')
@@ -724,7 +725,7 @@ function StoreContent() {
           .order('created_at', { ascending: false });
         if (!error) {
           const saleProducts = (data || []).filter(
-            (p: any) => p.sale_price > 0 && p.regular_price > p.sale_price
+            (p: any) => Number(p.sale_price) > 0 && Number(p.regular_price) > Number(p.sale_price)
           );
           setProducts(saleProducts);
           setFilteredProducts(saleProducts);
@@ -1148,8 +1149,10 @@ function StoreContent() {
 
   const hasMin = (selectedMake && selectedModel) || selectedCategory || (garageMode && userCar);
   // ── NEW: saleMode bypasses the empty state check ──
-  const showEmptyState = !loading && !initializing && !hasMin && !saleMode && filteredProducts.length === 0 && !showGarageConflictBanner;
-  const showNoResults = !loading && !initializing && (hasMin || saleMode) && filteredProducts.length === 0 && !showGarageConflictBanner;
+  // In sale mode, garage conflict banner is always suppressed so products show freely
+  const effectiveGarageConflict = showGarageConflictBanner && !saleMode;
+  const showEmptyState = !loading && !initializing && !hasMin && !saleMode && filteredProducts.length === 0 && !effectiveGarageConflict;
+  const showNoResults = !loading && !initializing && (hasMin || saleMode) && filteredProducts.length === 0 && !effectiveGarageConflict;
 
   const heroMakeLabel = selectedMake?.label || (garageMode && userCar?.make) || '';
   const heroModelLabel = selectedModel?.label || (garageMode && userCar?.model) || '';
@@ -1425,7 +1428,7 @@ function StoreContent() {
             <div style={{ flex: 1 }}>
               {/* Garage conflict banner */}
               <AnimatePresence>
-                {showGarageConflictBanner && !loading && (
+                {effectiveGarageConflict && !loading && (
                   <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}
                     style={{ backgroundColor: '#fff7ed', border: '2px solid #f97316', borderRadius: '16px', padding: '28px 24px', textAlign: 'center', marginBottom: '20px' }}
                   >
