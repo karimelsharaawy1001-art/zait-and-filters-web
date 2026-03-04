@@ -580,6 +580,9 @@ function StoreContent() {
   const [garageMode, setGarageMode] = useState(false);
   const [userCar, setUserCar] = useState<any>(null);
 
+  // ── NEW: sale mode state ──
+  const [saleMode, setSaleMode] = useState(false);
+
   const urlMake = searchParams.get('make');
   const urlModel = searchParams.get('model');
   const urlYear = searchParams.get('year');
@@ -587,6 +590,8 @@ function StoreContent() {
   const urlSubcategory = searchParams.get('subcategory');
   const urlBrand = searchParams.get('brand');
   const urlSearch = searchParams.get('q');
+  // ── NEW: read sale param from URL ──
+  const urlSale = searchParams.get('sale');
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -707,6 +712,17 @@ function StoreContent() {
     resolvedGarageMode: boolean,
     resolvedUserCar: any,
   ) {
+    // ── NEW: if sale=true param is present, fetch all sale products and return early ──
+    if (urlSale === 'true') {
+      setSaleMode(true);
+      await fetchProducts({
+        sale: true,
+        _garageMode: false,
+        _userCar: null,
+      });
+      return;
+    }
+
     const hasURLParams = urlMake || urlCategory;
 
     if (hasURLParams && resolvedGarageMode && resolvedUserCar) {
@@ -889,6 +905,27 @@ function StoreContent() {
     try {
       if (!initializing) setLoading(true);
 
+      // ── NEW: sale mode — fetch all products with sale_price > 0, bypass all other restrictions ──
+      if (filters.sale === true) {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .gt('sale_price', 0)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Only keep products where sale_price is actually less than regular_price
+        const saleProducts = (data || []).filter(
+          (p) => p.sale_price > 0 && p.regular_price > p.sale_price
+        );
+
+        setProducts(saleProducts);
+        setFilteredProducts(saleProducts);
+        if (!initializing) setLoading(false);
+        return;
+      }
+
       const gMode: boolean = '_garageMode' in filters ? filters._garageMode : garageMode;
       const gCar: any = '_userCar' in filters ? filters._userCar : userCar;
 
@@ -996,6 +1033,9 @@ function StoreContent() {
   }
 
   function handleFilterChange() {
+    // ── NEW: exit sale mode when user applies manual filters ──
+    setSaleMode(false);
+
     const hasMinimumFilters = (selectedMake && selectedModel) || selectedCategory || (garageMode && userCar);
     if (!hasMinimumFilters) {
       toast.error('يرجى اختيار (الماركة والموديل) أو (الفئة) على الأقل');
@@ -1049,6 +1089,8 @@ function StoreContent() {
     setModelsOptions([]);
     setSubcategoriesOptions([]);
     setShowGarageConflictBanner(false);
+    // ── NEW: also clear sale mode ──
+    setSaleMode(false);
     router.push('/store');
 
     if (garageMode && userCar) {
@@ -1114,8 +1156,9 @@ function StoreContent() {
   if (!isMounted) return null;
 
   const hasMin = (selectedMake && selectedModel) || selectedCategory || (garageMode && userCar);
-  const showEmptyState = !loading && !initializing && !hasMin && filteredProducts.length === 0 && !showGarageConflictBanner;
-  const showNoResults = !loading && !initializing && hasMin && filteredProducts.length === 0 && !showGarageConflictBanner;
+  // ── NEW: saleMode bypasses the empty state check ──
+  const showEmptyState = !loading && !initializing && !hasMin && !saleMode && filteredProducts.length === 0 && !showGarageConflictBanner;
+  const showNoResults = !loading && !initializing && (hasMin || saleMode) && filteredProducts.length === 0 && !showGarageConflictBanner;
 
   const heroMakeLabel = selectedMake?.label || (garageMode && userCar?.make) || '';
   const heroModelLabel = selectedModel?.label || (garageMode && userCar?.model) || '';
@@ -1246,7 +1289,43 @@ function StoreContent() {
 
       {!initializing && (
         <>
-          {showHero && !loading && !showGarageConflictBanner && (
+          {/* ── NEW: Sale mode banner ── */}
+          {saleMode && !loading && (
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              style={{ maxWidth: '1400px', margin: '0 auto 30px', padding: '0 20px' }}
+            >
+              <div
+                style={{
+                  background: 'linear-gradient(135deg, #ff4d4d 0%, #ff6b35 50%, #f97316 100%)',
+                  borderRadius: '30px',
+                  padding: isDesktop ? '40px' : '25px',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  boxShadow: '0 8px 32px rgba(255,77,77,0.3)',
+                }}
+              >
+                <div style={{ position: 'absolute', top: '-50%', right: '-10%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)', zIndex: 0, pointerEvents: 'none' }} />
+                <div style={{ position: 'relative', zIndex: 2, textAlign: 'right' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', justifyContent: 'flex-start' }}>
+                    <Tags size={24} color="#fff" />
+                    <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '1rem', fontWeight: '700' }}>العروض والتخفيضات</span>
+                  </div>
+                  <h1 style={{ color: '#fff', fontSize: isDesktop ? '2.5rem' : '1.7rem', fontWeight: '900', marginBottom: '16px', lineHeight: '1.2' }}>
+                    🔥 أفضل العروض المتاحة الآن
+                  </h1>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(255,255,255,0.2)', padding: '12px 24px', borderRadius: '15px', backdropFilter: 'blur(10px)' }}>
+                    <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#fff', marginLeft: '10px' }}>{filteredProducts.length}</div>
+                    <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)', fontWeight: '600' }}>منتج بتخفيض</div>
+                  </div>
+                </div>
+              </div>
+            </motion.section>
+          )}
+
+          {showHero && !loading && !showGarageConflictBanner && !saleMode && (
             <motion.section
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1319,6 +1398,7 @@ function StoreContent() {
                 <Filter size={20} color="#22c55e" />
                 <span>الفلاتر</span>
                 {hasMin && <span style={{ backgroundColor: '#22c55e', color: '#fff', padding: '2px 8px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '900' }}>نشط</span>}
+                {saleMode && <span style={{ backgroundColor: '#ff4d4d', color: '#fff', padding: '2px 8px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '900' }}>عروض</span>}
               </div>
               {filtersOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
             </button>
@@ -1340,6 +1420,13 @@ function StoreContent() {
                   <Filter size={22} color="#22c55e" />
                   الفلاتر
                 </h2>
+                {/* ── NEW: sale mode active indicator in sidebar ── */}
+                {saleMode && (
+                  <div style={{ backgroundColor: '#fff1f0', border: '1px solid #ff4d4d', borderRadius: '10px', padding: '12px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Tags size={16} color="#ff4d4d" />
+                    <span style={{ fontSize: '0.8rem', fontWeight: '800', color: '#cc0000' }}>عرض كل العروض والتخفيضات</span>
+                  </div>
+                )}
                 <FilterSection {...filterProps} />
               </div>
             </aside>
