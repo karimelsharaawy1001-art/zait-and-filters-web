@@ -712,14 +712,26 @@ function StoreContent() {
     resolvedGarageMode: boolean,
     resolvedUserCar: any,
   ) {
-    // ── NEW: if sale=true param is present, fetch all sale products and return early ──
+    // ── NEW: if sale=true param is present, fetch all sale products inline and return early ──
+    // We fetch directly here (not via fetchProducts) so the initializing/loading guards don't interfere.
     if (urlSale === 'true') {
       setSaleMode(true);
-      await fetchProducts({
-        sale: true,
-        _garageMode: false,
-        _userCar: null,
-      });
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .gt('sale_price', 0)
+          .order('created_at', { ascending: false });
+        if (!error) {
+          const saleProducts = (data || []).filter(
+            (p: any) => p.sale_price > 0 && p.regular_price > p.sale_price
+          );
+          setProducts(saleProducts);
+          setFilteredProducts(saleProducts);
+        }
+      } catch (err) {
+        console.error('Sale fetch error:', err);
+      }
       return;
     }
 
@@ -904,27 +916,6 @@ function StoreContent() {
   async function fetchProducts(filters: any) {
     try {
       if (!initializing) setLoading(true);
-
-      // ── NEW: sale mode — fetch all products with sale_price > 0, bypass all other restrictions ──
-      if (filters.sale === true) {
-        const { data, error } = await supabase
-          .from('products')
-          .select('*')
-          .gt('sale_price', 0)
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        // Only keep products where sale_price is actually less than regular_price
-        const saleProducts = (data || []).filter(
-          (p) => p.sale_price > 0 && p.regular_price > p.sale_price
-        );
-
-        setProducts(saleProducts);
-        setFilteredProducts(saleProducts);
-        if (!initializing) setLoading(false);
-        return;
-      }
 
       const gMode: boolean = '_garageMode' in filters ? filters._garageMode : garageMode;
       const gCar: any = '_userCar' in filters ? filters._userCar : userCar;
