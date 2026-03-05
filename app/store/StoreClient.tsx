@@ -722,11 +722,18 @@ function StoreContent() {
           .from('products')
           .select('*')
           .gt('sale_price', 0)
-          .order('created_at', { ascending: false });
+          .order('sale_order', { ascending: true, nullsFirst: false });
         if (!error) {
           const saleProducts = (data || []).filter(
             (p: any) => Number(p.sale_price) > 0 && Number(p.regular_price) > Number(p.sale_price)
           );
+          // Products with no sale_order fall to the end, ordered by created_at
+          saleProducts.sort((a: any, b: any) => {
+            if (a.sale_order != null && b.sale_order != null) return a.sale_order - b.sale_order;
+            if (a.sale_order != null) return -1;
+            if (b.sale_order != null) return 1;
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          });
           setProducts(saleProducts);
           setFilteredProducts(saleProducts);
         }
