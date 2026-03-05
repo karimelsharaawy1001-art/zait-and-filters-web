@@ -238,7 +238,7 @@ export default function HomePage() {
           bestSellersList = [...bestSellersList, ...products.filter(p => !bestSellersList.find(b => b?.id === p.id) && isValidImg(p.image_url))];
         }
         setBestSellers(bestSellersList);
-        const uniqueCats = Array.from(new Set(products.map(i => i.category?.trim()).filter(Boolean)));
+        const uniqueCats = Array.from(new Set(products.map(i => i.category?.trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ar"));
         setCategories(uniqueCats.map(cat => {
           const imgObj = customImages.find((img: any) => img.name?.trim().toUpperCase() === cat.toUpperCase());
           const prodObj = products.find(p => p.category?.trim().toUpperCase() === cat.toUpperCase() && isValidImg(p.image_url));
@@ -494,7 +494,7 @@ export default function HomePage() {
           .category-item-mdrn:hover .cat-bg-img { transform: scale(1.1); filter: brightness(0.9); }
           .cat-bg-img       { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; filter: brightness(0.7); transition: 0.4s ease; }
           .cat-info-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: flex-end; justify-content: center; background: linear-gradient(to top,rgba(0,0,0,0.75) 0%,transparent 60%); padding: 10px 8px; }
-          .cat-title-text   { color: #fff; font-size: 1rem; font-weight: 900; text-align: center; text-shadow: 2px 2px 8px rgba(0,0,0,0.9); }
+          .cat-title-text   { color: #fff; font-size: 1.25rem; font-weight: 900; text-align: center; text-shadow: 2px 2px 8px rgba(0,0,0,0.9); }
           
           @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
           .marquee-inner   { display: flex; width: max-content; animation: marquee 35s linear infinite; }
