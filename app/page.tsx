@@ -488,13 +488,13 @@ export default function HomePage() {
           .img-fill-100  { width: 100%; height: 100%; object-fit: cover; padding: 0; transition: transform 0.3s ease; }
           .img-container:hover .img-fill-100 { transform: scale(1.02); }
           
-          .category-grid-v3   { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; padding: 20px; }
-          .category-item-mdrn { position: relative; height: 220px; border-radius: 20px; overflow: hidden; background-color: #1a1a1a; transition: 0.3s ease; cursor: pointer; }
+          .category-grid-v3   { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; padding: 20px; }
+          .category-item-mdrn { position: relative; height: 150px; border-radius: 14px; overflow: hidden; background-color: #1a1a1a; transition: 0.3s ease; cursor: pointer; }
           .category-item-mdrn:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
           .category-item-mdrn:hover .cat-bg-img { transform: scale(1.1); filter: brightness(0.9); }
           .cat-bg-img       { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; filter: brightness(0.7); transition: 0.4s ease; }
-          .cat-info-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(to top,rgba(0,0,0,0.7),transparent); padding: 20px; }
-          .cat-title-text   { color: #fff; font-size: 1.6rem; font-weight: 900; text-align: center; text-shadow: 2px 2px 10px rgba(0,0,0,0.8); }
+          .cat-info-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: flex-end; justify-content: center; background: linear-gradient(to top,rgba(0,0,0,0.75) 0%,transparent 60%); padding: 10px 8px; }
+          .cat-title-text   { color: #fff; font-size: 1rem; font-weight: 900; text-align: center; text-shadow: 2px 2px 8px rgba(0,0,0,0.9); }
           
           @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
           .marquee-inner   { display: flex; width: max-content; animation: marquee 35s linear infinite; }
@@ -584,7 +584,7 @@ export default function HomePage() {
           }
 
           @media (max-width: 768px) {
-            .category-grid-v3 { grid-template-columns: repeat(2,1fr); gap: 10px; }
+            .category-grid-v3 { grid-template-columns: repeat(3,1fr); gap: 8px; padding: 12px; }
             .img-container    { height: 140px !important; }
             .product-grid-carousel {
               display: grid !important; grid-template-columns: repeat(2,1fr) !important;
