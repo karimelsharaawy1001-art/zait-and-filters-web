@@ -502,6 +502,46 @@ export default function HomePage() {
           .logo-img-v3     { max-width: 130px; max-height: 60px; filter: grayscale(100%); opacity: 0.5; transition: 0.3s; }
           .logo-img-v3:hover { filter: grayscale(0%); opacity: 1; transform: scale(1.1); }
 
+          /* ── Features Strip ── */
+          .features-strip {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+            align-items: center;
+            padding: 20px 0;
+          }
+          .feature-item {
+            display: flex; align-items: center; gap: 14px;
+            padding: 12px 16px; justify-content: center;
+          }
+          .feature-icon-wrap {
+            width: 52px; height: 52px; border-radius: 14px;
+            background: #f0fdf4; display: flex; align-items: center;
+            justify-content: center; flex-shrink: 0;
+          }
+          .feature-text { display: flex; flex-direction: column; gap: 2px; }
+          .feature-title { font-size: 0.88rem; font-weight: 900; color: #1a1a1a; line-height: 1.3; }
+          .feature-sub   { font-size: 0.75rem; font-weight: 600; color: #888; line-height: 1.3; }
+          .feature-divider { width: 1px; height: 48px; background: #f0f0f0; flex-shrink: 0; }
+
+          @media (max-width: 768px) {
+            .features-strip {
+              grid-template-columns: 1fr 1fr;
+              gap: 0;
+              padding: 8px 0;
+            }
+            .feature-divider { display: none; }
+            .feature-item {
+              padding: 14px 10px;
+              border-bottom: 1px solid #f5f5f5;
+              justify-content: flex-start;
+            }
+            .feature-item:nth-child(odd)  { border-right: 1px solid #f5f5f5; }
+            .feature-item:nth-last-child(-n+2) { border-bottom: none; }
+            .feature-icon-wrap { width: 42px; height: 42px; border-radius: 11px; }
+            .feature-title { font-size: 0.8rem; }
+            .feature-sub   { font-size: 0.68rem; }
+          }
+
           .home-banner-section { max-width: 1200px; margin: 0 auto; padding: 16px 20px; }
           .home-banner-inner {
             position: relative; width: 100%; height: 190px; border-radius: 20px;
@@ -782,6 +822,63 @@ export default function HomePage() {
               </ScrollReveal>
             )}
 
+
+            {/* ── Static Features Strip ── */}
+            <ScrollReveal direction="up" delay={0.18}>
+              <section style={{ background: '#fff', borderTop: '1px solid #f0f0f0', borderBottom: '1px solid #f0f0f0' }}>
+                <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+                  <div className="features-strip">
+
+                    <div className="feature-item">
+                      <div className="feature-icon-wrap">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="1"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
+                      </div>
+                      <div className="feature-text">
+                        <span className="feature-title">شحن لأي مكان في مصر</span>
+                        <span className="feature-sub">مع أكبر شركة شحن مصرية</span>
+                      </div>
+                    </div>
+
+                    <div className="feature-divider" />
+
+                    <div className="feature-item">
+                      <div className="feature-icon-wrap">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                      </div>
+                      <div className="feature-text">
+                        <span className="feature-title">قطع أصلية 100%</span>
+                        <span className="feature-sub">بضمان حقيقي على كل منتج</span>
+                      </div>
+                    </div>
+
+                    <div className="feature-divider" />
+
+                    <div className="feature-item">
+                      <div className="feature-icon-wrap">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                      </div>
+                      <div className="feature-text">
+                        <span className="feature-title">أكتر من 15+ طريقة دفع</span>
+                        <span className="feature-sub">منها شركات التقسيط</span>
+                      </div>
+                    </div>
+
+                    <div className="feature-divider" />
+
+                    <div className="feature-item">
+                      <div className="feature-icon-wrap">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+                      </div>
+                      <div className="feature-text">
+                        <span className="feature-title">من الوكيل الرسمي فقط</span>
+                        <span className="feature-sub">جميع المنتجات معتمدة</span>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </section>
+            </ScrollReveal>
 
             {/* Categories Section */}
             <ScrollReveal direction="up" delay={0.2}>
