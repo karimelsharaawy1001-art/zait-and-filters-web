@@ -64,7 +64,6 @@ function StructuredData() {
 
 
 // ─── Search Card ──────────────────────────────────────────────────────────────
-// Spacing tightened on mobile so it fits inside the fixed-height hero without scrolling
 function SearchCard({
   selectLoaded, makesOptions, modelsOptions, selectedMake, selectedModel,
   selectedYear, setSelectedMake, setSelectedModel, setSelectedYear, handleSearch, customSelectStyles,
@@ -199,12 +198,37 @@ export default function HomePage() {
       ]);
       if (heroRes.data) setSlides(heroRes.data);
       if (partBrandsRes.data) setBrandLogos(partBrandsRes.data);
-      const { data: allProducts, error: productsError } = await supabase.from('products').select('*').order('created_at', { ascending: false });
-      if (productsError) console.error('Products fetch error:', productsError);
-      const products = allProducts || [];
+
+      // ── CHANGED: fetch all products + sale products in parallel ──
+      // Sale products are fetched separately ordered by sale_order so the
+      // admin-defined sort is always respected on the home page.
+      const [allProductsRes, saleProductsRes] = await Promise.all([
+        supabase.from('products').select('*').order('created_at', { ascending: false }),
+        supabase.from('products')
+          .select('*')
+          .gt('sale_price', 0)
+          .order('sale_order', { ascending: true, nullsFirst: false }),
+      ]);
+
+      if (allProductsRes.error) console.error('Products fetch error:', allProductsRes.error);
+      const products = allProductsRes.data || [];
       const customImages = customImgRes.data || [];
+
       if (products.length > 0) {
-        setSaleProducts(products.filter(p => Number(p.sale_price) > 0 && Number(p.regular_price) > Number(p.sale_price) && isValidImg(p.image_url)));
+        // ── Sale products: already ordered by sale_order from Supabase ──
+        // Apply client-side sort as a safety net: sale_order asc, nulls last by created_at
+        const rawSale = (saleProductsRes.data || []).filter(
+          (p: any) => Number(p.sale_price) > 0 && Number(p.regular_price) > Number(p.sale_price) && isValidImg(p.image_url)
+        );
+        rawSale.sort((a: any, b: any) => {
+          if (a.sale_order != null && b.sale_order != null) return a.sale_order - b.sale_order;
+          if (a.sale_order != null) return -1;
+          if (b.sale_order != null) return 1;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+        setSaleProducts(rawSale);
+        // ── END CHANGE ──
+
         const { data: orders } = await supabase.from('orders').select('items').limit(100);
         const productCounts: Record<string, number> = {};
         orders?.forEach((order: any) => { order.items?.forEach((item: any) => { productCounts[item.id] = (productCounts[item.id] || 0) + (item.quantity || 1); }); });
@@ -257,7 +281,6 @@ export default function HomePage() {
     }
   };
 
-  // Select heights tightened on mobile to fit fixed hero
   const customSelectStyles = {
     control: (base: any) => ({ ...base, height: '52px', borderRadius: '12px', border: 'none', backgroundColor: '#f8f8f8', fontSize: '1rem', textAlign: 'right', display: 'flex', flexDirection: 'row-reverse', cursor: 'pointer' }),
     option: (base: any, state: any) => ({ ...base, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', flexDirection: 'row-reverse', gap: '8px', padding: '10px 15px', fontSize: '0.95rem', backgroundColor: state.isFocused ? '#eefcf5' : '#fff', color: '#1a1a1a', cursor: 'pointer' }),
@@ -269,7 +292,7 @@ export default function HomePage() {
 
   if (!isMounted) return null;
 
-  // GARAGE FILTER LOGIC — always re-check image validity
+  // GARAGE FILTER LOGIC — preserves sale_order within the filtered set
   const filteredSaleProducts = garageMode && userCar 
     ? saleProducts.filter(p => 
         (p.car_make?.toUpperCase() === userCar.make?.toUpperCase() && 
@@ -351,19 +374,11 @@ export default function HomePage() {
 
           .page-container { animation: pageLoad 0.4s ease-out; }
 
-          /* ═══════════════════════════════════════════════════════
-             HERO SECTION
-             Both breakpoints use a FIXED pixel height +
-             overflow:hidden — eliminating the inner scroll entirely.
-             The search card stays inside the hero on mobile, kept
-             visible by tighter spacing in the SearchCard component.
-          ═══════════════════════════════════════════════════════ */
-
           .hero-section {
             position: relative;
             width: 100%;
             background: #000;
-            overflow: hidden;   /* clips bg image AND prevents inner scroll */
+            overflow: hidden;
           }
 
           .hero-bg-layer {
@@ -377,7 +392,6 @@ export default function HomePage() {
           }
           .hero-bg-slide.active { opacity: 1; }
 
-          /* ── Desktop (≥ 769px) ── */
           @media (min-width: 769px) {
             .hero-section {
               height: 600px;
@@ -407,17 +421,9 @@ export default function HomePage() {
             .hero-card-mobile  { display: none; }
           }
 
-          /* ── Mobile (≤ 768px) ── */
-          /*
-           * Fixed height — tall enough for the hero text block +
-           * the compact search card with tightened spacing.
-           * overflow:hidden on BOTH .hero-section and
-           * .hero-content-layer kills the inner scroll completely.
-           * Users scroll the page, not the hero.
-           */
           @media (max-width: 768px) {
             .hero-section {
-              height: 720px;        /* taller to show more of the background image */
+              height: 720px;
             }
             .hero-content-layer {
               position: absolute; inset: 0; z-index: 10;
@@ -428,7 +434,7 @@ export default function HomePage() {
             .hero-inner {
               width: 100%; padding: 0 14px;
               box-sizing: border-box;
-              display: flex; flex-direction: column; gap: 28px; /* more space between text and card */
+              display: flex; flex-direction: column; gap: 28px;
             }
             .hero-text {
               text-align: center; display: flex;
@@ -444,7 +450,7 @@ export default function HomePage() {
               font-size: 0.88rem !important;
               max-width: 92%;
               margin-left: auto !important; margin-right: auto !important;
-              margin-bottom: 20px !important; /* more space between subtitle and CTA */
+              margin-bottom: 20px !important;
               line-height: 1.4 !important;
             }
             .hero-card-desktop { display: none; }
@@ -456,7 +462,6 @@ export default function HomePage() {
             }
           }
 
-          /* Very small phones */
           @media (max-width: 380px) {
             .hero-section       { height: 740px; }
             .hero-content-layer { padding-top: 54px; }
@@ -497,7 +502,6 @@ export default function HomePage() {
           .logo-img-v3     { max-width: 130px; max-height: 60px; filter: grayscale(100%); opacity: 0.5; transition: 0.3s; }
           .logo-img-v3:hover { filter: grayscale(0%); opacity: 1; transform: scale(1.1); }
 
-          /* ── HOME BANNER ── */
           .home-banner-section { max-width: 1200px; margin: 0 auto; padding: 16px 20px; }
           .home-banner-inner {
             position: relative; width: 100%; height: 190px; border-radius: 20px;
@@ -533,7 +537,6 @@ export default function HomePage() {
             .home-banner-cta      { padding: 8px 18px; font-size: 0.85rem; }
           }
 
-          /* ── LOADING SCREEN MOBILE ── */
           @media (max-width: 480px) {
             .loader-brand-name { font-size: 2.4rem !important; letter-spacing: -1px !important; margin-bottom: 16px !important; }
             .loader-headline   { font-size: 1.6rem !important; margin-bottom: 12px !important; }
@@ -559,8 +562,6 @@ export default function HomePage() {
           <div className="page-container">
 
             <section className="hero-section">
-
-              {/* Background layer — GPU composited, zero layout impact */}
               <div className="hero-bg-layer">
                 {slides.map((slide, index) => (
                   <div key={index} className={`hero-bg-slide ${index === currentSlide ? 'active' : ''}`}
@@ -568,10 +569,8 @@ export default function HomePage() {
                 ))}
               </div>
 
-              {/* Content layer */}
               <div className="hero-content-layer">
                 <div className="hero-inner">
-
                   <div className="hero-text">
                     <div className="hero-text-title">
                       {activeSlide.title && (
@@ -589,19 +588,15 @@ export default function HomePage() {
                     </Link>
                   </div>
 
-                  {/* Search card — desktop only */}
                   <div className="hero-card-desktop">
                     <SearchCard {...searchCardProps} />
                   </div>
 
-                  {/* Search card — mobile (compact, stays inside fixed hero) */}
                   <div className="hero-card-mobile">
                     <SearchCard {...searchCardProps} />
                   </div>
-
                 </div>
               </div>
-
             </section>
 
 
@@ -625,7 +620,7 @@ export default function HomePage() {
             )}
 
 
-            {/* ── HOME BANNER (under brands carousel) ── */}
+            {/* HOME BANNER */}
             {homeBanner && (
               <ScrollReveal direction="up" delay={0.07}>
                 <div className="home-banner-section">
