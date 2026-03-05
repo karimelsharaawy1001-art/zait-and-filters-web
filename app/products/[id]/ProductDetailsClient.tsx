@@ -13,7 +13,7 @@ import { Navigation, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 
 
-// ─── Urgency Counters ──────────────────────────────────────────────────────────
+// ─── Urgency Counters (floating) ───────────────────────────────────────────────
 function UrgencyCounters({ productId }: { productId: string }) {
   const seed = productId
     ? productId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
@@ -26,6 +26,13 @@ function UrgencyCounters({ productId }: { productId: string }) {
   const [stock,   setStock]   = useState(initStock);
   const [viewerFlash, setViewerFlash] = useState(false);
   const [stockFlash,  setStockFlash]  = useState(false);
+  const [visible, setVisible] = useState(false);
+
+  // Slide in after a short delay
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 800);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     const tick = () => {
@@ -45,7 +52,7 @@ function UrgencyCounters({ productId }: { productId: string }) {
       setStock(prev => {
         if (prev <= 5) return prev;
         if (Math.random() < 0.35) {
-          setStockFlash(true); setTimeout(() => setStockFlash(false), 500);
+          setStockFlash(true); setTimeout(() => setStockFlash(false), 600);
           return prev - 1;
         }
         return prev;
@@ -57,99 +64,167 @@ function UrgencyCounters({ productId }: { productId: string }) {
 
   const isLow = stock <= 8;
   const isMid = stock > 8 && stock <= 14;
-  const stockColor    = isLow ? '#dc2626' : isMid ? '#d97706' : '#16a34a';
-  const stockBg       = isLow ? 'linear-gradient(135deg, #fff1f1, #fff5f5)' : isMid ? 'linear-gradient(135deg, #fffbeb, #fff8f0)' : 'linear-gradient(135deg, #f0fdf4, #f7fdf9)';
-  const stockBorder   = isLow ? '#fecaca' : isMid ? '#fde68a' : '#bbf7d0';
-  const stockAccent   = isLow ? 'rgba(220,38,38,0.08)' : isMid ? 'rgba(217,119,6,0.08)' : 'rgba(22,163,74,0.08)';
+  const stockColor  = isLow ? '#dc2626' : isMid ? '#d97706' : '#16a34a';
+  const stockAccent = isLow ? 'rgba(220,38,38,0.1)' : isMid ? 'rgba(217,119,6,0.1)' : 'rgba(22,163,74,0.1)';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-
-      {/* Viewers */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '12px',
-        padding: '12px 16px',
-        background: 'linear-gradient(135deg, #eff6ff, #f0f9ff)',
-        border: '1px solid #bfdbfe',
-        borderRadius: '14px',
-        direction: 'rtl',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        {/* accent stripe */}
-        <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '4px', background: 'linear-gradient(180deg, #3b82f6, #2563eb)', borderRadius: '0 14px 14px 0' }} />
-
-        {/* icon bubble */}
-        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <Eye size={17} color="#2563eb" />
-        </div>
-
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: '700', marginBottom: '1px' }}>مشاهدون الآن</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-            <span style={{
-              fontSize: '1.25rem', fontWeight: '900', color: viewerFlash ? '#2563eb' : '#1e3a8a',
-              transition: 'color 0.3s, transform 0.3s',
-              display: 'inline-block',
-              transform: viewerFlash ? 'scale(1.18)' : 'scale(1)',
-            }}>{viewers}</span>
-            <span style={{ fontSize: '0.78rem', color: '#374151', fontWeight: '600' }}>شخص يشاهد هذا المنتج</span>
-            {/* live dot */}
-            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 0 3px rgba(34,197,94,0.2)', animation: 'urgencyBlink 1.4s infinite', flexShrink: 0 }} />
-          </div>
-        </div>
-      </div>
-
-      {/* Stock */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '12px',
-        padding: '12px 16px',
-        background: stockBg,
-        border: `1px solid ${stockBorder}`,
-        borderRadius: '14px',
-        direction: 'rtl',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        {/* accent stripe */}
-        <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '4px', background: `linear-gradient(180deg, ${stockColor}, ${stockColor}aa)`, borderRadius: '0 14px 14px 0' }} />
-
-        {/* icon bubble */}
-        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: stockAccent, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <AlertTriangle size={17} color={stockColor} />
-        </div>
-
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: '700', marginBottom: '1px' }}>المخزون المتبقي</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '6px' }}>
-            <span style={{
-              fontSize: '1.25rem', fontWeight: '900', color: stockFlash ? stockColor : stockColor,
-              transition: 'transform 0.3s',
-              display: 'inline-block',
-              transform: stockFlash ? 'scale(1.18)' : 'scale(1)',
-            }}>{stock}</span>
-            <span style={{ fontSize: '0.78rem', color: '#374151', fontWeight: '600' }}>قطعة فقط متبقية</span>
-          </div>
-          {/* progress bar */}
-          <div style={{ height: '5px', background: 'rgba(0,0,0,0.07)', borderRadius: '99px', overflow: 'hidden' }}>
-            <div style={{
-              height: '100%',
-              width: `${Math.round((stock / 30) * 100)}%`,
-              background: `linear-gradient(90deg, ${stockColor}cc, ${stockColor})`,
-              borderRadius: '99px',
-              transition: 'width 0.8s ease, background 0.6s ease',
-            }} />
-          </div>
-        </div>
-      </div>
-
+    <>
       <style>{`
         @keyframes urgencyBlink {
           0%, 100% { opacity: 1; }
-          50%       { opacity: 0.3; }
+          50%       { opacity: 0.25; }
+        }
+        @keyframes floatIn {
+          from { opacity: 0; transform: translateX(28px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        .urgency-float-wrap {
+          position: fixed;
+          left: 16px;
+          bottom: 100px;
+          z-index: 9999;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          pointer-events: none;
+        }
+        .urgency-card {
+          pointer-events: auto;
+          display: flex;
+          align-items: center;
+          gap: 11px;
+          padding: 11px 14px 11px 16px;
+          border-radius: 16px;
+          direction: rtl;
+          min-width: 210px;
+          max-width: 240px;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          box-shadow: 0 8px 32px rgba(0,0,0,0.13), 0 1.5px 6px rgba(0,0,0,0.07);
+          opacity: 0;
+          animation: floatIn 0.5s cubic-bezier(.22,.68,0,1.2) forwards;
+        }
+        .urgency-card-viewers {
+          background: rgba(239,246,255,0.95);
+          border: 1px solid rgba(191,219,254,0.8);
+          animation-delay: 0.85s;
+        }
+        .urgency-card-stock {
+          animation-delay: 1.1s;
+        }
+        .urgency-icon-bubble {
+          width: 34px;
+          height: 34px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .urgency-num {
+          font-size: 1.3rem;
+          font-weight: 900;
+          line-height: 1;
+          display: inline-block;
+          transition: transform 0.25s cubic-bezier(.22,.68,0,1.4), color 0.25s;
+        }
+        .urgency-num.pop {
+          transform: scale(1.22) !important;
+        }
+        .urgency-label-top {
+          font-size: 0.62rem;
+          font-weight: 700;
+          color: #9ca3af;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          margin-bottom: 1px;
+        }
+        .urgency-label-sub {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #374151;
+        }
+        .urgency-live-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #22c55e;
+          box-shadow: 0 0 0 3px rgba(34,197,94,0.22);
+          animation: urgencyBlink 1.4s infinite;
+          flex-shrink: 0;
+        }
+        .urgency-bar-track {
+          height: 4px;
+          background: rgba(0,0,0,0.08);
+          border-radius: 99px;
+          overflow: hidden;
+          margin-top: 5px;
+        }
+        .urgency-bar-fill {
+          height: 100%;
+          border-radius: 99px;
+          transition: width 0.9s ease, background 0.6s;
+        }
+        @media (max-width: 480px) {
+          .urgency-float-wrap {
+            left: 10px;
+            bottom: 80px;
+          }
+          .urgency-card {
+            min-width: 180px;
+            max-width: 200px;
+            padding: 9px 11px 9px 13px;
+          }
         }
       `}</style>
-    </div>
+
+      {visible && (
+        <div className="urgency-float-wrap">
+
+          {/* Viewers card */}
+          <div className="urgency-card urgency-card-viewers">
+            <div className="urgency-icon-bubble" style={{ background: 'rgba(37,99,235,0.1)' }}>
+              <Eye size={16} color="#2563eb" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div className="urgency-label-top">مشاهدون الآن</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className={`urgency-num${viewerFlash ? ' pop' : ''}`} style={{ color: '#1e3a8a' }}>{viewers}</span>
+                <span className="urgency-label-sub">يشاهدون المنتج</span>
+                <span className="urgency-live-dot" />
+              </div>
+            </div>
+          </div>
+
+          {/* Stock card */}
+          <div
+            className="urgency-card urgency-card-stock"
+            style={{
+              background: isLow ? 'rgba(255,241,241,0.97)' : isMid ? 'rgba(255,251,235,0.97)' : 'rgba(240,253,244,0.97)',
+              border: `1px solid ${isLow ? 'rgba(254,202,202,0.8)' : isMid ? 'rgba(253,230,138,0.8)' : 'rgba(187,247,208,0.8)'}`,
+            }}
+          >
+            <div className="urgency-icon-bubble" style={{ background: stockAccent }}>
+              <AlertTriangle size={16} color={stockColor} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div className="urgency-label-top">المخزون المتبقي</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className={`urgency-num${stockFlash ? ' pop' : ''}`} style={{ color: stockColor }}>{stock}</span>
+                <span className="urgency-label-sub">قطعة فقط</span>
+              </div>
+              <div className="urgency-bar-track">
+                <div className="urgency-bar-fill" style={{
+                  width: `${Math.round((stock / 30) * 100)}%`,
+                  background: `linear-gradient(90deg, ${stockColor}99, ${stockColor})`,
+                }} />
+              </div>
+            </div>
+          </div>
+
+        </div>
+      )}
+    </>
   );
 }
 
@@ -526,7 +601,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
 
         .add-to-cart-btn {
           flex: 1;
-          background: #2563eb;
+          background: #27ae60;
           color: #fff;
           border: none;
           border-radius: 11px;
@@ -538,15 +613,15 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           justify-content: center;
           align-items: center;
           gap: 6px;
-          box-shadow: 0 6px 16px rgba(37, 99, 235, 0.22);
+          box-shadow: 0 6px 16px rgba(39, 174, 96, 0.25);
           font-family: inherit;
           transition: all 0.18s;
         }
 
         .add-to-cart-btn:hover {
-          background: #1d4ed8;
+          background: #219a55;
           transform: translateY(-1px);
-          box-shadow: 0 10px 20px rgba(37, 99, 235, 0.32);
+          box-shadow: 0 10px 20px rgba(39, 174, 96, 0.35);
         }
 
         .buy-now-btn {
@@ -683,6 +758,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         }
       `}</style>
 
+      <UrgencyCounters productId={productId} />
       <div className="product-page-wrapper">
 
         {/* Breadcrumb */}
@@ -749,10 +825,6 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                 <div style={specItem}><span style={specLabel}>الضمان</span><span style={specValue}><Timer size={14} /> {product.warranty_duration || 'ضمان استبدال'}</span></div>
               </div>
             </div>
-
-            {/* ── URGENCY COUNTERS ── */}
-            <UrgencyCounters productId={productId} />
-            {/* ──────────────────── */}
 
             {/* Qty + Cart */}
             <div className="action-row-mobile">
