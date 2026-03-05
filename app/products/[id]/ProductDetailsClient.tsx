@@ -15,27 +15,24 @@ import 'swiper/css';
 
 // ─── Urgency Counters ──────────────────────────────────────────────────────────
 function UrgencyCounters({ productId }: { productId: string }) {
-  // Seed stable "random" numbers from productId so they don't jump on SSR
   const seed = productId
     ? productId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
     : 42;
 
-  // viewers: 8–25, stock: 5–18
   const initViewers = 8  + (seed % 18);
   const initStock   = 5  + (seed % 14);
 
   const [viewers, setViewers] = useState(initViewers);
   const [stock,   setStock]   = useState(initStock);
-  const [viewerPulse, setViewerPulse] = useState(false);
-  const [stockPulse,  setStockPulse]  = useState(false);
+  const [viewerFlash, setViewerFlash] = useState(false);
+  const [stockFlash,  setStockFlash]  = useState(false);
 
-  // Viewers fluctuate every 7–14 s
   useEffect(() => {
     const tick = () => {
       setViewers(prev => {
-        const delta = Math.random() < 0.55 ? 1 : -1; // slightly biased up
+        const delta = Math.random() < 0.55 ? 1 : -1;
         const next = Math.min(30, Math.max(5, prev + delta));
-        if (next !== prev) setViewerPulse(p => !p);
+        if (next !== prev) { setViewerFlash(true); setTimeout(() => setViewerFlash(false), 500); }
         return next;
       });
     };
@@ -43,13 +40,12 @@ function UrgencyCounters({ productId }: { productId: string }) {
     return () => clearInterval(id);
   }, []);
 
-  // Stock slowly drops every 45–90 s (rare but real-looking)
   useEffect(() => {
     const tick = () => {
       setStock(prev => {
         if (prev <= 5) return prev;
         if (Math.random() < 0.35) {
-          setStockPulse(p => !p);
+          setStockFlash(true); setTimeout(() => setStockFlash(false), 500);
           return prev - 1;
         }
         return prev;
@@ -59,90 +55,103 @@ function UrgencyCounters({ productId }: { productId: string }) {
     return () => clearInterval(id);
   }, []);
 
-  const stockColor = stock <= 8 ? '#e74c3c' : stock <= 14 ? '#f39c12' : '#27ae60';
+  const isLow = stock <= 8;
+  const isMid = stock > 8 && stock <= 14;
+  const stockColor    = isLow ? '#dc2626' : isMid ? '#d97706' : '#16a34a';
+  const stockBg       = isLow ? 'linear-gradient(135deg, #fff1f1, #fff5f5)' : isMid ? 'linear-gradient(135deg, #fffbeb, #fff8f0)' : 'linear-gradient(135deg, #f0fdf4, #f7fdf9)';
+  const stockBorder   = isLow ? '#fecaca' : isMid ? '#fde68a' : '#bbf7d0';
+  const stockAccent   = isLow ? 'rgba(220,38,38,0.08)' : isMid ? 'rgba(217,119,6,0.08)' : 'rgba(22,163,74,0.08)';
 
   return (
-    <div style={urgencyWrapper}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+
       {/* Viewers */}
-      <div style={urgencyPill}>
-        <span style={{ ...urgencyDot, background: '#22c55e', boxShadow: '0 0 0 3px rgba(34,197,94,0.25)', animation: 'urgencyBlink 1.4s infinite' }} />
-        <Eye size={14} color="#555" />
-        <span style={urgencyText}>
-          <strong style={{ color: '#1a1a1a' }}>{viewers}</strong> شخص يشاهد هذا المنتج الآن
-        </span>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '12px',
+        padding: '12px 16px',
+        background: 'linear-gradient(135deg, #eff6ff, #f0f9ff)',
+        border: '1px solid #bfdbfe',
+        borderRadius: '14px',
+        direction: 'rtl',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        {/* accent stripe */}
+        <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '4px', background: 'linear-gradient(180deg, #3b82f6, #2563eb)', borderRadius: '0 14px 14px 0' }} />
+
+        {/* icon bubble */}
+        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Eye size={17} color="#2563eb" />
+        </div>
+
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: '700', marginBottom: '1px' }}>مشاهدون الآن</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+            <span style={{
+              fontSize: '1.25rem', fontWeight: '900', color: viewerFlash ? '#2563eb' : '#1e3a8a',
+              transition: 'color 0.3s, transform 0.3s',
+              display: 'inline-block',
+              transform: viewerFlash ? 'scale(1.18)' : 'scale(1)',
+            }}>{viewers}</span>
+            <span style={{ fontSize: '0.78rem', color: '#374151', fontWeight: '600' }}>شخص يشاهد هذا المنتج</span>
+            {/* live dot */}
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 0 3px rgba(34,197,94,0.2)', animation: 'urgencyBlink 1.4s infinite', flexShrink: 0 }} />
+          </div>
+        </div>
       </div>
 
       {/* Stock */}
-      <div style={{ ...urgencyPill, borderColor: stock <= 8 ? '#fde8e8' : '#fff3e0', background: stock <= 8 ? '#fff5f5' : '#fffbf0' }}>
-        <AlertTriangle size={14} color={stockColor} />
-        <span style={urgencyText}>
-          تبقى فقط <strong style={{ color: stockColor }}>{stock}</strong> قطعة في المخزون
-        </span>
-        {/* mini progress bar */}
-        <div style={stockBarTrack}>
-          <div style={{ ...stockBarFill, width: `${Math.round((stock / 30) * 100)}%`, background: stockColor }} />
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '12px',
+        padding: '12px 16px',
+        background: stockBg,
+        border: `1px solid ${stockBorder}`,
+        borderRadius: '14px',
+        direction: 'rtl',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        {/* accent stripe */}
+        <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '4px', background: `linear-gradient(180deg, ${stockColor}, ${stockColor}aa)`, borderRadius: '0 14px 14px 0' }} />
+
+        {/* icon bubble */}
+        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: stockAccent, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <AlertTriangle size={17} color={stockColor} />
+        </div>
+
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: '700', marginBottom: '1px' }}>المخزون المتبقي</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '6px' }}>
+            <span style={{
+              fontSize: '1.25rem', fontWeight: '900', color: stockFlash ? stockColor : stockColor,
+              transition: 'transform 0.3s',
+              display: 'inline-block',
+              transform: stockFlash ? 'scale(1.18)' : 'scale(1)',
+            }}>{stock}</span>
+            <span style={{ fontSize: '0.78rem', color: '#374151', fontWeight: '600' }}>قطعة فقط متبقية</span>
+          </div>
+          {/* progress bar */}
+          <div style={{ height: '5px', background: 'rgba(0,0,0,0.07)', borderRadius: '99px', overflow: 'hidden' }}>
+            <div style={{
+              height: '100%',
+              width: `${Math.round((stock / 30) * 100)}%`,
+              background: `linear-gradient(90deg, ${stockColor}cc, ${stockColor})`,
+              borderRadius: '99px',
+              transition: 'width 0.8s ease, background 0.6s ease',
+            }} />
+          </div>
         </div>
       </div>
 
       <style>{`
         @keyframes urgencyBlink {
           0%, 100% { opacity: 1; }
-          50%       { opacity: 0.35; }
+          50%       { opacity: 0.3; }
         }
       `}</style>
     </div>
   );
 }
-
-const urgencyWrapper: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '8px',
-};
-
-const urgencyPill: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  padding: '10px 14px',
-  background: '#f0fdf4',
-  border: '1px solid #dcfce7',
-  borderRadius: '12px',
-  fontSize: '0.85rem',
-  color: '#444',
-  fontWeight: '600',
-  direction: 'rtl',
-  flexWrap: 'wrap',
-};
-
-const urgencyDot: React.CSSProperties = {
-  width: '8px',
-  height: '8px',
-  borderRadius: '50%',
-  flexShrink: 0,
-};
-
-const urgencyText: React.CSSProperties = {
-  flex: 1,
-  whiteSpace: 'nowrap',
-};
-
-const stockBarTrack: React.CSSProperties = {
-  width: '60px',
-  height: '5px',
-  background: '#e5e7eb',
-  borderRadius: '99px',
-  overflow: 'hidden',
-  flexShrink: 0,
-  marginRight: 'auto',
-};
-
-const stockBarFill: React.CSSProperties = {
-  height: '100%',
-  borderRadius: '99px',
-  transition: 'width 0.6s ease, background 0.6s ease',
-};
-// ──────────────────────────────────────────────────────────────────────────────
 
 
 // ─── Share Buttons ─────────────────────────────────────────────────────────────
@@ -517,53 +526,60 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
 
         .add-to-cart-btn {
           flex: 1;
-          background: #27ae60;
+          background: #2563eb;
           color: #fff;
           border: none;
-          border-radius: 15px;
-          padding: 16px 20px;
-          font-weight: bold;
-          font-size: 1rem;
+          border-radius: 11px;
+          padding: 11px 14px;
+          font-weight: 700;
+          font-size: 0.88rem;
           cursor: pointer;
           display: flex;
           justify-content: center;
           align-items: center;
-          gap: 10px;
-          box-shadow: 0 10px 20px rgba(39, 174, 96, 0.2);
+          gap: 6px;
+          box-shadow: 0 6px 16px rgba(37, 99, 235, 0.22);
           font-family: inherit;
+          transition: all 0.18s;
+        }
+
+        .add-to-cart-btn:hover {
+          background: #1d4ed8;
+          transform: translateY(-1px);
+          box-shadow: 0 10px 20px rgba(37, 99, 235, 0.32);
         }
 
         .buy-now-btn {
           width: 100%;
-          background: #22c55e;
+          background: linear-gradient(135deg, #f97316, #ea580c);
           color: #fff;
           border: none;
-          border-radius: 15px;
-          padding: 16px 20px;
+          border-radius: 11px;
+          padding: 11px 14px;
           font-weight: 900;
-          font-size: 1rem;
+          font-size: 0.88rem;
           cursor: pointer;
           display: flex;
           justify-content: center;
           align-items: center;
-          gap: 10px;
-          box-shadow: 0 10px 20px rgba(34, 197, 94, 0.25);
+          gap: 6px;
+          box-shadow: 0 6px 16px rgba(249, 115, 22, 0.26);
           font-family: inherit;
           text-decoration: none;
-          transition: all 0.2s;
+          transition: all 0.18s;
         }
 
         .buy-now-btn:hover {
-          background: #16a34a;
+          background: linear-gradient(135deg, #ea580c, #c2410c);
           transform: translateY(-1px);
-          box-shadow: 0 14px 24px rgba(34,197,94,0.35);
+          box-shadow: 0 10px 20px rgba(249, 115, 22, 0.4);
         }
 
         @media (max-width: 768px) {
-          .buy-now-btn {
-            padding: 18px;
-            font-size: 1.1rem;
-            border-radius: 18px;
+          .buy-now-btn, .add-to-cart-btn {
+            padding: 12px 14px;
+            font-size: 0.92rem;
+            border-radius: 12px;
           }
         }
 
