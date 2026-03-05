@@ -19,11 +19,9 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
-  // ── NEW: track completed order for invoice button ──
   const [completedOrderId, setCompletedOrderId] = useState<string | null>(null);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
-  // ── FIX: snapshot cart/totals before clearCart so invoice still renders ──
   const [completedOrderItems, setCompletedOrderItems] = useState<any[]>([]);
   const [completedSubtotal, setCompletedSubtotal] = useState(0);
   const [completedFinalTotal, setCompletedFinalTotal] = useState(0);
@@ -92,7 +90,6 @@ export default function CheckoutPage() {
         await trackReferralClick(refCode);
       }
 
-      // ── BUY NOW: if redirected from Buy Now button, add the product to cart ──
       const isBuyNow = urlParams.get('buyNow') === 'true';
       const buyNowProductId = urlParams.get('productId');
       const buyNowPrice = urlParams.get('price');
@@ -107,7 +104,6 @@ export default function CheckoutPage() {
           addToCart({ ...product, price }, 1);
         }
       }
-      // ─────────────────────────────────────────────────────────────────────
     }
     initCheckout();
   }, []);
@@ -165,40 +161,38 @@ export default function CheckoutPage() {
     if (!promoCode.trim()) return;
     setPromoLoading(true);
     try {
-      // ── FIX: no embedded join — fetch promo_codes and marketer separately ──
-const { data: affiliatePromo } = await supabase
-  .from('promo_codes')
-  .select('*')
-  .eq('code', promoCode.trim().toUpperCase())
-  .eq('is_active', true)
-  .maybeSingle();
+      const { data: affiliatePromo } = await supabase
+        .from('promo_codes')
+        .select('*')
+        .eq('code', promoCode.trim().toUpperCase())
+        .eq('is_active', true)
+        .maybeSingle();
 
-if (affiliatePromo) {
-  const { data: marketerData } = await supabase
-    .from('marketers')
-    .select('id, full_name, tier_percentage')
-    .eq('id', affiliatePromo.marketer_id)
-    .maybeSingle();
+      if (affiliatePromo) {
+        const { data: marketerData } = await supabase
+          .from('marketers')
+          .select('id, full_name, tier_percentage')
+          .eq('id', affiliatePromo.marketer_id)
+          .maybeSingle();
 
-  const discountPercentage = affiliatePromo.discount_percentage || 5;
-  const calculatedDiscount = (subtotal * discountPercentage) / 100;
-  setDiscountAmount(calculatedDiscount);
-  setAppliedPromo(affiliatePromo.code);
-  setAppliedPromoType('affiliate_percentage');
-  setAffiliateMarketerId(affiliatePromo.marketer_id);
-  await supabase.from('promo_codes').update({ usage_count: (affiliatePromo.usage_count || 0) + 1 }).eq('id', affiliatePromo.id);
-  toast.success(`تم تطبيق كود المسوق "${marketerData?.full_name || 'المسوق'}" - خصم ${discountPercentage}%! 🎉`);
-  trackAbandonedCart();
-  return;
-}
+        const discountPercentage = affiliatePromo.discount_percentage || 5;
+        const calculatedDiscount = (subtotal * discountPercentage) / 100;
+        setDiscountAmount(calculatedDiscount);
+        setAppliedPromo(affiliatePromo.code);
+        setAppliedPromoType('affiliate_percentage');
+        setAffiliateMarketerId(affiliatePromo.marketer_id);
+        await supabase.from('promo_codes').update({ usage_count: (affiliatePromo.usage_count || 0) + 1 }).eq('id', affiliatePromo.id);
+        toast.success(`تم تطبيق كود المسوق "${marketerData?.full_name || 'المسوق'}" - خصم ${discountPercentage}%! 🎉`);
+        trackAbandonedCart();
+        return;
+      }
 
-const { data, error } = await supabase
-  .from('coupons')
-  .select('*')
-  .eq('code', promoCode.trim().toUpperCase())
-  .eq('is_active', true)
-  .maybeSingle();
-
+      const { data, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('code', promoCode.trim().toUpperCase())
+        .eq('is_active', true)
+        .maybeSingle();
 
       if (error || !data) {
         toast.error('كود الخصم غير صحيح أو منتهي');
@@ -251,8 +245,6 @@ const { data, error } = await supabase
 
   const initiateEasyKashPayment = async (orderId: string) => {
     try {
-      console.log('[EasyKash] Initiating payment for order:', orderId, 'amount:', finalTotal);
-
       const payload = {
         amount: finalTotal,
         customerName: customerInfo.name.trim(),
@@ -262,8 +254,6 @@ const { data, error } = await supabase
         description: `طلب رقم ${orderId} - زيت وفلاتر`,
       };
 
-      console.log('[EasyKash] Sending payload:', payload);
-
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -271,8 +261,6 @@ const { data, error } = await supabase
       });
 
       const rawText = await response.text();
-      console.log('[EasyKash] Raw response:', rawText);
-
       let data: any;
       try {
         data = JSON.parse(rawText);
@@ -330,7 +318,6 @@ const { data, error } = await supabase
     }
   };
 
-  // ── PDF download handler ───────────────────────────────────────────────────
   const handleDownloadInvoice = async (orderId: string) => {
     setIsDownloadingPdf(true);
     try {
@@ -407,6 +394,11 @@ const { data, error } = await supabase
 
       const orderData = {
         user_id: user?.id || null,
+        // ── Guest order linking: always save email & phone so we can claim
+        //    this order when the guest registers later ──────────────────────
+        guest_email: customerInfo.email || null,
+        guest_phone: customerInfo.phone || null,
+        // ─────────────────────────────────────────────────────────────────
         customer_name: customerInfo.name,
         customer_phone: customerInfo.phone,
         customer_email: customerInfo.email,
@@ -436,10 +428,10 @@ const { data, error } = await supabase
 
       await markAsRecovered(newOrder.id);
       localStorage.removeItem('zf_marketer_ref');
+
       if (paymentMethod === 'card_installments') {
         await initiateEasyKashPayment(newOrder.id);
       } else {
-        // ── FIX: snapshot cart & totals BEFORE clearCart so invoice renders correctly ──
         setCompletedOrderItems([...cart]);
         setCompletedSubtotal(subtotal);
         setCompletedFinalTotal(finalTotal);
@@ -466,7 +458,6 @@ const { data, error } = await supabase
 
     return (
       <div style={{ direction: 'rtl', padding: '30px 20px', maxWidth: '820px', margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-        {/* Success banner */}
         <div style={{
           background: 'linear-gradient(135deg, #0f172a, #14532d)',
           borderRadius: '20px', padding: '30px', textAlign: 'center',
@@ -479,7 +470,6 @@ const { data, error } = await supabase
           </p>
         </div>
 
-        {/* Action buttons */}
         <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
           <button
             onClick={() => handleDownloadInvoice(completedOrderId)}
@@ -531,7 +521,6 @@ const { data, error } = await supabase
           </button>
         </div>
 
-        {/* ── INVOICE PREVIEW (also used by html2canvas for PDF) ── */}
         <div
           id="order-invoice-preview"
           style={{
@@ -542,7 +531,6 @@ const { data, error } = await supabase
             border: '1px solid #f0f0f0',
           }}
         >
-          {/* Header */}
           <div style={{
             background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f4c2a 100%)',
             padding: '36px 44px', position: 'relative', overflow: 'hidden',
@@ -575,12 +563,11 @@ const { data, error } = await supabase
               <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.78rem' }}>{orderDate}</span>
             </div>
           </div>
-          {/* Meta row */}
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderBottom: '1px solid #f0f0f0' }}>
             {[
               { label: 'رقم الطلب', value: `#${orderNum}` },
               { label: 'تاريخ الطلب', value: orderDate },
-              // ── FIX: use completedOrderItems instead of cart ──
               { label: 'عدد المنتجات', value: `${completedOrderItems.length} منتج` },
             ].map((item, i) => (
               <div key={i} style={{ padding: '18px 22px', borderRight: i < 2 ? '1px solid #f0f0f0' : 'none' }}>
@@ -591,7 +578,6 @@ const { data, error } = await supabase
           </div>
 
           <div style={{ padding: '30px 44px' }}>
-            {/* Customer info */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '28px' }}>
               <div style={{ backgroundColor: '#f9fafb', borderRadius: '14px', padding: '20px', border: '1px solid #f0f0f0' }}>
                 <div style={{ fontSize: '0.68rem', fontWeight: '900', color: '#888', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>بيانات العميل</div>
@@ -611,7 +597,6 @@ const { data, error } = await supabase
               </div>
             </div>
 
-            {/* Items table */}
             <div style={{ marginBottom: '24px' }}>
               <div style={{ fontSize: '0.68rem', fontWeight: '900', color: '#888', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>تفاصيل المنتجات</div>
               <div style={{ backgroundColor: '#0f172a', borderRadius: '10px 10px 0 0', padding: '10px 16px', display: 'grid', gridTemplateColumns: '2.5fr 0.7fr 1fr 1fr' }}>
@@ -619,7 +604,6 @@ const { data, error } = await supabase
                   <div key={i} style={{ fontSize: '0.68rem', fontWeight: '800', color: '#94a3b8', textAlign: i === 0 ? 'right' : 'center', textTransform: 'uppercase' }}>{h}</div>
                 ))}
               </div>
-              {/* ── FIX: use completedOrderItems instead of cart ── */}
               {completedOrderItems.map((item: any, i: number) => (
                 <div key={item.id} style={{
                   display: 'grid', gridTemplateColumns: '2.5fr 0.7fr 1fr 1fr',
@@ -640,12 +624,11 @@ const { data, error } = await supabase
               ))}
               <div style={{ height: '4px', backgroundColor: '#0f172a', borderRadius: '0 0 10px 10px' }} />
             </div>
-            {/* Totals */}
+
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <div style={{ width: '270px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.86rem' }}>
                   <span style={{ color: '#666', fontWeight: '700' }}>المجموع الجزئي</span>
-                  {/* ── FIX: use completedSubtotal instead of subtotal ── */}
                   <span style={{ fontWeight: '800' }}>{completedSubtotal.toFixed(2)} ج.م</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.86rem' }}>
@@ -667,14 +650,12 @@ const { data, error } = await supabase
                   background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: '12px',
                 }}>
                   <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.82rem', fontWeight: '700' }}>الإجمالي الكلي</span>
-                  {/* ── FIX: use completedFinalTotal instead of finalTotal ── */}
                   <span style={{ color: '#22c55e', fontSize: '1.35rem', fontWeight: '900' }}>{completedFinalTotal.toFixed(2)} ج.م</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Footer */}
           <div style={{
             background: 'linear-gradient(135deg, #0f172a, #1e293b)',
             padding: '24px 44px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -717,7 +698,6 @@ const { data, error } = await supabase
       <div style={layoutGrid}>
 
         <div style={summarySide}>
-          {/* ── Changed فاتورتك → ORDER ── */}
           <h3 style={sectionTitle}><ShoppingCart size={18} /> تفاصيل ORDER</h3>
           <div style={itemsList}>
             {cart.map((item: any) => {
@@ -906,8 +886,6 @@ const itemsList: any = { maxHeight: '350px', overflowY: 'auto' };
 const detailsGrid = { display: 'flex', flexDirection: 'column' as const, gap: '3px', marginTop: '8px' };
 const detailItem = { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#666' };
 const qtyBadge = { backgroundColor: '#f0fdf4', color: '#15803d', padding: '4px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800' };
-
-// ── Payment styles — compact & elegant ────────────────────────────────────────
 const paymentContainer: any = { display: 'flex', flexDirection: 'column', gap: '6px' };
 const paymentCard = (isActive: boolean) => ({ display: 'block', padding: '10px 14px', borderRadius: '12px', border: isActive ? '2px solid #15803d' : '1px solid #e8e8e8', borderRight: isActive ? '4px solid #15803d' : '1px solid #e8e8e8', background: isActive ? '#f7fff9' : '#fafafa', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: isActive ? '0 2px 10px rgba(21, 128, 61, 0.08)' : 'none' });
 const payCardInner: any = { display: 'flex', flexDirection: 'column', gap: '4px' };

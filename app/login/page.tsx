@@ -4,6 +4,7 @@ import { supabase } from '@/app/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { LogIn, UserPlus, Mail, Lock, Loader2, ArrowRight, User, Phone } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { claimGuestOrders } from '@/app/lib/claimGuestOrders'; // ← أضفنا هذا
 
 export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -43,6 +44,9 @@ export default function LoginPage() {
             ]);
 
           if (profileError) throw profileError;
+
+          // 3. ربط أي طلبات سابقة تمت بنفس الإيميل أو رقم الموبايل ── ← أضفنا هذا
+          await claimGuestOrders(authData.user.id, email, phone);
         }
 
         toast.success('تم إنشاء الحساب! افحص بريدك الإلكتروني للتفعيل');
@@ -68,7 +72,6 @@ export default function LoginPage() {
         <p style={subTitle}>استمتع بتجربة تسوق أسرع وتابع طلباتك بسهولة</p>
 
         <form onSubmit={handleAuth} style={form}>
-          {/* حقول إضافية تظهر فقط في حالة الـ Sign Up */}
           {isSignUp && (
             <>
               <div style={inputGroup}>
@@ -119,7 +122,6 @@ export default function LoginPage() {
   );
 }
 
-// التنسيقات ثابتة ومتوافقة مع الهوية البصرية لـ زيت أند فلترز
 const container: any = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fcfcfc', padding: '20px', direction: 'rtl' };
 const authCard: any = { background: '#fff', padding: '40px', borderRadius: '30px', boxShadow: '0 20px 50px rgba(0,0,0,0.05)', width: '100%', maxWidth: '450px', textAlign: 'center' };
 const title: any = { fontSize: '1.8rem', fontWeight: '900', color: '#1a1a1a', marginBottom: '10px' };
