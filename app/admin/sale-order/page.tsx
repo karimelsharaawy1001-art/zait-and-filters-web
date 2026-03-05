@@ -6,13 +6,13 @@ import {
   Save,
   Loader2,
   Tags,
-  CheckCircle2,
   AlertCircle,
-  Eye,
   RotateCcw,
-  ArrowUpDown,
   Percent,
   Package,
+  Search,
+  X,
+  Hash,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -34,13 +34,14 @@ export default function SaleOrderAdminPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  // Tracks the raw string value of the number input per product id while typing
+  const [inputValues, setInputValues] = useState<Record<string, string>>({});
   const dragNode = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    fetchSaleProducts();
-  }, []);
+  useEffect(() => { fetchSaleProducts(); }, []);
 
   async function fetchSaleProducts() {
     setLoading(true);
@@ -57,13 +58,16 @@ export default function SaleOrderAdminPage() {
         (p) => Number(p.sale_price) > 0 && Number(p.regular_price) > Number(p.sale_price)
       );
 
-      // Assign initial order to products that don't have one yet
       const normalized = saleProducts.map((p, i) => ({
         ...p,
         sale_order: p.sale_order ?? i + 1,
       }));
 
       setProducts(normalized);
+      // Seed input values
+      const vals: Record<string, string> = {};
+      normalized.forEach((p) => { vals[p.id] = String(p.sale_order); });
+      setInputValues(vals);
     } catch (err) {
       console.error(err);
       toast.error('فشل تحميل المنتجات');
@@ -72,11 +76,46 @@ export default function SaleOrderAdminPage() {
     }
   }
 
-  // ── Drag & Drop handlers ──
+  // ── Manual number input: user types a new position and presses Enter or blurs ──
+  function handleOrderInputChange(id: string, raw: string) {
+    setInputValues((prev) => ({ ...prev, [id]: raw }));
+  }
+
+  function commitOrderInput(id: string) {
+    const raw = inputValues[id] ?? '';
+    const newPos = parseInt(raw);
+    if (isNaN(newPos) || newPos < 1) {
+      // Revert to current value
+      const current = products.find((p) => p.id === id);
+      setInputValues((prev) => ({ ...prev, [id]: String(current?.sale_order ?? '') }));
+      return;
+    }
+
+    const clamped = Math.min(newPos, products.length);
+    const currentIndex = products.findIndex((p) => p.id === id);
+    if (currentIndex === -1) return;
+
+    const targetIndex = clamped - 1;
+    if (currentIndex === targetIndex) return;
+
+    const reordered = [...products];
+    const [moved] = reordered.splice(currentIndex, 1);
+    reordered.splice(targetIndex, 0, moved);
+
+    const updated = reordered.map((p, i) => ({ ...p, sale_order: i + 1 }));
+    setProducts(updated);
+
+    // Sync all input values
+    const vals: Record<string, string> = {};
+    updated.forEach((p) => { vals[p.id] = String(p.sale_order); });
+    setInputValues(vals);
+    setIsDirty(true);
+  }
+
+  // ── Drag & Drop ──
   function handleDragStart(e: React.DragEvent, index: number) {
     setDragIndex(index);
     e.dataTransfer.effectAllowed = 'move';
-    // Slight delay so the ghost image renders first
     setTimeout(() => {
       if (dragNode.current) dragNode.current.style.opacity = '0.4';
     }, 0);
@@ -100,9 +139,13 @@ export default function SaleOrderAdminPage() {
     const [moved] = reordered.splice(dragIndex, 1);
     reordered.splice(dropIndex, 0, moved);
 
-    // Reassign sale_order based on new positions
     const updated = reordered.map((p, i) => ({ ...p, sale_order: i + 1 }));
     setProducts(updated);
+
+    const vals: Record<string, string> = {};
+    updated.forEach((p) => { vals[p.id] = String(p.sale_order); });
+    setInputValues(vals);
+
     setIsDirty(true);
     setDragIndex(null);
     setDragOverIndex(null);
@@ -115,23 +158,6 @@ export default function SaleOrderAdminPage() {
     if (dragNode.current) dragNode.current.style.opacity = '1';
   }
 
-  // ── Move up / down buttons (for mobile) ──
-  function moveUp(index: number) {
-    if (index === 0) return;
-    const reordered = [...products];
-    [reordered[index - 1], reordered[index]] = [reordered[index], reordered[index - 1]];
-    setProducts(reordered.map((p, i) => ({ ...p, sale_order: i + 1 })));
-    setIsDirty(true);
-  }
-
-  function moveDown(index: number) {
-    if (index === products.length - 1) return;
-    const reordered = [...products];
-    [reordered[index], reordered[index + 1]] = [reordered[index + 1], reordered[index]];
-    setProducts(reordered.map((p, i) => ({ ...p, sale_order: i + 1 })));
-    setIsDirty(true);
-  }
-
   // ── Auto-sort by discount % ──
   function sortByDiscount() {
     const sorted = [...products].sort((a, b) => {
@@ -139,29 +165,30 @@ export default function SaleOrderAdminPage() {
       const discB = ((b.regular_price - b.sale_price) / b.regular_price) * 100;
       return discB - discA;
     });
-    setProducts(sorted.map((p, i) => ({ ...p, sale_order: i + 1 })));
+    const updated = sorted.map((p, i) => ({ ...p, sale_order: i + 1 }));
+    setProducts(updated);
+    const vals: Record<string, string> = {};
+    updated.forEach((p) => { vals[p.id] = String(p.sale_order); });
+    setInputValues(vals);
     setIsDirty(true);
     toast.success('تم الترتيب حسب نسبة الخصم');
   }
 
-  // ── Reset to saved order ──
+  // ── Reset ──
   async function resetOrder() {
     setIsDirty(false);
+    setSearchQuery('');
     await fetchSaleProducts();
     toast('تم إعادة الترتيب للمحفوظ', { icon: '↩️' });
   }
 
-  // ── Save to Supabase ──
+  // ── Save ──
   async function saveOrder() {
     setSaving(true);
     try {
-      // Batch update using Promise.all
       await Promise.all(
         products.map((p) =>
-          supabase
-            .from('products')
-            .update({ sale_order: p.sale_order })
-            .eq('id', p.id)
+          supabase.from('products').update({ sale_order: p.sale_order }).eq('id', p.id)
         )
       );
       setIsDirty(false);
@@ -177,6 +204,21 @@ export default function SaleOrderAdminPage() {
   const discountPercent = (p: SaleProduct) =>
     Math.round(((p.regular_price - p.sale_price) / p.regular_price) * 100);
 
+  // ── Filtered list for display (search does NOT affect the actual order array) ──
+  const filteredProducts = searchQuery.trim()
+    ? products.filter((p) => {
+        const q = searchQuery.toLowerCase();
+        return (
+          p.name?.toLowerCase().includes(q) ||
+          p.brand?.toLowerCase().includes(q) ||
+          p.car_make?.toLowerCase().includes(q) ||
+          p.car_model?.toLowerCase().includes(q) ||
+          p.category?.toLowerCase().includes(q)
+        );
+      })
+    : products;
+
+  // ─────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f9f9f9' }}>
@@ -184,7 +226,7 @@ export default function SaleOrderAdminPage() {
           <Loader2 size={48} color="#22c55e" style={{ animation: 'spin 1s linear infinite', marginBottom: '16px' }} />
           <p style={{ color: '#666', fontWeight: '700', fontSize: '1rem' }}>جاري تحميل منتجات العروض...</p>
         </div>
-        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+        <style>{`@keyframes spin { from{transform:rotate(0deg)}to{transform:rotate(360deg)} }`}</style>
       </div>
     );
   }
@@ -192,195 +234,287 @@ export default function SaleOrderAdminPage() {
   return (
     <div style={{ direction: 'rtl', minHeight: '100vh', backgroundColor: '#f4f6f9', fontFamily: 'system-ui, sans-serif' }}>
       <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { from{transform:rotate(0deg)}to{transform:rotate(360deg)} }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)} }
+
         .product-row {
           background: #fff;
           border-radius: 14px;
           border: 2px solid #f0f0f0;
           display: flex;
           align-items: center;
-          gap: 14px;
-          padding: 14px 16px;
+          gap: 12px;
+          padding: 12px 14px;
           cursor: grab;
-          transition: all 0.2s ease;
-          animation: fadeIn 0.3s ease both;
+          transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+          animation: fadeIn 0.25s ease both;
           user-select: none;
         }
         .product-row:active { cursor: grabbing; }
-        .product-row:hover { border-color: #22c55e; box-shadow: 0 4px 20px rgba(34,197,94,0.12); }
+        .product-row:hover { border-color: #d1fae5; box-shadow: 0 4px 16px rgba(34,197,94,0.1); }
         .product-row.drag-over {
           border-color: #22c55e;
           background: #f0fdf4;
           box-shadow: 0 0 0 3px rgba(34,197,94,0.2);
           transform: scale(1.01);
         }
-        .product-row.dragging { opacity: 0.4; border-style: dashed; }
-        .move-btn {
-          width: 30px; height: 30px;
-          border-radius: 8px;
-          border: 1px solid #e5e5e5;
-          background: #fff;
-          cursor: pointer;
-          display: flex; align-items: center; justify-content: center;
-          transition: all 0.15s;
-          color: #666;
+        .product-row.dragging { opacity: 0.35; border-style: dashed; }
+        .product-row.search-highlight { border-color: #fbbf24; background: #fffbeb; }
+
+        .order-input {
+          width: 58px;
+          height: 40px;
+          border: 2px solid #e5e5e5;
+          border-radius: 10px;
+          text-align: center;
+          font-size: 0.95rem;
+          font-weight: 900;
+          color: #1a1a1a;
+          outline: none;
+          transition: border-color 0.15s, box-shadow 0.15s;
+          background: #f9f9f9;
+          flex-shrink: 0;
+          -moz-appearance: textfield;
         }
-        .move-btn:hover:not(:disabled) { background: #22c55e; border-color: #22c55e; color: #fff; }
-        .move-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .order-input::-webkit-outer-spin-button,
+        .order-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .order-input:focus {
+          border-color: #22c55e;
+          box-shadow: 0 0 0 3px rgba(34,197,94,0.15);
+          background: #fff;
+        }
+        .order-input:hover { border-color: #bbf7d0; }
+
         .top-btn {
-          padding: 10px 20px;
+          padding: 10px 18px;
           border-radius: 10px;
           border: none;
           font-weight: 800;
-          font-size: 0.88rem;
+          font-size: 0.85rem;
           cursor: pointer;
-          display: flex; align-items: center; gap: 7px;
-          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          transition: all 0.15s;
+          white-space: nowrap;
         }
-        .top-btn:hover { transform: translateY(-1px); }
+        .top-btn:hover:not(:disabled) { transform: translateY(-1px); }
+        .top-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .search-bar {
+          width: 100%;
+          height: 46px;
+          padding: 0 44px 0 16px;
+          border: 2px solid #e5e5e5;
+          border-radius: 12px;
+          font-size: 0.9rem;
+          font-weight: 600;
+          outline: none;
+          transition: border-color 0.15s, box-shadow 0.15s;
+          background: #fff;
+          color: #1a1a1a;
+          font-family: system-ui, sans-serif;
+        }
+        .search-bar:focus {
+          border-color: #22c55e;
+          box-shadow: 0 0 0 3px rgba(34,197,94,0.12);
+        }
       `}</style>
 
       {/* ── Header ── */}
-      <div style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)', padding: '28px 32px', color: '#fff' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+      <div style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)', padding: '24px 28px' }}>
+        <div style={{ maxWidth: '960px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #ff4d4d, #f97316)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Tags size={24} color="#fff" />
+            <div style={{ width: '46px', height: '46px', borderRadius: '13px', background: 'linear-gradient(135deg, #ff4d4d, #f97316)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Tags size={22} color="#fff" />
             </div>
             <div>
-              <h1 style={{ fontSize: '1.5rem', fontWeight: '900', margin: 0 }}>ترتيب منتجات العروض</h1>
-              <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.6)', margin: '4px 0 0', fontWeight: '600' }}>
-                {products.length} منتج بتخفيض • اسحب لإعادة الترتيب
+              <h1 style={{ fontSize: '1.4rem', fontWeight: '900', margin: 0, color: '#fff' }}>ترتيب منتجات العروض</h1>
+              <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)', margin: '3px 0 0', fontWeight: '600' }}>
+                {products.length} منتج بتخفيض
+                {searchQuery && ` • ${filteredProducts.length} نتيجة`}
               </p>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            <button className="top-btn" onClick={sortByDiscount} style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}>
-              <Percent size={15} />
-              ترتيب بالخصم
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <button className="top-btn" onClick={sortByDiscount}
+              style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}>
+              <Percent size={14} /> ترتيب بالخصم
             </button>
 
             {isDirty && (
-              <button className="top-btn" onClick={resetOrder} style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.15)' }}>
-                <RotateCcw size={15} />
-                تراجع
+              <button className="top-btn" onClick={resetOrder}
+                style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                <RotateCcw size={14} /> تراجع
               </button>
             )}
 
-            <button
-              className="top-btn"
-              onClick={saveOrder}
-              disabled={saving || !isDirty}
+            <button className="top-btn" onClick={saveOrder} disabled={saving || !isDirty}
               style={{
-                background: isDirty ? 'linear-gradient(135deg, #22c55e, #16a34a)' : 'rgba(255,255,255,0.15)',
-                color: '#fff',
-                border: 'none',
-                opacity: saving ? 0.8 : 1,
+                background: isDirty ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'rgba(255,255,255,0.12)',
+                color: '#fff', border: 'none',
                 boxShadow: isDirty ? '0 4px 14px rgba(34,197,94,0.4)' : 'none',
-              }}
-            >
-              {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={15} />}
+              }}>
+              {saving
+                ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                : <Save size={14} />}
               {saving ? 'جاري الحفظ...' : 'حفظ الترتيب'}
             </button>
           </div>
         </div>
       </div>
 
-      {/* ── Info banner ── */}
-      <div style={{ maxWidth: '900px', margin: '24px auto 0', padding: '0 20px' }}>
-        <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '12px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <AlertCircle size={17} color="#3b82f6" style={{ flexShrink: 0 }} />
-          <span style={{ fontSize: '0.82rem', color: '#1e40af', fontWeight: '700' }}>
-            الترتيب هنا هو نفس الترتيب الذي سيراه العملاء في صفحة العروض. اسحب البطاقات لإعادة الترتيب ثم اضغط "حفظ الترتيب".
+      {/* ── Search + tips ── */}
+      <div style={{ maxWidth: '960px', margin: '20px auto 0', padding: '0 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+
+        {/* Search bar */}
+        <div style={{ position: 'relative' }}>
+          <input
+            className="search-bar"
+            type="text"
+            placeholder="ابحث باسم المنتج، الماركة، السيارة، الفئة..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <Search size={17} color="#aaa" style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery('')}
+              style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', background: '#f3f4f6', border: 'none', borderRadius: '6px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#888' }}>
+              <X size={13} />
+            </button>
+          )}
+        </div>
+
+        {/* Tip */}
+        <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '11px', padding: '11px 14px', display: 'flex', alignItems: 'flex-start', gap: '9px' }}>
+          <AlertCircle size={16} color="#3b82f6" style={{ flexShrink: 0, marginTop: '1px' }} />
+          <span style={{ fontSize: '0.8rem', color: '#1e40af', fontWeight: '700', lineHeight: 1.6 }}>
+            ابحث عن المنتج، ثم اكتب رقم الموضع في خانة <strong>#</strong> واضغط <strong>Enter</strong> لنقله فوراً. يمكنك أيضاً السحب والإفلات. اضغط <strong>"حفظ الترتيب"</strong> عند الانتهاء.
           </span>
         </div>
 
         {isDirty && (
-          <div style={{ marginTop: '10px', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '12px', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <AlertCircle size={16} color="#f97316" style={{ flexShrink: 0 }} />
-            <span style={{ fontSize: '0.82rem', color: '#c2410c', fontWeight: '700' }}>لديك تغييرات غير محفوظة — لا تنسَ الضغط على "حفظ الترتيب"</span>
+          <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '11px', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: '9px' }}>
+            <AlertCircle size={15} color="#f97316" style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: '0.8rem', color: '#c2410c', fontWeight: '700' }}>لديك تغييرات غير محفوظة — لا تنسَ الضغط على "حفظ الترتيب"</span>
+          </div>
+        )}
+
+        {searchQuery && filteredProducts.length === 0 && (
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '11px', padding: '12px 14px', textAlign: 'center', color: '#dc2626', fontWeight: '700', fontSize: '0.85rem' }}>
+            لا توجد نتائج لـ "{searchQuery}"
           </div>
         )}
       </div>
 
+      {/* ── Column headers ── */}
+      {filteredProducts.length > 0 && (
+        <div style={{ maxWidth: '960px', margin: '14px auto 0', padding: '0 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '0 14px', color: '#bbb', fontSize: '0.7rem', fontWeight: '800', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            <div style={{ width: '34px', textAlign: 'center' }}>رقم</div>
+            <div style={{ width: '18px' }} />
+            <div style={{ width: '56px' }} />
+            <div style={{ flex: 1 }}>المنتج</div>
+            <div style={{ width: '100px', textAlign: 'left' }}>السعر</div>
+            <div style={{ width: '58px', textAlign: 'center' }}>موضع</div>
+          </div>
+        </div>
+      )}
+
       {/* ── Product list ── */}
-      <div style={{ maxWidth: '900px', margin: '20px auto 60px', padding: '0 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {products.map((product, index) => {
+      <div style={{ maxWidth: '960px', margin: '8px auto 80px', padding: '0 20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {filteredProducts.map((product) => {
+          const realIndex = products.findIndex((p) => p.id === product.id);
           const disc = discountPercent(product);
-          const isDragging = dragIndex === index;
-          const isOver = dragOverIndex === index;
+          const isDragging = dragIndex === realIndex;
+          const isOver = dragOverIndex === realIndex;
+          const isHighlighted = !!searchQuery;
 
           return (
             <div
               key={product.id}
-              className={`product-row${isDragging ? ' dragging' : ''}${isOver && !isDragging ? ' drag-over' : ''}`}
+              className={[
+                'product-row',
+                isDragging ? 'dragging' : '',
+                isOver && !isDragging ? 'drag-over' : '',
+                isHighlighted ? 'search-highlight' : '',
+              ].filter(Boolean).join(' ')}
               draggable
               ref={isDragging ? dragNode : null}
-              onDragStart={(e) => handleDragStart(e, index)}
-              onDragEnter={(e) => handleDragEnter(e, index)}
+              onDragStart={(e) => handleDragStart(e, realIndex)}
+              onDragEnter={(e) => handleDragEnter(e, realIndex)}
               onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, index)}
+              onDrop={(e) => handleDrop(e, realIndex)}
               onDragEnd={handleDragEnd}
-              style={{ animationDelay: `${index * 0.03}s` }}
             >
-              {/* Position number */}
-              <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: index === 0 ? 'linear-gradient(135deg, #f59e0b, #d97706)' : index === 1 ? 'linear-gradient(135deg, #9ca3af, #6b7280)' : index === 2 ? 'linear-gradient(135deg, #cd7c2f, #a0522d)' : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span style={{ fontSize: '0.78rem', fontWeight: '900', color: index < 3 ? '#fff' : '#9ca3af' }}>
-                  {index + 1}
+              {/* Current position badge */}
+              <div style={{
+                width: '34px', height: '34px', borderRadius: '10px', flexShrink: 0,
+                background:
+                  product.sale_order === 1 ? 'linear-gradient(135deg,#f59e0b,#d97706)' :
+                  product.sale_order === 2 ? 'linear-gradient(135deg,#9ca3af,#6b7280)' :
+                  product.sale_order === 3 ? 'linear-gradient(135deg,#cd7c2f,#a0522d)' : '#f3f4f6',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: '900', color: (product.sale_order ?? 99) <= 3 ? '#fff' : '#9ca3af' }}>
+                  {product.sale_order}
                 </span>
               </div>
 
               {/* Drag handle */}
-              <GripVertical size={20} color="#ccc" style={{ flexShrink: 0, cursor: 'grab' }} />
+              <GripVertical size={18} color="#d1d5db" style={{ flexShrink: 0, cursor: 'grab' }} />
 
-              {/* Product image */}
+              {/* Image */}
               <div style={{ width: '56px', height: '56px', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#f9f9f9', flexShrink: 0 }}>
-                {product.image_url ? (
-                  <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Package size={22} color="#ddd" />
-                  </div>
-                )}
+                {product.image_url
+                  ? <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Package size={20} color="#ddd" /></div>
+                }
               </div>
 
-              {/* Product info */}
+              {/* Info */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: '800', color: '#1a1a1a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <p style={{ margin: 0, fontSize: '0.88rem', fontWeight: '800', color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {product.name}
                 </p>
-                <p style={{ margin: '3px 0 0', fontSize: '0.75rem', color: '#888', fontWeight: '600' }}>
-                  {[product.brand, product.car_make, product.car_model].filter(Boolean).join(' · ')}
+                <p style={{ margin: '3px 0 0', fontSize: '0.73rem', color: '#999', fontWeight: '600' }}>
+                  {[product.brand, product.car_make, product.car_model, product.category].filter(Boolean).join(' · ')}
                 </p>
               </div>
 
-              {/* Pricing */}
-              <div style={{ textAlign: 'left', flexShrink: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
-                  <span style={{ fontSize: '0.72rem', color: '#bbb', textDecoration: 'line-through' }}>
-                    {product.regular_price} ج.م
-                  </span>
-                  <span style={{ fontSize: '0.95rem', fontWeight: '900', color: '#1a1a1a' }}>
-                    {product.sale_price} ج.م
-                  </span>
+              {/* Price + discount */}
+              <div style={{ textAlign: 'left', flexShrink: 0, minWidth: '90px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end' }}>
+                  <span style={{ fontSize: '0.7rem', color: '#ccc', textDecoration: 'line-through' }}>{product.regular_price} ج.م</span>
+                  <span style={{ fontSize: '0.9rem', fontWeight: '900', color: '#1a1a1a' }}>{product.sale_price} ج.م</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
-                  <span style={{ background: 'linear-gradient(135deg, #ff4d4d, #f97316)', color: '#fff', fontSize: '0.7rem', fontWeight: '900', padding: '3px 8px', borderRadius: '6px' }}>
+                  <span style={{ background: 'linear-gradient(135deg,#ff4d4d,#f97316)', color: '#fff', fontSize: '0.68rem', fontWeight: '900', padding: '2px 7px', borderRadius: '5px' }}>
                     -{disc}%
                   </span>
                 </div>
               </div>
 
-              {/* Up/Down buttons (mobile-friendly) */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flexShrink: 0 }}>
-                <button className="move-btn" onClick={() => moveUp(index)} disabled={index === 0} title="تحريك لأعلى">
-                  ▲
-                </button>
-                <button className="move-btn" onClick={() => moveDown(index)} disabled={index === products.length - 1} title="تحريك لأسفل">
-                  ▼
-                </button>
+              {/* ── Manual position input ── */}
+              <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+                <label style={{ fontSize: '0.62rem', color: '#bbb', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                  <Hash size={9} /> موضع
+                </label>
+                <input
+                  className="order-input"
+                  type="number"
+                  min={1}
+                  max={products.length}
+                  value={inputValues[product.id] ?? product.sale_order ?? ''}
+                  onChange={(e) => handleOrderInputChange(product.id, e.target.value)}
+                  onBlur={() => commitOrderInput(product.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                  }}
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
+                  title={`أدخل موضعاً بين 1 و ${products.length} ثم اضغط Enter`}
+                />
               </div>
             </div>
           );
@@ -388,29 +522,26 @@ export default function SaleOrderAdminPage() {
 
         {products.length === 0 && (
           <div style={{ textAlign: 'center', padding: '80px 20px', background: '#fff', borderRadius: '20px', color: '#999' }}>
-            <Tags size={60} style={{ opacity: 0.3, marginBottom: '16px' }} />
-            <h3 style={{ fontWeight: '900', fontSize: '1.3rem', color: '#ccc' }}>لا توجد منتجات بعروض حالياً</h3>
-            <p style={{ fontSize: '0.9rem', marginTop: '8px' }}>أضف سعر مخفّض لأي منتج وسيظهر هنا</p>
+            <Tags size={56} style={{ opacity: 0.25, marginBottom: '14px' }} />
+            <h3 style={{ fontWeight: '900', fontSize: '1.2rem', color: '#ccc', margin: '0 0 8px' }}>لا توجد منتجات بعروض حالياً</h3>
+            <p style={{ fontSize: '0.85rem' }}>أضف سعر مخفّض لأي منتج وسيظهر هنا</p>
           </div>
         )}
       </div>
 
       {/* ── Sticky save bar ── */}
       {isDirty && (
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(26,26,26,0.97)', backdropFilter: 'blur(12px)', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 1000, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-          <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.88rem', fontWeight: '700' }}>
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(20,20,20,0.97)', backdropFilter: 'blur(14px)', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 1000, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+          <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.85rem', fontWeight: '700' }}>
             🔄 لديك تغييرات غير محفوظة
           </span>
           <div style={{ display: 'flex', gap: '10px' }}>
-            <button onClick={resetOrder} style={{ padding: '10px 18px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#fff', fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem' }}>
+            <button onClick={resetOrder} style={{ padding: '9px 16px', borderRadius: '9px', border: '1px solid rgba(255,255,255,0.18)', background: 'transparent', color: '#fff', fontWeight: '700', cursor: 'pointer', fontSize: '0.83rem' }}>
               تراجع
             </button>
-            <button
-              onClick={saveOrder}
-              disabled={saving}
-              style={{ padding: '10px 24px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff', fontWeight: '900', cursor: 'pointer', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 14px rgba(34,197,94,0.4)' }}
-            >
-              {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={15} />}
+            <button onClick={saveOrder} disabled={saving}
+              style={{ padding: '9px 22px', borderRadius: '9px', border: 'none', background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontWeight: '900', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '7px', boxShadow: '0 4px 14px rgba(34,197,94,0.4)' }}>
+              {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={14} />}
               {saving ? 'جاري الحفظ...' : 'حفظ الترتيب'}
             </button>
           </div>
