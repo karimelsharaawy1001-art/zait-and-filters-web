@@ -175,14 +175,14 @@ export default function AbandonedCartsAdmin() {
       {/* ── Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '22px' }}>
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: '900', color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: '900', color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>
             السلات المتروكة
           </h1>
-          <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '3px', fontWeight: '500' }}>
+          <p style={{ fontSize: '0.92rem', color: '#94a3b8', marginTop: '3px', fontWeight: '500' }}>
             تتبع واسترجع العملاء المحتملين
           </p>
         </div>
-        <button onClick={fetchAbandonedCarts} className="ac-btn" style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 16px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '0.82rem', cursor: 'pointer' }}>
+        <button onClick={fetchAbandonedCarts} className="ac-btn" style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 16px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '0.93rem', cursor: 'pointer' }}>
           <RefreshCw size={14} /> تحديث
         </button>
       </div>
@@ -198,12 +198,12 @@ export default function AbandonedCartsAdmin() {
         ].map((s, i) => (
           <div key={i} style={{ background: '#fff', borderRadius: '14px', padding: '14px 16px', border: '1px solid #f1f5f9', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', animation: `fadeUp 0.3s ease ${i * 0.05}s both` }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '700' }}>{s.label}</span>
+              <span style={{ fontSize: '0.96rem', color: '#94a3b8', fontWeight: '700' }}>{s.label}</span>
               <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: s.light, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color }}>
                 {s.icon}
               </div>
             </div>
-            <div style={{ fontSize: '1.4rem', fontWeight: '900', color: s.color, letterSpacing: '-0.5px' }}>{s.value}</div>
+            <div style={{ fontSize: '1.6rem', fontWeight: '900', color: s.color, letterSpacing: '-0.5px' }}>{s.value}</div>
           </div>
         ))}
       </div>
@@ -217,12 +217,12 @@ export default function AbandonedCartsAdmin() {
             placeholder="بحث بالاسم، الإيميل، أو الموبايل..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: '0.85rem', color: '#334155' }}
+            style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: '0.96rem', color: '#334155' }}
           />
         </div>
         <div style={{ display: 'flex', gap: '6px' }}>
           {(['all', 'pending', 'recovered'] as const).map(f => (
-            <button key={f} onClick={() => setFilter(f)} className="ac-chip" style={{ padding: '7px 14px', background: filter === f ? '#0f172a' : '#f1f5f9', color: filter === f ? '#fff' : '#64748b', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.78rem', cursor: 'pointer', transition: 'all 0.15s' }}>
+            <button key={f} onClick={() => setFilter(f)} className="ac-chip" style={{ padding: '7px 14px', background: filter === f ? '#0f172a' : '#f1f5f9', color: filter === f ? '#fff' : '#64748b', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.15s' }}>
               {f === 'all' ? `الكل · ${stats.total}` : f === 'pending' ? `انتظار · ${stats.pending}` : `مسترجع · ${stats.recovered}`}
             </button>
           ))}
@@ -241,7 +241,7 @@ export default function AbandonedCartsAdmin() {
             {/* Table head */}
             <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.6fr 2.2fr 0.9fr 1.4fr 0.8fr 1.6fr', padding: '10px 18px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
               {['العميل', 'التواصل', 'المنتجات', 'الإجمالي', 'التوقيت', 'الحالة', 'إجراءات'].map((h, i) => (
-                <div key={i} style={{ fontSize: '0.7rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', paddingRight: i > 0 ? '10px' : 0 }}>{h}</div>
+                <div key={i} style={{ fontSize: '0.84rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', paddingRight: i > 0 ? '10px' : 0 }}>{h}</div>
               ))}
             </div>
 
@@ -263,33 +263,33 @@ export default function AbandonedCartsAdmin() {
                         <User size={15} color={cart.recovered ? '#15803d' : '#94a3b8'} />
                       </div>
                       <div>
-                        <div style={{ fontSize: '0.83rem', fontWeight: '800', color: '#0f172a', lineHeight: 1.2 }}>{cart.customer_name || 'غير محدد'}</div>
+                        <div style={{ fontSize: '1rem', fontWeight: '800', color: '#0f172a', lineHeight: 1.2 }}>{cart.customer_name || 'غير محدد'}</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
                           {cart.device_type === 'mobile' ? <Smartphone size={10} color="#cbd5e1" /> : <Monitor size={10} color="#cbd5e1" />}
-                          <span style={{ fontSize: '0.68rem', color: '#cbd5e1', fontWeight: '600' }}>{cart.device_type === 'mobile' ? 'موبايل' : 'كمبيوتر'}</span>
+                          <span style={{ fontSize: '0.93rem', color: '#cbd5e1', fontWeight: '600' }}>{cart.device_type === 'mobile' ? 'موبايل' : 'كمبيوتر'}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Contact */}
                     <div style={{ paddingRight: '10px' }}>
-                      <div style={{ fontSize: '0.75rem', color: '#475569', fontWeight: '600', marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>
+                      <div style={{ fontSize: '0.88rem', color: '#475569', fontWeight: '600', marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>
                         {cart.customer_email}
                       </div>
                       {cart.customer_phone && (
-                        <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '600', direction: 'ltr', textAlign: 'right' }}>{cart.customer_phone}</div>
+                        <div style={{ fontSize: '0.96rem', color: '#94a3b8', fontWeight: '600', direction: 'ltr', textAlign: 'right' }}>{cart.customer_phone}</div>
                       )}
                     </div>
 
                     {/* Products */}
                     <div style={{ paddingRight: '10px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                        <div style={{ padding: '2px 8px', background: '#f0fdf4', borderRadius: '5px', fontSize: '0.68rem', fontWeight: '800', color: '#15803d' }}>
+                        <div style={{ padding: '2px 8px', background: '#f0fdf4', borderRadius: '5px', fontSize: '0.93rem', fontWeight: '800', color: '#15803d' }}>
                           {cart.cart_items?.length || 0} منتج
                         </div>
                       </div>
                       {cart.cart_items?.[0] && (
-                        <div style={{ fontSize: '0.72rem', color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>
+                        <div style={{ fontSize: '0.96rem', color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>
                           {cart.cart_items[0].name}
                         </div>
                       )}
@@ -297,23 +297,23 @@ export default function AbandonedCartsAdmin() {
 
                     {/* Total */}
                     <div style={{ paddingRight: '10px' }}>
-                      <div style={{ fontSize: '0.95rem', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.3px' }}>{(cart.cart_total || 0).toFixed(0)}</div>
-                      <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: '600' }}>ج.م</div>
+                      <div style={{ fontSize: '1rem', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.3px' }}>{(cart.cart_total || 0).toFixed(0)}</div>
+                      <div style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: '600' }}>ج.م</div>
                     </div>
 
                     {/* Time — EXACT */}
                     <div style={{ paddingRight: '10px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '3px' }}>
                         <Clock size={11} color="#94a3b8" />
-                        <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#334155' }}>{ts.time}</span>
+                        <span style={{ fontSize: '0.88rem', fontWeight: '700', color: '#334155' }}>{ts.time}</span>
                       </div>
-                      <div style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: '600' }}>{ts.date}</div>
-                      <div style={{ display: 'inline-block', marginTop: '3px', padding: '1px 6px', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.62rem', fontWeight: '800', color: '#64748b' }}>{ts.relative}</div>
+                      <div style={{ fontSize: '0.93rem', color: '#94a3b8', fontWeight: '600' }}>{ts.date}</div>
+                      <div style={{ display: 'inline-block', marginTop: '3px', padding: '1px 6px', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.88rem', fontWeight: '800', color: '#64748b' }}>{ts.relative}</div>
                     </div>
 
                     {/* Status */}
                     <div style={{ paddingRight: '10px' }}>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 9px', borderRadius: '7px', fontSize: '0.68rem', fontWeight: '800', background: cart.recovered ? '#dcfce7' : '#fef3c7', color: cart.recovered ? '#15803d' : '#92400e' }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 9px', borderRadius: '7px', fontSize: '0.93rem', fontWeight: '800', background: cart.recovered ? '#dcfce7' : '#fef3c7', color: cart.recovered ? '#15803d' : '#92400e' }}>
                         {cart.recovered ? <CheckCircle size={10} /> : <Clock size={10} />}
                         {cart.recovered ? 'تم' : 'قيد'}
                       </div>
@@ -379,7 +379,7 @@ export default function AbandonedCartsAdmin() {
                   {/* Expanded Products */}
                   {isExpanded && (
                     <div style={{ padding: '14px 20px 16px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
-                      <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#94a3b8', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '10px' }}>تفاصيل المنتجات</div>
+                      <div style={{ fontSize: '0.96rem', fontWeight: '800', color: '#94a3b8', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '10px' }}>تفاصيل المنتجات</div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {cart.cart_items?.map((item: any, i: number) => (
                           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', background: '#fff', borderRadius: '11px', border: '1px solid #f1f5f9' }}>
@@ -387,15 +387,15 @@ export default function AbandonedCartsAdmin() {
                               <img src={item.image_url || item.image} alt="" style={{ width: '44px', height: '44px', borderRadius: '8px', objectFit: 'contain', border: '1px solid #f1f5f9', background: '#fafafa' }} />
                             )}
                             <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: '0.82rem', fontWeight: '800', color: '#0f172a' }}>{item.name}</div>
+                              <div style={{ fontSize: '0.93rem', fontWeight: '800', color: '#0f172a' }}>{item.name}</div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px' }}>
-                                {item.brand && <span style={{ fontSize: '0.68rem', fontWeight: '700', color: '#15803d', background: '#f0fdf4', padding: '1px 7px', borderRadius: '4px' }}>{item.brand}</span>}
-                                {item.car_make && <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: '600' }}>{item.car_make} {item.car_model} {item.car_model_year}</span>}
+                                {item.brand && <span style={{ fontSize: '0.93rem', fontWeight: '700', color: '#15803d', background: '#f0fdf4', padding: '1px 7px', borderRadius: '4px' }}>{item.brand}</span>}
+                                {item.car_make && <span style={{ fontSize: '0.93rem', color: '#94a3b8', fontWeight: '600' }}>{item.car_make} {item.car_model} {item.car_model_year}</span>}
                               </div>
                             </div>
                             <div style={{ textAlign: 'left' }}>
-                              <div style={{ fontSize: '0.85rem', fontWeight: '900', color: '#0f172a' }}>{(parseFloat(item.price) * item.quantity).toFixed(2)} ج.م</div>
-                              <div style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: '600' }}>× {item.quantity}</div>
+                              <div style={{ fontSize: '0.96rem', fontWeight: '900', color: '#0f172a' }}>{(parseFloat(item.price) * item.quantity).toFixed(2)} ج.م</div>
+                              <div style={{ fontSize: '0.93rem', color: '#94a3b8', fontWeight: '600' }}>× {item.quantity}</div>
                             </div>
                           </div>
                         ))}
@@ -408,8 +408,8 @@ export default function AbandonedCartsAdmin() {
                         ].filter(Boolean).map((t: any, i) => (
                           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 12px', background: '#fff', borderRadius: '8px', border: '1px solid #f1f5f9' }}>
                             <Clock size={12} color="#94a3b8" />
-                            <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700' }}>{t.label}:</span>
-                            <span style={{ fontSize: '0.7rem', color: '#0f172a', fontWeight: '800' }}>{t.value.date} — {t.value.time}</span>
+                            <span style={{ fontSize: '0.84rem', color: '#64748b', fontWeight: '700' }}>{t.label}:</span>
+                            <span style={{ fontSize: '0.84rem', color: '#0f172a', fontWeight: '800' }}>{t.value.date} — {t.value.time}</span>
                           </div>
                         ))}
                       </div>
@@ -436,7 +436,7 @@ export default function AbandonedCartsAdmin() {
                   key={p}
                   onClick={() => setCurrentPage(p)}
                   className="ac-btn"
-                  style={{ width: '34px', height: '34px', borderRadius: '9px', border: p === currentPage ? 'none' : '1px solid #e2e8f0', background: p === currentPage ? '#0f172a' : '#fff', color: p === currentPage ? '#fff' : '#475569', fontWeight: '800', fontSize: '0.82rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  style={{ width: '34px', height: '34px', borderRadius: '9px', border: p === currentPage ? 'none' : '1px solid #e2e8f0', background: p === currentPage ? '#0f172a' : '#fff', color: p === currentPage ? '#fff' : '#475569', fontWeight: '800', fontSize: '0.93rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
                   {p}
                 </button>
@@ -453,7 +453,7 @@ export default function AbandonedCartsAdmin() {
           )}
 
           {/* Count */}
-          <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '0.75rem', color: '#94a3b8', fontWeight: '600' }}>
+          <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '0.88rem', color: '#94a3b8', fontWeight: '600' }}>
             {(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredCarts.length)} من {filteredCarts.length} سلة
           </div>
         </>
