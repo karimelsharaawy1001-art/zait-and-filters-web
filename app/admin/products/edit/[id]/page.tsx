@@ -5,11 +5,11 @@ import { supabase } from '@/app/lib/supabase';
 import { Save, ArrowRight, Loader2, Image as ImageIcon, Car, Tag, Globe, Upload, Plus, Trash2, X } from 'lucide-react';
 
 interface CarRow {
-  id?: string;        // uuid from DB (undefined = new, not saved yet)
+  id?: string;
   car_make: string;
   car_model: string;
   car_model_year: string;
-  isNew?: boolean;    // flag for unsaved rows
+  isNew?: boolean;
 }
 
 export default function EditProduct() {
@@ -25,15 +25,17 @@ export default function EditProduct() {
     subcategories: [] as string[]
   });
 
+  // Map of make → sorted unique models
+  const [modelsByMake, setModelsByMake] = useState<Record<string, string[]>>({});
+
   const [formData, setFormData] = useState({
     name: '', brand: '', category: '', subcategory: '',
     regular_price: '', sale_price: '', image_url: '',
     is_active: true, country_of_origin: ''
   });
 
-  // Multi-car compatibility rows
   const [carRows, setCarRows] = useState<CarRow[]>([]);
-  const [deletedIds, setDeletedIds] = useState<string[]>([]); // IDs to delete on save
+  const [deletedIds, setDeletedIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (id) {
@@ -43,10 +45,25 @@ export default function EditProduct() {
   }, [id]);
 
   async function fetchFilterOptions() {
-    const { data } = await supabase.from('products').select('car_make, category, subcategory');
+    const { data } = await supabase.from('products').select('car_make, car_model, category, subcategory');
     if (data) {
       const getUnique = (field: string) =>
         Array.from(new Set(data.map((i: any) => i[field]).filter(Boolean))).sort() as string[];
+
+      // Build make→models map
+      const map: Record<string, Set<string>> = {};
+      data.forEach((item: any) => {
+        if (item.car_make && item.car_model) {
+          if (!map[item.car_make]) map[item.car_make] = new Set();
+          map[item.car_make].add(item.car_model);
+        }
+      });
+      const sortedMap: Record<string, string[]> = {};
+      Object.entries(map).forEach(([make, models]) => {
+        sortedMap[make] = Array.from(models).sort();
+      });
+      setModelsByMake(sortedMap);
+
       setOptions({
         makes: getUnique('car_make'),
         categories: getUnique('category'),
@@ -113,7 +130,12 @@ export default function EditProduct() {
   };
 
   const updateCarRow = (index: number, field: keyof CarRow, value: string) => {
-    setCarRows(prev => prev.map((row, i) => i === index ? { ...row, [field]: value } : row));
+    setCarRows(prev => prev.map((row, i) => {
+      if (i !== index) return row;
+      // When make changes, reset model so stale value doesn't persist
+      if (field === 'car_make') return { ...row, car_make: value, car_model: '' };
+      return { ...row, [field]: value };
+    }));
   };
 
   const removeCarRow = (index: number) => {
@@ -128,7 +150,6 @@ export default function EditProduct() {
     setSaving(true);
 
     try {
-      // 1. Update product base fields
       const updatePayload = {
         name: formData.name,
         brand: formData.brand,
@@ -139,7 +160,6 @@ export default function EditProduct() {
         image_url: formData.image_url,
         is_active: formData.is_active,
         country_of_origin: formData.country_of_origin,
-        // Keep first car row synced to legacy columns for backwards compat
         car_make: carRows[0]?.car_make || null,
         car_model: carRows[0]?.car_model || null,
         car_model_year: carRows[0]?.car_model_year || null,
@@ -148,7 +168,6 @@ export default function EditProduct() {
       const { error: updateError } = await supabase.from('products').update(updatePayload).eq('id', id);
       if (updateError) throw updateError;
 
-      // 2. Delete removed rows
       if (deletedIds.length > 0) {
         const { error: delError } = await supabase
           .from('product_car_compatibility')
@@ -157,18 +176,15 @@ export default function EditProduct() {
         if (delError) throw delError;
       }
 
-      // 3. Upsert car compatibility rows
       const validRows = carRows.filter(r => r.car_make.trim() || r.car_model.trim());
       for (const row of validRows) {
         if (row.id && !row.isNew) {
-          // Update existing
           await supabase.from('product_car_compatibility').update({
             car_make: row.car_make.trim(),
             car_model: row.car_model.trim(),
             car_model_year: row.car_model_year.trim(),
           }).eq('id', row.id);
         } else {
-          // Insert new
           await supabase.from('product_car_compatibility').insert([{
             product_id: id,
             car_make: row.car_make.trim(),
@@ -293,39 +309,66 @@ export default function EditProduct() {
 
             {/* Car rows */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {carRows.map((row, index) => (
-                <div key={index} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 36px', gap: '8px', alignItems: 'center' }}>
-                  <select
-                    value={row.car_make}
-                    onChange={(e) => updateCarRow(index, 'car_make', e.target.value)}
-                    style={inputStyle}
-                  >
-                    <option value="">اختر الماركة</option>
-                    {options.makes.map(m => <option key={m} value={m}>{m}</option>)}
-                  </select>
-                  <input
-                    type="text"
-                    placeholder="الموديل"
-                    value={row.car_model}
-                    onChange={(e) => updateCarRow(index, 'car_model', e.target.value)}
-                    style={inputStyle}
-                  />
-                  <input
-                    type="text"
-                    placeholder="مثال: 2010-2020"
-                    value={row.car_model_year}
-                    onChange={(e) => updateCarRow(index, 'car_model_year', e.target.value)}
-                    style={inputStyle}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeCarRow(index)}
-                    style={{ background: '#1a0a0a', border: '1px solid #333', borderRadius: '8px', color: '#ff4d4d', cursor: 'pointer', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
+              {carRows.map((row, index) => {
+                // Models available for the selected make in this row
+                const availableModels = row.car_make ? (modelsByMake[row.car_make] || []) : [];
+                // If current model value isn't in the list (e.g. custom value from old data), still show it
+                const modelOptions = availableModels.includes(row.car_model) || !row.car_model
+                  ? availableModels
+                  : [row.car_model, ...availableModels];
+
+                return (
+                  <div key={index} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 36px', gap: '8px', alignItems: 'center' }}>
+
+                    {/* Make dropdown */}
+                    <select
+                      value={row.car_make}
+                      onChange={(e) => updateCarRow(index, 'car_make', e.target.value)}
+                      style={inputStyle}
+                    >
+                      <option value="">اختر الماركة</option>
+                      {options.makes.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
+
+                    {/* Model dropdown — populated from selected make */}
+                    <select
+                      value={row.car_model}
+                      onChange={(e) => updateCarRow(index, 'car_model', e.target.value)}
+                      style={{
+                        ...inputStyle,
+                        opacity: !row.car_make ? 0.4 : 1,
+                        cursor: !row.car_make ? 'not-allowed' : 'pointer',
+                      }}
+                      disabled={!row.car_make}
+                    >
+                      <option value="">
+                        {!row.car_make ? 'اختر الماركة أولاً' : 'اختر الموديل'}
+                      </option>
+                      {modelOptions.map(m => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+
+                    {/* Year input stays as text */}
+                    <input
+                      type="text"
+                      placeholder="مثال: 2010-2020"
+                      value={row.car_model_year}
+                      onChange={(e) => updateCarRow(index, 'car_model_year', e.target.value)}
+                      style={inputStyle}
+                    />
+
+                    {/* Remove button */}
+                    <button
+                      type="button"
+                      onClick={() => removeCarRow(index)}
+                      style={{ background: '#1a0a0a', border: '1px solid #333', borderRadius: '8px', color: '#ff4d4d', cursor: 'pointer', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Add row button */}
