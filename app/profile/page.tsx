@@ -10,7 +10,7 @@ import {
   CarFront
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { linkGuestOrdersToUser } from '@/app/hooks/useLinkGuestOrders';
+
 
 const Select = dynamic(() => import('react-select'), {
   ssr: false,
@@ -46,10 +46,6 @@ export default function ProfilePage() {
       if (!user) { router.push('/login'); return; }
       setUser(user);
 
-      // ── Step 1: Link any guest orders before fetching ──────────────────
-      await linkGuestOrdersToUser(user.id);
-      // ──────────────────────────────────────────────────────────────────
-
       const { data: profileData } = await supabase
         .from('profiles')
         .select('full_name, phone_number')
@@ -60,29 +56,37 @@ export default function ProfilePage() {
         setProfile({ full_name: profileData.full_name || '', phone_number: profileData.phone_number || '' });
       }
 
-      // ── Step 2: Fetch orders by user_id OR customer_phone ─────────────
-      const phone = profileData?.phone_number?.trim() || null;
+      // ── Fetch orders: try user_id first, then fall back to phone ───────
+      const { data: byUserId } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
-      let ordersData: any[] = [];
+      let ordersData: any[] = byUserId || [];
 
+      // Also fetch by phone to catch any still-unlinked orders
+      const phone = profileData?.phone_number?.trim();
       if (phone) {
-        // Fetch ALL orders matching this phone (covers linked + unlinked)
         const { data: byPhone } = await supabase
           .from('orders')
           .select('*')
           .eq('customer_phone', phone)
           .order('created_at', { ascending: false });
 
-        if (byPhone) ordersData = byPhone;
-      } else {
-        // Fallback: fetch by user_id only
-        const { data: byUserId } = await supabase
-          .from('orders')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (byUserId) ordersData = byUserId;
+        if (byPhone && byPhone.length > 0) {
+          // Merge and deduplicate
+          const merged = [...ordersData, ...byPhone];
+          const seen = new Set<string>();
+          ordersData = merged.filter(o => {
+            if (seen.has(o.id)) return false;
+            seen.add(o.id);
+            return true;
+          });
+          ordersData.sort((a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+        }
       }
 
       setOrders(ordersData);
@@ -124,11 +128,7 @@ export default function ProfilePage() {
     try {
       const { error } = await supabase.from('profiles').upsert({ id: user.id, full_name: profile.full_name, phone_number: profile.phone_number, updated_at: new Date().toISOString() });
       if (error) throw error;
-
-      // Re-link orders whenever phone is updated (user may have added phone for first time)
-      await linkGuestOrdersToUser(user.id);
       await fetchProfileData();
-
       toast.success('تم تحديث البيانات الأساسية');
     } catch { toast.error('فشل التحديث'); } finally { setSaving(false); }
   }
