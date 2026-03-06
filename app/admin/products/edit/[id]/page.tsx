@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
-import { Save, ArrowRight, Loader2, Image as ImageIcon, Car, Tag, Globe, Upload, Plus, Trash2, X } from 'lucide-react';
+import { Save, ArrowRight, Loader2, Image as ImageIcon, Car, Tag, Globe, Upload, Plus, X } from 'lucide-react';
 
 interface CarRow {
   id?: string;
@@ -18,6 +18,7 @@ export default function EditProduct() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const [options, setOptions] = useState({
     makes: [] as string[],
@@ -25,7 +26,6 @@ export default function EditProduct() {
     subcategories: [] as string[]
   });
 
-  // Map of make → sorted unique models
   const [modelsByMake, setModelsByMake] = useState<Record<string, string[]>>({});
 
   const [formData, setFormData] = useState({
@@ -35,7 +35,6 @@ export default function EditProduct() {
   });
 
   const [carRows, setCarRows] = useState<CarRow[]>([]);
-  const [deletedIds, setDeletedIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (id) {
@@ -50,7 +49,6 @@ export default function EditProduct() {
       const getUnique = (field: string) =>
         Array.from(new Set(data.map((i: any) => i[field]).filter(Boolean))).sort() as string[];
 
-      // Build make→models map
       const map: Record<string, Set<string>> = {};
       data.forEach((item: any) => {
         if (item.car_make && item.car_model) {
@@ -74,10 +72,14 @@ export default function EditProduct() {
 
   async function fetchProduct() {
     setLoading(true);
-    const [{ data }, { data: compat }] = await Promise.all([
+    const [{ data }, { data: compat, error: compatError }] = await Promise.all([
       supabase.from('products').select('*').eq('id', id).single(),
       supabase.from('product_car_compatibility').select('*').eq('product_id', id).order('created_at'),
     ]);
+
+    if (compatError) {
+      console.error('Compat fetch error:', compatError.message);
+    }
 
     if (data) {
       setFormData({
@@ -91,15 +93,23 @@ export default function EditProduct() {
         is_active: data.is_active ?? true,
         country_of_origin: data.country_of_origin || '',
       });
-    }
 
-    if (compat && compat.length > 0) {
-      setCarRows(compat.map((c: any) => ({
-        id: c.id,
-        car_make: c.car_make || '',
-        car_model: c.car_model || '',
-        car_model_year: c.car_model_year || '',
-      })));
+      if (compat && compat.length > 0) {
+        setCarRows(compat.map((c: any) => ({
+          id: c.id,
+          car_make: c.car_make || '',
+          car_model: c.car_model || '',
+          car_model_year: c.car_model_year || '',
+        })));
+      } else if (data.car_make) {
+        // Seed from legacy product columns so existing data isn't lost
+        setCarRows([{
+          car_make: data.car_make || '',
+          car_model: data.car_model || '',
+          car_model_year: data.car_model_year || '',
+          isNew: true,
+        }]);
+      }
     }
 
     setLoading(false);
@@ -124,7 +134,6 @@ export default function EditProduct() {
     }
   };
 
-  // ── Car row management ─────────────────────────────────────────────────────
   const addCarRow = () => {
     setCarRows(prev => [...prev, { car_make: '', car_model: '', car_model_year: '', isNew: true }]);
   };
@@ -132,15 +141,12 @@ export default function EditProduct() {
   const updateCarRow = (index: number, field: keyof CarRow, value: string) => {
     setCarRows(prev => prev.map((row, i) => {
       if (i !== index) return row;
-      // When make changes, reset model so stale value doesn't persist
       if (field === 'car_make') return { ...row, car_make: value, car_model: '' };
       return { ...row, [field]: value };
     }));
   };
 
   const removeCarRow = (index: number) => {
-    const row = carRows[index];
-    if (row.id) setDeletedIds(prev => [...prev, row.id!]);
     setCarRows(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -148,57 +154,65 @@ export default function EditProduct() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    setSaveError(null);
 
     try {
-      const updatePayload = {
-        name: formData.name,
-        brand: formData.brand,
-        category: formData.category,
-        subcategory: formData.subcategory,
-        regular_price: formData.regular_price ? parseFloat(formData.regular_price) : null,
-        sale_price: formData.sale_price ? parseFloat(formData.sale_price) : null,
-        image_url: formData.image_url,
-        is_active: formData.is_active,
-        country_of_origin: formData.country_of_origin,
-        car_make: carRows[0]?.car_make || null,
-        car_model: carRows[0]?.car_model || null,
-        car_model_year: carRows[0]?.car_model_year || null,
-      };
+      const firstCar = carRows[0];
 
-      const { error: updateError } = await supabase.from('products').update(updatePayload).eq('id', id);
-      if (updateError) throw updateError;
+      // 1. Update main product row
+      const { error: updateError } = await supabase
+        .from('products')
+        .update({
+          name: formData.name,
+          brand: formData.brand,
+          category: formData.category,
+          subcategory: formData.subcategory,
+          regular_price: formData.regular_price ? parseFloat(formData.regular_price) : null,
+          sale_price: formData.sale_price ? parseFloat(formData.sale_price) : null,
+          image_url: formData.image_url,
+          is_active: formData.is_active,
+          country_of_origin: formData.country_of_origin,
+          car_make: firstCar?.car_make || null,
+          car_model: firstCar?.car_model || null,
+          car_model_year: firstCar?.car_model_year || null,
+        })
+        .eq('id', id);
 
-      if (deletedIds.length > 0) {
-        const { error: delError } = await supabase
+      if (updateError) throw new Error('خطأ في تحديث المنتج: ' + updateError.message);
+
+      // 2. Delete all existing compat rows then re-insert fresh
+      //    (delete+insert is simpler and more reliable than upsert)
+      const { error: delError } = await supabase
+        .from('product_car_compatibility')
+        .delete()
+        .eq('product_id', id);
+
+      if (delError) throw new Error('خطأ في حذف التوافقات القديمة: ' + delError.message);
+
+      // 3. Bulk insert valid rows
+      const validRows = carRows.filter(r => r.car_make?.trim());
+      if (validRows.length > 0) {
+        const { error: insertError } = await supabase
           .from('product_car_compatibility')
-          .delete()
-          .in('id', deletedIds);
-        if (delError) throw delError;
+          .insert(
+            validRows.map(r => ({
+              product_id: id,
+              car_make: r.car_make.trim(),
+              car_model: r.car_model.trim(),
+              car_model_year: r.car_model_year.trim(),
+            }))
+          );
+
+        if (insertError) throw new Error('خطأ في حفظ توافق السيارات: ' + insertError.message);
       }
 
-      const validRows = carRows.filter(r => r.car_make.trim() || r.car_model.trim());
-      for (const row of validRows) {
-        if (row.id && !row.isNew) {
-          await supabase.from('product_car_compatibility').update({
-            car_make: row.car_make.trim(),
-            car_model: row.car_model.trim(),
-            car_model_year: row.car_model_year.trim(),
-          }).eq('id', row.id);
-        } else {
-          await supabase.from('product_car_compatibility').insert([{
-            product_id: id,
-            car_make: row.car_make.trim(),
-            car_model: row.car_model.trim(),
-            car_model_year: row.car_model_year.trim(),
-          }]);
-        }
-      }
-
-      alert('✅ تم حفظ البيانات');
+      alert('✅ تم حفظ البيانات بنجاح');
       router.push('/admin/products');
+
     } catch (err: any) {
-      console.error('Error saving:', err);
-      alert('❌ خطأ: ' + err.message);
+      console.error('Save error:', err);
+      setSaveError(err.message);
+      alert('❌ ' + err.message);
     } finally {
       setSaving(false);
     }
@@ -218,6 +232,13 @@ export default function EditProduct() {
           <button onClick={() => router.back()} style={backBtnStyle}><ArrowRight size={20} /></button>
           <h1 style={{ fontSize: '1.8rem', fontWeight: '900', color: '#2ecc71' }}>تعديل بيانات الصنف</h1>
         </div>
+
+        {/* Error banner */}
+        {saveError && (
+          <div style={{ background: '#2a0a0a', border: '1px solid #ff4d4d', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px', color: '#ff4d4d', fontSize: '0.9rem', fontWeight: '700' }}>
+            ❌ {saveError}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div style={gridContainer}>
@@ -293,34 +314,28 @@ export default function EditProduct() {
 
           </div>
 
-          {/* ── توافق السيارات (multi-car) ── */}
+          {/* ── توافق السيارات ── */}
           <section style={{ ...formSection, marginBottom: '30px' }}>
             <h3 style={sectionTitle}><Car size={18} /> توافق السيارات</h3>
             <p style={{ fontSize: '0.78rem', color: '#555', marginBottom: '16px', fontWeight: '600' }}>
               يمكنك إضافة أكثر من سيارة لنفس المنتج. السيارة الأولى ستُستخدم كقيمة رئيسية.
             </p>
 
-            {/* Column headers */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 36px', gap: '8px', marginBottom: '6px', padding: '0 4px' }}>
-              {['ماركة السيارة', 'الموديل', 'السنة', ''].map(h => (
-                <div key={h} style={{ fontSize: '0.72rem', fontWeight: '700', color: '#555' }}>{h}</div>
+              {['ماركة السيارة', 'الموديل', 'السنة', ''].map((h, i) => (
+                <div key={i} style={{ fontSize: '0.72rem', fontWeight: '700', color: '#555' }}>{h}</div>
               ))}
             </div>
 
-            {/* Car rows */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {carRows.map((row, index) => {
-                // Models available for the selected make in this row
                 const availableModels = row.car_make ? (modelsByMake[row.car_make] || []) : [];
-                // If current model value isn't in the list (e.g. custom value from old data), still show it
                 const modelOptions = availableModels.includes(row.car_model) || !row.car_model
                   ? availableModels
                   : [row.car_model, ...availableModels];
 
                 return (
                   <div key={index} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 36px', gap: '8px', alignItems: 'center' }}>
-
-                    {/* Make dropdown */}
                     <select
                       value={row.car_make}
                       onChange={(e) => updateCarRow(index, 'car_make', e.target.value)}
@@ -330,26 +345,16 @@ export default function EditProduct() {
                       {options.makes.map(m => <option key={m} value={m}>{m}</option>)}
                     </select>
 
-                    {/* Model dropdown — populated from selected make */}
                     <select
                       value={row.car_model}
                       onChange={(e) => updateCarRow(index, 'car_model', e.target.value)}
-                      style={{
-                        ...inputStyle,
-                        opacity: !row.car_make ? 0.4 : 1,
-                        cursor: !row.car_make ? 'not-allowed' : 'pointer',
-                      }}
                       disabled={!row.car_make}
+                      style={{ ...inputStyle, opacity: !row.car_make ? 0.4 : 1, cursor: !row.car_make ? 'not-allowed' : 'pointer' }}
                     >
-                      <option value="">
-                        {!row.car_make ? 'اختر الماركة أولاً' : 'اختر الموديل'}
-                      </option>
-                      {modelOptions.map(m => (
-                        <option key={m} value={m}>{m}</option>
-                      ))}
+                      <option value="">{!row.car_make ? 'اختر الماركة أولاً' : 'اختر الموديل'}</option>
+                      {modelOptions.map(m => <option key={m} value={m}>{m}</option>)}
                     </select>
 
-                    {/* Year input stays as text */}
                     <input
                       type="text"
                       placeholder="مثال: 2010-2020"
@@ -358,7 +363,6 @@ export default function EditProduct() {
                       style={inputStyle}
                     />
 
-                    {/* Remove button */}
                     <button
                       type="button"
                       onClick={() => removeCarRow(index)}
@@ -371,14 +375,18 @@ export default function EditProduct() {
               })}
             </div>
 
-            {/* Add row button */}
+            {carRows.length === 0 && (
+              <div style={{ padding: '20px', textAlign: 'center', color: '#444', fontSize: '0.85rem', border: '1px dashed #222', borderRadius: '10px', marginBottom: '8px' }}>
+                لا توجد سيارات مضافة — اضغط الزر أدناه لإضافة أولى
+              </div>
+            )}
+
             <button
               type="button"
               onClick={addCarRow}
               style={{ marginTop: '12px', padding: '10px 20px', background: '#0a1a0a', border: '1px dashed #2ecc71', borderRadius: '10px', color: '#2ecc71', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}
             >
-              <Plus size={16} />
-              إضافة سيارة أخرى
+              <Plus size={16} /> إضافة سيارة أخرى
             </button>
           </section>
 
