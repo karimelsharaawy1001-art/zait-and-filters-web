@@ -10,7 +10,7 @@ import {
   CarFront
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { linkGuestOrdersToUser } from '@/hooks/useLinkGuestOrders';
+import { linkGuestOrdersToUser } from '@/app/hooks/useLinkGuestOrders';
 
 const Select = dynamic(() => import('react-select'), {
   ssr: false,
