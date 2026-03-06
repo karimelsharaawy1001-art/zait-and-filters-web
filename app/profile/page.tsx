@@ -10,6 +10,7 @@ import {
   CarFront
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { linkGuestOrdersToUser } from '@/hooks/useLinkGuestOrders';
 
 const Select = dynamic(() => import('react-select'), {
   ssr: false,
@@ -44,14 +45,64 @@ export default function ProfilePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push('/login'); return; }
       setUser(user);
-      const { data: profileData } = await supabase.from('profiles').select('full_name, phone_number').eq('id', user.id).single();
+
+      // ── Step 1: Link any guest orders before fetching ──────────────────
+      await linkGuestOrdersToUser(user.id);
+      // ──────────────────────────────────────────────────────────────────
+
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('full_name, phone_number')
+        .eq('id', user.id)
+        .single();
+
       if (profileData) {
         setProfile({ full_name: profileData.full_name || '', phone_number: profileData.phone_number || '' });
-        if (profileData.phone_number) {
-          const { data: ordersData } = await supabase.from('orders').select('*').eq('customer_phone', profileData.phone_number).order('created_at', { ascending: false });
-          setOrders(ordersData || []);
+      }
+
+      // ── Step 2: Fetch orders by user_id OR phone (belt & suspenders) ──
+      // After linking, user_id is set on all past orders.
+      // We still fall back to phone match so nothing is ever missed.
+      const phone = profileData?.phone_number || null;
+      const authEmail = user.email || null;
+
+      let ordersData: any[] = [];
+
+      // Primary: fetch by user_id (covers both native + newly-linked orders)
+      const { data: byUserId } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (byUserId) ordersData = byUserId;
+
+      // Fallback: if user has a phone, catch any orders still unlinked
+      if (phone) {
+        const { data: byPhone } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('customer_phone', phone)
+          .is('user_id', null)  // only unlinked ones (avoid duplicates)
+          .order('created_at', { ascending: false });
+
+        if (byPhone && byPhone.length > 0) {
+          // Merge & deduplicate by id
+          const merged = [...ordersData, ...byPhone];
+          const seen = new Set<string>();
+          ordersData = merged.filter(o => {
+            if (seen.has(o.id)) return false;
+            seen.add(o.id);
+            return true;
+          });
+          // Sort merged list newest first
+          ordersData.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         }
       }
+
+      setOrders(ordersData);
+      // ──────────────────────────────────────────────────────────────────
+
       const [addrRes, garageRes, productsRes] = await Promise.all([
         supabase.from('addresses').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
         supabase.from('user_garage').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
@@ -88,6 +139,11 @@ export default function ProfilePage() {
     try {
       const { error } = await supabase.from('profiles').upsert({ id: user.id, full_name: profile.full_name, phone_number: profile.phone_number, updated_at: new Date().toISOString() });
       if (error) throw error;
+
+      // Re-link orders whenever phone is updated (user may have added phone for first time)
+      await linkGuestOrdersToUser(user.id);
+      await fetchProfileData();
+
       toast.success('تم تحديث البيانات الأساسية');
     } catch { toast.error('فشل التحديث'); } finally { setSaving(false); }
   }
@@ -225,7 +281,7 @@ export default function ProfilePage() {
                     <div key={order.id} style={orderMiniCard(expandedOrder === order.id)}>
                       <div style={miniOrderHeader} onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}>
                         <div style={orderMeta}>
-                          <span style={statusBadge(order.status)}>{order.status === 'pending' ? 'قيد المراجعة' : 'تم الشحن'}</span>
+                          <span style={statusBadge(order.status)}>{order.status === 'pending' ? 'قيد المراجعة' : order.status === 'pending_payment' ? 'في انتظار الدفع' : 'تم الشحن'}</span>
                           <span style={dateText}>{new Date(order.created_at).toLocaleDateString('ar-EG')}</span>
                         </div>
                         <div style={priceText}>{order.total_price} ج.م</div>
@@ -347,27 +403,26 @@ const carYearText: any = { fontSize: '0.72rem', color: '#bbb', marginTop: '2px' 
 const carDeleteBtn: any = { position: 'absolute', top: '8px', left: '8px', color: '#fca5a5', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' };
 const tabBar: any = { display: 'flex', gap: '8px', marginBottom: '16px', background: '#fff', borderRadius: '16px', padding: '6px', border: '1px solid #f0f0f0' };
 const tabBtn = (active: boolean): any => ({ flex: 1, padding: '10px 6px', borderRadius: '12px', border: 'none', background: active ? '#f0fdf4' : 'transparent', color: active ? '#16a34a' : '#999', fontWeight: active ? '900' : '600', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', transition: '0.2s' });
-// ✅ FIXED: single column on mobile, two columns on desktop
 const gridSplit: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: '20px' };
 const mainCard: any = { background: '#fff', borderRadius: '24px', padding: '18px', marginBottom: '20px', border: '1px solid #f0f0f0', boxShadow: '0 2px 12px rgba(0,0,0,0.02)', width: '100%', boxSizing: 'border-box' as const };
 const compactSectionTitle: any = { fontSize: '0.95rem', fontWeight: '900', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' };
 const sectionTopRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' };
 const miniOrderHeader: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '13px 15px', cursor: 'pointer' };
 const orderMiniCard = (expanded: boolean): any => ({ background: '#fff', border: expanded ? '1.5px solid #22c55e' : '1px solid #f0f0f0', borderRadius: '16px', marginBottom: '10px', overflow: 'hidden', transition: '0.2s' });
-const statusBadge = (s: string): any => ({ fontSize: '0.65rem', fontWeight: '900', padding: '4px 10px', borderRadius: '8px', background: s === 'pending' ? '#fff7ed' : '#f0fdf4', color: s === 'pending' ? '#c2410c' : '#166534' });
+const statusBadge = (s: string): any => ({ fontSize: '0.65rem', fontWeight: '900', padding: '4px 10px', borderRadius: '8px', background: s === 'pending' ? '#fff7ed' : s === 'pending_payment' ? '#eff6ff' : '#f0fdf4', color: s === 'pending' ? '#c2410c' : s === 'pending_payment' ? '#1d4ed8' : '#166534' });
 const orderList: any = { display: 'flex', flexDirection: 'column' };
 const orderMeta: any = { display: 'flex', gap: '8px', alignItems: 'center' };
 const dateText: any = { fontSize: '0.72rem', color: '#ccc' };
 const priceText: any = { fontSize: '0.95rem', fontWeight: '900', color: '#1a1a1a' };
 const orderBody: any = { padding: '12px 15px', background: '#fafafa', borderTop: '1px solid #f5f5f5' };
 const miniItemRow: any = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' };
-const miniItemImg: any = { width: '38px', height: '38px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 };
+const miniItemImg: any = { width: '38px', height: '38px', borderRadius: '10px', objectFit: 'cover' as const, flexShrink: 0 };
 const miniItemName: any = { fontSize: '0.8rem', fontWeight: '700', color: '#333' };
 const miniItemPrice: any = { fontSize: '0.8rem', fontWeight: '800', color: '#1a1a1a', whiteSpace: 'nowrap' };
 const compactForm: any = { display: 'flex', flexDirection: 'column', gap: '10px' };
 const inputLabel: any = { fontSize: '0.78rem', fontWeight: '700', color: '#888', marginBottom: '-4px' };
 const compactInp: any = { width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1px solid #f0f0f0', background: '#fdfdfd', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' as const };
-const compactArea: any = { ...compactInp, height: '70px', resize: 'none' };
+const compactArea: any = { ...compactInp, height: '70px', resize: 'none' as const };
 const saveActionBtn: any = { padding: '12px', background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem', marginTop: '4px', width: '100%' };
 const miniAddBtn: any = { width: '32px', height: '32px', borderRadius: '10px', background: '#f0fdf4', color: '#22c55e', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '900' };
 const compactAddBox: any = { background: '#f9fafb', padding: '14px', borderRadius: '16px', marginBottom: '14px', border: '1px dashed #86efac' };
@@ -382,6 +437,5 @@ const addrDelBtn: any = { color: '#fca5a5', background: 'none', border: 'none', 
 const elegantLogout: any = { width: '100%', padding: '14px', background: 'none', border: '1px solid #fee2e2', color: '#ef4444', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: '900', fontSize: '0.9rem', cursor: 'pointer', marginTop: '8px' };
 const centerStyle: any = { display: 'flex', justifyContent: 'center', padding: '100px' };
 const emptyText: any = { textAlign: 'center', color: '#d1d5db', fontSize: '0.85rem', padding: '20px 0' };
-// ✅ FIXED: full width on mobile
 const infoColumn: any = { display: 'flex', flexDirection: 'column', width: '100%', minWidth: 0 };
 const orderColumn: any = { display: 'flex', flexDirection: 'column', width: '100%', minWidth: 0 };

@@ -1535,14 +1535,19 @@ function StoreContent() {
                               ✦ أصلي
                             </div>
                           )}
-                          <Link href={`/products/${product.id}`} style={{ display: 'block', height: '200px', backgroundColor: '#f9f9f9', overflow: 'hidden', position: 'relative' }}>
-                            <img
-                              src={product.image_url || (product.category && subcategoryImages[product.category.trim().toUpperCase()]) || '/api/placeholder/400/320'}
-                              alt={product.name}
-                              style={{ width: '100%', height: '100%', objectFit: 'cover', padding: '0', transition: 'transform 0.3s ease' }}
-                              loading="lazy"
-                            />
-                          </Link>
+                          <Link
+                            href={`/products/${product.id}`}
+                            style={{ display: 'block', height: '200px', backgroundColor: '#f9f9f9', overflow: 'hidden', position: 'relative' }}
+                            className="product-img-link"
+                            >
+                              <img
+                                src={product.image_url || (product.category && subcategoryImages[product.category.trim().toUpperCase()]) || '/api/placeholder/400/320'}
+                                alt={product.name}
+                                style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '12px', transition: 'transform 0.35s ease' }}
+                                loading="lazy"
+                                className="product-card-img"
+                              />
+                            </Link>
                           <div style={{ padding: '18px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                               <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.8rem' }}>{product.brand}</span>
