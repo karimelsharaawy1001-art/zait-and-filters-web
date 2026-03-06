@@ -60,44 +60,29 @@ export default function ProfilePage() {
         setProfile({ full_name: profileData.full_name || '', phone_number: profileData.phone_number || '' });
       }
 
-      // ── Step 2: Fetch orders by user_id OR phone (belt & suspenders) ──
-      // After linking, user_id is set on all past orders.
-      // We still fall back to phone match so nothing is ever missed.
-      const phone = profileData?.phone_number || null;
-      const authEmail = user.email || null;
+      // ── Step 2: Fetch orders by user_id OR customer_phone ─────────────
+      const phone = profileData?.phone_number?.trim() || null;
 
       let ordersData: any[] = [];
 
-      // Primary: fetch by user_id (covers both native + newly-linked orders)
-      const { data: byUserId } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (byUserId) ordersData = byUserId;
-
-      // Fallback: if user has a phone, catch any orders still unlinked
       if (phone) {
+        // Fetch ALL orders matching this phone (covers linked + unlinked)
         const { data: byPhone } = await supabase
           .from('orders')
           .select('*')
           .eq('customer_phone', phone)
-          .is('user_id', null)  // only unlinked ones (avoid duplicates)
           .order('created_at', { ascending: false });
 
-        if (byPhone && byPhone.length > 0) {
-          // Merge & deduplicate by id
-          const merged = [...ordersData, ...byPhone];
-          const seen = new Set<string>();
-          ordersData = merged.filter(o => {
-            if (seen.has(o.id)) return false;
-            seen.add(o.id);
-            return true;
-          });
-          // Sort merged list newest first
-          ordersData.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        }
+        if (byPhone) ordersData = byPhone;
+      } else {
+        // Fallback: fetch by user_id only
+        const { data: byUserId } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (byUserId) ordersData = byUserId;
       }
 
       setOrders(ordersData);

@@ -9,48 +9,52 @@ import { supabase } from '@/app/lib/supabase';
 
 export async function linkGuestOrdersToUser(userId: string) {
   try {
-    // 1. Get the user's profile phone & email
+    // 1. Get the user's phone number from profiles (primary match key)
     const { data: profile } = await supabase
       .from('profiles')
-      .select('phone_number, email')
+      .select('phone_number')
       .eq('id', userId)
       .single();
 
-    // Also get auth email directly as fallback
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    const authEmail = authUser?.email || null;
+    const phone = profile?.phone_number?.trim() || null;
 
-    const phone = profile?.phone_number || null;
-    const email = profile?.email || authEmail || null;
-
-    if (!phone && !email) return; // nothing to match on
-
-    // 2. Find all guest orders (user_id is null) that match phone or email
-    let query = supabase
-      .from('orders')
-      .select('id')
-      .is('user_id', null);
-
-    if (phone && email) {
-      query = query.or(`customer_phone.eq.${phone},customer_email.eq.${email}`);
-    } else if (phone) {
-      query = query.eq('customer_phone', phone);
-    } else if (email) {
-      query = query.eq('customer_email', email);
+    if (!phone) {
+      console.log('[linkGuestOrders] No phone number found for user, skipping.');
+      return;
     }
 
-    const { data: guestOrders } = await query;
+    // 2. Find ALL orders (even already linked ones) by phone
+    //    so we catch orders placed before signup that still have user_id null
+    const { data: guestOrders, error } = await supabase
+      .from('orders')
+      .select('id, user_id')
+      .eq('customer_phone', phone)
+      .is('user_id', null);
 
-    if (!guestOrders || guestOrders.length === 0) return;
+    if (error) {
+      console.error('[linkGuestOrders] Query error:', error);
+      return;
+    }
+
+    if (!guestOrders || guestOrders.length === 0) {
+      console.log('[linkGuestOrders] No unlinked orders found for phone:', phone);
+      return;
+    }
 
     // 3. Stamp them all with the user_id
-    const orderIds = guestOrders.map((o) => o.id);
-    await supabase
+    const orderIds = guestOrders.map((o: any) => o.id);
+
+    const { error: updateError } = await supabase
       .from('orders')
       .update({ user_id: userId })
       .in('id', orderIds);
 
-    console.log(`[linkGuestOrders] Linked ${orderIds.length} guest order(s) to user ${userId}`);
+    if (updateError) {
+      console.error('[linkGuestOrders] Update error:', updateError);
+      return;
+    }
+
+    console.log(`[linkGuestOrders] Linked ${orderIds.length} order(s) to user ${userId}`);
   } catch (err) {
     console.error('[linkGuestOrders] Error:', err);
   }
