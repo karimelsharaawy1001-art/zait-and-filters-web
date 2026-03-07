@@ -580,7 +580,6 @@ function StoreContent() {
   const [garageMode, setGarageMode] = useState(false);
   const [userCar, setUserCar] = useState<any>(null);
 
-  // ── NEW: sale mode state ──
   const [saleMode, setSaleMode] = useState(false);
 
   const urlMake = searchParams.get('make');
@@ -590,7 +589,6 @@ function StoreContent() {
   const urlSubcategory = searchParams.get('subcategory');
   const urlBrand = searchParams.get('brand');
   const urlSearch = searchParams.get('q');
-  // ── NEW: read sale param from URL — supports both ?sale=true and ?filter=sales ──
   const urlSale = searchParams.get('sale') === 'true' || searchParams.get('filter') === 'sales';
 
   useEffect(() => {
@@ -616,7 +614,6 @@ function StoreContent() {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── FIX: also depend on yearInput so hero image updates when year changes ──
   useEffect(() => {
     const make = selectedMake?.value ?? null;
     const model = selectedModel?.value ?? null;
@@ -712,10 +709,8 @@ function StoreContent() {
     resolvedGarageMode: boolean,
     resolvedUserCar: any,
   ) {
-    // ── NEW: if sale param is present, fetch all sale products inline — bypasses all filters & garage ──
     if (urlSale) {
       setSaleMode(true);
-      // Force garage mode off for sale page so it does not interfere
       setShowGarageConflictBanner(false);
       try {
         const { data, error } = await supabase
@@ -727,7 +722,6 @@ function StoreContent() {
           const saleProducts = (data || []).filter(
             (p: any) => Number(p.sale_price) > 0 && Number(p.regular_price) > Number(p.sale_price)
           );
-          // Products with no sale_order fall to the end, ordered by created_at
           saleProducts.sort((a: any, b: any) => {
             if (a.sale_order != null && b.sale_order != null) return a.sale_order - b.sale_order;
             if (a.sale_order != null) return -1;
@@ -1032,7 +1026,6 @@ function StoreContent() {
   }
 
   function handleFilterChange() {
-    // ── NEW: exit sale mode when user applies manual filters ──
     setSaleMode(false);
 
     const hasMinimumFilters = (selectedMake && selectedModel) || selectedCategory || (garageMode && userCar);
@@ -1088,7 +1081,6 @@ function StoreContent() {
     setModelsOptions([]);
     setSubcategoriesOptions([]);
     setShowGarageConflictBanner(false);
-    // ── NEW: also clear sale mode ──
     setSaleMode(false);
     router.push('/store');
 
@@ -1155,8 +1147,6 @@ function StoreContent() {
   if (!isMounted) return null;
 
   const hasMin = (selectedMake && selectedModel) || selectedCategory || (garageMode && userCar);
-  // ── NEW: saleMode bypasses the empty state check ──
-  // In sale mode, garage conflict banner is always suppressed so products show freely
   const effectiveGarageConflict = showGarageConflictBanner && !saleMode;
   const showEmptyState = !loading && !initializing && !hasMin && !saleMode && filteredProducts.length === 0 && !effectiveGarageConflict;
   const showNoResults = !loading && !initializing && (hasMin || saleMode) && filteredProducts.length === 0 && !effectiveGarageConflict;
@@ -1240,7 +1230,6 @@ function StoreContent() {
             .mobile-filter-btn { display: block !important; }
             .store-product-card { border-radius: 12px; }
             .store-product-card h3 { font-size: 0.85rem !important; height: 38px !important; }
-            .store-product-card img { padding: 10px !important; }
           }
           @media (min-width: 769px) {
             .desktop-filters { display: block !important; }
@@ -1259,6 +1248,31 @@ function StoreContent() {
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #f59e0b 100%);
             background-size: 200% auto;
             animation: shimmer 2.5s linear infinite;
+          }
+          /* ── Product card image zoom ── */
+          .product-img-link {
+            display: block;
+            overflow: hidden;
+            position: relative;
+            background-color: #f9f9f9;
+          }
+          .product-card-img {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+            padding: 12px;
+            background: #f9f9f9;
+            display: block;
+            transition: transform 0.35s ease;
+          }
+          .product-img-link:hover .product-card-img {
+            transform: scale(1.08);
+          }
+          @media (max-width: 640px) {
+            .product-card-img {
+              height: 160px;
+              padding: 8px;
+            }
           }
         `,
         }}
@@ -1290,7 +1304,6 @@ function StoreContent() {
 
       {!initializing && (
         <>
-          {/* ── NEW: Sale mode banner ── */}
           {saleMode && !loading && (
             <motion.section
               initial={{ opacity: 0, y: 20 }}
@@ -1421,7 +1434,6 @@ function StoreContent() {
                   <Filter size={22} color="#22c55e" />
                   الفلاتر
                 </h2>
-                {/* ── NEW: sale mode active indicator in sidebar ── */}
                 {saleMode && (
                   <div style={{ backgroundColor: '#fff1f0', border: '1px solid #ff4d4d', borderRadius: '10px', padding: '12px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Tags size={16} color="#ff4d4d" />
@@ -1433,7 +1445,6 @@ function StoreContent() {
             </aside>
 
             <div style={{ flex: 1 }}>
-              {/* Garage conflict banner */}
               <AnimatePresence>
                 {effectiveGarageConflict && !loading && (
                   <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}
@@ -1514,13 +1525,13 @@ function StoreContent() {
                           transition={{ duration: 0.4 }}
                           className="store-product-card"
                         >
-                          {/* Sale badge — top right */}
+                          {/* Sale badge */}
                           {product.sale_price > 0 && product.regular_price > product.sale_price && (
                             <div style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: '#ff4d4d', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '900', zIndex: 10 }}>
                               -{Math.round(((product.regular_price - product.sale_price) / product.regular_price) * 100)}%
                             </div>
                           )}
-                          {/* ── ORIGINAL badge — top left ── */}
+                          {/* Original badge */}
                           {isOriginal && (
                             <div
                               className="original-badge"
@@ -1535,19 +1546,20 @@ function StoreContent() {
                               ✦ أصلي
                             </div>
                           )}
+
+                          {/* ── FIXED: image with contain + zoom on hover ── */}
                           <Link
                             href={`/products/${product.id}`}
-                            style={{ display: 'block', height: '200px', backgroundColor: '#f9f9f9', overflow: 'hidden', position: 'relative' }}
                             className="product-img-link"
-                            >
-                              <img
-                                src={product.image_url || (product.category && subcategoryImages[product.category.trim().toUpperCase()]) || '/api/placeholder/400/320'}
-                                alt={product.name}
-                                style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '12px', transition: 'transform 0.35s ease' }}
-                                loading="lazy"
-                                className="product-card-img"
-                              />
-                            </Link>
+                          >
+                            <img
+                              src={product.image_url || (product.category && subcategoryImages[product.category.trim().toUpperCase()]) || '/api/placeholder/400/320'}
+                              alt={product.name}
+                              className="product-card-img"
+                              loading="lazy"
+                            />
+                          </Link>
+
                           <div style={{ padding: '18px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                               <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.8rem' }}>{product.brand}</span>
@@ -1595,7 +1607,6 @@ function StoreContent() {
                                 <ShoppingCart size={16} />
                                 أضف إلى السلة
                               </button>
-                              {/* ── BUY NOW ── */}
                               <Link
                                 href={`/checkout?buyNow=true&productId=${product.id}&price=${price}`}
                                 onClick={() => addToCart({ ...product, price }, 1)}
@@ -1605,7 +1616,6 @@ function StoreContent() {
                                 <Zap size={16} fill="#fff" />
                                 اشتري الآن
                               </Link>
-                              {/* ─────────── */}
                             </div>
                           </div>
                         </motion.div>

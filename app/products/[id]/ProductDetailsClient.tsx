@@ -28,7 +28,6 @@ function UrgencyCounters({ productId }: { productId: string }) {
   const [stockFlash,  setStockFlash]  = useState(false);
   const [visible, setVisible] = useState(false);
 
-  // Slide in after a short delay
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 800);
     return () => clearTimeout(t);
@@ -180,8 +179,6 @@ function UrgencyCounters({ productId }: { productId: string }) {
 
       {visible && (
         <div className="urgency-float-wrap">
-
-          {/* Viewers card */}
           <div className="urgency-card urgency-card-viewers">
             <div className="urgency-icon-bubble" style={{ background: 'rgba(37,99,235,0.1)' }}>
               <Eye size={16} color="#2563eb" />
@@ -196,7 +193,6 @@ function UrgencyCounters({ productId }: { productId: string }) {
             </div>
           </div>
 
-          {/* Stock card */}
           <div
             className="urgency-card urgency-card-stock"
             style={{
@@ -221,7 +217,6 @@ function UrgencyCounters({ productId }: { productId: string }) {
               </div>
             </div>
           </div>
-
         </div>
       )}
     </>
@@ -391,7 +386,8 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
   return (
     <div style={premiumCardStyle}>
       <Link href={`/products/${p.id}`} style={{ textDecoration: 'none' }}>
-        <div style={premiumImageArea}>
+        {/* ── FIXED: related card image with contain + zoom ── */}
+        <div style={{ ...premiumImageArea }} className="related-card-img-wrap">
           {displayImage ? (
             <img src={displayImage} alt={p.name} style={premiumImgFit} />
           ) : (
@@ -554,6 +550,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           margin-bottom: 50px;
         }
 
+        /* ── FIXED: image box — contain + zoom on hover ── */
         .product-image-box {
           background: #f9f9f9;
           border-radius: 24px;
@@ -561,17 +558,30 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           display: flex;
           justify-content: center;
           align-items: center;
-          min-height: 320px;
+          height: 420px;
           overflow: hidden;
           position: relative;
+          cursor: zoom-in;
         }
 
         .product-main-img {
           width: 100%;
           height: 100%;
-          object-fit: cover;
+          object-fit: contain;
           display: block;
           border-radius: 24px;
+          padding: 24px;
+          transition: transform 0.4s ease;
+        }
+
+        .product-image-box:hover .product-main-img {
+          transform: scale(1.08);
+        }
+
+        @media (max-width: 768px) {
+          .product-main-img:active {
+            transform: scale(1.08);
+          }
         }
 
         .product-img-placeholder {
@@ -678,6 +688,17 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           height: auto !important;
         }
 
+        /* ── Related card image zoom ── */
+        .related-card-img-wrap {
+          overflow: hidden;
+        }
+        .related-card-img-wrap img {
+          transition: transform 0.35s ease;
+        }
+        .related-card-img-wrap:hover img {
+          transform: scale(1.08);
+        }
+
         @media (max-width: 768px) {
           .product-page-wrapper {
             padding: 12px 12px 80px;
@@ -771,7 +792,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         {/* Main Grid */}
         <div className="product-main-grid">
 
-          {/* Image */}
+          {/* ── FIXED: Image box ── */}
           <div className="product-image-box">
             {imageUrl ? (
               <img
