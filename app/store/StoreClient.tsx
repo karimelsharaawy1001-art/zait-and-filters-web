@@ -1259,8 +1259,8 @@ function StoreContent() {
           .product-card-img {
             width: 100%;
             height: 200px;
-            object-fit: contain;
-            padding: 12px;
+            object-fit: cover;
+            padding: 0;
             background: #f9f9f9;
             display: block;
             transition: transform 0.35s ease;
