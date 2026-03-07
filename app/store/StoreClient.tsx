@@ -29,7 +29,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/context/CartContext';
 import toast from 'react-hot-toast';
 
-const PRODUCTS_PER_PAGE = 10;
+const PRODUCTS_PER_PAGE = 12;
 
 const Select = dynamic(() => import('react-select'), {
   ssr: false,
@@ -1259,7 +1259,7 @@ function StoreContent() {
           .product-card-img {
             width: 100%;
             height: 200px;
-            object-fit: cover;
+            object-fit: contain;
             padding: 0;
             background: #f9f9f9;
             display: block;
@@ -1271,7 +1271,6 @@ function StoreContent() {
           @media (max-width: 640px) {
             .product-card-img {
               height: 160px;
-              padding: 8px;
             }
           }
         `,
