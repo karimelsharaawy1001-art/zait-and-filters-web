@@ -17,6 +17,23 @@ const Select = dynamic(() => import('react-select'), {
   loading: () => <div style={{ height: '48px', backgroundColor: '#f8f8f8', borderRadius: '10px', padding: '0 15px', display: 'flex', alignItems: 'center', color: '#999' }}>جاري التحميل...</div>
 });
 
+// ── Payment status config ─────────────────────────────────────────────────────
+const paymentStatusConfig: Record<string, { label: string; bg: string; color: string }> = {
+  pending:  { label: 'في انتظار الدفع', bg: '#fff7ed', color: '#c2410c' },
+  paid:     { label: 'تم الدفع ✓',      bg: '#f0fdf4', color: '#15803d' },
+  failed:   { label: 'فشل الدفع',       bg: '#fef2f2', color: '#dc2626' },
+  refunded: { label: 'تم الاسترجاع',    bg: '#f5f3ff', color: '#6d28d9' },
+};
+
+// ── Shipping status config ────────────────────────────────────────────────────
+const shippingStatusConfig: Record<string, { label: string; bg: string; color: string }> = {
+  pending:    { label: 'قيد المراجعة',   bg: '#fff7ed', color: '#c2410c' },
+  processing: { label: 'جاري التجهيز',  bg: '#fef9c3', color: '#a16207' },
+  shipped:    { label: 'تم الشحن 🚚',   bg: '#eff6ff', color: '#1d4ed8' },
+  delivered:  { label: 'تم التسليم ✓',  bg: '#f0fdf4', color: '#166534' },
+  pending_payment: { label: 'في انتظار الدفع', bg: '#eff6ff', color: '#1d4ed8' },
+};
+
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -56,7 +73,7 @@ export default function ProfilePage() {
         setProfile({ full_name: profileData.full_name || '', phone_number: profileData.phone_number || '' });
       }
 
-      // ── Fetch orders: try user_id first, then fall back to phone ───────
+      // ── Fetch orders: try user_id first, then fall back to phone ──────────
       const { data: byUserId } = await supabase
         .from('orders')
         .select('*')
@@ -65,7 +82,6 @@ export default function ProfilePage() {
 
       let ordersData: any[] = byUserId || [];
 
-      // Also fetch by phone to catch any still-unlinked orders
       const phone = profileData?.phone_number?.trim();
       if (phone) {
         const { data: byPhone } = await supabase
@@ -75,7 +91,6 @@ export default function ProfilePage() {
           .order('created_at', { ascending: false });
 
         if (byPhone && byPhone.length > 0) {
-          // Merge and deduplicate
           const merged = [...ordersData, ...byPhone];
           const seen = new Set<string>();
           ordersData = merged.filter(o => {
@@ -90,7 +105,6 @@ export default function ProfilePage() {
       }
 
       setOrders(ordersData);
-      // ──────────────────────────────────────────────────────────────────
 
       const [addrRes, garageRes, productsRes] = await Promise.all([
         supabase.from('addresses').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
@@ -262,30 +276,55 @@ export default function ProfilePage() {
               ? <p style={emptyText}>لم تقم بأي طلبات بعد.</p>
               : (
                 <div style={orderList}>
-                  {orders.map((order) => (
-                    <div key={order.id} style={orderMiniCard(expandedOrder === order.id)}>
-                      <div style={miniOrderHeader} onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}>
-                        <div style={orderMeta}>
-                          <span style={statusBadge(order.status)}>{order.status === 'pending' ? 'قيد المراجعة' : order.status === 'pending_payment' ? 'في انتظار الدفع' : 'تم الشحن'}</span>
-                          <span style={dateText}>{new Date(order.created_at).toLocaleDateString('ar-EG')}</span>
-                        </div>
-                        <div style={priceText}>{order.total_price} ج.م</div>
-                      </div>
-                      {expandedOrder === order.id && (
-                        <div style={orderBody}>
-                          {order.items?.map((item: any, i: number) => (
-                            <div key={i} style={miniItemRow}>
-                              <img src={item.image || item.image_url || '/api/placeholder/40/40'} alt="" style={miniItemImg} />
-                              <div style={{ flex: 1 }}>
-                                <div style={miniItemName}>{item.name} <span style={{ color: '#22c55e' }}>×{item.quantity}</span></div>
-                              </div>
-                              <div style={miniItemPrice}>{parseFloat(item.price) * item.quantity} ج.م</div>
+                  {orders.map((order) => {
+                    const ps = order.payment_status || 'pending';
+                    const ss = order.status || 'pending';
+                    const payConf = paymentStatusConfig[ps] || paymentStatusConfig.pending;
+                    const shipConf = shippingStatusConfig[ss] || shippingStatusConfig.pending;
+
+                    return (
+                      <div key={order.id} style={orderMiniCard(expandedOrder === order.id)}>
+                        {/* ── Order Header ── */}
+                        <div style={miniOrderHeader} onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            {/* Row 1: shipping status + date */}
+                            <div style={orderMeta}>
+                              <span style={statusBadge(shipConf.bg, shipConf.color)}>{shipConf.label}</span>
+                              <span style={dateText}>{new Date(order.created_at).toLocaleDateString('ar-EG')}</span>
                             </div>
-                          ))}
+                            {/* Row 2: payment status badge */}
+                            <span style={statusBadge(payConf.bg, payConf.color)}>
+                              <CreditCard size={10} style={{ display: 'inline', marginLeft: '3px', verticalAlign: 'middle' }} />
+                              {payConf.label}
+                            </span>
+                          </div>
+                          <div style={priceText}>{order.total_price} ج.م</div>
                         </div>
-                      )}
-                    </div>
-                  ))}
+
+                        {/* ── Order Body (expanded) ── */}
+                        {expandedOrder === order.id && (
+                          <div style={orderBody}>
+                            {/* Payment method */}
+                            {order.payment_method && (
+                              <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                <CreditCard size={12} color="#aaa" />
+                                طريقة الدفع: <strong style={{ color: '#555' }}>{paymentMethodLabel(order.payment_method)}</strong>
+                              </div>
+                            )}
+                            {order.items?.map((item: any, i: number) => (
+                              <div key={i} style={miniItemRow}>
+                                <img src={item.image || item.image_url || '/api/placeholder/40/40'} alt="" style={miniItemImg} />
+                                <div style={{ flex: 1 }}>
+                                  <div style={miniItemName}>{item.name} <span style={{ color: '#22c55e' }}>×{item.quantity}</span></div>
+                                </div>
+                                <div style={miniItemPrice}>{parseFloat(item.price) * item.quantity} ج.م</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
           </div>
@@ -368,6 +407,19 @@ export default function ProfilePage() {
   );
 }
 
+// ── Helper ────────────────────────────────────────────────────────────────────
+function paymentMethodLabel(method: string) {
+  const map: Record<string, string> = {
+    cash: 'كاش عند الاستلام',
+    vodafone_cash: 'فودافون كاش',
+    instapay: 'انستاباي',
+    bank_transfer: 'تحويل بنكي',
+    card_installments: 'بطاقة / تقسيط',
+    wallets: 'محفظة إلكترونية',
+  };
+  return map[method] || method;
+}
+
 // --- Style Objects ---
 const container: any = { padding: '20px 16px 40px', maxWidth: '1100px', margin: '0 auto', direction: 'rtl', minHeight: '100vh', backgroundColor: '#f6f8fa' };
 const headerCard: any = { background: 'linear-gradient(135deg, #fff 60%, #f0fdf4)', borderRadius: '24px', padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', border: '1px solid #e8f5e9', boxShadow: '0 4px 24px rgba(34,197,94,0.07)' };
@@ -394,7 +446,8 @@ const compactSectionTitle: any = { fontSize: '0.95rem', fontWeight: '900', color
 const sectionTopRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' };
 const miniOrderHeader: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '13px 15px', cursor: 'pointer' };
 const orderMiniCard = (expanded: boolean): any => ({ background: '#fff', border: expanded ? '1.5px solid #22c55e' : '1px solid #f0f0f0', borderRadius: '16px', marginBottom: '10px', overflow: 'hidden', transition: '0.2s' });
-const statusBadge = (s: string): any => ({ fontSize: '0.65rem', fontWeight: '900', padding: '4px 10px', borderRadius: '8px', background: s === 'pending' ? '#fff7ed' : s === 'pending_payment' ? '#eff6ff' : '#f0fdf4', color: s === 'pending' ? '#c2410c' : s === 'pending_payment' ? '#1d4ed8' : '#166534' });
+// ── Updated: statusBadge now takes explicit colors ──
+const statusBadge = (bg: string, color: string): any => ({ fontSize: '0.65rem', fontWeight: '900', padding: '4px 10px', borderRadius: '8px', background: bg, color, display: 'inline-flex', alignItems: 'center' });
 const orderList: any = { display: 'flex', flexDirection: 'column' };
 const orderMeta: any = { display: 'flex', gap: '8px', alignItems: 'center' };
 const dateText: any = { fontSize: '0.72rem', color: '#ccc' };
