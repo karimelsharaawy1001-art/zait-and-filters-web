@@ -199,9 +199,6 @@ export default function HomePage() {
       if (heroRes.data) setSlides(heroRes.data);
       if (partBrandsRes.data) setBrandLogos(partBrandsRes.data);
 
-      // ── CHANGED: fetch all products + sale products in parallel ──
-      // Sale products are fetched separately ordered by sale_order so the
-      // admin-defined sort is always respected on the home page.
       const [allProductsRes, saleProductsRes] = await Promise.all([
         supabase.from('products').select('*').order('created_at', { ascending: false }),
         supabase.from('products')
@@ -215,8 +212,6 @@ export default function HomePage() {
       const customImages = customImgRes.data || [];
 
       if (products.length > 0) {
-        // ── Sale products: already ordered by sale_order from Supabase ──
-        // Apply client-side sort as a safety net: sale_order asc, nulls last by created_at
         const rawSale = (saleProductsRes.data || []).filter(
           (p: any) => Number(p.sale_price) > 0 && Number(p.regular_price) > Number(p.sale_price) && isValidImg(p.image_url)
         );
@@ -227,7 +222,6 @@ export default function HomePage() {
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         });
         setSaleProducts(rawSale);
-        // ── END CHANGE ──
 
         const { data: orders } = await supabase.from('orders').select('items').limit(100);
         const productCounts: Record<string, number> = {};
@@ -421,53 +415,67 @@ export default function HomePage() {
             .hero-card-mobile  { display: none; }
           }
 
+          /* ── CHANGED: mobile hero layout ── */
           @media (max-width: 768px) {
             .hero-section {
-              height: 720px;
+              /* FIX 1: taller hero so text + card both fit without crowding */
+              height: 820px;
             }
             .hero-content-layer {
               position: absolute; inset: 0; z-index: 10;
               display: flex; align-items: flex-start;
-              padding-top: 68px;
+              /* FIX 2: more top padding so text starts lower → image visible above it */
+              padding-top: 80px;
               overflow: hidden;
             }
             .hero-inner {
               width: 100%; padding: 0 14px;
               box-sizing: border-box;
-              display: flex; flex-direction: column; gap: 28px;
+              display: flex; flex-direction: column;
+              /* FIX 3: larger gap pushes card further down */
+              gap: 36px;
             }
             .hero-text {
               text-align: center; display: flex;
               flex-direction: column; align-items: center;
             }
             .hero-text-title   { overflow: hidden; }
+            /* FIX 4: bigger, bolder, white-shadow text so it pops over any bg image */
             .hero-text h1 {
-              font-size: 1.65rem !important;
+              font-size: 2rem !important;
               line-height: 1.25 !important;
-              margin-bottom: 8px !important;
+              margin-bottom: 10px !important;
+              color: #22c55e !important;
+              text-shadow: 0 2px 12px rgba(0,0,0,0.9), 0 0 30px rgba(0,0,0,0.6) !important;
+              letter-spacing: -0.5px !important;
             }
             .hero-text p {
-              font-size: 0.88rem !important;
+              font-size: 1rem !important;
               max-width: 92%;
               margin-left: auto !important; margin-right: auto !important;
-              margin-bottom: 20px !important;
-              line-height: 1.4 !important;
+              margin-bottom: 22px !important;
+              line-height: 1.5 !important;
+              /* FIX 5: stronger text shadow on subtitle for legibility */
+              color: #fff !important;
+              text-shadow: 0 2px 10px rgba(0,0,0,0.95), 0 0 20px rgba(0,0,0,0.7) !important;
+              font-weight: 600 !important;
             }
             .hero-card-desktop { display: none; }
             .hero-card-mobile {
               width: 100%; box-sizing: border-box;
-              background: #fff; padding: 14px 14px 16px;
-              border-radius: 18px;
-              box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+              background: #fff; padding: 16px 14px 18px;
+              border-radius: 20px;
+              box-shadow: 0 10px 30px rgba(0,0,0,0.25);
             }
           }
 
           @media (max-width: 380px) {
-            .hero-section       { height: 740px; }
-            .hero-content-layer { padding-top: 54px; }
-            .hero-text h1       { font-size: 1.45rem !important; }
-            .hero-text p        { font-size: 0.82rem !important; }
+            .hero-section       { height: 860px; }
+            .hero-content-layer { padding-top: 64px; }
+            .hero-text h1       { font-size: 1.7rem !important; }
+            .hero-text p        { font-size: 0.9rem !important; }
           }
+          /* ── END CHANGED ── */
 
           .no-scrollbar::-webkit-scrollbar { display: none; }
           .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
