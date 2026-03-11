@@ -418,44 +418,39 @@ export default function HomePage() {
           /* ── CHANGED: mobile hero layout ── */
           @media (max-width: 768px) {
             .hero-section {
-              /* FIX 1: taller hero so text + card both fit without crowding */
-              height: 820px;
+              height: 920px;
             }
             .hero-content-layer {
               position: absolute; inset: 0; z-index: 10;
               display: flex; align-items: flex-start;
-              /* FIX 2: more top padding so text starts lower → image visible above it */
-              padding-top: 80px;
+              padding-top: 100px;
               overflow: hidden;
             }
             .hero-inner {
               width: 100%; padding: 0 14px;
               box-sizing: border-box;
               display: flex; flex-direction: column;
-              /* FIX 3: larger gap pushes card further down */
-              gap: 36px;
+              gap: 52px;
             }
             .hero-text {
               text-align: center; display: flex;
               flex-direction: column; align-items: center;
             }
             .hero-text-title   { overflow: hidden; }
-            /* FIX 4: bigger, bolder, white-shadow text so it pops over any bg image */
             .hero-text h1 {
-              font-size: 2rem !important;
-              line-height: 1.25 !important;
-              margin-bottom: 10px !important;
+              font-size: 2.1rem !important;
+              line-height: 1.3 !important;
+              margin-bottom: 18px !important;
               color: #22c55e !important;
               text-shadow: 0 2px 12px rgba(0,0,0,0.9), 0 0 30px rgba(0,0,0,0.6) !important;
               letter-spacing: -0.5px !important;
             }
             .hero-text p {
-              font-size: 1rem !important;
+              font-size: 1.15rem !important;
               max-width: 92%;
               margin-left: auto !important; margin-right: auto !important;
-              margin-bottom: 22px !important;
-              line-height: 1.5 !important;
-              /* FIX 5: stronger text shadow on subtitle for legibility */
+              margin-bottom: 28px !important;
+              line-height: 1.65 !important;
               color: #fff !important;
               text-shadow: 0 2px 10px rgba(0,0,0,0.95), 0 0 20px rgba(0,0,0,0.7) !important;
               font-weight: 600 !important;
@@ -470,10 +465,11 @@ export default function HomePage() {
           }
 
           @media (max-width: 380px) {
-            .hero-section       { height: 860px; }
-            .hero-content-layer { padding-top: 64px; }
-            .hero-text h1       { font-size: 1.7rem !important; }
-            .hero-text p        { font-size: 0.9rem !important; }
+            .hero-section       { height: 960px; }
+            .hero-content-layer { padding-top: 80px; }
+            .hero-inner         { gap: 44px; }
+            .hero-text h1       { font-size: 1.8rem !important; }
+            .hero-text p        { font-size: 1rem !important; }
           }
           /* ── END CHANGED ── */
 
