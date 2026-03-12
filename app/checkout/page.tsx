@@ -28,7 +28,8 @@ export default function CheckoutPage() {
 
   const [shippingRates, setShippingRates] = useState<any[]>([]);
   const [selectedCity, setSelectedCity] = useState<any>(null);
-  const [paymentMethod, setPaymentMethod] = useState('card_installments'); 
+  // ── CHANGED: default payment is now InstaPay ──
+  const [paymentMethod, setPaymentMethod] = useState('instapay');
   const [screenshot, setScreenshot] = useState<File | null>(null);
 
   const [promoCode, setPromoCode] = useState('');
@@ -394,11 +395,8 @@ export default function CheckoutPage() {
 
       const orderData = {
         user_id: user?.id || null,
-        // ── Guest order linking: always save email & phone so we can claim
-        //    this order when the guest registers later ──────────────────────
         guest_email: customerInfo.email || null,
         guest_phone: customerInfo.phone || null,
-        // ─────────────────────────────────────────────────────────────────
         customer_name: customerInfo.name,
         customer_phone: customerInfo.phone,
         customer_email: customerInfo.email,
@@ -789,6 +787,28 @@ export default function CheckoutPage() {
             <h3 style={sectionTitle}><Banknote size={18} /> وسيلة الدفع</h3>
             <div style={paymentContainer}>
 
+              {/* ── 1st: InstaPay ── */}
+              <label style={paymentCard(paymentMethod === 'instapay')}>
+                <input type="radio" value="instapay" checked={paymentMethod === 'instapay'} onChange={(e) => setPaymentMethod(e.target.value)} style={hideRadio}/>
+                <div style={payCardInner}>
+                  <div style={payHeader}>
+                    <div style={payIconWrapper}><SmartphoneNfc size={16} color={paymentMethod === 'instapay' ? '#15803d' : '#666'} /></div>
+                    <div style={payTextContent}><span style={payTitle}>تطبيق انستا باي (InstaPay)</span></div>
+                  </div>
+                  <div style={logosGrid}>
+                    <img src="https://i.postimg.cc/3r19c1zy/Pv1p8v-KJq4Z-LLOj-Qj-BZp-K8DNJg4Zb5.png" alt="InstaPay" style={miniLogoImg} />
+                  </div>
+                  {paymentMethod === 'instapay' && (
+                    <div style={payDetailsBox}>
+                      <a href="https://ipn.eg/S/jimmydodo2/instapay/4sB0bA" target="_blank" className="action-hover" style={actionBtnLink}><ExternalLink size={14} /> اذهب للدفع الآن</a>
+                      <label htmlFor="u-insta" className="upload-hover" style={uploadArea}><Upload size={14}/> {screenshot ? '✅ تم اختيار الإثبات' : 'رفع سكرين شوت التحويل'}</label>
+                      <input id="u-insta" type="file" accept="image/*" onChange={handleFileUpload} style={{display:'none'}}/>
+                    </div>
+                  )}
+                </div>
+              </label>
+
+              {/* ── 2nd: EasyKash (card/installments) ── */}
               <label style={paymentCard(paymentMethod === 'card_installments')}>
                 <input type="radio" value="card_installments" checked={paymentMethod === 'card_installments'} onChange={(e) => setPaymentMethod(e.target.value)} style={hideRadio}/>
                 <div style={payCardInner}>
@@ -811,26 +831,7 @@ export default function CheckoutPage() {
                 </div>
               </label>
 
-              <label style={paymentCard(paymentMethod === 'instapay')}>
-                <input type="radio" value="instapay" checked={paymentMethod === 'instapay'} onChange={(e) => setPaymentMethod(e.target.value)} style={hideRadio}/>
-                <div style={payCardInner}>
-                  <div style={payHeader}>
-                    <div style={payIconWrapper}><SmartphoneNfc size={16} color={paymentMethod === 'instapay' ? '#15803d' : '#666'} /></div>
-                    <div style={payTextContent}><span style={payTitle}>تطبيق انستا باي (InstaPay)</span></div>
-                  </div>
-                  <div style={logosGrid}>
-                    <img src="https://i.postimg.cc/3r19c1zy/Pv1p8v-KJq4Z-LLOj-Qj-BZp-K8DNJg4Zb5.png" alt="InstaPay" style={miniLogoImg} />
-                  </div>
-                  {paymentMethod === 'instapay' && (
-                    <div style={payDetailsBox}>
-                      <a href="https://ipn.eg/S/jimmydodo2/instapay/4sB0bA" target="_blank" className="action-hover" style={actionBtnLink}><ExternalLink size={14} /> اذهب للدفع الآن</a>
-                      <label htmlFor="u-insta" className="upload-hover" style={uploadArea}><Upload size={14}/> {screenshot ? '✅ تم اختيار الإثبات' : 'رفع سكرين شوت التحويل'}</label>
-                      <input id="u-insta" type="file" accept="image/*" onChange={handleFileUpload} style={{display:'none'}}/>
-                    </div>
-                  )}
-                </div>
-              </label>
-
+              {/* ── 3rd: E-Wallets ── */}
               <label style={paymentCard(paymentMethod === 'wallets')}>
                 <input type="radio" value="wallets" checked={paymentMethod === 'wallets'} onChange={(e) => setPaymentMethod(e.target.value)} style={hideRadio}/>
                 <div style={payCardInner}>
