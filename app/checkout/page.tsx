@@ -556,7 +556,7 @@ export default function CheckoutPage() {
                 padding: '5px 14px', borderRadius: '20px',
               }}>
                 <CheckCircle size={13} color="#22c55e" />
-                <span style={{ color: '#22c55e', fontSize: '0.78rem', fontWeight: '800' }}>تم تأكيد الطلب</span>
+                <span style={{ color: '#22c55e', fontSize: '0.78rem', fontWeight: '800' }}>تم تأكيد الطلب. يتم تجهيز الطلب في خلال 24 ساعة. و يتم التسليم في خلال 2-5أيام عمل</span>
               </div>
               <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.78rem' }}>{orderDate}</span>
             </div>
