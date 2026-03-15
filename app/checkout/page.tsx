@@ -244,7 +244,8 @@ export default function CheckoutPage() {
     }
   };
 
-  const initiateEasyKashPayment = async (orderId: string) => {
+  // ── UPDATED: takes customerReference as a param instead of building it from orderId ──
+  const initiateEasyKashPayment = async (orderId: string, customerReference: number) => {
     try {
       const payload = {
         amount: finalTotal,
@@ -252,6 +253,7 @@ export default function CheckoutPage() {
         customerPhone: customerInfo.phone.trim(),
         customerEmail: customerInfo.email?.trim() || 'customer@zaitandfilters.com',
         orderId: orderId,
+        customerReference: customerReference,
         description: `طلب رقم ${orderId} - زيت وفلاتر`,
       };
 
@@ -411,25 +413,48 @@ export default function CheckoutPage() {
         payment_screenshot_url: uploadedImageUrl,
         car_mileage: carMileage,
         marketer_id: finalMarketerId,
-        status: paymentMethod === 'card_installments' ? 'pending_payment' : 'pending',
+        status: 'pending',
         created_at: new Date().toISOString()
       };
 
-      const { data: newOrder, error } = await supabase.from('orders').insert([orderData]).select().single();
-      if (error) throw error;
-
-      if (finalMarketerId) await trackAffiliateCommission(newOrder.id, finalMarketerId);
-
-      if (customerInfo.email) {
-        await supabase.from('abandoned_carts').update({ status: 'recovered' }).eq('email', customerInfo.email);
-      }
-
-      await markAsRecovered(newOrder.id);
-      localStorage.removeItem('zf_marketer_ref');
-
       if (paymentMethod === 'card_installments') {
-        await initiateEasyKashPayment(newOrder.id);
+        // ── EasyKash: save order data in pending_orders first ──
+        // The real order in `orders` is only created after EasyKash confirms payment via callback
+        const customerReference = Date.now() % 100000000; // 8-digit number
+
+        const { error: pendingError } = await supabase.from('pending_orders').insert({
+          reference: String(customerReference),
+          order_data: {
+            ...orderData,
+            easykash_customer_ref: String(customerReference),
+          },
+        });
+        if (pendingError) throw pendingError;
+
+        // Backup in localStorage in case user checks status manually
+        localStorage.setItem('zf_pending_order', JSON.stringify({
+          customerReference,
+          customerName: customerInfo.name,
+          customerPhone: customerInfo.phone,
+        }));
+
+        // Redirect to EasyKash payment page
+        await initiateEasyKashPayment(String(customerReference), customerReference);
+
       } else {
+        // ── Other payment methods: create order immediately as before ──
+        const { data: newOrder, error } = await supabase.from('orders').insert([orderData]).select().single();
+        if (error) throw error;
+
+        if (finalMarketerId) await trackAffiliateCommission(newOrder.id, finalMarketerId);
+
+        if (customerInfo.email) {
+          await supabase.from('abandoned_carts').update({ status: 'recovered' }).eq('email', customerInfo.email);
+        }
+
+        await markAsRecovered(newOrder.id);
+        localStorage.removeItem('zf_marketer_ref');
+
         setCompletedOrderItems([...cart]);
         setCompletedSubtotal(subtotal);
         setCompletedFinalTotal(finalTotal);
