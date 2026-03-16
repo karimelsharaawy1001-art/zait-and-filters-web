@@ -15,6 +15,7 @@ import { GAProvider } from './ga-provider'
 import { Suspense } from 'react'
 import PWAInstaller from '@/components/PWAInstaller'
 import SplashScreen from '@/components/SplashScreen'
+import ExitConfirmDialog from '@/components/ExitConfirmDialog'
 
 
 const almarai = Almarai({ 
@@ -220,6 +221,10 @@ export default function RootLayout({
 
           {/* PWA install banner */}
           <PWAInstaller />
+
+          {/* Exit confirmation dialog — Android PWA back button */}
+          <ExitConfirmDialog />
+
         </CartProvider>
       </body>
     </html>
