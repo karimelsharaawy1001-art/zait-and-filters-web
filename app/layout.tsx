@@ -14,6 +14,7 @@ import { GA_MEASUREMENT_ID } from '@/lib/gtag'
 import { GAProvider } from './ga-provider'
 import { Suspense } from 'react'
 import PWAInstaller from '@/components/PWAInstaller'
+import SplashScreen from '@/components/SplashScreen'
 
 
 const almarai = Almarai({ 
@@ -164,6 +165,10 @@ export default function RootLayout({
         )}
       </head>
       <body className={almarai.className}>
+
+        {/* PWA Splash Screen — only shows when launched from home screen */}
+        <SplashScreen />
+
         <script
           dangerouslySetInnerHTML={{
             __html: `
