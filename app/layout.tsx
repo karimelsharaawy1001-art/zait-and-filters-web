@@ -53,7 +53,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Zait & Filters" }],
   creator: "Zait & Filters",
   publisher: "Zait & Filters",
-  applicationName: "زيت اند فلترز",
+  applicationName: "Zait & Filters",
   category: "Automotive Parts",
   classification: "E-commerce",
   manifest: '/manifest.json',
