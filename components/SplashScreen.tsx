@@ -14,14 +14,14 @@ export default function SplashScreen() {
 
     if (!isStandalone) return;
 
-    const shown = sessionStorage.getItem('splash_shown');
+    const shown = sessionStorage.getItem('splash_shown_v2');
     if (shown) return;
 
-    sessionStorage.setItem('splash_shown', '1');
+    sessionStorage.setItem('splash_shown_v2', '1');
     setVisible(true);
 
-    const fadeTimer  = setTimeout(() => setAnimateOut(true), 2600);
-    const removeTimer = setTimeout(() => setVisible(false), 3200);
+    const fadeTimer  = setTimeout(() => setAnimateOut(true), 3000);
+    const removeTimer = setTimeout(() => setVisible(false), 3800);
 
     return () => { clearTimeout(fadeTimer); clearTimeout(removeTimer); };
   }, []);
