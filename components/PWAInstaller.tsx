@@ -1,10 +1,24 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { supabase } from '@/app/lib/supabase';
 
 export default function PWAInstaller() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showAndroidBanner, setShowAndroidBanner] = useState(false);
   const [showIosBanner, setShowIosBanner] = useState(false);
+
+  async function trackInstall(platform: string) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.from('pwa_installs').insert({
+        platform,
+        user_agent: navigator.userAgent,
+        user_id: user?.id || null,
+      });
+    } catch (err) {
+      console.error('[PWA] Track install error:', err);
+    }
+  }
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -21,13 +35,24 @@ export default function PWAInstaller() {
 
     if (isIos && isSafari) {
       const dismissed = sessionStorage.getItem('pwa_ios_dismissed');
-      if (!dismissed) setShowIosBanner(true);
+      if (!dismissed) {
+        setShowIosBanner(true);
+        trackInstall('ios');
+      }
       return;
     }
+
+    // Track when app is actually installed (Android/Desktop)
+    window.addEventListener('appinstalled', () => {
+      trackInstall('android');
+    });
 
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
+
+      // Detect desktop vs mobile
+      const isMobile = /android/i.test(navigator.userAgent);
       setShowAndroidBanner(true);
     };
 
@@ -39,7 +64,12 @@ export default function PWAInstaller() {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') setShowAndroidBanner(false);
+    if (outcome === 'accepted') {
+      setShowAndroidBanner(false);
+      // Also track here as backup in case appinstalled doesn't fire
+      const isDesktop = !/android/i.test(navigator.userAgent);
+      await trackInstall(isDesktop ? 'desktop' : 'android');
+    }
     setDeferredPrompt(null);
   }
 
