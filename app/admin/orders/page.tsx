@@ -422,6 +422,7 @@ export default function AdminOrders() {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [showInvoice, setShowInvoice] = useState(false);
+  const [enrichedItems, setEnrichedItems] = useState<any[]>([]);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const invoiceRef = useRef<HTMLDivElement>(null);
 
@@ -649,10 +650,44 @@ export default function AdminOrders() {
     toast.success('تمت إضافة المنتج ✅');
   }
 
+  // ── Enrich items with product data from DB (for old orders missing car/brand) ─
+  async function enrichOrderItems(items: any[]) {
+    if (!items?.length) return items;
+
+    // Find items missing brand or car info
+    const needsEnrich = items.filter(i => !i.brand && !i.car_make && i.id);
+    if (needsEnrich.length === 0) return items;
+
+    const ids = needsEnrich.map(i => i.id);
+    const { data: products } = await supabase
+      .from('products')
+      .select('id, brand, car_make, car_model')
+      .in('id', ids);
+
+    if (!products?.length) return items;
+
+    const productMap: Record<string, any> = {};
+    products.forEach(p => { productMap[p.id] = p; });
+
+    return items.map(item => {
+      if (productMap[item.id]) {
+        return {
+          ...item,
+          brand:     item.brand     || productMap[item.id].brand,
+          car_make:  item.car_make  || productMap[item.id].car_make,
+          car_model: item.car_model || productMap[item.id].car_model,
+        };
+      }
+      return item;
+    });
+  }
+
   function InvoicePreview({ order }: { order: any }) {
     const orderNum = order.id.slice(0, 8).toUpperCase();
     const orderDate = new Date(order.created_at).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
-    const items: any[] = order.items || [];
+    const items: any[] = (enrichedItems.length > 0 && enrichedItems[0]?._orderId === order.id)
+      ? enrichedItems
+      : order.items || [];
     const subtotal = items.reduce((s: number, i: any) => s + parseFloat(i.price) * i.quantity, 0);
     const shipping = parseFloat(order.shipping_cost || order.shipping_fee || 0);
     const discountVal = parseFloat(order.discount_applied || order.discount_amount || 0);
@@ -852,8 +887,8 @@ export default function AdminOrders() {
                   <td style={td}><span style={{ color: '#15803d', fontWeight: '900', fontSize: '1rem' }}>{order.total_price} <small>ج.م</small></span></td>
                   <td style={td}>
                     <div style={{ display: 'flex', gap: '6px' }}>
-                      <button onClick={() => { setSelectedOrder(order); setEditMode(false); setShowInvoice(false); }} style={iconBtn} title="عرض الطلب"><Eye size={16} /></button>
-                      <button onClick={() => { setSelectedOrder(order); setShowInvoice(true); setEditMode(false); }} style={invoiceRowBtn} title="عرض ORDER"><FileText size={15} /></button>
+                      <button onClick={async () => { setSelectedOrder(order); setEditMode(false); setShowInvoice(false); const enriched = await enrichOrderItems(order.items || []); setEnrichedItems(enriched.map((i: any) => ({ ...i, _orderId: order.id }))); }} style={iconBtn} title="عرض الطلب"><Eye size={16} /></button>
+                      <button onClick={async () => { setSelectedOrder(order); setShowInvoice(true); setEditMode(false); const enriched = await enrichOrderItems(order.items || []); setEnrichedItems(enriched.map((i: any) => ({ ...i, _orderId: order.id }))); }} style={invoiceRowBtn} title="عرض ORDER"><FileText size={15} /></button>
                       <button onClick={() => setDeleteConfirmId(order.id)} style={delBtn}><Trash2 size={16} /></button>
                     </div>
                   </td>
@@ -881,7 +916,7 @@ export default function AdminOrders() {
                 style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 20px', background: isDownloadingPdf ? '#ccc' : 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.88rem', cursor: isDownloadingPdf ? 'not-allowed' : 'pointer' }}>
                 <Download size={16} /> {isDownloadingPdf ? 'جاري التحميل...' : 'تحميل PDF'}
               </button>
-              <button onClick={() => { setShowInvoice(false); setSelectedOrder(null); }} style={closeBtn}><X size={22} /></button>
+              <button onClick={() => { setShowInvoice(false); setSelectedOrder(null); setEnrichedItems([]); }} style={closeBtn}><X size={22} /></button>
             </div>
             <div ref={invoiceRef} style={{ borderRadius: '16px', overflow: 'hidden', border: '1px solid #f0f0f0', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
               <InvoicePreview order={selectedOrder} />
@@ -912,7 +947,7 @@ export default function AdminOrders() {
                     <button onClick={() => setEditMode(false)} style={cancelBtnStyle}><X size={16} /> إلغاء</button>
                   </>
                 )}
-                <button onClick={() => { setSelectedOrder(null); setEditMode(false); setShowInvoice(false); }} style={closeBtn}><X size={24} /></button>
+                <button onClick={() => { setSelectedOrder(null); setEditMode(false); setShowInvoice(false); setEnrichedItems([]); }} style={closeBtn}><X size={24} /></button>
               </div>
             </div>
             <div style={modalBody}>
@@ -978,7 +1013,7 @@ export default function AdminOrders() {
               <div style={modalCard}>
                 <h3 style={cardTitle}><ShoppingCart size={18} /> المنتجات المطلوبة</h3>
                 <div style={itemsContainer}>
-                  {(editMode ? editedItems : selectedOrder.items)?.map((item: any, i: number) => (
+                  {(editMode ? editedItems : (enrichedItems.length > 0 && enrichedItems[0]?._orderId === selectedOrder?.id ? enrichedItems : selectedOrder.items))?.map((item: any, i: number) => (
                     <div key={i} style={productDetailCard}>
                       <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
                         <div style={miniProductImgBox}><img src={item.image_url || item.image || 'https://via.placeholder.com/150'} alt="" style={miniProductImg} /></div>
