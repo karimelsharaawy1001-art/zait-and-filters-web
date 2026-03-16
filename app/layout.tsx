@@ -13,6 +13,7 @@ import Script from 'next/script'
 import { GA_MEASUREMENT_ID } from '@/lib/gtag'
 import { GAProvider } from './ga-provider'
 import { Suspense } from 'react'
+import PWAInstaller from '@/components/PWAInstaller'
 
 
 const almarai = Almarai({ 
@@ -23,7 +24,6 @@ const almarai = Almarai({
 
 
 export const metadata: Metadata = {
-  // ── FIX 1: metadataBase is required for OG images to resolve correctly ──
   metadataBase: new URL('https://zaitandfilters.com'),
 
   title: {
@@ -53,9 +53,15 @@ export const metadata: Metadata = {
   authors: [{ name: "Zait & Filters" }],
   creator: "Zait & Filters",
   publisher: "Zait & Filters",
-  applicationName: "Zait & Filters",
+  applicationName: "زيت اند فلترز",
   category: "Automotive Parts",
   classification: "E-commerce",
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'زيت اند فلترز',
+  },
   robots: {
     index: true,
     follow: true,
@@ -74,7 +80,6 @@ export const metadata: Metadata = {
     siteName: "Zait & Filters",
     images: [
       {
-        // ── FIX 2: use relative path — metadataBase resolves it to the full URL ──
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
@@ -89,26 +94,28 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'زيت أند فلترز | قطع غيار السيارات الأصلية في مصر',
     description: 'المتجر الأول لبيع قطع غيار السيارات الأصلية في مصر',
-    // ── FIX 3: same fix — relative path ──
     images: ['/og-image.jpg'],
   },
   alternates: {
     canonical: 'https://zaitandfilters.com',
   },
-  // ── FIX 4: removed placeholder google verification — add the real code or delete this block ──
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
-      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
-      { url: '/icon-512.png', type: 'image/png', sizes: '512x512' },
+      { url: '/icons/icon-192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/icons/icon-512.png', type: 'image/png', sizes: '512x512' },
     ],
     apple: [
+      { url: '/icons/icon-192.png', sizes: '192x192' },
       { url: '/apple-touch-icon.png', sizes: '180x180' },
     ],
   },
   other: {
-    'apple-mobile-web-app-title': 'Zait & Filters',
-    'msapplication-TileColor': '#2ecc71',
+    'apple-mobile-web-app-title': 'زيت اند فلترز',
+    'apple-mobile-web-app-capable': 'yes',
+    'mobile-web-app-capable': 'yes',
+    'msapplication-TileColor': '#0f172a',
+    'msapplication-TileImage': '/icons/icon-192.png',
   },
 };
 
@@ -123,10 +130,18 @@ export default function RootLayout({
       <head>
         {/* Favicon & app icons */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
-        <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <meta name="theme-color" content="#2ecc71" />
+
+        {/* PWA */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#22c55e" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="زيت اند فلترز" />
+        <meta name="mobile-web-app-capable" content="yes" />
+
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
         {GA_MEASUREMENT_ID && (
@@ -197,6 +212,9 @@ export default function RootLayout({
           </PageTransition>
 
           <ProfessionalFooter />
+
+          {/* PWA install banner */}
+          <PWAInstaller />
         </CartProvider>
       </body>
     </html>
