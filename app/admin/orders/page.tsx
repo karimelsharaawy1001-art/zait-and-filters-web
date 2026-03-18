@@ -148,7 +148,7 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
     setOrderItems(prev => {
       const exists = prev.find(i => i.id === p.id);
       if (exists) return prev.map(i => i.id === p.id ? { ...i, quantity: i.quantity + 1 } : i);
-      return [...prev, { id: p.id, name: p.name, price, quantity: 1, image_url: p.image_url, brand: p.brand, car_make: p.car_make, car_model: p.car_model }];
+      return [...prev, { id: p.id, name: p.name, price, quantity: 1, image_url: p.image_url, brand: p.brand, car_make: p.car_make, car_model: p.car_model, car_model_year: p.car_model_year }];
     });
     setShowResults(false);
     setProductSearch('');
@@ -172,7 +172,7 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
         customer_phone: customerPhone,
         customer_address: manualAddress,
         city: manualCity,
-        items: orderItems.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity, image_url: i.image_url, brand: i.brand, car_make: i.car_make, car_model: i.car_model })),
+        items: orderItems.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity, image_url: i.image_url, brand: i.brand, car_make: i.car_make, car_model: i.car_model, car_model_year: i.car_model_year })),
         total_price: total,
         shipping_cost: shippingCost,
         discount_applied: discountVal,
@@ -416,6 +416,21 @@ const nomQtyBtn: any = { width: '26px', height: '26px', borderRadius: '6px', bor
 const ddItem: any = { padding: '9px 14px', cursor: 'pointer', fontSize: '0.85rem', borderBottom: '1px solid #f9f9f9', transition: '0.1s' };
 
 
+// ─── Payment Status helpers ───────────────────────────────────────────────────
+const paymentStatusLabels: Record<string, string> = {
+  pending:  'في انتظار الدفع',
+  paid:     'تم الدفع',
+  failed:   'فشل الدفع',
+  refunded: 'تم الاسترجاع',
+};
+
+const paymentStatusColors: Record<string, { bg: string; color: string; border: string }> = {
+  pending:  { bg: '#fff7ed', color: '#c2410c', border: '#fed7aa' },
+  paid:     { bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
+  failed:   { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
+  refunded: { bg: '#f5f3ff', color: '#6d28d9', border: '#ddd6fe' },
+};
+
 // ─── Main AdminOrders Component ───────────────────────────────────────────────
 export default function AdminOrders() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -454,6 +469,9 @@ export default function AdminOrders() {
   const [loadingProducts, setLoadingProducts] = useState(false);
 
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  // ── Payment status update state ───────────────────────────────────────────
+  const [updatingPayment, setUpdatingPayment] = useState(false);
 
   const paymentLabels: any = {
     'card_installments': 'بطاقة / تقسيط',
@@ -544,6 +562,22 @@ export default function AdminOrders() {
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
       if (selectedOrder?.id === orderId) setSelectedOrder((prev: any) => ({ ...prev, status: newStatus }));
     } catch (err: any) { toast.error('فشل التحديث: ' + err.message); }
+  }
+
+  async function updatePaymentStatus(orderId: string, newPaymentStatus: string) {
+    setUpdatingPayment(true);
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ payment_status: newPaymentStatus })
+        .eq('id', orderId);
+      if (error) throw error;
+      toast.success('تم تحديث حالة الدفع ✅');
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, payment_status: newPaymentStatus } : o));
+      if (selectedOrder?.id === orderId) setSelectedOrder((prev: any) => ({ ...prev, payment_status: newPaymentStatus }));
+    } catch (err: any) {
+      toast.error('فشل تحديث حالة الدفع: ' + err.message);
+    } finally { setUpdatingPayment(false); }
   }
 
   async function handleDelete(orderId: string) {
@@ -646,7 +680,7 @@ export default function AdminOrders() {
   function addProductToOrder(product: any) {
     const exists = editedItems.findIndex(i => i.id === product.id);
     if (exists >= 0) { updateItemQuantity(exists, editedItems[exists].quantity + 1); }
-    else { setEditedItems(prev => [...prev, { id: product.id, name: product.name, price: product.price, quantity: 1, image_url: product.image_url, brand: product.brand, car_make: product.car_make, car_model: product.car_model }]); }
+    else { setEditedItems(prev => [...prev, { id: product.id, name: product.name, price: product.price, quantity: 1, image_url: product.image_url, brand: product.brand, car_make: product.car_make, car_model: product.car_model, car_model_year: product.car_model_year }]); }
     toast.success('تمت إضافة المنتج ✅');
   }
 
@@ -661,7 +695,7 @@ export default function AdminOrders() {
     const ids = needsEnrich.map(i => i.id);
     const { data: products } = await supabase
       .from('products')
-      .select('id, brand, car_make, car_model')
+      .select('id, brand, car_make, car_model, car_model_year')
       .in('id', ids);
 
     if (!products?.length) return items;
@@ -673,9 +707,10 @@ export default function AdminOrders() {
       if (productMap[item.id]) {
         return {
           ...item,
-          brand:     item.brand     || productMap[item.id].brand,
-          car_make:  item.car_make  || productMap[item.id].car_make,
-          car_model: item.car_model || productMap[item.id].car_model,
+          brand:           item.brand           || productMap[item.id].brand,
+          car_make:        item.car_make        || productMap[item.id].car_make,
+          car_model:       item.car_model       || productMap[item.id].car_model,
+          car_model_year:  item.car_model_year  || productMap[item.id].car_model_year,
         };
       }
       return item;
@@ -751,7 +786,7 @@ export default function AdminOrders() {
                   {item.brand && <div style={{ fontSize: '0.7rem', color: '#22c55e', fontWeight: '700', marginTop: '2px' }}>{item.brand}</div>}
                   {(item.car_make || item.car_model) && (
                     <div style={{ fontSize: '0.68rem', color: '#888', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      🚗 {[item.car_make, item.car_model].filter(Boolean).join(' ')}
+                      🚗 {[item.car_make, item.car_model, item.car_model_year].filter(Boolean).join(' ')}
                     </div>
                   )}
                 </div>
@@ -849,7 +884,8 @@ export default function AdminOrders() {
               <th style={th}>العميل</th>
               <th style={th}>المحافظة</th>
               <th style={th}>طريقة الدفع</th>
-              <th style={th}>الحالة</th>
+              <th style={th}>حالة الشحن</th>
+              <th style={th}>حالة الدفع</th>
               <th style={th}>التاريخ والوقت</th>
               <th style={th}>الإجمالي</th>
               <th style={th}>إجراءات</th>
@@ -879,6 +915,17 @@ export default function AdminOrders() {
                       <option value="shipped">شحن</option>
                       <option value="delivered">توصيل</option>
                     </select>
+                  </td>
+                  <td style={td}>
+                    {(() => {
+                      const ps = order.payment_status || 'pending';
+                      const c = paymentStatusColors[ps] || paymentStatusColors.pending;
+                      return (
+                        <span style={{ fontSize: '0.75rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: c.bg, color: c.color, border: `1px solid ${c.border}`, whiteSpace: 'nowrap' }}>
+                          {paymentStatusLabels[ps]}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td style={td}>
                     <div style={{ fontSize: '0.85rem', color: '#444', fontWeight: '700' }}>{datePart}</div>
@@ -951,6 +998,43 @@ export default function AdminOrders() {
               </div>
             </div>
             <div style={modalBody}>
+              {/* ── Payment Status Card ── */}
+              <div style={{ ...modalCard, background: '#fafafa', border: '1.5px solid #e5e7eb' }}>
+                <h3 style={cardTitle}><CreditCard size={18} /> حالة الدفع</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                  {(() => {
+                    const ps = selectedOrder.payment_status || 'pending';
+                    const c = paymentStatusColors[ps] || paymentStatusColors.pending;
+                    return (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '0.78rem', color: '#888', fontWeight: '700' }}>الحالة الحالية:</span>
+                        <span style={{ fontSize: '0.88rem', fontWeight: '900', padding: '6px 16px', borderRadius: '10px', background: c.bg, color: c.color, border: `1.5px solid ${c.border}` }}>
+                          {paymentStatusLabels[ps]}
+                        </span>
+                      </div>
+                    );
+                  })()}
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginRight: 'auto' }}>
+                    {Object.entries(paymentStatusLabels).map(([key, label]) => {
+                      const current = selectedOrder.payment_status || 'pending';
+                      const isActive = current === key;
+                      const c = paymentStatusColors[key];
+                      return (
+                        <button
+                          key={key}
+                          disabled={isActive || updatingPayment}
+                          onClick={() => updatePaymentStatus(selectedOrder.id, key)}
+                          style={{ padding: '7px 14px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: '800', cursor: isActive || updatingPayment ? 'not-allowed' : 'pointer', border: `1.5px solid ${isActive ? c.border : '#e5e7eb'}`, background: isActive ? c.bg : '#fff', color: isActive ? c.color : '#888', opacity: isActive ? 1 : 0.75, transition: 'all 0.15s' }}
+                          onMouseEnter={e => { if (!isActive) { const b = e.currentTarget as HTMLButtonElement; b.style.background = c.bg; b.style.color = c.color; b.style.border = `1.5px solid ${c.border}`; b.style.opacity = '1'; } }}
+                          onMouseLeave={e => { if (!isActive) { const b = e.currentTarget as HTMLButtonElement; b.style.background = '#fff'; b.style.color = '#888'; b.style.border = '1.5px solid #e5e7eb'; b.style.opacity = '0.75'; } }}
+                        >
+                          {updatingPayment && !isActive ? '...' : label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
               <div style={modalCard}>
                 <h3 style={cardTitle}><User size={18} /> بيانات العميل والتوصيل</h3>
                 {!editMode ? (
@@ -1024,7 +1108,7 @@ export default function AdminOrders() {
                           </div>
                           <div style={extraDetailsGrid}>
                             {item.brand && <div style={detailTag}><Factory size={12} /> {item.brand}</div>}
-                            {(item.car_make || item.car_model) && <div style={detailTag}><CarFront size={12} /> {item.car_make} {item.car_model}</div>}
+                            {(item.car_make || item.car_model) && <div style={detailTag}><CarFront size={12} /> {[item.car_make, item.car_model, item.car_model_year].filter(Boolean).join(' ')}</div>}
                           </div>
                           {editMode && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
