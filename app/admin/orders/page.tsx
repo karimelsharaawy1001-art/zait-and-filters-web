@@ -803,8 +803,10 @@ export default function AdminOrders() {
                 <span style={{ color: '#666', fontWeight: '700' }}>المجموع الجزئي</span><span style={{ fontWeight: '800' }}>{subtotal.toLocaleString('ar-EG')} ج.م</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.86rem' }}>
-                <span style={{ color: '#666', fontWeight: '700' }}>الشحن</span>
-                {shipping === 0 ? <span style={{ color: '#22c55e', fontWeight: '800' }}>مجاني 🚚</span> : <span style={{ fontWeight: '800' }}>{shipping.toLocaleString('ar-EG')} ج.م</span>}
+                <span style={{ color: '#666', fontWeight: '700' }}>
+                  {order.shipping_type === 'express' ? '⚡ شحن سريع 48 ساعة' : 'الشحن'}
+                </span>
+                {shipping === 0 ? <span style={{ color: '#22c55e', fontWeight: '800' }}>مجاني 🚚</span> : <span style={{ fontWeight: '800', color: order.shipping_type === 'express' ? '#f59e0b' : 'inherit' }}>{shipping.toLocaleString('ar-EG')} ج.م</span>}
               </div>
               {discountVal > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.86rem' }}>
@@ -900,7 +902,14 @@ export default function AdminOrders() {
                     <div style={{ fontWeight: '800', color: '#1a1a1a' }}>{order.customer_name}</div>
                     <div style={{ fontSize: '0.8rem', color: '#777', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={12} /> {order.customer_phone}</div>
                   </td>
-                  <td style={td}><div style={cityBadge}><MapPin size={14} color="#15803d" /> {order.city || 'غير محدد'}</div></td>
+                  <td style={td}>
+                    <div style={cityBadge}><MapPin size={14} color="#15803d" /> {order.city || 'غير محدد'}</div>
+                    {order.shipping_type === 'express' && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '5px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '3px 8px', width: 'fit-content', fontSize: '0.72rem', fontWeight: '800', color: '#92400e' }}>
+                        ⚡ شحن سريع 48 ساعة
+                      </div>
+                    )}
+                  </td>
                   <td style={td}>
                     <div style={payTypeStyle}>
                       {order.payment_method === 'instapay' ? <Banknote size={16} color="#9b59b6" /> : order.payment_method === 'wallets' ? <Smartphone size={16} color="#e74c3c" /> : <CreditCard size={16} color="#3498db" />}
@@ -1043,6 +1052,13 @@ export default function AdminOrders() {
                     <p><strong>الموبايل:</strong> {selectedOrder.customer_phone}</p>
                     <p><strong>المحافظة:</strong> {selectedOrder.city}</p>
                     <p><strong>العنوان:</strong> {selectedOrder.customer_address}</p>
+                    <p>
+                      <strong>نوع الشحن:</strong>{' '}
+                      {selectedOrder.shipping_type === 'express'
+                        ? <span style={{ color: '#f59e0b', fontWeight: '800' }}>⚡ شحن سريع 48 ساعة — {selectedOrder.shipping_cost} ج.م</span>
+                        : <span>شحن عادي — {selectedOrder.shipping_cost || 0} ج.م</span>
+                      }
+                    </p>
                     {selectedOrder.car_mileage && <p><strong>قراءة العداد:</strong> {selectedOrder.car_mileage} كم</p>}
                   </div>
                 ) : (
