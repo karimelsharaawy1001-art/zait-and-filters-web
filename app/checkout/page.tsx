@@ -5,11 +5,12 @@ import { supabase } from '@/app/lib/supabase';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { useAbandonedCart } from '@/hooks/useAbandonedCart';
+import { useExitWarning } from '@/app/hooks/useExitWarning';
 import Link from 'next/link';
 import { 
   User, MapPin, ShoppingCart, Loader2, CheckCircle, Car, Globe, Mail,
   Settings2, Calendar, Tags, Upload, ExternalLink, Plus, Gauge, 
-  Banknote, CreditCard, Wallet, SmartphoneNfc, Ticket, FileText, Download
+  Banknote, CreditCard, Wallet, SmartphoneNfc, Ticket, FileText, Download, Truck
 } from 'lucide-react';
 
 export default function CheckoutPage() {
@@ -28,6 +29,7 @@ export default function CheckoutPage() {
 
   const [shippingRates, setShippingRates] = useState<any[]>([]);
   const [selectedCity, setSelectedCity] = useState<any>(null);
+  const [expressShipping, setExpressShipping] = useState(false);
   // ── CHANGED: default payment is now InstaPay ──
   const [paymentMethod, setPaymentMethod] = useState('instapay');
   const [screenshot, setScreenshot] = useState<File | null>(null);
@@ -53,6 +55,20 @@ export default function CheckoutPage() {
 
   const CLOUD_NAME = "dxtncdxfh";
   const UPLOAD_PRESET = "zaitandfiltersnew";
+
+  // ── Express shipping ──────────────────────────────────────────────────────
+  const EXPRESS_COST = 150;
+  const EXPRESS_CITIES = ['القاهرة', 'الجيزة'];
+  const isExpressAvailable = EXPRESS_CITIES.includes(selectedCity?.city_name || '');
+  // If city changes away from Cairo/Giza, reset express
+  useEffect(() => {
+    if (!isExpressAvailable && expressShipping) setExpressShipping(false);
+    // If express is on but card_installments selected, switch back to instapay
+    if (expressShipping && paymentMethod === 'card_installments') setPaymentMethod('instapay');
+  }, [selectedCity, expressShipping, paymentMethod, isExpressAvailable]);
+
+  // ── Warn user if they try to leave with items in cart ──
+  useExitWarning(cart.length > 0 && !completedOrderId);
 
   useEffect(() => {
     async function initCheckout() {
@@ -132,12 +148,12 @@ export default function CheckoutPage() {
   const subtotal = useMemo(() => cart.reduce((sum: number, item: any) => sum + (parseFloat(item.price) * item.quantity), 0), [cart]);
 
   const finalTotal = useMemo(() => {
-    const shipping = selectedCity?.price || 0;
+    const shipping = expressShipping ? EXPRESS_COST : (selectedCity?.price || 0);
     let currentDiscount = discountAmount;
     if (appliedPromoType === 'free_shipping') currentDiscount = shipping;
     const total = (subtotal + shipping) - currentDiscount;
     return total > 0 ? total : 0;
-  }, [subtotal, selectedCity, discountAmount, appliedPromoType]);
+  }, [subtotal, selectedCity, discountAmount, appliedPromoType, expressShipping]);
 
   useEffect(() => { if (isInitialized) setTimeout(() => setIsReady(true), 800); }, [isInitialized]);
 
@@ -404,11 +420,12 @@ export default function CheckoutPage() {
         customer_email: customerInfo.email,
         customer_address: customerInfo.address,
         city: selectedCity?.city_name,
-        shipping_cost: selectedCity?.price,
-        discount_applied: appliedPromoType === 'free_shipping' ? selectedCity?.price : discountAmount, 
-        promo_code: appliedPromo, 
+        shipping_cost: expressShipping ? EXPRESS_COST : selectedCity?.price,
+        shipping_type: expressShipping ? 'express' : 'standard',
+        discount_applied: appliedPromoType === 'free_shipping' ? (expressShipping ? EXPRESS_COST : selectedCity?.price) : discountAmount,
+        promo_code: appliedPromo,
         total_price: finalTotal,
-        items: cart, 
+        items: cart,
         payment_method: paymentMethod,
         payment_screenshot_url: uploadedImageUrl,
         car_mileage: carMileage,
@@ -476,7 +493,7 @@ export default function CheckoutPage() {
   if (completedOrderId) {
     const orderNum = completedOrderId.slice(0, 8).toUpperCase();
     const orderDate = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
-    const shipping = selectedCity?.price || 0;
+    const shipping = expressShipping ? EXPRESS_COST : (selectedCity?.price || 0);
     const discount = appliedPromoType === 'free_shipping' ? shipping : discountAmount;
 
     return (
@@ -615,6 +632,7 @@ export default function CheckoutPage() {
                 <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e5e5e5' }}>
                   طريقة الدفع: <span style={{ fontWeight: '800', color: '#1a1a1a' }}>
                     {paymentMethod === 'card_installments' ? 'بطاقة / تقسيط' : paymentMethod === 'instapay' ? 'InstaPay' : 'محفظة إلكترونية'}
+                    {expressShipping && <span style={{ marginRight: '6px', color: '#f59e0b', fontSize: '0.7rem' }}>⚡ شحن سريع 48 ساعة</span>}
                   </span>
                 </div>
               </div>
@@ -763,9 +781,9 @@ export default function CheckoutPage() {
           <div style={totalBox}>
             <div style={rowPrice}><span>إجمالي المنتجات:</span><span>{subtotal.toFixed(2)} ج.م</span></div>
             <div style={rowPrice}>
-              <span>الشحن ({selectedCity?.city_name}):</span>
-              <span style={{ textDecoration: appliedPromoType === 'free_shipping' ? 'line-through' : 'none', color: appliedPromoType === 'free_shipping' ? '#999' : 'inherit' }}>
-                {(selectedCity?.price || 0).toFixed(2)} ج.م
+              <span>الشحن ({expressShipping ? 'سريع 48 ساعة' : selectedCity?.city_name}):</span>
+              <span style={{ textDecoration: appliedPromoType === 'free_shipping' ? 'line-through' : 'none', color: appliedPromoType === 'free_shipping' ? '#999' : expressShipping ? '#f59e0b' : 'inherit' }}>
+                {expressShipping ? `${EXPRESS_COST}` : (selectedCity?.price || 0).toFixed(2)} ج.م
               </span>
             </div>
             {appliedPromoType === 'free_shipping' && <div style={{ ...rowPrice, color: '#27ae60', fontWeight: 'bold' }}><span>خصم الشحن المجاني:</span><span>-{(selectedCity?.price || 0).toFixed(2)} ج.م</span></div>}
@@ -803,6 +821,57 @@ export default function CheckoutPage() {
               {shippingRates.map(city => <option key={city.id} value={city.city_name}>{city.city_name}</option>)}
             </select>
           </div>
+
+          {/* ── Shipping Type Selector (only for Cairo & Giza) ── */}
+          {isExpressAvailable && (
+            <div style={{ marginBottom: '16px' }}>
+              <label style={lab}><Truck size={14} /> نوع الشحن</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+
+                {/* Standard shipping */}
+                <label onClick={() => setExpressShipping(false)} style={{
+                  display: 'flex', alignItems: 'center', gap: '12px',
+                  padding: '12px 16px', borderRadius: '12px', cursor: 'pointer',
+                  border: !expressShipping ? '2px solid #15803d' : '1px solid #e0e0e0',
+                  background: !expressShipping ? '#f0fdf4' : '#fafafa',
+                  transition: 'all 0.2s',
+                }}>
+                  <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${!expressShipping ? '#15803d' : '#ccc'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    {!expressShipping && <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#15803d' }} />}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: '800', fontSize: '0.88rem', color: '#1a1a1a' }}>شحن عادي</div>
+                    <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '2px' }}>توصيل خلال 2-5 أيام عمل</div>
+                  </div>
+                  <div style={{ fontWeight: '900', fontSize: '0.9rem', color: '#15803d' }}>{(selectedCity?.price || 0).toFixed(0)} ج.م</div>
+                </label>
+
+                {/* Express shipping */}
+                <label onClick={() => { setExpressShipping(true); if (paymentMethod === 'card_installments') setPaymentMethod('instapay'); }} style={{
+                  display: 'flex', alignItems: 'flex-start', gap: '12px',
+                  padding: '12px 16px', borderRadius: '12px', cursor: 'pointer',
+                  border: expressShipping ? '2px solid #f59e0b' : '1px solid #e0e0e0',
+                  background: expressShipping ? '#fffbeb' : '#fafafa',
+                  transition: 'all 0.2s',
+                }}>
+                  <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${expressShipping ? '#f59e0b' : '#ccc'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
+                    {expressShipping && <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#f59e0b' }} />}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontWeight: '800', fontSize: '0.88rem', color: '#1a1a1a' }}>شحن سريع خلال 48 ساعة</span>
+                      <span style={{ background: '#f59e0b', color: '#fff', fontSize: '0.65rem', fontWeight: '900', padding: '2px 7px', borderRadius: '6px' }}>داخل القاهرة والجيزة</span>
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '3px' }}>توصيل سريع خلال 48 ساعة من تأكيد الطلب</div>
+                    <div style={{ marginTop: '6px', padding: '7px 10px', background: '#fef3c7', borderRadius: '8px', border: '1px solid #fde68a', fontSize: '0.73rem', color: '#92400e', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      ⚠️ الشحن السريع يقبل فقط: <strong>InstaPay</strong> و <strong>فودافون كاش</strong>
+                    </div>
+                  </div>
+                  <div style={{ fontWeight: '900', fontSize: '0.9rem', color: '#f59e0b', flexShrink: 0 }}>{EXPRESS_COST} ج.م</div>
+                </label>
+              </div>
+            </div>
+          )}
           <div style={inputGroup}>
             <label style={lab}>العنوان بالتفصيل</label>
             <textarea value={customerInfo.address} onChange={(e)=>setCustomerInfo({...customerInfo, address: e.target.value})} required style={{...inp, height: '80px', paddingTop: '12px'}} />
@@ -833,7 +902,8 @@ export default function CheckoutPage() {
                 </div>
               </label>
 
-              {/* ── 2nd: EasyKash (card/installments) ── */}
+              {/* ── 2nd: EasyKash (card/installments) — hidden for express shipping ── */}
+              {!expressShipping && (
               <label style={paymentCard(paymentMethod === 'card_installments')}>
                 <input type="radio" value="card_installments" checked={paymentMethod === 'card_installments'} onChange={(e) => setPaymentMethod(e.target.value)} style={hideRadio}/>
                 <div style={payCardInner}>
@@ -855,6 +925,7 @@ export default function CheckoutPage() {
                   </div>
                 </div>
               </label>
+              )} {/* end !expressShipping */}
 
               {/* ── 3rd: E-Wallets ── */}
               <label style={paymentCard(paymentMethod === 'wallets')}>
