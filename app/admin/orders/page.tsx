@@ -473,6 +473,11 @@ export default function AdminOrders() {
   // ── Payment status update state ───────────────────────────────────────────
   const [updatingPayment, setUpdatingPayment] = useState(false);
 
+  // ── Tabs & Pagination ─────────────────────────────────────────────────────
+  const [activeTab, setActiveTab] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ORDERS_PER_PAGE = 20;
+
   const paymentLabels: any = {
     'card_installments': 'بطاقة / تقسيط',
     'instapay': 'انستا باي',
@@ -727,7 +732,7 @@ export default function AdminOrders() {
     const shipping = parseFloat(order.shipping_cost || order.shipping_fee || 0);
     const discountVal = parseFloat(order.discount_applied || order.discount_amount || 0);
     const total = parseFloat(order.total_price || 0);
-    const statusLabel = order.status === 'delivered' ? 'تم التسليم' : order.status === 'shipped' ? 'قيد الشحن' : order.status === 'processing' ? 'قيد التجهيز' : 'تم تأكيد الطلب';
+    const statusLabel = order.status === 'delivered' ? 'تم التسليم' : order.status === 'shipped' ? 'قيد الشحن' : order.status === 'processing' ? 'قيد التجهيز' : order.status === 'cancelled' ? 'ملغي' : order.status === 'refunded' ? 'مسترجع' : 'تم تأكيد الطلب';
     return (
       <div style={{ backgroundColor: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif', direction: 'rtl' }}>
         <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f4c2a 100%)', padding: '36px 44px', position: 'relative', overflow: 'hidden' }}>
@@ -859,102 +864,158 @@ export default function AdminOrders() {
             <h1 style={mainTitle}>📦 إدارة الطلبات <span style={badgeCount}>{orders.length}</span></h1>
             <p style={{ color: '#666', fontSize: '0.95rem', marginTop: '5px', marginBottom: 0 }}>متابعة عمليات البيع وحالة الشحن لـ &quot;زيت أند فلترز&quot;</p>
           </div>
-          {/* ── NEW ORDER BUTTON ── */}
           <button
             onClick={() => setShowNewOrderModal(true)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '10px',
-              background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-              color: '#fff', border: 'none', borderRadius: '14px',
-              padding: '13px 24px', fontWeight: '900', fontSize: '1rem',
-              cursor: 'pointer', boxShadow: '0 4px 16px rgba(34,197,94,0.35)',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(34,197,94,0.45)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'none'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 16px rgba(34,197,94,0.35)'; }}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff', border: 'none', borderRadius: '14px', padding: '13px 24px', fontWeight: '900', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 4px 16px rgba(34,197,94,0.35)', transition: 'all 0.2s' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'none'; }}
           >
-            <Plus size={20} />
-            إنشاء طلب جديد
+            <Plus size={20} /> إنشاء طلب جديد
           </button>
         </div>
       </div>
 
-      <div style={tableWrapper}>
-        <table style={table}>
-          <thead>
-            <tr style={thRow}>
-              <th style={th}>العميل</th>
-              <th style={th}>المحافظة</th>
-              <th style={th}>طريقة الدفع</th>
-              <th style={th}>حالة الشحن</th>
-              <th style={th}>حالة الدفع</th>
-              <th style={th}>التاريخ والوقت</th>
-              <th style={th}>الإجمالي</th>
-              <th style={th}>إجراءات</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((order) => {
-              const { datePart, timePart } = formatDateTime(order.created_at);
+      {/* ── Status Tabs ── */}
+      {(() => {
+        const tabs = [
+          { key: 'all',        label: 'الكل',    color: '#1a1a1a' },
+          { key: 'pending',    label: 'جديد',     color: '#c2410c' },
+          { key: 'processing', label: 'تجهيز',    color: '#ca8a04' },
+          { key: 'shipped',    label: 'شحن',      color: '#1e40af' },
+          { key: 'delivered',  label: 'توصيل',    color: '#15803d' },
+          { key: 'cancelled',  label: 'ملغي',     color: '#dc2626' },
+          { key: 'refunded',   label: 'مسترجع',   color: '#6d28d9' },
+        ];
+        return (
+          <div style={{ display: 'flex', gap: '6px', marginBottom: '20px', flexWrap: 'wrap' }}>
+            {tabs.map(tab => {
+              const count = tab.key === 'all' ? orders.length : orders.filter(o => o.status === tab.key).length;
+              const isActive = activeTab === tab.key;
               return (
-                <tr key={order.id} style={tr}>
-                  <td style={td}>
-                    <div style={{ fontWeight: '800', color: '#1a1a1a' }}>{order.customer_name}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#777', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={12} /> {order.customer_phone}</div>
-                  </td>
-                  <td style={td}>
-                    <div style={cityBadge}><MapPin size={14} color="#15803d" /> {order.city || 'غير محدد'}</div>
-                    {order.shipping_type === 'express' && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '5px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '3px 8px', width: 'fit-content', fontSize: '0.72rem', fontWeight: '800', color: '#92400e' }}>
-                        ⚡ شحن سريع 48 ساعة
-                      </div>
-                    )}
-                  </td>
-                  <td style={td}>
-                    <div style={payTypeStyle}>
-                      {order.payment_method === 'instapay' ? <Banknote size={16} color="#9b59b6" /> : order.payment_method === 'wallets' ? <Smartphone size={16} color="#e74c3c" /> : <CreditCard size={16} color="#3498db" />}
-                      <span>{paymentLabels[order.payment_method] || order.payment_method}</span>
-                      {order.payment_screenshot_url && <ImageIcon size={14} color="#27ae60" />}
-                    </div>
-                  </td>
-                  <td style={td}>
-                    <select value={order.status} onChange={(e) => updateOrderStatus(order.id, e.target.value)} style={miniSelect(order.status)}>
-                      <option value="pending">جديد</option>
-                      <option value="processing">تجهيز</option>
-                      <option value="shipped">شحن</option>
-                      <option value="delivered">توصيل</option>
-                    </select>
-                  </td>
-                  <td style={td}>
-                    {(() => {
-                      const ps = order.payment_status || 'pending';
-                      const c = paymentStatusColors[ps] || paymentStatusColors.pending;
-                      return (
-                        <span style={{ fontSize: '0.75rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: c.bg, color: c.color, border: `1px solid ${c.border}`, whiteSpace: 'nowrap' }}>
-                          {paymentStatusLabels[ps]}
-                        </span>
-                      );
-                    })()}
-                  </td>
-                  <td style={td}>
-                    <div style={{ fontSize: '0.85rem', color: '#444', fontWeight: '700' }}>{datePart}</div>
-                    <div style={{ fontSize: '0.78rem', color: '#22c55e', fontWeight: '700', marginTop: '2px' }}>{timePart}</div>
-                  </td>
-                  <td style={td}><span style={{ color: '#15803d', fontWeight: '900', fontSize: '1rem' }}>{order.total_price} <small>ج.م</small></span></td>
-                  <td style={td}>
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                      <button onClick={async () => { setSelectedOrder(order); setEditMode(false); setShowInvoice(false); const enriched = await enrichOrderItems(order.items || []); setEnrichedItems(enriched.map((i: any) => ({ ...i, _orderId: order.id }))); }} style={iconBtn} title="عرض الطلب"><Eye size={16} /></button>
-                      <button onClick={async () => { setSelectedOrder(order); setShowInvoice(true); setEditMode(false); const enriched = await enrichOrderItems(order.items || []); setEnrichedItems(enriched.map((i: any) => ({ ...i, _orderId: order.id }))); }} style={invoiceRowBtn} title="عرض ORDER"><FileText size={15} /></button>
-                      <button onClick={() => setDeleteConfirmId(order.id)} style={delBtn}><Trash2 size={16} /></button>
-                    </div>
-                  </td>
-                </tr>
+                <button key={tab.key} onClick={() => { setActiveTab(tab.key); setCurrentPage(1); }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 18px', borderRadius: '12px', cursor: 'pointer', fontWeight: '800', fontSize: '0.85rem', border: 'none', background: isActive ? tab.color : '#fff', color: isActive ? '#fff' : tab.color, boxShadow: isActive ? `0 4px 12px ${tab.color}33` : '0 1px 4px rgba(0,0,0,0.08)', transition: 'all 0.2s' }}>
+                  {tab.label}
+                  <span style={{ background: isActive ? 'rgba(255,255,255,0.25)' : `${tab.color}18`, color: isActive ? '#fff' : tab.color, borderRadius: '8px', padding: '1px 8px', fontSize: '0.78rem', fontWeight: '900' }}>{count}</span>
+                </button>
               );
             })}
-          </tbody>
-        </table>
-      </div>
+          </div>
+        );
+      })()}
 
+      {/* ── Orders Table + Pagination ── */}
+      {(() => {
+        const filtered = activeTab === 'all' ? orders : orders.filter(o => o.status === activeTab);
+        const totalPages = Math.max(1, Math.ceil(filtered.length / ORDERS_PER_PAGE));
+        const paginated = filtered.slice((currentPage - 1) * ORDERS_PER_PAGE, currentPage * ORDERS_PER_PAGE);
+        return (
+          <>
+            <div style={tableWrapper}>
+              <table style={table}>
+                <thead>
+                  <tr style={thRow}>
+                    <th style={th}>العميل</th>
+                    <th style={th}>المحافظة</th>
+                    <th style={th}>طريقة الدفع</th>
+                    <th style={th}>حالة الشحن</th>
+                    <th style={th}>حالة الدفع</th>
+                    <th style={th}>التاريخ والوقت</th>
+                    <th style={th}>الإجمالي</th>
+                    <th style={th}>إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginated.length === 0 ? (
+                    <tr><td colSpan={8} style={{ textAlign: 'center', padding: '60px', color: '#aaa', fontSize: '0.95rem' }}>لا توجد طلبات في هذا القسم</td></tr>
+                  ) : paginated.map((order) => {
+                    const { datePart, timePart } = formatDateTime(order.created_at);
+                    return (
+                      <tr key={order.id} style={tr}>
+                        <td style={td}>
+                          <div style={{ fontWeight: '800', color: '#1a1a1a' }}>{order.customer_name}</div>
+                          <div style={{ fontSize: '0.8rem', color: '#777', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={12} /> {order.customer_phone}</div>
+                        </td>
+                        <td style={td}>
+                          <div style={cityBadge}><MapPin size={14} color="#15803d" /> {order.city || 'غير محدد'}</div>
+                          {order.shipping_type === 'express' && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '5px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '3px 8px', width: 'fit-content', fontSize: '0.72rem', fontWeight: '800', color: '#92400e' }}>
+                              ⚡ شحن سريع 48 ساعة
+                            </div>
+                          )}
+                        </td>
+                        <td style={td}>
+                          <div style={payTypeStyle}>
+                            {order.payment_method === 'instapay' ? <Banknote size={16} color="#9b59b6" /> : order.payment_method === 'wallets' ? <Smartphone size={16} color="#e74c3c" /> : <CreditCard size={16} color="#3498db" />}
+                            <span>{paymentLabels[order.payment_method] || order.payment_method}</span>
+                            {order.payment_screenshot_url && <ImageIcon size={14} color="#27ae60" />}
+                          </div>
+                        </td>
+                        <td style={td}>
+                          <select value={order.status} onChange={(e) => updateOrderStatus(order.id, e.target.value)} style={miniSelect(order.status)}>
+                            <option value="pending">جديد</option>
+                            <option value="processing">تجهيز</option>
+                            <option value="shipped">شحن</option>
+                            <option value="delivered">توصيل</option>
+                            <option value="cancelled">ملغي</option>
+                            <option value="refunded">مسترجع</option>
+                          </select>
+                        </td>
+                        <td style={td}>
+                          {(() => {
+                            const ps = order.payment_status || 'pending';
+                            const c = paymentStatusColors[ps] || paymentStatusColors.pending;
+                            return <span style={{ fontSize: '0.75rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: c.bg, color: c.color, border: `1px solid ${c.border}`, whiteSpace: 'nowrap' }}>{paymentStatusLabels[ps]}</span>;
+                          })()}
+                        </td>
+                        <td style={td}>
+                          <div style={{ fontSize: '0.85rem', color: '#444', fontWeight: '700' }}>{datePart}</div>
+                          <div style={{ fontSize: '0.78rem', color: '#22c55e', fontWeight: '700', marginTop: '2px' }}>{timePart}</div>
+                        </td>
+                        <td style={td}><span style={{ color: '#15803d', fontWeight: '900', fontSize: '1rem' }}>{order.total_price} <small>ج.م</small></span></td>
+                        <td style={td}>
+                          <div style={{ display: 'flex', gap: '6px' }}>
+                            <button onClick={async () => { setSelectedOrder(order); setEditMode(false); setShowInvoice(false); const enriched = await enrichOrderItems(order.items || []); setEnrichedItems(enriched.map((i: any) => ({ ...i, _orderId: order.id }))); }} style={iconBtn} title="عرض الطلب"><Eye size={16} /></button>
+                            <button onClick={async () => { setSelectedOrder(order); setShowInvoice(true); setEditMode(false); const enriched = await enrichOrderItems(order.items || []); setEnrichedItems(enriched.map((i: any) => ({ ...i, _orderId: order.id }))); }} style={invoiceRowBtn} title="عرض ORDER"><FileText size={15} /></button>
+                            <button onClick={() => setDeleteConfirmId(order.id)} style={delBtn}><Trash2 size={16} /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {totalPages > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '20px', flexWrap: 'wrap' }}>
+                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
+                  style={{ padding: '8px 16px', borderRadius: '10px', border: '1px solid #e5e5e5', background: currentPage === 1 ? '#f5f5f5' : '#fff', color: currentPage === 1 ? '#ccc' : '#1a1a1a', fontWeight: '700', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: '0.85rem' }}>
+                  ← السابق
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+                  const isNear = Math.abs(page - currentPage) <= 2 || page === 1 || page === totalPages;
+                  if (!isNear) {
+                    if (page === 2 && currentPage > 4) return <span key={page} style={{ color: '#aaa' }}>...</span>;
+                    if (page === totalPages - 1 && currentPage < totalPages - 3) return <span key={page} style={{ color: '#aaa' }}>...</span>;
+                    return null;
+                  }
+                  return (
+                    <button key={page} onClick={() => setCurrentPage(page)}
+                      style={{ width: '38px', height: '38px', borderRadius: '10px', border: 'none', background: currentPage === page ? '#22c55e' : '#fff', color: currentPage === page ? '#fff' : '#1a1a1a', fontWeight: '800', cursor: 'pointer', fontSize: '0.88rem', boxShadow: currentPage === page ? '0 2px 8px rgba(34,197,94,0.3)' : '0 1px 4px rgba(0,0,0,0.08)' }}>
+                      {page}
+                    </button>
+                  );
+                })}
+                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}
+                  style={{ padding: '8px 16px', borderRadius: '10px', border: '1px solid #e5e5e5', background: currentPage === totalPages ? '#f5f5f5' : '#fff', color: currentPage === totalPages ? '#ccc' : '#1a1a1a', fontWeight: '700', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontSize: '0.85rem' }}>
+                  التالي →
+                </button>
+                <span style={{ color: '#888', fontSize: '0.82rem', marginRight: '8px' }}>صفحة {currentPage} من {totalPages} — {filtered.length} طلب</span>
+              </div>
+            )}
+          </>
+        );
+      })()}
       {/* Invoice Modal */}
       {selectedOrder && showInvoice && (
         <div style={modalOverlay}>
@@ -1330,9 +1391,9 @@ const td: any = { padding: '18px 20px', fontSize: '0.95rem', color: '#333', vert
 const cityBadge: any = { display: 'flex', alignItems: 'center', gap: '6px', background: '#f0fdf4', color: '#15803d', padding: '6px 12px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 'bold', width: 'fit-content' };
 const payTypeStyle: any = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#555' };
 const miniSelect = (s: string): any => ({
-  background: s === 'pending' ? '#fff7ed' : s === 'delivered' ? '#f0fdf4' : s === 'shipped' ? '#eff6ff' : '#fef3c7',
-  color: s === 'pending' ? '#c2410c' : s === 'delivered' ? '#15803d' : s === 'shipped' ? '#1e40af' : '#ca8a04',
-  border: `1px solid ${s === 'pending' ? '#ffedd5' : s === 'delivered' ? '#dcfce7' : s === 'shipped' ? '#dbeafe' : '#fef3c7'}`,
+  background: s === 'pending' ? '#fff7ed' : s === 'delivered' ? '#f0fdf4' : s === 'shipped' ? '#eff6ff' : s === 'cancelled' ? '#fef2f2' : s === 'refunded' ? '#f5f3ff' : '#fef3c7',
+  color: s === 'pending' ? '#c2410c' : s === 'delivered' ? '#15803d' : s === 'shipped' ? '#1e40af' : s === 'cancelled' ? '#dc2626' : s === 'refunded' ? '#6d28d9' : '#ca8a04',
+  border: `1px solid ${s === 'pending' ? '#ffedd5' : s === 'delivered' ? '#dcfce7' : s === 'shipped' ? '#dbeafe' : s === 'cancelled' ? '#fecaca' : s === 'refunded' ? '#ddd6fe' : '#fef3c7'}`,
   padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', outline: 'none', fontSize: '0.8rem', fontWeight: 'bold'
 });
 const iconBtn: any = { background: '#f8f9fa', border: '1px solid #eee', color: '#555', padding: '9px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center' };
