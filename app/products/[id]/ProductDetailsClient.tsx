@@ -255,6 +255,38 @@ function shareBtnStyle(bg: string): React.CSSProperties {
 }
 // ──────────────────────────────────────────────────────────────────────────────
 
+// ─── YouTube embed helper ─────────────────────────────────────────────────────
+function getYouTubeId(url: string): string | null {
+  if (!url) return null;
+  // Handles: youtu.be/ID, youtube.com/watch?v=ID, youtube.com/shorts/ID, /embed/ID
+  const match = url.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/|v\/))([A-Za-z0-9_-]{11})/
+  );
+  return match ? match[1] : null;
+}
+
+function YouTubeEmbed({ url }: { url: string }) {
+  const videoId = getYouTubeId(url);
+  if (!videoId) return null;
+  return (
+    <div style={{ borderTop: '1px solid #eee', paddingTop: '30px', marginBottom: '40px' }}>
+      <h2 style={{ fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '16px', direction: 'rtl' }}>
+        🎬 فيديو المنتج
+      </h2>
+      <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', borderRadius: '20px', overflow: 'hidden', background: '#000' }}>
+        <iframe
+          src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`}
+          title="فيديو المنتج"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+        />
+      </div>
+    </div>
+  );
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 
 function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImages: Record<string, string> }) {
   const [qty, setQty] = useState(1);
@@ -778,6 +810,9 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           <h2 style={descTitle}>وصف المنتج</h2>
           <div style={descContent}>{generateAutoDescription()}</div>
         </div>
+
+        {/* YouTube Video — only shown if product has a video_url */}
+        {product.video_url && <YouTubeEmbed url={product.video_url} />}
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (

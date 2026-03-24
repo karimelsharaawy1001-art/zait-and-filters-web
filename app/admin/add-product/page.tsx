@@ -32,7 +32,7 @@ export default function AddProduct() {
   const [formData, setFormData] = useState({
     name: '', brand: '', category: '', subcategory: '',
     regular_price: '', sale_price: '', image_url: '',
-    country_of_origin: '', warranty: ''
+    country_of_origin: '', warranty: '', video_url: ''
   });
 
   // ── Load makes and categories on mount ───────────────────────────────────
@@ -144,6 +144,7 @@ export default function AddProduct() {
           image_url: formData.image_url,
           country_of_origin: formData.country_of_origin,
           warranty: formData.warranty,
+          video_url: formData.video_url || null,
           car_make: car.car_make,
           car_model: car.car_model,
           car_model_year: yearRange,
@@ -247,7 +248,32 @@ export default function AddProduct() {
           <input type="text" placeholder="مثال: سنة، 6 أشهر" value={formData.warranty} onChange={(e) => setFormData({ ...formData, warranty: e.target.value })} style={inputStyle} />
         </div>
 
-        {/* ── Cars Section ── */}
+        {/* ── YouTube Video URL ── */}
+        <div style={{ gridColumn: 'span 2' }}>
+          <label style={labelStyle}>رابط فيديو يوتيوب (اختياري)</label>
+          <input
+            type="url"
+            placeholder="مثال: https://www.youtube.com/watch?v=..."
+            value={formData.video_url}
+            onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
+            style={inputStyle}
+            dir="ltr"
+          />
+          {formData.video_url && (() => {
+            const match = formData.video_url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/|v\/))([A-Za-z0-9_-]{11})/);
+            return match ? (
+              <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '10px', background: '#0f2d1a', border: '1px solid #2ecc71', borderRadius: '10px', padding: '10px 14px' }}>
+                <img src={`https://img.youtube.com/vi/${match[1]}/default.jpg`} alt="thumbnail" style={{ width: '80px', height: '60px', borderRadius: '6px', objectFit: 'cover', flexShrink: 0 }} />
+                <div>
+                  <div style={{ color: '#2ecc71', fontWeight: '800', fontSize: '0.85rem' }}>✅ تم التعرف على الفيديو</div>
+                  <div style={{ color: '#888', fontSize: '0.75rem', marginTop: '2px', direction: 'ltr' }}>ID: {match[1]}</div>
+                </div>
+              </div>
+            ) : (
+              <div style={{ marginTop: '8px', color: '#ff4d4d', fontSize: '0.8rem', fontWeight: '700' }}>⚠️ الرابط غير صحيح — تأكد أنه رابط يوتيوب صحيح</div>
+            );
+          })()}
+        </div>
         <div style={{ gridColumn: 'span 2' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <label style={{ ...labelStyle, fontSize: '1.1rem', color: '#2ecc71', display: 'flex', alignItems: 'center', gap: '8px' }}>

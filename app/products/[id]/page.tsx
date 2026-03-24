@@ -128,7 +128,7 @@ function ProductSchema({ product }: { product: any }) {
     },
   };
 
-  const schema = {
+  const schema: any = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
@@ -198,6 +198,28 @@ function ProductSchema({ product }: { product: any }) {
       },
     ].filter(prop => prop.value),
   };
+
+  // ── Video schema: added if product has a YouTube video_url ──
+  if (product.video_url) {
+    const videoIdMatch = product.video_url.match(
+      /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/|v\/))([A-Za-z0-9_-]{11})/
+    );
+    if (videoIdMatch) {
+      schema.subjectOf = {
+        '@type': 'VideoObject',
+        name: `${product.name} - ${product.brand} | زيت أند فلترز`,
+        description: schema.description,
+        thumbnailUrl: `https://img.youtube.com/vi/${videoIdMatch[1]}/hqdefault.jpg`,
+        embedUrl: `https://www.youtube.com/embed/${videoIdMatch[1]}`,
+        uploadDate: new Date().toISOString().split('T')[0],
+        publisher: {
+          '@type': 'Organization',
+          name: 'Zait and Filters',
+          url: 'https://zaitandfilters.com',
+        },
+      };
+    }
+  }
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
