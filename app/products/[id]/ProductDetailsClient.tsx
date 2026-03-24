@@ -730,6 +730,10 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                   navigation={slides.length > 1}
                   pagination={slides.length > 1 ? { clickable: true } : false}
                   slidesPerView={1}
+                  touchStartPreventDefault={false}
+                  simulateTouch={true}
+                  touchRatio={1.5}
+                  threshold={10}
                   style={{ height: '100%' }}
                 >
                   {slides.map((slide, i) => (
@@ -742,13 +746,18 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                           style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '24px', display: 'block' }}
                         />
                       ) : (
-                        <iframe
-                          src={`https://www.youtube.com/embed/${slide.src}?rel=0&modestbranding=1`}
-                          title="فيديو المنتج"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                          style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-                        />
+                        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                          <iframe
+                            src={`https://www.youtube.com/embed/${slide.src}?rel=0&modestbranding=1`}
+                            title="فيديو المنتج"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                          />
+                          {/* Overlay strips on edges — capture swipe without blocking video clicks */}
+                          <div style={{ position: 'absolute', top: 0, left: 0, width: '15%', height: '100%', zIndex: 10 }} />
+                          <div style={{ position: 'absolute', top: 0, right: 0, width: '15%', height: '100%', zIndex: 10 }} />
+                        </div>
                       )}
                     </SwiperSlide>
                   ))}
