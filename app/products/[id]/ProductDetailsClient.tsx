@@ -709,11 +709,11 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           {/* ── Media Slider: image + video in one swipeable card ── */}
           {(() => {
             const slides: { type: 'image' | 'video'; src: string }[] = [];
-            if (imageUrl) slides.push({ type: 'image', src: imageUrl });
             if (product.video_url) {
               const match = product.video_url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/|v\/))([A-Za-z0-9_-]{11})/);
               if (match) slides.push({ type: 'video', src: match[1] });
             }
+            if (imageUrl) slides.push({ type: 'image', src: imageUrl });
             if (slides.length === 0) {
               return (
                 <div className="media-slider-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '420px' }}>
