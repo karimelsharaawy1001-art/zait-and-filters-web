@@ -9,7 +9,7 @@ interface CarEntry {
   car_model: string;
   year_from: string;
   year_to: string;
-  models: string[]; // loaded models for this entry
+  models: string[];
 }
 
 export default function AddProduct() {
@@ -18,13 +18,17 @@ export default function AddProduct() {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
-  // ── Dynamic options ───────────────────────────────────────────────────────
   const [carMakes, setCarMakes] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [subcategories, setSubcategories] = useState<string[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
 
-  // ── Multiple cars ─────────────────────────────────────────────────────────
+  // ── New category / subcategory inline creation ────────────────────────────
+  const [showNewCategory, setShowNewCategory] = useState(false);
+  const [newCategoryInput, setNewCategoryInput] = useState('');
+  const [showNewSubcategory, setShowNewSubcategory] = useState(false);
+  const [newSubcategoryInput, setNewSubcategoryInput] = useState('');
+
   const [cars, setCars] = useState<CarEntry[]>([
     { car_make: '', car_model: '', year_from: '', year_to: '', models: [] }
   ]);
@@ -35,7 +39,6 @@ export default function AddProduct() {
     country_of_origin: '', warranty: '', video_url: ''
   });
 
-  // ── Load makes and categories on mount ───────────────────────────────────
   useEffect(() => {
     async function loadOptions() {
       setLoadingOptions(true);
@@ -52,10 +55,11 @@ export default function AddProduct() {
     loadOptions();
   }, []);
 
-  // ── Load subcategories when category changes ──────────────────────────────
   useEffect(() => {
     setSubcategories([]);
     setFormData(prev => ({ ...prev, subcategory: '' }));
+    setShowNewSubcategory(false);
+    setNewSubcategoryInput('');
     if (!formData.category) return;
     async function loadSubs() {
       const { data } = await supabase.from('products').select('subcategory').ilike('category', formData.category);
@@ -64,7 +68,6 @@ export default function AddProduct() {
     loadSubs();
   }, [formData.category]);
 
-  // ── Load models for a specific car entry ─────────────────────────────────
   async function loadModelsForCar(index: number, make: string) {
     if (!make) {
       setCars(prev => prev.map((c, i) => i === index ? { ...c, car_model: '', models: [] } : c));
@@ -75,21 +78,37 @@ export default function AddProduct() {
     setCars(prev => prev.map((c, i) => i === index ? { ...c, car_make: make, car_model: '', models } : c));
   }
 
-  // ── Car entry handlers ────────────────────────────────────────────────────
   function addCar() {
     setCars(prev => [...prev, { car_make: '', car_model: '', year_from: '', year_to: '', models: [] }]);
   }
-
   function removeCar(index: number) {
-    if (cars.length === 1) return; // keep at least one
+    if (cars.length === 1) return;
     setCars(prev => prev.filter((_, i) => i !== index));
   }
-
   function updateCar(index: number, field: keyof CarEntry, value: string) {
     setCars(prev => prev.map((c, i) => i === index ? { ...c, [field]: value } : c));
   }
 
-  // ── Cloudinary upload ─────────────────────────────────────────────────────
+  // ── Confirm new category ──────────────────────────────────────────────────
+  function confirmNewCategory() {
+    const val = newCategoryInput.trim();
+    if (!val) return;
+    if (!categories.includes(val)) setCategories(prev => [...prev, val].sort());
+    setFormData(prev => ({ ...prev, category: val }));
+    setNewCategoryInput('');
+    setShowNewCategory(false);
+  }
+
+  // ── Confirm new subcategory ───────────────────────────────────────────────
+  function confirmNewSubcategory() {
+    const val = newSubcategoryInput.trim();
+    if (!val) return;
+    if (!subcategories.includes(val)) setSubcategories(prev => [...prev, val].sort());
+    setFormData(prev => ({ ...prev, subcategory: val }));
+    setNewSubcategoryInput('');
+    setShowNewSubcategory(false);
+  }
+
   const uploadToCloudinary = async (file: File) => {
     try {
       setUploading(true);
@@ -115,25 +134,19 @@ export default function AddProduct() {
     if (e.dataTransfer.files?.[0]) uploadToCloudinary(e.dataTransfer.files[0]);
   };
 
-  // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Validate at least one car is filled
     const validCars = cars.filter(c => c.car_make && c.car_model);
     if (validCars.length === 0) {
       alert('أضف سيارة واحدة على الأقل مع تحديد الماركة والموديل');
       return;
     }
-
     setLoading(true);
     try {
-      // Insert one product row per car
       const inserts = validCars.map(car => {
         const yearRange = car.year_from && car.year_to
           ? `${car.year_from}-${car.year_to}`
           : car.year_from || car.year_to || 'عام';
-
         return {
           name: formData.name,
           brand: formData.brand,
@@ -150,10 +163,8 @@ export default function AddProduct() {
           car_model_year: yearRange,
         };
       });
-
       const { error } = await supabase.from('products').insert(inserts);
       if (error) throw error;
-
       alert(`تمت إضافة المنتج بنجاح لـ ${validCars.length} سيارة! ✅`);
       router.push('/admin/dashboard');
     } catch (err: any) {
@@ -163,7 +174,6 @@ export default function AddProduct() {
     }
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <main style={{ backgroundColor: '#000', color: '#fff', minHeight: '100vh', padding: '40px', direction: 'rtl', fontFamily: 'sans-serif' }}>
       <h1 style={{ color: '#2ecc71', marginBottom: '30px', fontWeight: '900', fontStyle: 'italic' }}>
@@ -216,19 +226,82 @@ export default function AddProduct() {
         {/* ── Category ── */}
         <div>
           <label style={labelStyle}>الفئة (Category) *</label>
-          <select required value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} style={inputStyle}>
-            <option value="">{loadingOptions ? 'جاري التحميل...' : `اختر الفئة (${categories.length} فئة)`}</option>
-            {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-          </select>
+          {!showNewCategory ? (
+            <>
+              <select required value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} style={inputStyle}>
+                <option value="">{loadingOptions ? 'جاري التحميل...' : `اختر الفئة (${categories.length} فئة)`}</option>
+                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              </select>
+              <button
+                type="button"
+                onClick={() => setShowNewCategory(true)}
+                style={addNewBtnStyle}
+              >
+                + إضافة فئة جديدة
+              </button>
+            </>
+          ) : (
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <input
+                autoFocus
+                type="text"
+                placeholder="اكتب اسم الفئة الجديدة..."
+                value={newCategoryInput}
+                onChange={(e) => setNewCategoryInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); confirmNewCategory(); } if (e.key === 'Escape') { setShowNewCategory(false); setNewCategoryInput(''); } }}
+                style={{ ...inputStyle, flex: 1 }}
+              />
+              <button type="button" onClick={confirmNewCategory} style={confirmBtnStyle}>✓</button>
+              <button type="button" onClick={() => { setShowNewCategory(false); setNewCategoryInput(''); }} style={cancelBtnStyle}>✕</button>
+            </div>
+          )}
+          {formData.category && !showNewCategory && (
+            <div style={selectedBadge}>{formData.category}</div>
+          )}
         </div>
 
         {/* ── Subcategory ── */}
         <div>
           <label style={labelStyle}>القسم الفرعي</label>
-          <select value={formData.subcategory} onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })} style={{ ...inputStyle, opacity: !formData.category ? 0.5 : 1 }} disabled={!formData.category}>
-            <option value="">{!formData.category ? 'اختر الفئة أولاً' : subcategories.length === 0 ? 'لا يوجد أقسام فرعية' : `اختر القسم (${subcategories.length})`}</option>
-            {subcategories.map(sub => <option key={sub} value={sub}>{sub}</option>)}
-          </select>
+          {!showNewSubcategory ? (
+            <>
+              <select
+                value={formData.subcategory}
+                onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
+                style={{ ...inputStyle, opacity: !formData.category ? 0.5 : 1 }}
+                disabled={!formData.category}
+              >
+                <option value="">{!formData.category ? 'اختر الفئة أولاً' : subcategories.length === 0 ? 'لا يوجد أقسام فرعية' : `اختر القسم (${subcategories.length})`}</option>
+                {subcategories.map(sub => <option key={sub} value={sub}>{sub}</option>)}
+              </select>
+              {formData.category && (
+                <button
+                  type="button"
+                  onClick={() => setShowNewSubcategory(true)}
+                  style={addNewBtnStyle}
+                >
+                  + إضافة قسم فرعي جديد
+                </button>
+              )}
+            </>
+          ) : (
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <input
+                autoFocus
+                type="text"
+                placeholder="اكتب اسم القسم الفرعي الجديد..."
+                value={newSubcategoryInput}
+                onChange={(e) => setNewSubcategoryInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); confirmNewSubcategory(); } if (e.key === 'Escape') { setShowNewSubcategory(false); setNewSubcategoryInput(''); } }}
+                style={{ ...inputStyle, flex: 1 }}
+              />
+              <button type="button" onClick={confirmNewSubcategory} style={confirmBtnStyle}>✓</button>
+              <button type="button" onClick={() => { setShowNewSubcategory(false); setNewSubcategoryInput(''); }} style={cancelBtnStyle}>✕</button>
+            </div>
+          )}
+          {formData.subcategory && !showNewSubcategory && (
+            <div style={selectedBadge}>{formData.subcategory}</div>
+          )}
         </div>
 
         {/* ── Prices ── */}
@@ -274,16 +347,14 @@ export default function AddProduct() {
             );
           })()}
         </div>
+
+        {/* ── Cars ── */}
         <div style={{ gridColumn: 'span 2' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <label style={{ ...labelStyle, fontSize: '1.1rem', color: '#2ecc71', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Car size={18} color="#2ecc71" /> السيارات المتوافقة *
             </label>
-            <button
-              type="button"
-              onClick={addCar}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#0f2d1a', color: '#2ecc71', border: '1px solid #2ecc71', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem' }}
-            >
+            <button type="button" onClick={addCar} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#0f2d1a', color: '#2ecc71', border: '1px solid #2ecc71', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem' }}>
               <Plus size={15} /> إضافة سيارة
             </button>
           </div>
@@ -291,69 +362,36 @@ export default function AddProduct() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {cars.map((car, index) => (
               <div key={index} style={{ backgroundColor: '#111', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '16px', position: 'relative' }}>
-
-                {/* Car number badge */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <span style={{ color: '#2ecc71', fontWeight: '700', fontSize: '0.85rem' }}>🚗 سيارة {index + 1}</span>
                   {cars.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeCar(index)}
-                      style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#2d0f0f', color: '#ff4d4d', border: '1px solid #ff4d4d', borderRadius: '8px', padding: '5px 10px', cursor: 'pointer', fontSize: '0.8rem' }}
-                    >
+                    <button type="button" onClick={() => removeCar(index)} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#2d0f0f', color: '#ff4d4d', border: '1px solid #ff4d4d', borderRadius: '8px', padding: '5px 10px', cursor: 'pointer', fontSize: '0.8rem' }}>
                       <Trash2 size={13} /> حذف
                     </button>
                   )}
                 </div>
-
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px' }}>
-                  {/* Car make */}
                   <div>
                     <label style={labelStyle}>ماركة السيارة *</label>
-                    <select
-                      value={car.car_make}
-                      onChange={(e) => loadModelsForCar(index, e.target.value)}
-                      style={inputStyle}
-                    >
+                    <select value={car.car_make} onChange={(e) => loadModelsForCar(index, e.target.value)} style={inputStyle}>
                       <option value="">{loadingOptions ? 'جاري التحميل...' : `اختر (${carMakes.length})`}</option>
                       {carMakes.map(make => <option key={make} value={make}>{make}</option>)}
                     </select>
                   </div>
-
-                  {/* Car model */}
                   <div>
                     <label style={labelStyle}>الموديل *</label>
-                    <select
-                      value={car.car_model}
-                      onChange={(e) => updateCar(index, 'car_model', e.target.value)}
-                      style={{ ...inputStyle, opacity: !car.car_make ? 0.5 : 1 }}
-                      disabled={!car.car_make}
-                    >
+                    <select value={car.car_model} onChange={(e) => updateCar(index, 'car_model', e.target.value)} style={{ ...inputStyle, opacity: !car.car_make ? 0.5 : 1 }} disabled={!car.car_make}>
                       <option value="">{!car.car_make ? 'اختر الماركة أولاً' : `اختر (${car.models.length})`}</option>
                       {car.models.map(model => <option key={model} value={model}>{model}</option>)}
                     </select>
                   </div>
-
-                  {/* Year from */}
                   <div>
                     <label style={labelStyle}>من سنة</label>
-                    <input
-                      type="number" placeholder="2015"
-                      value={car.year_from}
-                      onChange={(e) => updateCar(index, 'year_from', e.target.value)}
-                      style={inputStyle}
-                    />
+                    <input type="number" placeholder="2015" value={car.year_from} onChange={(e) => updateCar(index, 'year_from', e.target.value)} style={inputStyle} />
                   </div>
-
-                  {/* Year to */}
                   <div>
                     <label style={labelStyle}>إلى سنة</label>
-                    <input
-                      type="number" placeholder="2024"
-                      value={car.year_to}
-                      onChange={(e) => updateCar(index, 'year_to', e.target.value)}
-                      style={inputStyle}
-                    />
+                    <input type="number" placeholder="2024" value={car.year_to} onChange={(e) => updateCar(index, 'year_to', e.target.value)} style={inputStyle} />
                   </div>
                 </div>
               </div>
@@ -373,13 +411,7 @@ export default function AddProduct() {
           disabled={loading || uploading}
           style={{ gridColumn: 'span 2', padding: '18px', backgroundColor: loading || uploading ? '#1a6b3a' : '#2ecc71', color: '#000', fontWeight: '900', borderRadius: '10px', cursor: loading || uploading ? 'not-allowed' : 'pointer', marginTop: '20px', fontSize: '1.2rem', border: 'none' }}
         >
-          {loading
-            ? 'جاري الحفظ...'
-            : uploading
-            ? 'جاري رفع الصورة...'
-            : cars.filter(c => c.car_make && c.car_model).length > 1
-            ? `حفظ القطعة لـ ${cars.filter(c => c.car_make && c.car_model).length} سيارات`
-            : 'حفظ القطعة في المتجر'}
+          {loading ? 'جاري الحفظ...' : uploading ? 'جاري رفع الصورة...' : cars.filter(c => c.car_make && c.car_model).length > 1 ? `حفظ القطعة لـ ${cars.filter(c => c.car_make && c.car_model).length} سيارات` : 'حفظ القطعة في المتجر'}
         </button>
       </form>
     </main>
@@ -388,3 +420,7 @@ export default function AddProduct() {
 
 const labelStyle = { display: 'block', marginBottom: '8px', color: '#888', fontWeight: 'bold' } as const;
 const inputStyle = { width: '100%', padding: '12px', backgroundColor: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '8px', outline: 'none' } as const;
+const addNewBtnStyle: any = { marginTop: '8px', background: 'none', border: 'none', color: '#2ecc71', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '700', padding: '0', textDecoration: 'underline', display: 'block' };
+const confirmBtnStyle: any = { background: '#2ecc71', color: '#000', border: 'none', borderRadius: '8px', padding: '10px 14px', cursor: 'pointer', fontWeight: '900', fontSize: '1rem', flexShrink: 0 };
+const cancelBtnStyle: any = { background: '#2d0f0f', color: '#ff4d4d', border: '1px solid #ff4d4d', borderRadius: '8px', padding: '10px 14px', cursor: 'pointer', fontWeight: '900', fontSize: '1rem', flexShrink: 0 };
+const selectedBadge: any = { marginTop: '6px', display: 'inline-block', background: '#0f2d1a', border: '1px solid #2ecc71', color: '#2ecc71', borderRadius: '6px', padding: '3px 10px', fontSize: '0.78rem', fontWeight: '700' };
