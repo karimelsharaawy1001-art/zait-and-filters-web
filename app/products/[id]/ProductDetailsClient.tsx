@@ -378,6 +378,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
   const [loading, setLoading] = useState(!initialProduct);
   const [qty, setQty] = useState(1);
   const [imgError, setImgError] = useState(false);
+  const swiperRef = useRef<any>(null);
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -724,16 +725,13 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
               );
             }
             return (
-              <div className="media-slider-wrap">
+              <div className="media-slider-wrap" style={{ position: 'relative' }}>
                 <Swiper
-                  modules={[Navigation, Pagination]}
-                  navigation={slides.length > 1}
+                  modules={[Pagination]}
+                  onSwiper={(swiper) => { swiperRef.current = swiper; }}
                   pagination={slides.length > 1 ? { clickable: true } : false}
                   slidesPerView={1}
-                  touchStartPreventDefault={false}
-                  simulateTouch={true}
-                  touchRatio={1.5}
-                  threshold={10}
+                  allowTouchMove={false}
                   style={{ height: '100%' }}
                 >
                   {slides.map((slide, i) => (
@@ -746,22 +744,53 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                           style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '24px', display: 'block' }}
                         />
                       ) : (
-                        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                          <iframe
-                            src={`https://www.youtube.com/embed/${slide.src}?rel=0&modestbranding=1`}
-                            title="فيديو المنتج"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                            style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-                          />
-                          {/* Overlay strips on edges — capture swipe without blocking video clicks */}
-                          <div style={{ position: 'absolute', top: 0, left: 0, width: '15%', height: '100%', zIndex: 10 }} />
-                          <div style={{ position: 'absolute', top: 0, right: 0, width: '15%', height: '100%', zIndex: 10 }} />
-                        </div>
+                        <iframe
+                          src={`https://www.youtube.com/embed/${slide.src}?rel=0&modestbranding=1`}
+                          title="فيديو المنتج"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                        />
                       )}
                     </SwiperSlide>
                   ))}
                 </Swiper>
+
+                {/* Custom nav buttons — sit outside iframe so always clickable */}
+                {slides.length > 1 && (
+                  <>
+                    <button
+                      onClick={() => swiperRef.current?.slidePrev()}
+                      aria-label="السابق"
+                      style={{
+                        position: 'absolute', top: '50%', right: '10px',
+                        transform: 'translateY(-50%)',
+                        zIndex: 20, width: '36px', height: '36px',
+                        borderRadius: '50%', border: 'none',
+                        background: 'rgba(255,255,255,0.92)',
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
+                        cursor: 'pointer', display: 'flex',
+                        alignItems: 'center', justifyContent: 'center',
+                        fontSize: '16px', color: '#1a1a1a', fontWeight: '900',
+                      }}
+                    >‹</button>
+                    <button
+                      onClick={() => swiperRef.current?.slideNext()}
+                      aria-label="التالي"
+                      style={{
+                        position: 'absolute', top: '50%', left: '10px',
+                        transform: 'translateY(-50%)',
+                        zIndex: 20, width: '36px', height: '36px',
+                        borderRadius: '50%', border: 'none',
+                        background: 'rgba(255,255,255,0.92)',
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
+                        cursor: 'pointer', display: 'flex',
+                        alignItems: 'center', justifyContent: 'center',
+                        fontSize: '16px', color: '#1a1a1a', fontWeight: '900',
+                      }}
+                    >›</button>
+                  </>
+                )}
               </div>
             );
           })()}
