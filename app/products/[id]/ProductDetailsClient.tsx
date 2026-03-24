@@ -9,8 +9,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Autoplay } from 'swiper/modules';
+import { Navigation, Autoplay, Pagination } from 'swiper/modules';
 import 'swiper/css';
+import 'swiper/css/pagination';
 
 
 // ─── Urgency Counters (inline — before Add to Cart) ───────────────────────────
@@ -464,52 +465,64 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           margin-bottom: 50px;
         }
 
-        /* ── FIXED: image box — contain + zoom on hover ── */
-        .product-image-box {
-          background: #f9f9f9;
+        /* ── Media Slider ── */
+        .media-slider-wrap {
           border-radius: 24px;
           border: 1px solid #f0f0f0;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 420px;
           overflow: hidden;
+          background: #f9f9f9;
           position: relative;
-          cursor: zoom-in;
         }
-
-        .product-main-img {
-          width: 100%;
-          height: 100%;
-          object-fit: contain;
-          display: block;
-          border-radius: 24px;
-          padding: 24px;
-          transition: transform 0.4s ease;
+        .media-slider-wrap .swiper {
+          height: 420px;
         }
-
-        .product-image-box:hover .product-main-img {
-          transform: scale(1.08);
+        .media-slider-wrap .swiper-slide {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #f9f9f9;
         }
-
+        .media-slider-wrap .swiper-pagination-bullet {
+          background: #27ae60;
+          opacity: 0.4;
+          width: 8px;
+          height: 8px;
+        }
+        .media-slider-wrap .swiper-pagination-bullet-active {
+          opacity: 1;
+          transform: scale(1.2);
+        }
+        .media-slider-wrap .swiper-button-prev,
+        .media-slider-wrap .swiper-button-next {
+          width: 34px;
+          height: 34px;
+          background: rgba(255,255,255,0.92);
+          border-radius: 50%;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+          color: #1a1a1a;
+        }
+        .media-slider-wrap .swiper-button-prev::after,
+        .media-slider-wrap .swiper-button-next::after {
+          font-size: 13px;
+          font-weight: 900;
+        }
+        .media-slider-wrap .swiper-button-disabled {
+          opacity: 0 !important;
+        }
         @media (max-width: 768px) {
-          .product-main-img:active {
-            transform: scale(1.08);
+          .media-slider-wrap .swiper {
+            height: 300px;
+          }
+          .media-slider-wrap {
+            border-radius: 18px;
+          }
+        }
+        @media (max-width: 480px) {
+          .media-slider-wrap .swiper {
+            height: 250px;
           }
         }
 
-        .product-img-placeholder {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          color: #bbb;
-          font-size: 0.9rem;
-          font-weight: 700;
-          padding: 40px;
-          text-align: center;
-        }
 
         .product-info-section {
           display: flex;
@@ -624,15 +637,6 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             margin-bottom: 30px;
           }
 
-          .product-image-box {
-            min-height: 260px;
-            border-radius: 18px;
-          }
-
-          .product-main-img {
-            border-radius: 18px;
-          }
-
           .product-title-mobile {
             font-size: 1.6rem !important;
             line-height: 1.3 !important;
@@ -683,10 +687,6 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         }
 
         @media (max-width: 480px) {
-          .product-image-box {
-            min-height: 220px;
-          }
-
           .spec-grid-mobile {
             grid-template-columns: 1fr 1fr !important;
           }
@@ -705,22 +705,57 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         {/* Main Grid */}
         <div className="product-main-grid">
 
-          {/* ── FIXED: Image box ── */}
-          <div className="product-image-box">
-            {imageUrl ? (
-              <img
-                src={imageUrl}
-                alt={product.name}
-                className="product-main-img"
-                onError={() => setImgError(true)}
-              />
-            ) : (
-              <div className="product-img-placeholder">
-                <Package size={60} color="#ddd" />
-                <span>لا توجد صورة للمنتج</span>
+          {/* ── Media Slider: image + video in one swipeable card ── */}
+          {(() => {
+            const slides: { type: 'image' | 'video'; src: string }[] = [];
+            if (imageUrl) slides.push({ type: 'image', src: imageUrl });
+            if (product.video_url) {
+              const match = product.video_url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/|v\/))([A-Za-z0-9_-]{11})/);
+              if (match) slides.push({ type: 'video', src: match[1] });
+            }
+            if (slides.length === 0) {
+              return (
+                <div className="media-slider-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '420px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', color: '#bbb' }}>
+                    <Package size={60} color="#ddd" />
+                    <span style={{ fontSize: '0.9rem', fontWeight: '700' }}>لا توجد صورة للمنتج</span>
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <div className="media-slider-wrap">
+                <Swiper
+                  modules={[Navigation, Pagination]}
+                  navigation={slides.length > 1}
+                  pagination={slides.length > 1 ? { clickable: true } : false}
+                  slidesPerView={1}
+                  style={{ height: '100%' }}
+                >
+                  {slides.map((slide, i) => (
+                    <SwiperSlide key={i}>
+                      {slide.type === 'image' ? (
+                        <img
+                          src={slide.src}
+                          alt={product.name}
+                          onError={() => setImgError(true)}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '24px', display: 'block' }}
+                        />
+                      ) : (
+                        <iframe
+                          src={`https://www.youtube.com/embed/${slide.src}?rel=0&modestbranding=1`}
+                          title="فيديو المنتج"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                        />
+                      )}
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
               </div>
-            )}
-          </div>
+            );
+          })()}
 
           {/* Info */}
           <div className="product-info-section">
@@ -810,9 +845,6 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           <h2 style={descTitle}>وصف المنتج</h2>
           <div style={descContent}>{generateAutoDescription()}</div>
         </div>
-
-        {/* YouTube Video — only shown if product has a video_url */}
-        {product.video_url && <YouTubeEmbed url={product.video_url} />}
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
