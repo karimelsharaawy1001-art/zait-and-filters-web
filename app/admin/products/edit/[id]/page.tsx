@@ -31,7 +31,7 @@ export default function EditProduct() {
   const [formData, setFormData] = useState({
     name: '', brand: '', category: '', subcategory: '',
     regular_price: '', sale_price: '', image_url: '',
-    is_active: true, country_of_origin: ''
+    is_active: true, country_of_origin: '', video_url: ''
   });
 
   const [carRows, setCarRows] = useState<CarRow[]>([]);
@@ -92,6 +92,7 @@ export default function EditProduct() {
         image_url: data.image_url || '',
         is_active: data.is_active ?? true,
         country_of_origin: data.country_of_origin || '',
+        video_url: data.video_url || '',
       });
 
       if (compat && compat.length > 0) {
@@ -102,7 +103,6 @@ export default function EditProduct() {
           car_model_year: c.car_model_year || '',
         })));
       } else if (data.car_make) {
-        // Seed from legacy product columns so existing data isn't lost
         setCarRows([{
           car_make: data.car_make || '',
           car_model: data.car_model || '',
@@ -150,6 +150,15 @@ export default function EditProduct() {
     setCarRows(prev => prev.filter((_, i) => i !== index));
   };
 
+  // ── YouTube ID helper ──────────────────────────────────────────────────────
+  function getYouTubeId(url: string): string | null {
+    if (!url) return null;
+    const match = url.match(
+      /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/|v\/))([A-Za-z0-9_-]{11})/
+    );
+    return match ? match[1] : null;
+  }
+
   // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,7 +168,6 @@ export default function EditProduct() {
     try {
       const firstCar = carRows[0];
 
-      // 1. Update main product row
       const { error: updateError } = await supabase
         .from('products')
         .update({
@@ -172,6 +180,7 @@ export default function EditProduct() {
           image_url: formData.image_url,
           is_active: formData.is_active,
           country_of_origin: formData.country_of_origin,
+          video_url: formData.video_url || null,
           car_make: firstCar?.car_make || null,
           car_model: firstCar?.car_model || null,
           car_model_year: firstCar?.car_model_year || null,
@@ -180,8 +189,6 @@ export default function EditProduct() {
 
       if (updateError) throw new Error('خطأ في تحديث المنتج: ' + updateError.message);
 
-      // 2. Delete all existing compat rows then re-insert fresh
-      //    (delete+insert is simpler and more reliable than upsert)
       const { error: delError } = await supabase
         .from('product_car_compatibility')
         .delete()
@@ -189,7 +196,6 @@ export default function EditProduct() {
 
       if (delError) throw new Error('خطأ في حذف التوافقات القديمة: ' + delError.message);
 
-      // 3. Bulk insert valid rows
       const validRows = carRows.filter(r => r.car_make?.trim());
       if (validRows.length > 0) {
         const { error: insertError } = await supabase
@@ -224,6 +230,8 @@ export default function EditProduct() {
     </div>
   );
 
+  const youtubeId = getYouTubeId(formData.video_url);
+
   return (
     <div style={{ direction: 'rtl', color: '#fff', fontFamily: 'sans-serif', padding: '40px 20px', backgroundColor: '#050505', minHeight: '100vh' }}>
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
@@ -233,7 +241,6 @@ export default function EditProduct() {
           <h1 style={{ fontSize: '1.8rem', fontWeight: '900', color: '#2ecc71' }}>تعديل بيانات الصنف</h1>
         </div>
 
-        {/* Error banner */}
         {saveError && (
           <div style={{ background: '#2a0a0a', border: '1px solid #ff4d4d', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px', color: '#ff4d4d', fontSize: '0.9rem', fontWeight: '700' }}>
             ❌ {saveError}
@@ -312,6 +319,55 @@ export default function EditProduct() {
               </div>
             </section>
 
+            {/* ── فيديو يوتيوب ── */}
+            <section style={formSection}>
+              <h3 style={sectionTitle}>🎬 فيديو يوتيوب</h3>
+              <div style={inputGroup}>
+                <label style={labelStyle}>رابط الفيديو (اختياري)</label>
+                <input
+                  type="url"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  value={formData.video_url}
+                  onChange={(e) => setFormData(prev => ({ ...prev, video_url: e.target.value }))}
+                  style={{ ...inputStyle, direction: 'ltr' }}
+                />
+              </div>
+
+              {/* Preview */}
+              {formData.video_url && (
+                youtubeId ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#0a1a0a', border: '1px solid #2ecc71', borderRadius: '10px', padding: '12px' }}>
+                    <img
+                      src={`https://img.youtube.com/vi/${youtubeId}/default.jpg`}
+                      alt="thumbnail"
+                      style={{ width: '90px', height: '68px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }}
+                    />
+                    <div>
+                      <div style={{ color: '#2ecc71', fontWeight: '800', fontSize: '0.85rem', marginBottom: '4px' }}>✅ تم التعرف على الفيديو</div>
+                      <div style={{ color: '#555', fontSize: '0.72rem', direction: 'ltr' }}>ID: {youtubeId}</div>
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, video_url: '' }))}
+                        style={{ marginTop: '6px', background: 'none', border: 'none', color: '#ff4d4d', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '700', padding: 0 }}
+                      >
+                        ✕ حذف الفيديو
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ color: '#ff4d4d', fontSize: '0.8rem', fontWeight: '700', marginTop: '6px' }}>
+                    ⚠️ الرابط غير صحيح — تأكد أنه رابط يوتيوب صحيح
+                  </div>
+                )
+              )}
+
+              {!formData.video_url && (
+                <div style={{ color: '#333', fontSize: '0.78rem', marginTop: '8px' }}>
+                  يقبل روابط: youtube.com/watch · youtu.be · youtube.com/shorts
+                </div>
+              )}
+            </section>
+
           </div>
 
           {/* ── توافق السيارات ── */}
@@ -336,38 +392,16 @@ export default function EditProduct() {
 
                 return (
                   <div key={index} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 36px', gap: '8px', alignItems: 'center' }}>
-                    <select
-                      value={row.car_make}
-                      onChange={(e) => updateCarRow(index, 'car_make', e.target.value)}
-                      style={inputStyle}
-                    >
+                    <select value={row.car_make} onChange={(e) => updateCarRow(index, 'car_make', e.target.value)} style={inputStyle}>
                       <option value="">اختر الماركة</option>
                       {options.makes.map(m => <option key={m} value={m}>{m}</option>)}
                     </select>
-
-                    <select
-                      value={row.car_model}
-                      onChange={(e) => updateCarRow(index, 'car_model', e.target.value)}
-                      disabled={!row.car_make}
-                      style={{ ...inputStyle, opacity: !row.car_make ? 0.4 : 1, cursor: !row.car_make ? 'not-allowed' : 'pointer' }}
-                    >
+                    <select value={row.car_model} onChange={(e) => updateCarRow(index, 'car_model', e.target.value)} disabled={!row.car_make} style={{ ...inputStyle, opacity: !row.car_make ? 0.4 : 1, cursor: !row.car_make ? 'not-allowed' : 'pointer' }}>
                       <option value="">{!row.car_make ? 'اختر الماركة أولاً' : 'اختر الموديل'}</option>
                       {modelOptions.map(m => <option key={m} value={m}>{m}</option>)}
                     </select>
-
-                    <input
-                      type="text"
-                      placeholder="مثال: 2010-2020"
-                      value={row.car_model_year}
-                      onChange={(e) => updateCarRow(index, 'car_model_year', e.target.value)}
-                      style={inputStyle}
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() => removeCarRow(index)}
-                      style={{ background: '#1a0a0a', border: '1px solid #333', borderRadius: '8px', color: '#ff4d4d', cursor: 'pointer', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                    >
+                    <input type="text" placeholder="مثال: 2010-2020" value={row.car_model_year} onChange={(e) => updateCarRow(index, 'car_model_year', e.target.value)} style={inputStyle} />
+                    <button type="button" onClick={() => removeCarRow(index)} style={{ background: '#1a0a0a', border: '1px solid #333', borderRadius: '8px', color: '#ff4d4d', cursor: 'pointer', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <X size={14} />
                     </button>
                   </div>
@@ -381,11 +415,7 @@ export default function EditProduct() {
               </div>
             )}
 
-            <button
-              type="button"
-              onClick={addCarRow}
-              style={{ marginTop: '12px', padding: '10px 20px', background: '#0a1a0a', border: '1px dashed #2ecc71', borderRadius: '10px', color: '#2ecc71', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}
-            >
+            <button type="button" onClick={addCarRow} style={{ marginTop: '12px', padding: '10px 20px', background: '#0a1a0a', border: '1px dashed #2ecc71', borderRadius: '10px', color: '#2ecc71', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Plus size={16} /> إضافة سيارة أخرى
             </button>
           </section>
