@@ -730,7 +730,7 @@ export default function AdminProducts() {
                 </button>
               </th>
               <th style={thStyle}>الحالة</th>
-              <th style={thStyle}>اسم القطعة</th>
+              <th style={thStyle}>الصورة والاسم</th>
               <th style={thStyle}>العلامة التجارية</th>
               <th style={thStyle}>السيارة</th>
               <th style={thStyle}>الموديل</th>
@@ -803,7 +803,20 @@ export default function AdminProducts() {
                         {product.is_active ? 'Active' : 'Inactive'}
                       </button>
                     </td>
-                    <td style={tdStyle}>{product.name}</td>
+
+                    {/* ── CHANGED: image thumbnail + name ── */}
+                    <td style={tdStyle}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#1a1a1a', border: '1px solid #222', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {product.image_url
+                            ? <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                            : <span style={{ fontSize: '1.2rem' }}>📦</span>
+                          }
+                        </div>
+                        <span>{product.name}</span>
+                      </div>
+                    </td>
+
                     <td style={tdStyle}>{product.brand}</td>
                     <td style={tdStyle}>{product.car_make}</td>
                     <td style={tdStyle}>{product.car_model}</td>
