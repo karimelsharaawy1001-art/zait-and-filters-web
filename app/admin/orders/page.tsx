@@ -7,7 +7,7 @@ import {
   Image as ImageIcon, ExternalLink, Eye, X, User, Hash,
   CarFront, Factory, Smartphone, Plus, Edit2, Save, Tag,
   Truck, AlertCircle, RefreshCw, Search, FileText, Download, Printer,
-  ChevronDown, Package, CheckCircle, Loader2
+  ChevronDown, Package, CheckCircle, Loader2, CheckSquare, Square
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -190,29 +190,29 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '20px', backdropFilter: 'blur(4px)' }}>
-      <div style={{ background: '#f8f9fa', width: '100%', maxWidth: '1060px', maxHeight: '93vh', overflowY: 'auto', borderRadius: '24px', padding: '28px', boxShadow: '0 25px 60px rgba(0,0,0,0.25)', direction: 'rtl' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '12px', backdropFilter: 'blur(4px)' }}>
+      <div style={{ background: '#f8f9fa', width: '100%', maxWidth: '1060px', maxHeight: '95vh', overflowY: 'auto', borderRadius: '24px', padding: 'clamp(16px, 4vw, 28px)', boxShadow: '0 25px 60px rgba(0,0,0,0.25)', direction: 'rtl' }}>
 
         {/* Modal Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px', borderBottom: '1px solid #e8e8e8', paddingBottom: '16px' }}>
-          <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '900', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <h2 style={{ margin: 0, fontSize: 'clamp(1rem, 3vw, 1.4rem)', fontWeight: '900', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Package size={22} color="#22c55e" /> إنشاء طلب جديد يدوياً
           </h2>
-          <button onClick={onClose} style={{ background: '#fff', border: '1px solid #eee', borderRadius: '50%', width: '38px', height: '38px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <button onClick={onClose} style={{ background: '#fff', border: '1px solid #eee', borderRadius: '50%', width: '38px', height: '38px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <X size={19} color="#666" />
           </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 310px', gap: '18px', alignItems: 'flex-start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'clamp(0px, calc(100% - 320px), 1fr) min(310px, 100%)', gap: '18px', alignItems: 'flex-start' }}>
 
           {/* ── LEFT ── */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
 
             {/* Product Search Card */}
             <div style={nomCard}>
               <h3 style={nomTitle}><Search size={16} color="#22c55e" /> البحث عن منتجات</h3>
               {/* Filter grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px', marginBottom: '12px' }}>
                 <Dropdown label="الماركة" options={makesOptions} value={filterMake} onChange={setFilterMake} />
                 <Dropdown label="الموديل" options={modelsOptions} value={filterModel} onChange={setFilterModel} disabled={!filterMake} />
                 <input type="text" placeholder="سنة الصنع" value={filterYear} onChange={e => setFilterYear(e.target.value)} style={nomInput} />
@@ -272,17 +272,17 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
                   {orderItems.map((item: any) => (
                     <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', backgroundColor: '#f9f9f9', borderRadius: '10px', border: '1px solid #f0f0f0' }}>
                       <img src={item.image_url || '/placeholder.png'} alt="" style={{ width: '44px', height: '44px', objectFit: 'contain', borderRadius: '8px', background: '#fff', flexShrink: 0 }} />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: '800', fontSize: '0.85rem' }}>{item.name}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: '800', fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
                         <div style={{ fontSize: '0.73rem', color: '#22c55e', fontWeight: '700' }}>{item.brand}</div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                         <button onClick={() => setOrderItems(p => p.map(i => i.id === item.id && i.quantity > 1 ? { ...i, quantity: i.quantity - 1 } : i))} style={nomQtyBtn}>-</button>
                         <span style={{ fontWeight: '900', minWidth: '20px', textAlign: 'center', fontSize: '0.9rem' }}>{item.quantity}</span>
                         <button onClick={() => setOrderItems(p => p.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i))} style={nomQtyBtn}>+</button>
                       </div>
-                      <div style={{ fontWeight: '900', minWidth: '80px', textAlign: 'left', fontSize: '0.88rem', color: '#15803d' }}>{(item.price * item.quantity).toLocaleString()} ج.م</div>
-                      <button onClick={() => setOrderItems(p => p.filter(i => i.id !== item.id))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', padding: '4px' }}><Trash2 size={16} /></button>
+                      <div style={{ fontWeight: '900', minWidth: '70px', textAlign: 'left', fontSize: '0.85rem', color: '#15803d', flexShrink: 0 }}>{(item.price * item.quantity).toLocaleString()} ج.م</div>
+                      <button onClick={() => setOrderItems(p => p.filter(i => i.id !== item.id))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', padding: '4px', flexShrink: 0 }}><Trash2 size={16} /></button>
                     </div>
                   ))}
                 </div>
@@ -330,10 +330,10 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
                   <span style={{ fontWeight: '700', color: '#15803d', fontSize: '0.85rem' }}>تم اختيار: {selectedUser.full_name} ({selectedUser.phone_number})</span>
                 </div>
               )}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '10px' }}>
                 <div><label style={nomLabel}>اسم العميل *</label><input value={manualName} onChange={e => setManualName(e.target.value)} placeholder="الاسم الكامل" style={nomInput} /></div>
                 <div><label style={nomLabel}>رقم الهاتف *</label><input value={manualPhone} onChange={e => setManualPhone(e.target.value)} placeholder="01xxxxxxxxx" style={nomInput} /></div>
-                <div style={{ gridColumn: 'span 2' }}><label style={nomLabel}>العنوان *</label><input value={manualAddress} onChange={e => setManualAddress(e.target.value)} placeholder="العنوان بالتفصيل" style={nomInput} /></div>
+                <div style={{ gridColumn: '1 / -1' }}><label style={nomLabel}>العنوان *</label><input value={manualAddress} onChange={e => setManualAddress(e.target.value)} placeholder="العنوان بالتفصيل" style={nomInput} /></div>
                 <div><label style={nomLabel}>المدينة</label><input value={manualCity} onChange={e => setManualCity(e.target.value)} placeholder="مثال: القاهرة" style={nomInput} /></div>
                 <div>
                   <label style={nomLabel}>طريقة الدفع</label>
@@ -346,7 +346,7 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
                     <option value="wallets">محفظة إلكترونية</option>
                   </select>
                 </div>
-                <div style={{ gridColumn: 'span 2' }}>
+                <div style={{ gridColumn: '1 / -1' }}>
                   <label style={nomLabel}>ملاحظات</label>
                   <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="أي تعليمات خاصة بالطلب..." rows={2} style={{ ...nomInput, resize: 'vertical' as any, height: 'auto', paddingTop: '10px' }} />
                 </div>
@@ -431,6 +431,229 @@ const paymentStatusColors: Record<string, { bg: string; color: string; border: s
   refunded: { bg: '#f5f3ff', color: '#6d28d9', border: '#ddd6fe' },
 };
 
+// ─── Inline Expanded Order Row ────────────────────────────────────────────────
+function ExpandedOrderRow({
+  order,
+  paymentLabels,
+  onUpdateStatus,
+  onUpdatePaymentStatus,
+  onViewDetail,
+  onViewInvoice,
+  onDelete,
+  updatingPayment,
+  enrichedItems,
+}: {
+  order: any;
+  paymentLabels: any;
+  onUpdateStatus: (id: string, s: string) => void;
+  onUpdatePaymentStatus: (id: string, s: string) => void;
+  onViewDetail: (o: any) => void;
+  onViewInvoice: (o: any) => void;
+  onDelete: (id: string) => void;
+  updatingPayment: boolean;
+  enrichedItems: any[];
+}) {
+  const items: any[] = enrichedItems.length > 0 ? enrichedItems : (order.items || []);
+  // Per-item preparation state: stored as array of booleans
+  const [preparedItems, setPreparedItems] = useState<boolean[]>(() => items.map(() => false));
+
+  const allPrepared = preparedItems.length > 0 && preparedItems.every(Boolean);
+  const someCount = preparedItems.filter(Boolean).length;
+
+  function toggleItem(i: number) {
+    setPreparedItems(prev => prev.map((v, idx) => idx === i ? !v : v));
+  }
+  function toggleAll() {
+    if (allPrepared) setPreparedItems(items.map(() => false));
+    else setPreparedItems(items.map(() => true));
+  }
+
+  const shipping = parseFloat(order.shipping_cost || order.shipping_fee || 0);
+  const discountVal = parseFloat(order.discount_applied || order.discount_amount || 0);
+  const total = parseFloat(order.total_price || 0);
+
+  return (
+    <div style={{
+      background: 'linear-gradient(135deg, #f0fdf4 0%, #f8fffa 100%)',
+      borderTop: '2px solid #22c55e22',
+      padding: 'clamp(12px, 3vw, 20px)',
+      animation: 'slideDown 0.25s ease-out',
+    }}>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}} />
+
+      {/* Top row: customer info + actions */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '16px', alignItems: 'flex-start' }}>
+        {/* Customer */}
+        <div style={{ flex: '1 1 220px', background: '#fff', borderRadius: '12px', padding: '12px 16px', border: '1px solid #e8f5e9' }}>
+          <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#888', letterSpacing: '1px', marginBottom: '8px', textTransform: 'uppercase' }}>بيانات العميل</div>
+          <div style={{ fontWeight: '800', fontSize: '0.92rem', color: '#1a1a1a', marginBottom: '4px' }}>{order.customer_name}</div>
+          <div style={{ fontSize: '0.8rem', color: '#555', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
+            <Phone size={12} color="#22c55e" /> {order.customer_phone}
+          </div>
+          <div style={{ fontSize: '0.8rem', color: '#555', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <MapPin size={12} color="#22c55e" /> {order.city} — {order.customer_address}
+          </div>
+        </div>
+
+        {/* Order info */}
+        <div style={{ flex: '1 1 180px', background: '#fff', borderRadius: '12px', padding: '12px 16px', border: '1px solid #e8f5e9' }}>
+          <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#888', letterSpacing: '1px', marginBottom: '8px', textTransform: 'uppercase' }}>تفاصيل الطلب</div>
+          <div style={{ fontSize: '0.82rem', color: '#555', marginBottom: '4px' }}>الدفع: <strong>{paymentLabels[order.payment_method] || order.payment_method}</strong></div>
+          <div style={{ fontSize: '0.82rem', color: '#555', marginBottom: '4px' }}>
+            الشحن: <strong style={{ color: shipping === 0 ? '#22c55e' : '#1a1a1a' }}>{shipping === 0 ? 'مجاني' : `${shipping} ج.م`}</strong>
+            {order.shipping_type === 'express' && <span style={{ marginRight: '6px', fontSize: '0.7rem', color: '#f59e0b', fontWeight: '800' }}>⚡ سريع</span>}
+          </div>
+          {discountVal > 0 && <div style={{ fontSize: '0.82rem', color: '#ef4444', marginBottom: '4px' }}>خصم: -{discountVal} ج.م</div>}
+          <div style={{ fontSize: '1rem', fontWeight: '900', color: '#15803d', marginTop: '6px' }}>{total.toLocaleString()} ج.م</div>
+        </div>
+
+        {/* Status controls */}
+        <div style={{ flex: '1 1 200px', background: '#fff', borderRadius: '12px', padding: '12px 16px', border: '1px solid #e8f5e9', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#888', letterSpacing: '1px', marginBottom: '2px', textTransform: 'uppercase' }}>تحديث الحالات</div>
+          <div>
+            <div style={{ fontSize: '0.72rem', color: '#888', marginBottom: '4px', fontWeight: '700' }}>حالة الشحن</div>
+            <select value={order.status} onChange={(e) => onUpdateStatus(order.id, e.target.value)} style={{ ...miniSelectStyle(order.status), width: '100%' }}>
+              <option value="pending">جديد</option>
+              <option value="processing">تجهيز</option>
+              <option value="shipped">شحن</option>
+              <option value="delivered">توصيل</option>
+              <option value="cancelled">ملغي</option>
+              <option value="refunded">مسترجع</option>
+            </select>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.72rem', color: '#888', marginBottom: '4px', fontWeight: '700' }}>حالة الدفع</div>
+            <select
+              value={order.payment_status || 'pending'}
+              onChange={(e) => onUpdatePaymentStatus(order.id, e.target.value)}
+              disabled={updatingPayment}
+              style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', outline: 'none', background: '#f9fafb', color: '#1a1a1a' }}
+            >
+              {Object.entries(paymentStatusLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>
+          <button onClick={() => onViewDetail(order)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#eff6ff', color: '#1e40af', border: '1px solid #dbeafe', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>
+            <Eye size={14} /> تفاصيل كاملة
+          </button>
+          <button onClick={() => onViewInvoice(order)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#0f172a', color: '#22c55e', border: 'none', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>
+            <FileText size={14} /> ORDER
+          </button>
+          <button onClick={() => onDelete(order.id)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#fff5f5', color: '#e74c3c', border: '1px solid #ffebeb', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>
+            <Trash2 size={14} /> حذف
+          </button>
+        </div>
+      </div>
+
+      {/* Items preparation list */}
+      <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e0f2e9', overflow: 'hidden' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#f0fdf4', borderBottom: '1px solid #e0f2e9' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button onClick={toggleAll} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '800', fontSize: '0.85rem', color: '#15803d', padding: 0 }}>
+              {allPrepared ? <CheckSquare size={18} color="#22c55e" /> : <Square size={18} color="#aaa" />}
+              {allPrepared ? 'إلغاء تحضير الكل' : 'تحضير الكل'}
+            </button>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '0.8rem', color: '#888', fontWeight: '700' }}>
+              {someCount} / {items.length} محضّر
+            </span>
+            {allPrepared && (
+              <span style={{ background: '#22c55e', color: '#fff', borderRadius: '8px', padding: '3px 10px', fontSize: '0.75rem', fontWeight: '800' }}>
+                ✓ جاهز للشحن
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Items */}
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {items.map((item: any, i: number) => {
+            const prepared = preparedItems[i] || false;
+            return (
+              <div key={i} onClick={() => toggleItem(i)} style={{
+                display: 'flex', alignItems: 'center', gap: '12px',
+                padding: '12px 16px',
+                borderBottom: i < items.length - 1 ? '1px solid #f0f0f0' : 'none',
+                cursor: 'pointer',
+                background: prepared ? '#f0fdf4' : '#fff',
+                transition: 'background 0.2s',
+                userSelect: 'none',
+              }}
+                onMouseEnter={e => { if (!prepared) e.currentTarget.style.background = '#fafff8'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = prepared ? '#f0fdf4' : '#fff'; }}
+              >
+                {/* Checkbox */}
+                <div style={{ flexShrink: 0 }}>
+                  {prepared
+                    ? <CheckSquare size={22} color="#22c55e" />
+                    : <Square size={22} color="#d1d5db" />
+                  }
+                </div>
+
+                {/* Image */}
+                <img
+                  src={item.image_url || item.image || 'https://via.placeholder.com/50'}
+                  alt=""
+                  style={{ width: '52px', height: '52px', objectFit: 'contain', borderRadius: '10px', border: '1px solid #eee', background: '#f9f9f9', flexShrink: 0, opacity: prepared ? 0.6 : 1, transition: 'opacity 0.2s' }}
+                />
+
+                {/* Info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: '800', fontSize: '0.88rem', color: prepared ? '#888' : '#1a1a1a', textDecoration: prepared ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', transition: 'all 0.2s' }}>
+                    {item.name}
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
+                    {item.brand && (
+                      <span style={{ fontSize: '0.72rem', color: '#22c55e', fontWeight: '700', background: '#f0fdf4', padding: '2px 8px', borderRadius: '6px' }}>
+                        {item.brand}
+                      </span>
+                    )}
+                    {(item.car_make || item.car_model) && (
+                      <span style={{ fontSize: '0.72rem', color: '#666', background: '#f5f5f5', padding: '2px 8px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                        🚗 {[item.car_make, item.car_model, item.car_model_year].filter(Boolean).join(' ')}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Qty + Price */}
+                <div style={{ flexShrink: 0, textAlign: 'left' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end', marginBottom: '4px' }}>
+                    <span style={{ background: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '800' }}>×{item.quantity}</span>
+                  </div>
+                  <div style={{ fontWeight: '900', fontSize: '0.9rem', color: prepared ? '#aaa' : '#15803d', transition: 'color 0.2s' }}>
+                    {(parseFloat(item.price) * item.quantity).toLocaleString()} ج.م
+                  </div>
+                </div>
+
+                {/* Prepared badge */}
+                {prepared && (
+                  <div style={{ flexShrink: 0, background: '#dcfce7', color: '#15803d', borderRadius: '8px', padding: '4px 10px', fontSize: '0.72rem', fontWeight: '800' }}>
+                    ✓ محضّر
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Progress bar */}
+        <div style={{ height: '4px', background: '#f0f0f0' }}>
+          <div style={{ height: '100%', background: 'linear-gradient(90deg, #22c55e, #16a34a)', width: `${items.length > 0 ? (someCount / items.length) * 100 : 0}%`, transition: 'width 0.3s ease', borderRadius: '0 4px 4px 0' }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main AdminOrders Component ───────────────────────────────────────────────
 export default function AdminOrders() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -440,6 +663,11 @@ export default function AdminOrders() {
   const [enrichedItems, setEnrichedItems] = useState<any[]>([]);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const invoiceRef = useRef<HTMLDivElement>(null);
+
+  // ── Expanded rows state (map of orderId -> enriched items)
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  const [expandedEnrichedItems, setExpandedEnrichedItems] = useState<any[]>([]);
+  const [expandingId, setExpandingId] = useState<string | null>(null);
 
   // ── NEW: show/hide new order modal
   const [showNewOrderModal, setShowNewOrderModal] = useState(false);
@@ -592,6 +820,7 @@ export default function AdminOrders() {
       if (count === 0) { toast.error('لم يتم الحذف — تحقق من صلاحيات RLS في Supabase'); return; }
       setOrders(prev => prev.filter(o => o.id !== orderId));
       if (selectedOrder?.id === orderId) setSelectedOrder(null);
+      if (expandedOrderId === orderId) setExpandedOrderId(null);
       setDeleteConfirmId(null);
       toast.success('تم حذف الطلب ✅');
     } catch (err: any) { toast.error('فشل الحذف: ' + err.message); }
@@ -689,25 +918,18 @@ export default function AdminOrders() {
     toast.success('تمت إضافة المنتج ✅');
   }
 
-  // ── Enrich items with product data from DB (for old orders missing car/brand) ─
   async function enrichOrderItems(items: any[]) {
     if (!items?.length) return items;
-
-    // Find items missing brand or car info
     const needsEnrich = items.filter(i => !i.brand && !i.car_make && i.id);
     if (needsEnrich.length === 0) return items;
-
     const ids = needsEnrich.map(i => i.id);
     const { data: products } = await supabase
       .from('products')
       .select('id, brand, car_make, car_model, car_model_year')
       .in('id', ids);
-
     if (!products?.length) return items;
-
     const productMap: Record<string, any> = {};
     products.forEach(p => { productMap[p.id] = p; });
-
     return items.map(item => {
       if (productMap[item.id]) {
         return {
@@ -720,6 +942,35 @@ export default function AdminOrders() {
       }
       return item;
     });
+  }
+
+  async function toggleExpandOrder(order: any) {
+    if (expandedOrderId === order.id) {
+      setExpandedOrderId(null);
+      setExpandedEnrichedItems([]);
+      return;
+    }
+    setExpandingId(order.id);
+    const enriched = await enrichOrderItems(order.items || []);
+    setExpandedEnrichedItems(enriched);
+    setExpandedOrderId(order.id);
+    setExpandingId(null);
+  }
+
+  async function openDetailModal(order: any) {
+    setSelectedOrder(order);
+    setEditMode(false);
+    setShowInvoice(false);
+    const enriched = await enrichOrderItems(order.items || []);
+    setEnrichedItems(enriched.map((i: any) => ({ ...i, _orderId: order.id })));
+  }
+
+  async function openInvoiceModal(order: any) {
+    setSelectedOrder(order);
+    setShowInvoice(true);
+    setEditMode(false);
+    const enriched = await enrichOrderItems(order.items || []);
+    setEnrichedItems(enriched.map((i: any) => ({ ...i, _orderId: order.id })));
   }
 
   function InvoicePreview({ order }: { order: any }) {
@@ -848,7 +1099,23 @@ export default function AdminOrders() {
   const liveTotal = editMode ? calcTotal(editedItems, discount, extraFee, removeShipping, editedShipping) : 0;
 
   return (
-    <div style={{ padding: '30px', direction: 'rtl', maxWidth: '1400px', margin: '0 auto', background: '#f8f9fa', minHeight: '100vh' }}>
+    <div style={{ padding: 'clamp(12px, 3vw, 30px)', direction: 'rtl', maxWidth: '1400px', margin: '0 auto', background: '#f8f9fa', minHeight: '100vh' }}>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @media (max-width: 640px) {
+          .desktop-table { display: none !important; }
+          .mobile-cards { display: flex !important; }
+          .header-text { font-size: 1.2rem !important; }
+          .new-order-btn span { display: none; }
+        }
+        @media (min-width: 641px) {
+          .desktop-table { display: block !important; }
+          .mobile-cards { display: none !important; }
+        }
+        .order-row-clickable:hover { background: #fafff8 !important; }
+        .order-row-clickable:active { background: #f0fdf4 !important; }
+      `}} />
 
       {/* ── New Order Modal ── */}
       {showNewOrderModal && (
@@ -859,18 +1126,17 @@ export default function AdminOrders() {
       )}
 
       <div style={headerSection}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h1 style={mainTitle}>📦 إدارة الطلبات <span style={badgeCount}>{orders.length}</span></h1>
-            <p style={{ color: '#666', fontSize: '0.95rem', marginTop: '5px', marginBottom: 0 }}>متابعة عمليات البيع وحالة الشحن لـ &quot;زيت أند فلترز&quot;</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+          <div style={{ minWidth: 0 }}>
+            <h1 className="header-text" style={{ ...mainTitle, fontSize: 'clamp(1.2rem, 4vw, 2.2rem)' }}>📦 إدارة الطلبات <span style={badgeCount}>{orders.length}</span></h1>
+            <p style={{ color: '#666', fontSize: 'clamp(0.8rem, 2vw, 0.95rem)', marginTop: '5px', marginBottom: 0 }}>متابعة عمليات البيع وحالة الشحن لـ &quot;زيت أند فلترز&quot;</p>
           </div>
           <button
+            className="new-order-btn"
             onClick={() => setShowNewOrderModal(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff', border: 'none', borderRadius: '14px', padding: '13px 24px', fontWeight: '900', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 4px 16px rgba(34,197,94,0.35)', transition: 'all 0.2s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'none'; }}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff', border: 'none', borderRadius: '14px', padding: 'clamp(10px, 2vw, 13px) clamp(14px, 3vw, 24px)', fontWeight: '900', fontSize: 'clamp(0.85rem, 2vw, 1rem)', cursor: 'pointer', boxShadow: '0 4px 16px rgba(34,197,94,0.35)', transition: 'all 0.2s', flexShrink: 0, whiteSpace: 'nowrap' }}
           >
-            <Plus size={20} /> إنشاء طلب جديد
+            <Plus size={20} /> <span>إنشاء طلب جديد</span>
           </button>
         </div>
       </div>
@@ -892,8 +1158,8 @@ export default function AdminOrders() {
               const count = tab.key === 'all' ? orders.length : orders.filter(o => o.status === tab.key).length;
               const isActive = activeTab === tab.key;
               return (
-                <button key={tab.key} onClick={() => { setActiveTab(tab.key); setCurrentPage(1); }}
-                  style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 18px', borderRadius: '12px', cursor: 'pointer', fontWeight: '800', fontSize: '0.85rem', border: 'none', background: isActive ? tab.color : '#fff', color: isActive ? '#fff' : tab.color, boxShadow: isActive ? `0 4px 12px ${tab.color}33` : '0 1px 4px rgba(0,0,0,0.08)', transition: 'all 0.2s' }}>
+                <button key={tab.key} onClick={() => { setActiveTab(tab.key); setCurrentPage(1); setExpandedOrderId(null); }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: 'clamp(7px, 1.5vw, 9px) clamp(10px, 2vw, 18px)', borderRadius: '12px', cursor: 'pointer', fontWeight: '800', fontSize: 'clamp(0.75rem, 2vw, 0.85rem)', border: 'none', background: isActive ? tab.color : '#fff', color: isActive ? '#fff' : tab.color, boxShadow: isActive ? `0 4px 12px ${tab.color}33` : '0 1px 4px rgba(0,0,0,0.08)', transition: 'all 0.2s' }}>
                   {tab.label}
                   <span style={{ background: isActive ? 'rgba(255,255,255,0.25)' : `${tab.color}18`, color: isActive ? '#fff' : tab.color, borderRadius: '8px', padding: '1px 8px', fontSize: '0.78rem', fontWeight: '900' }}>{count}</span>
                 </button>
@@ -910,10 +1176,12 @@ export default function AdminOrders() {
         const paginated = filtered.slice((currentPage - 1) * ORDERS_PER_PAGE, currentPage * ORDERS_PER_PAGE);
         return (
           <>
-            <div style={tableWrapper}>
+            {/* ── DESKTOP TABLE ── */}
+            <div className="desktop-table" style={tableWrapper}>
               <table style={table}>
                 <thead>
                   <tr style={thRow}>
+                    <th style={{ ...th, width: '32px' }}></th>
                     <th style={th}>العميل</th>
                     <th style={th}>المحافظة</th>
                     <th style={th}>طريقة الدفع</th>
@@ -926,64 +1194,182 @@ export default function AdminOrders() {
                 </thead>
                 <tbody>
                   {paginated.length === 0 ? (
-                    <tr><td colSpan={8} style={{ textAlign: 'center', padding: '60px', color: '#aaa', fontSize: '0.95rem' }}>لا توجد طلبات في هذا القسم</td></tr>
+                    <tr><td colSpan={9} style={{ textAlign: 'center', padding: '60px', color: '#aaa', fontSize: '0.95rem' }}>لا توجد طلبات في هذا القسم</td></tr>
                   ) : paginated.map((order) => {
                     const { datePart, timePart } = formatDateTime(order.created_at);
+                    const isExpanded = expandedOrderId === order.id;
+                    const isExpanding = expandingId === order.id;
                     return (
-                      <tr key={order.id} style={tr}>
-                        <td style={td}>
-                          <div style={{ fontWeight: '800', color: '#1a1a1a' }}>{order.customer_name}</div>
-                          <div style={{ fontSize: '0.8rem', color: '#777', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={12} /> {order.customer_phone}</div>
-                        </td>
-                        <td style={td}>
-                          <div style={cityBadge}><MapPin size={14} color="#15803d" /> {order.city || 'غير محدد'}</div>
-                          {order.shipping_type === 'express' && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '5px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '3px 8px', width: 'fit-content', fontSize: '0.72rem', fontWeight: '800', color: '#92400e' }}>
-                              ⚡ شحن سريع 48 ساعة
+                      <>
+                        <tr key={order.id} className="order-row-clickable" style={{ ...tr, background: isExpanded ? '#f0fdf4' : '#fff', cursor: 'pointer' }}
+                          onClick={() => toggleExpandOrder(order)}
+                        >
+                          {/* Expand toggle */}
+                          <td style={{ ...td, padding: '18px 8px 18px 0', width: '32px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              {isExpanding
+                                ? <Loader2 size={16} color="#22c55e" style={{ animation: 'spin 1s linear infinite' }} />
+                                : <ChevronDown size={18} color={isExpanded ? '#22c55e' : '#aaa'} style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                              }
                             </div>
-                          )}
-                        </td>
-                        <td style={td}>
-                          <div style={payTypeStyle}>
-                            {order.payment_method === 'instapay' ? <Banknote size={16} color="#9b59b6" /> : order.payment_method === 'wallets' ? <Smartphone size={16} color="#e74c3c" /> : <CreditCard size={16} color="#3498db" />}
-                            <span>{paymentLabels[order.payment_method] || order.payment_method}</span>
-                            {order.payment_screenshot_url && <ImageIcon size={14} color="#27ae60" />}
-                          </div>
-                        </td>
-                        <td style={td}>
-                          <select value={order.status} onChange={(e) => updateOrderStatus(order.id, e.target.value)} style={miniSelect(order.status)}>
-                            <option value="pending">جديد</option>
-                            <option value="processing">تجهيز</option>
-                            <option value="shipped">شحن</option>
-                            <option value="delivered">توصيل</option>
-                            <option value="cancelled">ملغي</option>
-                            <option value="refunded">مسترجع</option>
-                          </select>
-                        </td>
-                        <td style={td}>
-                          {(() => {
-                            const ps = order.payment_status || 'pending';
-                            const c = paymentStatusColors[ps] || paymentStatusColors.pending;
-                            return <span style={{ fontSize: '0.75rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: c.bg, color: c.color, border: `1px solid ${c.border}`, whiteSpace: 'nowrap' }}>{paymentStatusLabels[ps]}</span>;
-                          })()}
-                        </td>
-                        <td style={td}>
-                          <div style={{ fontSize: '0.85rem', color: '#444', fontWeight: '700' }}>{datePart}</div>
-                          <div style={{ fontSize: '0.78rem', color: '#22c55e', fontWeight: '700', marginTop: '2px' }}>{timePart}</div>
-                        </td>
-                        <td style={td}><span style={{ color: '#15803d', fontWeight: '900', fontSize: '1rem' }}>{order.total_price} <small>ج.م</small></span></td>
-                        <td style={td}>
-                          <div style={{ display: 'flex', gap: '6px' }}>
-                            <button onClick={async () => { setSelectedOrder(order); setEditMode(false); setShowInvoice(false); const enriched = await enrichOrderItems(order.items || []); setEnrichedItems(enriched.map((i: any) => ({ ...i, _orderId: order.id }))); }} style={iconBtn} title="عرض الطلب"><Eye size={16} /></button>
-                            <button onClick={async () => { setSelectedOrder(order); setShowInvoice(true); setEditMode(false); const enriched = await enrichOrderItems(order.items || []); setEnrichedItems(enriched.map((i: any) => ({ ...i, _orderId: order.id }))); }} style={invoiceRowBtn} title="عرض ORDER"><FileText size={15} /></button>
-                            <button onClick={() => setDeleteConfirmId(order.id)} style={delBtn}><Trash2 size={16} /></button>
-                          </div>
-                        </td>
-                      </tr>
+                          </td>
+                          <td style={td} onClick={e => e.stopPropagation()}>
+                            <div style={{ fontWeight: '800', color: '#1a1a1a' }}>{order.customer_name}</div>
+                            <div style={{ fontSize: '0.8rem', color: '#777', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={12} /> {order.customer_phone}</div>
+                          </td>
+                          <td style={td} onClick={e => e.stopPropagation()}>
+                            <div style={cityBadge}><MapPin size={14} color="#15803d" /> {order.city || 'غير محدد'}</div>
+                            {order.shipping_type === 'express' && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '5px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '3px 8px', width: 'fit-content', fontSize: '0.72rem', fontWeight: '800', color: '#92400e' }}>
+                                ⚡ شحن سريع 48 ساعة
+                              </div>
+                            )}
+                          </td>
+                          <td style={td} onClick={e => e.stopPropagation()}>
+                            <div style={payTypeStyle}>
+                              {order.payment_method === 'instapay' ? <Banknote size={16} color="#9b59b6" /> : order.payment_method === 'wallets' ? <Smartphone size={16} color="#e74c3c" /> : <CreditCard size={16} color="#3498db" />}
+                              <span>{paymentLabels[order.payment_method] || order.payment_method}</span>
+                              {order.payment_screenshot_url && <ImageIcon size={14} color="#27ae60" />}
+                            </div>
+                          </td>
+                          <td style={td} onClick={e => e.stopPropagation()}>
+                            <select value={order.status} onChange={(e) => { e.stopPropagation(); updateOrderStatus(order.id, e.target.value); }} style={miniSelectStyle(order.status)}>
+                              <option value="pending">جديد</option>
+                              <option value="processing">تجهيز</option>
+                              <option value="shipped">شحن</option>
+                              <option value="delivered">توصيل</option>
+                              <option value="cancelled">ملغي</option>
+                              <option value="refunded">مسترجع</option>
+                            </select>
+                          </td>
+                          <td style={td} onClick={e => e.stopPropagation()}>
+                            {(() => {
+                              const ps = order.payment_status || 'pending';
+                              const c = paymentStatusColors[ps] || paymentStatusColors.pending;
+                              return <span style={{ fontSize: '0.75rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: c.bg, color: c.color, border: `1px solid ${c.border}`, whiteSpace: 'nowrap' }}>{paymentStatusLabels[ps]}</span>;
+                            })()}
+                          </td>
+                          <td style={td} onClick={e => e.stopPropagation()}>
+                            <div style={{ fontSize: '0.85rem', color: '#444', fontWeight: '700' }}>{datePart}</div>
+                            <div style={{ fontSize: '0.78rem', color: '#22c55e', fontWeight: '700', marginTop: '2px' }}>{timePart}</div>
+                          </td>
+                          <td style={td} onClick={e => e.stopPropagation()}>
+                            <span style={{ color: '#15803d', fontWeight: '900', fontSize: '1rem' }}>{order.total_price} <small>ج.م</small></span>
+                          </td>
+                          <td style={td} onClick={e => e.stopPropagation()}>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <button onClick={() => openDetailModal(order)} style={iconBtn} title="عرض الطلب"><Eye size={16} /></button>
+                              <button onClick={() => openInvoiceModal(order)} style={invoiceRowBtn} title="عرض ORDER"><FileText size={15} /></button>
+                              <button onClick={() => setDeleteConfirmId(order.id)} style={delBtn}><Trash2 size={16} /></button>
+                            </div>
+                          </td>
+                        </tr>
+                        {/* Expanded row */}
+                        {isExpanded && (
+                          <tr key={`${order.id}-expanded`}>
+                            <td colSpan={9} style={{ padding: 0, border: 'none' }}>
+                              <ExpandedOrderRow
+                                order={order}
+                                paymentLabels={paymentLabels}
+                                onUpdateStatus={updateOrderStatus}
+                                onUpdatePaymentStatus={updatePaymentStatus}
+                                onViewDetail={openDetailModal}
+                                onViewInvoice={openInvoiceModal}
+                                onDelete={(id) => setDeleteConfirmId(id)}
+                                updatingPayment={updatingPayment}
+                                enrichedItems={expandedEnrichedItems}
+                              />
+                            </td>
+                          </tr>
+                        )}
+                      </>
                     );
                   })}
                 </tbody>
               </table>
+            </div>
+
+            {/* ── MOBILE CARDS ── */}
+            <div className="mobile-cards" style={{ display: 'none', flexDirection: 'column', gap: '10px' }}>
+              {paginated.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#aaa', fontSize: '0.95rem', background: '#fff', borderRadius: '16px' }}>لا توجد طلبات في هذا القسم</div>
+              ) : paginated.map((order) => {
+                const { datePart, timePart } = formatDateTime(order.created_at);
+                const isExpanded = expandedOrderId === order.id;
+                const isExpanding = expandingId === order.id;
+                const ps = order.payment_status || 'pending';
+                const pc = paymentStatusColors[ps] || paymentStatusColors.pending;
+                return (
+                  <div key={order.id} style={{ background: '#fff', borderRadius: '16px', border: isExpanded ? '2px solid #22c55e' : '1px solid #eee', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', transition: 'border-color 0.2s' }}>
+                    {/* Card header - tappable to expand */}
+                    <div onClick={() => toggleExpandOrder(order)} style={{ padding: '14px 16px', cursor: 'pointer', background: isExpanded ? '#f0fdf4' : '#fff', transition: 'background 0.2s' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                        <div>
+                          <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#1a1a1a', marginBottom: '3px' }}>{order.customer_name}</div>
+                          <div style={{ fontSize: '0.78rem', color: '#777', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={11} /> {order.customer_phone}</div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                          <span style={{ fontWeight: '900', fontSize: '1rem', color: '#15803d' }}>{order.total_price} ج.م</span>
+                          {isExpanding
+                            ? <Loader2 size={18} color="#22c55e" style={{ animation: 'spin 1s linear infinite' }} />
+                            : <ChevronDown size={20} color={isExpanded ? '#22c55e' : '#aaa'} style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                          }
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                        <div style={{ ...cityBadge, fontSize: '0.75rem', padding: '4px 10px' }}><MapPin size={12} color="#15803d" /> {order.city || 'غير محدد'}</div>
+                        <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: pc.bg, color: pc.color, border: `1px solid ${pc.border}` }}>{paymentStatusLabels[ps]}</span>
+                        {/* Shipping status badge */}
+                        {(() => {
+                          const sc = miniSelectStyle(order.status);
+                          const statusLabels: any = { pending: 'جديد', processing: 'تجهيز', shipped: 'شحن', delivered: 'توصيل', cancelled: 'ملغي', refunded: 'مسترجع' };
+                          return <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: sc.background, color: sc.color, border: sc.border }}>{statusLabels[order.status] || order.status}</span>;
+                        })()}
+                        <span style={{ fontSize: '0.72rem', color: '#999', marginRight: 'auto' }}>{datePart} • {timePart}</span>
+                      </div>
+                    </div>
+
+                    {/* Quick actions always visible on mobile */}
+                    <div style={{ display: 'flex', borderTop: '1px solid #f0f0f0', background: '#fafafa' }} onClick={e => e.stopPropagation()}>
+                      <select value={order.status} onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                        style={{ flex: 1, border: 'none', background: 'transparent', padding: '10px 12px', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', outline: 'none', color: '#333', borderLeft: '1px solid #f0f0f0' }}>
+                        <option value="pending">جديد</option>
+                        <option value="processing">تجهيز</option>
+                        <option value="shipped">شحن</option>
+                        <option value="delivered">توصيل</option>
+                        <option value="cancelled">ملغي</option>
+                        <option value="refunded">مسترجع</option>
+                      </select>
+                      <button onClick={() => openDetailModal(order)} style={{ flex: 1, border: 'none', background: 'transparent', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '0.78rem', fontWeight: '700', color: '#1e40af', borderLeft: '1px solid #f0f0f0' }}>
+                        <Eye size={14} /> تفاصيل
+                      </button>
+                      <button onClick={() => openInvoiceModal(order)} style={{ flex: 1, border: 'none', background: 'transparent', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '0.78rem', fontWeight: '700', color: '#22c55e', borderLeft: '1px solid #f0f0f0' }}>
+                        <FileText size={14} /> ORDER
+                      </button>
+                      <button onClick={() => setDeleteConfirmId(order.id)} style={{ flex: '0 0 44px', border: 'none', background: 'transparent', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e74c3c' }}>
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+
+                    {/* Expanded content on mobile */}
+                    {isExpanded && (
+                      <div style={{ borderTop: '2px solid #22c55e22' }}>
+                        <ExpandedOrderRow
+                          order={order}
+                          paymentLabels={paymentLabels}
+                          onUpdateStatus={updateOrderStatus}
+                          onUpdatePaymentStatus={updatePaymentStatus}
+                          onViewDetail={openDetailModal}
+                          onViewInvoice={openInvoiceModal}
+                          onDelete={(id) => setDeleteConfirmId(id)}
+                          updatingPayment={updatingPayment}
+                          enrichedItems={expandedEnrichedItems}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {totalPages > 1 && (
@@ -1016,22 +1402,23 @@ export default function AdminOrders() {
           </>
         );
       })()}
+
       {/* Invoice Modal */}
       {selectedOrder && showInvoice && (
         <div style={modalOverlay}>
           <div style={{ ...modalContent, maxWidth: '820px' }}>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', alignItems: 'center' }}>
-              <div style={{ flex: 1 }}>
-                <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '900', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: '120px' }}>
+                <h2 style={{ margin: 0, fontSize: 'clamp(0.95rem, 3vw, 1.3rem)', fontWeight: '900', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <FileText size={22} color="#22c55e" /> ORDER #{selectedOrder.id.slice(0, 8).toUpperCase()}
                 </h2>
               </div>
-              <button onClick={handlePrintInvoice} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 18px', background: '#fff', color: '#1a1a1a', border: '1.5px solid #ddd', borderRadius: '12px', fontWeight: '700', fontSize: '0.88rem', cursor: 'pointer' }}>
+              <button onClick={handlePrintInvoice} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 14px', background: '#fff', color: '#1a1a1a', border: '1.5px solid #ddd', borderRadius: '12px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 <Printer size={16} /> طباعة
               </button>
               <button onClick={() => handleDownloadInvoice(selectedOrder)} disabled={isDownloadingPdf}
-                style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 20px', background: isDownloadingPdf ? '#ccc' : 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.88rem', cursor: isDownloadingPdf ? 'not-allowed' : 'pointer' }}>
-                <Download size={16} /> {isDownloadingPdf ? 'جاري التحميل...' : 'تحميل PDF'}
+                style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 16px', background: isDownloadingPdf ? '#ccc' : 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.85rem', cursor: isDownloadingPdf ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}>
+                <Download size={16} /> {isDownloadingPdf ? 'جاري...' : 'PDF'}
               </button>
               <button onClick={() => { setShowInvoice(false); setSelectedOrder(null); setEnrichedItems([]); }} style={closeBtn}><X size={22} /></button>
             </div>
@@ -1046,21 +1433,21 @@ export default function AdminOrders() {
       {selectedOrder && !showInvoice && (
         <div style={modalOverlay}>
           <div style={{ ...modalContent, maxWidth: editMode ? '900px' : '750px' }}>
-            <div style={modalHeader}>
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0, color: '#1a1a1a' }}>
+            <div style={{ ...modalHeader, flexWrap: 'wrap', gap: '10px' }}>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0, color: '#1a1a1a', fontSize: 'clamp(1rem, 3vw, 1.3rem)' }}>
                 <Hash size={24} color="#27ae60" /> {editMode ? 'تعديل الطلب' : 'تفاصيل الطلب'}
               </h2>
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {!editMode && (
-                  <button onClick={() => setShowInvoice(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #0f172a, #1e293b)', color: '#fff', border: 'none', borderRadius: '10px', padding: '9px 16px', cursor: 'pointer', fontWeight: '700', fontSize: '0.88rem' }}>
-                    <FileText size={16} color="#22c55e" /> عرض ORDER
+                  <button onClick={() => setShowInvoice(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #0f172a, #1e293b)', color: '#fff', border: 'none', borderRadius: '10px', padding: '9px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                    <FileText size={16} color="#22c55e" /> ORDER
                   </button>
                 )}
                 {!editMode ? (
                   <button onClick={() => openEditMode(selectedOrder)} style={editBtnStyle}><Edit2 size={16} /> تعديل</button>
                 ) : (
                   <>
-                    <button onClick={saveOrderEdits} style={saveBtnStyle}><Save size={16} /> حفظ التعديلات</button>
+                    <button onClick={saveOrderEdits} style={saveBtnStyle}><Save size={16} /> حفظ</button>
                     <button onClick={() => setEditMode(false)} style={cancelBtnStyle}><X size={16} /> إلغاء</button>
                   </>
                 )}
@@ -1108,23 +1495,23 @@ export default function AdminOrders() {
               <div style={modalCard}>
                 <h3 style={cardTitle}><User size={18} /> بيانات العميل والتوصيل</h3>
                 {!editMode ? (
-                  <div style={modalGrid}>
-                    <p><strong>الاسم:</strong> {selectedOrder.customer_name}</p>
-                    <p><strong>الموبايل:</strong> {selectedOrder.customer_phone}</p>
-                    <p><strong>المحافظة:</strong> {selectedOrder.city}</p>
-                    <p><strong>العنوان:</strong> {selectedOrder.customer_address}</p>
-                    <p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px', fontSize: '0.95rem', color: '#555' }}>
+                    <p style={{ margin: 0 }}><strong>الاسم:</strong> {selectedOrder.customer_name}</p>
+                    <p style={{ margin: 0 }}><strong>الموبايل:</strong> {selectedOrder.customer_phone}</p>
+                    <p style={{ margin: 0 }}><strong>المحافظة:</strong> {selectedOrder.city}</p>
+                    <p style={{ margin: 0 }}><strong>العنوان:</strong> {selectedOrder.customer_address}</p>
+                    <p style={{ margin: 0 }}>
                       <strong>نوع الشحن:</strong>{' '}
                       {selectedOrder.shipping_type === 'express'
                         ? <span style={{ color: '#f59e0b', fontWeight: '800' }}>⚡ شحن سريع 48 ساعة — {selectedOrder.shipping_cost} ج.م</span>
                         : <span>شحن عادي — {selectedOrder.shipping_cost || 0} ج.م</span>
                       }
                     </p>
-                    {selectedOrder.car_mileage && <p><strong>قراءة العداد:</strong> {selectedOrder.car_mileage} كم</p>}
+                    {selectedOrder.car_mileage && <p style={{ margin: 0 }}><strong>قراءة العداد:</strong> {selectedOrder.car_mileage} كم</p>}
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
                       <div>
                         <label style={labelStyle}>اسم العميل</label>
                         <input value={editedName} onChange={e => setEditedName(e.target.value)} style={inputStyle} placeholder="الاسم الكامل" />
@@ -1134,12 +1521,12 @@ export default function AdminOrders() {
                         <input value={editedPhone} onChange={e => setEditedPhone(e.target.value)} style={inputStyle} placeholder="01xxxxxxxxx" />
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                      <div style={{ flex: 1 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
+                      <div>
                         <label style={labelStyle}>المحافظة</label>
                         <input value={editedCity} onChange={e => setEditedCity(e.target.value)} style={inputStyle} placeholder="المحافظة" />
                       </div>
-                      <div style={{ flex: 2 }}>
+                      <div style={{ gridColumn: '1 / -1' }}>
                         <label style={labelStyle}>العنوان</label>
                         <input value={editedAddress} onChange={e => setEditedAddress(e.target.value)} style={inputStyle} placeholder="العنوان التفصيلي" />
                       </div>
@@ -1176,11 +1563,11 @@ export default function AdminOrders() {
                 <div style={itemsContainer}>
                   {(editMode ? editedItems : (enrichedItems.length > 0 && enrichedItems[0]?._orderId === selectedOrder?.id ? enrichedItems : selectedOrder.items))?.map((item: any, i: number) => (
                     <div key={i} style={productDetailCard}>
-                      <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                         <div style={miniProductImgBox}><img src={item.image_url || item.image || 'https://via.placeholder.com/150'} alt="" style={miniProductImg} /></div>
-                        <div style={{ flex: 1 }}>
-                          <div style={productMainInfo}>
-                            <span style={productName}>{item.name}</span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+                            <span style={{ ...productName, fontSize: 'clamp(0.85rem, 2vw, 1rem)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>{item.name}</span>
                             <span style={productPrice}>{(parseFloat(item.price) * item.quantity).toFixed(0)} ج.م</span>
                           </div>
                           <div style={extraDetailsGrid}>
@@ -1188,7 +1575,7 @@ export default function AdminOrders() {
                             {(item.car_make || item.car_model) && <div style={detailTag}><CarFront size={12} /> {[item.car_make, item.car_model, item.car_model_year].filter(Boolean).join(' ')}</div>}
                           </div>
                           {editMode && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
                               <label style={{ fontSize: '0.8rem', color: '#666' }}>الكمية:</label>
                               <button onClick={() => updateItemQuantity(i, item.quantity - 1)} style={qtyBtn}>−</button>
                               <span style={{ fontWeight: 'bold', minWidth: '20px', textAlign: 'center' }}>{item.quantity}</span>
@@ -1206,19 +1593,19 @@ export default function AdminOrders() {
                         <Plus size={16} /> {showAddItem ? 'إخفاء البحث' : 'إضافة منتج'}
                       </button>
                       {showAddItem && (
-                        <div style={{ background: '#f0fdf4', borderRadius: '16px', padding: '20px', marginTop: '12px', border: '1px solid #dcfce7' }}>
+                        <div style={{ background: '#f0fdf4', borderRadius: '16px', padding: '16px', marginTop: '12px', border: '1px solid #dcfce7' }}>
                           <div style={{ marginBottom: '16px' }}>
                             <label style={labelStyle}>🔍 بحث سريع باسم المنتج</label>
                             <div style={{ display: 'flex', gap: '8px' }}>
                               <div style={{ position: 'relative', flex: 1 }}>
                                 <Search size={16} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#999', pointerEvents: 'none' }} />
-                                <input value={productSearchQuery} onChange={e => setProductSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchFilteredProducts()} placeholder="اكتب اسم المنتج... مثال: زيت موبيل" style={{ ...inputStyle, paddingRight: '38px', background: '#fff' }} />
+                                <input value={productSearchQuery} onChange={e => setProductSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchFilteredProducts()} placeholder="اكتب اسم المنتج..." style={{ ...inputStyle, paddingRight: '38px', background: '#fff' }} />
                               </div>
                               <button onClick={fetchFilteredProducts} style={saveBtnStyle}><Search size={15} /> بحث</button>
                               {productSearchQuery && <button onClick={() => { setProductSearchQuery(''); setFilteredProducts([]); }} style={cancelBtnStyle}><X size={15} /></button>}
                             </div>
                           </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '10px', marginBottom: '14px' }}>
                             <div>
                               <label style={labelStyle}>ماركة القطعة</label>
                               <select style={inputStyle} value={addItemFilter.brand} onChange={e => setAddItemFilter(f => ({ ...f, brand: e.target.value }))}>
@@ -1275,9 +1662,9 @@ export default function AdminOrders() {
                     </div>
                   )}
                   {editMode && (
-                    <div style={{ background: '#fffbeb', borderRadius: '16px', padding: '20px', border: '1px solid #fef3c7', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div style={{ background: '#fffbeb', borderRadius: '16px', padding: '16px', border: '1px solid #fef3c7', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <h4 style={{ margin: 0, color: '#92400e', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}><Tag size={16} /> تعديلات السعر</h4>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
                         <div>
                           <label style={labelStyle}>رسوم الشحن (ج.م)</label>
                           <input type="number" min={0} value={editedShipping} onChange={e => { setEditedShipping(parseFloat(e.target.value) || 0); setRemoveShipping(false); }} style={inputStyle} />
@@ -1292,20 +1679,20 @@ export default function AdminOrders() {
                       </div>
                       <div>
                         <label style={labelStyle}>الخصم</label>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <select value={discount.type} onChange={e => setDiscount(d => ({ ...d, type: e.target.value as any }))} style={{ ...inputStyle, width: '160px' }}>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                          <select value={discount.type} onChange={e => setDiscount(d => ({ ...d, type: e.target.value as any }))} style={{ ...inputStyle, width: 'clamp(130px, 40%, 160px)' }}>
                             <option value="amount">خصم بمبلغ (ج.م)</option>
                             <option value="percent">خصم بنسبة (%)</option>
                           </select>
-                          <input type="number" min={0} value={discount.value || ''} onChange={e => setDiscount(d => ({ ...d, value: parseFloat(e.target.value) || 0 }))} placeholder={discount.type === 'percent' ? 'مثال: 10' : 'مثال: 50'} style={{ ...inputStyle, width: '120px' }} />
+                          <input type="number" min={0} value={discount.value || ''} onChange={e => setDiscount(d => ({ ...d, value: parseFloat(e.target.value) || 0 }))} placeholder={discount.type === 'percent' ? 'مثال: 10' : 'مثال: 50'} style={{ ...inputStyle, width: '100px' }} />
                           <span style={{ color: '#999', fontWeight: '700', fontSize: '0.9rem', flexShrink: 0 }}>{discount.type === 'percent' ? '%' : 'ج.م'}</span>
                         </div>
                       </div>
                       <div>
                         <label style={labelStyle}>رسوم إضافية</label>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <input type="number" min={0} value={extraFee.amount || ''} onChange={e => setExtraFee(f => ({ ...f, amount: parseFloat(e.target.value) || 0 }))} placeholder="المبلغ (ج.م)" style={{ ...inputStyle, width: '130px' }} />
-                          <input value={extraFee.reason} onChange={e => setExtraFee(f => ({ ...f, reason: e.target.value }))} placeholder="سبب الرسوم الإضافية..." style={{ ...inputStyle, flex: 1 }} />
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <input type="number" min={0} value={extraFee.amount || ''} onChange={e => setExtraFee(f => ({ ...f, amount: parseFloat(e.target.value) || 0 }))} placeholder="المبلغ (ج.م)" style={{ ...inputStyle, width: 'clamp(100px, 35%, 130px)' }} />
+                          <input value={extraFee.reason} onChange={e => setExtraFee(f => ({ ...f, reason: e.target.value }))} placeholder="سبب الرسوم الإضافية..." style={{ ...inputStyle, flex: 1, minWidth: '120px' }} />
                         </div>
                       </div>
                       {/* Live breakdown */}
@@ -1340,7 +1727,7 @@ export default function AdminOrders() {
               </div>
               <div style={modalCard}>
                 <h3 style={cardTitle}><CreditCard size={18} /> إثبات وتفاصيل الدفع</h3>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '8px' }}>
                   <span>الوسيلة: <strong>{paymentLabels[selectedOrder.payment_method] || selectedOrder.payment_method}</strong></span>
                   {selectedOrder.payment_screenshot_url && (
                     <a href={selectedOrder.payment_screenshot_url} target="_blank" rel="noreferrer" style={viewLink}><ExternalLink size={16} /> فتح الصورة الأصلية</a>
@@ -1357,17 +1744,17 @@ export default function AdminOrders() {
 
       {/* Delete Confirm Modal */}
       {deleteConfirmId && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(4px)' }}>
-          <div style={{ backgroundColor: '#fff', borderRadius: '20px', padding: '40px 36px', maxWidth: '400px', width: '90%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(4px)', padding: '16px' }}>
+          <div style={{ backgroundColor: '#fff', borderRadius: '20px', padding: 'clamp(24px, 5vw, 40px) clamp(20px, 5vw, 36px)', maxWidth: '400px', width: '100%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
             <div style={{ fontSize: '3.5rem', marginBottom: '16px' }}>🗑️</div>
             <h3 style={{ fontSize: '1.4rem', fontWeight: '900', marginBottom: '10px', color: '#1a1a1a' }}>تأكيد الحذف</h3>
             <p style={{ color: '#666', fontSize: '0.95rem', marginBottom: '8px', lineHeight: 1.6 }}>هل أنت متأكد من حذف هذا الطلب نهائياً؟</p>
             <p style={{ color: '#dc2626', fontWeight: '700', fontSize: '0.9rem', marginBottom: '28px' }}>لا يمكن التراجع عن هذا الإجراء</p>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <button onClick={() => handleDelete(deleteConfirmId)} style={{ padding: '12px 32px', backgroundColor: '#dc2626', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button onClick={() => handleDelete(deleteConfirmId)} style={{ padding: '12px 28px', backgroundColor: '#dc2626', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Trash2 size={16} /> نعم، احذف
               </button>
-              <button onClick={() => setDeleteConfirmId(null)} style={{ padding: '12px 32px', backgroundColor: '#f5f5f5', color: '#555', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer' }}>
+              <button onClick={() => setDeleteConfirmId(null)} style={{ padding: '12px 28px', backgroundColor: '#f5f5f5', color: '#555', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer' }}>
                 إلغاء
               </button>
             </div>
@@ -1380,17 +1767,17 @@ export default function AdminOrders() {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const headerSection: any = { marginBottom: '30px' };
-const mainTitle: any = { color: '#1a1a1a', fontSize: '2.2rem', fontWeight: '900', margin: 0, display: 'flex', alignItems: 'center', gap: '15px' };
+const mainTitle: any = { color: '#1a1a1a', fontSize: '2.2rem', fontWeight: '900', margin: 0, display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' };
 const badgeCount: any = { background: '#27ae60', color: '#fff', padding: '4px 14px', borderRadius: '12px', fontSize: '1.1rem' };
 const tableWrapper: any = { background: '#fff', borderRadius: '25px', border: '1px solid #eee', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.03)' };
 const table: any = { width: '100%', borderCollapse: 'collapse', textAlign: 'right' };
 const thRow: any = { background: '#fcfcfc', borderBottom: '1px solid #eee' };
-const th: any = { padding: '18px 20px', fontSize: '0.85rem', color: '#888', fontWeight: 'bold' };
+const th: any = { padding: '18px 16px', fontSize: '0.82rem', color: '#888', fontWeight: 'bold', whiteSpace: 'nowrap' };
 const tr: any = { borderBottom: '1px solid #f9f9f9', transition: '0.2s' };
-const td: any = { padding: '18px 20px', fontSize: '0.95rem', color: '#333', verticalAlign: 'middle' };
-const cityBadge: any = { display: 'flex', alignItems: 'center', gap: '6px', background: '#f0fdf4', color: '#15803d', padding: '6px 12px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 'bold', width: 'fit-content' };
-const payTypeStyle: any = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#555' };
-const miniSelect = (s: string): any => ({
+const td: any = { padding: '16px', fontSize: '0.92rem', color: '#333', verticalAlign: 'middle' };
+const cityBadge: any = { display: 'flex', alignItems: 'center', gap: '6px', background: '#f0fdf4', color: '#15803d', padding: '6px 12px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 'bold', width: 'fit-content' };
+const payTypeStyle: any = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#555' };
+const miniSelectStyle = (s: string): any => ({
   background: s === 'pending' ? '#fff7ed' : s === 'delivered' ? '#f0fdf4' : s === 'shipped' ? '#eff6ff' : s === 'cancelled' ? '#fef2f2' : s === 'refunded' ? '#f5f3ff' : '#fef3c7',
   color: s === 'pending' ? '#c2410c' : s === 'delivered' ? '#15803d' : s === 'shipped' ? '#1e40af' : s === 'cancelled' ? '#dc2626' : s === 'refunded' ? '#6d28d9' : '#ca8a04',
   border: `1px solid ${s === 'pending' ? '#ffedd5' : s === 'delivered' ? '#dcfce7' : s === 'shipped' ? '#dbeafe' : s === 'cancelled' ? '#fecaca' : s === 'refunded' ? '#ddd6fe' : '#fef3c7'}`,
@@ -1399,35 +1786,34 @@ const miniSelect = (s: string): any => ({
 const iconBtn: any = { background: '#f8f9fa', border: '1px solid #eee', color: '#555', padding: '9px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center' };
 const invoiceRowBtn: any = { background: 'linear-gradient(135deg, #0f172a, #1e293b)', border: 'none', color: '#22c55e', padding: '9px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center' };
 const delBtn: any = { background: '#fff5f5', border: '1px solid #ffebeb', color: '#e74c3c', padding: '9px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center' };
-const modalOverlay: any = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px', backdropFilter: 'blur(4px)' };
-const modalContent: any = { background: '#fff', width: '100%', maxHeight: '92vh', overflowY: 'auto', borderRadius: '35px', padding: '35px', boxShadow: '0 25px 50px rgba(0,0,0,0.15)' };
+const modalOverlay: any = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 'clamp(8px, 3vw, 20px)', backdropFilter: 'blur(4px)' };
+const modalContent: any = { background: '#fff', width: '100%', maxHeight: '95vh', overflowY: 'auto', borderRadius: 'clamp(16px, 4vw, 35px)', padding: 'clamp(16px, 4vw, 35px)', boxShadow: '0 25px 50px rgba(0,0,0,0.15)' };
 const modalHeader: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', borderBottom: '1px solid #eee', paddingBottom: '15px' };
-const closeBtn: any = { background: '#f8f9fa', border: 'none', color: '#888', cursor: 'pointer', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' };
-const modalBody: any = { display: 'flex', flexDirection: 'column', gap: '25px' };
-const modalCard: any = { background: '#fcfcfc', padding: '25px', borderRadius: '25px', border: '1px solid #f0f0f0' };
-const cardTitle: any = { fontSize: '1.1rem', color: '#1a1a1a', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' };
-const modalGrid: any = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', fontSize: '0.95rem', color: '#555' };
-const itemsContainer: any = { display: 'grid', gap: '15px' };
-const productDetailCard: any = { background: '#fff', padding: '15px', borderRadius: '20px', border: '1px solid #eee' };
-const miniProductImgBox: any = { width: '70px', height: '70px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #eee', flexShrink: 0 };
+const closeBtn: any = { background: '#f8f9fa', border: 'none', color: '#888', cursor: 'pointer', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
+const modalBody: any = { display: 'flex', flexDirection: 'column', gap: '20px' };
+const modalCard: any = { background: '#fcfcfc', padding: 'clamp(14px, 3vw, 25px)', borderRadius: '20px', border: '1px solid #f0f0f0' };
+const cardTitle: any = { fontSize: '1.1rem', color: '#1a1a1a', fontWeight: '800', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' };
+const itemsContainer: any = { display: 'grid', gap: '12px' };
+const productDetailCard: any = { background: '#fff', padding: '12px', borderRadius: '16px', border: '1px solid #eee' };
+const miniProductImgBox: any = { width: '60px', height: '60px', borderRadius: '10px', overflow: 'hidden', border: '1px solid #eee', flexShrink: 0 };
 const miniProductImg: any = { width: '100%', height: '100%', objectFit: 'contain' };
-const productMainInfo: any = { display: 'flex', justifyContent: 'space-between', marginBottom: '10px' };
+const productMainInfo: any = { display: 'flex', justifyContent: 'space-between', marginBottom: '8px' };
 const productName: any = { color: '#1a1a1a', fontWeight: '800', fontSize: '1rem' };
 const productPrice: any = { color: '#15803d', fontWeight: '900', fontSize: '1.05rem' };
-const extraDetailsGrid: any = { display: 'flex', flexWrap: 'wrap', gap: '10px' };
-const detailTag: any = { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#666', background: '#f8f9fa', padding: '5px 10px', borderRadius: '8px', border: '1px solid #eee' };
-const modalTotalRow: any = { display: 'flex', justifyContent: 'space-between', marginTop: '20px', fontWeight: '900', borderTop: '2px dashed #eee', paddingTop: '20px', color: '#1a1a1a', fontSize: '1.2rem' };
-const imagePreviewBox: any = { marginTop: '15px', borderRadius: '20px', overflow: 'hidden', border: '1px solid #eee', maxHeight: '450px', background: '#f8f9fa' };
+const extraDetailsGrid: any = { display: 'flex', flexWrap: 'wrap', gap: '8px' };
+const detailTag: any = { display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.75rem', color: '#666', background: '#f8f9fa', padding: '4px 8px', borderRadius: '7px', border: '1px solid #eee' };
+const modalTotalRow: any = { display: 'flex', justifyContent: 'space-between', marginTop: '16px', fontWeight: '900', borderTop: '2px dashed #eee', paddingTop: '16px', color: '#1a1a1a', fontSize: '1.1rem', flexWrap: 'wrap', gap: '8px' };
+const imagePreviewBox: any = { marginTop: '15px', borderRadius: '16px', overflow: 'hidden', border: '1px solid #eee', maxHeight: '400px', background: '#f8f9fa' };
 const fullImg: any = { width: '100%', display: 'block', objectFit: 'contain' };
 const viewLink: any = { color: '#27ae60', fontSize: '0.9rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold' };
-const loaderStyle: any = { color: '#15803d', textAlign: 'center', padding: '150px', fontWeight: '900', fontSize: '1.5rem', direction: 'rtl' };
+const loaderStyle: any = { color: '#15803d', textAlign: 'center', padding: '100px 20px', fontWeight: '900', fontSize: 'clamp(1rem, 4vw, 1.5rem)', direction: 'rtl' };
 const labelStyle: any = { fontSize: '0.8rem', fontWeight: '700', color: '#666', display: 'block', marginBottom: '5px' };
-const inputStyle: any = { background: '#fff', border: '1px solid #e0e0e0', borderRadius: '10px', padding: '9px 13px', fontSize: '0.9rem', color: '#1a1a1a', width: '100%', outline: 'none' };
-const editBtnStyle: any = { display: 'flex', alignItems: 'center', gap: '6px', background: '#eff6ff', color: '#1e40af', border: '1px solid #dbeafe', borderRadius: '10px', padding: '8px 16px', cursor: 'pointer', fontWeight: '700', fontSize: '0.9rem' };
-const saveBtnStyle: any = { display: 'flex', alignItems: 'center', gap: '6px', background: '#27ae60', color: '#fff', border: 'none', borderRadius: '10px', padding: '9px 18px', cursor: 'pointer', fontWeight: '700', fontSize: '0.9rem' };
-const cancelBtnStyle: any = { display: 'flex', alignItems: 'center', gap: '6px', background: '#f8f9fa', color: '#666', border: '1px solid #eee', borderRadius: '10px', padding: '9px 16px', cursor: 'pointer', fontWeight: '700', fontSize: '0.9rem' };
-const qtyBtn: any = { width: '30px', height: '30px', borderRadius: '8px', border: '1px solid #e0e0e0', background: '#f8f9fa', cursor: 'pointer', fontWeight: '900', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' };
-const removeItemBtn: any = { display: 'flex', alignItems: 'center', gap: '5px', background: '#fff5f5', color: '#e74c3c', border: '1px solid #ffebeb', borderRadius: '8px', padding: '5px 10px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '700' };
+const inputStyle: any = { background: '#fff', border: '1px solid #e0e0e0', borderRadius: '10px', padding: '9px 13px', fontSize: '0.9rem', color: '#1a1a1a', width: '100%', outline: 'none', boxSizing: 'border-box' as any };
+const editBtnStyle: any = { display: 'flex', alignItems: 'center', gap: '6px', background: '#eff6ff', color: '#1e40af', border: '1px solid #dbeafe', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.88rem', whiteSpace: 'nowrap' };
+const saveBtnStyle: any = { display: 'flex', alignItems: 'center', gap: '6px', background: '#27ae60', color: '#fff', border: 'none', borderRadius: '10px', padding: '9px 16px', cursor: 'pointer', fontWeight: '700', fontSize: '0.88rem', whiteSpace: 'nowrap' };
+const cancelBtnStyle: any = { display: 'flex', alignItems: 'center', gap: '6px', background: '#f8f9fa', color: '#666', border: '1px solid #eee', borderRadius: '10px', padding: '9px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.88rem', whiteSpace: 'nowrap' };
+const qtyBtn: any = { width: '30px', height: '30px', borderRadius: '8px', border: '1px solid #e0e0e0', background: '#f8f9fa', cursor: 'pointer', fontWeight: '900', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
+const removeItemBtn: any = { display: 'flex', alignItems: 'center', gap: '5px', background: '#fff5f5', color: '#e74c3c', border: '1px solid #ffebeb', borderRadius: '8px', padding: '5px 10px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '700', whiteSpace: 'nowrap' };
 const addItemBtnStyle: any = { display: 'flex', alignItems: 'center', gap: '8px', background: '#f0fdf4', color: '#15803d', border: '2px dashed #86efac', borderRadius: '12px', padding: '10px 18px', cursor: 'pointer', fontWeight: '700', fontSize: '0.9rem', width: '100%', justifyContent: 'center' };
 const addrBtnStyle: any = { display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', borderRadius: '10px', padding: '10px 14px', cursor: 'pointer', textAlign: 'right', fontSize: '0.85rem', color: '#444', width: '100%' };
-const searchProductRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', padding: '10px 14px', borderRadius: '12px', border: '1px solid #eee' };
+const searchProductRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', padding: '10px 12px', borderRadius: '12px', border: '1px solid #eee', flexWrap: 'wrap', gap: '8px' };
