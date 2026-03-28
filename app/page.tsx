@@ -649,42 +649,65 @@ export default function HomePage() {
             .feature-sub   { font-size: 0.68rem; }
           }
 
+          /* ══════════════════════════════════════════
+             HOME BANNER — DESKTOP
+          ══════════════════════════════════════════ */
           .home-banner-section { max-width: 1200px; margin: 0 auto; padding: 16px 20px; }
           .home-banner-inner {
-            position: relative; width: 100%; height: 190px; border-radius: 20px;
+            position: relative; width: 100%; height: 220px; border-radius: 20px;
             overflow: hidden; cursor: pointer;
             box-shadow: 0 8px 30px rgba(0,0,0,0.15);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
           }
           .home-banner-inner:hover { transform: translateY(-3px); box-shadow: 0 16px 44px rgba(0,0,0,0.22); }
           .home-banner-bg  { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-          .home-banner-overlay { position: absolute; inset: 0; background: linear-gradient(to left,rgba(0,0,0,0.72) 0%,rgba(0,0,0,0.38) 55%,rgba(0,0,0,0.1) 100%); }
-          .home-banner-content { position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-end; padding: 0 40px; direction: rtl; }
-          .home-banner-text-block { text-align: right; max-width: 65%; }
-          .home-banner-title    { color: #fff; font-size: 2rem; font-weight: 900; line-height: 1.25; text-shadow: 0 3px 16px rgba(0,0,0,0.6); margin: 0 0 6px; letter-spacing: -0.5px; }
-          .home-banner-subtitle { color: rgba(255,255,255,0.92); font-size: 1.05rem; font-weight: 600; text-shadow: 0 2px 10px rgba(0,0,0,0.5); margin: 0 0 16px; line-height: 1.5; }
+          .home-banner-overlay { position: absolute; inset: 0; background: linear-gradient(to left, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%); }
+          .home-banner-content {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: flex-start;
+            padding: 0 44px; direction: rtl;
+          }
+          .home-banner-text-block { text-align: right; max-width: 70%; }
+          .home-banner-title {
+            color: #fff; font-size: 2.6rem; font-weight: 900; line-height: 1.2;
+            text-shadow: 0 3px 20px rgba(0,0,0,0.8); margin: 0 0 10px;
+            letter-spacing: -1px;
+          }
+          .home-banner-subtitle {
+            color: rgba(255,255,255,0.95); font-size: 1.2rem; font-weight: 700;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.7); margin: 0 0 20px; line-height: 1.5;
+          }
           .home-banner-cta {
             display: inline-flex; align-items: center; gap: 7px;
-            background: #22c55e; color: #fff; padding: 10px 22px; border-radius: 12px;
-            font-size: 0.95rem; font-weight: 900; text-decoration: none;
+            background: #22c55e; color: #fff; padding: 12px 26px; border-radius: 12px;
+            font-size: 1rem; font-weight: 900; text-decoration: none;
             box-shadow: 0 4px 16px rgba(34,197,94,0.45);
             transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
             border: none; cursor: pointer; white-space: nowrap;
           }
           .home-banner-cta:hover { background: #16a34a; transform: translateY(-1px); box-shadow: 0 6px 22px rgba(34,197,94,0.55); }
 
+          /* ══════════════════════════════════════════
+             HOME BANNER — MOBILE
+          ══════════════════════════════════════════ */
           @media (max-width: 768px) {
             .home-banner-section { padding: 12px 12px; }
-            .home-banner-inner   { height: 160px; border-radius: 16px; }
-            .home-banner-overlay { background: linear-gradient(to bottom,rgba(0,0,0,0.2) 0%,rgba(0,0,0,0.75) 100%); }
-            .home-banner-content { align-items: flex-end; justify-content: center; padding: 0 16px 18px; }
-            .home-banner-text-block { text-align: center; max-width: 95%; }
-            .home-banner-title    { font-size: 1.35rem; margin-bottom: 4px; }
-            .home-banner-subtitle { font-size: 0.88rem; margin-bottom: 12px; }
-            .home-banner-cta      { padding: 8px 18px; font-size: 0.85rem; }
+            .home-banner-inner   { height: 180px; border-radius: 16px; }
+            .home-banner-overlay { background: linear-gradient(to left, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.72) 100%); }
+            .home-banner-content {
+              align-items: center; justify-content: flex-start;
+              padding: 0 20px;
+            }
+            .home-banner-text-block { text-align: right; max-width: 85%; }
+            .home-banner-title    { font-size: 1.6rem; margin-bottom: 6px; }
+            .home-banner-subtitle { font-size: 1rem; margin-bottom: 14px; }
+            .home-banner-cta      { padding: 9px 20px; font-size: 0.9rem; }
           }
 
           @media (max-width: 480px) {
+            .home-banner-inner    { height: 170px; }
+            .home-banner-title    { font-size: 1.35rem; }
+            .home-banner-subtitle { font-size: 0.88rem; }
             .loader-brand-name { font-size: 2.4rem !important; letter-spacing: -1px !important; margin-bottom: 16px !important; }
             .loader-headline   { font-size: 1.6rem !important; margin-bottom: 12px !important; }
             .loader-tagline    { font-size: 0.95rem !important; margin-bottom: 28px !important; }
