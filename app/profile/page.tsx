@@ -7,7 +7,7 @@ import {
   User, Phone, Mail, Package, LogOut, 
   Loader2, Save, Clock, CheckCircle, MapPin, Trash2, Plus,
   ChevronDown, ChevronUp, ShoppingBag, Gauge, CreditCard, Car, Settings,
-  CarFront
+  CarFront, Wallet
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -52,6 +52,7 @@ export default function ProfilePage() {
   const [newCarYear, setNewCarYear] = useState('');
   const [showCarForm, setShowCarForm] = useState(false);
   const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'settings'>('orders');
+  const [walletBalance, setWalletBalance] = useState<number>(0); // ← NEW
 
   const router = useRouter();
 
@@ -106,13 +107,17 @@ export default function ProfilePage() {
 
       setOrders(ordersData);
 
-      const [addrRes, garageRes, productsRes] = await Promise.all([
+      const [addrRes, garageRes, productsRes, walletRes] = await Promise.all([
         supabase.from('addresses').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
         supabase.from('user_garage').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
-        supabase.from('products').select('car_make').not('car_make', 'is', null)
+        supabase.from('products').select('car_make').not('car_make', 'is', null),
+        supabase.from('wallets').select('balance').eq('user_id', user.id).single(), // ← NEW
       ]);
+
       setMyAddresses(addrRes.data || []);
       setMyCars(garageRes.data || []);
+      setWalletBalance(walletRes.data?.balance ?? 0); // ← NEW
+
       if (productsRes.data) {
         const uniqueMakes = Array.from(new Set(productsRes.data.map((p: any) => p.car_make?.trim()).filter(Boolean)));
         setMakesOptions((uniqueMakes as string[]).sort().map(m => ({ value: m, label: m })));
@@ -214,6 +219,20 @@ export default function ProfilePage() {
           <div style={headerStatItem}><strong style={{ fontSize: '1.3rem', color: '#1a1a1a' }}>{myAddresses.length}</strong><span style={{ fontSize: '0.7rem', color: '#999' }}>عناوين</span></div>
         </div>
       </div>
+
+      {/* ── Wallet Balance Card ── NEW */}
+      {walletBalance > 0 && (
+        <div style={walletCard}>
+          <div style={walletIconWrap}>
+            <Wallet size={22} color="#16a34a" />
+          </div>
+          <div style={walletInfo}>
+            <span style={walletLabel}>رصيد المحفظة (كاش باك)</span>
+            <span style={walletAmount}>{walletBalance.toFixed(2)} ج.م</span>
+          </div>
+          <div style={walletBadge}>متاح للاستخدام</div>
+        </div>
+      )}
 
       {/* Garage Section */}
       <div style={garageSection}>
@@ -430,6 +449,15 @@ const emailText: any = { fontSize: '0.78rem', color: '#999', wordBreak: 'break-a
 const headerStatsRow: any = { display: 'flex', gap: '14px', alignItems: 'center', flexShrink: 0 };
 const headerStatItem: any = { textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '40px' };
 const headerDivider: any = { width: '1px', height: '28px', background: '#e5e7eb' };
+
+// ── Wallet Card styles ── NEW
+const walletCard: any = { background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', borderRadius: '20px', padding: '16px 18px', marginBottom: '20px', border: '1px solid #86efac', display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 4px 16px rgba(34,197,94,0.1)' };
+const walletIconWrap: any = { width: '46px', height: '46px', borderRadius: '14px', background: '#fff', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(34,197,94,0.12)' };
+const walletInfo: any = { flex: 1, display: 'flex', flexDirection: 'column', gap: '3px' };
+const walletLabel: any = { fontSize: '0.75rem', color: '#16a34a', fontWeight: '700' };
+const walletAmount: any = { fontSize: '1.4rem', fontWeight: '900', color: '#14532d', letterSpacing: '-0.5px' };
+const walletBadge: any = { fontSize: '0.65rem', fontWeight: '900', padding: '5px 10px', borderRadius: '10px', background: '#22c55e', color: '#fff', whiteSpace: 'nowrap' as const };
+
 const garageSection: any = { background: '#fff', borderRadius: '24px', padding: '18px', marginBottom: '20px', border: '1px solid #f0f0f0', boxShadow: '0 2px 12px rgba(0,0,0,0.03)' };
 const garageScroll: any = { display: 'flex', gap: '12px', overflowX: 'auto', padding: '4px 0 8px', scrollbarWidth: 'none' };
 const carCard: any = { flex: '0 0 175px', background: '#f9fafb', border: '1px solid #f0f0f0', borderRadius: '16px', padding: '12px', display: 'flex', alignItems: 'center', gap: '10px', position: 'relative' };
@@ -446,7 +474,6 @@ const compactSectionTitle: any = { fontSize: '0.95rem', fontWeight: '900', color
 const sectionTopRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' };
 const miniOrderHeader: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '13px 15px', cursor: 'pointer' };
 const orderMiniCard = (expanded: boolean): any => ({ background: '#fff', border: expanded ? '1.5px solid #22c55e' : '1px solid #f0f0f0', borderRadius: '16px', marginBottom: '10px', overflow: 'hidden', transition: '0.2s' });
-// ── Updated: statusBadge now takes explicit colors ──
 const statusBadge = (bg: string, color: string): any => ({ fontSize: '0.65rem', fontWeight: '900', padding: '4px 10px', borderRadius: '8px', background: bg, color, display: 'inline-flex', alignItems: 'center' });
 const orderList: any = { display: 'flex', flexDirection: 'column' };
 const orderMeta: any = { display: 'flex', gap: '8px', alignItems: 'center' };
