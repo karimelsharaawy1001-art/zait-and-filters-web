@@ -12,6 +12,18 @@ interface CarEntry {
   models: string[];
 }
 
+// ── Slug generator helper ─────────────────────────────────────────────────────
+function generateSlug(name: string, brand: string, carMake: string, carModel: string): string {
+  const raw = `${brand}-${carMake}-${carModel}`
+    .toLowerCase()
+    .replace(/[^a-zA-Z0-9\-]/g, '-')   // replace non-English chars with dash
+    .replace(/-+/g, '-')                 // collapse multiple dashes
+    .replace(/^-|-$/g, '');              // trim leading/trailing dashes
+
+  const unique = Math.random().toString(36).substring(2, 9); // 7-char random suffix
+  return `${raw}-${unique}`;
+}
+
 export default function AddProduct() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -161,6 +173,8 @@ export default function AddProduct() {
           car_make: car.car_make,
           car_model: car.car_model,
           car_model_year: yearRange,
+          // ── AUTO GENERATED SLUG ──────────────────────────────────────────
+          slug: generateSlug(formData.name, formData.brand, car.car_make, car.car_model),
         };
       });
       const { error } = await supabase.from('products').insert(inserts);
@@ -232,22 +246,15 @@ export default function AddProduct() {
                 <option value="">{loadingOptions ? 'جاري التحميل...' : `اختر الفئة (${categories.length} فئة)`}</option>
                 {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
               </select>
-              <button
-                type="button"
-                onClick={() => setShowNewCategory(true)}
-                style={addNewBtnStyle}
-              >
+              <button type="button" onClick={() => setShowNewCategory(true)} style={addNewBtnStyle}>
                 + إضافة فئة جديدة
               </button>
             </>
           ) : (
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <input
-                autoFocus
-                type="text"
-                placeholder="اكتب اسم الفئة الجديدة..."
-                value={newCategoryInput}
-                onChange={(e) => setNewCategoryInput(e.target.value)}
+                autoFocus type="text" placeholder="اكتب اسم الفئة الجديدة..."
+                value={newCategoryInput} onChange={(e) => setNewCategoryInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); confirmNewCategory(); } if (e.key === 'Escape') { setShowNewCategory(false); setNewCategoryInput(''); } }}
                 style={{ ...inputStyle, flex: 1 }}
               />
@@ -275,11 +282,7 @@ export default function AddProduct() {
                 {subcategories.map(sub => <option key={sub} value={sub}>{sub}</option>)}
               </select>
               {formData.category && (
-                <button
-                  type="button"
-                  onClick={() => setShowNewSubcategory(true)}
-                  style={addNewBtnStyle}
-                >
+                <button type="button" onClick={() => setShowNewSubcategory(true)} style={addNewBtnStyle}>
                   + إضافة قسم فرعي جديد
                 </button>
               )}
@@ -287,11 +290,8 @@ export default function AddProduct() {
           ) : (
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <input
-                autoFocus
-                type="text"
-                placeholder="اكتب اسم القسم الفرعي الجديد..."
-                value={newSubcategoryInput}
-                onChange={(e) => setNewSubcategoryInput(e.target.value)}
+                autoFocus type="text" placeholder="اكتب اسم القسم الفرعي الجديد..."
+                value={newSubcategoryInput} onChange={(e) => setNewSubcategoryInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); confirmNewSubcategory(); } if (e.key === 'Escape') { setShowNewSubcategory(false); setNewSubcategoryInput(''); } }}
                 style={{ ...inputStyle, flex: 1 }}
               />
@@ -325,12 +325,9 @@ export default function AddProduct() {
         <div style={{ gridColumn: 'span 2' }}>
           <label style={labelStyle}>رابط فيديو يوتيوب (اختياري)</label>
           <input
-            type="url"
-            placeholder="مثال: https://www.youtube.com/watch?v=..."
-            value={formData.video_url}
-            onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
-            style={inputStyle}
-            dir="ltr"
+            type="url" placeholder="مثال: https://www.youtube.com/watch?v=..."
+            value={formData.video_url} onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
+            style={inputStyle} dir="ltr"
           />
           {formData.video_url && (() => {
             const match = formData.video_url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/|v\/))([A-Za-z0-9_-]{11})/);

@@ -37,7 +37,14 @@ export default function CheckoutPage() {
   const [promoCode, setPromoCode] = useState('');
   const [discountAmount, setDiscountAmount] = useState(0);
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
-  const [appliedPromoType, setAppliedPromoType] = useState<string | null>(null); 
+  const [appliedPromoType, setAppliedPromoType] = useState<string | null>(null);
+
+  // ── Wallet / cashback ────────────────────────────────────────────────────
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [walletDiscount, setWalletDiscount] = useState(0);
+  const [walletApplied, setWalletApplied] = useState(false);
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [cashbackPct, setCashbackPct] = useState(5);
   const [promoLoading, setPromoLoading] = useState(false);
   const [affiliateMarketerId, setAffiliateMarketerId] = useState<string | null>(null);
 
@@ -107,6 +114,17 @@ export default function CheckoutPage() {
         await trackReferralClick(refCode);
       }
 
+      // ── Load wallet balance + cashback % ──────────────────────────────
+      const { data: { user: u } } = await supabase.auth.getUser();
+      if (u) {
+        const [walletRes, cashbackRes] = await Promise.all([
+          supabase.from('wallets').select('balance').eq('user_id', u.id).single(),
+          supabase.from('cashback_settings').select('cashback_percentage, is_enabled').single(),
+        ]);
+        if (walletRes.data) setWalletBalance(walletRes.data.balance ?? 0);
+        if (cashbackRes.data?.is_enabled) setCashbackPct(cashbackRes.data.cashback_percentage ?? 5);
+      }
+
       const isBuyNow = urlParams.get('buyNow') === 'true';
       const buyNowProductId = urlParams.get('productId');
       const buyNowPrice = urlParams.get('price');
@@ -151,9 +169,9 @@ export default function CheckoutPage() {
     const shipping = expressShipping ? EXPRESS_COST : (selectedCity?.price || 0);
     let currentDiscount = discountAmount;
     if (appliedPromoType === 'free_shipping') currentDiscount = shipping;
-    const total = (subtotal + shipping) - currentDiscount;
+    const total = (subtotal + shipping) - currentDiscount - walletDiscount;
     return total > 0 ? total : 0;
-  }, [subtotal, selectedCity, discountAmount, appliedPromoType, expressShipping]);
+  }, [subtotal, selectedCity, discountAmount, appliedPromoType, expressShipping, walletDiscount]);
 
   useEffect(() => { if (isInitialized) setTimeout(() => setIsReady(true), 800); }, [isInitialized]);
 
@@ -242,6 +260,30 @@ export default function CheckoutPage() {
     } finally {
       setPromoLoading(false);
     }
+  };
+
+  // ── Apply / remove wallet balance ────────────────────────────────────────
+  const applyWallet = async () => {
+    if (walletBalance <= 0) return toast.error('رصيد المحفظة صفر');
+    setWalletLoading(true);
+    try {
+      const res = await fetch('/api/wallet/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amountToUse: walletBalance, orderTotal: finalTotal + walletDiscount }),
+      });
+      const data = await res.json();
+      if (!res.ok) return toast.error(data.error || 'خطأ في تطبيق المحفظة');
+      setWalletDiscount(data.applied);
+      setWalletApplied(true);
+      toast.success(`تم خصم ${data.applied.toFixed(2)} ج.م من محفظتك 💰`);
+    } catch { toast.error('خطأ في الاتصال'); }
+    finally { setWalletLoading(false); }
+  };
+
+  const removeWallet = () => {
+    setWalletDiscount(0);
+    setWalletApplied(false);
   };
 
   const uploadToCloudinary = async (file: File) => {
@@ -423,6 +465,7 @@ export default function CheckoutPage() {
         shipping_cost: expressShipping ? EXPRESS_COST : selectedCity?.price,
         shipping_type: expressShipping ? 'express' : 'standard',
         discount_applied: appliedPromoType === 'free_shipping' ? (expressShipping ? EXPRESS_COST : selectedCity?.price) : discountAmount,
+        wallet_discount: walletDiscount || 0,
         promo_code: appliedPromo,
         total_price: finalTotal,
         items: cart,
@@ -464,6 +507,27 @@ export default function CheckoutPage() {
         if (error) throw error;
 
         if (finalMarketerId) await trackAffiliateCommission(newOrder.id, finalMarketerId);
+
+        // ── Deduct wallet balance if used ────────────────────────────────
+        if (walletDiscount > 0 && user?.id) {
+          await supabase.rpc('deduct_wallet', {
+            p_user_id: user.id,
+            p_amount: walletDiscount,
+            p_order_id: newOrder.id,
+          });
+        }
+
+        // ── Credit cashback to wallet ─────────────────────────────────────
+        if (user?.id) {
+          const cashbackAmount = parseFloat((finalTotal * cashbackPct / 100).toFixed(2));
+          if (cashbackAmount > 0) {
+            await supabase.rpc('credit_cashback', {
+              p_user_id: user.id,
+              p_order_id: newOrder.id,
+              p_amount: cashbackAmount,
+            });
+          }
+        }
 
         if (customerInfo.email) {
           await supabase.from('abandoned_carts').update({ status: 'recovered' }).eq('email', customerInfo.email);
@@ -768,6 +832,39 @@ export default function CheckoutPage() {
             })}
           </div>
 
+          {/* ── Wallet Section ── */}
+          {walletBalance > 0 && (
+            <div style={{ marginBottom: '15px', padding: '15px', background: '#fff', borderRadius: '20px', border: '1px solid #dcfce7' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <label style={{ ...lab, marginBottom: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Wallet size={14} color="#15803d" /> رصيد محفظتك
+                </label>
+                <span style={{ background: '#f0fdf4', color: '#15803d', fontWeight: '900', fontSize: '0.95rem', padding: '4px 12px', borderRadius: '10px', border: '1px solid #dcfce7' }}>
+                  {walletBalance.toFixed(2)} ج.م
+                </span>
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '10px' }}>
+                يمكنك استخدام حتى 50% من قيمة الطلب كخصم من محفظتك
+              </div>
+              {!walletApplied ? (
+                <button
+                  type="button"
+                  onClick={applyWallet}
+                  disabled={walletLoading}
+                  style={{ width: '100%', padding: '10px', background: 'linear-gradient(135deg, #15803d, #166534)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.88rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                >
+                  {walletLoading ? <Loader2 size={16} className="animate-spin" /> : <Wallet size={16} />}
+                  {walletLoading ? 'جاري التحقق...' : 'استخدام رصيد المحفظة'}
+                </button>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f0fdf4', padding: '10px 14px', borderRadius: '12px', border: '1px solid #bbf7d0' }}>
+                  <span style={{ color: '#15803d', fontWeight: '800', fontSize: '0.88rem' }}>✅ تم خصم {walletDiscount.toFixed(2)} ج.م من المحفظة</span>
+                  <button type="button" onClick={removeWallet} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '700' }}>إلغاء</button>
+                </div>
+              )}
+            </div>
+          )}
+
           <div style={promoWrapper}>
             <label style={lab}><Ticket size={14} color="#15803d" /> هل لديك كود خصم أو كود مسوق؟</label>
             <div style={{ display: 'flex', gap: '8px', marginTop: '5px' }}>
@@ -793,7 +890,18 @@ export default function CheckoutPage() {
                 <span>-{discountAmount.toFixed(2)} ج.م</span>
               </div>
             )}
+            {walletDiscount > 0 && (
+              <div style={{ ...rowPrice, color: '#15803d', fontWeight: 'bold' }}>
+                <span>💰 خصم المحفظة:</span>
+                <span>-{walletDiscount.toFixed(2)} ج.م</span>
+              </div>
+            )}
             <div style={finalRow}><span>الإجمالي النهائي:</span><span>{finalTotal.toFixed(2)} ج.م</span></div>
+            {/* ── Cashback preview ── */}
+            <div style={{ marginTop: '10px', padding: '8px 12px', background: '#fffbeb', borderRadius: '10px', border: '1px solid #fde68a', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.78rem', color: '#92400e', fontWeight: '700' }}>🎁 كاش باك ستحصل عليه في محفظتك</span>
+              <span style={{ fontSize: '0.88rem', fontWeight: '900', color: '#d97706' }}>+{(finalTotal * cashbackPct / 100).toFixed(2)} ج.م</span>
+            </div>
           </div>
         </div>
 

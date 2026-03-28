@@ -108,18 +108,19 @@ function UrgencyCounters({ productId }: { productId: string }) {
 
 
 // ─── Share Buttons ─────────────────────────────────────────────────────────────
-function ShareButtons({ productName, productBrand, price, carMake, carModel, productId }: {
+function ShareButtons({ productName, productBrand, price, carMake, carModel, productSlug }: {
   productName: string;
   productBrand: string;
   price: number | string;
   carMake?: string;
   carModel?: string;
-  productId: string;
+  productSlug: string;  // ← now uses slug instead of id
 }) {
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
 
-  const url = `https://zaitandfilters.com/products/${productId}`;
+  // ── URL now uses slug ──────────────────────────────────────────────────────
+  const url = `https://zaitandfilters.com/products/${productSlug}`;
 
   const whatsappText = encodeURIComponent(
     `🛒 ${productName} - ${productBrand}\n💰 السعر: ${price} ج.م${carMake ? `\n🚗 لسيارة: ${carMake} ${carModel || ''}` : ''}\n🔗 ${url}`
@@ -259,7 +260,6 @@ function shareBtnStyle(bg: string): React.CSSProperties {
 // ─── YouTube embed helper ─────────────────────────────────────────────────────
 function getYouTubeId(url: string): string | null {
   if (!url) return null;
-  // Handles: youtu.be/ID, youtube.com/watch?v=ID, youtube.com/shorts/ID, /embed/ID
   const match = url.match(
     /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/|v\/))([A-Za-z0-9_-]{11})/
   );
@@ -298,10 +298,12 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
   const displayImage = p.image_url || fallbackImage || null;
   const country = p.country_of_origin || p.country_origin || p.origin || null;
 
+  // ── Use slug for URL, fallback to id if slug missing ──────────────────────
+  const productHref = `/products/${p.slug || p.id}`;
+
   return (
     <div style={premiumCardStyle}>
-      <Link href={`/products/${p.id}`} style={{ textDecoration: 'none' }}>
-        {/* ── FIXED: related card image with contain + zoom ── */}
+      <Link href={productHref} style={{ textDecoration: 'none' }}>
         <div style={{ ...premiumImageArea }} className="related-card-img-wrap">
           {displayImage ? (
             <img src={displayImage} alt={p.name} style={premiumImgFit} />
@@ -326,7 +328,8 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
           )}
         </div>
 
-        <Link href={`/products/${p.id}`} style={{ textDecoration: 'none' }}>
+        {/* ── Slug-based link on product name ── */}
+        <Link href={productHref} style={{ textDecoration: 'none' }}>
           <h3 style={premiumName}>{p.name}</h3>
         </Link>
 
@@ -447,6 +450,9 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
   const imageUrl = !imgError && product.image_url ? product.image_url : null;
   const displayPrice = product.sale_price && Number(product.sale_price) > 0 ? product.sale_price : product.regular_price;
 
+  // ── Slug for share buttons and buy-now link ────────────────────────────────
+  const productSlug = product.slug || productId;
+
   return (
     <>
       <style>{`
@@ -523,7 +529,6 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             height: 250px;
           }
         }
-
 
         .product-info-section {
           display: flex;
@@ -706,7 +711,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         {/* Main Grid */}
         <div className="product-main-grid">
 
-          {/* ── Media Slider: image + video in one swipeable card ── */}
+          {/* ── Media Slider ── */}
           {(() => {
             const slides: { type: 'image' | 'video'; src: string }[] = [];
             if (product.video_url) {
@@ -756,7 +761,6 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                   ))}
                 </Swiper>
 
-                {/* Custom nav buttons — sit outside iframe so always clickable */}
                 {slides.length > 1 && (
                   <>
                     <button
@@ -833,7 +837,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
               </div>
             </div>
 
-            {/* Urgency counters — inline before Qty + Cart */}
+            {/* Urgency counters */}
             <UrgencyCounters productId={productId} />
 
             {/* Qty + Cart */}
@@ -848,7 +852,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
               </button>
             </div>
 
-            {/* Buy Now */}
+            {/* Buy Now — uses slug in checkout URL */}
             <Link
               href={`/checkout?buyNow=true&productId=${productId}&price=${displayPrice}`}
               onClick={() => addToCart({ ...product, price: displayPrice }, qty)}
@@ -858,7 +862,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
               اشتري الآن
             </Link>
 
-            {/* Share row */}
+            {/* Share row — now passes productSlug instead of productId */}
             <div className="share-row">
               <ShareButtons
                 productName={product.name}
@@ -866,7 +870,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                 price={displayPrice}
                 carMake={product.car_make}
                 carModel={product.car_model}
-                productId={productId}
+                productSlug={productSlug}
               />
             </div>
 
@@ -930,7 +934,6 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
 
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
-
 const carouselFullWrapper: any = { marginTop: '40px', borderTop: '1px solid #f0f0f0', paddingTop: '30px' };
 const relatedHeader: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' };
 const relatedTitle: any = { fontSize: '1.3rem', fontWeight: '900', color: '#1a1a1a', margin: 0 };
