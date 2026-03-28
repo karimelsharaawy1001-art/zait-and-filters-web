@@ -390,77 +390,96 @@ export default function HomePage() {
              DESKTOP HERO  (≥ 769px)
           ══════════════════════════════════════════ */
           @media (min-width: 769px) {
-            .hero-section { height: 620px; }
+            .hero-section { height: 650px; }
 
             .hero-content-layer {
               position: absolute; inset: 0; z-index: 10;
-              display: flex; align-items: center; overflow: hidden;
+              display: flex; align-items: center;
             }
             .hero-inner {
-              width: 100%; max-width: 1200px; margin: 0 auto;
-              padding: 40px 40px; display: flex; gap: 50px;
-              align-items: center; justify-content: space-between;
+              width: 100%; max-width: 1300px; margin: 0 auto;
+              padding: 40px 50px;
+              display: flex; flex-direction: row;
+              gap: 60px;
+              align-items: center;
+              justify-content: space-between;
+              direction: rtl;
             }
 
-            /* ── Text block ── */
+            /* ── Text block — RIGHT side in RTL ── */
             .hero-text {
-              flex: 1; text-align: right; min-width: 340px;
+              flex: 1;
+              direction: rtl;
+              text-align: right;
+              display: flex;
+              flex-direction: column;
+              align-items: flex-end;
               animation: slideIn 0.6s ease-out 0.15s both;
-              display: flex; flex-direction: column; align-items: flex-start;
             }
-            .hero-text-title { overflow: hidden; width: 100%; }
+            .hero-text-title { width: 100%; }
 
-            /* ── BIG title on desktop ── */
+            /* ── MASSIVE title on desktop ── */
             .hero-text h1 {
-              font-size: clamp(2.6rem, 4vw, 4.8rem) !important;
+              font-size: 5rem !important;
               font-weight: 900 !important;
-              line-height: 1.25 !important;
-              margin-bottom: 20px !important;
+              line-height: 1.2 !important;
+              margin: 0 0 22px 0 !important;
               color: #22c55e !important;
+              direction: rtl !important;
               text-align: right !important;
-              text-shadow: 0 3px 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.5) !important;
-              letter-spacing: -1px !important;
-              width: 100%;
+              text-shadow:
+                0 2px 0 rgba(0,0,0,0.5),
+                0 4px 24px rgba(0,0,0,0.9),
+                0 0 60px rgba(0,0,0,0.6) !important;
+              letter-spacing: -1.5px !important;
+              width: 100% !important;
+              display: block !important;
             }
             .hero-text p {
-              font-size: clamp(1.1rem, 1.8vw, 1.5rem) !important;
-              font-weight: 600 !important;
-              line-height: 1.65 !important;
+              font-size: 1.45rem !important;
+              font-weight: 700 !important;
+              line-height: 1.7 !important;
               color: #fff !important;
+              direction: rtl !important;
               text-align: right !important;
-              text-shadow: 0 2px 12px rgba(0,0,0,0.9) !important;
-              margin-bottom: 32px !important;
-              max-width: 540px;
+              text-shadow: 0 2px 16px rgba(0,0,0,0.95) !important;
+              margin: 0 0 36px 0 !important;
+              max-width: 580px !important;
+              display: block !important;
+              width: 100% !important;
             }
 
-            /* ── CTA button on desktop ── */
+            /* ── CTA button on desktop — right-aligned, NOT full-width ── */
             .hero-cta-btn {
               display: inline-flex !important;
               align-items: center !important;
-              gap: 10px !important;
-              padding: 18px 48px !important;
+              justify-content: center !important;
+              gap: 12px !important;
+              padding: 20px 56px !important;
               background-color: #22c55e !important;
               color: #fff !important;
-              border-radius: 16px !important;
+              border-radius: 18px !important;
               text-decoration: none !important;
               font-weight: 900 !important;
-              font-size: 1.25rem !important;
-              box-shadow: 0 8px 30px rgba(34,197,94,0.45) !important;
-              transition: background 0.2s, transform 0.2s, box-shadow 0.2s !important;
+              font-size: 1.35rem !important;
+              letter-spacing: -0.3px !important;
+              box-shadow: 0 10px 40px rgba(34,197,94,0.55) !important;
+              transition: all 0.25s ease !important;
               white-space: nowrap !important;
-              align-self: flex-start;
+              align-self: flex-end !important;
             }
             .hero-cta-btn:hover {
               background-color: #16a34a !important;
-              transform: translateY(-2px) !important;
-              box-shadow: 0 14px 40px rgba(34,197,94,0.55) !important;
+              transform: translateY(-3px) !important;
+              box-shadow: 0 16px 50px rgba(34,197,94,0.65) !important;
             }
 
             .hero-card-desktop {
               width: 400px; flex-shrink: 0; background: #fff;
               padding: 30px; border-radius: 30px;
-              box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-              animation: slideUp 0.6s ease-out 0.25s both; align-self: center;
+              box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+              animation: slideUp 0.6s ease-out 0.25s both;
+              align-self: center;
             }
             .hero-card-mobile { display: none; }
           }
@@ -469,47 +488,57 @@ export default function HomePage() {
              MOBILE HERO  (≤ 768px)
           ══════════════════════════════════════════ */
           @media (max-width: 768px) {
-            .hero-section { height: 960px; }
+            .hero-section { height: 980px; }
 
             .hero-content-layer {
               position: absolute; inset: 0; z-index: 10;
               display: flex; align-items: flex-start;
-              padding-top: 90px; overflow: hidden;
+              padding-top: 100px;
             }
             .hero-inner {
-              width: 100%; padding: 0 16px;
+              width: 100%; padding: 0 18px;
               box-sizing: border-box;
-              display: flex; flex-direction: column; gap: 44px;
+              display: flex; flex-direction: column; gap: 36px;
+              direction: rtl;
             }
 
             /* ── Text block ── */
             .hero-text {
+              direction: rtl;
               text-align: right;
               display: flex; flex-direction: column; align-items: flex-end;
+              width: 100%;
             }
-            .hero-text-title { overflow: hidden; width: 100%; }
+            .hero-text-title { width: 100%; }
 
-            /* ── BIG title on mobile ── */
+            /* ── MASSIVE title on mobile ── */
             .hero-text h1 {
-              font-size: 2.6rem !important;
+              font-size: 2.8rem !important;
               font-weight: 900 !important;
               line-height: 1.3 !important;
-              margin-bottom: 16px !important;
+              margin: 0 0 18px 0 !important;
               color: #22c55e !important;
+              direction: rtl !important;
               text-align: right !important;
-              text-shadow: 0 2px 16px rgba(0,0,0,0.95), 0 0 32px rgba(0,0,0,0.7) !important;
+              text-shadow:
+                0 2px 0 rgba(0,0,0,0.5),
+                0 4px 20px rgba(0,0,0,0.98),
+                0 0 40px rgba(0,0,0,0.8) !important;
               letter-spacing: -0.5px !important;
-              width: 100%;
+              width: 100% !important;
+              display: block !important;
             }
             .hero-text p {
-              font-size: 1.15rem !important;
-              font-weight: 600 !important;
-              line-height: 1.65 !important;
+              font-size: 1.2rem !important;
+              font-weight: 700 !important;
+              line-height: 1.7 !important;
               color: #fff !important;
+              direction: rtl !important;
               text-align: right !important;
-              text-shadow: 0 2px 12px rgba(0,0,0,0.95) !important;
-              margin-bottom: 28px !important;
-              width: 100%;
+              text-shadow: 0 2px 14px rgba(0,0,0,0.98) !important;
+              margin: 0 0 28px 0 !important;
+              width: 100% !important;
+              display: block !important;
             }
 
             /* ── CTA button on mobile ── */
@@ -519,32 +548,32 @@ export default function HomePage() {
               justify-content: center !important;
               gap: 10px !important;
               width: 100% !important;
-              padding: 18px 24px !important;
+              padding: 20px 24px !important;
               background-color: #22c55e !important;
               color: #fff !important;
               border-radius: 16px !important;
               text-decoration: none !important;
               font-weight: 900 !important;
-              font-size: 1.2rem !important;
-              box-shadow: 0 8px 24px rgba(34,197,94,0.4) !important;
+              font-size: 1.25rem !important;
+              box-shadow: 0 8px 28px rgba(34,197,94,0.45) !important;
             }
 
             .hero-card-desktop { display: none; }
             .hero-card-mobile {
               width: 100%; box-sizing: border-box;
-              background: #fff; padding: 16px 14px 18px;
-              border-radius: 20px;
-              box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+              background: #fff; padding: 18px 16px 20px;
+              border-radius: 22px;
+              box-shadow: 0 12px 36px rgba(0,0,0,0.3);
             }
           }
 
           @media (max-width: 380px) {
-            .hero-section       { height: 1000px; }
-            .hero-content-layer { padding-top: 70px; }
-            .hero-inner         { gap: 36px; }
-            .hero-text h1       { font-size: 2.1rem !important; }
-            .hero-text p        { font-size: 1rem !important; }
-            .hero-cta-btn       { font-size: 1.05rem !important; padding: 15px 20px !important; }
+            .hero-section       { height: 1020px; }
+            .hero-content-layer { padding-top: 80px; }
+            .hero-inner         { gap: 28px; }
+            .hero-text h1       { font-size: 2.3rem !important; }
+            .hero-text p        { font-size: 1.05rem !important; }
+            .hero-cta-btn       { font-size: 1.1rem !important; padding: 17px 20px !important; }
           }
 
           .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -689,15 +718,17 @@ export default function HomePage() {
 
               <div className="hero-content-layer">
                 <div className="hero-inner">
-                  <div className="hero-text">
-                    <div className="hero-text-title">
-                      {/* ── CHANGED: removed inline fontSize/style, now driven by CSS classes ── */}
+
+                  {/* ── TEXT BLOCK (right side in RTL) ── */}
+                  <div className="hero-text" dir="rtl">
+                    <div className="hero-text-title" dir="rtl">
                       {activeSlide.title && (
-                        <h1>{activeSlide.title.replace(/<[^>]*>/g, '')}</h1>
+                        <h1 dir="rtl">{activeSlide.title.replace(/<[^>]*>/g, '')}</h1>
                       )}
-                      <p>{activeSlide.subtitle}</p>
+                      {activeSlide.subtitle && (
+                        <p dir="rtl">{activeSlide.subtitle}</p>
+                      )}
                     </div>
-                    {/* ── CHANGED: added className="hero-cta-btn" for CSS control ── */}
                     <Link
                       href={activeSlide.button_link || '/store'}
                       className="hero-cta-btn"
@@ -706,13 +737,14 @@ export default function HomePage() {
                     </Link>
                   </div>
 
+                  {/* ── SEARCH CARD (left side in RTL) ── */}
                   <div className="hero-card-desktop">
                     <SearchCard {...searchCardProps} />
                   </div>
-
                   <div className="hero-card-mobile">
                     <SearchCard {...searchCardProps} />
                   </div>
+
                 </div>
               </div>
             </section>
