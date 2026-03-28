@@ -386,75 +386,149 @@ export default function HomePage() {
           }
           .hero-bg-slide.active { opacity: 1; }
 
+          /* ══════════════════════════════════════════
+             DESKTOP HERO  (≥ 769px)
+          ══════════════════════════════════════════ */
           @media (min-width: 769px) {
-            .hero-section {
-              height: 600px;
-            }
+            .hero-section { height: 620px; }
+
             .hero-content-layer {
               position: absolute; inset: 0; z-index: 10;
-              display: flex; align-items: center;
-              overflow: hidden;
+              display: flex; align-items: center; overflow: hidden;
             }
             .hero-inner {
               width: 100%; max-width: 1200px; margin: 0 auto;
-              padding: 40px 20px; display: flex; gap: 40px;
+              padding: 40px 40px; display: flex; gap: 50px;
               align-items: center; justify-content: space-between;
             }
+
+            /* ── Text block ── */
             .hero-text {
-              flex: 1; text-align: right; min-width: 300px;
+              flex: 1; text-align: right; min-width: 340px;
               animation: slideIn 0.6s ease-out 0.15s both;
-              display: flex; flex-direction: column;
+              display: flex; flex-direction: column; align-items: flex-start;
             }
-            .hero-text-title   { min-height: 200px; overflow: hidden; }
+            .hero-text-title { overflow: hidden; width: 100%; }
+
+            /* ── BIG title on desktop ── */
+            .hero-text h1 {
+              font-size: clamp(2.6rem, 4vw, 4.8rem) !important;
+              font-weight: 900 !important;
+              line-height: 1.25 !important;
+              margin-bottom: 20px !important;
+              color: #22c55e !important;
+              text-align: right !important;
+              text-shadow: 0 3px 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.5) !important;
+              letter-spacing: -1px !important;
+              width: 100%;
+            }
+            .hero-text p {
+              font-size: clamp(1.1rem, 1.8vw, 1.5rem) !important;
+              font-weight: 600 !important;
+              line-height: 1.65 !important;
+              color: #fff !important;
+              text-align: right !important;
+              text-shadow: 0 2px 12px rgba(0,0,0,0.9) !important;
+              margin-bottom: 32px !important;
+              max-width: 540px;
+            }
+
+            /* ── CTA button on desktop ── */
+            .hero-cta-btn {
+              display: inline-flex !important;
+              align-items: center !important;
+              gap: 10px !important;
+              padding: 18px 48px !important;
+              background-color: #22c55e !important;
+              color: #fff !important;
+              border-radius: 16px !important;
+              text-decoration: none !important;
+              font-weight: 900 !important;
+              font-size: 1.25rem !important;
+              box-shadow: 0 8px 30px rgba(34,197,94,0.45) !important;
+              transition: background 0.2s, transform 0.2s, box-shadow 0.2s !important;
+              white-space: nowrap !important;
+              align-self: flex-start;
+            }
+            .hero-cta-btn:hover {
+              background-color: #16a34a !important;
+              transform: translateY(-2px) !important;
+              box-shadow: 0 14px 40px rgba(34,197,94,0.55) !important;
+            }
+
             .hero-card-desktop {
               width: 400px; flex-shrink: 0; background: #fff;
               padding: 30px; border-radius: 30px;
               box-shadow: 0 20px 40px rgba(0,0,0,0.3);
               animation: slideUp 0.6s ease-out 0.25s both; align-self: center;
             }
-            .hero-card-mobile  { display: none; }
+            .hero-card-mobile { display: none; }
           }
 
-          /* ── CHANGED: mobile hero layout ── */
+          /* ══════════════════════════════════════════
+             MOBILE HERO  (≤ 768px)
+          ══════════════════════════════════════════ */
           @media (max-width: 768px) {
-            .hero-section {
-              height: 920px;
-            }
+            .hero-section { height: 960px; }
+
             .hero-content-layer {
               position: absolute; inset: 0; z-index: 10;
               display: flex; align-items: flex-start;
-              padding-top: 100px;
-              overflow: hidden;
+              padding-top: 90px; overflow: hidden;
             }
             .hero-inner {
-              width: 100%; padding: 0 14px;
+              width: 100%; padding: 0 16px;
               box-sizing: border-box;
-              display: flex; flex-direction: column;
-              gap: 52px;
+              display: flex; flex-direction: column; gap: 44px;
             }
+
+            /* ── Text block ── */
             .hero-text {
-              text-align: center; display: flex;
-              flex-direction: column; align-items: center;
+              text-align: right;
+              display: flex; flex-direction: column; align-items: flex-end;
             }
-            .hero-text-title   { overflow: hidden; }
+            .hero-text-title { overflow: hidden; width: 100%; }
+
+            /* ── BIG title on mobile ── */
             .hero-text h1 {
-              font-size: 2.1rem !important;
+              font-size: 2.6rem !important;
+              font-weight: 900 !important;
               line-height: 1.3 !important;
-              margin-bottom: 18px !important;
+              margin-bottom: 16px !important;
               color: #22c55e !important;
-              text-shadow: 0 2px 12px rgba(0,0,0,0.9), 0 0 30px rgba(0,0,0,0.6) !important;
+              text-align: right !important;
+              text-shadow: 0 2px 16px rgba(0,0,0,0.95), 0 0 32px rgba(0,0,0,0.7) !important;
               letter-spacing: -0.5px !important;
+              width: 100%;
             }
             .hero-text p {
               font-size: 1.15rem !important;
-              max-width: 92%;
-              margin-left: auto !important; margin-right: auto !important;
-              margin-bottom: 28px !important;
+              font-weight: 600 !important;
               line-height: 1.65 !important;
               color: #fff !important;
-              text-shadow: 0 2px 10px rgba(0,0,0,0.95), 0 0 20px rgba(0,0,0,0.7) !important;
-              font-weight: 600 !important;
+              text-align: right !important;
+              text-shadow: 0 2px 12px rgba(0,0,0,0.95) !important;
+              margin-bottom: 28px !important;
+              width: 100%;
             }
+
+            /* ── CTA button on mobile ── */
+            .hero-cta-btn {
+              display: flex !important;
+              align-items: center !important;
+              justify-content: center !important;
+              gap: 10px !important;
+              width: 100% !important;
+              padding: 18px 24px !important;
+              background-color: #22c55e !important;
+              color: #fff !important;
+              border-radius: 16px !important;
+              text-decoration: none !important;
+              font-weight: 900 !important;
+              font-size: 1.2rem !important;
+              box-shadow: 0 8px 24px rgba(34,197,94,0.4) !important;
+            }
+
             .hero-card-desktop { display: none; }
             .hero-card-mobile {
               width: 100%; box-sizing: border-box;
@@ -465,13 +539,13 @@ export default function HomePage() {
           }
 
           @media (max-width: 380px) {
-            .hero-section       { height: 960px; }
-            .hero-content-layer { padding-top: 80px; }
-            .hero-inner         { gap: 44px; }
-            .hero-text h1       { font-size: 1.8rem !important; }
+            .hero-section       { height: 1000px; }
+            .hero-content-layer { padding-top: 70px; }
+            .hero-inner         { gap: 36px; }
+            .hero-text h1       { font-size: 2.1rem !important; }
             .hero-text p        { font-size: 1rem !important; }
+            .hero-cta-btn       { font-size: 1.05rem !important; padding: 15px 20px !important; }
           }
-          /* ── END CHANGED ── */
 
           .no-scrollbar::-webkit-scrollbar { display: none; }
           .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -617,18 +691,18 @@ export default function HomePage() {
                 <div className="hero-inner">
                   <div className="hero-text">
                     <div className="hero-text-title">
+                      {/* ── CHANGED: removed inline fontSize/style, now driven by CSS classes ── */}
                       {activeSlide.title && (
-                        <h1 style={{ fontSize: '3rem', fontWeight: '900', lineHeight: '1.4', marginBottom: '15px', color: '#22c55e' }}>
-                          {activeSlide.title.replace(/<[^>]*>/g, '')}
-                        </h1>
+                        <h1>{activeSlide.title.replace(/<[^>]*>/g, '')}</h1>
                       )}
-                      <p style={{ color: '#fff', fontSize: '1.2rem', fontWeight: '500', marginBottom: '25px', maxWidth: '550px', lineHeight: '1.5' }}>
-                        {activeSlide.subtitle}
-                      </p>
+                      <p>{activeSlide.subtitle}</p>
                     </div>
-                    <Link href={activeSlide.button_link || '/store'}
-                      style={{ padding: '12px 30px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.95rem', display: 'inline-block' }}>
-                      {activeSlide.button_text || 'تصفح المتجر'}
+                    {/* ── CHANGED: added className="hero-cta-btn" for CSS control ── */}
+                    <Link
+                      href={activeSlide.button_link || '/store'}
+                      className="hero-cta-btn"
+                    >
+                      {activeSlide.button_text || 'تصفح المتجر'} ←
                     </Link>
                   </div>
 
