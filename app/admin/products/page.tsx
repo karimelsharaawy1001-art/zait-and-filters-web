@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import {
   Eye,
@@ -106,26 +107,30 @@ function ConfirmModal({
 }
 
 export default function AdminProducts() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [products, setProducts] = useState<any[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
+
+  // ── Read initial filter state from URL ──
+  const [currentPage, setCurrentPage] = useState(() => Number(searchParams.get('page') || 1));
+  const [searchName, setSearchName] = useState(() => searchParams.get('name') || '');
+  const [filterMake, setFilterMake] = useState(() => searchParams.get('make') || '');
+  const [filterModel, setFilterModel] = useState(() => searchParams.get('model') || '');
+  const [filterCategory, setFilterCategory] = useState(() => searchParams.get('category') || '');
+  const [filterSubcategory, setFilterSubcategory] = useState(() => searchParams.get('subcategory') || '');
+  const [filterYear, setFilterYear] = useState(() => searchParams.get('year') || '');
+  const [filterBrand, setFilterBrand] = useState(() => searchParams.get('brand') || '');
+  const [sortBy, setSortBy] = useState(() => searchParams.get('sortBy') || 'created_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(() => (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc');
 
   const [availableMakes, setAvailableMakes] = useState<string[]>([]);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [availableSubcategories, setAvailableSubcategories] = useState<string[]>([]);
   const [availableBrands, setAvailableBrands] = useState<string[]>([]);
-
-  const [searchName, setSearchName] = useState('');
-  const [filterMake, setFilterMake] = useState('');
-  const [filterModel, setFilterModel] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
-  const [filterSubcategory, setFilterSubcategory] = useState('');
-  const [filterYear, setFilterYear] = useState('');
-  const [filterBrand, setFilterBrand] = useState('');
-  const [sortBy, setSortBy] = useState('created_at');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState({ regular_price: '', sale_price: '' });
@@ -139,6 +144,27 @@ export default function AdminProducts() {
 
   // ── IMPORT PROGRESS ──
   const [importing, setImporting] = useState(false);
+
+  // ── Sync filters to URL whenever they change ──────────────────────────────
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (currentPage > 1) params.set('page', String(currentPage));
+    if (searchName) params.set('name', searchName);
+    if (filterMake) params.set('make', filterMake);
+    if (filterModel) params.set('model', filterModel);
+    if (filterCategory) params.set('category', filterCategory);
+    if (filterSubcategory) params.set('subcategory', filterSubcategory);
+    if (filterYear) params.set('year', filterYear);
+    if (filterBrand) params.set('brand', filterBrand);
+    if (sortBy !== 'created_at') params.set('sortBy', sortBy);
+    if (sortOrder !== 'desc') params.set('sortOrder', sortOrder);
+
+    const newUrl = params.toString()
+      ? `/admin/products?${params.toString()}`
+      : '/admin/products';
+
+    router.replace(newUrl, { scroll: false });
+  }, [currentPage, searchName, filterMake, filterModel, filterCategory, filterSubcategory, filterYear, filterBrand, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchUniqueValues('car_make', setAvailableMakes);
@@ -478,6 +504,27 @@ export default function AdminProducts() {
     reader.readAsText(file);
   };
 
+  // ── Build the edit URL with current filters encoded as ?from=... ──────────
+  const buildEditUrl = (productId: string) => {
+    const params = new URLSearchParams();
+    if (currentPage > 1) params.set('page', String(currentPage));
+    if (searchName) params.set('name', searchName);
+    if (filterMake) params.set('make', filterMake);
+    if (filterModel) params.set('model', filterModel);
+    if (filterCategory) params.set('category', filterCategory);
+    if (filterSubcategory) params.set('subcategory', filterSubcategory);
+    if (filterYear) params.set('year', filterYear);
+    if (filterBrand) params.set('brand', filterBrand);
+    if (sortBy !== 'created_at') params.set('sortBy', sortBy);
+    if (sortOrder !== 'desc') params.set('sortOrder', sortOrder);
+
+    const returnUrl = params.toString()
+      ? `/admin/products?${params.toString()}`
+      : '/admin/products';
+
+    return `/admin/products/edit/${productId}?returnUrl=${encodeURIComponent(returnUrl)}`;
+  };
+
   return (
     <div style={{ direction: 'rtl', color: '#fff', fontFamily: 'sans-serif' }}>
       {/* ── Confirmation Modal ── */}
@@ -760,13 +807,7 @@ export default function AdminProducts() {
                       transition: 'background-color 0.15s ease',
                     }}
                   >
-                    <td
-                      style={{
-                        ...tdStyle,
-                        textAlign: 'center',
-                        width: '40px',
-                      }}
-                    >
+                    <td style={{ ...tdStyle, textAlign: 'center', width: '40px' }}>
                       <button
                         onClick={() => toggleSelectOne(product.id)}
                         style={{
@@ -804,7 +845,6 @@ export default function AdminProducts() {
                       </button>
                     </td>
 
-                    {/* ── CHANGED: image thumbnail + name ── */}
                     <td style={tdStyle}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div style={{ width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#1a1a1a', border: '1px solid #222', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -823,13 +863,7 @@ export default function AdminProducts() {
                     <td style={tdStyle}>{product.car_model_year}</td>
                     <td style={tdStyle}>
                       {editingId === product.id ? (
-                        <div
-                          style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '5px',
-                          }}
-                        >
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                           <input
                             type="number"
                             placeholder="الأساسي"
@@ -852,21 +886,13 @@ export default function AdminProducts() {
                           <div style={{ display: 'flex', gap: '5px' }}>
                             <button
                               onClick={() => handleUpdatePrice(product.id)}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                cursor: 'pointer',
-                              }}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer' }}
                             >
                               <Check size={16} color="#2ecc71" />
                             </button>
                             <button
                               onClick={() => setEditingId(null)}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                cursor: 'pointer',
-                              }}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer' }}
                             >
                               <X size={16} color="#ff4d4d" />
                             </button>
@@ -878,17 +904,13 @@ export default function AdminProducts() {
                             style={{
                               fontSize: product.sale_price ? '0.8rem' : '1rem',
                               color: product.sale_price ? '#888' : '#fff',
-                              textDecoration: product.sale_price
-                                ? 'line-through'
-                                : 'none',
+                              textDecoration: product.sale_price ? 'line-through' : 'none',
                             }}
                           >
                             {product.regular_price} ج.م
                           </div>
                           {product.sale_price && (
-                            <div
-                              style={{ color: '#2ecc71', fontWeight: 'bold' }}
-                            >
+                            <div style={{ color: '#2ecc71', fontWeight: 'bold' }}>
                               {product.sale_price} ج.م
                             </div>
                           )}
@@ -896,24 +918,12 @@ export default function AdminProducts() {
                       )}
                     </td>
                     <td style={tdStyle}>
-                      <div
-                        style={{
-                          display: 'flex',
-                          gap: '15px',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Link
-                          href={`/products/${product.id}`}
-                          target="_blank"
-                          title="عرض"
-                        >
+                      <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                        <Link href={`/products/${product.id}`} target="_blank" title="عرض">
                           <Eye size={18} color="#2ecc71" />
                         </Link>
-                        <Link
-                          href={`/admin/products/edit/${product.id}`}
-                          title="تعديل"
-                        >
+                        {/* ── Edit button now carries the returnUrl ── */}
+                        <Link href={buildEditUrl(product.id)} title="تعديل">
                           <Edit3 size={18} color="#f1c40f" />
                         </Link>
                         <button
@@ -926,24 +936,14 @@ export default function AdminProducts() {
                                 : '',
                             });
                           }}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            padding: 0,
-                            cursor: 'pointer',
-                          }}
+                          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                           title="السعر"
                         >
                           <DollarSign size={18} color="#3b82f6" />
                         </button>
                         <button
                           onClick={() => deleteProduct(product.id)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            padding: 0,
-                            cursor: 'pointer',
-                          }}
+                          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                           title="حذف"
                         >
                           <Trash2 size={18} color="#ff4d4d" />
@@ -989,66 +989,11 @@ export default function AdminProducts() {
   );
 }
 
-const labelStyle = {
-  display: 'block',
-  fontSize: '0.8rem',
-  color: '#555',
-  marginBottom: '8px',
-};
-const filterInputStyle = {
-  width: '100%',
-  padding: '12px',
-  backgroundColor: '#000',
-  border: '1px solid #222',
-  color: '#fff',
-  borderRadius: '10px',
-  outline: 'none',
-  fontSize: '0.85rem',
-};
-const secondaryBtnStyle: any = {
-  padding: '8px 15px',
-  backgroundColor: '#111',
-  color: '#888',
-  border: '1px solid #222',
-  borderRadius: '8px',
-  cursor: 'pointer',
-  fontSize: '0.8rem',
-  fontWeight: 'bold',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-};
-
+const labelStyle = { display: 'block', fontSize: '0.8rem', color: '#555', marginBottom: '8px' };
+const filterInputStyle = { width: '100%', padding: '12px', backgroundColor: '#000', border: '1px solid #222', color: '#fff', borderRadius: '10px', outline: 'none', fontSize: '0.85rem' };
+const secondaryBtnStyle: any = { padding: '8px 15px', backgroundColor: '#111', color: '#888', border: '1px solid #222', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' };
 const thStyle: any = { padding: '18px 15px', fontSize: '0.9rem' };
 const tdStyle: any = { padding: '15px', color: '#bbb', fontSize: '0.85rem' };
-
-const miniInputStyle: any = {
-  width: '80px',
-  padding: '8px',
-  backgroundColor: '#000',
-  color: '#fff',
-  border: '1px solid #333',
-  borderRadius: '6px',
-  fontSize: '0.8rem',
-  outline: 'none',
-};
-const pageBtnStyle: any = {
-  padding: '10px 25px',
-  backgroundColor: '#111',
-  color: '#fff',
-  border: '1px solid #222',
-  borderRadius: '10px',
-  cursor: 'pointer',
-};
-const bulkBarStyle: any = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  backgroundColor: '#1a0a0a',
-  border: '1px solid #ff4d4d44',
-  borderRadius: '12px',
-  padding: '14px 20px',
-  marginBottom: '16px',
-  gap: '12px',
-  flexWrap: 'wrap',
-};
+const miniInputStyle: any = { width: '80px', padding: '8px', backgroundColor: '#000', color: '#fff', border: '1px solid #333', borderRadius: '6px', fontSize: '0.8rem', outline: 'none' };
+const pageBtnStyle: any = { padding: '10px 25px', backgroundColor: '#111', color: '#fff', border: '1px solid #222', borderRadius: '10px', cursor: 'pointer' };
+const bulkBarStyle: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1a0a0a', border: '1px solid #ff4d4d44', borderRadius: '12px', padding: '14px 20px', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' };

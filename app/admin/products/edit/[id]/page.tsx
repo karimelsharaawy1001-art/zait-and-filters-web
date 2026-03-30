@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
 import { Save, ArrowRight, Loader2, Image as ImageIcon, Car, Tag, Globe, Upload, Plus, X } from 'lucide-react';
 
@@ -15,6 +15,11 @@ interface CarRow {
 export default function EditProduct() {
   const { id } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // ── Read returnUrl so we go back to the exact filtered list ──
+  const returnUrl = searchParams.get('returnUrl') || '/admin/products';
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -213,7 +218,8 @@ export default function EditProduct() {
       }
 
       alert('✅ تم حفظ البيانات بنجاح');
-      router.push('/admin/products');
+      // ── Go back to exactly where we came from (filters preserved) ──
+      router.push(returnUrl);
 
     } catch (err: any) {
       console.error('Save error:', err);
@@ -237,7 +243,10 @@ export default function EditProduct() {
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '40px' }}>
-          <button onClick={() => router.back()} style={backBtnStyle}><ArrowRight size={20} /></button>
+          {/* ── Back button also uses returnUrl ── */}
+          <button onClick={() => router.push(returnUrl)} style={backBtnStyle}>
+            <ArrowRight size={20} />
+          </button>
           <h1 style={{ fontSize: '1.8rem', fontWeight: '900', color: '#2ecc71' }}>تعديل بيانات الصنف</h1>
         </div>
 
@@ -333,7 +342,6 @@ export default function EditProduct() {
                 />
               </div>
 
-              {/* Preview */}
               {formData.video_url && (
                 youtubeId ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#0a1a0a', border: '1px solid #2ecc71', borderRadius: '10px', padding: '12px' }}>
