@@ -7,7 +7,8 @@ import {
   Image as ImageIcon, ExternalLink, Eye, X, User, Hash,
   CarFront, Factory, Smartphone, Plus, Edit2, Save, Tag,
   Truck, AlertCircle, RefreshCw, Search, FileText, Download, Printer,
-  ChevronDown, Package, CheckCircle, Loader2, CheckSquare, Square
+  ChevronDown, Package, CheckCircle, Loader2, CheckSquare, Square, Minus,
+  AlertTriangle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -192,8 +193,6 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '12px', backdropFilter: 'blur(4px)' }}>
       <div style={{ background: '#f8f9fa', width: '100%', maxWidth: '1060px', maxHeight: '95vh', overflowY: 'auto', borderRadius: '24px', padding: 'clamp(16px, 4vw, 28px)', boxShadow: '0 25px 60px rgba(0,0,0,0.25)', direction: 'rtl' }}>
-
-        {/* Modal Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px', borderBottom: '1px solid #e8e8e8', paddingBottom: '16px' }}>
           <h2 style={{ margin: 0, fontSize: 'clamp(1rem, 3vw, 1.4rem)', fontWeight: '900', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Package size={22} color="#22c55e" /> إنشاء طلب جديد يدوياً
@@ -202,16 +201,10 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
             <X size={19} color="#666" />
           </button>
         </div>
-
         <div style={{ display: 'grid', gridTemplateColumns: 'clamp(0px, calc(100% - 320px), 1fr) min(310px, 100%)', gap: '18px', alignItems: 'flex-start' }}>
-
-          {/* ── LEFT ── */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
-
-            {/* Product Search Card */}
             <div style={nomCard}>
               <h3 style={nomTitle}><Search size={16} color="#22c55e" /> البحث عن منتجات</h3>
-              {/* Filter grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px', marginBottom: '12px' }}>
                 <Dropdown label="الماركة" options={makesOptions} value={filterMake} onChange={setFilterMake} />
                 <Dropdown label="الموديل" options={modelsOptions} value={filterModel} onChange={setFilterModel} disabled={!filterMake} />
@@ -223,7 +216,6 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
                   <X size={13} /> مسح الفلاتر
                 </button>
               </div>
-              {/* Search input */}
               <div ref={searchRef} style={{ position: 'relative' }}>
                 <div style={{ position: 'relative' }}>
                   <Search size={16} color="#aaa" style={{ position: 'absolute', right: '13px', top: '15px', pointerEvents: 'none' }} />
@@ -263,8 +255,6 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
                 )}
               </div>
             </div>
-
-            {/* Order Items */}
             {orderItems.length > 0 && (
               <div style={nomCard}>
                 <h3 style={nomTitle}><ShoppingCart size={16} color="#22c55e" /> منتجات الطلب ({orderItems.length})</h3>
@@ -288,11 +278,8 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
                 </div>
               </div>
             )}
-
-            {/* Customer Info */}
             <div style={nomCard}>
               <h3 style={nomTitle}><User size={16} color="#22c55e" /> بيانات العميل</h3>
-              {/* Customer search */}
               <div ref={customerRef} style={{ position: 'relative', marginBottom: '14px' }}>
                 <label style={nomLabel}>ابحث عن عميل موجود (بالاسم أو رقم الهاتف)</label>
                 <div style={{ position: 'relative' }}>
@@ -353,8 +340,6 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
               </div>
             </div>
           </div>
-
-          {/* ── RIGHT: Summary ── */}
           <div style={{ position: 'sticky', top: '10px' }}>
             <div style={{ ...nomCard, border: '2px solid #e8e8e8' }}>
               <h3 style={nomTitle}><Tag size={16} color="#22c55e" /> ملخص الطلب</h3>
@@ -407,14 +392,12 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
   );
 }
 
-// ── NewOrderModal styles
 const nomCard: any = { backgroundColor: '#fff', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid #f0f0f0' };
 const nomTitle: any = { fontSize: '0.98rem', fontWeight: '900', color: '#1a1a1a', marginBottom: '14px', marginTop: 0, display: 'flex', alignItems: 'center', gap: '7px' };
 const nomInput: any = { width: '100%', height: '46px', padding: '0 14px', backgroundColor: '#fff', border: '1px solid #e5e5e5', borderRadius: '10px', fontSize: '0.88rem', color: '#1a1a1a', boxSizing: 'border-box' as any };
 const nomLabel: any = { display: 'block', marginBottom: '5px', fontSize: '0.76rem', fontWeight: '700', color: '#555' };
 const nomQtyBtn: any = { width: '26px', height: '26px', borderRadius: '6px', border: '1px solid #e5e5e5', backgroundColor: '#f5f5f5', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' };
 const ddItem: any = { padding: '9px 14px', cursor: 'pointer', fontSize: '0.85rem', borderBottom: '1px solid #f9f9f9', transition: '0.1s' };
-
 
 // ─── Payment Status helpers ───────────────────────────────────────────────────
 const paymentStatusLabels: Record<string, string> = {
@@ -433,219 +416,102 @@ const paymentStatusColors: Record<string, { bg: string; color: string; border: s
 
 // ─── Inline Expanded Order Row ────────────────────────────────────────────────
 function ExpandedOrderRow({
-  order,
-  paymentLabels,
-  onUpdateStatus,
-  onUpdatePaymentStatus,
-  onViewDetail,
-  onViewInvoice,
-  onDelete,
-  updatingPayment,
-  enrichedItems,
+  order, paymentLabels, onUpdateStatus, onUpdatePaymentStatus,
+  onViewDetail, onViewInvoice, onDelete, updatingPayment, enrichedItems,
 }: {
-  order: any;
-  paymentLabels: any;
+  order: any; paymentLabels: any;
   onUpdateStatus: (id: string, s: string) => void;
   onUpdatePaymentStatus: (id: string, s: string) => void;
-  onViewDetail: (o: any) => void;
-  onViewInvoice: (o: any) => void;
-  onDelete: (id: string) => void;
-  updatingPayment: boolean;
-  enrichedItems: any[];
+  onViewDetail: (o: any) => void; onViewInvoice: (o: any) => void;
+  onDelete: (id: string) => void; updatingPayment: boolean; enrichedItems: any[];
 }) {
   const items: any[] = enrichedItems.length > 0 ? enrichedItems : (order.items || []);
-  // Per-item preparation state: stored as array of booleans
   const [preparedItems, setPreparedItems] = useState<boolean[]>(() => items.map(() => false));
-
   const allPrepared = preparedItems.length > 0 && preparedItems.every(Boolean);
   const someCount = preparedItems.filter(Boolean).length;
-
-  function toggleItem(i: number) {
-    setPreparedItems(prev => prev.map((v, idx) => idx === i ? !v : v));
-  }
-  function toggleAll() {
-    if (allPrepared) setPreparedItems(items.map(() => false));
-    else setPreparedItems(items.map(() => true));
-  }
-
+  function toggleItem(i: number) { setPreparedItems(prev => prev.map((v, idx) => idx === i ? !v : v)); }
+  function toggleAll() { if (allPrepared) setPreparedItems(items.map(() => false)); else setPreparedItems(items.map(() => true)); }
   const shipping = parseFloat(order.shipping_cost || order.shipping_fee || 0);
   const discountVal = parseFloat(order.discount_applied || order.discount_amount || 0);
   const total = parseFloat(order.total_price || 0);
 
   return (
-    <div style={{
-      background: 'linear-gradient(135deg, #f0fdf4 0%, #f8fffa 100%)',
-      borderTop: '2px solid #22c55e22',
-      padding: 'clamp(12px, 3vw, 20px)',
-      animation: 'slideDown 0.25s ease-out',
-    }}>
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-      `}} />
-
-      {/* Top row: customer info + actions */}
+    <div style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #f8fffa 100%)', borderTop: '2px solid #22c55e22', padding: 'clamp(12px, 3vw, 20px)', animation: 'slideDown 0.25s ease-out' }}>
+      <style dangerouslySetInnerHTML={{ __html: `@keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } } @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }` }} />
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '16px', alignItems: 'flex-start' }}>
-        {/* Customer */}
         <div style={{ flex: '1 1 220px', background: '#fff', borderRadius: '12px', padding: '12px 16px', border: '1px solid #e8f5e9' }}>
           <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#888', letterSpacing: '1px', marginBottom: '8px', textTransform: 'uppercase' }}>بيانات العميل</div>
           <div style={{ fontWeight: '800', fontSize: '0.92rem', color: '#1a1a1a', marginBottom: '4px' }}>{order.customer_name}</div>
-          <div style={{ fontSize: '0.8rem', color: '#555', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
-            <Phone size={12} color="#22c55e" /> {order.customer_phone}
-          </div>
-          <div style={{ fontSize: '0.8rem', color: '#555', display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <MapPin size={12} color="#22c55e" /> {order.city} — {order.customer_address}
-          </div>
+          <div style={{ fontSize: '0.8rem', color: '#555', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}><Phone size={12} color="#22c55e" /> {order.customer_phone}</div>
+          <div style={{ fontSize: '0.8rem', color: '#555', display: 'flex', alignItems: 'center', gap: '5px' }}><MapPin size={12} color="#22c55e" /> {order.city} — {order.customer_address}</div>
         </div>
-
-        {/* Order info */}
         <div style={{ flex: '1 1 180px', background: '#fff', borderRadius: '12px', padding: '12px 16px', border: '1px solid #e8f5e9' }}>
           <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#888', letterSpacing: '1px', marginBottom: '8px', textTransform: 'uppercase' }}>تفاصيل الطلب</div>
           <div style={{ fontSize: '0.82rem', color: '#555', marginBottom: '4px' }}>الدفع: <strong>{paymentLabels[order.payment_method] || order.payment_method}</strong></div>
-          <div style={{ fontSize: '0.82rem', color: '#555', marginBottom: '4px' }}>
-            الشحن: <strong style={{ color: shipping === 0 ? '#22c55e' : '#1a1a1a' }}>{shipping === 0 ? 'مجاني' : `${shipping} ج.م`}</strong>
-            {order.shipping_type === 'express' && <span style={{ marginRight: '6px', fontSize: '0.7rem', color: '#f59e0b', fontWeight: '800' }}>⚡ سريع</span>}
-          </div>
+          <div style={{ fontSize: '0.82rem', color: '#555', marginBottom: '4px' }}>الشحن: <strong style={{ color: shipping === 0 ? '#22c55e' : '#1a1a1a' }}>{shipping === 0 ? 'مجاني' : `${shipping} ج.م`}</strong>{order.shipping_type === 'express' && <span style={{ marginRight: '6px', fontSize: '0.7rem', color: '#f59e0b', fontWeight: '800' }}>⚡ سريع</span>}</div>
           {discountVal > 0 && <div style={{ fontSize: '0.82rem', color: '#ef4444', marginBottom: '4px' }}>خصم: -{discountVal} ج.م</div>}
           <div style={{ fontSize: '1rem', fontWeight: '900', color: '#15803d', marginTop: '6px' }}>{total.toLocaleString()} ج.م</div>
         </div>
-
-        {/* Status controls */}
         <div style={{ flex: '1 1 200px', background: '#fff', borderRadius: '12px', padding: '12px 16px', border: '1px solid #e8f5e9', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#888', letterSpacing: '1px', marginBottom: '2px', textTransform: 'uppercase' }}>تحديث الحالات</div>
           <div>
             <div style={{ fontSize: '0.72rem', color: '#888', marginBottom: '4px', fontWeight: '700' }}>حالة الشحن</div>
             <select value={order.status} onChange={(e) => onUpdateStatus(order.id, e.target.value)} style={{ ...miniSelectStyle(order.status), width: '100%' }}>
-              <option value="pending">جديد</option>
-              <option value="processing">تجهيز</option>
-              <option value="shipped">شحن</option>
-              <option value="delivered">توصيل</option>
-              <option value="cancelled">ملغي</option>
-              <option value="refunded">مسترجع</option>
+              <option value="pending">جديد</option><option value="processing">تجهيز</option><option value="shipped">شحن</option><option value="delivered">توصيل</option><option value="cancelled">ملغي</option><option value="refunded">مسترجع</option>
             </select>
           </div>
           <div>
             <div style={{ fontSize: '0.72rem', color: '#888', marginBottom: '4px', fontWeight: '700' }}>حالة الدفع</div>
-            <select
-              value={order.payment_status || 'pending'}
-              onChange={(e) => onUpdatePaymentStatus(order.id, e.target.value)}
-              disabled={updatingPayment}
-              style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', outline: 'none', background: '#f9fafb', color: '#1a1a1a' }}
-            >
+            <select value={order.payment_status || 'pending'} onChange={(e) => onUpdatePaymentStatus(order.id, e.target.value)} disabled={updatingPayment}
+              style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', outline: 'none', background: '#f9fafb', color: '#1a1a1a' }}>
               {Object.entries(paymentStatusLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </div>
         </div>
-
-        {/* Action buttons */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>
-          <button onClick={() => onViewDetail(order)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#eff6ff', color: '#1e40af', border: '1px solid #dbeafe', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>
-            <Eye size={14} /> تفاصيل كاملة
-          </button>
-          <button onClick={() => onViewInvoice(order)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#0f172a', color: '#22c55e', border: 'none', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>
-            <FileText size={14} /> ORDER
-          </button>
-          <button onClick={() => onDelete(order.id)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#fff5f5', color: '#e74c3c', border: '1px solid #ffebeb', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>
-            <Trash2 size={14} /> حذف
-          </button>
+          <button onClick={() => onViewDetail(order)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#eff6ff', color: '#1e40af', border: '1px solid #dbeafe', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap' }}><Eye size={14} /> تفاصيل كاملة</button>
+          <button onClick={() => onViewInvoice(order)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#0f172a', color: '#22c55e', border: 'none', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap' }}><FileText size={14} /> ORDER</button>
+          <button onClick={() => onDelete(order.id)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#fff5f5', color: '#e74c3c', border: '1px solid #ffebeb', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap' }}><Trash2 size={14} /> حذف</button>
         </div>
       </div>
-
-      {/* Items preparation list */}
       <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e0f2e9', overflow: 'hidden' }}>
-        {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#f0fdf4', borderBottom: '1px solid #e0f2e9' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <button onClick={toggleAll} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '800', fontSize: '0.85rem', color: '#15803d', padding: 0 }}>
-              {allPrepared ? <CheckSquare size={18} color="#22c55e" /> : <Square size={18} color="#aaa" />}
-              {allPrepared ? 'إلغاء تحضير الكل' : 'تحضير الكل'}
-            </button>
-          </div>
+          <button onClick={toggleAll} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '800', fontSize: '0.85rem', color: '#15803d', padding: 0 }}>
+            {allPrepared ? <CheckSquare size={18} color="#22c55e" /> : <Square size={18} color="#aaa" />}
+            {allPrepared ? 'إلغاء تحضير الكل' : 'تحضير الكل'}
+          </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '0.8rem', color: '#888', fontWeight: '700' }}>
-              {someCount} / {items.length} محضّر
-            </span>
-            {allPrepared && (
-              <span style={{ background: '#22c55e', color: '#fff', borderRadius: '8px', padding: '3px 10px', fontSize: '0.75rem', fontWeight: '800' }}>
-                ✓ جاهز للشحن
-              </span>
-            )}
+            <span style={{ fontSize: '0.8rem', color: '#888', fontWeight: '700' }}>{someCount} / {items.length} محضّر</span>
+            {allPrepared && <span style={{ background: '#22c55e', color: '#fff', borderRadius: '8px', padding: '3px 10px', fontSize: '0.75rem', fontWeight: '800' }}>✓ جاهز للشحن</span>}
           </div>
         </div>
-
-        {/* Items */}
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           {items.map((item: any, i: number) => {
             const prepared = preparedItems[i] || false;
             return (
-              <div key={i} onClick={() => toggleItem(i)} style={{
-                display: 'flex', alignItems: 'center', gap: '12px',
-                padding: '12px 16px',
-                borderBottom: i < items.length - 1 ? '1px solid #f0f0f0' : 'none',
-                cursor: 'pointer',
-                background: prepared ? '#f0fdf4' : '#fff',
-                transition: 'background 0.2s',
-                userSelect: 'none',
-              }}
+              <div key={i} onClick={() => toggleItem(i)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderBottom: i < items.length - 1 ? '1px solid #f0f0f0' : 'none', cursor: 'pointer', background: prepared ? '#f0fdf4' : '#fff', transition: 'background 0.2s', userSelect: 'none' }}
                 onMouseEnter={e => { if (!prepared) e.currentTarget.style.background = '#fafff8'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = prepared ? '#f0fdf4' : '#fff'; }}
-              >
-                {/* Checkbox */}
-                <div style={{ flexShrink: 0 }}>
-                  {prepared
-                    ? <CheckSquare size={22} color="#22c55e" />
-                    : <Square size={22} color="#d1d5db" />
-                  }
-                </div>
-
-                {/* Image */}
-                <img
-                  src={item.image_url || item.image || 'https://via.placeholder.com/50'}
-                  alt=""
-                  style={{ width: '52px', height: '52px', objectFit: 'contain', borderRadius: '10px', border: '1px solid #eee', background: '#f9f9f9', flexShrink: 0, opacity: prepared ? 0.6 : 1, transition: 'opacity 0.2s' }}
-                />
-
-                {/* Info */}
+                onMouseLeave={e => { e.currentTarget.style.background = prepared ? '#f0fdf4' : '#fff'; }}>
+                <div style={{ flexShrink: 0 }}>{prepared ? <CheckSquare size={22} color="#22c55e" /> : <Square size={22} color="#d1d5db" />}</div>
+                <img src={item.image_url || item.image || 'https://via.placeholder.com/50'} alt="" style={{ width: '52px', height: '52px', objectFit: 'contain', borderRadius: '10px', border: '1px solid #eee', background: '#f9f9f9', flexShrink: 0, opacity: prepared ? 0.6 : 1, transition: 'opacity 0.2s' }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: '800', fontSize: '0.88rem', color: prepared ? '#888' : '#1a1a1a', textDecoration: prepared ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', transition: 'all 0.2s' }}>
-                    {item.name}
-                  </div>
+                  <div style={{ fontWeight: '800', fontSize: '0.88rem', color: prepared ? '#888' : '#1a1a1a', textDecoration: prepared ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', transition: 'all 0.2s' }}>{item.name}</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
-                    {item.brand && (
-                      <span style={{ fontSize: '0.72rem', color: '#22c55e', fontWeight: '700', background: '#f0fdf4', padding: '2px 8px', borderRadius: '6px' }}>
-                        {item.brand}
-                      </span>
-                    )}
-                    {(item.car_make || item.car_model) && (
-                      <span style={{ fontSize: '0.72rem', color: '#666', background: '#f5f5f5', padding: '2px 8px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                        🚗 {[item.car_make, item.car_model, item.car_model_year].filter(Boolean).join(' ')}
-                      </span>
-                    )}
+                    {item.brand && <span style={{ fontSize: '0.72rem', color: '#22c55e', fontWeight: '700', background: '#f0fdf4', padding: '2px 8px', borderRadius: '6px' }}>{item.brand}</span>}
+                    {(item.car_make || item.car_model) && <span style={{ fontSize: '0.72rem', color: '#666', background: '#f5f5f5', padding: '2px 8px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '3px' }}>🚗 {[item.car_make, item.car_model, item.car_model_year].filter(Boolean).join(' ')}</span>}
                   </div>
                 </div>
-
-                {/* Qty + Price */}
                 <div style={{ flexShrink: 0, textAlign: 'left' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end', marginBottom: '4px' }}>
                     <span style={{ background: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '800' }}>×{item.quantity}</span>
                   </div>
-                  <div style={{ fontWeight: '900', fontSize: '0.9rem', color: prepared ? '#aaa' : '#15803d', transition: 'color 0.2s' }}>
-                    {(parseFloat(item.price) * item.quantity).toLocaleString()} ج.م
-                  </div>
+                  <div style={{ fontWeight: '900', fontSize: '0.9rem', color: prepared ? '#aaa' : '#15803d', transition: 'color 0.2s' }}>{(parseFloat(item.price) * item.quantity).toLocaleString()} ج.م</div>
                 </div>
-
-                {/* Prepared badge */}
-                {prepared && (
-                  <div style={{ flexShrink: 0, background: '#dcfce7', color: '#15803d', borderRadius: '8px', padding: '4px 10px', fontSize: '0.72rem', fontWeight: '800' }}>
-                    ✓ محضّر
-                  </div>
-                )}
+                {prepared && <div style={{ flexShrink: 0, background: '#dcfce7', color: '#15803d', borderRadius: '8px', padding: '4px 10px', fontSize: '0.72rem', fontWeight: '800' }}>✓ محضّر</div>}
               </div>
             );
           })}
         </div>
-
-        {/* Progress bar */}
         <div style={{ height: '4px', background: '#f0f0f0' }}>
           <div style={{ height: '100%', background: 'linear-gradient(90deg, #22c55e, #16a34a)', width: `${items.length > 0 ? (someCount / items.length) * 100 : 0}%`, transition: 'width 0.3s ease', borderRadius: '0 4px 4px 0' }} />
         </div>
@@ -664,13 +530,14 @@ export default function AdminOrders() {
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const invoiceRef = useRef<HTMLDivElement>(null);
 
-  // ── Expanded rows state (map of orderId -> enriched items)
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [expandedEnrichedItems, setExpandedEnrichedItems] = useState<any[]>([]);
   const [expandingId, setExpandingId] = useState<string | null>(null);
-
-  // ── NEW: show/hide new order modal
   const [showNewOrderModal, setShowNewOrderModal] = useState(false);
+
+  // ── BULK SELECT STATE ─────────────────────────────────────────────────────
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const [editMode, setEditMode] = useState(false);
   const [editedItems, setEditedItems] = useState<any[]>([]);
@@ -695,13 +562,8 @@ export default function AdminOrders() {
   const [productSearchQuery, setProductSearchQuery] = useState('');
   const [loadingBrands, setLoadingBrands] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
-
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-
-  // ── Payment status update state ───────────────────────────────────────────
   const [updatingPayment, setUpdatingPayment] = useState(false);
-
-  // ── Tabs & Pagination ─────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const ORDERS_PER_PAGE = 20;
@@ -709,6 +571,7 @@ export default function AdminOrders() {
   const paymentLabels: any = {
     'card_installments': 'بطاقة / تقسيط',
     'instapay': 'انستا باي',
+    'easykash': 'EasyKash',
     'wallets': 'محفظة إلكترونية',
     'cash': 'كاش عند الاستلام',
     'vodafone_cash': 'فودافون كاش',
@@ -800,10 +663,7 @@ export default function AdminOrders() {
   async function updatePaymentStatus(orderId: string, newPaymentStatus: string) {
     setUpdatingPayment(true);
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ payment_status: newPaymentStatus })
-        .eq('id', orderId);
+      const { error } = await supabase.from('orders').update({ payment_status: newPaymentStatus }).eq('id', orderId);
       if (error) throw error;
       toast.success('تم تحديث حالة الدفع ✅');
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, payment_status: newPaymentStatus } : o));
@@ -821,10 +681,63 @@ export default function AdminOrders() {
       setOrders(prev => prev.filter(o => o.id !== orderId));
       if (selectedOrder?.id === orderId) setSelectedOrder(null);
       if (expandedOrderId === orderId) setExpandedOrderId(null);
+      setSelectedIds(prev => { const n = new Set(prev); n.delete(orderId); return n; });
       setDeleteConfirmId(null);
       toast.success('تم حذف الطلب ✅');
     } catch (err: any) { toast.error('فشل الحذف: ' + err.message); }
   }
+
+  // ── BULK SELECT HANDLERS ──────────────────────────────────────────────────
+  const toggleSelectOne = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const getPagedOrders = () => {
+    const filtered = activeTab === 'all' ? orders : orders.filter(o => o.status === activeTab);
+    return filtered.slice((currentPage - 1) * ORDERS_PER_PAGE, currentPage * ORDERS_PER_PAGE);
+  };
+
+  const isAllPageSelected = () => {
+    const paged = getPagedOrders();
+    return paged.length > 0 && paged.every(o => selectedIds.has(o.id));
+  };
+
+  const isPartialPageSelected = () => {
+    const paged = getPagedOrders();
+    return paged.some(o => selectedIds.has(o.id)) && !isAllPageSelected();
+  };
+
+  const toggleSelectAllPage = () => {
+    const paged = getPagedOrders();
+    if (isAllPageSelected()) {
+      setSelectedIds(prev => { const n = new Set(prev); paged.forEach(o => n.delete(o.id)); return n; });
+    } else {
+      setSelectedIds(prev => { const n = new Set(prev); paged.forEach(o => n.add(o.id)); return n; });
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`هل أنت متأكد من حذف ${selectedIds.size} طلب نهائياً؟ لا يمكن التراجع.`)) return;
+    setBulkDeleting(true);
+    try {
+      const idsArray = Array.from(selectedIds);
+      const { error } = await supabase.from('orders').delete().in('id', idsArray);
+      if (error) throw error;
+      setOrders(prev => prev.filter(o => !selectedIds.has(o.id)));
+      setSelectedIds(new Set());
+      toast.success(`تم حذف ${idsArray.length} طلب بنجاح ✅`);
+    } catch (err: any) {
+      toast.error('حدث خطأ أثناء الحذف: ' + err.message);
+    } finally { setBulkDeleting(false); }
+  };
+
+  // Reset selections when tab/page changes
+  useEffect(() => { setSelectedIds(new Set()); }, [activeTab, currentPage]);
 
   async function saveOrderEdits() {
     try {
@@ -923,33 +836,18 @@ export default function AdminOrders() {
     const needsEnrich = items.filter(i => !i.brand && !i.car_make && i.id);
     if (needsEnrich.length === 0) return items;
     const ids = needsEnrich.map(i => i.id);
-    const { data: products } = await supabase
-      .from('products')
-      .select('id, brand, car_make, car_model, car_model_year')
-      .in('id', ids);
+    const { data: products } = await supabase.from('products').select('id, brand, car_make, car_model, car_model_year').in('id', ids);
     if (!products?.length) return items;
     const productMap: Record<string, any> = {};
     products.forEach(p => { productMap[p.id] = p; });
     return items.map(item => {
-      if (productMap[item.id]) {
-        return {
-          ...item,
-          brand:           item.brand           || productMap[item.id].brand,
-          car_make:        item.car_make        || productMap[item.id].car_make,
-          car_model:       item.car_model       || productMap[item.id].car_model,
-          car_model_year:  item.car_model_year  || productMap[item.id].car_model_year,
-        };
-      }
+      if (productMap[item.id]) return { ...item, brand: item.brand || productMap[item.id].brand, car_make: item.car_make || productMap[item.id].car_make, car_model: item.car_model || productMap[item.id].car_model, car_model_year: item.car_model_year || productMap[item.id].car_model_year };
       return item;
     });
   }
 
   async function toggleExpandOrder(order: any) {
-    if (expandedOrderId === order.id) {
-      setExpandedOrderId(null);
-      setExpandedEnrichedItems([]);
-      return;
-    }
+    if (expandedOrderId === order.id) { setExpandedOrderId(null); setExpandedEnrichedItems([]); return; }
     setExpandingId(order.id);
     const enriched = await enrichOrderItems(order.items || []);
     setExpandedEnrichedItems(enriched);
@@ -958,17 +856,13 @@ export default function AdminOrders() {
   }
 
   async function openDetailModal(order: any) {
-    setSelectedOrder(order);
-    setEditMode(false);
-    setShowInvoice(false);
+    setSelectedOrder(order); setEditMode(false); setShowInvoice(false);
     const enriched = await enrichOrderItems(order.items || []);
     setEnrichedItems(enriched.map((i: any) => ({ ...i, _orderId: order.id })));
   }
 
   async function openInvoiceModal(order: any) {
-    setSelectedOrder(order);
-    setShowInvoice(true);
-    setEditMode(false);
+    setSelectedOrder(order); setShowInvoice(true); setEditMode(false);
     const enriched = await enrichOrderItems(order.items || []);
     setEnrichedItems(enriched.map((i: any) => ({ ...i, _orderId: order.id })));
   }
@@ -976,9 +870,7 @@ export default function AdminOrders() {
   function InvoicePreview({ order }: { order: any }) {
     const orderNum = order.id.slice(0, 8).toUpperCase();
     const orderDate = new Date(order.created_at).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
-    const items: any[] = (enrichedItems.length > 0 && enrichedItems[0]?._orderId === order.id)
-      ? enrichedItems
-      : order.items || [];
+    const items: any[] = (enrichedItems.length > 0 && enrichedItems[0]?._orderId === order.id) ? enrichedItems : order.items || [];
     const subtotal = items.reduce((s: number, i: any) => s + parseFloat(i.price) * i.quantity, 0);
     const shipping = parseFloat(order.shipping_cost || order.shipping_fee || 0);
     const discountVal = parseFloat(order.discount_applied || order.discount_amount || 0);
@@ -1040,11 +932,7 @@ export default function AdminOrders() {
                 <div>
                   <div style={{ fontSize: '0.87rem', fontWeight: '800', color: '#1a1a1a' }}>{item.name}</div>
                   {item.brand && <div style={{ fontSize: '0.7rem', color: '#22c55e', fontWeight: '700', marginTop: '2px' }}>{item.brand}</div>}
-                  {(item.car_make || item.car_model) && (
-                    <div style={{ fontSize: '0.68rem', color: '#888', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      🚗 {[item.car_make, item.car_model, item.car_model_year].filter(Boolean).join(' ')}
-                    </div>
-                  )}
+                  {(item.car_make || item.car_model) && <div style={{ fontSize: '0.68rem', color: '#888', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>🚗 {[item.car_make, item.car_model, item.car_model_year].filter(Boolean).join(' ')}</div>}
                 </div>
                 <div style={{ textAlign: 'center' }}><span style={{ backgroundColor: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: '800' }}>×{item.quantity}</span></div>
                 <div style={{ textAlign: 'center', fontSize: '0.85rem', fontWeight: '700', color: '#444' }}>{parseFloat(item.price).toLocaleString('ar-EG')} ج.م</div>
@@ -1059,9 +947,7 @@ export default function AdminOrders() {
                 <span style={{ color: '#666', fontWeight: '700' }}>المجموع الجزئي</span><span style={{ fontWeight: '800' }}>{subtotal.toLocaleString('ar-EG')} ج.م</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.86rem' }}>
-                <span style={{ color: '#666', fontWeight: '700' }}>
-                  {order.shipping_type === 'express' ? '⚡ شحن سريع 48 ساعة' : 'الشحن'}
-                </span>
+                <span style={{ color: '#666', fontWeight: '700' }}>{order.shipping_type === 'express' ? '⚡ شحن سريع 48 ساعة' : 'الشحن'}</span>
                 {shipping === 0 ? <span style={{ color: '#22c55e', fontWeight: '800' }}>مجاني 🚚</span> : <span style={{ fontWeight: '800', color: order.shipping_type === 'express' ? '#f59e0b' : 'inherit' }}>{shipping.toLocaleString('ar-EG')} ج.م</span>}
               </div>
               {discountVal > 0 && (
@@ -1086,9 +972,7 @@ export default function AdminOrders() {
             <div style={{ color: '#22c55e', fontSize: '0.78rem', fontWeight: '800' }}>شكراً لثقتكم بنا</div>
             <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.68rem', marginTop: '2px' }}>Thank you for your order</div>
           </div>
-          <div style={{ backgroundColor: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '8px', padding: '6px 14px', color: '#22c55e', fontSize: '0.72rem', fontWeight: '800', letterSpacing: '1px' }}>
-            ORDER #{orderNum}
-          </div>
+          <div style={{ backgroundColor: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '8px', padding: '6px 14px', color: '#22c55e', fontSize: '0.72rem', fontWeight: '800', letterSpacing: '1px' }}>ORDER #{orderNum}</div>
         </div>
       </div>
     );
@@ -1117,13 +1001,7 @@ export default function AdminOrders() {
         .order-row-clickable:active { background: #f0fdf4 !important; }
       `}} />
 
-      {/* ── New Order Modal ── */}
-      {showNewOrderModal && (
-        <NewOrderModal
-          onClose={() => setShowNewOrderModal(false)}
-          onCreated={() => { fetchOrders(); }}
-        />
-      )}
+      {showNewOrderModal && <NewOrderModal onClose={() => setShowNewOrderModal(false)} onCreated={() => { fetchOrders(); }} />}
 
       <div style={headerSection}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
@@ -1131,11 +1009,8 @@ export default function AdminOrders() {
             <h1 className="header-text" style={{ ...mainTitle, fontSize: 'clamp(1.2rem, 4vw, 2.2rem)' }}>📦 إدارة الطلبات <span style={badgeCount}>{orders.length}</span></h1>
             <p style={{ color: '#666', fontSize: 'clamp(0.8rem, 2vw, 0.95rem)', marginTop: '5px', marginBottom: 0 }}>متابعة عمليات البيع وحالة الشحن لـ &quot;زيت أند فلترز&quot;</p>
           </div>
-          <button
-            className="new-order-btn"
-            onClick={() => setShowNewOrderModal(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff', border: 'none', borderRadius: '14px', padding: 'clamp(10px, 2vw, 13px) clamp(14px, 3vw, 24px)', fontWeight: '900', fontSize: 'clamp(0.85rem, 2vw, 1rem)', cursor: 'pointer', boxShadow: '0 4px 16px rgba(34,197,94,0.35)', transition: 'all 0.2s', flexShrink: 0, whiteSpace: 'nowrap' }}
-          >
+          <button className="new-order-btn" onClick={() => setShowNewOrderModal(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff', border: 'none', borderRadius: '14px', padding: 'clamp(10px, 2vw, 13px) clamp(14px, 3vw, 24px)', fontWeight: '900', fontSize: 'clamp(0.85rem, 2vw, 1rem)', cursor: 'pointer', boxShadow: '0 4px 16px rgba(34,197,94,0.35)', transition: 'all 0.2s', flexShrink: 0, whiteSpace: 'nowrap' }}>
             <Plus size={20} /> <span>إنشاء طلب جديد</span>
           </button>
         </div>
@@ -1144,13 +1019,13 @@ export default function AdminOrders() {
       {/* ── Status Tabs ── */}
       {(() => {
         const tabs = [
-          { key: 'all',        label: 'الكل',    color: '#1a1a1a' },
-          { key: 'pending',    label: 'جديد',     color: '#c2410c' },
-          { key: 'processing', label: 'تجهيز',    color: '#ca8a04' },
-          { key: 'shipped',    label: 'شحن',      color: '#1e40af' },
-          { key: 'delivered',  label: 'توصيل',    color: '#15803d' },
-          { key: 'cancelled',  label: 'ملغي',     color: '#dc2626' },
-          { key: 'refunded',   label: 'مسترجع',   color: '#6d28d9' },
+          { key: 'all', label: 'الكل', color: '#1a1a1a' },
+          { key: 'pending', label: 'جديد', color: '#c2410c' },
+          { key: 'processing', label: 'تجهيز', color: '#ca8a04' },
+          { key: 'shipped', label: 'شحن', color: '#1e40af' },
+          { key: 'delivered', label: 'توصيل', color: '#15803d' },
+          { key: 'cancelled', label: 'ملغي', color: '#dc2626' },
+          { key: 'refunded', label: 'مسترجع', color: '#6d28d9' },
         ];
         return (
           <div style={{ display: 'flex', gap: '6px', marginBottom: '20px', flexWrap: 'wrap' }}>
@@ -1169,11 +1044,34 @@ export default function AdminOrders() {
         );
       })()}
 
-      {/* ── Orders Table + Pagination ── */}
+      {/* ── BULK ACTION BAR ── */}
+      {selectedIds.size > 0 && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1a0a0a', border: '1px solid #ff4d4d44', borderRadius: '12px', padding: '14px 20px', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' }}>
+          <span style={{ color: '#fff', fontWeight: '700', fontSize: '0.95rem' }}>
+            تم تحديد <span style={{ color: '#ff4d4d', fontSize: '1.1rem', fontWeight: '900' }}>{selectedIds.size}</span> طلب
+          </span>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button onClick={() => setSelectedIds(new Set())}
+              style={{ padding: '8px 15px', backgroundColor: '#111', color: '#aaa', border: '1px solid #333', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <X size={14} /> إلغاء التحديد
+            </button>
+            <button onClick={handleBulkDelete} disabled={bulkDeleting}
+              style={{ padding: '8px 16px', backgroundColor: '#ff4d4d', color: '#fff', border: 'none', borderRadius: '8px', cursor: bulkDeleting ? 'not-allowed' : 'pointer', fontSize: '0.8rem', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '6px', opacity: bulkDeleting ? 0.7 : 1 }}>
+              <Trash2 size={14} />
+              {bulkDeleting ? 'جاري الحذف...' : `حذف ${selectedIds.size} طلب`}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Orders Table ── */}
       {(() => {
         const filtered = activeTab === 'all' ? orders : orders.filter(o => o.status === activeTab);
         const totalPages = Math.max(1, Math.ceil(filtered.length / ORDERS_PER_PAGE));
         const paginated = filtered.slice((currentPage - 1) * ORDERS_PER_PAGE, currentPage * ORDERS_PER_PAGE);
+        const allPageSelected = paginated.length > 0 && paginated.every(o => selectedIds.has(o.id));
+        const partialPageSelected = paginated.some(o => selectedIds.has(o.id)) && !allPageSelected;
+
         return (
           <>
             {/* ── DESKTOP TABLE ── */}
@@ -1181,6 +1079,19 @@ export default function AdminOrders() {
               <table style={table}>
                 <thead>
                   <tr style={thRow}>
+                    {/* ── Select All checkbox ── */}
+                    <th style={{ ...th, width: '40px', textAlign: 'center' }}>
+                      <button onClick={toggleSelectAllPage}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}
+                        title={allPageSelected ? 'إلغاء تحديد الكل' : 'تحديد الكل'}>
+                        {allPageSelected
+                          ? <CheckSquare size={20} color="#ff4d4d" />
+                          : partialPageSelected
+                            ? <Minus size={20} color="#f1c40f" style={{ border: '2px solid #f1c40f', borderRadius: '4px' }} />
+                            : <Square size={20} color="#ccc" />
+                        }
+                      </button>
+                    </th>
                     <th style={{ ...th, width: '32px' }}></th>
                     <th style={th}>العميل</th>
                     <th style={th}>المحافظة</th>
@@ -1194,16 +1105,24 @@ export default function AdminOrders() {
                 </thead>
                 <tbody>
                   {paginated.length === 0 ? (
-                    <tr><td colSpan={9} style={{ textAlign: 'center', padding: '60px', color: '#aaa', fontSize: '0.95rem' }}>لا توجد طلبات في هذا القسم</td></tr>
+                    <tr><td colSpan={10} style={{ textAlign: 'center', padding: '60px', color: '#aaa', fontSize: '0.95rem' }}>لا توجد طلبات في هذا القسم</td></tr>
                   ) : paginated.map((order) => {
                     const { datePart, timePart } = formatDateTime(order.created_at);
                     const isExpanded = expandedOrderId === order.id;
                     const isExpanding = expandingId === order.id;
+                    const isSelected = selectedIds.has(order.id);
                     return (
                       <>
-                        <tr key={order.id} className="order-row-clickable" style={{ ...tr, background: isExpanded ? '#f0fdf4' : '#fff', cursor: 'pointer' }}
-                          onClick={() => toggleExpandOrder(order)}
-                        >
+                        <tr key={order.id} className="order-row-clickable"
+                          style={{ ...tr, background: isSelected ? 'rgba(255,77,77,0.06)' : isExpanded ? '#f0fdf4' : '#fff', cursor: 'pointer', transition: 'background-color 0.15s ease' }}
+                          onClick={() => toggleExpandOrder(order)}>
+                          {/* Checkbox */}
+                          <td style={{ ...td, textAlign: 'center', width: '40px' }} onClick={e => e.stopPropagation()}>
+                            <button onClick={() => toggleSelectOne(order.id)}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
+                              {isSelected ? <CheckSquare size={18} color="#ff4d4d" /> : <Square size={18} color="#ccc" />}
+                            </button>
+                          </td>
                           {/* Expand toggle */}
                           <td style={{ ...td, padding: '18px 8px 18px 0', width: '32px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1220,9 +1139,7 @@ export default function AdminOrders() {
                           <td style={td} onClick={e => e.stopPropagation()}>
                             <div style={cityBadge}><MapPin size={14} color="#15803d" /> {order.city || 'غير محدد'}</div>
                             {order.shipping_type === 'express' && (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '5px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '3px 8px', width: 'fit-content', fontSize: '0.72rem', fontWeight: '800', color: '#92400e' }}>
-                                ⚡ شحن سريع 48 ساعة
-                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '5px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '3px 8px', width: 'fit-content', fontSize: '0.72rem', fontWeight: '800', color: '#92400e' }}>⚡ شحن سريع 48 ساعة</div>
                             )}
                           </td>
                           <td style={td} onClick={e => e.stopPropagation()}>
@@ -1234,12 +1151,7 @@ export default function AdminOrders() {
                           </td>
                           <td style={td} onClick={e => e.stopPropagation()}>
                             <select value={order.status} onChange={(e) => { e.stopPropagation(); updateOrderStatus(order.id, e.target.value); }} style={miniSelectStyle(order.status)}>
-                              <option value="pending">جديد</option>
-                              <option value="processing">تجهيز</option>
-                              <option value="shipped">شحن</option>
-                              <option value="delivered">توصيل</option>
-                              <option value="cancelled">ملغي</option>
-                              <option value="refunded">مسترجع</option>
+                              <option value="pending">جديد</option><option value="processing">تجهيز</option><option value="shipped">شحن</option><option value="delivered">توصيل</option><option value="cancelled">ملغي</option><option value="refunded">مسترجع</option>
                             </select>
                           </td>
                           <td style={td} onClick={e => e.stopPropagation()}>
@@ -1264,21 +1176,10 @@ export default function AdminOrders() {
                             </div>
                           </td>
                         </tr>
-                        {/* Expanded row */}
                         {isExpanded && (
                           <tr key={`${order.id}-expanded`}>
-                            <td colSpan={9} style={{ padding: 0, border: 'none' }}>
-                              <ExpandedOrderRow
-                                order={order}
-                                paymentLabels={paymentLabels}
-                                onUpdateStatus={updateOrderStatus}
-                                onUpdatePaymentStatus={updatePaymentStatus}
-                                onViewDetail={openDetailModal}
-                                onViewInvoice={openInvoiceModal}
-                                onDelete={(id) => setDeleteConfirmId(id)}
-                                updatingPayment={updatingPayment}
-                                enrichedItems={expandedEnrichedItems}
-                              />
+                            <td colSpan={10} style={{ padding: 0, border: 'none' }}>
+                              <ExpandedOrderRow order={order} paymentLabels={paymentLabels} onUpdateStatus={updateOrderStatus} onUpdatePaymentStatus={updatePaymentStatus} onViewDetail={openDetailModal} onViewInvoice={openInvoiceModal} onDelete={(id) => setDeleteConfirmId(id)} updatingPayment={updatingPayment} enrichedItems={expandedEnrichedItems} />
                             </td>
                           </tr>
                         )}
@@ -1297,74 +1198,51 @@ export default function AdminOrders() {
                 const { datePart, timePart } = formatDateTime(order.created_at);
                 const isExpanded = expandedOrderId === order.id;
                 const isExpanding = expandingId === order.id;
+                const isSelected = selectedIds.has(order.id);
                 const ps = order.payment_status || 'pending';
                 const pc = paymentStatusColors[ps] || paymentStatusColors.pending;
                 return (
-                  <div key={order.id} style={{ background: '#fff', borderRadius: '16px', border: isExpanded ? '2px solid #22c55e' : '1px solid #eee', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', transition: 'border-color 0.2s' }}>
-                    {/* Card header - tappable to expand */}
-                    <div onClick={() => toggleExpandOrder(order)} style={{ padding: '14px 16px', cursor: 'pointer', background: isExpanded ? '#f0fdf4' : '#fff', transition: 'background 0.2s' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                        <div>
-                          <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#1a1a1a', marginBottom: '3px' }}>{order.customer_name}</div>
-                          <div style={{ fontSize: '0.78rem', color: '#777', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={11} /> {order.customer_phone}</div>
+                  <div key={order.id} style={{ background: '#fff', borderRadius: '16px', border: isSelected ? '2px solid #ff4d4d' : isExpanded ? '2px solid #22c55e' : '1px solid #eee', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', transition: 'border-color 0.2s' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px 0', background: isSelected ? 'rgba(255,77,77,0.04)' : '#fff' }}>
+                      {/* Mobile checkbox */}
+                      <button onClick={() => toggleSelectOne(order.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, padding: '4px' }}>
+                        {isSelected ? <CheckSquare size={20} color="#ff4d4d" /> : <Square size={20} color="#ccc" />}
+                      </button>
+                      <div onClick={() => toggleExpandOrder(order)} style={{ flex: 1, cursor: 'pointer' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                          <div>
+                            <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#1a1a1a', marginBottom: '3px' }}>{order.customer_name}</div>
+                            <div style={{ fontSize: '0.78rem', color: '#777', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={11} /> {order.customer_phone}</div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                            <span style={{ fontWeight: '900', fontSize: '1rem', color: '#15803d' }}>{order.total_price} ج.م</span>
+                            {isExpanding ? <Loader2 size={18} color="#22c55e" style={{ animation: 'spin 1s linear infinite' }} /> : <ChevronDown size={20} color={isExpanded ? '#22c55e' : '#aaa'} style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />}
+                          </div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                          <span style={{ fontWeight: '900', fontSize: '1rem', color: '#15803d' }}>{order.total_price} ج.م</span>
-                          {isExpanding
-                            ? <Loader2 size={18} color="#22c55e" style={{ animation: 'spin 1s linear infinite' }} />
-                            : <ChevronDown size={20} color={isExpanded ? '#22c55e' : '#aaa'} style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
-                          }
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', paddingBottom: '12px' }}>
+                          <div style={{ ...cityBadge, fontSize: '0.75rem', padding: '4px 10px' }}><MapPin size={12} color="#15803d" /> {order.city || 'غير محدد'}</div>
+                          <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: pc.bg, color: pc.color, border: `1px solid ${pc.border}` }}>{paymentStatusLabels[ps]}</span>
+                          {(() => {
+                            const sc = miniSelectStyle(order.status);
+                            const statusLabels: any = { pending: 'جديد', processing: 'تجهيز', shipped: 'شحن', delivered: 'توصيل', cancelled: 'ملغي', refunded: 'مسترجع' };
+                            return <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: sc.background, color: sc.color, border: sc.border }}>{statusLabels[order.status] || order.status}</span>;
+                          })()}
+                          <span style={{ fontSize: '0.72rem', color: '#999', marginRight: 'auto' }}>{datePart} • {timePart}</span>
                         </div>
-                      </div>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
-                        <div style={{ ...cityBadge, fontSize: '0.75rem', padding: '4px 10px' }}><MapPin size={12} color="#15803d" /> {order.city || 'غير محدد'}</div>
-                        <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: pc.bg, color: pc.color, border: `1px solid ${pc.border}` }}>{paymentStatusLabels[ps]}</span>
-                        {/* Shipping status badge */}
-                        {(() => {
-                          const sc = miniSelectStyle(order.status);
-                          const statusLabels: any = { pending: 'جديد', processing: 'تجهيز', shipped: 'شحن', delivered: 'توصيل', cancelled: 'ملغي', refunded: 'مسترجع' };
-                          return <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: sc.background, color: sc.color, border: sc.border }}>{statusLabels[order.status] || order.status}</span>;
-                        })()}
-                        <span style={{ fontSize: '0.72rem', color: '#999', marginRight: 'auto' }}>{datePart} • {timePart}</span>
                       </div>
                     </div>
-
-                    {/* Quick actions always visible on mobile */}
                     <div style={{ display: 'flex', borderTop: '1px solid #f0f0f0', background: '#fafafa' }} onClick={e => e.stopPropagation()}>
                       <select value={order.status} onChange={(e) => updateOrderStatus(order.id, e.target.value)}
                         style={{ flex: 1, border: 'none', background: 'transparent', padding: '10px 12px', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', outline: 'none', color: '#333', borderLeft: '1px solid #f0f0f0' }}>
-                        <option value="pending">جديد</option>
-                        <option value="processing">تجهيز</option>
-                        <option value="shipped">شحن</option>
-                        <option value="delivered">توصيل</option>
-                        <option value="cancelled">ملغي</option>
-                        <option value="refunded">مسترجع</option>
+                        <option value="pending">جديد</option><option value="processing">تجهيز</option><option value="shipped">شحن</option><option value="delivered">توصيل</option><option value="cancelled">ملغي</option><option value="refunded">مسترجع</option>
                       </select>
-                      <button onClick={() => openDetailModal(order)} style={{ flex: 1, border: 'none', background: 'transparent', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '0.78rem', fontWeight: '700', color: '#1e40af', borderLeft: '1px solid #f0f0f0' }}>
-                        <Eye size={14} /> تفاصيل
-                      </button>
-                      <button onClick={() => openInvoiceModal(order)} style={{ flex: 1, border: 'none', background: 'transparent', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '0.78rem', fontWeight: '700', color: '#22c55e', borderLeft: '1px solid #f0f0f0' }}>
-                        <FileText size={14} /> ORDER
-                      </button>
-                      <button onClick={() => setDeleteConfirmId(order.id)} style={{ flex: '0 0 44px', border: 'none', background: 'transparent', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e74c3c' }}>
-                        <Trash2 size={15} />
-                      </button>
+                      <button onClick={() => openDetailModal(order)} style={{ flex: 1, border: 'none', background: 'transparent', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '0.78rem', fontWeight: '700', color: '#1e40af', borderLeft: '1px solid #f0f0f0' }}><Eye size={14} /> تفاصيل</button>
+                      <button onClick={() => openInvoiceModal(order)} style={{ flex: 1, border: 'none', background: 'transparent', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '0.78rem', fontWeight: '700', color: '#22c55e', borderLeft: '1px solid #f0f0f0' }}><FileText size={14} /> ORDER</button>
+                      <button onClick={() => setDeleteConfirmId(order.id)} style={{ flex: '0 0 44px', border: 'none', background: 'transparent', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e74c3c' }}><Trash2 size={15} /></button>
                     </div>
-
-                    {/* Expanded content on mobile */}
                     {isExpanded && (
                       <div style={{ borderTop: '2px solid #22c55e22' }}>
-                        <ExpandedOrderRow
-                          order={order}
-                          paymentLabels={paymentLabels}
-                          onUpdateStatus={updateOrderStatus}
-                          onUpdatePaymentStatus={updatePaymentStatus}
-                          onViewDetail={openDetailModal}
-                          onViewInvoice={openInvoiceModal}
-                          onDelete={(id) => setDeleteConfirmId(id)}
-                          updatingPayment={updatingPayment}
-                          enrichedItems={expandedEnrichedItems}
-                        />
+                        <ExpandedOrderRow order={order} paymentLabels={paymentLabels} onUpdateStatus={updateOrderStatus} onUpdatePaymentStatus={updatePaymentStatus} onViewDetail={openDetailModal} onViewInvoice={openInvoiceModal} onDelete={(id) => setDeleteConfirmId(id)} updatingPayment={updatingPayment} enrichedItems={expandedEnrichedItems} />
                       </div>
                     )}
                   </div>
@@ -1375,9 +1253,7 @@ export default function AdminOrders() {
             {totalPages > 1 && (
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '20px', flexWrap: 'wrap' }}>
                 <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
-                  style={{ padding: '8px 16px', borderRadius: '10px', border: '1px solid #e5e5e5', background: currentPage === 1 ? '#f5f5f5' : '#fff', color: currentPage === 1 ? '#ccc' : '#1a1a1a', fontWeight: '700', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: '0.85rem' }}>
-                  ← السابق
-                </button>
+                  style={{ padding: '8px 16px', borderRadius: '10px', border: '1px solid #e5e5e5', background: currentPage === 1 ? '#f5f5f5' : '#fff', color: currentPage === 1 ? '#ccc' : '#1a1a1a', fontWeight: '700', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: '0.85rem' }}>← السابق</button>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
                   const isNear = Math.abs(page - currentPage) <= 2 || page === 1 || page === totalPages;
                   if (!isNear) {
@@ -1393,9 +1269,7 @@ export default function AdminOrders() {
                   );
                 })}
                 <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}
-                  style={{ padding: '8px 16px', borderRadius: '10px', border: '1px solid #e5e5e5', background: currentPage === totalPages ? '#f5f5f5' : '#fff', color: currentPage === totalPages ? '#ccc' : '#1a1a1a', fontWeight: '700', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontSize: '0.85rem' }}>
-                  التالي →
-                </button>
+                  style={{ padding: '8px 16px', borderRadius: '10px', border: '1px solid #e5e5e5', background: currentPage === totalPages ? '#f5f5f5' : '#fff', color: currentPage === totalPages ? '#ccc' : '#1a1a1a', fontWeight: '700', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontSize: '0.85rem' }}>التالي →</button>
                 <span style={{ color: '#888', fontSize: '0.82rem', marginRight: '8px' }}>صفحة {currentPage} من {totalPages} — {filtered.length} طلب</span>
               </div>
             )}
@@ -1413,9 +1287,7 @@ export default function AdminOrders() {
                   <FileText size={22} color="#22c55e" /> ORDER #{selectedOrder.id.slice(0, 8).toUpperCase()}
                 </h2>
               </div>
-              <button onClick={handlePrintInvoice} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 14px', background: '#fff', color: '#1a1a1a', border: '1.5px solid #ddd', borderRadius: '12px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                <Printer size={16} /> طباعة
-              </button>
+              <button onClick={handlePrintInvoice} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 14px', background: '#fff', color: '#1a1a1a', border: '1.5px solid #ddd', borderRadius: '12px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer', whiteSpace: 'nowrap' }}><Printer size={16} /> طباعة</button>
               <button onClick={() => handleDownloadInvoice(selectedOrder)} disabled={isDownloadingPdf}
                 style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 16px', background: isDownloadingPdf ? '#ccc' : 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.85rem', cursor: isDownloadingPdf ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}>
                 <Download size={16} /> {isDownloadingPdf ? 'جاري...' : 'PDF'}
@@ -1455,7 +1327,6 @@ export default function AdminOrders() {
               </div>
             </div>
             <div style={modalBody}>
-              {/* ── Payment Status Card ── */}
               <div style={{ ...modalCard, background: '#fafafa', border: '1.5px solid #e5e7eb' }}>
                 <h3 style={cardTitle}><CreditCard size={18} /> حالة الدفع</h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
@@ -1465,9 +1336,7 @@ export default function AdminOrders() {
                     return (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <span style={{ fontSize: '0.78rem', color: '#888', fontWeight: '700' }}>الحالة الحالية:</span>
-                        <span style={{ fontSize: '0.88rem', fontWeight: '900', padding: '6px 16px', borderRadius: '10px', background: c.bg, color: c.color, border: `1.5px solid ${c.border}` }}>
-                          {paymentStatusLabels[ps]}
-                        </span>
+                        <span style={{ fontSize: '0.88rem', fontWeight: '900', padding: '6px 16px', borderRadius: '10px', background: c.bg, color: c.color, border: `1.5px solid ${c.border}` }}>{paymentStatusLabels[ps]}</span>
                       </div>
                     );
                   })()}
@@ -1477,14 +1346,10 @@ export default function AdminOrders() {
                       const isActive = current === key;
                       const c = paymentStatusColors[key];
                       return (
-                        <button
-                          key={key}
-                          disabled={isActive || updatingPayment}
-                          onClick={() => updatePaymentStatus(selectedOrder.id, key)}
+                        <button key={key} disabled={isActive || updatingPayment} onClick={() => updatePaymentStatus(selectedOrder.id, key)}
                           style={{ padding: '7px 14px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: '800', cursor: isActive || updatingPayment ? 'not-allowed' : 'pointer', border: `1.5px solid ${isActive ? c.border : '#e5e7eb'}`, background: isActive ? c.bg : '#fff', color: isActive ? c.color : '#888', opacity: isActive ? 1 : 0.75, transition: 'all 0.15s' }}
                           onMouseEnter={e => { if (!isActive) { const b = e.currentTarget as HTMLButtonElement; b.style.background = c.bg; b.style.color = c.color; b.style.border = `1.5px solid ${c.border}`; b.style.opacity = '1'; } }}
-                          onMouseLeave={e => { if (!isActive) { const b = e.currentTarget as HTMLButtonElement; b.style.background = '#fff'; b.style.color = '#888'; b.style.border = '1.5px solid #e5e7eb'; b.style.opacity = '0.75'; } }}
-                        >
+                          onMouseLeave={e => { if (!isActive) { const b = e.currentTarget as HTMLButtonElement; b.style.background = '#fff'; b.style.color = '#888'; b.style.border = '1.5px solid #e5e7eb'; b.style.opacity = '0.75'; } }}>
                           {updatingPayment && !isActive ? '...' : label}
                         </button>
                       );
@@ -1500,46 +1365,23 @@ export default function AdminOrders() {
                     <p style={{ margin: 0 }}><strong>الموبايل:</strong> {selectedOrder.customer_phone}</p>
                     <p style={{ margin: 0 }}><strong>المحافظة:</strong> {selectedOrder.city}</p>
                     <p style={{ margin: 0 }}><strong>العنوان:</strong> {selectedOrder.customer_address}</p>
-                    <p style={{ margin: 0 }}>
-                      <strong>نوع الشحن:</strong>{' '}
-                      {selectedOrder.shipping_type === 'express'
-                        ? <span style={{ color: '#f59e0b', fontWeight: '800' }}>⚡ شحن سريع 48 ساعة — {selectedOrder.shipping_cost} ج.م</span>
-                        : <span>شحن عادي — {selectedOrder.shipping_cost || 0} ج.م</span>
-                      }
-                    </p>
+                    <p style={{ margin: 0 }}><strong>نوع الشحن:</strong>{' '}{selectedOrder.shipping_type === 'express' ? <span style={{ color: '#f59e0b', fontWeight: '800' }}>⚡ شحن سريع 48 ساعة — {selectedOrder.shipping_cost} ج.م</span> : <span>شحن عادي — {selectedOrder.shipping_cost || 0} ج.م</span>}</p>
                     {selectedOrder.car_mileage && <p style={{ margin: 0 }}><strong>قراءة العداد:</strong> {selectedOrder.car_mileage} كم</p>}
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
-                      <div>
-                        <label style={labelStyle}>اسم العميل</label>
-                        <input value={editedName} onChange={e => setEditedName(e.target.value)} style={inputStyle} placeholder="الاسم الكامل" />
-                      </div>
-                      <div>
-                        <label style={labelStyle}>رقم الهاتف</label>
-                        <input value={editedPhone} onChange={e => setEditedPhone(e.target.value)} style={inputStyle} placeholder="01xxxxxxxxx" />
-                      </div>
+                      <div><label style={labelStyle}>اسم العميل</label><input value={editedName} onChange={e => setEditedName(e.target.value)} style={inputStyle} placeholder="الاسم الكامل" /></div>
+                      <div><label style={labelStyle}>رقم الهاتف</label><input value={editedPhone} onChange={e => setEditedPhone(e.target.value)} style={inputStyle} placeholder="01xxxxxxxxx" /></div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
-                      <div>
-                        <label style={labelStyle}>المحافظة</label>
-                        <input value={editedCity} onChange={e => setEditedCity(e.target.value)} style={inputStyle} placeholder="المحافظة" />
-                      </div>
-                      <div style={{ gridColumn: '1 / -1' }}>
-                        <label style={labelStyle}>العنوان</label>
-                        <input value={editedAddress} onChange={e => setEditedAddress(e.target.value)} style={inputStyle} placeholder="العنوان التفصيلي" />
-                      </div>
+                      <div><label style={labelStyle}>المحافظة</label><input value={editedCity} onChange={e => setEditedCity(e.target.value)} style={inputStyle} placeholder="المحافظة" /></div>
+                      <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>العنوان</label><input value={editedAddress} onChange={e => setEditedAddress(e.target.value)} style={inputStyle} placeholder="العنوان التفصيلي" /></div>
                     </div>
                     <div>
                       <label style={labelStyle}>طريقة الدفع</label>
                       <select value={editedPaymentMethod} onChange={e => setEditedPaymentMethod(e.target.value)} style={{ ...inputStyle, appearance: 'none' as any, cursor: 'pointer' }}>
-                        <option value="cash">كاش عند الاستلام</option>
-                        <option value="vodafone_cash">فودافون كاش</option>
-                        <option value="instapay">انستاباي</option>
-                        <option value="bank_transfer">تحويل بنكي</option>
-                        <option value="card_installments">بطاقة / تقسيط</option>
-                        <option value="wallets">محفظة إلكترونية</option>
+                        <option value="cash">كاش عند الاستلام</option><option value="vodafone_cash">فودافون كاش</option><option value="instapay">انستاباي</option><option value="bank_transfer">تحويل بنكي</option><option value="card_installments">بطاقة / تقسيط</option><option value="wallets">محفظة إلكترونية</option>
                       </select>
                     </div>
                     {customerAddresses.length > 0 && (
@@ -1606,38 +1448,12 @@ export default function AdminOrders() {
                             </div>
                           </div>
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '10px', marginBottom: '14px' }}>
-                            <div>
-                              <label style={labelStyle}>ماركة القطعة</label>
-                              <select style={inputStyle} value={addItemFilter.brand} onChange={e => setAddItemFilter(f => ({ ...f, brand: e.target.value }))}>
-                                <option value="">{loadingBrands ? 'جاري التحميل...' : 'كل الماركات'}</option>
-                                {partBrands.map((b: any) => <option key={b.id} value={b.name}>{b.name}</option>)}
-                              </select>
-                            </div>
-                            <div>
-                              <label style={labelStyle}>ماركة السيارة</label>
-                              <select style={inputStyle} value={addItemFilter.car_make} onChange={e => { const val = e.target.value; setAddItemFilter(f => ({ ...f, car_make: val, car_model: '', car_year: '' })); fetchCarModels(val); }}>
-                                <option value="">الكل</option>
-                                {carMakes.map((m: string) => <option key={m} value={m}>{m}</option>)}
-                              </select>
-                            </div>
-                            <div>
-                              <label style={labelStyle}>موديل السيارة</label>
-                              <select style={{ ...inputStyle, opacity: !addItemFilter.car_make ? 0.5 : 1 }} value={addItemFilter.car_model} disabled={!addItemFilter.car_make} onChange={e => { const val = e.target.value; setAddItemFilter(f => ({ ...f, car_model: val, car_year: '' })); fetchCarYears(addItemFilter.car_make, val); }}>
-                                <option value="">{!addItemFilter.car_make ? 'اختر ماركة أولاً' : 'الكل'}</option>
-                                {carModels.map((m: string) => <option key={m} value={m}>{m}</option>)}
-                              </select>
-                            </div>
-                            <div>
-                              <label style={labelStyle}>سنة السيارة</label>
-                              <select style={{ ...inputStyle, opacity: !addItemFilter.car_model ? 0.5 : 1 }} value={addItemFilter.car_year} disabled={!addItemFilter.car_model} onChange={e => setAddItemFilter(f => ({ ...f, car_year: e.target.value }))}>
-                                <option value="">{!addItemFilter.car_model ? 'اختر موديل أولاً' : 'الكل'}</option>
-                                {carYears.map((y: string) => <option key={y} value={y}>{y}</option>)}
-                              </select>
-                            </div>
+                            <div><label style={labelStyle}>ماركة القطعة</label><select style={inputStyle} value={addItemFilter.brand} onChange={e => setAddItemFilter(f => ({ ...f, brand: e.target.value }))}><option value="">{loadingBrands ? 'جاري التحميل...' : 'كل الماركات'}</option>{partBrands.map((b: any) => <option key={b.id} value={b.name}>{b.name}</option>)}</select></div>
+                            <div><label style={labelStyle}>ماركة السيارة</label><select style={inputStyle} value={addItemFilter.car_make} onChange={e => { const val = e.target.value; setAddItemFilter(f => ({ ...f, car_make: val, car_model: '', car_year: '' })); fetchCarModels(val); }}><option value="">الكل</option>{carMakes.map((m: string) => <option key={m} value={m}>{m}</option>)}</select></div>
+                            <div><label style={labelStyle}>موديل السيارة</label><select style={{ ...inputStyle, opacity: !addItemFilter.car_make ? 0.5 : 1 }} value={addItemFilter.car_model} disabled={!addItemFilter.car_make} onChange={e => { const val = e.target.value; setAddItemFilter(f => ({ ...f, car_model: val, car_year: '' })); fetchCarYears(addItemFilter.car_make, val); }}><option value="">{!addItemFilter.car_make ? 'اختر ماركة أولاً' : 'الكل'}</option>{carModels.map((m: string) => <option key={m} value={m}>{m}</option>)}</select></div>
+                            <div><label style={labelStyle}>سنة السيارة</label><select style={{ ...inputStyle, opacity: !addItemFilter.car_model ? 0.5 : 1 }} value={addItemFilter.car_year} disabled={!addItemFilter.car_model} onChange={e => setAddItemFilter(f => ({ ...f, car_year: e.target.value }))}><option value="">{!addItemFilter.car_model ? 'اختر موديل أولاً' : 'الكل'}</option>{carYears.map((y: string) => <option key={y} value={y}>{y}</option>)}</select></div>
                           </div>
-                          <button onClick={fetchFilteredProducts} style={{ ...saveBtnStyle, width: '100%', justifyContent: 'center', marginBottom: '14px' }}>
-                            {loadingProducts ? 'جاري البحث...' : 'بحث بالفلاتر'}
-                          </button>
+                          <button onClick={fetchFilteredProducts} style={{ ...saveBtnStyle, width: '100%', justifyContent: 'center', marginBottom: '14px' }}>{loadingProducts ? 'جاري البحث...' : 'بحث بالفلاتر'}</button>
                           <div style={{ display: 'grid', gap: '8px', maxHeight: '320px', overflowY: 'auto' }}>
                             {loadingProducts && <p style={{ color: '#27ae60', textAlign: 'center', padding: '20px' }}>جاري البحث...</p>}
                             {!loadingProducts && filteredProducts.length === 0 && <p style={{ color: '#999', textAlign: 'center', padding: '20px' }}>ابحث باسم المنتج أو استخدم الفلاتر أعلاه</p>}
@@ -1665,13 +1481,9 @@ export default function AdminOrders() {
                     <div style={{ background: '#fffbeb', borderRadius: '16px', padding: '16px', border: '1px solid #fef3c7', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <h4 style={{ margin: 0, color: '#92400e', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}><Tag size={16} /> تعديلات السعر</h4>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
-                        <div>
-                          <label style={labelStyle}>رسوم الشحن (ج.م)</label>
-                          <input type="number" min={0} value={editedShipping} onChange={e => { setEditedShipping(parseFloat(e.target.value) || 0); setRemoveShipping(false); }} style={inputStyle} />
-                        </div>
+                        <div><label style={labelStyle}>رسوم الشحن (ج.م)</label><input type="number" min={0} value={editedShipping} onChange={e => { setEditedShipping(parseFloat(e.target.value) || 0); setRemoveShipping(false); }} style={inputStyle} /></div>
                         <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: '10px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', border: '1px solid #e5e5e5', borderRadius: '10px', padding: '10px 14px', cursor: 'pointer', width: '100%' }}
-                            onClick={() => setRemoveShipping(r => !r)}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', border: '1px solid #e5e5e5', borderRadius: '10px', padding: '10px 14px', cursor: 'pointer', width: '100%' }} onClick={() => setRemoveShipping(r => !r)}>
                             <input type="checkbox" checked={removeShipping} onChange={e => setRemoveShipping(e.target.checked)} style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#22c55e' }} />
                             <span style={{ fontWeight: '700', color: '#555', fontSize: '0.85rem' }}>إلغاء الشحن بالكامل</span>
                           </div>
@@ -1680,10 +1492,7 @@ export default function AdminOrders() {
                       <div>
                         <label style={labelStyle}>الخصم</label>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                          <select value={discount.type} onChange={e => setDiscount(d => ({ ...d, type: e.target.value as any }))} style={{ ...inputStyle, width: 'clamp(130px, 40%, 160px)' }}>
-                            <option value="amount">خصم بمبلغ (ج.م)</option>
-                            <option value="percent">خصم بنسبة (%)</option>
-                          </select>
+                          <select value={discount.type} onChange={e => setDiscount(d => ({ ...d, type: e.target.value as any }))} style={{ ...inputStyle, width: 'clamp(130px, 40%, 160px)' }}><option value="amount">خصم بمبلغ (ج.م)</option><option value="percent">خصم بنسبة (%)</option></select>
                           <input type="number" min={0} value={discount.value || ''} onChange={e => setDiscount(d => ({ ...d, value: parseFloat(e.target.value) || 0 }))} placeholder={discount.type === 'percent' ? 'مثال: 10' : 'مثال: 50'} style={{ ...inputStyle, width: '100px' }} />
                           <span style={{ color: '#999', fontWeight: '700', fontSize: '0.9rem', flexShrink: 0 }}>{discount.type === 'percent' ? '%' : 'ج.م'}</span>
                         </div>
@@ -1695,7 +1504,6 @@ export default function AdminOrders() {
                           <input value={extraFee.reason} onChange={e => setExtraFee(f => ({ ...f, reason: e.target.value }))} placeholder="سبب الرسوم الإضافية..." style={{ ...inputStyle, flex: 1, minWidth: '120px' }} />
                         </div>
                       </div>
-                      {/* Live breakdown */}
                       <div style={{ background: '#fff', borderRadius: '12px', padding: '14px 16px', border: '1px solid #fde68a', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {(() => {
                           const itemsTotal = editedItems.reduce((s: number, i: any) => s + parseFloat(i.price) * i.quantity, 0);
@@ -1751,12 +1559,8 @@ export default function AdminOrders() {
             <p style={{ color: '#666', fontSize: '0.95rem', marginBottom: '8px', lineHeight: 1.6 }}>هل أنت متأكد من حذف هذا الطلب نهائياً؟</p>
             <p style={{ color: '#dc2626', fontWeight: '700', fontSize: '0.9rem', marginBottom: '28px' }}>لا يمكن التراجع عن هذا الإجراء</p>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <button onClick={() => handleDelete(deleteConfirmId)} style={{ padding: '12px 28px', backgroundColor: '#dc2626', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Trash2 size={16} /> نعم، احذف
-              </button>
-              <button onClick={() => setDeleteConfirmId(null)} style={{ padding: '12px 28px', backgroundColor: '#f5f5f5', color: '#555', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer' }}>
-                إلغاء
-              </button>
+              <button onClick={() => handleDelete(deleteConfirmId)} style={{ padding: '12px 28px', backgroundColor: '#dc2626', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}><Trash2 size={16} /> نعم، احذف</button>
+              <button onClick={() => setDeleteConfirmId(null)} style={{ padding: '12px 28px', backgroundColor: '#f5f5f5', color: '#555', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer' }}>إلغاء</button>
             </div>
           </div>
         </div>
@@ -1797,7 +1601,6 @@ const itemsContainer: any = { display: 'grid', gap: '12px' };
 const productDetailCard: any = { background: '#fff', padding: '12px', borderRadius: '16px', border: '1px solid #eee' };
 const miniProductImgBox: any = { width: '60px', height: '60px', borderRadius: '10px', overflow: 'hidden', border: '1px solid #eee', flexShrink: 0 };
 const miniProductImg: any = { width: '100%', height: '100%', objectFit: 'contain' };
-const productMainInfo: any = { display: 'flex', justifyContent: 'space-between', marginBottom: '8px' };
 const productName: any = { color: '#1a1a1a', fontWeight: '800', fontSize: '1rem' };
 const productPrice: any = { color: '#15803d', fontWeight: '900', fontSize: '1.05rem' };
 const extraDetailsGrid: any = { display: 'flex', flexWrap: 'wrap', gap: '8px' };
