@@ -1,16 +1,13 @@
 // app/api/easykash-callback/route.ts
 //
-// EasyKash calls this URL after every successful payment.
-// Configure this URL in your EasyKash Integration Settings:
-//   https://www.easykash.net/seller/cash-api
-//   → Callback URL: https://zaitandfilters.com/api/easykash-callback
+// EasyKash calls this URL after every payment attempt.
+// Configure in EasyKash Integration Settings:
+//   Callback URL: https://zaitandfilters.com/api/easykash-callback
 //
-// Flow:
-//   1. Verify signatureHash with HMAC-SHA512
-//   2. Look up the pending order data stored in Supabase `pending_orders` table
-//   3. Create the real order in `orders` table
-//   4. Delete the pending row
-//   5. Return 200 OK (EasyKash expects 2xx or it retries)
+// Change from previous version:
+//   - No longer gatekeeps on status === 'PAID'
+//   - ALL statuses create an order, with payment_status reflecting what EasyKash sent
+//   - This prevents orders getting silently swallowed if EasyKash sends a different status string
 
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
@@ -41,6 +38,17 @@ function verifySignature(payload: any, secretKey: string): boolean {
   return calculated === signatureHash;
 }
 
+// Map any EasyKash status string → our internal payment_status
+function mapPaymentStatus(easykashStatus: string): string {
+  const s = (easykashStatus || '').toUpperCase().trim();
+  if (['PAID', 'SUCCESS', 'SUCCESSFUL', 'COMPLETED', 'APPROVED'].includes(s)) return 'paid';
+  if (['FAILED', 'FAILURE', 'DECLINED', 'REJECTED', 'ERROR'].includes(s)) return 'failed';
+  if (['PENDING', 'PROCESSING', 'INITIATED'].includes(s)) return 'pending';
+  if (['REFUNDED', 'REVERSED'].includes(s)) return 'refunded';
+  // Unknown status — still create the order, store raw status
+  return 'pending';
+}
+
 export async function POST(req: NextRequest) {
   try {
     const payload = await req.json();
@@ -48,27 +56,20 @@ export async function POST(req: NextRequest) {
 
     const { status, customerReference, Amount, easykashRef, PaymentMethod } = payload;
 
-    // ── 1. Verify signature ───────────────────────────────────────────────────
+    // ── 1. Verify signature (non-blocking — just logs a warning if missing) ──
     const hmacSecret = process.env.EASYKASH_HMAC_SECRET;
     if (hmacSecret) {
       const valid = verifySignature(payload, hmacSecret);
       if (!valid) {
-        console.error('[EasyKash Callback] ❌ Invalid signature');
+        console.error('[EasyKash Callback] ❌ Invalid signature — rejecting');
         return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
       }
       console.log('[EasyKash Callback] ✅ Signature verified');
     } else {
-      console.warn('[EasyKash Callback] ⚠️ No HMAC secret set — skipping verification');
+      console.warn('[EasyKash Callback] ⚠️ No HMAC secret — skipping signature check');
     }
 
-    // ── 2. Only process PAID callbacks ───────────────────────────────────────
-    if (status !== 'PAID') {
-      console.log(`[EasyKash Callback] Ignoring status: ${status}`);
-      return NextResponse.json({ received: true, skipped: true });
-    }
-
-    // ── 3. Find the pending order data ────────────────────────────────────────
-    // customerReference is what we stored as the lookup key
+    // ── 2. Find the pending order ─────────────────────────────────────────────
     const { data: pending, error: findError } = await supabaseAdmin
       .from('pending_orders')
       .select('*')
@@ -77,47 +78,58 @@ export async function POST(req: NextRequest) {
 
     if (findError || !pending) {
       console.error('[EasyKash Callback] ❌ Pending order not found for ref:', customerReference);
-      // Still return 200 so EasyKash doesn't keep retrying
+      // Return 200 so EasyKash doesn't keep retrying
       return NextResponse.json({ received: true, warning: 'Pending order not found' });
     }
 
-    // ── 4. Check not already processed (idempotency) ─────────────────────────
-    const { data: existingOrder } = await supabaseAdmin
-      .from('orders')
-      .select('id')
-      .eq('easykash_ref', easykashRef)
-      .maybeSingle();
+    console.log('[EasyKash Callback] ✅ Found pending order for ref:', customerReference);
 
-    if (existingOrder) {
-      console.log('[EasyKash Callback] ⚠️ Order already created for ref:', easykashRef);
-      return NextResponse.json({ received: true, duplicate: true });
+    // ── 3. Idempotency — skip if already processed ───────────────────────────
+    if (easykashRef) {
+      const { data: existingOrder } = await supabaseAdmin
+        .from('orders')
+        .select('id')
+        .eq('easykash_ref', easykashRef)
+        .maybeSingle();
+
+      if (existingOrder) {
+        console.log('[EasyKash Callback] ⚠️ Already processed, skipping. easykashRef:', easykashRef);
+        return NextResponse.json({ received: true, duplicate: true });
+      }
     }
 
-    // ── 5. Create the real order ──────────────────────────────────────────────
+    // ── 4. Map EasyKash status → our payment_status ───────────────────────────
+    const paymentStatus = mapPaymentStatus(status);
+    console.log(`[EasyKash Callback] Status: "${status}" → payment_status: "${paymentStatus}"`);
+
+    // ── 5. Create the real order regardless of status ─────────────────────────
     const orderData = pending.order_data;
+
     const { data: newOrder, error: insertError } = await supabaseAdmin
       .from('orders')
       .insert({
         ...orderData,
-        status: 'pending',                   // payment confirmed → pending fulfillment
+        status: paymentStatus === 'paid' ? 'pending' : 'cancelled',
+        payment_status: paymentStatus,
         payment_method: 'card_installments',
-        easykash_ref: easykashRef,
-        easykash_payment_method: PaymentMethod,
-        easykash_amount: Amount,
+        easykash_ref: easykashRef || null,
+        easykash_payment_method: PaymentMethod || null,
+        easykash_amount: Amount || null,
+        easykash_status_raw: status,           // store the raw status for debugging
         created_at: new Date().toISOString(),
       })
       .select()
       .single();
 
     if (insertError) {
-      console.error('[EasyKash Callback] ❌ Failed to create order:', insertError);
+      console.error('[EasyKash Callback] ❌ Failed to create order:', insertError.message);
       return NextResponse.json({ error: insertError.message }, { status: 500 });
     }
 
-    console.log('[EasyKash Callback] ✅ Order created:', newOrder.id);
+    console.log('[EasyKash Callback] ✅ Order created:', newOrder.id, '| payment_status:', paymentStatus);
 
-    // ── 6. Handle affiliate commission if needed ──────────────────────────────
-    if (orderData.marketer_id) {
+    // ── 6. Affiliate commission (only for paid orders) ───────────────────────
+    if (paymentStatus === 'paid' && orderData.marketer_id) {
       try {
         const { data: marketer } = await supabaseAdmin
           .from('marketers')
@@ -145,12 +157,14 @@ export async function POST(req: NextRequest) {
           total_conversions: (marketer?.total_conversions || 0) + 1,
           pending_balance: (marketer?.pending_balance || 0) + commissionAmount,
         }).eq('id', orderData.marketer_id);
+
+        console.log('[EasyKash Callback] ✅ Commission tracked for marketer:', orderData.marketer_id);
       } catch (err) {
         console.error('[EasyKash Callback] ⚠️ Commission error (non-fatal):', err);
       }
     }
 
-    // ── 7. Delete the pending order row ───────────────────────────────────────
+    // ── 7. Clean up pending order ─────────────────────────────────────────────
     await supabaseAdmin
       .from('pending_orders')
       .delete()
@@ -158,11 +172,11 @@ export async function POST(req: NextRequest) {
 
     console.log('[EasyKash Callback] ✅ Pending order cleaned up');
 
-    return NextResponse.json({ received: true, orderId: newOrder.id });
+    return NextResponse.json({ received: true, orderId: newOrder.id, paymentStatus });
 
   } catch (err: any) {
     console.error('[EasyKash Callback] Unexpected error:', err);
-    // Return 200 anyway — we don't want EasyKash to retry for our own bugs
+    // Always return 200 — don't let EasyKash retry for our own bugs
     return NextResponse.json({ received: true, error: err.message });
   }
 }
