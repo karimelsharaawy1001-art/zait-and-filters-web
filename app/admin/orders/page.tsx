@@ -8,7 +8,7 @@ import {
   CarFront, Factory, Smartphone, Plus, Edit2, Save, Tag,
   Truck, AlertCircle, RefreshCw, Search, FileText, Download, Printer,
   ChevronDown, Package, CheckCircle, Loader2, CheckSquare, Square, Minus,
-  AlertTriangle
+  AlertTriangle, Link as LinkIcon
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -414,6 +414,12 @@ const paymentStatusColors: Record<string, { bg: string; color: string; border: s
   refunded: { bg: '#f5f3ff', color: '#6d28d9', border: '#ddd6fe' },
 };
 
+// ─── Egypt Post tracking URL builder ─────────────────────────────────────────
+const EGYPT_POST_TRACKING_URL = 'https://www.egyptpost.org/ar/tracking';
+function buildTrackingUrl(trackingNumber: string): string {
+  return `${EGYPT_POST_TRACKING_URL}?barcode=${encodeURIComponent(trackingNumber.trim())}`;
+}
+
 // ─── Inline Expanded Order Row ────────────────────────────────────────────────
 function ExpandedOrderRow({
   order, paymentLabels, onUpdateStatus, onUpdatePaymentStatus,
@@ -451,6 +457,19 @@ function ExpandedOrderRow({
           <div style={{ fontSize: '0.82rem', color: '#555', marginBottom: '4px' }}>الشحن: <strong style={{ color: shipping === 0 ? '#22c55e' : '#1a1a1a' }}>{shipping === 0 ? 'مجاني' : `${shipping} ج.م`}</strong>{order.shipping_type === 'express' && <span style={{ marginRight: '6px', fontSize: '0.7rem', color: '#f59e0b', fontWeight: '800' }}>⚡ سريع</span>}</div>
           {discountVal > 0 && <div style={{ fontSize: '0.82rem', color: '#ef4444', marginBottom: '4px' }}>خصم: -{discountVal} ج.م</div>}
           <div style={{ fontSize: '1rem', fontWeight: '900', color: '#15803d', marginTop: '6px' }}>{total.toLocaleString()} ج.م</div>
+          {/* ── Tracking display in expanded row ── */}
+          {order.tracking_number && (
+            <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed #e0f2e9' }}>
+              <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#888', letterSpacing: '1px', marginBottom: '5px', textTransform: 'uppercase' }}>تتبع الشحنة</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#1a1a1a', fontFamily: 'monospace', background: '#f0fdf4', padding: '2px 8px', borderRadius: '6px', border: '1px solid #bbf7d0' }}>{order.tracking_number}</span>
+                <a href={buildTrackingUrl(order.tracking_number)} target="_blank" rel="noreferrer"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.72rem', fontWeight: '800', color: '#1e40af', textDecoration: 'none', background: '#eff6ff', padding: '3px 8px', borderRadius: '6px', border: '1px solid #dbeafe' }}>
+                  <ExternalLink size={11} /> تتبع
+                </a>
+              </div>
+            </div>
+          )}
         </div>
         <div style={{ flex: '1 1 200px', background: '#fff', borderRadius: '12px', padding: '12px 16px', border: '1px solid #e8f5e9', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#888', letterSpacing: '1px', marginBottom: '2px', textTransform: 'uppercase' }}>تحديث الحالات</div>
@@ -551,6 +570,12 @@ export default function AdminOrders() {
   const [extraFee, setExtraFee] = useState<{ amount: number; reason: string }>({ amount: 0, reason: '' });
   const [removeShipping, setRemoveShipping] = useState(false);
   const [customerAddresses, setCustomerAddresses] = useState<any[]>([]);
+
+  // ── TRACKING NUMBER STATE ─────────────────────────────────────────────────
+  const [editedTrackingNumber, setEditedTrackingNumber] = useState('');
+  const [savingTracking, setSavingTracking] = useState(false);
+  const [quickTrackingOrderId, setQuickTrackingOrderId] = useState<string | null>(null);
+  const [quickTrackingValue, setQuickTrackingValue] = useState('');
 
   const [showAddItem, setShowAddItem] = useState(false);
   const [partBrands, setPartBrands] = useState<any[]>([]);
@@ -673,6 +698,23 @@ export default function AdminOrders() {
     } finally { setUpdatingPayment(false); }
   }
 
+  // ── TRACKING NUMBER SAVE ──────────────────────────────────────────────────
+  async function saveTrackingNumber(orderId: string, trackingNumber: string) {
+    setSavingTracking(true);
+    try {
+      const { error } = await supabase.from('orders').update({ tracking_number: trackingNumber.trim() || null }).eq('id', orderId);
+      if (error) throw error;
+      const updated = { tracking_number: trackingNumber.trim() || null };
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...updated } : o));
+      if (selectedOrder?.id === orderId) setSelectedOrder((prev: any) => ({ ...prev, ...updated }));
+      toast.success('تم حفظ رقم التتبع ✅');
+      setQuickTrackingOrderId(null);
+      setQuickTrackingValue('');
+    } catch (err: any) {
+      toast.error('فشل حفظ رقم التتبع: ' + err.message);
+    } finally { setSavingTracking(false); }
+  }
+
   async function handleDelete(orderId: string) {
     try {
       const { error, count } = await supabase.from('orders').delete({ count: 'exact' }).eq('id', orderId);
@@ -743,7 +785,21 @@ export default function AdminOrders() {
     try {
       const newTotal = calcTotal(editedItems, discount, extraFee, removeShipping, editedShipping);
       const discAmount = discount.type === 'amount' ? discount.value : (editedItems.reduce((s: number, i: any) => s + parseFloat(i.price) * i.quantity, 0) * discount.value / 100);
-      const updatePayload: any = { items: editedItems, customer_address: editedAddress, city: editedCity, customer_name: editedName, customer_phone: editedPhone, payment_method: editedPaymentMethod, shipping_cost: editedShipping, total_price: newTotal.toFixed(2), discount_amount: discAmount, extra_fee: extraFee.amount, extra_fee_reason: extraFee.reason, shipping_removed: removeShipping };
+      const updatePayload: any = {
+        items: editedItems,
+        customer_address: editedAddress,
+        city: editedCity,
+        customer_name: editedName,
+        customer_phone: editedPhone,
+        payment_method: editedPaymentMethod,
+        shipping_cost: editedShipping,
+        total_price: newTotal.toFixed(2),
+        discount_amount: discAmount,
+        extra_fee: extraFee.amount,
+        extra_fee_reason: extraFee.reason,
+        shipping_removed: removeShipping,
+        tracking_number: editedTrackingNumber.trim() || null,
+      };
       const { error } = await supabase.from('orders').update(updatePayload).eq('id', selectedOrder.id);
       if (error) throw error;
       const updated = { ...selectedOrder, ...updatePayload };
@@ -806,6 +862,7 @@ export default function AdminOrders() {
     setDiscount({ type: 'amount', value: order.discount_amount || 0 });
     setExtraFee({ amount: order.extra_fee || 0, reason: order.extra_fee_reason || '' });
     setRemoveShipping(order.shipping_removed || false);
+    setEditedTrackingNumber(order.tracking_number || '');
     setShowAddItem(false); setFilteredProducts([]); setProductSearchQuery('');
     setAddItemFilter({ brand: '', car_make: '', car_model: '', car_year: '' });
     fetchCustomerAddresses(order.customer_phone);
@@ -920,6 +977,21 @@ export default function AdminOrders() {
               <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e5e5e5' }}>طريقة الدفع: <span style={{ fontWeight: '800', color: '#1a1a1a' }}>{paymentLabels[order.payment_method] || order.payment_method}</span></div>
             </div>
           </div>
+
+          {/* ── Tracking section in invoice ── */}
+          {order.tracking_number && (
+            <div style={{ backgroundColor: '#f0fdf4', borderRadius: '14px', padding: '16px 20px', border: '1px solid #bbf7d0', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+              <div>
+                <div style={{ fontSize: '0.68rem', fontWeight: '900', color: '#15803d', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>تتبع شحنتك — البريد المصري</div>
+                <div style={{ fontSize: '1rem', fontWeight: '900', color: '#1a1a1a', fontFamily: 'monospace', letterSpacing: '1px' }}>{order.tracking_number}</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.75rem', color: '#555', fontWeight: '600' }}>تتبع شحنتك على:</span>
+                <span style={{ fontSize: '0.82rem', fontWeight: '900', color: '#15803d', background: '#dcfce7', padding: '4px 12px', borderRadius: '8px' }}>egyptpost.org</span>
+              </div>
+            </div>
+          )}
+
           <div style={{ marginBottom: '24px' }}>
             <div style={{ fontSize: '0.68rem', fontWeight: '900', color: '#888', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>تفاصيل المنتجات</div>
             <div style={{ backgroundColor: '#0f172a', borderRadius: '10px 10px 0 0', padding: '10px 16px', display: 'grid', gridTemplateColumns: '2.5fr 0.7fr 1fr 1fr' }}>
@@ -999,6 +1071,7 @@ export default function AdminOrders() {
         }
         .order-row-clickable:hover { background: #fafff8 !important; }
         .order-row-clickable:active { background: #f0fdf4 !important; }
+        .tracking-input:focus { border-color: #22c55e !important; outline: none; box-shadow: 0 0 0 3px rgba(34,197,94,0.15); }
       `}} />
 
       {showNewOrderModal && <NewOrderModal onClose={() => setShowNewOrderModal(false)} onCreated={() => { fetchOrders(); }} />}
@@ -1079,7 +1152,6 @@ export default function AdminOrders() {
               <table style={table}>
                 <thead>
                   <tr style={thRow}>
-                    {/* ── Select All checkbox ── */}
                     <th style={{ ...th, width: '40px', textAlign: 'center' }}>
                       <button onClick={toggleSelectAllPage}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}
@@ -1098,6 +1170,7 @@ export default function AdminOrders() {
                     <th style={th}>طريقة الدفع</th>
                     <th style={th}>حالة الشحن</th>
                     <th style={th}>حالة الدفع</th>
+                    <th style={th}>رقم التتبع</th>
                     <th style={th}>التاريخ والوقت</th>
                     <th style={th}>الإجمالي</th>
                     <th style={th}>إجراءات</th>
@@ -1105,12 +1178,13 @@ export default function AdminOrders() {
                 </thead>
                 <tbody>
                   {paginated.length === 0 ? (
-                    <tr><td colSpan={10} style={{ textAlign: 'center', padding: '60px', color: '#aaa', fontSize: '0.95rem' }}>لا توجد طلبات في هذا القسم</td></tr>
+                    <tr><td colSpan={11} style={{ textAlign: 'center', padding: '60px', color: '#aaa', fontSize: '0.95rem' }}>لا توجد طلبات في هذا القسم</td></tr>
                   ) : paginated.map((order) => {
                     const { datePart, timePart } = formatDateTime(order.created_at);
                     const isExpanded = expandedOrderId === order.id;
                     const isExpanding = expandingId === order.id;
                     const isSelected = selectedIds.has(order.id);
+                    const isEditingTracking = quickTrackingOrderId === order.id;
                     return (
                       <>
                         <tr key={order.id} className="order-row-clickable"
@@ -1161,6 +1235,58 @@ export default function AdminOrders() {
                               return <span style={{ fontSize: '0.75rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: c.bg, color: c.color, border: `1px solid ${c.border}`, whiteSpace: 'nowrap' }}>{paymentStatusLabels[ps]}</span>;
                             })()}
                           </td>
+
+                          {/* ── TRACKING NUMBER COLUMN ── */}
+                          <td style={td} onClick={e => e.stopPropagation()}>
+                            {isEditingTracking ? (
+                              <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                                <input
+                                  className="tracking-input"
+                                  autoFocus
+                                  type="text"
+                                  value={quickTrackingValue}
+                                  onChange={e => setQuickTrackingValue(e.target.value)}
+                                  onKeyDown={e => {
+                                    if (e.key === 'Enter') saveTrackingNumber(order.id, quickTrackingValue);
+                                    if (e.key === 'Escape') { setQuickTrackingOrderId(null); setQuickTrackingValue(''); }
+                                  }}
+                                  placeholder="أدخل رقم التتبع"
+                                  style={{ width: '130px', height: '32px', padding: '0 8px', border: '1.5px solid #22c55e', borderRadius: '8px', fontSize: '0.78rem', fontFamily: 'monospace', color: '#1a1a1a', background: '#fff', transition: 'all 0.2s' }}
+                                />
+                                <button onClick={() => saveTrackingNumber(order.id, quickTrackingValue)} disabled={savingTracking}
+                                  style={{ width: '28px', height: '28px', background: '#22c55e', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                  {savingTracking ? <Loader2 size={12} color="#fff" style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={13} color="#fff" />}
+                                </button>
+                                <button onClick={() => { setQuickTrackingOrderId(null); setQuickTrackingValue(''); }}
+                                  style={{ width: '28px', height: '28px', background: '#fee2e2', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                  <X size={12} color="#dc2626" />
+                                </button>
+                              </div>
+                            ) : order.tracking_number ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                  <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#1a1a1a', fontFamily: 'monospace', background: '#f0fdf4', padding: '2px 7px', borderRadius: '6px', border: '1px solid #bbf7d0' }}>{order.tracking_number}</span>
+                                  <button onClick={() => { setQuickTrackingOrderId(order.id); setQuickTrackingValue(order.tracking_number); }}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: '#888', flexShrink: 0 }}
+                                    title="تعديل رقم التتبع">
+                                    <Edit2 size={12} />
+                                  </button>
+                                </div>
+                                <a href={buildTrackingUrl(order.tracking_number)} target="_blank" rel="noreferrer"
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.68rem', fontWeight: '800', color: '#1e40af', textDecoration: 'none', background: '#eff6ff', padding: '2px 7px', borderRadius: '5px', border: '1px solid #dbeafe', width: 'fit-content' }}>
+                                  <ExternalLink size={10} /> تتبع البريد المصري
+                                </a>
+                              </div>
+                            ) : (
+                              <button onClick={() => { setQuickTrackingOrderId(order.id); setQuickTrackingValue(''); }}
+                                style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#f8faff', color: '#94a3b8', border: '1.5px dashed #cbd5e1', borderRadius: '8px', padding: '5px 10px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '700', whiteSpace: 'nowrap', transition: 'all 0.2s' }}
+                                onMouseEnter={e => { const b = e.currentTarget; b.style.borderColor = '#22c55e'; b.style.color = '#22c55e'; b.style.background = '#f0fdf4'; }}
+                                onMouseLeave={e => { const b = e.currentTarget; b.style.borderColor = '#cbd5e1'; b.style.color = '#94a3b8'; b.style.background = '#f8faff'; }}>
+                                <Plus size={12} /> إضافة رقم تتبع
+                              </button>
+                            )}
+                          </td>
+
                           <td style={td} onClick={e => e.stopPropagation()}>
                             <div style={{ fontSize: '0.85rem', color: '#444', fontWeight: '700' }}>{datePart}</div>
                             <div style={{ fontSize: '0.78rem', color: '#22c55e', fontWeight: '700', marginTop: '2px' }}>{timePart}</div>
@@ -1178,7 +1304,7 @@ export default function AdminOrders() {
                         </tr>
                         {isExpanded && (
                           <tr key={`${order.id}-expanded`}>
-                            <td colSpan={10} style={{ padding: 0, border: 'none' }}>
+                            <td colSpan={11} style={{ padding: 0, border: 'none' }}>
                               <ExpandedOrderRow order={order} paymentLabels={paymentLabels} onUpdateStatus={updateOrderStatus} onUpdatePaymentStatus={updatePaymentStatus} onViewDetail={openDetailModal} onViewInvoice={openInvoiceModal} onDelete={(id) => setDeleteConfirmId(id)} updatingPayment={updatingPayment} enrichedItems={expandedEnrichedItems} />
                             </td>
                           </tr>
@@ -1219,7 +1345,7 @@ export default function AdminOrders() {
                             {isExpanding ? <Loader2 size={18} color="#22c55e" style={{ animation: 'spin 1s linear infinite' }} /> : <ChevronDown size={20} color={isExpanded ? '#22c55e' : '#aaa'} style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />}
                           </div>
                         </div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', paddingBottom: '12px' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
                           <div style={{ ...cityBadge, fontSize: '0.75rem', padding: '4px 10px' }}><MapPin size={12} color="#15803d" /> {order.city || 'غير محدد'}</div>
                           <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: pc.bg, color: pc.color, border: `1px solid ${pc.border}` }}>{paymentStatusLabels[ps]}</span>
                           {(() => {
@@ -1227,8 +1353,15 @@ export default function AdminOrders() {
                             const statusLabels: any = { pending: 'جديد', processing: 'تجهيز', shipped: 'شحن', delivered: 'توصيل', cancelled: 'ملغي', refunded: 'مسترجع' };
                             return <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: sc.background, color: sc.color, border: sc.border }}>{statusLabels[order.status] || order.status}</span>;
                           })()}
+                          {order.tracking_number && (
+                            <a href={buildTrackingUrl(order.tracking_number)} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.68rem', fontWeight: '800', color: '#1e40af', textDecoration: 'none', background: '#eff6ff', padding: '4px 8px', borderRadius: '6px', border: '1px solid #dbeafe' }}>
+                              <Truck size={10} /> {order.tracking_number}
+                            </a>
+                          )}
                           <span style={{ fontSize: '0.72rem', color: '#999', marginRight: 'auto' }}>{datePart} • {timePart}</span>
                         </div>
+                        <div style={{ paddingBottom: '12px' }} />
                       </div>
                     </div>
                     <div style={{ display: 'flex', borderTop: '1px solid #f0f0f0', background: '#fafafa' }} onClick={e => e.stopPropagation()}>
@@ -1357,6 +1490,70 @@ export default function AdminOrders() {
                   </div>
                 </div>
               </div>
+
+              {/* ── TRACKING NUMBER CARD ── */}
+              <div style={{ ...modalCard, background: selectedOrder.tracking_number ? '#f0fdf4' : '#fafafa', border: selectedOrder.tracking_number ? '1.5px solid #bbf7d0' : '1.5px dashed #d1d5db' }}>
+                <h3 style={{ ...cardTitle, color: selectedOrder.tracking_number ? '#15803d' : '#6b7280' }}>
+                  <Truck size={18} color={selectedOrder.tracking_number ? '#22c55e' : '#9ca3af'} />
+                  رقم تتبع الشحنة — البريد المصري
+                </h3>
+                {!editMode ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {selectedOrder.tracking_number ? (
+                      <>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', border: '1.5px solid #86efac', borderRadius: '10px', padding: '10px 16px' }}>
+                            <LinkIcon size={16} color="#22c55e" />
+                            <span style={{ fontWeight: '900', fontSize: '1rem', color: '#1a1a1a', fontFamily: 'monospace', letterSpacing: '1px' }}>{selectedOrder.tracking_number}</span>
+                          </div>
+                          <a href={buildTrackingUrl(selectedOrder.tracking_number)} target="_blank" rel="noreferrer"
+                            style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(135deg, #1e40af, #1d4ed8)', color: '#fff', textDecoration: 'none', borderRadius: '10px', padding: '10px 18px', fontWeight: '800', fontSize: '0.88rem', whiteSpace: 'nowrap' }}>
+                            <ExternalLink size={15} /> تتبع على موقع البريد المصري
+                          </a>
+                        </div>
+                        <div style={{ fontSize: '0.78rem', color: '#15803d', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <CheckCircle size={14} color="#22c55e" />
+                          سيظهر رقم التتبع وزر التتبع في حساب العميل تلقائياً
+                        </div>
+                        <button onClick={() => openEditMode(selectedOrder)} style={{ ...editBtnStyle, width: 'fit-content' }}><Edit2 size={14} /> تعديل رقم التتبع</button>
+                      </>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <p style={{ margin: 0, color: '#9ca3af', fontSize: '0.88rem' }}>لم يتم إضافة رقم تتبع لهذا الطلب بعد.</p>
+                        <button onClick={() => openEditMode(selectedOrder)} style={{ ...saveBtnStyle, width: 'fit-content' }}><Plus size={14} /> إضافة رقم تتبع الآن</button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <label style={labelStyle}>رقم التتبع (اختياري)</label>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
+                        <Truck size={16} color="#aaa" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                        <input
+                          className="tracking-input"
+                          type="text"
+                          value={editedTrackingNumber}
+                          onChange={e => setEditedTrackingNumber(e.target.value)}
+                          placeholder="مثال: ER123456789EG"
+                          style={{ ...inputStyle, paddingRight: '40px', fontFamily: 'monospace', letterSpacing: '0.5px', fontSize: '0.95rem' }}
+                        />
+                      </div>
+                      {editedTrackingNumber.trim() && (
+                        <a href={buildTrackingUrl(editedTrackingNumber)} target="_blank" rel="noreferrer"
+                          style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#eff6ff', color: '#1e40af', textDecoration: 'none', borderRadius: '10px', padding: '9px 14px', fontWeight: '700', fontSize: '0.85rem', border: '1px solid #dbeafe', whiteSpace: 'nowrap' }}>
+                          <ExternalLink size={14} /> اختبر الرابط
+                        </a>
+                      )}
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#888' }}>
+                      سيتم إنشاء رابط تتبع تلقائي على موقع البريد المصري وإظهاره للعميل في حسابه.
+                      اتركه فارغاً إذا لم يكن لديك رقم تتبع بعد.
+                    </p>
+                  </div>
+                )}
+              </div>
+
               <div style={modalCard}>
                 <h3 style={cardTitle}><User size={18} /> بيانات العميل والتوصيل</h3>
                 {!editMode ? (
@@ -1620,3 +1817,67 @@ const removeItemBtn: any = { display: 'flex', alignItems: 'center', gap: '5px', 
 const addItemBtnStyle: any = { display: 'flex', alignItems: 'center', gap: '8px', background: '#f0fdf4', color: '#15803d', border: '2px dashed #86efac', borderRadius: '12px', padding: '10px 18px', cursor: 'pointer', fontWeight: '700', fontSize: '0.9rem', width: '100%', justifyContent: 'center' };
 const addrBtnStyle: any = { display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', borderRadius: '10px', padding: '10px 14px', cursor: 'pointer', textAlign: 'right', fontSize: '0.85rem', color: '#444', width: '100%' };
 const searchProductRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', padding: '10px 12px', borderRadius: '12px', border: '1px solid #eee', flexWrap: 'wrap', gap: '8px' };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CUSTOMER-FACING TRACKING COMPONENT
+// Add this wherever you render the customer's order detail page.
+// It reads order.tracking_number and shows the Egypt Post tracking link.
+// ─────────────────────────────────────────────────────────────────────────────
+export function CustomerTrackingBanner({ order }: { order: { tracking_number?: string | null; status?: string } }) {
+  if (!order?.tracking_number) return null;
+  const trackingUrl = buildTrackingUrl(order.tracking_number);
+  return (
+    <div style={{
+      background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
+      border: '1.5px solid #86efac',
+      borderRadius: '18px',
+      padding: '20px 24px',
+      direction: 'rtl',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '14px',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ width: '40px', height: '40px', background: '#22c55e', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Truck size={20} color="#fff" />
+        </div>
+        <div>
+          <div style={{ fontWeight: '900', fontSize: '1rem', color: '#15803d' }}>شحنتك في الطريق إليك!</div>
+          <div style={{ fontSize: '0.8rem', color: '#16a34a', marginTop: '2px' }}>تم شحن طلبك عبر البريد المصري</div>
+        </div>
+      </div>
+      <div style={{ background: '#fff', borderRadius: '12px', padding: '14px 16px', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+        <div>
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#888', marginBottom: '4px', letterSpacing: '0.5px' }}>رقم تتبع الشحنة</div>
+          <div style={{ fontWeight: '900', fontSize: '1.05rem', color: '#1a1a1a', fontFamily: 'monospace', letterSpacing: '1.5px' }}>{order.tracking_number}</div>
+        </div>
+        <a
+          href={trackingUrl}
+          target="_blank"
+          rel="noreferrer"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'linear-gradient(135deg, #15803d, #16a34a)',
+            color: '#fff',
+            textDecoration: 'none',
+            borderRadius: '12px',
+            padding: '11px 20px',
+            fontWeight: '800',
+            fontSize: '0.9rem',
+            boxShadow: '0 4px 12px rgba(34,197,94,0.35)',
+            whiteSpace: 'nowrap',
+          }}>
+          <ExternalLink size={16} />
+          تتبع شحنتي على البريد المصري
+        </a>
+      </div>
+      <div style={{ fontSize: '0.75rem', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <CheckCircle size={13} color="#22c55e" />
+        سيتم توصيل طلبك خلال 3-7 أيام عمل من تاريخ الشحن
+      </div>
+    </div>
+  );
+}
