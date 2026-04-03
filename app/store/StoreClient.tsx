@@ -666,7 +666,7 @@ function StoreContent() {
       setLoading(true);
 
       const [productsRes, subcatRes] = await Promise.all([
-        supabase.from('products').select('car_make, category, brand').order('car_make', { ascending: true }),
+        supabase.from('products').select('car_make, category, brand').eq('is_active', true).order('car_make', { ascending: true }),
         supabase.from('category_images').select('name, image_url'),
       ]);
 
@@ -716,6 +716,7 @@ function StoreContent() {
         const { data, error } = await supabase
           .from('products')
           .select('*')
+          .eq('is_active', true)
           .gt('sale_price', 0)
           .order('sale_order', { ascending: true, nullsFirst: false });
         if (!error) {
@@ -747,7 +748,7 @@ function StoreContent() {
           const makeOption = makes.find((opt) => opt.value.toUpperCase() === urlMake.toUpperCase());
           if (makeOption) {
             setSelectedMake(makeOption);
-            const { data } = await supabase.from('products').select('car_model').ilike('car_make', makeOption.value.trim());
+            const { data } = await supabase.from('products').select('car_model').eq('is_active', true).ilike('car_make', makeOption.value.trim());
             if (data) {
               const uniqueModels = Array.from(new Set(data.map((p) => p.car_model?.trim()).filter(Boolean)));
               const modelOptions = uniqueModels.sort().map((model) => ({ value: model, label: model }));
@@ -771,7 +772,7 @@ function StoreContent() {
       const catOption = cats.find((opt) => opt.value.toUpperCase() === urlCategory.toUpperCase());
       if (catOption) {
         setSelectedCategory(catOption);
-        const { data } = await supabase.from('products').select('subcategory').ilike('category', catOption.value.trim());
+        const { data } = await supabase.from('products').select('subcategory').eq('is_active', true).ilike('category', catOption.value.trim());
         if (data) {
           const uniqueSubcats = Array.from(new Set(data.map((p) => p.subcategory?.trim()).filter(Boolean)));
           const subcatOpts = uniqueSubcats.sort().map((s) => ({ value: s, label: s }));
@@ -796,7 +797,7 @@ function StoreContent() {
       const makeOption = makes.find((opt) => opt.value.toUpperCase() === urlMake.toUpperCase());
       if (makeOption) {
         setSelectedMake(makeOption);
-        const { data } = await supabase.from('products').select('car_model').ilike('car_make', makeOption.value.trim());
+        const { data } = await supabase.from('products').select('car_model').eq('is_active', true).ilike('car_make', makeOption.value.trim());
         if (data) {
           const uniqueModels = Array.from(new Set(data.map((p) => p.car_model?.trim()).filter(Boolean)));
           const modelOptions = uniqueModels.sort().map((model) => ({ value: model, label: model }));
@@ -934,7 +935,7 @@ function StoreContent() {
         return;
       }
 
-      let query = supabase.from('products').select('*').order('created_at', { ascending: false });
+      let query = supabase.from('products').select('*').eq('is_active', true).order('created_at', { ascending: false });
 
       if (gMode && gCar) {
         query = query.or(
@@ -1001,7 +1002,7 @@ function StoreContent() {
     setSelectedMake(opt);
     setSelectedModel(null);
     if (opt) {
-      const { data } = await supabase.from('products').select('car_model').ilike('car_make', opt.value.trim());
+      const { data } = await supabase.from('products').select('car_model').eq('is_active', true).ilike('car_make', opt.value.trim());
       if (data) {
         const uniqueModels = Array.from(new Set(data.map((p) => p.car_model?.trim()).filter(Boolean)));
         setModelsOptions(uniqueModels.sort().map((model) => ({ value: model, label: model })));
@@ -1015,7 +1016,7 @@ function StoreContent() {
     setSelectedCategory(opt);
     setSelectedSubcategories([]);
     if (opt) {
-      const { data } = await supabase.from('products').select('subcategory').ilike('category', opt.value.trim());
+      const { data } = await supabase.from('products').select('subcategory').eq('is_active', true).ilike('category', opt.value.trim());
       if (data) {
         const uniqueSubcats = Array.from(new Set(data.map((p) => p.subcategory?.trim()).filter(Boolean)));
         setSubcategoriesOptions(uniqueSubcats.sort().map((s) => ({ value: s, label: s })));
@@ -1546,7 +1547,6 @@ function StoreContent() {
                             </div>
                           )}
 
-                          {/* ── FIXED: image with contain + zoom on hover ── */}
                           <Link
                             href={`/products/${product.id}`}
                             className="product-img-link"

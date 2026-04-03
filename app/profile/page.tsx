@@ -7,7 +7,7 @@ import {
   User, Phone, Mail, Package, LogOut, 
   Loader2, Save, Clock, CheckCircle, MapPin, Trash2, Plus,
   ChevronDown, ChevronUp, ShoppingBag, Gauge, CreditCard, Car, Settings,
-  CarFront, Wallet
+  CarFront, Wallet, Truck, ExternalLink, LinkIcon
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -16,6 +16,12 @@ const Select = dynamic(() => import('react-select'), {
   ssr: false,
   loading: () => <div style={{ height: '48px', backgroundColor: '#f8f8f8', borderRadius: '10px', padding: '0 15px', display: 'flex', alignItems: 'center', color: '#999' }}>جاري التحميل...</div>
 });
+
+// ── Egypt Post tracking ───────────────────────────────────────────────────────
+const EGYPT_POST_TRACKING_URL = 'https://www.egyptpost.org/ar/tracking';
+function buildTrackingUrl(trackingNumber: string): string {
+  return `${EGYPT_POST_TRACKING_URL}?barcode=${encodeURIComponent(trackingNumber.trim())}`;
+}
 
 // ── Payment status config ─────────────────────────────────────────────────────
 const paymentStatusConfig: Record<string, { label: string; bg: string; color: string }> = {
@@ -33,6 +39,78 @@ const shippingStatusConfig: Record<string, { label: string; bg: string; color: s
   delivered:  { label: 'تم التسليم ✓',  bg: '#f0fdf4', color: '#166534' },
   pending_payment: { label: 'في انتظار الدفع', bg: '#eff6ff', color: '#1d4ed8' },
 };
+
+// ── Customer Tracking Banner ──────────────────────────────────────────────────
+function CustomerTrackingBanner({ order }: { order: { tracking_number?: string | null; status?: string } }) {
+  if (!order?.tracking_number) return null;
+  const trackingUrl = buildTrackingUrl(order.tracking_number);
+  return (
+    <div style={{
+      background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
+      border: '1.5px solid #86efac',
+      borderRadius: '14px',
+      padding: '16px',
+      marginTop: '12px',
+      direction: 'rtl',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '12px',
+    }}>
+      {/* Header row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{
+          width: '36px', height: '36px', background: '#22c55e', borderRadius: '10px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        }}>
+          <Truck size={18} color="#fff" />
+        </div>
+        <div>
+          <div style={{ fontWeight: '900', fontSize: '0.9rem', color: '#15803d' }}>شحنتك في الطريق إليك!</div>
+          <div style={{ fontSize: '0.72rem', color: '#16a34a', marginTop: '1px' }}>تم شحن طلبك عبر البريد المصري</div>
+        </div>
+      </div>
+
+      {/* Tracking number + CTA */}
+      <div style={{
+        background: '#fff', borderRadius: '12px', padding: '12px 14px',
+        border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px',
+      }}>
+        <div>
+          <div style={{ fontSize: '0.65rem', fontWeight: '700', color: '#888', marginBottom: '3px', letterSpacing: '0.5px' }}>
+            رقم تتبع الشحنة
+          </div>
+          <div style={{
+            fontWeight: '900', fontSize: '0.95rem', color: '#1a1a1a',
+            fontFamily: 'monospace', letterSpacing: '1.5px',
+          }}>
+            {order.tracking_number}
+          </div>
+        </div>
+        <a
+          href={trackingUrl}
+          target="_blank"
+          rel="noreferrer"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '7px',
+            background: 'linear-gradient(135deg, #15803d, #16a34a)',
+            color: '#fff', textDecoration: 'none', borderRadius: '10px',
+            padding: '10px 16px', fontWeight: '800', fontSize: '0.82rem',
+            boxShadow: '0 4px 12px rgba(34,197,94,0.3)', whiteSpace: 'nowrap',
+          }}>
+          <ExternalLink size={14} />
+          تتبع شحنتي
+        </a>
+      </div>
+
+      {/* Footer note */}
+      <div style={{ fontSize: '0.7rem', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <CheckCircle size={12} color="#22c55e" />
+        سيتم توصيل طلبك خلال 3–7 أيام عمل من تاريخ الشحن
+      </div>
+    </div>
+  );
+}
 
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
@@ -52,7 +130,7 @@ export default function ProfilePage() {
   const [newCarYear, setNewCarYear] = useState('');
   const [showCarForm, setShowCarForm] = useState(false);
   const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'settings'>('orders');
-  const [walletBalance, setWalletBalance] = useState<number>(0); // ← NEW
+  const [walletBalance, setWalletBalance] = useState<number>(0);
 
   const router = useRouter();
 
@@ -111,12 +189,12 @@ export default function ProfilePage() {
         supabase.from('addresses').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
         supabase.from('user_garage').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
         supabase.from('products').select('car_make').not('car_make', 'is', null),
-        supabase.from('wallets').select('balance').eq('user_id', user.id).single(), // ← NEW
+        supabase.from('wallets').select('balance').eq('user_id', user.id).single(),
       ]);
 
       setMyAddresses(addrRes.data || []);
       setMyCars(garageRes.data || []);
-      setWalletBalance(walletRes.data?.balance ?? 0); // ← NEW
+      setWalletBalance(walletRes.data?.balance ?? 0);
 
       if (productsRes.data) {
         const uniqueMakes = Array.from(new Set(productsRes.data.map((p: any) => p.car_make?.trim()).filter(Boolean)));
@@ -220,7 +298,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* ── Wallet Balance Card ── NEW */}
+      {/* ── Wallet Balance Card ── */}
       {walletBalance > 0 && (
         <div style={walletCard}>
           <div style={walletIconWrap}>
@@ -300,11 +378,13 @@ export default function ProfilePage() {
                     const ss = order.status || 'pending';
                     const payConf = paymentStatusConfig[ps] || paymentStatusConfig.pending;
                     const shipConf = shippingStatusConfig[ss] || shippingStatusConfig.pending;
+                    const isExpanded = expandedOrder === order.id;
+                    const hasTracking = !!order.tracking_number;
 
                     return (
-                      <div key={order.id} style={orderMiniCard(expandedOrder === order.id)}>
+                      <div key={order.id} style={orderMiniCard(isExpanded, hasTracking)}>
                         {/* ── Order Header ── */}
-                        <div style={miniOrderHeader} onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}>
+                        <div style={miniOrderHeader} onClick={() => setExpandedOrder(isExpanded ? null : order.id)}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             {/* Row 1: shipping status + date */}
                             <div style={orderMeta}>
@@ -316,12 +396,26 @@ export default function ProfilePage() {
                               <CreditCard size={10} style={{ display: 'inline', marginLeft: '3px', verticalAlign: 'middle' }} />
                               {payConf.label}
                             </span>
+                            {/* Row 3: tracking pill (collapsed state teaser) */}
+                            {hasTracking && !isExpanded && (
+                              <div style={trackingPill}>
+                                <Truck size={11} color="#15803d" />
+                                <span>متاح رقم التتبع — اضغط لعرضه</span>
+                              </div>
+                            )}
                           </div>
-                          <div style={priceText}>{order.total_price} ج.م</div>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
+                            <div style={priceText}>{order.total_price} ج.م</div>
+                            <ChevronDown
+                              size={16}
+                              color="#aaa"
+                              style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+                            />
+                          </div>
                         </div>
 
                         {/* ── Order Body (expanded) ── */}
-                        {expandedOrder === order.id && (
+                        {isExpanded && (
                           <div style={orderBody}>
                             {/* Payment method */}
                             {order.payment_method && (
@@ -330,6 +424,8 @@ export default function ProfilePage() {
                                 طريقة الدفع: <strong style={{ color: '#555' }}>{paymentMethodLabel(order.payment_method)}</strong>
                               </div>
                             )}
+
+                            {/* Product items */}
                             {order.items?.map((item: any, i: number) => (
                               <div key={i} style={miniItemRow}>
                                 <img src={item.image || item.image_url || '/api/placeholder/40/40'} alt="" style={miniItemImg} />
@@ -339,6 +435,9 @@ export default function ProfilePage() {
                                 <div style={miniItemPrice}>{parseFloat(item.price) * item.quantity} ج.م</div>
                               </div>
                             ))}
+
+                            {/* ── Tracking Banner ── */}
+                            <CustomerTrackingBanner order={order} />
                           </div>
                         )}
                       </div>
@@ -450,7 +549,7 @@ const headerStatsRow: any = { display: 'flex', gap: '14px', alignItems: 'center'
 const headerStatItem: any = { textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '40px' };
 const headerDivider: any = { width: '1px', height: '28px', background: '#e5e7eb' };
 
-// ── Wallet Card styles ── NEW
+// ── Wallet Card styles ──
 const walletCard: any = { background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', borderRadius: '20px', padding: '16px 18px', marginBottom: '20px', border: '1px solid #86efac', display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 4px 16px rgba(34,197,94,0.1)' };
 const walletIconWrap: any = { width: '46px', height: '46px', borderRadius: '14px', background: '#fff', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(34,197,94,0.12)' };
 const walletInfo: any = { flex: 1, display: 'flex', flexDirection: 'column', gap: '3px' };
@@ -473,7 +572,28 @@ const mainCard: any = { background: '#fff', borderRadius: '24px', padding: '18px
 const compactSectionTitle: any = { fontSize: '0.95rem', fontWeight: '900', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' };
 const sectionTopRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' };
 const miniOrderHeader: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '13px 15px', cursor: 'pointer' };
-const orderMiniCard = (expanded: boolean): any => ({ background: '#fff', border: expanded ? '1.5px solid #22c55e' : '1px solid #f0f0f0', borderRadius: '16px', marginBottom: '10px', overflow: 'hidden', transition: '0.2s' });
+
+// ── Order card: green border when has tracking, stronger green when expanded ──
+const orderMiniCard = (expanded: boolean, hasTracking: boolean): any => ({
+  background: '#fff',
+  border: expanded
+    ? '1.5px solid #22c55e'
+    : hasTracking
+      ? '1.5px solid #86efac'
+      : '1px solid #f0f0f0',
+  borderRadius: '16px',
+  marginBottom: '10px',
+  overflow: 'hidden',
+  transition: 'border-color 0.2s',
+});
+
+// ── Tracking pill shown in collapsed state ────────────────────────────────────
+const trackingPill: any = {
+  display: 'inline-flex', alignItems: 'center', gap: '5px',
+  background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0',
+  borderRadius: '8px', padding: '3px 9px', fontSize: '0.65rem', fontWeight: '800',
+};
+
 const statusBadge = (bg: string, color: string): any => ({ fontSize: '0.65rem', fontWeight: '900', padding: '4px 10px', borderRadius: '8px', background: bg, color, display: 'inline-flex', alignItems: 'center' });
 const orderList: any = { display: 'flex', flexDirection: 'column' };
 const orderMeta: any = { display: 'flex', gap: '8px', alignItems: 'center' };
