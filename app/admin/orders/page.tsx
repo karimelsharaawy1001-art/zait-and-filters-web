@@ -457,7 +457,6 @@ function ExpandedOrderRow({
           <div style={{ fontSize: '0.82rem', color: '#555', marginBottom: '4px' }}>الشحن: <strong style={{ color: shipping === 0 ? '#22c55e' : '#1a1a1a' }}>{shipping === 0 ? 'مجاني' : `${shipping} ج.م`}</strong>{order.shipping_type === 'express' && <span style={{ marginRight: '6px', fontSize: '0.7rem', color: '#f59e0b', fontWeight: '800' }}>⚡ سريع</span>}</div>
           {discountVal > 0 && <div style={{ fontSize: '0.82rem', color: '#ef4444', marginBottom: '4px' }}>خصم: -{discountVal} ج.م</div>}
           <div style={{ fontSize: '1rem', fontWeight: '900', color: '#15803d', marginTop: '6px' }}>{total.toLocaleString()} ج.م</div>
-          {/* ── Tracking display in expanded row ── */}
           {order.tracking_number && (
             <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed #e0f2e9' }}>
               <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#888', letterSpacing: '1px', marginBottom: '5px', textTransform: 'uppercase' }}>تتبع الشحنة</div>
@@ -475,8 +474,9 @@ function ExpandedOrderRow({
           <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#888', letterSpacing: '1px', marginBottom: '2px', textTransform: 'uppercase' }}>تحديث الحالات</div>
           <div>
             <div style={{ fontSize: '0.72rem', color: '#888', marginBottom: '4px', fontWeight: '700' }}>حالة الشحن</div>
+            {/* ── CHANGED: added pending_payment option ── */}
             <select value={order.status} onChange={(e) => onUpdateStatus(order.id, e.target.value)} style={{ ...miniSelectStyle(order.status), width: '100%' }}>
-              <option value="pending">جديد</option><option value="processing">تجهيز</option><option value="shipped">شحن</option><option value="delivered">توصيل</option><option value="cancelled">ملغي</option><option value="refunded">مسترجع</option>
+              <option value="pending_payment">انتظار الدفع</option><option value="pending">جديد</option><option value="processing">تجهيز</option><option value="shipped">شحن</option><option value="delivered">توصيل</option><option value="cancelled">ملغي</option><option value="refunded">مسترجع</option>
             </select>
           </div>
           <div>
@@ -554,7 +554,6 @@ export default function AdminOrders() {
   const [expandingId, setExpandingId] = useState<string | null>(null);
   const [showNewOrderModal, setShowNewOrderModal] = useState(false);
 
-  // ── BULK SELECT STATE ─────────────────────────────────────────────────────
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
@@ -571,7 +570,6 @@ export default function AdminOrders() {
   const [removeShipping, setRemoveShipping] = useState(false);
   const [customerAddresses, setCustomerAddresses] = useState<any[]>([]);
 
-  // ── TRACKING NUMBER STATE ─────────────────────────────────────────────────
   const [editedTrackingNumber, setEditedTrackingNumber] = useState('');
   const [savingTracking, setSavingTracking] = useState(false);
   const [quickTrackingOrderId, setQuickTrackingOrderId] = useState<string | null>(null);
@@ -698,7 +696,6 @@ export default function AdminOrders() {
     } finally { setUpdatingPayment(false); }
   }
 
-  // ── TRACKING NUMBER SAVE ──────────────────────────────────────────────────
   async function saveTrackingNumber(orderId: string, trackingNumber: string) {
     setSavingTracking(true);
     try {
@@ -729,7 +726,6 @@ export default function AdminOrders() {
     } catch (err: any) { toast.error('فشل الحذف: ' + err.message); }
   }
 
-  // ── BULK SELECT HANDLERS ──────────────────────────────────────────────────
   const toggleSelectOne = (id: string) => {
     setSelectedIds(prev => {
       const next = new Set(prev);
@@ -778,7 +774,6 @@ export default function AdminOrders() {
     } finally { setBulkDeleting(false); }
   };
 
-  // Reset selections when tab/page changes
   useEffect(() => { setSelectedIds(new Set()); }, [activeTab, currentPage]);
 
   async function saveOrderEdits() {
@@ -977,8 +972,6 @@ export default function AdminOrders() {
               <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e5e5e5' }}>طريقة الدفع: <span style={{ fontWeight: '800', color: '#1a1a1a' }}>{paymentLabels[order.payment_method] || order.payment_method}</span></div>
             </div>
           </div>
-
-          {/* ── Tracking section in invoice ── */}
           {order.tracking_number && (
             <div style={{ backgroundColor: '#f0fdf4', borderRadius: '14px', padding: '16px 20px', border: '1px solid #bbf7d0', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
               <div>
@@ -991,7 +984,6 @@ export default function AdminOrders() {
               </div>
             </div>
           )}
-
           <div style={{ marginBottom: '24px' }}>
             <div style={{ fontSize: '0.68rem', fontWeight: '900', color: '#888', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>تفاصيل المنتجات</div>
             <div style={{ backgroundColor: '#0f172a', borderRadius: '10px 10px 0 0', padding: '10px 16px', display: 'grid', gridTemplateColumns: '2.5fr 0.7fr 1fr 1fr' }}>
@@ -1091,14 +1083,16 @@ export default function AdminOrders() {
 
       {/* ── Status Tabs ── */}
       {(() => {
+        // ── CHANGED: added pending_payment tab ──
         const tabs = [
-          { key: 'all', label: 'الكل', color: '#1a1a1a' },
-          { key: 'pending', label: 'جديد', color: '#c2410c' },
-          { key: 'processing', label: 'تجهيز', color: '#ca8a04' },
-          { key: 'shipped', label: 'شحن', color: '#1e40af' },
-          { key: 'delivered', label: 'توصيل', color: '#15803d' },
-          { key: 'cancelled', label: 'ملغي', color: '#dc2626' },
-          { key: 'refunded', label: 'مسترجع', color: '#6d28d9' },
+          { key: 'all',             label: 'الكل',              color: '#1a1a1a' },
+          { key: 'pending_payment', label: '💳 انتظار الدفع',   color: '#7c3aed' },
+          { key: 'pending',         label: 'جديد',              color: '#c2410c' },
+          { key: 'processing',      label: 'تجهيز',             color: '#ca8a04' },
+          { key: 'shipped',         label: 'شحن',               color: '#1e40af' },
+          { key: 'delivered',       label: 'توصيل',             color: '#15803d' },
+          { key: 'cancelled',       label: 'ملغي',              color: '#dc2626' },
+          { key: 'refunded',        label: 'مسترجع',            color: '#6d28d9' },
         ];
         return (
           <div style={{ display: 'flex', gap: '6px', marginBottom: '20px', flexWrap: 'wrap' }}>
@@ -1190,14 +1184,12 @@ export default function AdminOrders() {
                         <tr key={order.id} className="order-row-clickable"
                           style={{ ...tr, background: isSelected ? 'rgba(255,77,77,0.06)' : isExpanded ? '#f0fdf4' : '#fff', cursor: 'pointer', transition: 'background-color 0.15s ease' }}
                           onClick={() => toggleExpandOrder(order)}>
-                          {/* Checkbox */}
                           <td style={{ ...td, textAlign: 'center', width: '40px' }} onClick={e => e.stopPropagation()}>
                             <button onClick={() => toggleSelectOne(order.id)}
                               style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
                               {isSelected ? <CheckSquare size={18} color="#ff4d4d" /> : <Square size={18} color="#ccc" />}
                             </button>
                           </td>
-                          {/* Expand toggle */}
                           <td style={{ ...td, padding: '18px 8px 18px 0', width: '32px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               {isExpanding
@@ -1224,8 +1216,9 @@ export default function AdminOrders() {
                             </div>
                           </td>
                           <td style={td} onClick={e => e.stopPropagation()}>
+                            {/* ── CHANGED: added pending_payment option ── */}
                             <select value={order.status} onChange={(e) => { e.stopPropagation(); updateOrderStatus(order.id, e.target.value); }} style={miniSelectStyle(order.status)}>
-                              <option value="pending">جديد</option><option value="processing">تجهيز</option><option value="shipped">شحن</option><option value="delivered">توصيل</option><option value="cancelled">ملغي</option><option value="refunded">مسترجع</option>
+                              <option value="pending_payment">انتظار الدفع</option><option value="pending">جديد</option><option value="processing">تجهيز</option><option value="shipped">شحن</option><option value="delivered">توصيل</option><option value="cancelled">ملغي</option><option value="refunded">مسترجع</option>
                             </select>
                           </td>
                           <td style={td} onClick={e => e.stopPropagation()}>
@@ -1235,8 +1228,6 @@ export default function AdminOrders() {
                               return <span style={{ fontSize: '0.75rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: c.bg, color: c.color, border: `1px solid ${c.border}`, whiteSpace: 'nowrap' }}>{paymentStatusLabels[ps]}</span>;
                             })()}
                           </td>
-
-                          {/* ── TRACKING NUMBER COLUMN ── */}
                           <td style={td} onClick={e => e.stopPropagation()}>
                             {isEditingTracking ? (
                               <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
@@ -1286,7 +1277,6 @@ export default function AdminOrders() {
                               </button>
                             )}
                           </td>
-
                           <td style={td} onClick={e => e.stopPropagation()}>
                             <div style={{ fontSize: '0.85rem', color: '#444', fontWeight: '700' }}>{datePart}</div>
                             <div style={{ fontSize: '0.78rem', color: '#22c55e', fontWeight: '700', marginTop: '2px' }}>{timePart}</div>
@@ -1330,7 +1320,6 @@ export default function AdminOrders() {
                 return (
                   <div key={order.id} style={{ background: '#fff', borderRadius: '16px', border: isSelected ? '2px solid #ff4d4d' : isExpanded ? '2px solid #22c55e' : '1px solid #eee', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', transition: 'border-color 0.2s' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px 0', background: isSelected ? 'rgba(255,77,77,0.04)' : '#fff' }}>
-                      {/* Mobile checkbox */}
                       <button onClick={() => toggleSelectOne(order.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, padding: '4px' }}>
                         {isSelected ? <CheckSquare size={20} color="#ff4d4d" /> : <Square size={20} color="#ccc" />}
                       </button>
@@ -1350,7 +1339,8 @@ export default function AdminOrders() {
                           <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: pc.bg, color: pc.color, border: `1px solid ${pc.border}` }}>{paymentStatusLabels[ps]}</span>
                           {(() => {
                             const sc = miniSelectStyle(order.status);
-                            const statusLabels: any = { pending: 'جديد', processing: 'تجهيز', shipped: 'شحن', delivered: 'توصيل', cancelled: 'ملغي', refunded: 'مسترجع' };
+                            // ── CHANGED: added pending_payment label ──
+                            const statusLabels: any = { pending_payment: 'انتظار الدفع', pending: 'جديد', processing: 'تجهيز', shipped: 'شحن', delivered: 'توصيل', cancelled: 'ملغي', refunded: 'مسترجع' };
                             return <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: sc.background, color: sc.color, border: sc.border }}>{statusLabels[order.status] || order.status}</span>;
                           })()}
                           {order.tracking_number && (
@@ -1365,9 +1355,10 @@ export default function AdminOrders() {
                       </div>
                     </div>
                     <div style={{ display: 'flex', borderTop: '1px solid #f0f0f0', background: '#fafafa' }} onClick={e => e.stopPropagation()}>
+                      {/* ── CHANGED: added pending_payment option ── */}
                       <select value={order.status} onChange={(e) => updateOrderStatus(order.id, e.target.value)}
                         style={{ flex: 1, border: 'none', background: 'transparent', padding: '10px 12px', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', outline: 'none', color: '#333', borderLeft: '1px solid #f0f0f0' }}>
-                        <option value="pending">جديد</option><option value="processing">تجهيز</option><option value="shipped">شحن</option><option value="delivered">توصيل</option><option value="cancelled">ملغي</option><option value="refunded">مسترجع</option>
+                        <option value="pending_payment">انتظار الدفع</option><option value="pending">جديد</option><option value="processing">تجهيز</option><option value="shipped">شحن</option><option value="delivered">توصيل</option><option value="cancelled">ملغي</option><option value="refunded">مسترجع</option>
                       </select>
                       <button onClick={() => openDetailModal(order)} style={{ flex: 1, border: 'none', background: 'transparent', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '0.78rem', fontWeight: '700', color: '#1e40af', borderLeft: '1px solid #f0f0f0' }}><Eye size={14} /> تفاصيل</button>
                       <button onClick={() => openInvoiceModal(order)} style={{ flex: 1, border: 'none', background: 'transparent', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '0.78rem', fontWeight: '700', color: '#22c55e', borderLeft: '1px solid #f0f0f0' }}><FileText size={14} /> ORDER</button>
@@ -1491,7 +1482,6 @@ export default function AdminOrders() {
                 </div>
               </div>
 
-              {/* ── TRACKING NUMBER CARD ── */}
               <div style={{ ...modalCard, background: selectedOrder.tracking_number ? '#f0fdf4' : '#fafafa', border: selectedOrder.tracking_number ? '1.5px solid #bbf7d0' : '1.5px dashed #d1d5db' }}>
                 <h3 style={{ ...cardTitle, color: selectedOrder.tracking_number ? '#15803d' : '#6b7280' }}>
                   <Truck size={18} color={selectedOrder.tracking_number ? '#22c55e' : '#9ca3af'} />
@@ -1778,10 +1768,11 @@ const tr: any = { borderBottom: '1px solid #f9f9f9', transition: '0.2s' };
 const td: any = { padding: '16px', fontSize: '0.92rem', color: '#333', verticalAlign: 'middle' };
 const cityBadge: any = { display: 'flex', alignItems: 'center', gap: '6px', background: '#f0fdf4', color: '#15803d', padding: '6px 12px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 'bold', width: 'fit-content' };
 const payTypeStyle: any = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#555' };
+// ── CHANGED: added pending_payment color to miniSelectStyle ──
 const miniSelectStyle = (s: string): any => ({
-  background: s === 'pending' ? '#fff7ed' : s === 'delivered' ? '#f0fdf4' : s === 'shipped' ? '#eff6ff' : s === 'cancelled' ? '#fef2f2' : s === 'refunded' ? '#f5f3ff' : '#fef3c7',
-  color: s === 'pending' ? '#c2410c' : s === 'delivered' ? '#15803d' : s === 'shipped' ? '#1e40af' : s === 'cancelled' ? '#dc2626' : s === 'refunded' ? '#6d28d9' : '#ca8a04',
-  border: `1px solid ${s === 'pending' ? '#ffedd5' : s === 'delivered' ? '#dcfce7' : s === 'shipped' ? '#dbeafe' : s === 'cancelled' ? '#fecaca' : s === 'refunded' ? '#ddd6fe' : '#fef3c7'}`,
+  background: s === 'pending_payment' ? '#f5f3ff' : s === 'pending' ? '#fff7ed' : s === 'delivered' ? '#f0fdf4' : s === 'shipped' ? '#eff6ff' : s === 'cancelled' ? '#fef2f2' : s === 'refunded' ? '#f5f3ff' : '#fef3c7',
+  color: s === 'pending_payment' ? '#7c3aed' : s === 'pending' ? '#c2410c' : s === 'delivered' ? '#15803d' : s === 'shipped' ? '#1e40af' : s === 'cancelled' ? '#dc2626' : s === 'refunded' ? '#6d28d9' : '#ca8a04',
+  border: `1px solid ${s === 'pending_payment' ? '#ddd6fe' : s === 'pending' ? '#ffedd5' : s === 'delivered' ? '#dcfce7' : s === 'shipped' ? '#dbeafe' : s === 'cancelled' ? '#fecaca' : s === 'refunded' ? '#ddd6fe' : '#fef3c7'}`,
   padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', outline: 'none', fontSize: '0.8rem', fontWeight: 'bold'
 });
 const iconBtn: any = { background: '#f8f9fa', border: '1px solid #eee', color: '#555', padding: '9px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center' };
@@ -1818,11 +1809,6 @@ const addItemBtnStyle: any = { display: 'flex', alignItems: 'center', gap: '8px'
 const addrBtnStyle: any = { display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', borderRadius: '10px', padding: '10px 14px', cursor: 'pointer', textAlign: 'right', fontSize: '0.85rem', color: '#444', width: '100%' };
 const searchProductRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', padding: '10px 12px', borderRadius: '12px', border: '1px solid #eee', flexWrap: 'wrap', gap: '8px' };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CUSTOMER-FACING TRACKING COMPONENT
-// Add this wherever you render the customer's order detail page.
-// It reads order.tracking_number and shows the Egypt Post tracking link.
-// ─────────────────────────────────────────────────────────────────────────────
 export function CustomerTrackingBanner({ order }: { order: { tracking_number?: string | null; status?: string } }) {
   if (!order?.tracking_number) return null;
   const trackingUrl = buildTrackingUrl(order.tracking_number);
