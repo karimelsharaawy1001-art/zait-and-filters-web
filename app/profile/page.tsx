@@ -7,7 +7,7 @@ import {
   User, Phone, Mail, Package, LogOut, 
   Loader2, Save, Clock, CheckCircle, MapPin, Trash2, Plus,
   ChevronDown, ChevronUp, ShoppingBag, Gauge, CreditCard, Car, Settings,
-  CarFront, Wallet, Truck, ExternalLink, LinkIcon
+  CarFront, Wallet, Truck, ExternalLink, LinkIcon, Copy, Check
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -18,7 +18,7 @@ const Select = dynamic(() => import('react-select'), {
 });
 
 // ── Egypt Post tracking ───────────────────────────────────────────────────────
-const EGYPT_POST_TRACKING_URL = 'https://www.egyptpost.org/ar/tracking';
+const EGYPT_POST_TRACKING_URL = 'https://egyptpost.gov.eg/ar-EG//Home/EServices/Track-And-Trace';
 function buildTrackingUrl(trackingNumber: string): string {
   return `${EGYPT_POST_TRACKING_URL}?barcode=${encodeURIComponent(trackingNumber.trim())}`;
 }
@@ -42,8 +42,19 @@ const shippingStatusConfig: Record<string, { label: string; bg: string; color: s
 
 // ── Customer Tracking Banner ──────────────────────────────────────────────────
 function CustomerTrackingBanner({ order }: { order: { tracking_number?: string | null; status?: string } }) {
+  const [copied, setCopied] = useState(false);
+
   if (!order?.tracking_number) return null;
   const trackingUrl = buildTrackingUrl(order.tracking_number);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(order.tracking_number!).then(() => {
+      setCopied(true);
+      toast.success('تم نسخ رقم التتبع');
+      setTimeout(() => setCopied(false), 2500);
+    });
+  }
+
   return (
     <div style={{
       background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
@@ -65,12 +76,16 @@ function CustomerTrackingBanner({ order }: { order: { tracking_number?: string |
           <Truck size={18} color="#fff" />
         </div>
         <div>
-          <div style={{ fontWeight: '900', fontSize: '0.9rem', color: '#15803d' }}>شحنتك في الطريق إليك!</div>
-          <div style={{ fontSize: '0.72rem', color: '#16a34a', marginTop: '1px' }}>تم شحن طلبك عبر البريد المصري</div>
+          <div style={{ fontWeight: '900', fontSize: '0.9rem', color: '#15803d' }}>
+            تم تسليم شحنتك الى شركة وصلها التابعة للبريد المصري
+          </div>
+          <div style={{ fontSize: '0.72rem', color: '#16a34a', marginTop: '3px' }}>
+            و يمكنك الآن متابعتها
+          </div>
         </div>
       </div>
 
-      {/* Tracking number + CTA */}
+      {/* Tracking number + copy + CTA */}
       <div style={{
         background: '#fff', borderRadius: '12px', padding: '12px 14px',
         border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center',
@@ -80,11 +95,31 @@ function CustomerTrackingBanner({ order }: { order: { tracking_number?: string |
           <div style={{ fontSize: '0.65rem', fontWeight: '700', color: '#888', marginBottom: '3px', letterSpacing: '0.5px' }}>
             رقم تتبع الشحنة
           </div>
-          <div style={{
-            fontWeight: '900', fontSize: '0.95rem', color: '#1a1a1a',
-            fontFamily: 'monospace', letterSpacing: '1.5px',
-          }}>
-            {order.tracking_number}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{
+              fontWeight: '900', fontSize: '0.95rem', color: '#1a1a1a',
+              fontFamily: 'monospace', letterSpacing: '1.5px',
+            }}>
+              {order.tracking_number}
+            </div>
+            {/* Copy button */}
+            <button
+              onClick={handleCopy}
+              title="نسخ رقم التتبع"
+              style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                width: '28px', height: '28px',
+                background: copied ? '#f0fdf4' : '#f8faff',
+                border: copied ? '1px solid #86efac' : '1px solid #dbeafe',
+                borderRadius: '7px', cursor: 'pointer', flexShrink: 0,
+                transition: 'all 0.2s',
+              }}
+            >
+              {copied
+                ? <Check size={13} color="#16a34a" />
+                : <Copy size={13} color="#3b82f6" />
+              }
+            </button>
           </div>
         </div>
         <a
