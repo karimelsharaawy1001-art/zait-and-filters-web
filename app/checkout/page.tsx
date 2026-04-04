@@ -477,29 +477,22 @@ export default function CheckoutPage() {
         created_at: new Date().toISOString()
       };
 
+      // ── CHANGED: EasyKash now saves directly to orders table so it appears in admin ──
       if (paymentMethod === 'card_installments') {
-        // ── EasyKash: save order data in pending_orders first ──
-        // The real order in `orders` is only created after EasyKash confirms payment via callback
-        const customerReference = Date.now() % 100000000; // 8-digit number
+        const { data: newOrder, error } = await supabase.from('orders').insert([orderData]).select().single();
+        if (error) throw error;
 
-        const { error: pendingError } = await supabase.from('pending_orders').insert({
-          reference: String(customerReference),
-          order_data: {
-            ...orderData,
-            easykash_customer_ref: String(customerReference),
-          },
-        });
-        if (pendingError) throw pendingError;
+        if (finalMarketerId) await trackAffiliateCommission(newOrder.id, finalMarketerId);
 
-        // Backup in localStorage in case user checks status manually
-        localStorage.setItem('zf_pending_order', JSON.stringify({
-          customerReference,
-          customerName: customerInfo.name,
-          customerPhone: customerInfo.phone,
-        }));
+        if (customerInfo.email) {
+          await supabase.from('abandoned_carts').update({ status: 'recovered' }).eq('email', customerInfo.email);
+        }
+        await markAsRecovered(newOrder.id);
+        localStorage.removeItem('zf_marketer_ref');
 
-        // Redirect to EasyKash payment page
-        await initiateEasyKashPayment(String(customerReference), customerReference);
+        // Redirect to EasyKash using the real order id
+        const customerReference = Date.now() % 100000000;
+        await initiateEasyKashPayment(newOrder.id, customerReference);
 
       } else {
         // ── Other payment methods: create order immediately as before ──
