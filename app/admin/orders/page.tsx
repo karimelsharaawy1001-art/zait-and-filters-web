@@ -1554,6 +1554,40 @@ export default function AdminOrders() {
                     <p style={{ margin: 0 }}><strong>العنوان:</strong> {selectedOrder.customer_address}</p>
                     <p style={{ margin: 0 }}><strong>نوع الشحن:</strong>{' '}{selectedOrder.shipping_type === 'express' ? <span style={{ color: '#f59e0b', fontWeight: '800' }}>⚡ شحن سريع 48 ساعة — {selectedOrder.shipping_cost} ج.م</span> : <span>شحن عادي — {selectedOrder.shipping_cost || 0} ج.م</span>}</p>
                     {selectedOrder.car_mileage && <p style={{ margin: 0 }}><strong>قراءة العداد:</strong> {selectedOrder.car_mileage} كم</p>}
+                    {(selectedOrder.promo_code || selectedOrder.discount_applied > 0 || selectedOrder.discount_amount > 0) && (
+                      <div style={{ gridColumn: '1 / -1', background: '#fef9c3', border: '1px solid #fde047', borderRadius: '12px', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#854d0e', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '4px' }}>🏷️ كود الخصم والخصومات</div>
+                        {selectedOrder.promo_code && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '0.82rem', color: '#555', fontWeight: '700' }}>الكود المستخدم:</span>
+                            <span style={{ background: '#fff', border: '1px solid #fde047', borderRadius: '8px', padding: '3px 10px', fontFamily: 'monospace', fontWeight: '900', fontSize: '0.88rem', color: '#854d0e', letterSpacing: '1px' }}>{selectedOrder.promo_code}</span>
+                          </div>
+                        )}
+                        {(parseFloat(selectedOrder.discount_applied || selectedOrder.discount_amount || 0) > 0) && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '0.82rem', color: '#555', fontWeight: '700' }}>قيمة الخصم:</span>
+                            <span style={{ color: '#dc2626', fontWeight: '900', fontSize: '0.95rem' }}>- {parseFloat(selectedOrder.discount_applied || selectedOrder.discount_amount || 0).toFixed(2)} ج.م</span>
+                          </div>
+                        )}
+                        {(parseFloat(selectedOrder.wallet_discount || 0) > 0) && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '0.82rem', color: '#555', fontWeight: '700' }}>خصم المحفظة:</span>
+                            <span style={{ color: '#15803d', fontWeight: '900', fontSize: '0.95rem' }}>- {parseFloat(selectedOrder.wallet_discount).toFixed(2)} ج.م</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {(parseFloat(selectedOrder.cashback_amount || 0) > 0) && (
+                      <div style={{ gridColumn: '1 / -1', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '12px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '32px', height: '32px', background: '#22c55e', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <span style={{ fontSize: '1rem' }}>🎁</span>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#15803d', marginBottom: '2px' }}>كاش باك أُضيف لمحفظة العميل</div>
+                          <div style={{ fontWeight: '900', fontSize: '1rem', color: '#15803d' }}>+ {parseFloat(selectedOrder.cashback_amount).toFixed(2)} ج.م</div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
