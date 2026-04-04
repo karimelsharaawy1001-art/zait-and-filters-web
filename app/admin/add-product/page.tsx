@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { Plus, Trash2, Car } from 'lucide-react';
+import { Plus, Trash2, Car, RotateCcw } from 'lucide-react';
 
 interface CarEntry {
   car_make: string;
@@ -12,15 +12,13 @@ interface CarEntry {
   models: string[];
 }
 
-// ── Slug generator helper ─────────────────────────────────────────────────────
 function generateSlug(name: string, brand: string, carMake: string, carModel: string): string {
   const raw = `${brand}-${carMake}-${carModel}`
     .toLowerCase()
-    .replace(/[^a-zA-Z0-9\-]/g, '-')   // replace non-English chars with dash
-    .replace(/-+/g, '-')                 // collapse multiple dashes
-    .replace(/^-|-$/g, '');              // trim leading/trailing dashes
-
-  const unique = Math.random().toString(36).substring(2, 9); // 7-char random suffix
+    .replace(/[^a-zA-Z0-9\-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+  const unique = Math.random().toString(36).substring(2, 9);
   return `${raw}-${unique}`;
 }
 
@@ -29,13 +27,13 @@ export default function AddProduct() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-
   const [carMakes, setCarMakes] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [subcategories, setSubcategories] = useState<string[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
+  // ── success state for "add another" flow ─────────────────────────────────
+  const [lastSaved, setLastSaved] = useState<{ count: number; name: string } | null>(null);
 
-  // ── New category / subcategory inline creation ────────────────────────────
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategoryInput, setNewCategoryInput] = useState('');
   const [showNewSubcategory, setShowNewSubcategory] = useState(false);
@@ -93,15 +91,16 @@ export default function AddProduct() {
   function addCar() {
     setCars(prev => [...prev, { car_make: '', car_model: '', year_from: '', year_to: '', models: [] }]);
   }
+
   function removeCar(index: number) {
     if (cars.length === 1) return;
     setCars(prev => prev.filter((_, i) => i !== index));
   }
+
   function updateCar(index: number, field: keyof CarEntry, value: string) {
     setCars(prev => prev.map((c, i) => i === index ? { ...c, [field]: value } : c));
   }
 
-  // ── Confirm new category ──────────────────────────────────────────────────
   function confirmNewCategory() {
     const val = newCategoryInput.trim();
     if (!val) return;
@@ -111,7 +110,6 @@ export default function AddProduct() {
     setShowNewCategory(false);
   }
 
-  // ── Confirm new subcategory ───────────────────────────────────────────────
   function confirmNewSubcategory() {
     const val = newSubcategoryInput.trim();
     if (!val) return;
@@ -146,12 +144,12 @@ export default function AddProduct() {
     if (e.dataTransfer.files?.[0]) uploadToCloudinary(e.dataTransfer.files[0]);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // ── Save the product ──────────────────────────────────────────────────────
+  const saveProduct = async (): Promise<boolean> => {
     const validCars = cars.filter(c => c.car_make && c.car_model);
     if (validCars.length === 0) {
       alert('أضف سيارة واحدة على الأقل مع تحديد الماركة والموديل');
-      return;
+      return false;
     }
     setLoading(true);
     try {
@@ -173,19 +171,61 @@ export default function AddProduct() {
           car_make: car.car_make,
           car_model: car.car_model,
           car_model_year: yearRange,
-          // ── AUTO GENERATED SLUG ──────────────────────────────────────────
           slug: generateSlug(formData.name, formData.brand, car.car_make, car.car_model),
         };
       });
       const { error } = await supabase.from('products').insert(inserts);
       if (error) throw error;
-      alert(`تمت إضافة المنتج بنجاح لـ ${validCars.length} سيارة! ✅`);
-      router.push('/admin/dashboard');
+      return true;
     } catch (err: any) {
       alert('خطأ: ' + err.message);
+      return false;
     } finally {
       setLoading(false);
     }
+  };
+
+  // ── Submit → save then go to dashboard ───────────────────────────────────
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const validCars = cars.filter(c => c.car_make && c.car_model);
+    const ok = await saveProduct();
+    if (ok) {
+      alert(`تمت إضافة المنتج بنجاح لـ ${validCars.length} سيارة! ✅`);
+      router.push('/admin/dashboard');
+    }
+  };
+
+  // ── "Add another" → save then reset form keeping car+category fields ─────
+  const handleAddAnother = async () => {
+    const validCars = cars.filter(c => c.car_make && c.car_model);
+    if (validCars.length === 0) {
+      alert('أضف سيارة واحدة على الأقل مع تحديد الماركة والموديل');
+      return;
+    }
+    const ok = await saveProduct();
+    if (!ok) return;
+
+    // Remember what was just saved for the success banner
+    setLastSaved({ count: validCars.length, name: formData.name });
+
+    // Reset product-specific fields, keep category/subcategory/cars
+    setFormData(prev => ({
+      ...prev,
+      name: '',
+      brand: '',
+      regular_price: '',
+      sale_price: '',
+      image_url: '',
+      country_of_origin: '',
+      warranty: '',
+      video_url: '',
+      // category and subcategory are KEPT
+    }));
+
+    // Keep cars as-is (make, model, years all preserved)
+    // Scroll to top so user can start filling product name immediately
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -193,6 +233,24 @@ export default function AddProduct() {
       <h1 style={{ color: '#2ecc71', marginBottom: '30px', fontWeight: '900', fontStyle: 'italic' }}>
         إضافة صنف جديد - ZAIT &amp; FILTERS
       </h1>
+
+      {/* ── Success banner after "add another" ── */}
+      {lastSaved && (
+        <div style={{ marginBottom: '24px', background: '#0f2d1a', border: '1px solid #2ecc71', borderRadius: '12px', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', maxWidth: '1000px', margin: '0 auto 24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '1.3rem' }}>✅</span>
+            <div>
+              <div style={{ color: '#2ecc71', fontWeight: '800', fontSize: '0.95rem' }}>
+                تم حفظ «{lastSaved.name}» بنجاح لـ {lastSaved.count} سيارة
+              </div>
+              <div style={{ color: '#888', fontSize: '0.78rem', marginTop: '2px' }}>
+                الفئة والسيارات محفوظة — أضف بيانات المنتج الجديد
+              </div>
+            </div>
+          </div>
+          <button onClick={() => setLastSaved(null)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '1.1rem', flexShrink: 0 }}>✕</button>
+        </div>
+      )}
 
       {loadingOptions && (
         <p style={{ color: '#888', marginBottom: '16px', fontSize: '0.9rem' }}>⏳ جاري تحميل بيانات المنتجات...</p>
@@ -239,16 +297,17 @@ export default function AddProduct() {
 
         {/* ── Category ── */}
         <div>
-          <label style={labelStyle}>الفئة (Category) *</label>
+          <label style={labelStyle}>
+            الفئة (Category) *
+            {formData.category && <span style={{ marginRight: '8px', fontSize: '0.72rem', color: '#2ecc71', fontWeight: '700', background: '#0f2d1a', border: '1px solid #2ecc71', borderRadius: '6px', padding: '2px 8px' }}>محفوظة ✓</span>}
+          </label>
           {!showNewCategory ? (
             <>
               <select required value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} style={inputStyle}>
                 <option value="">{loadingOptions ? 'جاري التحميل...' : `اختر الفئة (${categories.length} فئة)`}</option>
                 {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
               </select>
-              <button type="button" onClick={() => setShowNewCategory(true)} style={addNewBtnStyle}>
-                + إضافة فئة جديدة
-              </button>
+              <button type="button" onClick={() => setShowNewCategory(true)} style={addNewBtnStyle}>+ إضافة فئة جديدة</button>
             </>
           ) : (
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -269,7 +328,10 @@ export default function AddProduct() {
 
         {/* ── Subcategory ── */}
         <div>
-          <label style={labelStyle}>القسم الفرعي</label>
+          <label style={labelStyle}>
+            القسم الفرعي
+            {formData.subcategory && <span style={{ marginRight: '8px', fontSize: '0.72rem', color: '#2ecc71', fontWeight: '700', background: '#0f2d1a', border: '1px solid #2ecc71', borderRadius: '6px', padding: '2px 8px' }}>محفوظ ✓</span>}
+          </label>
           {!showNewSubcategory ? (
             <>
               <select
@@ -282,9 +344,7 @@ export default function AddProduct() {
                 {subcategories.map(sub => <option key={sub} value={sub}>{sub}</option>)}
               </select>
               {formData.category && (
-                <button type="button" onClick={() => setShowNewSubcategory(true)} style={addNewBtnStyle}>
-                  + إضافة قسم فرعي جديد
-                </button>
+                <button type="button" onClick={() => setShowNewSubcategory(true)} style={addNewBtnStyle}>+ إضافة قسم فرعي جديد</button>
               )}
             </>
           ) : (
@@ -309,7 +369,6 @@ export default function AddProduct() {
           <label style={labelStyle}>السعر الأساسي * (ج.م)</label>
           <input required type="number" value={formData.regular_price} onChange={(e) => setFormData({ ...formData, regular_price: e.target.value })} style={inputStyle} />
         </div>
-
         <div>
           <label style={labelStyle}>سعر الخصم (ج.م)</label>
           <input type="number" value={formData.sale_price} onChange={(e) => setFormData({ ...formData, sale_price: e.target.value })} style={inputStyle} />
@@ -350,12 +409,12 @@ export default function AddProduct() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <label style={{ ...labelStyle, fontSize: '1.1rem', color: '#2ecc71', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Car size={18} color="#2ecc71" /> السيارات المتوافقة *
+              <span style={{ fontSize: '0.72rem', color: '#888', fontWeight: '600', marginRight: '4px' }}>(محفوظة عند إضافة منتج جديد)</span>
             </label>
             <button type="button" onClick={addCar} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#0f2d1a', color: '#2ecc71', border: '1px solid #2ecc71', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem' }}>
               <Plus size={15} /> إضافة سيارة
             </button>
           </div>
-
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {cars.map((car, index) => (
               <div key={index} style={{ backgroundColor: '#111', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '16px', position: 'relative' }}>
@@ -394,7 +453,6 @@ export default function AddProduct() {
               </div>
             ))}
           </div>
-
           {cars.length > 1 && (
             <p style={{ color: '#888', fontSize: '0.8rem', marginTop: '8px' }}>
               سيتم إنشاء <strong style={{ color: '#2ecc71' }}>{cars.filter(c => c.car_make && c.car_model).length}</strong> منتج في الداتابيز (منتج لكل سيارة)
@@ -402,14 +460,47 @@ export default function AddProduct() {
           )}
         </div>
 
-        {/* ── Submit ── */}
-        <button
-          type="submit"
-          disabled={loading || uploading}
-          style={{ gridColumn: 'span 2', padding: '18px', backgroundColor: loading || uploading ? '#1a6b3a' : '#2ecc71', color: '#000', fontWeight: '900', borderRadius: '10px', cursor: loading || uploading ? 'not-allowed' : 'pointer', marginTop: '20px', fontSize: '1.2rem', border: 'none' }}
-        >
-          {loading ? 'جاري الحفظ...' : uploading ? 'جاري رفع الصورة...' : cars.filter(c => c.car_make && c.car_model).length > 1 ? `حفظ القطعة لـ ${cars.filter(c => c.car_make && c.car_model).length} سيارات` : 'حفظ القطعة في المتجر'}
-        </button>
+        {/* ── Buttons ── */}
+        <div style={{ gridColumn: 'span 2', display: 'flex', gap: '12px', marginTop: '20px' }}>
+
+          {/* Add Another — saves and resets only product fields */}
+          <button
+            type="button"
+            onClick={handleAddAnother}
+            disabled={loading || uploading}
+            style={{
+              flex: 1, padding: '18px',
+              backgroundColor: loading || uploading ? '#0f2d1a' : '#0f2d1a',
+              color: loading || uploading ? '#555' : '#2ecc71',
+              fontWeight: '900', borderRadius: '10px',
+              cursor: loading || uploading ? 'not-allowed' : 'pointer',
+              fontSize: '1rem', border: '2px solid',
+              borderColor: loading || uploading ? '#555' : '#2ecc71',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              transition: 'all 0.2s',
+            }}
+          >
+            <RotateCcw size={18} />
+            {loading ? 'جاري الحفظ...' : 'حفظ وإضافة منتج آخر'}
+          </button>
+
+          {/* Save and go to dashboard */}
+          <button
+            type="submit"
+            disabled={loading || uploading}
+            style={{
+              flex: 1, padding: '18px',
+              backgroundColor: loading || uploading ? '#1a6b3a' : '#2ecc71',
+              color: '#000', fontWeight: '900', borderRadius: '10px',
+              cursor: loading || uploading ? 'not-allowed' : 'pointer',
+              fontSize: '1rem', border: 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            }}
+          >
+            {loading ? 'جاري الحفظ...' : uploading ? 'جاري رفع الصورة...' : cars.filter(c => c.car_make && c.car_model).length > 1 ? `حفظ لـ ${cars.filter(c => c.car_make && c.car_model).length} سيارات والخروج` : 'حفظ والخروج للداشبورد'}
+          </button>
+
+        </div>
       </form>
     </main>
   );
