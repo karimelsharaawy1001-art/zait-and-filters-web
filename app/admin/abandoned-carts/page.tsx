@@ -59,6 +59,14 @@ function isWithin24Hours(dateString: string): boolean {
   return Date.now() - new Date(dateString).getTime() < 24 * 60 * 60 * 1000;
 }
 
+function toWhatsAppNumber(phone: string): string {
+  if (!phone) return '';
+  const digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('20')) return digits;
+  if (digits.startsWith('0')) return '2' + digits;
+  return '20' + digits;
+}
+
 function generatePromoCode(cartId: string): string {
   const suffix = cartId.replace(/-/g, '').slice(0, 6).toUpperCase();
   return `BACK-${suffix}`;
@@ -154,7 +162,7 @@ function ReminderModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onC
       `⏰ الكود صالح لمدة 48 ساعة بس!\n\n` +
       `أكمل طلبك من هنا 👇\nhttps://zaitandfilters.com/checkout`
     );
-    window.open(`https://wa.me/${cart.customer_phone}?text=${msg}`, '_blank');
+    window.open(`https://wa.me/${toWhatsAppNumber(cart.customer_phone)}?text=${msg}`, '_blank');
     setSent(prev => new Set([...prev, cart.id]));
     setSending(null);
     toast.success(`تم فتح واتساب لـ ${cart.customer_name} ✅`);
@@ -310,7 +318,7 @@ export default function AbandonedCartsAdmin() {
 
   const sendWhatsApp = (phone: string, total: number) => {
     const msg = encodeURIComponent(`مرحباً! 👋\n\nلاحظنا أنك تركت منتجات في سلتك بقيمة ${total.toFixed(2)} ج.م\n\nأكمل طلبك الآن واحصل على خصم 10% باستخدام كود: COMEBACK10\n\nhttps://zaitandfilters.com/checkout`);
-    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+    window.open(`https://wa.me/${toWhatsAppNumber(phone)}?text=${msg}`, '_blank');
   };
 
   const handlePageChange = (page: number) => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); };
