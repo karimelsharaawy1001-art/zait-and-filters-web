@@ -3,11 +3,11 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import toast from 'react-hot-toast';
 import {
-  ShoppingCart, Mail, Phone, MapPin, Calendar, DollarSign,
-  RefreshCw, Search, Send, CheckCircle, Clock, Package,
-  User, Smartphone, Car, Trash2, ChevronLeft, ChevronRight,
+  ShoppingCart, Mail, Phone, Calendar, DollarSign,
+  RefreshCw, Search, Send, CheckCircle, Clock, MapPin,
+  User, Smartphone, Trash2, ChevronLeft, ChevronRight,
   TrendingUp, AlertCircle, Monitor, ChevronsLeft, ChevronsRight,
-  MoreHorizontal
+  MoreHorizontal, Bell, Tag, Zap, MessageCircle
 } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 12;
@@ -30,6 +30,9 @@ interface AbandonedCart {
   recovered: boolean;
   recovered_at: string | null;
   created_at: string;
+  reminder_sent?: boolean;
+  reminder_sent_at?: string | null;
+  reminder_promo_code?: string | null;
 }
 
 function formatExactTime(dateString: string): { date: string; time: string; relative: string } {
@@ -51,225 +54,199 @@ function formatExactTime(dateString: string): { date: string; time: string; rela
   return { date: dateStr, time: timeStr, relative };
 }
 
-// ── Smart Pagination Component ────────────────────────────────────────────────
-function SmartPagination({
-  currentPage,
-  totalPages,
-  totalItems,
-  onPageChange,
-}: {
-  currentPage: number;
-  totalPages: number;
-  totalItems: number;
-  onPageChange: (p: number) => void;
+function isWithin24Hours(dateString: string): boolean {
+  if (!dateString) return false;
+  return Date.now() - new Date(dateString).getTime() < 24 * 60 * 60 * 1000;
+}
+
+function generatePromoCode(cartId: string): string {
+  const suffix = cartId.replace(/-/g, '').slice(0, 6).toUpperCase();
+  return `BACK-${suffix}`;
+}
+
+// ── Pagination ────────────────────────────────────────────────────────────────
+function SmartPagination({ currentPage, totalPages, totalItems, onPageChange }: {
+  currentPage: number; totalPages: number; totalItems: number; onPageChange: (p: number) => void;
 }) {
   const [jumpValue, setJumpValue] = useState('');
-
-  // Build the visible page numbers with ellipsis
   const getPageNumbers = (): (number | 'ellipsis')[] => {
-    if (totalPages <= 9) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
-    }
+    if (totalPages <= 9) return Array.from({ length: totalPages }, (_, i) => i + 1);
     const pages: (number | 'ellipsis')[] = [];
-    // Always show first page
     pages.push(1);
-    // Left ellipsis
     if (currentPage > 4) pages.push('ellipsis');
-    // Pages around current
-    const start = Math.max(2, currentPage - 2);
-    const end = Math.min(totalPages - 1, currentPage + 2);
-    for (let i = start; i <= end; i++) pages.push(i);
-    // Right ellipsis
+    for (let i = Math.max(2, currentPage - 2); i <= Math.min(totalPages - 1, currentPage + 2); i++) pages.push(i);
     if (currentPage < totalPages - 3) pages.push('ellipsis');
-    // Always show last page
     pages.push(totalPages);
     return pages;
   };
-
   const handleJump = () => {
     const n = parseInt(jumpValue);
-    if (!isNaN(n) && n >= 1 && n <= totalPages) {
-      onPageChange(n);
-      setJumpValue('');
-    }
+    if (!isNaN(n) && n >= 1 && n <= totalPages) { onPageChange(n); setJumpValue(''); }
   };
-
   const from = (currentPage - 1) * ITEMS_PER_PAGE + 1;
   const to = Math.min(currentPage * ITEMS_PER_PAGE, totalItems);
-
+  const PBtn = ({ onClick, disabled, children, title }: any) => (
+    <button onClick={onClick} disabled={disabled} title={title} style={{ width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '9px', border: '1px solid #e2e8f0', background: disabled ? '#f8fafc' : '#fff', color: disabled ? '#cbd5e1' : '#475569', cursor: disabled ? 'not-allowed' : 'pointer', flexShrink: 0 }}>{children}</button>
+  );
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      flexWrap: 'wrap',
-      gap: '12px',
-      marginTop: '16px',
-      padding: '14px 20px',
-      background: '#fff',
-      borderRadius: '14px',
-      border: '1px solid #f1f5f9',
-      direction: 'rtl',
-    }}>
-      {/* Results count */}
-      <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: '600', whiteSpace: 'nowrap' }}>
-        عرض <span style={{ fontWeight: '800', color: '#0f172a' }}>{from}–{to}</span> من{' '}
-        <span style={{ fontWeight: '800', color: '#0f172a' }}>{totalItems.toLocaleString()}</span> سلة
-      </div>
-
-      {/* Page buttons */}
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginTop: '16px', padding: '14px 20px', background: '#fff', borderRadius: '14px', border: '1px solid #f1f5f9', direction: 'rtl' }}>
+      <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: '600' }}>عرض <span style={{ fontWeight: '800', color: '#0f172a' }}>{from}–{to}</span> من <span style={{ fontWeight: '800', color: '#0f172a' }}>{totalItems.toLocaleString()}</span> سلة</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-        {/* First page */}
-        <PaginationBtn
-          onClick={() => onPageChange(1)}
-          disabled={currentPage === 1}
-          title="الصفحة الأولى"
-        >
-          <ChevronsRight size={14} />
-        </PaginationBtn>
-
-        {/* Previous page */}
-        <PaginationBtn
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          title="السابقة"
-        >
-          <ChevronRight size={14} />
-        </PaginationBtn>
-
-        {/* Page numbers */}
-        {getPageNumbers().map((p, idx) =>
-          p === 'ellipsis' ? (
-            <div
-              key={`ellipsis-${idx}`}
-              style={{ width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1' }}
-            >
-              <MoreHorizontal size={14} />
-            </div>
-          ) : (
-            <button
-              key={p}
-              onClick={() => onPageChange(p)}
-              style={{
-                minWidth: '34px',
-                height: '34px',
-                padding: '0 6px',
-                borderRadius: '9px',
-                border: currentPage === p ? 'none' : '1px solid #e2e8f0',
-                background: currentPage === p ? '#0f172a' : '#fff',
-                color: currentPage === p ? '#fff' : '#475569',
-                fontWeight: currentPage === p ? '800' : '600',
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-                lineHeight: 1,
-              }}
-            >
-              {p}
-            </button>
-          )
-        )}
-
-        {/* Next page */}
-        <PaginationBtn
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          title="التالية"
-        >
-          <ChevronLeft size={14} />
-        </PaginationBtn>
-
-        {/* Last page */}
-        <PaginationBtn
-          onClick={() => onPageChange(totalPages)}
-          disabled={currentPage === totalPages}
-          title="الصفحة الأخيرة"
-        >
-          <ChevronsLeft size={14} />
-        </PaginationBtn>
+        <PBtn onClick={() => onPageChange(1)} disabled={currentPage === 1} title="الأولى"><ChevronsRight size={14} /></PBtn>
+        <PBtn onClick={() => onPageChange(currentPage - 1)} disabled={currentPage === 1} title="السابقة"><ChevronRight size={14} /></PBtn>
+        {getPageNumbers().map((p, idx) => p === 'ellipsis' ? (
+          <div key={`e-${idx}`} style={{ width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1' }}><MoreHorizontal size={14} /></div>
+        ) : (
+          <button key={p} onClick={() => onPageChange(p as number)} style={{ minWidth: '34px', height: '34px', padding: '0 6px', borderRadius: '9px', border: currentPage === p ? 'none' : '1px solid #e2e8f0', background: currentPage === p ? '#0f172a' : '#fff', color: currentPage === p ? '#fff' : '#475569', fontWeight: currentPage === p ? '800' : '600', fontSize: '0.875rem', cursor: 'pointer' }}>{p}</button>
+        ))}
+        <PBtn onClick={() => onPageChange(currentPage + 1)} disabled={currentPage === totalPages} title="التالية"><ChevronLeft size={14} /></PBtn>
+        <PBtn onClick={() => onPageChange(totalPages)} disabled={currentPage === totalPages} title="الأخيرة"><ChevronsLeft size={14} /></PBtn>
       </div>
-
-      {/* Jump to page */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', color: '#64748b' }}>
-        <span style={{ fontWeight: '600', whiteSpace: 'nowrap' }}>انتقل إلى:</span>
-        <input
-          type="number"
-          min={1}
-          max={totalPages}
-          value={jumpValue}
-          onChange={(e) => setJumpValue(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleJump()}
-          placeholder={`1–${totalPages}`}
-          style={{
-            width: '72px',
-            height: '34px',
-            border: '1px solid #e2e8f0',
-            borderRadius: '9px',
-            padding: '0 10px',
-            fontSize: '0.875rem',
-            textAlign: 'center',
-            outline: 'none',
-            color: '#0f172a',
-            fontWeight: '700',
-          }}
-        />
-        <button
-          onClick={handleJump}
-          style={{
-            height: '34px',
-            padding: '0 14px',
-            background: '#f1f5f9',
-            border: '1px solid #e2e8f0',
-            borderRadius: '9px',
-            fontSize: '0.875rem',
-            fontWeight: '700',
-            cursor: 'pointer',
-            color: '#334155',
-            whiteSpace: 'nowrap',
-            transition: 'all 0.15s',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.background = '#e2e8f0')}
-          onMouseLeave={e => (e.currentTarget.style.background = '#f1f5f9')}
-        >
-          اذهب
-        </button>
+        <span style={{ fontWeight: '600' }}>انتقل إلى:</span>
+        <input type="number" min={1} max={totalPages} value={jumpValue} onChange={e => setJumpValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleJump()} placeholder={`1–${totalPages}`} style={{ width: '72px', height: '34px', border: '1px solid #e2e8f0', borderRadius: '9px', padding: '0 10px', fontSize: '0.875rem', textAlign: 'center', outline: 'none' }} />
+        <button onClick={handleJump} style={{ height: '34px', padding: '0 14px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '9px', fontSize: '0.875rem', fontWeight: '700', cursor: 'pointer' }}>اذهب</button>
       </div>
     </div>
   );
 }
 
-function PaginationBtn({ onClick, disabled, children, title }: {
-  onClick: () => void;
-  disabled: boolean;
-  children: React.ReactNode;
-  title?: string;
-}) {
+// ── Reminder Modal ────────────────────────────────────────────────────────────
+function ReminderModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onClose: () => void; onDone: () => void; }) {
+  const eligible = carts.filter(c => !c.recovered && isWithin24Hours(c.last_activity_at || c.created_at) && c.customer_phone);
+  const [sent, setSent] = useState<Set<string>>(new Set());
+  const [sending, setSending] = useState<string | null>(null);
+
+  async function sendReminder(cart: AbandonedCart) {
+    setSending(cart.id);
+    const promoCode = cart.reminder_promo_code || generatePromoCode(cart.id);
+    const expiry = new Date();
+    expiry.setDate(expiry.getDate() + 2);
+
+    // Save promo code to coupons table
+    const { error: couponError } = await supabase.from('coupons').upsert({
+      code: promoCode,
+      discount_type: 'percentage',
+      discount_value: 5,
+      is_active: true,
+      expiry_date: expiry.toISOString(),
+    }, { onConflict: 'code' });
+
+    if (couponError) { toast.error('فشل إنشاء كود الخصم: ' + couponError.message); setSending(null); return; }
+
+    // Mark reminder sent
+    await supabase.from('abandoned_carts').update({
+      reminder_sent: true,
+      reminder_sent_at: new Date().toISOString(),
+      reminder_promo_code: promoCode,
+    }).eq('id', cart.id);
+
+    // Build WhatsApp message
+    const items = cart.cart_items?.slice(0, 2).map((i: any) => i.name).join('، ') || 'منتجات';
+    const more = cart.cart_items?.length > 2 ? ` و${cart.cart_items.length - 2} منتجات أخرى` : '';
+    const total = (cart.cart_total || 0).toFixed(2);
+    const msg = encodeURIComponent(
+      `مرحباً ${cart.customer_name || 'عزيزنا'} 👋\n\n` +
+      `لاحظنا إنك سبت في سلتك: ${items}${more}\n` +
+      `💰 إجمالي سلتك: ${total} ج.م\n\n` +
+      `🎁 خصم 5% خاص بيك لو أكملت طلبك دلوقتي!\n` +
+      `استخدم الكود: *${promoCode}*\n\n` +
+      `⏰ الكود صالح لمدة 48 ساعة بس!\n\n` +
+      `أكمل طلبك من هنا 👇\nhttps://zaitandfilters.com/checkout`
+    );
+    window.open(`https://wa.me/${cart.customer_phone}?text=${msg}`, '_blank');
+    setSent(prev => new Set([...prev, cart.id]));
+    setSending(null);
+    toast.success(`تم فتح واتساب لـ ${cart.customer_name} ✅`);
+  }
+
+  async function sendAll() {
+    for (const cart of eligible) {
+      if (!sent.has(cart.id) && !cart.reminder_sent) { await sendReminder(cart); await new Promise(r => setTimeout(r, 800)); }
+    }
+    toast.success(`تم إرسال التذكيرات! 🎉`);
+    onDone();
+  }
+
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      title={title}
-      style={{
-        width: '34px',
-        height: '34px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: '9px',
-        border: '1px solid #e2e8f0',
-        background: disabled ? '#f8fafc' : '#fff',
-        color: disabled ? '#cbd5e1' : '#475569',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        transition: 'all 0.15s',
-        flexShrink: 0,
-      }}
-    >
-      {children}
-    </button>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px', backdropFilter: 'blur(4px)' }}>
+      <div style={{ background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '620px', maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 60px rgba(0,0,0,0.2)', direction: 'rtl' }}>
+
+        <div style={{ padding: '24px 28px 16px', borderBottom: '1px solid #f1f5f9' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '900', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '38px', height: '38px', background: '#f0fdf4', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Bell size={18} color="#15803d" /></div>
+                إرسال تذكير بخصم 5%
+              </h2>
+              <p style={{ margin: '6px 0 0', color: '#94a3b8', fontSize: '0.88rem', fontWeight: '600' }}>السلات المتروكة خلال آخر 24 ساعة — {eligible.length} عميل</p>
+            </div>
+            <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', color: '#64748b' }}>✕</button>
+          </div>
+          <div style={{ marginTop: '14px', background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '1px solid #86efac', borderRadius: '12px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Tag size={16} color="#15803d" />
+            <div>
+              <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#15803d' }}>كود خصم 5% تلقائي لكل عميل</div>
+              <div style={{ fontSize: '0.78rem', color: '#16a34a', marginTop: '2px' }}>يُنشأ كود فريد لكل عميل، صالح 48 ساعة، ويُحفظ تلقائياً في جدول الكوبونات</div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ overflowY: 'auto', flex: 1, padding: '16px 28px' }}>
+          {eligible.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8' }}>
+              <Clock size={40} strokeWidth={1} style={{ margin: '0 auto 12px', display: 'block' }} />
+              <p style={{ fontWeight: '700', fontSize: '0.95rem' }}>لا توجد سلات متروكة في آخر 24 ساعة</p>
+            </div>
+          ) : eligible.map(cart => {
+            const isSent = sent.has(cart.id) || !!cart.reminder_sent;
+            const promoCode = cart.reminder_promo_code || generatePromoCode(cart.id);
+            const ts = formatExactTime(cart.last_activity_at || cart.created_at);
+            return (
+              <div key={cart.id} style={{ background: isSent ? '#f0fdf4' : '#f8fafc', border: `1px solid ${isSent ? '#86efac' : '#e2e8f0'}`, borderRadius: '14px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px', transition: 'all 0.2s' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: isSent ? '#dcfce7' : '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {isSent ? <CheckCircle size={18} color="#15803d" /> : <User size={18} color="#94a3b8" />}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#0f172a' }}>{cart.customer_name || 'عميل'}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <span>{cart.customer_phone}</span>
+                    <span style={{ color: '#cbd5e1' }}>·</span>
+                    <span>{(cart.cart_total || 0).toFixed(0)} ج.م</span>
+                    <span style={{ color: '#cbd5e1' }}>·</span>
+                    <span style={{ color: '#f59e0b', fontWeight: '700' }}>{ts.relative} مضت</span>
+                  </div>
+                  <div style={{ marginTop: '6px', display: 'inline-flex', alignItems: 'center', gap: '5px', background: isSent ? '#dcfce7' : '#fff', border: `1px solid ${isSent ? '#86efac' : '#e2e8f0'}`, borderRadius: '7px', padding: '3px 9px' }}>
+                    <Tag size={11} color={isSent ? '#15803d' : '#94a3b8'} />
+                    <span style={{ fontFamily: 'monospace', fontSize: '0.82rem', fontWeight: '900', color: isSent ? '#15803d' : '#475569', letterSpacing: '0.5px' }}>{promoCode}</span>
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '600' }}>— خصم 5%</span>
+                  </div>
+                </div>
+                <button onClick={() => sendReminder(cart)} disabled={sending === cart.id || isSent}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', borderRadius: '10px', border: 'none', background: isSent ? '#dcfce7' : 'linear-gradient(135deg, #25D366, #128C7E)', color: isSent ? '#15803d' : '#fff', fontWeight: '800', fontSize: '0.85rem', cursor: isSent || sending === cart.id ? 'not-allowed' : 'pointer', flexShrink: 0, whiteSpace: 'nowrap', opacity: sending === cart.id ? 0.7 : 1 }}>
+                  {sending === cart.id ? <RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} /> : isSent ? <CheckCircle size={14} /> : <MessageCircle size={14} />}
+                  {sending === cart.id ? 'جاري...' : isSent ? 'تم الإرسال' : 'واتساب'}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        {eligible.length > 0 && (
+          <div style={{ padding: '16px 28px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '10px' }}>
+            <button onClick={sendAll} style={{ flex: 1, padding: '13px', background: 'linear-gradient(135deg, #25D366, #128C7E)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '900', fontSize: '0.95rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <Zap size={16} /> إرسال للكل ({eligible.filter(c => !sent.has(c.id) && !c.reminder_sent).length} عميل)
+            </button>
+            <button onClick={() => { onDone(); onClose(); }} style={{ padding: '13px 20px', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer' }}>إغلاق</button>
+          </div>
+        )}
+      </div>
+      <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
+    </div>
   );
 }
-// ─────────────────────────────────────────────────────────────────────────────
 
+// ── Main ──────────────────────────────────────────────────────────────────────
 export default function AbandonedCartsAdmin() {
   const [carts, setCarts] = useState<AbandonedCart[]>([]);
   const [filteredCarts, setFilteredCarts] = useState<AbandonedCart[]>([]);
@@ -280,6 +257,7 @@ export default function AbandonedCartsAdmin() {
   const [sendingEmail, setSendingEmail] = useState<string | null>(null);
   const [deletingCart, setDeletingCart] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showReminderModal, setShowReminderModal] = useState(false);
 
   useEffect(() => { fetchAbandonedCarts(); }, []);
   useEffect(() => { applyFilters(); setCurrentPage(1); }, [carts, filter, searchTerm]);
@@ -287,30 +265,22 @@ export default function AbandonedCartsAdmin() {
   const fetchAbandonedCarts = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('abandoned_carts')
-        .select('*')
-        .order('last_activity_at', { ascending: false });
+      const { data, error } = await supabase.from('abandoned_carts').select('*').order('last_activity_at', { ascending: false });
       if (error) throw error;
       setCarts(data || []);
-    } catch (err: any) {
-      toast.error('Error: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err: any) { toast.error('Error: ' + err.message); }
+    finally { setLoading(false); }
   };
 
   const applyFilters = () => {
     let filtered = [...carts];
     if (filter === 'pending') filtered = filtered.filter(c => !c.recovered);
     else if (filter === 'recovered') filtered = filtered.filter(c => c.recovered);
-    if (searchTerm) {
-      filtered = filtered.filter(c =>
-        c.customer_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.customer_phone?.includes(searchTerm)
-      );
-    }
+    if (searchTerm) filtered = filtered.filter(c =>
+      c.customer_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.customer_phone?.includes(searchTerm)
+    );
     setFilteredCarts(filtered);
   };
 
@@ -322,32 +292,20 @@ export default function AbandonedCartsAdmin() {
       if (error) throw error;
       toast.success('تم الحذف ✓');
       setCarts(prev => prev.filter(c => c.id !== cartId));
-    } catch (err: any) {
-      toast.error('خطأ: ' + err.message);
-    } finally {
-      setDeletingCart(null);
-    }
+    } catch (err: any) { toast.error('خطأ: ' + err.message); }
+    finally { setDeletingCart(null); }
   };
 
   const sendRecoveryEmail = async (cartId: string, customerEmail: string) => {
     setSendingEmail(cartId);
     try {
-      const response = await fetch('/api/send-recovery-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cartId, customerEmail })
-      });
+      const response = await fetch('/api/send-recovery-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cartId, customerEmail }) });
       if (!response.ok) throw new Error('Failed to send email');
-      await supabase.from('abandoned_carts')
-        .update({ recovery_email_sent: true, recovery_email_sent_at: new Date().toISOString() })
-        .eq('id', cartId);
+      await supabase.from('abandoned_carts').update({ recovery_email_sent: true, recovery_email_sent_at: new Date().toISOString() }).eq('id', cartId);
       toast.success('تم الإرسال ✓');
       fetchAbandonedCarts();
-    } catch (err: any) {
-      toast.error('خطأ: ' + err.message);
-    } finally {
-      setSendingEmail(null);
-    }
+    } catch (err: any) { toast.error('خطأ: ' + err.message); }
+    finally { setSendingEmail(null); }
   };
 
   const sendWhatsApp = (phone: string, total: number) => {
@@ -355,12 +313,9 @@ export default function AbandonedCartsAdmin() {
     window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
   };
 
-  // Scroll to top of table when page changes
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const handlePageChange = (page: number) => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
+  const eligible24h = carts.filter(c => !c.recovered && isWithin24Hours(c.last_activity_at || c.created_at) && c.customer_phone);
   const stats = {
     total: carts.length,
     pending: carts.filter(c => !c.recovered).length,
@@ -368,7 +323,6 @@ export default function AbandonedCartsAdmin() {
     totalValue: carts.reduce((s, c) => s + (c.cart_total || 0), 0),
     recoveryRate: carts.length ? Math.round((carts.filter(c => c.recovered).length / carts.length) * 100) : 0,
   };
-
   const totalPages = Math.ceil(filteredCarts.length / ITEMS_PER_PAGE);
   const paginated = filteredCarts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
@@ -385,34 +339,51 @@ export default function AbandonedCartsAdmin() {
       <style>{`
         @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
         @keyframes spin { to { transform:rotate(360deg); } }
-        .ac-row { transition: background 0.15s; }
+        @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
         .ac-row:hover { background: #f0fdf4 !important; }
         .ac-btn { transition: all 0.15s; }
         .ac-btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.05); }
         .ac-chip:hover { opacity: 0.85; }
-        .ac-expand:hover { background: #f0fdf4 !important; }
       `}</style>
 
-      {/* ── Header ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '22px' }}>
+      {showReminderModal && <ReminderModal carts={carts} onClose={() => setShowReminderModal(false)} onDone={() => { setShowReminderModal(false); fetchAbandonedCarts(); }} />}
+
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '22px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: '900', color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>
-            السلات المتروكة
-          </h1>
-          <p style={{ fontSize: '0.92rem', color: '#94a3b8', marginTop: '3px', fontWeight: '500' }}>
-            تتبع واسترجع العملاء المحتملين
-          </p>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: '900', color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>السلات المتروكة</h1>
+          <p style={{ fontSize: '0.92rem', color: '#94a3b8', marginTop: '3px', fontWeight: '500' }}>تتبع واسترجع العملاء المحتملين</p>
         </div>
-        <button
-          onClick={fetchAbandonedCarts}
-          className="ac-btn"
-          style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 16px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '0.93rem', cursor: 'pointer' }}
-        >
-          <RefreshCw size={14} /> تحديث
-        </button>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <button onClick={() => setShowReminderModal(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: eligible24h.length > 0 ? 'linear-gradient(135deg, #25D366, #128C7E)' : '#e2e8f0', color: eligible24h.length > 0 ? '#fff' : '#94a3b8', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.93rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: eligible24h.length > 0 ? '0 4px 14px rgba(37,211,102,0.35)' : 'none', animation: eligible24h.length > 0 ? 'pulse 2s ease-in-out infinite' : 'none' }}>
+            <Bell size={16} />
+            تذكير 24 ساعة
+            {eligible24h.length > 0 && <span style={{ background: 'rgba(255,255,255,0.25)', borderRadius: '8px', padding: '1px 8px', fontSize: '0.82rem', fontWeight: '900' }}>{eligible24h.length}</span>}
+          </button>
+          <button onClick={fetchAbandonedCarts} className="ac-btn" style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 16px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '0.93rem', cursor: 'pointer' }}>
+            <RefreshCw size={14} /> تحديث
+          </button>
+        </div>
       </div>
 
-      {/* ── Stats Row ── */}
+      {/* 24h Alert Banner */}
+      {eligible24h.length > 0 && (
+        <div style={{ marginBottom: '18px', background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '1.5px solid #86efac', borderRadius: '14px', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', animation: 'fadeUp 0.3s ease' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '40px', height: '40px', background: '#22c55e', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Bell size={18} color="#fff" /></div>
+            <div>
+              <div style={{ fontWeight: '900', fontSize: '1rem', color: '#15803d' }}>{eligible24h.length} عميل تركوا سلتهم في آخر 24 ساعة</div>
+              <div style={{ fontSize: '0.82rem', color: '#16a34a', marginTop: '2px' }}>أرسل لهم تذكير واتساب مع خصم 5% — فرصة كبيرة لاسترجاعهم!</div>
+            </div>
+          </div>
+          <button onClick={() => setShowReminderModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 20px', background: 'linear-gradient(135deg, #25D366, #128C7E)', color: '#fff', border: 'none', borderRadius: '11px', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', flexShrink: 0, boxShadow: '0 4px 14px rgba(37,211,102,0.3)' }}>
+            <MessageCircle size={16} /> إرسال التذكيرات
+          </button>
+        </div>
+      )}
+
+      {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', marginBottom: '20px' }}>
         {[
           { label: 'إجمالي السلات', value: stats.total, icon: <ShoppingCart size={16} />, color: '#0f172a', light: '#f1f5f9' },
@@ -421,45 +392,32 @@ export default function AbandonedCartsAdmin() {
           { label: 'معدل الاسترجاع', value: `${stats.recoveryRate}%`, icon: <TrendingUp size={16} />, color: '#7c3aed', light: '#f5f3ff' },
           { label: 'القيمة الكلية', value: `${stats.totalValue.toFixed(0)} ج`, icon: <DollarSign size={16} />, color: '#0369a1', light: '#f0f9ff' },
         ].map((s, i) => (
-          <div key={i} style={{ background: '#fff', borderRadius: '14px', padding: '14px 16px', border: '1px solid #f1f5f9', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', animation: `fadeUp 0.3s ease ${i * 0.05}s both` }}>
+          <div key={i} style={{ background: '#fff', borderRadius: '14px', padding: '14px 16px', border: '1px solid #f1f5f9', animation: `fadeUp 0.3s ease ${i * 0.05}s both` }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
               <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '700' }}>{s.label}</span>
-              <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: s.light, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color }}>
-                {s.icon}
-              </div>
+              <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: s.light, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color }}>{s.icon}</div>
             </div>
             <div style={{ fontSize: '1.6rem', fontWeight: '900', color: s.color, letterSpacing: '-0.5px' }}>{s.value}</div>
           </div>
         ))}
       </div>
 
-      {/* ── Filters Bar ── */}
-      <div style={{ background: '#fff', borderRadius: '14px', padding: '12px 16px', marginBottom: '14px', display: 'flex', gap: '12px', alignItems: 'center', border: '1px solid #f1f5f9', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+      {/* Filters */}
+      <div style={{ background: '#fff', borderRadius: '14px', padding: '12px 16px', marginBottom: '14px', display: 'flex', gap: '12px', alignItems: 'center', border: '1px solid #f1f5f9' }}>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', borderRadius: '9px', padding: '8px 12px' }}>
           <Search size={15} color="#cbd5e1" />
-          <input
-            type="text"
-            placeholder="بحث بالاسم، الإيميل، أو الموبايل..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: '0.96rem', color: '#334155' }}
-          />
+          <input type="text" placeholder="بحث بالاسم، الإيميل، أو الموبايل..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: '0.96rem', color: '#334155' }} />
         </div>
         <div style={{ display: 'flex', gap: '6px' }}>
           {(['all', 'pending', 'recovered'] as const).map(f => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className="ac-chip"
-              style={{ padding: '7px 14px', background: filter === f ? '#0f172a' : '#f1f5f9', color: filter === f ? '#fff' : '#64748b', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.15s' }}
-            >
+            <button key={f} onClick={() => setFilter(f)} className="ac-chip" style={{ padding: '7px 14px', background: filter === f ? '#0f172a' : '#f1f5f9', color: filter === f ? '#fff' : '#64748b', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.15s' }}>
               {f === 'all' ? `الكل · ${stats.total}` : f === 'pending' ? `انتظار · ${stats.pending}` : `مسترجع · ${stats.recovered}`}
             </button>
           ))}
         </div>
       </div>
 
-      {/* ── Table ── */}
+      {/* Table */}
       {filteredCarts.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px', color: '#cbd5e1', background: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
           <ShoppingCart size={48} strokeWidth={1} />
@@ -468,171 +426,140 @@ export default function AbandonedCartsAdmin() {
       ) : (
         <>
           <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', overflow: 'hidden', boxShadow: '0 1px 8px rgba(0,0,0,0.04)' }}>
-            {/* Table head */}
             <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.6fr 2.2fr 0.9fr 1.4fr 0.8fr 1.6fr', padding: '10px 18px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
               {['العميل', 'التواصل', 'المنتجات', 'الإجمالي', 'التوقيت', 'الحالة', 'إجراءات'].map((h, i) => (
                 <div key={i} style={{ fontSize: '0.78rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', paddingRight: i > 0 ? '10px' : 0 }}>{h}</div>
               ))}
             </div>
 
-            {/* Rows */}
             {paginated.map((cart, idx) => {
               const ts = formatExactTime(cart.last_activity_at || cart.created_at);
               const isExpanded = expandedCart === cart.id;
+              const is24h = isWithin24Hours(cart.last_activity_at || cart.created_at);
 
               return (
                 <div key={cart.id} style={{ animation: `fadeUp 0.25s ease ${idx * 0.03}s both` }}>
-                  <div
-                    className="ac-row"
-                    style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.6fr 2.2fr 0.9fr 1.4fr 0.8fr 1.6fr', padding: '11px 18px', borderBottom: '1px solid #f8fafc', background: cart.recovered ? '#fafffe' : '#fff', alignItems: 'center', cursor: 'pointer' }}
-                    onClick={() => setExpandedCart(isExpanded ? null : cart.id)}
-                  >
+                  <div className="ac-row" style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.6fr 2.2fr 0.9fr 1.4fr 0.8fr 1.6fr', padding: '11px 18px', borderBottom: '1px solid #f8fafc', background: cart.recovered ? '#fafffe' : '#fff', alignItems: 'center', cursor: 'pointer', transition: 'background 0.15s' }}
+                    onClick={() => setExpandedCart(isExpanded ? null : cart.id)}>
+
                     {/* Customer */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-                      <div style={{ width: '32px', height: '32px', borderRadius: '9px', background: cart.recovered ? '#dcfce7' : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <User size={15} color={cart.recovered ? '#15803d' : '#94a3b8'} />
+                      <div style={{ position: 'relative' }}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '9px', background: cart.recovered ? '#dcfce7' : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <User size={15} color={cart.recovered ? '#15803d' : '#94a3b8'} />
+                        </div>
+                        {is24h && !cart.recovered && <div style={{ position: 'absolute', top: '-3px', right: '-3px', width: '10px', height: '10px', borderRadius: '50%', background: '#22c55e', border: '2px solid #fff' }} />}
                       </div>
                       <div>
                         <div style={{ fontSize: '1rem', fontWeight: '800', color: '#0f172a', lineHeight: 1.2 }}>{cart.customer_name || 'غير محدد'}</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
                           {cart.device_type === 'mobile' ? <Smartphone size={10} color="#cbd5e1" /> : <Monitor size={10} color="#cbd5e1" />}
                           <span style={{ fontSize: '0.8rem', color: '#cbd5e1', fontWeight: '600' }}>{cart.device_type === 'mobile' ? 'موبايل' : 'كمبيوتر'}</span>
+                          {is24h && !cart.recovered && <span style={{ fontSize: '0.72rem', fontWeight: '800', color: '#15803d', background: '#dcfce7', padding: '1px 5px', borderRadius: '4px', marginRight: '2px' }}>24س</span>}
                         </div>
                       </div>
                     </div>
 
-                    {/* Contact */}
                     <div style={{ paddingRight: '10px' }}>
-                      <div style={{ fontSize: '0.88rem', color: '#475569', fontWeight: '600', marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>
-                        {cart.customer_email}
-                      </div>
-                      {cart.customer_phone && (
-                        <div style={{ fontSize: '0.84rem', color: '#94a3b8', fontWeight: '600', direction: 'ltr', textAlign: 'right' }}>{cart.customer_phone}</div>
-                      )}
+                      <div style={{ fontSize: '0.88rem', color: '#475569', fontWeight: '600', marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>{cart.customer_email}</div>
+                      {cart.customer_phone && <div style={{ fontSize: '0.84rem', color: '#94a3b8', fontWeight: '600', direction: 'ltr', textAlign: 'right' }}>{cart.customer_phone}</div>}
                     </div>
 
-                    {/* Products */}
                     <div style={{ paddingRight: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                        <div style={{ padding: '2px 8px', background: '#f0fdf4', borderRadius: '5px', fontSize: '0.8rem', fontWeight: '800', color: '#15803d' }}>
-                          {cart.cart_items?.length || 0} منتج
-                        </div>
-                      </div>
-                      {cart.cart_items?.[0] && (
-                        <div style={{ fontSize: '0.84rem', color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>
-                          {cart.cart_items[0].name}
-                        </div>
-                      )}
+                      <div style={{ display: 'inline-block', padding: '2px 8px', background: '#f0fdf4', borderRadius: '5px', fontSize: '0.8rem', fontWeight: '800', color: '#15803d', marginBottom: '4px' }}>{cart.cart_items?.length || 0} منتج</div>
+                      {cart.cart_items?.[0] && <div style={{ fontSize: '0.84rem', color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>{cart.cart_items[0].name}</div>}
                     </div>
 
-                    {/* Total */}
                     <div style={{ paddingRight: '10px' }}>
-                      <div style={{ fontSize: '1rem', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.3px' }}>{(cart.cart_total || 0).toFixed(0)}</div>
+                      <div style={{ fontSize: '1rem', fontWeight: '900', color: '#0f172a' }}>{(cart.cart_total || 0).toFixed(0)}</div>
                       <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '600' }}>ج.م</div>
                     </div>
 
-                    {/* Time */}
                     <div style={{ paddingRight: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '3px' }}>
-                        <Clock size={11} color="#94a3b8" />
-                        <span style={{ fontSize: '0.84rem', fontWeight: '700', color: '#334155' }}>{ts.time}</span>
-                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '3px' }}><Clock size={11} color="#94a3b8" /><span style={{ fontSize: '0.84rem', fontWeight: '700', color: '#334155' }}>{ts.time}</span></div>
                       <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '600' }}>{ts.date}</div>
                       <div style={{ display: 'inline-block', marginTop: '3px', padding: '1px 6px', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.78rem', fontWeight: '800', color: '#64748b' }}>{ts.relative}</div>
                     </div>
 
-                    {/* Status */}
                     <div style={{ paddingRight: '10px' }}>
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 9px', borderRadius: '7px', fontSize: '0.8rem', fontWeight: '800', background: cart.recovered ? '#dcfce7' : '#fef3c7', color: cart.recovered ? '#15803d' : '#92400e' }}>
                         {cart.recovered ? <CheckCircle size={10} /> : <Clock size={10} />}
                         {cart.recovered ? 'تم' : 'قيد'}
                       </div>
+                      {cart.reminder_sent && (
+                        <div style={{ marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '3px', padding: '2px 6px', borderRadius: '5px', fontSize: '0.72rem', fontWeight: '800', background: '#f0fdf4', color: '#15803d' }}>
+                          <MessageCircle size={9} /> تذكير
+                        </div>
+                      )}
                     </div>
 
-                    {/* Actions */}
                     <div style={{ display: 'flex', gap: '5px', alignItems: 'center', paddingRight: '10px' }} onClick={e => e.stopPropagation()}>
                       {!cart.recovered && (
                         <>
-                          <button
-                            onClick={() => sendRecoveryEmail(cart.id, cart.customer_email)}
-                            disabled={sendingEmail === cart.id || cart.recovery_email_sent}
-                            className="ac-btn"
-                            title={cart.recovery_email_sent ? 'تم الإرسال' : 'إرسال إيميل'}
-                            style={{ width: '30px', height: '30px', borderRadius: '8px', border: 'none', background: cart.recovery_email_sent ? '#dcfce7' : '#eff6ff', color: cart.recovery_email_sent ? '#15803d' : '#3b82f6', cursor: cart.recovery_email_sent ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                          >
+                          <button onClick={() => sendRecoveryEmail(cart.id, cart.customer_email)} disabled={sendingEmail === cart.id || cart.recovery_email_sent} className="ac-btn" title={cart.recovery_email_sent ? 'تم الإرسال' : 'إيميل'}
+                            style={{ width: '30px', height: '30px', borderRadius: '8px', border: 'none', background: cart.recovery_email_sent ? '#dcfce7' : '#eff6ff', color: cart.recovery_email_sent ? '#15803d' : '#3b82f6', cursor: cart.recovery_email_sent ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <Mail size={13} />
                           </button>
                           {cart.customer_phone && (
-                            <button
-                              onClick={() => sendWhatsApp(cart.customer_phone, cart.cart_total)}
-                              className="ac-btn"
-                              title="واتساب"
-                              style={{ width: '30px', height: '30px', borderRadius: '8px', border: 'none', background: '#f0fdf4', color: '#15803d', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                            >
+                            <button onClick={() => sendWhatsApp(cart.customer_phone, cart.cart_total)} className="ac-btn" title="واتساب"
+                              style={{ width: '30px', height: '30px', borderRadius: '8px', border: 'none', background: '#f0fdf4', color: '#15803d', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               <Send size={13} />
                             </button>
                           )}
                           {cart.customer_phone && (
-                            <button
-                              onClick={() => window.open(`tel:${cart.customer_phone}`, '_self')}
-                              className="ac-btn"
-                              title="اتصال"
-                              style={{ width: '30px', height: '30px', borderRadius: '8px', border: 'none', background: '#eff6ff', color: '#6366f1', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                            >
+                            <button onClick={() => window.open(`tel:${cart.customer_phone}`, '_self')} className="ac-btn" title="اتصال"
+                              style={{ width: '30px', height: '30px', borderRadius: '8px', border: 'none', background: '#eff6ff', color: '#6366f1', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               <Phone size={13} />
                             </button>
                           )}
                         </>
                       )}
-                      <button
-                        onClick={() => deleteCart(cart.id)}
-                        disabled={deletingCart === cart.id}
-                        className="ac-btn"
-                        title="حذف"
-                        style={{ width: '30px', height: '30px', borderRadius: '8px', border: 'none', background: '#fff1f2', color: '#e11d48', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                      >
-                        {deletingCart === cart.id
-                          ? <RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} />
-                          : <Trash2 size={13} />}
+                      <button onClick={() => deleteCart(cart.id)} disabled={deletingCart === cart.id} className="ac-btn" title="حذف"
+                        style={{ width: '30px', height: '30px', borderRadius: '8px', border: 'none', background: '#fff1f2', color: '#e11d48', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {deletingCart === cart.id ? <RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={13} />}
                       </button>
-                      <button
-                        onClick={() => setExpandedCart(isExpanded ? null : cart.id)}
-                        className="ac-btn ac-expand"
-                        style={{ width: '30px', height: '30px', borderRadius: '8px', border: '1px solid #f1f5f9', background: isExpanded ? '#f0fdf4' : '#fff', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '900' }}
-                      >
+                      <button onClick={() => setExpandedCart(isExpanded ? null : cart.id)} className="ac-btn"
+                        style={{ width: '30px', height: '30px', borderRadius: '8px', border: '1px solid #f1f5f9', background: isExpanded ? '#f0fdf4' : '#fff', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '900' }}>
                         {isExpanded ? '▲' : '▼'}
                       </button>
                     </div>
                   </div>
 
-                  {/* Expanded Products */}
                   {isExpanded && (
                     <div style={{ padding: '14px 20px 16px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
-                      <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#94a3b8', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '10px' }}>تفاصيل المنتجات</div>
+                      <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '10px' }}>تفاصيل المنتجات</div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {cart.cart_items?.map((item: any, i: number) => (
                           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', background: '#fff', borderRadius: '11px', border: '1px solid #f1f5f9' }}>
-                            {(item.image_url || item.image) && (
-                              <img src={item.image_url || item.image} alt="" style={{ width: '44px', height: '44px', borderRadius: '8px', objectFit: 'contain', border: '1px solid #f1f5f9', background: '#fafafa' }} />
-                            )}
+                            {(item.image_url || item.image) && <img src={item.image_url || item.image} alt="" style={{ width: '44px', height: '44px', borderRadius: '8px', objectFit: 'contain', border: '1px solid #f1f5f9', background: '#fafafa' }} />}
                             <div style={{ flex: 1 }}>
                               <div style={{ fontSize: '0.93rem', fontWeight: '800', color: '#0f172a' }}>{item.name}</div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px' }}>
+                              <div style={{ display: 'flex', gap: '6px', marginTop: '3px' }}>
                                 {item.brand && <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#15803d', background: '#f0fdf4', padding: '1px 7px', borderRadius: '4px' }}>{item.brand}</span>}
-                                {item.car_make && <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '600' }}>{item.car_make} {item.car_model} {item.car_model_year}</span>}
+                                {item.car_make && <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '600' }}>{item.car_make} {item.car_model}</span>}
                               </div>
                             </div>
                             <div style={{ textAlign: 'left' }}>
                               <div style={{ fontSize: '0.96rem', fontWeight: '900', color: '#0f172a' }}>{(parseFloat(item.price) * item.quantity).toFixed(2)} ج.م</div>
-                              <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '600' }}>× {item.quantity}</div>
+                              <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>× {item.quantity}</div>
                             </div>
                           </div>
                         ))}
                       </div>
+                      {cart.reminder_sent && cart.reminder_promo_code && (
+                        <div style={{ marginTop: '12px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '10px', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <Tag size={14} color="#15803d" />
+                          <div>
+                            <div style={{ fontSize: '0.82rem', fontWeight: '800', color: '#15803d' }}>تم إرسال تذكير مع كود الخصم</div>
+                            <div style={{ fontFamily: 'monospace', fontWeight: '900', fontSize: '0.95rem', color: '#0f172a', marginTop: '2px' }}>{cart.reminder_promo_code}</div>
+                          </div>
+                          {cart.reminder_sent_at && <div style={{ marginRight: 'auto', fontSize: '0.78rem', color: '#94a3b8' }}>{formatExactTime(cart.reminder_sent_at).date}</div>}
+                        </div>
+                      )}
                       <div style={{ display: 'flex', gap: '10px', marginTop: '12px', flexWrap: 'wrap' }}>
                         {[
                           { label: 'آخر نشاط', value: formatExactTime(cart.last_activity_at || cart.created_at) },
-                          cart.recovered_at ? { label: 'تاريخ الاسترجاع', value: formatExactTime(cart.recovered_at) } : null,
+                          cart.recovered_at ? { label: 'الاسترجاع', value: formatExactTime(cart.recovered_at) } : null,
                         ].filter(Boolean).map((t: any, i) => (
                           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 12px', background: '#fff', borderRadius: '8px', border: '1px solid #f1f5f9' }}>
                             <Clock size={12} color="#94a3b8" />
@@ -647,16 +574,7 @@ export default function AbandonedCartsAdmin() {
               );
             })}
           </div>
-
-          {/* ── Smart Pagination ── */}
-          {totalPages > 1 && (
-            <SmartPagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={filteredCarts.length}
-              onPageChange={handlePageChange}
-            />
-          )}
+          {totalPages > 1 && <SmartPagination currentPage={currentPage} totalPages={totalPages} totalItems={filteredCarts.length} onPageChange={handlePageChange} />}
         </>
       )}
     </div>
