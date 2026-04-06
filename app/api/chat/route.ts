@@ -30,6 +30,10 @@ const SYSTEM_PROMPT = `أنت مساعد ذكي لمتجر "زيت اند فلت
 2. ✅ البيانات الوحيدة اللي تستخدمها هي اللي بتيجي من الداتابيز.
 3. لو الداتابيز ما رجعتش نتايج، قول: "مش لاقي المنتج ده عندنا دلوقتي" وقترح واتساب.
 
+🔍 لو العميل بيسأل عن أوردره بس ما ديش رقم تليفون أو رقم أوردر:
+- ❌ ممنوع تخترع أو تعرض بيانات فاضية أو قوالب زي [رقم الأوردر] أو [الحالة].
+- ✅ اسأله بالعامية المصرية بس: "ممكن تديني رقم تليفونك أو رقم الأوردر عشان أجيب تفاصيله؟ 😊"
+
 📦 لو السؤال عن منتجات وفي منتجات في الداتابيز:
 - اكتب جملة ترحيبية قصيرة بس فقط مثل "لاقيت كذا منتج مناسب ليك 😊"
 - ❌ ممنوع تكتب أسماء منتجات أو أسعار أو روابط — الـ cards بتعمل ده تلقائياً.
@@ -246,6 +250,14 @@ const KNOWN_MODELS: string[] = [
   'إيبيزا', 'ليون', 'توليدو',
 ];
 
+// ── ✅ NEW: Order inquiry keywords ────────────────────────────────────────────
+const ORDER_INQUIRY_KEYWORDS = [
+  'أوردر', 'اوردر', 'طلبي', 'طلب', 'حالة طلب', 'حالة الطلب',
+  'وصل', 'وصلت', 'شحنة', 'شحنتي', 'تتبع', 'تتبع الطلب',
+  'استلمت', 'استلام', 'هيوصل', 'امتى يوصل', 'order', 'delivery',
+  'بيتجهز', 'جاهز', 'شحن طلب', 'فين طلبي', 'عايز أعرف طلبي',
+];
+
 async function searchProducts(
   carMake?: string,
   carModel?: string,
@@ -359,8 +371,9 @@ function translateStatus(status: string): string {
   return map[status] || status;
 }
 
+// ── ✅ UPDATED: detectIntent now includes order_inquiry ───────────────────────
 function detectIntent(message: string): {
-  type: 'order_phone' | 'order_id' | 'product_search' | 'general';
+  type: 'order_phone' | 'order_id' | 'order_inquiry' | 'product_search' | 'general';
   phone?: string;
   orderId?: string;
   carMake?: string;
@@ -372,12 +385,21 @@ function detectIntent(message: string): {
   const msg      = message.trim();
   const lowerMsg = msg.toLowerCase();
 
+  // 1. Phone number → look up order by phone
   const phoneMatch = msg.match(/(\+?2?0?1[0-9]{9})/);
   if (phoneMatch) return { type: 'order_phone', phone: phoneMatch[1] };
 
+  // 2. Order ID → look up by ID
   const orderIdMatch = msg.match(/([0-9a-f]{8}-[0-9a-f]{4}|[A-Z0-9]{8})/i);
   if (orderIdMatch) return { type: 'order_id', orderId: orderIdMatch[1] };
 
+  // 3. ✅ Order inquiry WITHOUT phone/ID → ask for it
+  const isOrderInquiry = ORDER_INQUIRY_KEYWORDS.some(k =>
+    lowerMsg.includes(k.toLowerCase())
+  );
+  if (isOrderInquiry) return { type: 'order_inquiry' };
+
+  // 4. Product search
   const sortedModels = [...KNOWN_MODELS].sort((a, b) => b.length - a.length);
   const foundModel   = sortedModels.find(m => lowerMsg.includes(m.toLowerCase()));
 
@@ -467,13 +489,18 @@ export async function POST(req: NextRequest) {
         intent.partKeywords
       );
     }
+    // ✅ order_inquiry → no DB call, just ask for phone/ID
 
-    console.log('[CHAT] DB result:', dbResult ? `${Array.isArray(dbResult) ? dbResult.length : 1} items` : 'null');
+    console.log('[CHAT] intent:', intent.type, '| DB result:', dbResult ? `${Array.isArray(dbResult) ? dbResult.length : 1} items` : 'null');
 
     const contextStr = dbResult ? buildContext(intent, dbResult) : '';
 
-    const noResultsNote = (intent.type === 'product_search' && !dbResult)
-      ? '\n\n⚠️ الداتابيز ما رجعتش أي منتجات. قول للعميل إن المنتج مش موجود دلوقتي واقترح يتواصل على واتساب.'
+    // ✅ UPDATED: noResultsNote now handles order_inquiry separately
+    const noResultsNote =
+      (intent.type === 'product_search' && !dbResult)
+        ? '\n\n⚠️ الداتابيز ما رجعتش أي منتجات. قول للعميل إن المنتج مش موجود دلوقتي واقترح يتواصل على واتساب.'
+      : (intent.type === 'order_inquiry')
+        ? '\n\n⚠️ العميل بيسأل عن أوردر بس ما فيش رقم تليفون أو رقم أوردر. اطلب منه رقم تليفونه أو رقم الأوردر فقط — ممنوع تعرض أي بيانات أو قوالب فاضية.'
       : '';
 
     const systemContent =
