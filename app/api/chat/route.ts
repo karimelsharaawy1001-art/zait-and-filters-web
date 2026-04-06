@@ -37,6 +37,7 @@ const SYSTEM_PROMPT = `أنت "شوكت" — المساعد الذكي لمتج�
 كلمات وجمل ممنوع تستخدمها أبداً:
 - ❌ "بنا" → الصح: "إحنا"
 - ❌ "أيام شغل" → الصح: "أيام عمل"
+- ❌ "نساعدناك" → الصح: "نساعدك"
 - ❌ أي جملة مكسورة أو مش مفهومة
 - ❌ ترجمة حرفية من الإنجليزية للعربية
 
@@ -50,8 +51,12 @@ const SYSTEM_PROMPT = `أنت "شوكت" — المساعد الذكي لمتج�
 مثال 2 — لما حد يسأل عن طرق الدفع:
 "عندنا أكتر من طريقة دفع: InstaPay، المحافظ الإلكترونية زي فودافون كاش ووي باي، بطاقات الائتمان، أو عن طريق شركات التقسيط. تحب تدفع بإيه؟"
 
-مثال 3 — لما حد يسأل عن زيت لعربيته:
-"تمام! عربيتك إصدار إيه؟ يعني اشتريتها في سنة إيه تقريباً؟ عشان ألاقيلك الأنسب 😊"
+مثال 3 — لما حد يسأل عن الزيت المناسب لعربيته:
+"يلا نلاقيلك الزيت الصح! 💪 محتاج منك معلومات بسيطة:
+1️⃣ ماركة العربية؟ (مثلاً: تويوتا، هيونداي، كيا...)
+2️⃣ الموديل؟ (مثلاً: كورولا، أكسنت، سبورتاج...)
+3️⃣ سنة الإصدار؟
+4️⃣ الفتيس أوتوماتيك ولا مانيوال؟"
 
 مثال 4 — بعد عرض المنتجات:
 "لو عايز تشوف أكتر، ادخل الصفحة الرئيسية واختار ماركة وموديل عربيتك وهتلاقي كل المنتجات المناسبة، وتقدر تفلتر حسب نوع المنتج اللي محتاجه 👍"
@@ -71,14 +76,7 @@ const SYSTEM_PROMPT = `أنت "شوكت" — المساعد الذكي لمتج�
 مثال 9 — لما حد يسأل عن الضمان:
 "كل المنتجات عندنا ليها ضمان 6 شهور 👍"
 
-مثال 10 — لما حد يسأل عن الزيت المناسب لعربيته:
-"يلا نلاقيلك الزيت الصح! 💪 محتاج منك معلومات بسيطة:
-1️⃣ ماركة العربية؟ (مثلاً: تويوتا، هيونداي، كيا...)
-2️⃣ الموديل؟ (مثلاً: كورولا، أكسنت، سبورتاج...)
-3️⃣ سنة الإصدار؟
-4️⃣ الفتيس أوتوماتيك ولا مانيوال؟"
-
-مثال 11 — بعد الحصول على كل المعلومات وعرض توصية الزيت:
+مثال 10 — بعد الحصول على كل المعلومات وعرض توصية الزيت:
 "ده الزيت المناسب لعربيتك حسب مواصفات الشركة المصنّعة. لو عايز تطلب، ابحث عنه عندنا في المتجر أو تواصل معنا على واتساب: ${WHATSAPP_LINK} 😊"
 
 ━━━━━━━━━━━━━━━━━━━━━━
@@ -95,13 +93,15 @@ const SYSTEM_PROMPT = `أنت "شوكت" — المساعد الذكي لمتج�
 - لازم تجمع: الماركة، الموديل، السنة، ونوع الفتيس (أوتوماتيك / مانيوال) قبل ما تدي أي توصية
 - لو في بيانات بحث من الإنترنت هتتديلك في رسالة النظام، استخدمها عشان إجابتك تبقى دقيقة ومبنية على مصادر موثوقة
 - لو مفيش بيانات بحث، استخدم معرفتك عن مواصفات الشركات المصنّعة
-- قدّم التوصية بشكل واضح: درجة اللزوجة (مثلاً 5W-30)، نوع الزيت (معدني / نصف تركيبي / تركيبي بالكامل)، وكمية التغيير المقترحة
+- قدّم التوصية بشكل واضح لزيت المحرك وزيت الفتيس معاً: درجة اللزوجة، نوع الزيت، وكمية التغيير المقترحة
 - بعد التوصية، قول للعميل إنه يقدر يلاقي الزيت ده عندنا في المتجر`;
+
 
 // ═══════════════════════════════════════════════
 // OIL RECOMMENDATION
 // ═══════════════════════════════════════════════
 
+// ✅ FIX 1: Expanded keywords to catch all oil-related questions
 const OIL_INQUIRY_KEYWORDS = [
   'زيت مناسب', 'انهي زيت', 'أي زيت', 'نوع الزيت', 'درجة الزيت',
   'مواصفات الزيت', 'زيت المحرك', 'زيت الفتيس', 'زيت العتاد',
@@ -109,7 +109,11 @@ const OIL_INQUIRY_KEYWORDS = [
   '5w30', '5w40', '0w20', '5w20', '10w40', '15w40',
   'oil recommendation', 'engine oil spec', 'gear oil',
   'توصية زيت', 'الزيت المناسب', 'محتاج زيت', 'عايز زيت',
-  'زيت صح', 'الزيت الصح',
+  'زيت صح', 'الزيت الصح', 'أحسن زيت', 'أفضل زيت',
+  'زيت لعربيتي', 'زيت لسيارتي', 'زيت للعربية',
+  'تنصحني بزيت', 'تنصح بزيت', 'تنصحني بيه', 'تنصحنيه',
+  'زيت محرك', 'زيت فتيس', 'زيت علبة السرعات', 'علبة سرعات',
+  'ATF', 'atf', 'best oil for', 'which oil',
 ];
 
 interface OilInfo {
@@ -134,25 +138,25 @@ function extractOilInfoFromHistory(messages: any[]): OilInfo {
 
   // make (Arabic + English)
   const makeMap: Record<string, string> = {
-    'تويوتا': 'Toyota',     'toyota': 'Toyota',
-    'هيونداي': 'Hyundai',   'hyundai': 'Hyundai',
-    'كيا': 'Kia',           'kia': 'Kia',
-    'نيسان': 'Nissan',      'nissan': 'Nissan',
-    'هوندا': 'Honda',       'honda': 'Honda',
-    'شيفروليه': 'Chevrolet','chevrolet': 'Chevrolet',
-    'أوبل': 'Opel',         'opel': 'Opel',
-    'رينو': 'Renault',      'renault': 'Renault',
-    'بيجو': 'Peugeot',      'peugeot': 'Peugeot',
+    'تويوتا': 'Toyota',      'toyota': 'Toyota',
+    'هيونداي': 'Hyundai',    'hyundai': 'Hyundai',
+    'كيا': 'Kia',            'kia': 'Kia',
+    'نيسان': 'Nissan',       'nissan': 'Nissan',
+    'هوندا': 'Honda',        'honda': 'Honda',
+    'شيفروليه': 'Chevrolet', 'chevrolet': 'Chevrolet',
+    'أوبل': 'Opel',          'opel': 'Opel',
+    'رينو': 'Renault',       'renault': 'Renault',
+    'بيجو': 'Peugeot',       'peugeot': 'Peugeot',
     'ميتسوبيشي': 'Mitsubishi','mitsubishi': 'Mitsubishi',
-    'فيات': 'Fiat',         'fiat': 'Fiat',
-    'مرسيدس': 'Mercedes',   'mercedes': 'Mercedes',
-    'بي ام دبليو': 'BMW',   'bmw': 'BMW',
-    'فولكس': 'Volkswagen',  'volkswagen': 'Volkswagen',
-    'إم جي': 'MG',          'mg': 'MG',
-    'سيات': 'Seat',         'seat': 'Seat',
-    'جيلي': 'Geely',        'geely': 'Geely',
-    'سوزوكي': 'Suzuki',     'suzuki': 'Suzuki',
-    'لادا': 'Lada',         'lada': 'Lada',
+    'فيات': 'Fiat',          'fiat': 'Fiat',
+    'مرسيدس': 'Mercedes',    'mercedes': 'Mercedes',
+    'بي ام دبليو': 'BMW',    'bmw': 'BMW',
+    'فولكس': 'Volkswagen',   'volkswagen': 'Volkswagen',
+    'إم جي': 'MG',           'mg': 'MG',
+    'سيات': 'Seat',          'seat': 'Seat',
+    'جيلي': 'Geely',         'geely': 'Geely',
+    'سوزوكي': 'Suzuki',      'suzuki': 'Suzuki',
+    'لادا': 'Lada',          'lada': 'Lada',
   };
   for (const [key, val] of Object.entries(makeMap)) {
     if (lower.includes(key.toLowerCase())) { info.make = val; break; }
@@ -173,10 +177,11 @@ function extractOilInfoFromHistory(messages: any[]): OilInfo {
     'mg5','mg6','mg hs','mg zs','mg rx5',
     'golf','polo','passat','tiguan',
     'ibiza','leon','toledo',
-    'كورولا','كامري','ياريس','النترا','توسان','أكسنت','ماتريكس','فيرنا',
-    'سبورتاج','سيراتو','جراند سيراتو','قشقاي','سنترا','صني',
+    'كورولا','كامري','ياريس',
+    'النترا','توسان','أكسنت','ماتريكس','فيرنا',
+    'سبورتاج','سيراتو','جراند سيراتو',
     'كروز','أوبترا','أفيو','لانوس','أسترا','إنسيجنيا',
-    'لوجان','داستر','ميجان','فلونس','كابتشر','كليو','سانديرو','ستيبواي',
+    'لوجان','داستر','ميجان','فلونس','كابتشر','كليو','كادجار','سانديرو','ستيبواي',
     'لانسر','لانسر بوما','لانسر شارك','بوما',
   ];
   const sortedModels = [...models].sort((a, b) => b.length - a.length);
@@ -189,9 +194,7 @@ function extractOilInfoFromHistory(messages: any[]): OilInfo {
 
 async function searchOilSpecs(make: string, model: string, year: string, transmission: string): Promise<string | null> {
   if (!process.env.TAVILY_API_KEY) return null;
-
   const query = `${year} ${make} ${model} recommended engine oil viscosity grade ${transmission} transmission manufacturer specification`;
-
   try {
     const res = await fetch(TAVILY_API_URL, {
       method: 'POST',
@@ -199,18 +202,10 @@ async function searchOilSpecs(make: string, model: string, year: string, transmi
         'Content-Type':  'application/json',
         'Authorization': `Bearer ${process.env.TAVILY_API_KEY}`,
       },
-      body: JSON.stringify({
-        query,
-        search_depth: 'basic',
-        max_results:  5,
-        include_answer: true,
-      }),
+      body: JSON.stringify({ query, search_depth: 'basic', max_results: 5, include_answer: true }),
     });
-    if (!res.ok) {
-      console.error('[Tavily Error]', await res.text());
-      return null;
-    }
-    const data = await res.json();
+    if (!res.ok) { console.error('[Tavily Error]', await res.text()); return null; }
+    const data    = await res.json();
     const answer  = data.answer || '';
     const results = (data.results || []).slice(0, 4).map((r: any) => r.content).join('\n\n');
     return `${answer}\n\n${results}`.trim() || null;
@@ -219,6 +214,25 @@ async function searchOilSpecs(make: string, model: string, year: string, transmi
     return null;
   }
 }
+
+// ✅ FIX 2: New function to fetch oil products from DB
+async function searchOilProducts(carMake?: string): Promise<any[] | null> {
+  const select = 'id, name, brand, car_make, car_model, car_model_year, regular_price, sale_price, slug, image_url';
+
+  if (carMake) {
+    const { data } = await supabase.from('products').select(select)
+      .ilike('car_make', `%${carMake}%`)
+      .or('name.ilike.%زيت%,name.ilike.%oil%,name.ilike.%ATF%')
+      .limit(6);
+    if (data?.length) return data;
+  }
+
+  const { data } = await supabase.from('products').select(select)
+    .or('name.ilike.%زيت%,name.ilike.%engine oil%,name.ilike.%ATF%')
+    .limit(6);
+  return data?.length ? data : null;
+}
+
 
 // ═══════════════════════════════════════════════
 // CAR DATA & MAPS
@@ -307,9 +321,9 @@ const MODEL_TO_MAKE: Record<string, string> = {
   'mg5': 'MG', 'mg 5': 'MG', 'mg6': 'MG', 'mg 6': 'MG',
   'mg hs': 'MG', 'mg rx5': 'MG', 'mg zs': 'MG',
   'إم جي 5': 'MG', 'إم جي 6': 'MG',
-  'لانسر': 'Mitsubishi', 'lancer': 'Mitsubishi',
-  'لانسر بوما': 'Mitsubishi', 'lancer puma': 'Mitsubishi',
-  'لانسر شارك': 'Mitsubishi','lancer shark': 'Mitsubishi',
+  'lancer': 'Mitsubishi', 'لانسر': 'Mitsubishi',
+  'lancer puma': 'Mitsubishi', 'لانسر بوما': 'Mitsubishi',
+  'lancer shark': 'Mitsubishi','لانسر شارك': 'Mitsubishi',
   'pajero': 'Mitsubishi', 'بوما': 'Mitsubishi', 'puma': 'Mitsubishi',
   'بومة': 'Mitsubishi', 'outlander': 'Mitsubishi',
   'eclipse': 'Mitsubishi', 'إيكليبس': 'Mitsubishi',
@@ -412,6 +426,7 @@ const ORDER_INQUIRY_KEYWORDS = [
   'بيتجهز','جاهز','شحن طلب','فين طلبي','عايز أعرف طلبي',
 ];
 
+
 // ═══════════════════════════════════════════════
 // DB FUNCTIONS
 // ═══════════════════════════════════════════════
@@ -444,11 +459,10 @@ async function searchProducts(
   }
 
   if (carMake && partKeywords?.length) {
-    let q = supabase.from('products').select(select)
+    const { data } = await supabase.from('products').select(select)
       .ilike('car_make', `%${carMake}%`)
       .or(partKeywords.map(k => `name.ilike.%${k}%`).join(','))
       .limit(8);
-    const { data } = await q;
     if (data?.length) return data;
   }
 
@@ -521,6 +535,7 @@ function translateStatus(status: string): string {
   return map[status] || status;
 }
 
+
 // ═══════════════════════════════════════════════
 // INTENT DETECTION
 // ═══════════════════════════════════════════════
@@ -559,14 +574,18 @@ function detectIntent(message: string, allMessages: any[]): Intent {
   // ── Oil recommendation flow ──────────────────
   const isOilInquiry = OIL_INQUIRY_KEYWORDS.some(k => lowerMsg.includes(k.toLowerCase()));
 
-  // Also detect if we're mid oil-collection conversation
+  // ✅ FIX 3: Expanded mid-conversation oil detection
   const prevBotMessages = allMessages.filter(m => m.role === 'assistant').slice(-3);
   const askingForOilInfo = prevBotMessages.some(m =>
     m.content && (
       m.content.includes('الفتيس أوتوماتيك') ||
       m.content.includes('ماركة العربية') ||
       m.content.includes('سنة الإصدار') ||
-      m.content.includes('نلاقيلك الزيت')
+      m.content.includes('نلاقيلك الزيت') ||
+      m.content.includes('الزيت الصح') ||
+      m.content.includes('زيت المناسب') ||
+      m.content.includes('إصدار إيه') ||
+      m.content.includes('أوتوماتيك ولا مانيوال')
     )
   );
 
@@ -621,6 +640,7 @@ function detectIntent(message: string, allMessages: any[]): Intent {
   return { type: 'general' };
 }
 
+
 // ═══════════════════════════════════════════════
 // BUILD CONTEXT
 // ═══════════════════════════════════════════════
@@ -649,18 +669,38 @@ function buildContext(intent: Intent, dbResult: any, oilSearchResult?: string | 
     return `لاقيت ${products.length} منتج مناسب. اكتب جملة ترحيب قصيرة طبيعية زي "تمام، لاقيتلك ${products.length} منتج مناسب 😊" — الكاردز بتتعرض تلقائياً. بعدين قول للعميل إنه لو عايز يشوف أكتر يدخل الصفحة الرئيسية ويختار ماركة وموديل عربيته.`;
   }
 
+  // ✅ FIX 4: Updated oil context — includes BOTH engine oil AND transmission oil
   if (intent.type === 'oil_recommendation' && intent.oilInfo) {
     const { make, model, year, transmission } = intent.oilInfo;
+    const isAuto = transmission === 'automatic';
     const searchContext = oilSearchResult
       ? `\n\nنتائج البحث من الإنترنت:\n${oilSearchResult.slice(0, 2000)}`
-      : '\n\n[ملاحظة: استخدم معرفتك عن مواصفات الشركة المصنّعة لإجابة دقيقة]';
-    return `العميل عنده: ${make} ${model} سنة ${year}، فتيس ${transmission === 'automatic' ? 'أوتوماتيك' : 'مانيوال'}.
-قدّم توصية الزيت المناسب بشكل واضح: درجة اللزوجة، نوع الزيت (معدني/نصف تركيبي/تركيبي بالكامل)، والكمية المقترحة.
-بعد التوصية قول للعميل إنه يقدر يلاقي الزيت ده عندنا في المتجر أو يتواصل على واتساب: ${WHATSAPP_LINK}${searchContext}`;
+      : '\n\n[ملاحظة: استخدم معرفتك بمواصفات الشركة المصنّعة لإجابة دقيقة]';
+
+    return `العميل عنده: ${make} ${model} سنة ${year}، فتيس ${isAuto ? 'أوتوماتيك' : 'مانيوال'}.
+
+قدّم التوصية بالشكل ده بالظبط — رسالة واحدة منظمة وواضحة:
+
+**زيت المحرك:**
+- درجة اللزوجة (مثلاً 5W-30 أو 5W-40)
+- نوع الزيت (معدني / نصف تركيبي / تركيبي بالكامل)
+- كمية التغيير المقترحة (مثلاً 3.5 لتر أو 4 لتر)
+- مدة التغيير (مثلاً كل 5000 كم أو 10,000 كم)
+
+**زيت الفتيس (${isAuto ? 'أوتوماتيك' : 'مانيوال'}):**
+- نوع الزيت المطلوب (${isAuto ? 'ATF — مثلاً Dexron III أو Dexron VI' : 'GL-4 أو GL-5 — مثلاً 75W-90'})
+- كمية التغيير المقترحة
+
+بعد التوصية قول: "وده بعض الزيوت المتاحة عندنا في المتجر 👇" — الكاردز هتتعرض تلقائياً.
+ثم قول: "أي استفسار تاني، تواصل معنا على واتساب: ${WHATSAPP_LINK} 😊"
+
+⚠️ مهم جداً: الكلام لازم يبقى بالعامية المصرية الصح — ممنوع تماماً كلمة "نساعدناك"، الصح "نساعدك".
+${searchContext}`;
   }
 
   return '';
 }
+
 
 // ═══════════════════════════════════════════════
 // MAIN POST HANDLER
@@ -689,8 +729,15 @@ export async function POST(req: NextRequest) {
     } else if (intent.type === 'oil_recommendation' && intent.oilInfo) {
       const { make, model, year, transmission } = intent.oilInfo;
       if (make && model && year && transmission) {
-        oilSearchResult = await searchOilSpecs(make, model, year, transmission);
+        // ✅ FIX 5: Run oil web search + oil product search in parallel
+        const [oilSearch, oilProducts] = await Promise.all([
+          searchOilSpecs(make, model, year, transmission),
+          searchOilProducts(make),
+        ]);
+        oilSearchResult = oilSearch;
+        dbResult        = oilProducts;
         console.log('[OIL SEARCH]', oilSearchResult ? 'got results' : 'no results / no key');
+        console.log('[OIL PRODUCTS]', dbResult ? `found ${dbResult.length}` : 'none');
       }
     }
 
@@ -700,15 +747,19 @@ export async function POST(req: NextRequest) {
 
     // Build the instruction note per intent
     const oilInfo = intent.oilInfo || {};
-    const missingOilFields: string[] = [];
-    if (!oilInfo.make)         missingOilFields.push('ماركة العربية');
-    if (!oilInfo.model)        missingOilFields.push('الموديل');
-    if (!oilInfo.year)         missingOilFields.push('سنة الإصدار');
-    if (!oilInfo.transmission) missingOilFields.push('نوع الفتيس (أوتوماتيك ولا مانيوال)');
+    const missingLines: string[] = [];
+    if (!oilInfo.make)         missingLines.push('1️⃣ ماركة العربية؟ (مثلاً: تويوتا، هيونداي، نيسان، رينو...)');
+    if (!oilInfo.model)        missingLines.push('2️⃣ الموديل؟ (مثلاً: كورولا، أكسنت، سبورتاج، لوجان...)');
+    if (!oilInfo.year)         missingLines.push('3️⃣ سنة الإصدار؟ (مثلاً: 2018)');
+    if (!oilInfo.transmission) missingLines.push('4️⃣ الفتيس أوتوماتيك ولا مانيوال؟');
 
     const noResultsNote =
+      // ✅ FIX 6: Ask ALL missing oil fields at once in one structured message
       (intent.type === 'oil_needs_info')
-        ? `\n\n[تعليمات]: العميل بيسأل عن الزيت المناسب بس ناقص: ${missingOilFields.join('، ')}. اسأله عنهم بأسلوب طبيعي ومرتب.`
+        ? `\n\n[تعليمات]: اسأل العميل عن المعلومات الناقصة دي كلها في رسالة واحدة بالظبط كده:
+"يلا نلاقيلك الزيت الصح! 💪 محتاج منك معلومات بسيطة:
+${missingLines.join('\n')}"
+— لا تعرض أي منتجات دلوقتي خالص.`
       : (intent.type === 'needs_year')
         ? `\n\n[تعليمات]: اسأله: "عربيتك إصدار إيه؟ يعني اشتريتها في سنة إيه تقريباً؟ 😊" — لا تعرض أي منتجات دلوقتي.`
       : (intent.type === 'product_search' && !dbResult)
@@ -756,7 +807,11 @@ export async function POST(req: NextRequest) {
     const data  = await groqResponse.json();
     const reply = data.choices?.[0]?.message?.content || 'معلش، في مشكلة صغيرة. جرب تاني كمان شوية 😊';
 
-    const products = (intent.type === 'product_search' && Array.isArray(dbResult) && dbResult.length > 0)
+    // ✅ FIX 7: Products returned for BOTH product_search AND oil_recommendation
+    const products = (
+      (intent.type === 'product_search' || intent.type === 'oil_recommendation') &&
+      Array.isArray(dbResult) && dbResult.length > 0
+    )
       ? dbResult.map((p: any) => ({
           id:             p.id,
           name:           p.name?.trim(),
