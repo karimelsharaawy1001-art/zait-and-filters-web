@@ -76,38 +76,22 @@ const PART_KEYWORD_MAP: Record<string, string[]> = {
 
 // Common car models including Egyptian market variants
 const KNOWN_MODELS: string[] = [
-  // Toyota
   'corolla', 'camry', 'yaris', 'hilux', 'fortuner', 'rav4', 'land cruiser', 'avalon', 'prado',
-  // Hyundai
   'elantra', 'tucson', 'accent', 'sonata', 'i10', 'i20', 'i30', 'i40', 'creta', 'santa fe',
-  // Kia
   'sportage', 'cerato', 'picanto', 'rio', 'sorento', 'stinger', 'carnival',
-  // Mitsubishi
   'lancer', 'لانسر', 'outlander', 'eclipse', 'pajero', 'galant', 'boma', 'بوما',
-  // Chevrolet
   'cruze', 'captiva', 'optra', 'aveo', 'spark', 'malibu', 'equinox',
-  // Opel
   'astra', 'vectra', 'mokka', 'insignia', 'corsa', 'zafira',
-  // Nissan
   'sunny', 'sentra', 'qashqai', 'navara', 'patrol', 'x-trail', 'juke',
-  // Honda
   'civic', 'accord', 'crv', 'cr-v', 'hrv', 'hr-v', 'odyssey', 'fit',
-  // Peugeot
   '308', '206', '207', '301', '408', '508', '2008', '3008',
-  // Renault
   'logan', 'duster', 'symbol', 'megane', 'fluence', 'koleos',
-  // Fiat
   'punto', 'bravo', 'tipo', 'ducato', '500',
-  // Suzuki
   'swift', 'vitara', 'dzire', 'baleno', 'grand vitara',
-  // VW
   'golf', 'polo', 'passat', 'tiguan', 'jetta',
-  // BMW
   '3 series', '5 series', 'x1', 'x3', 'x5', '316', '318', '320', '520',
-  // Mercedes
   'c class', 'c200', 'c180', 'e class', 'e200', 'a class', 'glc', 'gle',
-  // Other
-  'emgrand', 'geely', 'lada vesta', 'lada granta',
+  'emgrand', 'lada vesta', 'lada granta',
 ];
 
 
@@ -121,79 +105,84 @@ async function searchProducts(
 
   const select = 'id, name, brand, car_make, car_model, car_model_year, regular_price, sale_price, slug';
 
-  // Build OR filter string for Supabase
+  // ── DEBUG: Connection test ─────────────────────────────────────────────────
+  const { data: testData, error: testError } = await supabase
+    .from('products')
+    .select('id, name, car_make, car_model')
+    .limit(3);
+
+  console.log('[DB TEST] error:', testError?.message || 'none');
+  console.log('[DB TEST] sample rows:', JSON.stringify(testData));
+  // ── This tells you: (1) if connection works, (2) real column names & values in your DB
+
+  console.log('[SEARCH] Params → carMake:', carMake, '| carModel:', carModel, '| year:', carYear, '| keywords:', partKeywords);
+
   const orFilters: string[] = [];
-
-  // Add car make filters
-  if (carMake) {
-    orFilters.push(`car_make.ilike.%${carMake}%`);
-    orFilters.push(`name.ilike.%${carMake}%`);
-  }
-
-  // Add car model filters
-  if (carModel) {
-    orFilters.push(`car_model.ilike.%${carModel}%`);
-    orFilters.push(`name.ilike.%${carModel}%`);
-  }
-
-  // Add part keyword filters
+  if (carMake)           orFilters.push(`car_make.ilike.%${carMake}%`, `name.ilike.%${carMake}%`);
+  if (carModel)          orFilters.push(`car_model.ilike.%${carModel}%`, `name.ilike.%${carModel}%`);
   if (partKeywords?.length) {
-    for (const kw of partKeywords) {
-      orFilters.push(`name.ilike.%${kw}%`);
-    }
+    for (const kw of partKeywords) orFilters.push(`name.ilike.%${kw}%`);
   }
 
-  if (!orFilters.length) return null;
+  if (!orFilters.length) {
+    console.log('[SEARCH] No filters built — returning null');
+    return null;
+  }
 
-  // ── Attempt 1: make + model + keyword (most specific) ─────────────────────
-  if (carMake && (carModel || (partKeywords?.length))) {
+  // ── Attempt 1: make + model + keyword ─────────────────────────────────────
+  if (carMake && (carModel || partKeywords?.length)) {
     let q = supabase.from('products').select(select).limit(8);
     q = q.ilike('car_make', `%${carMake}%`);
     if (carModel) q = q.ilike('car_model', `%${carModel}%`);
     if (carYear)  q = q.ilike('car_model_year', `%${carYear}%`);
     if (partKeywords?.length) {
-      // search any keyword in name using OR
       const kwOr = partKeywords.map(k => `name.ilike.%${k}%`).join(',');
       q = q.or(kwOr);
     }
-    const { data } = await q;
+    const { data, error } = await q;
+    console.log('[ATTEMPT 1] make+model+kw → error:', error?.message || 'none', '| count:', data?.length ?? 0);
     if (data?.length) return data;
   }
 
-  // ── Attempt 2: make + keyword only (drop model/year) ──────────────────────
+  // ── Attempt 2: make + keyword only ────────────────────────────────────────
   if (carMake && partKeywords?.length) {
     let q = supabase.from('products').select(select)
       .ilike('car_make', `%${carMake}%`)
       .limit(8);
     const kwOr = partKeywords.map(k => `name.ilike.%${k}%`).join(',');
     q = q.or(kwOr);
-    const { data } = await q;
+    const { data, error } = await q;
+    console.log('[ATTEMPT 2] make+kw → error:', error?.message || 'none', '| count:', data?.length ?? 0);
     if (data?.length) return data;
   }
 
-  // ── Attempt 3: make only ───────────────────────────────────────────────────
+  // ── Attempt 3: make only ──────────────────────────────────────────────────
   if (carMake) {
-    const { data } = await supabase.from('products').select(select)
+    const { data, error } = await supabase.from('products').select(select)
       .ilike('car_make', `%${carMake}%`).limit(8);
+    console.log('[ATTEMPT 3] make only → error:', error?.message || 'none', '| count:', data?.length ?? 0);
     if (data?.length) return data;
   }
 
-  // ── Attempt 4: model name search in product name ───────────────────────────
+  // ── Attempt 4: model in product name ──────────────────────────────────────
   if (carModel) {
-    const { data } = await supabase.from('products').select(select)
+    const { data, error } = await supabase.from('products').select(select)
       .ilike('name', `%${carModel}%`).limit(8);
+    console.log('[ATTEMPT 4] model in name → error:', error?.message || 'none', '| count:', data?.length ?? 0);
     if (data?.length) return data;
   }
 
-  // ── Attempt 5: keyword only ────────────────────────────────────────────────
+  // ── Attempt 5: keyword in name ────────────────────────────────────────────
   if (partKeywords?.length) {
     for (const kw of partKeywords) {
-      const { data } = await supabase.from('products').select(select)
+      const { data, error } = await supabase.from('products').select(select)
         .ilike('name', `%${kw}%`).limit(8);
+      console.log(`[ATTEMPT 5] keyword "${kw}" → error:`, error?.message || 'none', '| count:', data?.length ?? 0);
       if (data?.length) return data;
     }
   }
 
+  console.log('[SEARCH] All attempts exhausted — no products found');
   return null;
 }
 
@@ -249,35 +238,30 @@ function detectIntent(message: string): {
   const msg = message.trim();
   const lowerMsg = msg.toLowerCase();
 
-  // Phone
   const phoneMatch = msg.match(/(\+?2?0?1[0-9]{9})/);
   if (phoneMatch) return { type: 'order_phone', phone: phoneMatch[1] };
 
-  // Order ID
   const orderIdMatch = msg.match(/([0-9a-f]{8}-[0-9a-f]{4}|[A-Z0-9]{8})/i);
   if (orderIdMatch) return { type: 'order_id', orderId: orderIdMatch[1] };
 
-  // Car make
   const foundMakeKey = Object.keys(CAR_MAKE_MAP).find(k =>
     lowerMsg.includes(k.toLowerCase())
   );
 
-  // Car model
   const foundModel = KNOWN_MODELS.find(m => lowerMsg.includes(m.toLowerCase()));
 
-  // Part keywords — collect ALL matches (longer first to avoid partial matches)
   const sortedKeys = Object.keys(PART_KEYWORD_MAP).sort((a, b) => b.length - a.length);
   const matchedKeywords: string[] = [];
   for (const k of sortedKeys) {
     if (lowerMsg.includes(k.toLowerCase())) {
-      // Add all english + arabic variants
       matchedKeywords.push(...PART_KEYWORD_MAP[k]);
     }
   }
   const uniqueKeywords = [...new Set(matchedKeywords)];
 
-  // Year
   const yearMatch = msg.match(/20[0-9]{2}|19[0-9]{2}/);
+
+  console.log('[INTENT] foundMakeKey:', foundMakeKey, '| foundModel:', foundModel, '| keywords:', uniqueKeywords);
 
   if (foundMakeKey || foundModel || uniqueKeywords.length > 0) {
     return {
@@ -293,7 +277,7 @@ function detectIntent(message: string): {
 }
 
 
-// ── Build context passed to Groq ──────────────────────────────────────────────
+// ── Build context ─────────────────────────────────────────────────────────────
 function buildContext(intent: ReturnType<typeof detectIntent>, dbResult: any): string {
   if (!dbResult) return '';
 
@@ -345,14 +329,19 @@ export async function POST(req: NextRequest) {
     if (!messages?.length) return NextResponse.json({ error: 'No messages' }, { status: 400 });
 
     const lastMessage = messages[messages.length - 1]?.content || '';
+    console.log('[CHAT] User message:', lastMessage);
+
     const intent = detectIntent(lastMessage);
+    console.log('[CHAT] Detected intent:', JSON.stringify(intent));
 
     let dbResult = null;
 
     if (intent.type === 'order_phone' && intent.phone) {
       dbResult = await getOrderByPhone(intent.phone);
+      console.log('[CHAT] Order by phone result:', dbResult ? `${dbResult.length} orders` : 'null');
     } else if (intent.type === 'order_id' && intent.orderId) {
       dbResult = await getOrderById(intent.orderId);
+      console.log('[CHAT] Order by ID result:', dbResult ? 'found' : 'null');
     } else if (intent.type === 'product_search') {
       dbResult = await searchProducts(
         intent.carMake,
@@ -360,11 +349,11 @@ export async function POST(req: NextRequest) {
         intent.carYear,
         intent.partKeywords
       );
+      console.log('[CHAT] Product search result:', dbResult ? `${dbResult.length} products found` : 'null');
     }
 
     const contextStr = dbResult ? buildContext(intent, dbResult) : '';
 
-    // ✅ If no products found, tell AI explicitly — no hallucination
     const noResultsNote = (intent.type === 'product_search' && !dbResult)
       ? '\n\n⚠️ الداتابيز ما رجعتش أي منتجات. قول للعميل بصراحة إن المنتج مش موجود دلوقتي واقترح يتواصل على واتساب.'
       : '';
@@ -391,7 +380,7 @@ export async function POST(req: NextRequest) {
         model: 'llama-3.3-70b-versatile',
         messages: groqMessages,
         max_tokens: 900,
-        temperature: 0.1, // ✅ very low — stick strictly to the data
+        temperature: 0.1,
       }),
     });
 
@@ -403,6 +392,8 @@ export async function POST(req: NextRequest) {
 
     const data = await groqResponse.json();
     const reply = data.choices?.[0]?.message?.content || 'معلش، حصل خطأ. جرب تاني.';
+    console.log('[CHAT] Groq reply preview:', reply.slice(0, 100));
+
     return NextResponse.json({ reply });
 
   } catch (err: any) {
