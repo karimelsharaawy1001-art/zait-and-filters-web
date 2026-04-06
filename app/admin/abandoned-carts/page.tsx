@@ -316,8 +316,27 @@ export default function AbandonedCartsAdmin() {
     finally { setSendingEmail(null); }
   };
 
-  // ✅ UPDATED: Now uses إزيك message as default (مرحبا removed)
-  const sendWhatsApp = (cart: AbandonedCart) => {
+  const sendWhatsApp = async (cart: AbandonedCart) => {
+    const promoCode = cart.reminder_promo_code || generatePromoCode(cart.id);
+    const expiry = new Date();
+    expiry.setDate(expiry.getDate() + 2);
+
+    const { error: couponError } = await supabase.from('coupons').upsert({
+      code: promoCode,
+      discount_type: 'percentage',
+      discount_value: 5,
+      is_active: true,
+      expiry_date: expiry.toISOString(),
+    }, { onConflict: 'code' });
+
+    if (couponError) { toast.error('فشل إنشاء كود الخصم: ' + couponError.message); return; }
+
+    await supabase.from('abandoned_carts').update({
+      reminder_sent: true,
+      reminder_sent_at: new Date().toISOString(),
+      reminder_promo_code: promoCode,
+    }).eq('id', cart.id);
+
     const items = cart.cart_items?.slice(0, 2).map((i: any) => i.name).join('، ') || 'منتجات';
     const more = cart.cart_items?.length > 2 ? ` و${cart.cart_items.length - 2} منتجات أخرى` : '';
     const msg = encodeURIComponent(
@@ -325,12 +344,13 @@ export default function AbandonedCartsAdmin() {
       `إحنا زيت اند فلترز 🛢️\n\n` +
       `سلتك بتستناك من امبارح — فيها ${items}${more}\n\n` +
       `مش هنضغط عليك، بس عشان إحنا بنحب عملاءنا، عملنالك كود خصم 5% خاص بيك:\n` +
-      `*COMEBACK10*\n\n` +
+      `*${promoCode}*\n\n` +
       `استخدمه قبل بكره و كمل طلبك من هنا 👇\n` +
       `https://zaitandfilters.com/checkout\n\n` +
       `لو عندك أي سؤال، إحنا هنا 🙌`
     );
     window.open(`https://wa.me/${toWhatsAppNumber(cart.customer_phone)}?text=${msg}`, '_blank');
+    toast.success(`تم فتح واتساب لـ ${cart.customer_name} ✅`);
   };
 
   const handlePageChange = (page: number) => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); };
