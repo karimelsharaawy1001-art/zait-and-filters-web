@@ -1201,6 +1201,7 @@ export default function AdminOrders() {
                           <td style={td} onClick={e => e.stopPropagation()}>
                             <div style={{ fontWeight: '800', color: '#1a1a1a' }}>{order.customer_name}</div>
                             <div style={{ fontSize: '0.8rem', color: '#777', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={12} /> {order.customer_phone}</div>
+                            <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#22c55e', fontFamily: 'monospace', marginTop: '3px', letterSpacing: '0.5px' }}>#{order.id.slice(0, 8).toUpperCase()}</div>
                           </td>
                           <td style={td} onClick={e => e.stopPropagation()}>
                             <div style={cityBadge}><MapPin size={14} color="#15803d" /> {order.city || 'غير محدد'}</div>
@@ -1328,6 +1329,7 @@ export default function AdminOrders() {
                           <div>
                             <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#1a1a1a', marginBottom: '3px' }}>{order.customer_name}</div>
                             <div style={{ fontSize: '0.78rem', color: '#777', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={11} /> {order.customer_phone}</div>
+                            <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#22c55e', fontFamily: 'monospace', marginTop: '2px', letterSpacing: '0.5px' }}>#{order.id.slice(0, 8).toUpperCase()}</div>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                             <span style={{ fontWeight: '900', fontSize: '1rem', color: '#15803d' }}>{order.total_price} ج.م</span>

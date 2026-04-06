@@ -9,43 +9,32 @@ const supabase = createClient(
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-const SYSTEM_PROMPT = `أنت مساعد ذكي لمتجر "زيت اند فلترز" — متجر إلكتروني مصري متخصص في قطع غيار السيارات وزيوت المحركات والفلاتر.
+const SYSTEM_PROMPT = `أنت "زيت اند فلترز بوت" — مساعد ذكي وودود لمتجر زيت اند فلترز، متجر مصري متخصص في زيوت المحركات وقطع غيار السيارات.
 
 معلومات المتجر:
-- الاسم: زيت اند فلترز (Zait & Filters)
 - الموقع: zaitandfilters.com
-- التوصيل: لكل محافظات مصر — 2 إلى 5 أيام عمل
+- التوصيل: لكل محافظات مصر خلال 2 إلى 5 أيام عمل
 - الشحن السريع: 48 ساعة داخل القاهرة والجيزة فقط
 - طرق الدفع: InstaPay، فودافون كاش، بطاقة تقسيط، كاش عند الاستلام
 - الكاش باك: كل طلب بيكسب كاش باك في المحفظة
 - للتواصل: واتساب على الموقع
 
-أسلوبك:
-- اتكلم بالعامية المصرية دايماً
-- كون ودود وخفيف الدم لكن محترف
-- ردودك مختصرة ومفيدة
+شخصيتك:
+- بتتكلم بالعامية المصرية دايماً — زي صاحب بيساعد صاحبه
+- ذكي، خفيف الدم، ودود، ومحترف في نفس الوقت
+- ردودك طبيعية ومتنوعة — مش نفس الجملة كل مرة
+- بتسأل وبتتابع وبتهتم بالعميل
+- ممكن تبادر بأسئلة مفيدة زي "عندك كام كيلو؟" أو "السيارة بتشتغل عادي؟"
+- لو العميل سأل عن منتجات في الأوردر — اشرح ليه إيه اللي اشتراه بناءً على بيانات الأوردر الموجودة
 
-⛔ قواعد صارمة جداً:
-1. ❌ ممنوع تخترع أي منتج أو رابط من عندك.
-2. ✅ البيانات الوحيدة اللي تستخدمها هي اللي بتيجي من الداتابيز.
-3. لو الداتابيز ما رجعتش نتايج، قول: "مش لاقي المنتج ده عندنا دلوقتي" وقترح واتساب.
-
-🔍 لو العميل بيسأل عن أوردره بس ما ديش رقم تليفون أو رقم أوردر:
-- ❌ ممنوع تخترع أو تعرض بيانات فاضية أو قوالب زي [رقم الأوردر] أو [الحالة].
-- ✅ اسأله بالعامية المصرية بس: "ممكن تديني رقم تليفونك أو رقم الأوردر عشان أجيب تفاصيله؟ 😊"
-
-❌ لو الداتابيز ما رجعتش أوردر بالرقم ده:
-- ❌ ممنوع تخترع أي بيانات أو أرقام أو تواريخ أو مبالغ.
-- ✅ قول بالعامية فقط: "مش لاقي أوردر بالبيانات دي، تأكد من الرقم أو تواصل معنا على واتساب 😊"
-
-📦 لو السؤال عن منتجات وفي منتجات في الداتابيز:
-- اكتب جملة ترحيبية قصيرة بس فقط مثل "لاقيت كذا منتج مناسب ليك 😊"
-- ❌ ممنوع تكتب أسماء منتجات أو أسعار أو روابط — الـ cards بتعمل ده تلقائياً.
-
-🛒 لو السؤال عن أوردر وفي بيانات أوردر في الداتابيز:
-- ❌ ممنوع تقول "مش لاقي" أو تتجاهل البيانات.
-- ✅ اعرض بيانات الأوردر بالكامل بشكل واضح ومرتب بالعامية المصرية:
-  رقم الأوردر، الحالة، الإجمالي، تاريخ الطلب، رقم التتبع، المدينة، طريقة الدفع.`;
+قواعد البيانات:
+- ✅ استخدم فقط البيانات الجاية من الداتابيز
+- ❌ لا تخترع منتجات أو أسعار أو بيانات أوردرات من عندك
+- لو مفيش منتجات → قول بطريقة طبيعية إن المنتج مش متاح دلوقتي واقترح واتساب
+- لو في منتجات → رحب بشكل طبيعي فقط مثل "لاقيت كذا منتج" — الـ cards بتعرضهم تلقائياً
+- لو في بيانات أوردر → اعرضها بشكل محادثة طبيعية مرتبة وواضحة
+- لو مفيش أوردر بالبيانات دي → قول بشكل طبيعي إنك مش لاقيه واقترح التواصل على واتساب
+- لو العميل بيسأل عن أوردر بدون رقم → اسأله عن رقم تليفونه أو رقم الأوردر`;
 
 const CAR_DATA = [
   { make: 'CHEVROLET', make_ar: 'شيفروليه', model: 'AVEO',  model_ar: 'أفيو',    years: ['2002-2011', '2012-2021'] },
@@ -338,27 +327,23 @@ async function searchProducts(
   return null;
 }
 
-// ✅ FIXED: generates all number variants and searches all at once
 async function getOrderByPhone(phone: string) {
   const cleaned = phone.replace(/\D/g, '');
 
-  // Normalize to local Egyptian format: 01XXXXXXXXX (11 digits)
   let local = cleaned;
   if (cleaned.startsWith('20') && cleaned.length >= 12) {
-    local = `0${cleaned.slice(2)}`;       // 201XXXXXXXXX → 01XXXXXXXXX
+    local = `0${cleaned.slice(2)}`;
   } else if (cleaned.startsWith('2') && cleaned.length === 11) {
-    local = `0${cleaned.slice(1)}`;       // 21XXXXXXXXX  → 01XXXXXXXXX
+    local = `0${cleaned.slice(1)}`;
   }
 
-  const intl     = local.startsWith('0') ? `20${local.slice(1)}` : cleaned;  // 01X → 201X
-  const plusIntl = `+${intl}`;                                                // 201X → +201X
-  const last10   = local.slice(-10);                                          // fallback
+  const intl     = local.startsWith('0') ? `20${local.slice(1)}` : cleaned;
+  const plusIntl = `+${intl}`;
+  const last10   = local.slice(-10);
 
   const variants = [...new Set([local, intl, plusIntl, last10].filter(Boolean))];
-
   console.log('[PHONE SEARCH] input:', phone, '| variants:', variants);
 
-  // Build one OR query covering all variants across both phone columns
   const orParts = variants.flatMap(v => [
     `customer_phone.ilike.%${v}%`,
     `guest_phone.ilike.%${v}%`,
@@ -372,7 +357,6 @@ async function getOrderByPhone(phone: string) {
     .limit(3);
 
   console.log('[PHONE SEARCH RESULT]', error?.message || 'ok', '| count:', data?.length ?? 0);
-
   if (error || !data?.length) return null;
   return data;
 }
@@ -414,7 +398,6 @@ function detectIntent(message: string): {
   const msg      = message.trim();
   const lowerMsg = msg.toLowerCase();
 
-  // ✅ FIXED: matches 01XXXXXXXXX, 201XXXXXXXXX, +201XXXXXXXXX — all Egyptian formats
   const phoneMatch = msg.match(/(\+?20?1[0-9]{9}|01[0-9]{9})/);
   if (phoneMatch) return { type: 'order_phone', phone: phoneMatch[1] };
 
@@ -479,8 +462,9 @@ function buildContext(intent: ReturnType<typeof detectIntent>, dbResult: any): s
 تاريخ الطلب: ${new Date(o.created_at).toLocaleDateString('ar-EG')}
 رقم التتبع: ${o.tracking_number || 'لم يُضاف بعد'}
 عدد المنتجات: ${o.items?.length || 0}
+المنتجات: ${o.items?.map((i: any) => i.name || i.product_name || i.title || 'منتج').join(' — ') || 'غير متاح'}
 `).join('\n---\n');
-    return `دي بيانات الأوردر اللي العميل بيسأل عنه — اعرضها بشكل واضح ومرتب بالعامية المصرية:\n${orderDetails}`;
+    return `دي بيانات الأوردر اللي العميل بيسأل عنه — اعرضها بأسلوب محادثة طبيعية ومرتبة بالعامية المصرية:\n${orderDetails}`;
   }
 
   if (intent.type === 'product_search') {
@@ -522,11 +506,11 @@ export async function POST(req: NextRequest) {
 
     const noResultsNote =
       (intent.type === 'product_search' && !dbResult)
-        ? '\n\n⚠️ الداتابيز ما رجعتش أي منتجات. قول للعميل إن المنتج مش موجود دلوقتي واقترح يتواصل على واتساب.'
+        ? '\n\n[تنبيه للبوت]: الداتابيز ما رجعتش منتجات. قول للعميل بأسلوب طبيعي إن المنتج مش متاح دلوقتي، واقترح عليه يتواصل على واتساب.'
       : (intent.type === 'order_inquiry')
-        ? '\n\n⚠️ العميل بيسأل عن أوردر بس ما فيش رقم تليفون أو رقم أوردر. اطلب منه رقم تليفونه أو رقم الأوردر فقط — ممنوع تعرض أي بيانات أو قوالب فاضية.'
+        ? '\n\n[تنبيه للبوت]: العميل بيسأل عن أوردر بس ما ديش رقم تليفون أو رقم أوردر. اسأله بأسلوب طبيعي عن رقم تليفونه أو رقم الأوردر.'
       : ((intent.type === 'order_phone' || intent.type === 'order_id') && !dbResult)
-        ? '\n\n⚠️ الداتابيز ما رجعتش أي أوردر بالبيانات دي. ❌ ممنوع تخترع أي بيانات. قول للعميل بالعامية: "مش لاقي أوردر بالبيانات دي، تأكد من الرقم أو تواصل معنا على واتساب 😊"'
+        ? '\n\n[تنبيه للبوت]: الداتابيز ما لاقتش أوردر بالبيانات دي. لا تخترع بيانات. قول للعميل بشكل طبيعي إنك مش لاقي الأوردر وأقترح عليه يراجع الرقم أو يتواصل على واتساب.'
       : '';
 
     const systemContent =
@@ -538,7 +522,8 @@ export async function POST(req: NextRequest) {
 
     const groqMessages = [
       { role: 'system', content: systemContent },
-      ...messages.slice(-10).map((m: any) => ({
+      // ✅ increased to 20 messages for better conversation memory
+      ...messages.slice(-20).map((m: any) => ({
         role:    m.role    as 'user' | 'assistant' | 'system',
         content: m.content as string,
       })),
@@ -553,8 +538,9 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model:       'llama-3.3-70b-versatile',
         messages:    groqMessages,
-        max_tokens:  300,
-        temperature: 0.1,
+        // ✅ FIXED: higher temperature = more natural, higher max_tokens = full responses
+        max_tokens:  600,
+        temperature: 0.7,
       }),
     });
 
