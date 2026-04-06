@@ -338,18 +338,41 @@ async function searchProducts(
   return null;
 }
 
-// ✅ UPDATED: searches by last 10 digits to match 01XXXXXXXXX, 201XXXXXXXXX, +201XXXXXXXXX
+// ✅ FIXED: generates all number variants and searches all at once
 async function getOrderByPhone(phone: string) {
   const cleaned = phone.replace(/\D/g, '');
-  // Last 10 digits covers all formats: 01XXXXXXXXX / 201XXXXXXXXX / +201XXXXXXXXX
-  const last10 = cleaned.slice(-10);
-  console.log('[PHONE] raw:', phone, '| cleaned:', cleaned, '| last10:', last10);
+
+  // Normalize to local Egyptian format: 01XXXXXXXXX (11 digits)
+  let local = cleaned;
+  if (cleaned.startsWith('20') && cleaned.length >= 12) {
+    local = `0${cleaned.slice(2)}`;       // 201XXXXXXXXX → 01XXXXXXXXX
+  } else if (cleaned.startsWith('2') && cleaned.length === 11) {
+    local = `0${cleaned.slice(1)}`;       // 21XXXXXXXXX  → 01XXXXXXXXX
+  }
+
+  const intl     = local.startsWith('0') ? `20${local.slice(1)}` : cleaned;  // 01X → 201X
+  const plusIntl = `+${intl}`;                                                // 201X → +201X
+  const last10   = local.slice(-10);                                          // fallback
+
+  const variants = [...new Set([local, intl, plusIntl, last10].filter(Boolean))];
+
+  console.log('[PHONE SEARCH] input:', phone, '| variants:', variants);
+
+  // Build one OR query covering all variants across both phone columns
+  const orParts = variants.flatMap(v => [
+    `customer_phone.ilike.%${v}%`,
+    `guest_phone.ilike.%${v}%`,
+  ]);
+
   const { data, error } = await supabase
     .from('orders')
     .select('id, status, total_price, items, created_at, tracking_number, city, payment_method')
-    .or(`customer_phone.ilike.%${last10}%,guest_phone.ilike.%${last10}%`)
+    .or(orParts.join(','))
     .order('created_at', { ascending: false })
     .limit(3);
+
+  console.log('[PHONE SEARCH RESULT]', error?.message || 'ok', '| count:', data?.length ?? 0);
+
   if (error || !data?.length) return null;
   return data;
 }
@@ -391,8 +414,8 @@ function detectIntent(message: string): {
   const msg      = message.trim();
   const lowerMsg = msg.toLowerCase();
 
-  // ✅ UPDATED: catches 01XXXXXXXXX directly (no country code needed)
-  const phoneMatch = msg.match(/(0[0-9]{10}|\+?2?0[0-9]{10})/);
+  // ✅ FIXED: matches 01XXXXXXXXX, 201XXXXXXXXX, +201XXXXXXXXX — all Egyptian formats
+  const phoneMatch = msg.match(/(\+?20?1[0-9]{9}|01[0-9]{9})/);
   if (phoneMatch) return { type: 'order_phone', phone: phoneMatch[1] };
 
   const orderIdMatch = msg.match(/([0-9a-f]{8}-[0-9a-f]{4}|[A-Z0-9]{8})/i);
@@ -497,7 +520,6 @@ export async function POST(req: NextRequest) {
 
     const contextStr = dbResult ? buildContext(intent, dbResult) : '';
 
-    // ✅ UPDATED: handles all 4 cases cleanly
     const noResultsNote =
       (intent.type === 'product_search' && !dbResult)
         ? '\n\n⚠️ الداتابيز ما رجعتش أي منتجات. قول للعميل إن المنتج مش موجود دلوقتي واقترح يتواصل على واتساب.'
