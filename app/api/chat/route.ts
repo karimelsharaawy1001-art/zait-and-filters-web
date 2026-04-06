@@ -2,18 +2,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-
 const SYSTEM_PROMPT = `أنت مساعد ذكي لمتجر "زيت اند فلترز" — متجر إلكتروني مصري متخصص في قطع غيار السيارات وزيوت المحركات والفلاتر.
-
 
 معلومات المتجر:
 - الاسم: زيت اند فلترز (Zait & Filters)
@@ -24,62 +20,56 @@ const SYSTEM_PROMPT = `أنت مساعد ذكي لمتجر "زيت اند فلت
 - الكاش باك: كل طلب بيكسب كاش باك في المحفظة
 - للتواصل: واتساب على الموقع
 
-
 أسلوبك:
 - اتكلم بالعامية المصرية دايماً
 - كون ودود وخفيف الدم لكن محترف
 - ردودك مختصرة ومفيدة
 
-
 ⛔ قواعد صارمة جداً:
 1. ❌ ممنوع تخترع أي منتج أو رابط من عندك.
 2. ✅ البيانات الوحيدة اللي تستخدمها هي اللي بتيجي من الداتابيز.
-3. لو الداتابيز ما رجعتش منتجات، قول: "مش لاقي المنتج ده عندنا دلوقتي" وقترح واتساب.
-4. لو الداتابيز رجعت منتجات — اكتب جملة ترحيبية قصيرة بس فقط مثل "لاقيت كذا منتج مناسب ليك!" ولا تكتب تفاصيل المنتجات لأنها هتتعرض تلقائياً كـ cards تحت ردك.
-5. ❌ ممنوع تكتب أسماء منتجات أو أسعار أو روابط في ردك لو في منتجات موجودة — الـ cards بتعمل ده.`;
+3. لو الداتابيز ما رجعتش نتايج، قول: "مش لاقي المنتج ده عندنا دلوقتي" وقترح واتساب.
 
+📦 لو السؤال عن منتجات وفي منتجات في الداتابيز:
+- اكتب جملة ترحيبية قصيرة بس فقط مثل "لاقيت كذا منتج مناسب ليك 😊"
+- ❌ ممنوع تكتب أسماء منتجات أو أسعار أو روابط — الـ cards بتعمل ده تلقائياً.
 
-// ── Full car reference data (English + Arabic) ───────────────────────────────
+🛒 لو السؤال عن أوردر وفي بيانات أوردر في الداتابيز:
+- ❌ ممنوع تقول "مش لاقي" أو تتجاهل البيانات.
+- ✅ اعرض بيانات الأوردر بالكامل بشكل واضح ومرتب بالعامية المصرية:
+  رقم الأوردر، الحالة، الإجمالي، تاريخ الطلب، رقم التتبع، المدينة، طريقة الدفع.`;
+
 const CAR_DATA = [
-  // CHEVROLET / شيفروليه
   { make: 'CHEVROLET', make_ar: 'شيفروليه', model: 'AVEO',  model_ar: 'أفيو',    years: ['2002-2011', '2012-2021'] },
   { make: 'CHEVROLET', make_ar: 'شيفروليه', model: 'CRUZE', model_ar: 'كروز',    years: ['2009-2013', '2014-2017'] },
   { make: 'CHEVROLET', make_ar: 'شيفروليه', model: 'LANOS', model_ar: 'لانوس',   years: [] },
   { make: 'CHEVROLET', make_ar: 'شيفروليه', model: 'OPTRA', model_ar: 'أوبترا',  years: ['2004-2014', '2014-2023'] },
-  // HYUNDAI / هيونداي
   { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'ACCENT',     model_ar: 'أكسنت',      years: ['2006-2011', '2011-2024'] },
   { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'ACCENT HCI', model_ar: 'أكسنت HCI',  years: ['2017-2023'] },
   { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'MATRIX',     model_ar: 'ماتريكس',    years: [] },
   { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'TUCSON',     model_ar: 'توسان',       years: ['2014-2021', '2022-2025'] },
   { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'VERNA',      model_ar: 'فيرنا',       years: [] },
-  // KIA / كيا
   { make: 'KIA', make_ar: 'كيا', model: 'GRAND CERATO', model_ar: 'جراند سيراتو', years: ['2018-2022'] },
   { make: 'KIA', make_ar: 'كيا', model: 'SPORTAGE',     model_ar: 'سبورتاج',       years: ['2005-2010', '2010-2015', '2016-2022'] },
-  // MG / إم جي
   { make: 'MG', make_ar: 'إم جي', model: '5',   model_ar: 'إم جي 5',   years: [] },
   { make: 'MG', make_ar: 'إم جي', model: '6',   model_ar: 'إم جي 6',   years: [] },
   { make: 'MG', make_ar: 'إم جي', model: 'HS',  model_ar: 'إم جي HS',  years: [] },
   { make: 'MG', make_ar: 'إم جي', model: 'RX5', model_ar: 'إم جي RX5', years: [] },
   { make: 'MG', make_ar: 'إم جي', model: 'ZS',  model_ar: 'إم جي ZS',  years: [] },
-  // MITSUBISHI / ميتسوبيشي
   { make: 'MITSUBISHI', make_ar: 'ميتسوبيشي', model: 'ECLIPSE',      model_ar: 'إيكليبس',    years: [] },
   { make: 'MITSUBISHI', make_ar: 'ميتسوبيشي', model: 'LANCER PUMA',  model_ar: 'لانسر بوما', years: [] },
   { make: 'MITSUBISHI', make_ar: 'ميتسوبيشي', model: 'LANCER SHARK', model_ar: 'لانسر شارك', years: [] },
-  // NISSAN / نيسان
   { make: 'NISSAN', make_ar: 'نيسان', model: 'QASHQAI',   model_ar: 'قشقاي',   years: ['2007-2013', '2014-2021', '2022-2025'] },
   { make: 'NISSAN', make_ar: 'نيسان', model: 'SENTRA',    model_ar: 'سنترا',   years: [] },
   { make: 'NISSAN', make_ar: 'نيسان', model: 'SUNNY N16', model_ar: 'صني N16', years: ['2005-2013'] },
   { make: 'NISSAN', make_ar: 'نيسان', model: 'SUNNY N17', model_ar: 'صني N17', years: ['2014-2025'] },
-  // OPEL / أوبل
   { make: 'OPEL', make_ar: 'أوبل', model: 'ASTRA',    model_ar: 'أسترا',    years: ['2004-2009', '2010-2017', '2012-2018'] },
   { make: 'OPEL', make_ar: 'أوبل', model: 'INSIGNIA', model_ar: 'إنسيجنيا', years: ['2013-2017'] },
-  // PEUGEOT / بيجو
   { make: 'PEUGEOT', make_ar: 'بيجو', model: '2008', model_ar: 'بيجو 2008', years: ['2013-2018', '2019-2021'] },
   { make: 'PEUGEOT', make_ar: 'بيجو', model: '3008', model_ar: 'بيجو 3008', years: ['2008-2016', '2017-2022'] },
   { make: 'PEUGEOT', make_ar: 'بيجو', model: '308',  model_ar: 'بيجو 308',  years: ['2007-2013', '2011-2018', '2014-2021', '2018-2022'] },
   { make: 'PEUGEOT', make_ar: 'بيجو', model: '5008', model_ar: 'بيجو 5008', years: ['2009-2016', '2017-2022'] },
   { make: 'PEUGEOT', make_ar: 'بيجو', model: '508',  model_ar: 'بيجو 508',  years: ['2011-2018', '2018-2022'] },
-  // RENAULT / رينو
   { make: 'RENAULT', make_ar: 'رينو', model: 'CAPTUR',  model_ar: 'كابتشر',  years: ['2013-2018', '2018-2022'] },
   { make: 'RENAULT', make_ar: 'رينو', model: 'CLIO',    model_ar: 'كليو',    years: ['2005-2008'] },
   { make: 'RENAULT', make_ar: 'رينو', model: 'DUSTER',  model_ar: 'داستر',   years: ['2010-2018', '2018-2022'] },
@@ -89,162 +79,113 @@ const CAR_DATA = [
   { make: 'RENAULT', make_ar: 'رينو', model: 'MEGANE',  model_ar: 'ميجان',   years: ['2003-2009', '2009-2017', '2017-2023'] },
   { make: 'RENAULT', make_ar: 'رينو', model: 'SANDERO', model_ar: 'سانديرو', years: ['2008-2013', '2013-2021'] },
   { make: 'RENAULT', make_ar: 'رينو', model: 'STEPWAY', model_ar: 'ستيبواي', years: ['2010-2014'] },
-  // SEAT / سيات
   { make: 'SEAT', make_ar: 'سيات', model: 'IBIZA',  model_ar: 'إيبيزا', years: ['2003-2008', '2008-2016', '2017-2022'] },
   { make: 'SEAT', make_ar: 'سيات', model: 'LEON',   model_ar: 'ليون',   years: ['2013-2020', '2021-2024'] },
   { make: 'SEAT', make_ar: 'سيات', model: 'TOLEDO', model_ar: 'توليدو', years: ['2012-2019'] },
 ];
 
-
-// ── Car make normalization ────────────────────────────────────────────────────
 const CAR_MAKE_MAP: Record<string, string> = {
-  // Arabic → English
-  'تويوتا':    'Toyota',      'هيونداي':    'Hyundai',
-  'كيا':       'Kia',         'أوبل':        'Opel',
-  'شيفروليه':  'Chevrolet',   'نيسان':       'Nissan',
-  'هوندا':     'Honda',       'بيجو':        'Peugeot',
-  'رينو':      'Renault',     'فيات':        'Fiat',
-  'ميتسوبيشي':'Mitsubishi',   'سوزوكي':     'Suzuki',
-  'فولكس':     'Volkswagen',  'بي ام دبليو': 'BMW',
-  'مرسيدس':    'Mercedes',    'لادا':        'Lada',
-  'جيلي':      'Geely',       'إم جي':       'MG',
-  'سيات':      'Seat',
-  // English → normalized
-  'toyota':     'Toyota',    'hyundai':   'Hyundai',
-  'kia':        'Kia',       'opel':      'Opel',
-  'chevrolet':  'Chevrolet', 'nissan':    'Nissan',
-  'honda':      'Honda',     'peugeot':   'Peugeot',
-  'renault':    'Renault',   'fiat':      'Fiat',
-  'mitsubishi': 'Mitsubishi','suzuki':    'Suzuki',
-  'volkswagen': 'Volkswagen','bmw':       'BMW',
-  'mercedes':   'Mercedes',  'lada':      'Lada',
-  'geely':      'Geely',     'mg':        'MG',
-  'seat':       'Seat',
+  'تويوتا': 'Toyota',     'هيونداي': 'Hyundai',
+  'كيا': 'Kia',           'أوبل': 'Opel',
+  'شيفروليه': 'Chevrolet','نيسان': 'Nissan',
+  'هوندا': 'Honda',       'بيجو': 'Peugeot',
+  'رينو': 'Renault',      'فيات': 'Fiat',
+  'ميتسوبيشي': 'Mitsubishi','سوزوكي': 'Suzuki',
+  'فولكس': 'Volkswagen',  'بي ام دبليو': 'BMW',
+  'مرسيدس': 'Mercedes',   'لادا': 'Lada',
+  'جيلي': 'Geely',        'إم جي': 'MG',
+  'سيات': 'Seat',
+  'toyota': 'Toyota',     'hyundai': 'Hyundai',
+  'kia': 'Kia',           'opel': 'Opel',
+  'chevrolet': 'Chevrolet','nissan': 'Nissan',
+  'honda': 'Honda',       'peugeot': 'Peugeot',
+  'renault': 'Renault',   'fiat': 'Fiat',
+  'mitsubishi': 'Mitsubishi','suzuki': 'Suzuki',
+  'volkswagen': 'Volkswagen','bmw': 'BMW',
+  'mercedes': 'Mercedes', 'lada': 'Lada',
+  'geely': 'Geely',       'mg': 'MG',
+  'seat': 'Seat',
 };
 
-
-// ── Model → Make inference ────────────────────────────────────────────────────
 const MODEL_TO_MAKE: Record<string, string> = {
-  // Toyota
-  'corolla': 'Toyota',   'camry': 'Toyota',       'yaris': 'Toyota',
-  'hilux': 'Toyota',     'fortuner': 'Toyota',     'prado': 'Toyota',
-  // Hyundai
-  'elantra': 'Hyundai',  'tucson': 'Hyundai',      'accent': 'Hyundai',
-  'sonata': 'Hyundai',   'i10': 'Hyundai',          'i20': 'Hyundai',
-  'i30': 'Hyundai',      'creta': 'Hyundai',        'matrix': 'Hyundai',
-  'verna': 'Hyundai',    'accent hci': 'Hyundai',
-  'ماتريكس': 'Hyundai',  'فيرنا': 'Hyundai',        'توسان': 'Hyundai',
+  'corolla': 'Toyota',  'camry': 'Toyota',      'yaris': 'Toyota',
+  'hilux': 'Toyota',    'fortuner': 'Toyota',    'prado': 'Toyota',
+  'elantra': 'Hyundai', 'tucson': 'Hyundai',     'accent': 'Hyundai',
+  'sonata': 'Hyundai',  'i10': 'Hyundai',         'i20': 'Hyundai',
+  'i30': 'Hyundai',     'creta': 'Hyundai',       'matrix': 'Hyundai',
+  'verna': 'Hyundai',   'accent hci': 'Hyundai',
+  'ماتريكس': 'Hyundai', 'فيرنا': 'Hyundai',       'توسان': 'Hyundai',
   'أكسنت': 'Hyundai',
-  // Kia
-  'sportage': 'Kia',     'cerato': 'Kia',           'picanto': 'Kia',
-  'rio': 'Kia',          'grand cerato': 'Kia',
-  'سبورتاج': 'Kia',      'جراند سيراتو': 'Kia',     'سيراتو': 'Kia',
-  // MG
-  'mg5': 'MG',           'mg 5': 'MG',              'mg6': 'MG',
-  'mg 6': 'MG',          'mg hs': 'MG',              'mg rx5': 'MG',
-  'mg zs': 'MG',         'إم جي 5': 'MG',            'إم جي 6': 'MG',
-  'إم جي hs': 'MG',      'إم جي rx5': 'MG',          'إم جي zs': 'MG',
-  // Mitsubishi
-  'lancer': 'Mitsubishi',       'لانسر': 'Mitsubishi',
-  'lancer puma': 'Mitsubishi',  'لانسر بوما': 'Mitsubishi',
-  'lancer shark': 'Mitsubishi', 'لانسر شارك': 'Mitsubishi',
-  'pajero': 'Mitsubishi',       'boma': 'Mitsubishi',
-  'بوما': 'Mitsubishi',         'puma': 'Mitsubishi',
-  'بومة': 'Mitsubishi',         'outlander': 'Mitsubishi',
-  'eclipse': 'Mitsubishi',      'galant': 'Mitsubishi',
+  'sportage': 'Kia',    'cerato': 'Kia',          'picanto': 'Kia',
+  'rio': 'Kia',         'grand cerato': 'Kia',
+  'سبورتاج': 'Kia',     'جراند سيراتو': 'Kia',    'سيراتو': 'Kia',
+  'mg5': 'MG',          'mg 5': 'MG',             'mg6': 'MG',
+  'mg 6': 'MG',         'mg hs': 'MG',             'mg rx5': 'MG',
+  'mg zs': 'MG',        'إم جي 5': 'MG',           'إم جي 6': 'MG',
+  'إم جي hs': 'MG',     'إم جي rx5': 'MG',         'إم جي zs': 'MG',
+  'lancer': 'Mitsubishi',      'لانسر': 'Mitsubishi',
+  'lancer puma': 'Mitsubishi', 'لانسر بوما': 'Mitsubishi',
+  'lancer shark': 'Mitsubishi','لانسر شارك': 'Mitsubishi',
+  'pajero': 'Mitsubishi',      'boma': 'Mitsubishi',
+  'بوما': 'Mitsubishi',        'puma': 'Mitsubishi',
+  'بومة': 'Mitsubishi',        'outlander': 'Mitsubishi',
+  'eclipse': 'Mitsubishi',     'galant': 'Mitsubishi',
   'إيكليبس': 'Mitsubishi',
-  // Chevrolet
-  'cruze': 'Chevrolet',   'captiva': 'Chevrolet',   'optra': 'Chevrolet',
-  'aveo': 'Chevrolet',    'spark': 'Chevrolet',      'lanos': 'Chevrolet',
-  'كروز': 'Chevrolet',    'أفيو': 'Chevrolet',       'لانوس': 'Chevrolet',
+  'cruze': 'Chevrolet',  'captiva': 'Chevrolet',  'optra': 'Chevrolet',
+  'aveo': 'Chevrolet',   'spark': 'Chevrolet',     'lanos': 'Chevrolet',
+  'كروز': 'Chevrolet',   'أفيو': 'Chevrolet',      'لانوس': 'Chevrolet',
   'أوبترا': 'Chevrolet',
-  // Opel
-  'astra': 'Opel',        'vectra': 'Opel',          'corsa': 'Opel',
-  'zafira': 'Opel',       'insignia': 'Opel',
-  'أسترا': 'Opel',        'إنسيجنيا': 'Opel',
-  // Nissan
-  'sunny': 'Nissan',      'sentra': 'Nissan',         'qashqai': 'Nissan',
-  'navara': 'Nissan',     'sunny n16': 'Nissan',       'sunny n17': 'Nissan',
-  'صني': 'Nissan',        'قشقاي': 'Nissan',           'سنترا': 'Nissan',
-  'صني n16': 'Nissan',    'صني n17': 'Nissan',
-  // Honda
-  'civic': 'Honda',       'accord': 'Honda',          'crv': 'Honda',
+  'astra': 'Opel',       'vectra': 'Opel',         'corsa': 'Opel',
+  'zafira': 'Opel',      'insignia': 'Opel',
+  'أسترا': 'Opel',       'إنسيجنيا': 'Opel',
+  'sunny': 'Nissan',     'sentra': 'Nissan',        'qashqai': 'Nissan',
+  'navara': 'Nissan',    'sunny n16': 'Nissan',      'sunny n17': 'Nissan',
+  'صني': 'Nissan',       'قشقاي': 'Nissan',          'سنترا': 'Nissan',
+  'صني n16': 'Nissan',   'صني n17': 'Nissan',
+  'civic': 'Honda',      'accord': 'Honda',          'crv': 'Honda',
   'hrv': 'Honda',
-  // Peugeot
-  '206': 'Peugeot',       '207': 'Peugeot',           '301': 'Peugeot',
-  '308': 'Peugeot',       '408': 'Peugeot',            '508': 'Peugeot',
-  '2008': 'Peugeot',      '3008': 'Peugeot',           '5008': 'Peugeot',
-  // Renault
-  'logan': 'Renault',     'duster': 'Renault',         'symbol': 'Renault',
-  'megane': 'Renault',    'fluence': 'Renault',         'captur': 'Renault',
-  'clio': 'Renault',      'kadjar': 'Renault',          'sandero': 'Renault',
+  '206': 'Peugeot',      '207': 'Peugeot',           '301': 'Peugeot',
+  '308': 'Peugeot',      '408': 'Peugeot',            '508': 'Peugeot',
+  '2008': 'Peugeot',     '3008': 'Peugeot',           '5008': 'Peugeot',
+  'logan': 'Renault',    'duster': 'Renault',         'symbol': 'Renault',
+  'megane': 'Renault',   'fluence': 'Renault',         'captur': 'Renault',
+  'clio': 'Renault',     'kadjar': 'Renault',          'sandero': 'Renault',
   'stepway': 'Renault',
-  'لوجان': 'Renault',     'داستر': 'Renault',           'ميجان': 'Renault',
-  'فلونس': 'Renault',     'كابتشر': 'Renault',          'كليو': 'Renault',
-  'كادجار': 'Renault',    'سانديرو': 'Renault',          'ستيبواي': 'Renault',
-  // Seat
-  'ibiza': 'Seat',        'leon': 'Seat',               'toledo': 'Seat',
-  'إيبيزا': 'Seat',       'ليون': 'Seat',                'توليدو': 'Seat',
-  // Volkswagen
-  'golf': 'Volkswagen',   'polo': 'Volkswagen',         'passat': 'Volkswagen',
+  'لوجان': 'Renault',    'داستر': 'Renault',           'ميجان': 'Renault',
+  'فلونس': 'Renault',    'كابتشر': 'Renault',          'كليو': 'Renault',
+  'كادجار': 'Renault',   'سانديرو': 'Renault',          'ستيبواي': 'Renault',
+  'ibiza': 'Seat',       'leon': 'Seat',               'toledo': 'Seat',
+  'إيبيزا': 'Seat',      'ليون': 'Seat',                'توليدو': 'Seat',
+  'golf': 'Volkswagen',  'polo': 'Volkswagen',         'passat': 'Volkswagen',
 };
 
-
-// ── Arabic model → English model ──────────────────────────────────────────────
 const MODEL_EN_MAP: Record<string, string> = {
-  // Chevrolet
-  'أفيو':          'aveo',
-  'كروز':          'cruze',
-  'لانوس':         'lanos',
-  'أوبترا':        'optra',
-  // Hyundai
-  'أكسنت':         'accent',
-  'توسان':         'tucson',
-  'ماتريكس':       'matrix',
-  'فيرنا':         'verna',
-  'النترا':        'elantra',
-  // Kia
-  'سبورتاج':       'sportage',
-  'سيراتو':        'cerato',
-  'جراند سيراتو':  'grand cerato',
-  // Mitsubishi
-  'لانسر':         'lancer',
-  'لانسر بوما':    'lancer puma',
-  'لانسر شارك':    'lancer shark',
-  'بوما':          'puma',
-  'بومة':          'puma',
-  'إيكليبس':       'eclipse',
-  // Nissan
-  'قشقاي':         'qashqai',
-  'سنترا':         'sentra',
-  'صني':           'sunny',
-  'صني n16':       'sunny n16',
-  'صني n17':       'sunny n17',
-  // Opel
-  'أسترا':         'astra',
-  'إنسيجنيا':      'insignia',
-  // Renault
-  'لوجان':         'logan',
-  'داستر':         'duster',
-  'ميجان':         'megane',
-  'فلونس':         'fluence',
-  'كابتشر':        'captur',
-  'كليو':          'clio',
-  'كادجار':        'kadjar',
-  'سانديرو':       'sandero',
-  'ستيبواي':       'stepway',
-  // Seat
-  'إيبيزا':        'ibiza',
-  'ليون':          'leon',
-  'توليدو':        'toledo',
-  // Toyota
-  'كورولا':        'corolla',
-  'كامري':         'camry',
-  'ياريس':         'yaris',
+  'أفيو': 'aveo',           'كروز': 'cruze',
+  'لانوس': 'lanos',         'أوبترا': 'optra',
+  'أكسنت': 'accent',        'توسان': 'tucson',
+  'ماتريكس': 'matrix',      'فيرنا': 'verna',
+  'النترا': 'elantra',
+  'سبورتاج': 'sportage',    'سيراتو': 'cerato',
+  'جراند سيراتو': 'grand cerato',
+  'لانسر': 'lancer',        'لانسر بوما': 'lancer puma',
+  'لانسر شارك': 'lancer shark',
+  'بوما': 'puma',           'بومة': 'puma',
+  'إيكليبس': 'eclipse',
+  'قشقاي': 'qashqai',       'سنترا': 'sentra',
+  'صني': 'sunny',           'صني n16': 'sunny n16',
+  'صني n17': 'sunny n17',
+  'أسترا': 'astra',         'إنسيجنيا': 'insignia',
+  'لوجان': 'logan',         'داستر': 'duster',
+  'ميجان': 'megane',        'فلونس': 'fluence',
+  'كابتشر': 'captur',       'كليو': 'clio',
+  'كادجار': 'kadjar',       'سانديرو': 'sandero',
+  'ستيبواي': 'stepway',
+  'إيبيزا': 'ibiza',        'ليون': 'leon',
+  'توليدو': 'toledo',
+  'كورولا': 'corolla',      'كامري': 'camry',
+  'ياريس': 'yaris',
 };
 
-
-// ── Part keyword map ──────────────────────────────────────────────────────────
 const PART_KEYWORD_MAP: Record<string, string[]> = {
   'فلتر زيت':  ['oil filter', 'فلتر زيت'],
   'فلتر هواء': ['air filter', 'فلتر هواء'],
@@ -266,68 +207,45 @@ const PART_KEYWORD_MAP: Record<string, string[]> = {
   'مكينة':     ['engine', 'مكينة'],
 };
 
-
-// ── All known models for detection ───────────────────────────────────────────
 const KNOWN_MODELS: string[] = [
-  // Toyota
   'corolla', 'camry', 'yaris', 'hilux', 'fortuner', 'rav4', 'land cruiser', 'prado',
   'كورولا', 'كامري', 'ياريس',
-  // Hyundai
   'elantra', 'tucson', 'accent', 'accent hci', 'sonata',
   'i10', 'i20', 'i30', 'i40', 'creta', 'matrix', 'verna',
   'النترا', 'توسان', 'أكسنت', 'ماتريكس', 'فيرنا',
-  // Kia
   'sportage', 'cerato', 'grand cerato', 'picanto', 'rio', 'sorento',
   'سبورتاج', 'سيراتو', 'جراند سيراتو',
-  // MG
-  'mg5', 'mg6', 'mg hs', 'mg rx5', 'mg zs',
-  'mg 5', 'mg 6',
+  'mg5', 'mg6', 'mg hs', 'mg rx5', 'mg zs', 'mg 5', 'mg 6',
   'إم جي 5', 'إم جي 6', 'إم جي hs', 'إم جي rx5', 'إم جي zs',
-  // Mitsubishi
   'lancer', 'lancer puma', 'lancer shark',
   'pajero', 'outlander', 'eclipse', 'galant',
   'boma', 'puma',
   'لانسر', 'لانسر بوما', 'لانسر شارك',
   'بوما', 'بومة', 'إيكليبس',
-  // Chevrolet
   'cruze', 'captiva', 'optra', 'aveo', 'lanos', 'spark', 'malibu',
   'كروز', 'أوبترا', 'أفيو', 'لانوس',
-  // Opel
   'astra', 'vectra', 'mokka', 'corsa', 'zafira', 'insignia',
   'أسترا', 'إنسيجنيا',
-  // Nissan
   'sunny', 'sunny n16', 'sunny n17',
   'sentra', 'qashqai', 'navara', 'patrol',
   'صني', 'صني n16', 'صني n17', 'قشقاي', 'سنترا',
-  // Honda
   'civic', 'accord', 'crv', 'cr-v', 'hrv',
-  // Peugeot
   '206', '207', '301', '308', '408', '508',
   '2008', '3008', '5008',
-  // Renault
   'logan', 'duster', 'symbol', 'megane', 'fluence',
   'captur', 'clio', 'kadjar', 'sandero', 'stepway',
   'لوجان', 'داستر', 'ميجان', 'فلونس',
   'كابتشر', 'كليو', 'كادجار', 'سانديرو', 'ستيبواي',
-  // Fiat
   'punto', 'bravo', 'tipo',
-  // Suzuki
   'swift', 'vitara', 'dzire',
-  // Volkswagen
   'golf', 'polo', 'passat', 'tiguan',
-  // BMW
   '316', '318', '320', '520', 'x1', 'x3', 'x5',
-  // Mercedes
   'c200', 'c180', 'e200', 'glc',
-  // Geely
   'emgrand',
-  // Seat
   'ibiza', 'leon', 'toledo',
   'إيبيزا', 'ليون', 'توليدو',
 ];
 
-
-// ── Smart product search ──────────────────────────────────────────────────────
 async function searchProducts(
   carMake?: string,
   carModel?: string,
@@ -335,9 +253,7 @@ async function searchProducts(
   carYear?: string,
   partKeywords?: string[]
 ): Promise<any[] | null> {
-
   const select = 'id, name, brand, car_make, car_model, car_model_year, regular_price, sale_price, slug, image_url';
-
   console.log('[SEARCH] make:', carMake, '| model:', carModel, '| modelEn:', carModelEn, '| year:', carYear, '| kw:', partKeywords);
 
   if (carMake && carModelEn) {
@@ -407,8 +323,6 @@ async function searchProducts(
   return null;
 }
 
-
-// ── Order lookups ─────────────────────────────────────────────────────────────
 async function getOrderByPhone(phone: string) {
   const cleaned = phone.replace(/\D/g, '');
   const { data, error } = await supabase
@@ -445,8 +359,6 @@ function translateStatus(status: string): string {
   return map[status] || status;
 }
 
-
-// ── Detect intent ─────────────────────────────────────────────────────────────
 function detectIntent(message: string): {
   type: 'order_phone' | 'order_id' | 'product_search' | 'general';
   phone?: string;
@@ -466,7 +378,6 @@ function detectIntent(message: string): {
   const orderIdMatch = msg.match(/([0-9a-f]{8}-[0-9a-f]{4}|[A-Z0-9]{8})/i);
   if (orderIdMatch) return { type: 'order_id', orderId: orderIdMatch[1] };
 
-  // Sort longest-first so "lancer shark" matches before "lancer"
   const sortedModels = [...KNOWN_MODELS].sort((a, b) => b.length - a.length);
   const foundModel   = sortedModels.find(m => lowerMsg.includes(m.toLowerCase()));
 
@@ -474,7 +385,6 @@ function detectIntent(message: string): {
     ? (MODEL_EN_MAP[foundModel] ?? MODEL_EN_MAP[foundModel.toLowerCase()] ?? foundModel)
     : undefined;
 
-  // Sort longest-first to avoid partial make matches
   const sortedMakeKeys = Object.keys(CAR_MAKE_MAP).sort((a, b) => b.length - a.length);
   const foundMakeKey   = sortedMakeKeys.find(k => lowerMsg.includes(k.toLowerCase()));
 
@@ -507,14 +417,12 @@ function detectIntent(message: string): {
   return { type: 'general' };
 }
 
-
-// ── Build context for Groq ────────────────────────────────────────────────────
 function buildContext(intent: ReturnType<typeof detectIntent>, dbResult: any): string {
   if (!dbResult) return '';
 
   if (intent.type === 'order_phone' || intent.type === 'order_id') {
     const orders = Array.isArray(dbResult) ? dbResult : [dbResult];
-    return orders.map((o: any) => `
+    const orderDetails = orders.map((o: any) => `
 رقم الأوردر: ${o.id.slice(0, 8).toUpperCase()}
 الحالة: ${translateStatus(o.status)}
 الإجمالي: ${o.total_price} ج.م
@@ -524,6 +432,7 @@ function buildContext(intent: ReturnType<typeof detectIntent>, dbResult: any): s
 رقم التتبع: ${o.tracking_number || 'لم يُضاف بعد'}
 عدد المنتجات: ${o.items?.length || 0}
 `).join('\n---\n');
+    return `دي بيانات الأوردر اللي العميل بيسأل عنه — اعرضها بشكل واضح ومرتب بالعامية المصرية:\n${orderDetails}`;
   }
 
   if (intent.type === 'product_search') {
@@ -535,8 +444,6 @@ function buildContext(intent: ReturnType<typeof detectIntent>, dbResult: any): s
   return '';
 }
 
-
-// ── Main handler ──────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
     const { messages } = await req.json();
