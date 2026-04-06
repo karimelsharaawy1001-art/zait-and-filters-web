@@ -9,6 +9,7 @@ const supabase = createClient(
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
+// ✅ FIX: Much stronger product display instructions
 const SYSTEM_PROMPT = `أنت مساعد ذكي لمتجر "زيت اند فلترز" — متجر إلكتروني مصري متخصص في قطع غيار السيارات وزيوت المحركات والفلاتر.
 
 معلومات المتجر:
@@ -24,7 +25,14 @@ const SYSTEM_PROMPT = `أنت مساعد ذكي لمتجر "زيت اند فلت
 - اتكلم بالعامية المصرية دايماً
 - كون ودود وخفيف الدم لكن محترف
 - ردودك تكون مختصرة ومفيدة
-- لو مش عارف حاجة، قول بصراحة وقترح يتواصلوا معانا
+
+⚠️ قواعد عرض المنتجات — اتبعها بدقة:
+1. لو في بيانات منتجات جاية من الداتابيز في رسالتك، لازم تعرضها مباشرةً في ردك.
+2. لكل منتج، اذكر: الاسم، البراند، السعر، ورابط المنتج المباشر.
+3. ❌ ممنوع تقول "ابحث على الموقع" أو "دخل الموقع وابحث" لو عندك بيانات منتجات.
+4. ❌ ممنوع تقول "مش عندنا" أو "مش موجود" لو في منتجات في البيانات.
+5. ✅ دايماً اعرض الرابط المباشر للمنتج زي ما هو من البيانات.
+6. لو مفيش بيانات منتجات خالص، قولهم يتواصلوا معانا على واتساب.
 
 قدراتك:
 1. البحث عن قطع غيار مناسبة للسيارة — لو العميل ذكر ماركة وموديل وسنة، بتبحث في المنتجات
@@ -34,25 +42,25 @@ const SYSTEM_PROMPT = `أنت مساعد ذكي لمتجر "زيت اند فلت
 مهم: لو العميل عايز يشوف أوردره، اطلب منه رقم موبايله أو رقم الأوردر. لو عايز قطعة غيار، اطلب منه ماركة السيارة والموديل والسنة.`;
 
 
-// ── FIX 1: Arabic/English car make → normalized English for DB search ─────────
+// ── Arabic/English car make map ───────────────────────────────────────────────
 const CAR_MAKE_MAP: Record<string, string> = {
-  'تويوتا': 'Toyota',    'toyota': 'Toyota',
-  'هيونداي': 'Hyundai',  'hyundai': 'Hyundai',
-  'كيا': 'Kia',          'kia': 'Kia',
-  'أوبل': 'Opel',        'opel': 'Opel',
+  'تويوتا': 'Toyota',     'toyota': 'Toyota',
+  'هيونداي': 'Hyundai',   'hyundai': 'Hyundai',
+  'كيا': 'Kia',           'kia': 'Kia',
+  'أوبل': 'Opel',         'opel': 'Opel',
   'شيفروليه': 'Chevrolet','chevrolet': 'Chevrolet',
-  'نيسان': 'Nissan',     'nissan': 'Nissan',
-  'هوندا': 'Honda',      'honda': 'Honda',
-  'بيجو': 'Peugeot',     'peugeot': 'Peugeot',
-  'رينو': 'Renault',     'renault': 'Renault',
-  'فيات': 'Fiat',        'fiat': 'Fiat',
-  'ميتسوبيشي': 'Mitsubishi', 'mitsubishi': 'Mitsubishi',
-  'سوزوكي': 'Suzuki',    'suzuki': 'Suzuki',
-  'فولكس': 'Volkswagen', 'volkswagen': 'Volkswagen',
-  'bmw': 'BMW',          'بي ام دبليو': 'BMW',
-  'مرسيدس': 'Mercedes',  'mercedes': 'Mercedes',
-  'لادا': 'Lada',        'lada': 'Lada',
-  'جيلي': 'Geely',       'geely': 'Geely',
+  'نيسان': 'Nissan',      'nissan': 'Nissan',
+  'هوندا': 'Honda',       'honda': 'Honda',
+  'بيجو': 'Peugeot',      'peugeot': 'Peugeot',
+  'رينو': 'Renault',      'renault': 'Renault',
+  'فيات': 'Fiat',         'fiat': 'Fiat',
+  'ميتسوبيشي': 'Mitsubishi','mitsubishi': 'Mitsubishi',
+  'سوزوكي': 'Suzuki',     'suzuki': 'Suzuki',
+  'فولكس': 'Volkswagen',  'volkswagen': 'Volkswagen',
+  'bmw': 'BMW',           'بي ام دبليو': 'BMW',
+  'مرسيدس': 'Mercedes',   'mercedes': 'Mercedes',
+  'لادا': 'Lada',         'lada': 'Lada',
+  'جيلي': 'Geely',        'geely': 'Geely',
 };
 
 
@@ -63,7 +71,6 @@ async function searchProducts(
   carYear?: string,
   keyword?: string
 ) {
-  // FIX 2: Try precise search first (make + model + year + keyword)
   let query = supabase
     .from('products')
     .select('id, name, brand, car_make, car_model, car_model_year, regular_price, sale_price, slug, image_url')
@@ -77,24 +84,24 @@ async function searchProducts(
   const { data, error } = await query;
   if (!error && data?.length) return data;
 
-  // FIX 3: Fallback — search by make only (drop model/year/keyword filters)
+  // Fallback 1: make only
   if (carMake) {
-    const { data: fallbackData } = await supabase
+    const { data: f1 } = await supabase
       .from('products')
       .select('id, name, brand, car_make, car_model, car_model_year, regular_price, sale_price, slug, image_url')
       .ilike('car_make', `%${carMake}%`)
       .limit(6);
-    if (fallbackData?.length) return fallbackData;
+    if (f1?.length) return f1;
   }
 
-  // FIX 4: Fallback — search by keyword in product name only
+  // Fallback 2: keyword only
   if (keyword) {
-    const { data: keywordData } = await supabase
+    const { data: f2 } = await supabase
       .from('products')
       .select('id, name, brand, car_make, car_model, car_model_year, regular_price, sale_price, slug, image_url')
       .ilike('name', `%${keyword}%`)
       .limit(6);
-    if (keywordData?.length) return keywordData;
+    if (f2?.length) return f2;
   }
 
   return null;
@@ -145,7 +152,7 @@ function translateStatus(status: string): string {
 }
 
 
-// ── Detect intent from message ────────────────────────────────────────────────
+// ── Detect intent ─────────────────────────────────────────────────────────────
 function detectIntent(message: string): {
   type: 'order_phone' | 'order_id' | 'product_search' | 'general';
   phone?: string;
@@ -158,29 +165,21 @@ function detectIntent(message: string): {
   const msg = message.trim();
   const lowerMsg = msg.toLowerCase();
 
-  // Phone number pattern
   const phoneMatch = msg.match(/(\+?2?0?1[0-9]{9})/);
   if (phoneMatch) return { type: 'order_phone', phone: phoneMatch[1] };
 
-  // Order ID (UUID-like or short code)
   const orderIdMatch = msg.match(/([0-9a-f]{8}-[0-9a-f]{4}|[A-Z0-9]{8})/i);
   if (orderIdMatch) return { type: 'order_id', orderId: orderIdMatch[1] };
 
-  // FIX 5: Detect car make using the map keys
   const foundMakeKey = Object.keys(CAR_MAKE_MAP).find(make =>
     lowerMsg.includes(make.toLowerCase())
   );
 
   if (foundMakeKey) {
-    // FIX 6: Map Arabic/variant name to English DB value
     const normalizedMake = CAR_MAKE_MAP[foundMakeKey];
-
-    // FIX 7: Extract year properly and store it
     const yearMatch = msg.match(/20[0-9]{2}|19[0-9]{2}/);
     const carYear = yearMatch ? yearMatch[0] : undefined;
 
-    // FIX 8: Try to extract car model (word after the make that looks like a model)
-    // Common models in Egypt
     const knownModels = [
       'corolla', 'camry', 'yaris', 'hilux', 'fortuner', 'rav4', 'land cruiser',
       'elantra', 'tucson', 'accent', 'sonata', 'i10', 'i20', 'i30', 'creta',
@@ -197,29 +196,24 @@ function detectIntent(message: string): {
       'golf', 'polo', 'passat',
       '3 series', '5 series', 'x1', 'x3',
       'c class', 'e class', 'a class',
-      'emgrand', 'geely',
+      'emgrand',
     ];
-    const foundModel = knownModels.find(model => lowerMsg.includes(model.toLowerCase()));
+    const foundModel = knownModels.find(m => lowerMsg.includes(m.toLowerCase()));
 
-    // FIX 9: Part keywords — Arabic AND English
     const partKeywords = [
-      'فلتر زيت', 'oil filter',
-      'فلتر هواء', 'air filter',
-      'فلتر', 'filter',
-      'زيت', 'oil',
-      'فرامل', 'brake', 'brakes',
-      'تيل', 'بلوف', 'بواجي', 'spark plug',
-      'بطارية', 'battery',
-      'حزام', 'belt',
-      'امبير', 'alternator',
+      'فلتر زيت', 'oil filter', 'فلتر هواء', 'air filter',
+      'فلتر', 'filter', 'زيت', 'oil',
+      'فرامل', 'brake', 'تيل', 'بلوف',
+      'بواجي', 'spark plug', 'بطارية', 'battery',
+      'حزام', 'belt', 'امبير', 'alternator',
     ];
     const foundKeyword = partKeywords.find(k => lowerMsg.includes(k.toLowerCase()));
 
     return {
       type: 'product_search',
-      carMake: normalizedMake,       // ✅ Now English, matches DB
-      carModel: foundModel,           // ✅ Now actually extracted
-      carYear,                        // ✅ Now stored and passed
+      carMake: normalizedMake,
+      carModel: foundModel,
+      carYear,
       keyword: foundKeyword,
     };
   }
@@ -228,7 +222,7 @@ function detectIntent(message: string): {
 }
 
 
-// ── Build context string from DB results ──────────────────────────────────────
+// ── Build context ─────────────────────────────────────────────────────────────
 function buildContext(intent: ReturnType<typeof detectIntent>, dbResult: any): string {
   if (!dbResult) return '';
 
@@ -248,13 +242,26 @@ ${o.tracking_number ? `- رقم التتبع: ${o.tracking_number}` : '- رقم 
 
   if (intent.type === 'product_search') {
     const products = Array.isArray(dbResult) ? dbResult : [dbResult];
-    return `منتجات متاحة من الداتابيز:\n` + products.map((p: any) => `
-- الاسم: ${p.name}
-- البراند: ${p.brand}
-- السيارة: ${p.car_make} ${p.car_model} ${p.car_model_year || ''}
-- السعر: ${p.sale_price > 0 ? p.sale_price + ' ج.م (بعد خصم)' : p.regular_price + ' ج.م'}
-- رابط المنتج: https://zaitandfilters.com/products/${p.slug}
-`).join('\n');
+
+    // ✅ FIX: Explicit instruction injected WITH the data so the AI cannot ignore it
+    return (
+      `✅ تم إيجاد ${products.length} منتج في الداتابيز. يجب عليك عرضهم جميعاً في ردك مع الروابط المباشرة:\n\n` +
+      products.map((p: any, i: number) => {
+        const price = p.sale_price > 0
+          ? `${p.sale_price} ج.م (خصم من ${p.regular_price} ج.م)`
+          : `${p.regular_price} ج.م`;
+        const link = `https://zaitandfilters.com/products/${p.slug}`;
+        return (
+          `المنتج ${i + 1}:\n` +
+          `  - الاسم: ${p.name}\n` +
+          `  - البراند: ${p.brand || 'غير محدد'}\n` +
+          `  - السيارة: ${p.car_make} ${p.car_model || ''} ${p.car_model_year || ''}\n` +
+          `  - السعر: ${price}\n` +
+          `  - الرابط المباشر: ${link}`
+        );
+      }).join('\n\n') +
+      `\n\n⚠️ تعليمات: اعرض كل منتج من دول في ردك مع اسمه وسعره ورابطه المباشر. لا تقل "ابحث على الموقع".`
+    );
   }
 
   return '';
@@ -291,7 +298,7 @@ export async function POST(req: NextRequest) {
     const systemMessage = {
       role: 'system',
       content: SYSTEM_PROMPT + (contextStr
-        ? `\n\n--- بيانات من الداتابيز ---\n${contextStr}\n--- نهاية البيانات ---\n\nاستخدم البيانات دي في ردك على العميل.`
+        ? `\n\n--- بيانات من الداتابيز ---\n${contextStr}\n--- نهاية البيانات ---\n\nاستخدم البيانات دي في ردك على العميل واعرض كل المنتجات مع روابطها.`
         : ''),
     };
 
@@ -309,8 +316,8 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
         messages: groqMessages,
-        max_tokens: 500,
-        temperature: 0.7,
+        max_tokens: 800,  // ✅ increased to fit multiple product links
+        temperature: 0.4, // ✅ lowered so AI sticks to the data, less creative
       }),
     });
 
