@@ -60,19 +60,19 @@ const MODEL_TO_MAKE: Record<string, string> = {
   'elantra': 'Hyundai',  'tucson': 'Hyundai',  'accent': 'Hyundai',
   'sonata': 'Hyundai',   'i10': 'Hyundai',     'i20': 'Hyundai',
   'i30': 'Hyundai',      'creta': 'Hyundai',
-  'sportage': 'Kia',     'cerato': 'Kia',      'picanto': 'Kia',     'rio': 'Kia',
+  'sportage': 'Kia',     'cerato': 'Kia',      'picanto': 'Kia',    'rio': 'Kia',
   'lancer': 'Mitsubishi','لانسر': 'Mitsubishi',
   'pajero': 'Mitsubishi','boma': 'Mitsubishi',  'بوما': 'Mitsubishi',
   'puma': 'Mitsubishi',  'بومة': 'Mitsubishi',
-  'outlander': 'Mitsubishi', 'eclipse': 'Mitsubishi', 'galant': 'Mitsubishi',
+  'outlander': 'Mitsubishi','eclipse': 'Mitsubishi','galant': 'Mitsubishi',
   'cruze': 'Chevrolet',  'captiva': 'Chevrolet','optra': 'Chevrolet',
   'aveo': 'Chevrolet',   'spark': 'Chevrolet',
-  'astra': 'Opel',       'vectra': 'Opel',     'corsa': 'Opel',      'zafira': 'Opel',
-  'sunny': 'Nissan',     'sentra': 'Nissan',   'qashqai': 'Nissan',  'navara': 'Nissan',
-  'civic': 'Honda',      'accord': 'Honda',    'crv': 'Honda',       'hrv': 'Honda',
+  'astra': 'Opel',       'vectra': 'Opel',     'corsa': 'Opel',     'zafira': 'Opel',
+  'sunny': 'Nissan',     'sentra': 'Nissan',   'qashqai': 'Nissan', 'navara': 'Nissan',
+  'civic': 'Honda',      'accord': 'Honda',    'crv': 'Honda',      'hrv': 'Honda',
   '308': 'Peugeot',      '206': 'Peugeot',     '207': 'Peugeot',
   '301': 'Peugeot',      '408': 'Peugeot',
-  'logan': 'Renault',    'duster': 'Renault',  'symbol': 'Renault',  'megane': 'Renault',
+  'logan': 'Renault',    'duster': 'Renault',  'symbol': 'Renault', 'megane': 'Renault',
   'golf': 'Volkswagen',  'polo': 'Volkswagen', 'passat': 'Volkswagen',
 };
 
@@ -266,7 +266,7 @@ function detectIntent(message: string): {
   carYear?: string;
   partKeywords?: string[];
 } {
-  const msg = message.trim();
+  const msg      = message.trim();
   const lowerMsg = msg.toLowerCase();
 
   const phoneMatch = msg.match(/(\+?2?0?1[0-9]{9})/);
@@ -298,11 +298,11 @@ function detectIntent(message: string): {
 
   if (inferredMake || foundModel || uniqueKeywords.length > 0) {
     return {
-      type: 'product_search',
-      carMake:    inferredMake,
-      carModel:   foundModel,
-      carModelEn: foundModelEn !== foundModel ? foundModelEn : foundModel,
-      carYear:    yearMatch ? yearMatch[0] : undefined,
+      type:         'product_search',
+      carMake:      inferredMake,
+      carModel:     foundModel,
+      carModelEn:   foundModelEn !== foundModel ? foundModelEn : foundModel,
+      carYear:      yearMatch ? yearMatch[0] : undefined,
       partKeywords: uniqueKeywords.length > 0 ? uniqueKeywords : undefined,
     };
   }
@@ -311,7 +311,7 @@ function detectIntent(message: string): {
 }
 
 
-// ── Build context for Groq (text only, no product cards here) ─────────────────
+// ── Build context for Groq ────────────────────────────────────────────────────
 function buildContext(intent: ReturnType<typeof detectIntent>, dbResult: any): string {
   if (!dbResult) return '';
 
@@ -332,7 +332,6 @@ function buildContext(intent: ReturnType<typeof detectIntent>, dbResult: any): s
   if (intent.type === 'product_search') {
     const products = Array.isArray(dbResult) ? dbResult : [dbResult];
     if (!products.length) return '';
-    // ✅ Tell AI how many products found — it writes intro only, cards render separately
     return `تم إيجاد ${products.length} منتج مناسب في الداتابيز. اكتب جملة قصيرة ومرحبة فقط مثل "لاقيت ${products.length} منتج مناسب ليك 😊" — المنتجات هتتعرض تلقائياً تحت ردك كـ cards.`;
   }
 
@@ -380,9 +379,14 @@ export async function POST(req: NextRequest) {
         ? `\n\n════ بيانات من الداتابيز ════\n${contextStr}\n════ نهاية البيانات ════`
         : '');
 
+    // ✅ FIX: strip any extra fields — only send role + content to Groq
+    // This is the backend safety net in case any bloated data sneaks through
     const groqMessages = [
       { role: 'system', content: systemContent },
-      ...messages.slice(-10),
+      ...messages.slice(-10).map((m: any) => ({
+        role:    m.role    as 'user' | 'assistant' | 'system',
+        content: m.content as string,
+      })),
     ];
 
     const groqResponse = await fetch(GROQ_API_URL, {
@@ -392,9 +396,9 @@ export async function POST(req: NextRequest) {
         Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: groqMessages,
-        max_tokens: 300,  // ✅ short — AI only writes intro, not product list
+        model:       'llama-3.3-70b-versatile',
+        messages:    groqMessages,
+        max_tokens:  300,
         temperature: 0.1,
       }),
     });
@@ -405,23 +409,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Groq API error' }, { status: 500 });
     }
 
-    const data = await groqResponse.json();
+    const data  = await groqResponse.json();
     const reply = data.choices?.[0]?.message?.content || 'معلش، حصل خطأ. جرب تاني.';
 
-    // ✅ Return products as separate array for frontend card rendering
+    // ✅ Return products as separate clean array for frontend card rendering
     const products = (intent.type === 'product_search' && Array.isArray(dbResult) && dbResult.length > 0)
       ? dbResult.map((p: any) => ({
-          id:              p.id,
-          name:            p.name?.trim(),
-          brand:           p.brand || null,
-          car_make:        p.car_make || null,
-          car_model:       p.car_model || null,
-          car_model_year:  p.car_model_year || null,
-          regular_price:   p.regular_price || 0,
-          sale_price:      p.sale_price || 0,
-          slug:            p.slug,
-          image_url:       p.image_url || null,
-          link:            `https://zaitandfilters.com/products/${p.slug}`,
+          id:             p.id,
+          name:           p.name?.trim(),
+          brand:          p.brand          || null,
+          car_make:       p.car_make       || null,
+          car_model:      p.car_model      || null,
+          car_model_year: p.car_model_year || null,
+          regular_price:  p.regular_price  || 0,
+          sale_price:     p.sale_price     || 0,
+          slug:           p.slug,
+          image_url:      p.image_url      || null,
+          link:           `https://zaitandfilters.com/products/${p.slug}`,
         }))
       : null;
 

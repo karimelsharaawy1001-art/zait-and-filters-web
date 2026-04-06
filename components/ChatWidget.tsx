@@ -55,9 +55,9 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
       }}
       onMouseEnter={e => {
         const el = e.currentTarget as HTMLElement;
-        el.style.borderColor   = '#22c55e';
-        el.style.boxShadow     = '0 4px 16px rgba(34,197,94,0.15)';
-        el.style.transform     = 'translateY(-1px)';
+        el.style.borderColor = '#22c55e';
+        el.style.boxShadow   = '0 4px 16px rgba(34,197,94,0.15)';
+        el.style.transform   = 'translateY(-1px)';
       }}
       onMouseLeave={e => {
         const el = e.currentTarget as HTMLElement;
@@ -69,7 +69,6 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
       {/* Top row: index + name + price */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flex: 1, minWidth: 0 }}>
-          {/* Index badge */}
           <div style={{
             width: '22px', height: '22px', borderRadius: '7px',
             background: 'linear-gradient(135deg,#22c55e,#15803d)',
@@ -79,7 +78,6 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
           }}>
             {index + 1}
           </div>
-          {/* Product name */}
           <span style={{
             fontSize: '0.85rem', fontWeight: '800', color: '#0f172a',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -88,7 +86,6 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
           </span>
         </div>
 
-        {/* Price block */}
         <div style={{ textAlign: 'left', flexShrink: 0 }}>
           <div style={{ fontSize: '0.95rem', fontWeight: '900', color: '#15803d', whiteSpace: 'nowrap' }}>
             {price.toLocaleString('ar-EG')} ج.م
@@ -130,16 +127,14 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
         )}
       </div>
 
-      {/* Footer: CTA + URL */}
+      {/* Footer */}
       <div style={{
         marginTop: '9px', paddingTop: '9px',
         borderTop: '1px dashed #e2e8f0',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <span style={{ fontSize: '0.75rem', color: '#15803d', fontWeight: '800' }}>
-            اضغط لعرض المنتج
-          </span>
+          <span style={{ fontSize: '0.75rem', color: '#15803d', fontWeight: '800' }}>اضغط لعرض المنتج</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
             <polyline points="15 3 21 3 21 9"/>
@@ -161,14 +156,10 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
 function ProductsList({ products }: { products: Product[] }) {
   return (
     <div style={{
-      width: '100%',
-      marginTop: '8px',
-      background: '#f8fafc',
-      border: '1px solid #e2e8f0',
-      borderRadius: '16px',
-      padding: '12px',
+      width: '100%', marginTop: '8px',
+      background: '#f8fafc', border: '1px solid #e2e8f0',
+      borderRadius: '16px', padding: '12px',
     }}>
-      {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '7px',
         marginBottom: '10px', paddingBottom: '8px',
@@ -178,9 +169,7 @@ function ProductsList({ products }: { products: Product[] }) {
           width: '26px', height: '26px', borderRadius: '8px',
           background: 'linear-gradient(135deg,#22c55e,#15803d)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          🛒
-        </div>
+        }}>🛒</div>
         <span style={{ fontSize: '0.82rem', fontWeight: '800', color: '#15803d' }}>
           {products.length} منتج متاح
         </span>
@@ -191,8 +180,6 @@ function ProductsList({ products }: { products: Product[] }) {
           اضغط على أي منتج للشراء
         </span>
       </div>
-
-      {/* Cards */}
       {products.map((p, i) => (
         <ProductCard key={p.id} product={p} index={i} />
       ))}
@@ -203,7 +190,7 @@ function ProductsList({ products }: { products: Product[] }) {
 
 // ── Main Widget ───────────────────────────────────────────────────────────────
 export default function ChatWidget() {
-  const [open, setOpen]       = useState(false);
+  const [open, setOpen]         = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -238,16 +225,23 @@ export default function ChatWidget() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newMessages }),
+        // ✅ FIX: strip products from history — only send role + content to API
+        // This prevents massive payloads on follow-up messages
+        body: JSON.stringify({
+          messages: newMessages.map(m => ({ role: m.role, content: m.content })),
+        }),
       });
-      const data = await res.json();
+      const data     = await res.json();
       const reply    = data.reply    || 'معلش، حصل خطأ. جرب تاني.';
-      const products = data.products || null;   // ✅ receive product cards
+      const products = data.products || null;
 
       setMessages(prev => [...prev, { role: 'assistant', content: reply, products }]);
       if (!open) setUnread(prev => prev + 1);
     } catch {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'في مشكلة في الاتصال، جرب بعد شوية.' }]);
+      setMessages(prev => [
+        ...prev,
+        { role: 'assistant', content: 'في مشكلة في الاتصال، جرب بعد شوية.' },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -269,10 +263,10 @@ export default function ChatWidget() {
         .zf-dot1 { animation: zf-dots 1.2s infinite 0s; }
         .zf-dot2 { animation: zf-dots 1.2s infinite 0.2s; }
         .zf-dot3 { animation: zf-dots 1.2s infinite 0.4s; }
-        .zf-input:focus    { outline: none; }
+        .zf-input:focus      { outline: none; }
         .zf-suggestion:hover { background: #e8f5e9 !important; }
-        .zf-send:hover     { background: #1a6b3a !important; }
-        .zf-close:hover    { background: rgba(255,255,255,0.25) !important; }
+        .zf-send:hover       { background: #1a6b3a !important; }
+        .zf-close:hover      { background: rgba(255,255,255,0.25) !important; }
       `}</style>
 
       {/* ── Floating Button ── */}
@@ -328,9 +322,7 @@ export default function ChatWidget() {
               onClick={() => setOpen(false)}
               className="zf-close"
               style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '16px', transition: 'background 0.15s', flexShrink: 0 }}
-            >
-              ✕
-            </button>
+            >✕</button>
           </div>
 
           {/* Messages */}
@@ -338,14 +330,13 @@ export default function ChatWidget() {
             {messages.map((msg, i) => (
               <div key={i} className={msg.role === 'user' ? 'zf-msg-user' : 'zf-msg-bot'}>
 
-                {/* Bubble row */}
+                {/* Bubble */}
                 <div style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-start' : 'flex-end', alignItems: 'flex-end', gap: '8px' }}>
                   {msg.role === 'assistant' && (
                     <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', flexShrink: 0, marginBottom: '2px' }}>🛢️</div>
                   )}
                   <div style={{
-                    maxWidth: '82%',
-                    padding: '10px 14px',
+                    maxWidth: '82%', padding: '10px 14px',
                     borderRadius: msg.role === 'user' ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
                     background: msg.role === 'user' ? '#dcfce7' : '#fff',
                     color: '#1a1a1a', fontSize: '0.88rem', lineHeight: '1.55',
@@ -356,7 +347,7 @@ export default function ChatWidget() {
                   </div>
                 </div>
 
-                {/* ✅ Product cards — rendered below bot message */}
+                {/* Product cards below bot message */}
                 {msg.role === 'assistant' && msg.products && msg.products.length > 0 && (
                   <div style={{ marginRight: '36px', marginTop: '6px' }}>
                     <ProductsList products={msg.products} />
