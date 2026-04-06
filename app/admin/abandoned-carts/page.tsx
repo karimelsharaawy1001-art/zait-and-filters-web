@@ -153,14 +153,14 @@ function ReminderModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onC
     const items = cart.cart_items?.slice(0, 2).map((i: any) => i.name).join('، ') || 'منتجات';
     const more = cart.cart_items?.length > 2 ? ` و${cart.cart_items.length - 2} منتجات أخرى` : '';
     const msg = encodeURIComponent(
-      `إزيك يا ${cart.customer_name || 'صديقنا'} 😄\n` +
-      `إحنا زيت اند فلترز 🛢️\n\n` +
+      `إزيك يا ${cart.customer_name || 'صديقنا'} \n` +
+      `إحنا زيت اند فلترز \n\n` +
       `سلتك بتستناك من امبارح — فيها ${items}${more}\n\n` +
       `مش هنضغط عليك، بس عشان إحنا بنحب عملاءنا، عملنالك كود خصم 5% خاص بيك:\n` +
       `*${promoCode}*\n\n` +
-      `استخدمه قبل بكره و كمل طلبك من هنا 👇\n` +
+      `استخدمه قبل بكره و كمل طلبك من هنا \n` +
       `https://zaitandfilters.com/checkout\n\n` +
-      `لو عندك أي سؤال، إحنا هنا 🙌`
+      `لو عندك أي سؤال، إحنا هنا `
     );
     window.open(`https://wa.me/${toWhatsAppNumber(cart.customer_phone)}?text=${msg}`, '_blank');
     setSent(prev => new Set([...prev, cart.id]));
