@@ -29,9 +29,8 @@ const SYSTEM_PROMPT = `أنت مساعد ذكي لمتجر "زيت اند فلت
 1. ❌ ممنوع تخترع أي منتج أو رابط من عندك.
 2. ✅ البيانات الوحيدة اللي تستخدمها هي اللي بتيجي من الداتابيز.
 3. لو الداتابيز ما رجعتش منتجات، قول: "مش لاقي المنتج ده عندنا دلوقتي" وقترح واتساب.
-4. لو الداتابيز رجعت منتجات، اعرضهم كلهم — الاسم والسعر والرابط بالظبط.
-5. ❌ ممنوع تعدل في الرابط — انسخه بالظبط.
-6. ❌ ممنوع تضيف منتجات مش في البيانات.`;
+4. لو الداتابيز رجعت منتجات — اكتب جملة ترحيبية قصيرة بس فقط مثل "لاقيت كذا منتج مناسب ليك!" ولا تكتب تفاصيل المنتجات لأنها هتتعرض تلقائياً كـ cards تحت ردك.
+5. ❌ ممنوع تكتب أسماء منتجات أو أسعار أو روابط في ردك لو في منتجات موجودة — الـ cards بتعمل ده.`;
 
 
 // ── Car make normalization ────────────────────────────────────────────────────
@@ -55,39 +54,28 @@ const CAR_MAKE_MAP: Record<string, string> = {
   'جيلي': 'Geely',          'geely': 'Geely',
 };
 
-// ✅ NEW: When only a model is mentioned, infer the make automatically
 const MODEL_TO_MAKE: Record<string, string> = {
-  // Toyota
-  'corolla': 'Toyota', 'camry': 'Toyota', 'yaris': 'Toyota',
-  'hilux': 'Toyota', 'fortuner': 'Toyota', 'prado': 'Toyota', 'land cruiser': 'Toyota',
-  // Hyundai
-  'elantra': 'Hyundai', 'tucson': 'Hyundai', 'accent': 'Hyundai',
-  'sonata': 'Hyundai', 'i10': 'Hyundai', 'i20': 'Hyundai', 'i30': 'Hyundai', 'creta': 'Hyundai',
-  // Kia
-  'sportage': 'Kia', 'cerato': 'Kia', 'picanto': 'Kia', 'rio': 'Kia',
-  // Mitsubishi ✅ KEY FIX
-  'lancer': 'Mitsubishi', 'لانسر': 'Mitsubishi',
-  'pajero': 'Mitsubishi', 'boma': 'Mitsubishi', 'بوما': 'Mitsubishi',
-  'puma': 'Mitsubishi',   'بومة': 'Mitsubishi',
+  'corolla': 'Toyota',   'camry': 'Toyota',    'yaris': 'Toyota',
+  'hilux': 'Toyota',     'fortuner': 'Toyota', 'prado': 'Toyota',
+  'elantra': 'Hyundai',  'tucson': 'Hyundai',  'accent': 'Hyundai',
+  'sonata': 'Hyundai',   'i10': 'Hyundai',     'i20': 'Hyundai',
+  'i30': 'Hyundai',      'creta': 'Hyundai',
+  'sportage': 'Kia',     'cerato': 'Kia',      'picanto': 'Kia',     'rio': 'Kia',
+  'lancer': 'Mitsubishi','لانسر': 'Mitsubishi',
+  'pajero': 'Mitsubishi','boma': 'Mitsubishi',  'بوما': 'Mitsubishi',
+  'puma': 'Mitsubishi',  'بومة': 'Mitsubishi',
   'outlander': 'Mitsubishi', 'eclipse': 'Mitsubishi', 'galant': 'Mitsubishi',
-  // Chevrolet
-  'cruze': 'Chevrolet', 'captiva': 'Chevrolet', 'optra': 'Chevrolet',
-  'aveo': 'Chevrolet', 'spark': 'Chevrolet',
-  // Opel
-  'astra': 'Opel', 'vectra': 'Opel', 'corsa': 'Opel', 'zafira': 'Opel',
-  // Nissan
-  'sunny': 'Nissan', 'sentra': 'Nissan', 'qashqai': 'Nissan', 'navara': 'Nissan',
-  // Honda
-  'civic': 'Honda', 'accord': 'Honda', 'crv': 'Honda', 'hrv': 'Honda',
-  // Peugeot
-  '308': 'Peugeot', '206': 'Peugeot', '207': 'Peugeot', '301': 'Peugeot', '408': 'Peugeot',
-  // Renault
-  'logan': 'Renault', 'duster': 'Renault', 'symbol': 'Renault', 'megane': 'Renault',
-  // VW
-  'golf': 'Volkswagen', 'polo': 'Volkswagen', 'passat': 'Volkswagen',
+  'cruze': 'Chevrolet',  'captiva': 'Chevrolet','optra': 'Chevrolet',
+  'aveo': 'Chevrolet',   'spark': 'Chevrolet',
+  'astra': 'Opel',       'vectra': 'Opel',     'corsa': 'Opel',      'zafira': 'Opel',
+  'sunny': 'Nissan',     'sentra': 'Nissan',   'qashqai': 'Nissan',  'navara': 'Nissan',
+  'civic': 'Honda',      'accord': 'Honda',    'crv': 'Honda',       'hrv': 'Honda',
+  '308': 'Peugeot',      '206': 'Peugeot',     '207': 'Peugeot',
+  '301': 'Peugeot',      '408': 'Peugeot',
+  'logan': 'Renault',    'duster': 'Renault',  'symbol': 'Renault',  'megane': 'Renault',
+  'golf': 'Volkswagen',  'polo': 'Volkswagen', 'passat': 'Volkswagen',
 };
 
-// ✅ NEW: Arabic model → English DB value (DB stores models in English)
 const MODEL_EN_MAP: Record<string, string> = {
   'لانسر': 'lancer',
   'بوما':  'puma',
@@ -125,7 +113,7 @@ const KNOWN_MODELS: string[] = [
   'elantra', 'tucson', 'accent', 'sonata', 'i10', 'i20', 'i30', 'i40', 'creta',
   'sportage', 'cerato', 'picanto', 'rio', 'sorento',
   'lancer', 'لانسر', 'pajero', 'outlander', 'eclipse', 'galant',
-  'boma', 'بوما', 'puma', 'بومة',            // ✅ Lancer Puma variants
+  'boma', 'بوما', 'puma', 'بومة',
   'cruze', 'captiva', 'optra', 'aveo', 'spark', 'malibu',
   'astra', 'vectra', 'mokka', 'corsa', 'zafira',
   'sunny', 'sentra', 'qashqai', 'navara', 'patrol',
@@ -144,17 +132,17 @@ const KNOWN_MODELS: string[] = [
 // ── Smart product search ──────────────────────────────────────────────────────
 async function searchProducts(
   carMake?: string,
-  carModel?: string,          // Arabic or English
-  carModelEn?: string,        // ✅ English equivalent
+  carModel?: string,
+  carModelEn?: string,
   carYear?: string,
   partKeywords?: string[]
 ): Promise<any[] | null> {
 
-  const select = 'id, name, brand, car_make, car_model, car_model_year, regular_price, sale_price, slug';
+  const select = 'id, name, brand, car_make, car_model, car_model_year, regular_price, sale_price, slug, image_url';
 
   console.log('[SEARCH] make:', carMake, '| model:', carModel, '| modelEn:', carModelEn, '| year:', carYear, '| kw:', partKeywords);
 
-  // ── Attempt 1: make + model (English) + keyword ───────────────────────────
+  // Attempt 1: make + English model + keyword
   if (carMake && carModelEn) {
     let q = supabase.from('products').select(select)
       .ilike('car_make', `%${carMake}%`)
@@ -167,7 +155,7 @@ async function searchProducts(
     if (data?.length) return data;
   }
 
-  // ── Attempt 2: make + model (Arabic) + keyword ────────────────────────────
+  // Attempt 2: make + Arabic model + keyword
   if (carMake && carModel) {
     let q = supabase.from('products').select(select)
       .ilike('car_make', `%${carMake}%`)
@@ -179,7 +167,7 @@ async function searchProducts(
     if (data?.length) return data;
   }
 
-  // ── Attempt 3: make + keyword only (drop model) ───────────────────────────
+  // Attempt 3: make + keyword only
   if (carMake && partKeywords?.length) {
     let q = supabase.from('products').select(select)
       .ilike('car_make', `%${carMake}%`)
@@ -190,7 +178,7 @@ async function searchProducts(
     if (data?.length) return data;
   }
 
-  // ── Attempt 4: make only ──────────────────────────────────────────────────
+  // Attempt 4: make only
   if (carMake) {
     const { data, error } = await supabase.from('products').select(select)
       .ilike('car_make', `%${carMake}%`).limit(8);
@@ -198,7 +186,7 @@ async function searchProducts(
     if (data?.length) return data;
   }
 
-  // ── Attempt 5: English model in car_model field ───────────────────────────
+  // Attempt 5: English model in car_model field
   if (carModelEn) {
     const { data, error } = await supabase.from('products').select(select)
       .ilike('car_model', `%${carModelEn}%`).limit(8);
@@ -206,7 +194,7 @@ async function searchProducts(
     if (data?.length) return data;
   }
 
-  // ── Attempt 6: Arabic model in product name ───────────────────────────────
+  // Attempt 6: Arabic model in product name
   if (carModel) {
     const { data, error } = await supabase.from('products').select(select)
       .ilike('name', `%${carModel}%`).limit(8);
@@ -214,7 +202,7 @@ async function searchProducts(
     if (data?.length) return data;
   }
 
-  // ── Attempt 7: keyword in name ────────────────────────────────────────────
+  // Attempt 7: keyword in name
   if (partKeywords?.length) {
     for (const kw of partKeywords) {
       const { data, error } = await supabase.from('products').select(select)
@@ -255,13 +243,13 @@ async function getOrderById(orderId: string) {
 
 function translateStatus(status: string): string {
   const map: Record<string, string> = {
-    pending: 'جديد — بيتجهز',
+    pending:         'جديد — بيتجهز',
     pending_payment: 'في انتظار الدفع',
-    processing: 'قيد التجهيز',
-    shipped: 'تم الشحن — في الطريق إليك',
-    delivered: 'تم التسليم ✅',
-    cancelled: 'ملغي',
-    refunded: 'تم الاسترجاع',
+    processing:      'قيد التجهيز',
+    shipped:         'تم الشحن — في الطريق إليك',
+    delivered:       'تم التسليم ✅',
+    cancelled:       'ملغي',
+    refunded:        'تم الاسترجاع',
   };
   return map[status] || status;
 }
@@ -287,35 +275,23 @@ function detectIntent(message: string): {
   const orderIdMatch = msg.match(/([0-9a-f]{8}-[0-9a-f]{4}|[A-Z0-9]{8})/i);
   if (orderIdMatch) return { type: 'order_id', orderId: orderIdMatch[1] };
 
-  // Car make from explicit mention
-  const foundMakeKey = Object.keys(CAR_MAKE_MAP).find(k =>
-    lowerMsg.includes(k.toLowerCase())
-  );
-
-  // Car model detection
-  const foundModel = KNOWN_MODELS.find(m => lowerMsg.includes(m.toLowerCase()));
-
-  // ✅ English equivalent of detected model
+  const foundMakeKey = Object.keys(CAR_MAKE_MAP).find(k => lowerMsg.includes(k.toLowerCase()));
+  const foundModel   = KNOWN_MODELS.find(m => lowerMsg.includes(m.toLowerCase()));
   const foundModelEn = foundModel
-    ? (MODEL_EN_MAP[foundModel] || (MODEL_EN_MAP[foundModel.toLowerCase()]) || foundModel)
+    ? (MODEL_EN_MAP[foundModel] ?? MODEL_EN_MAP[foundModel.toLowerCase()] ?? foundModel)
     : undefined;
 
-  // ✅ Infer make from model if not explicitly mentioned
   let inferredMake = foundMakeKey ? CAR_MAKE_MAP[foundMakeKey] : undefined;
   if (!inferredMake && foundModel) {
-    inferredMake = MODEL_TO_MAKE[foundModel] || MODEL_TO_MAKE[foundModel.toLowerCase()];
+    inferredMake = MODEL_TO_MAKE[foundModel] ?? MODEL_TO_MAKE[foundModel.toLowerCase()];
   }
 
-  // Part keywords
   const sortedKeys = Object.keys(PART_KEYWORD_MAP).sort((a, b) => b.length - a.length);
   const matchedKeywords: string[] = [];
   for (const k of sortedKeys) {
-    if (lowerMsg.includes(k.toLowerCase())) {
-      matchedKeywords.push(...PART_KEYWORD_MAP[k]);
-    }
+    if (lowerMsg.includes(k.toLowerCase())) matchedKeywords.push(...PART_KEYWORD_MAP[k]);
   }
   const uniqueKeywords = [...new Set(matchedKeywords)];
-
   const yearMatch = msg.match(/20[0-9]{2}|19[0-9]{2}/);
 
   console.log('[INTENT] make:', inferredMake, '| model:', foundModel, '| modelEn:', foundModelEn, '| kw:', uniqueKeywords);
@@ -323,10 +299,10 @@ function detectIntent(message: string): {
   if (inferredMake || foundModel || uniqueKeywords.length > 0) {
     return {
       type: 'product_search',
-      carMake: inferredMake,
-      carModel: foundModel,
+      carMake:    inferredMake,
+      carModel:   foundModel,
       carModelEn: foundModelEn !== foundModel ? foundModelEn : foundModel,
-      carYear: yearMatch ? yearMatch[0] : undefined,
+      carYear:    yearMatch ? yearMatch[0] : undefined,
       partKeywords: uniqueKeywords.length > 0 ? uniqueKeywords : undefined,
     };
   }
@@ -335,7 +311,7 @@ function detectIntent(message: string): {
 }
 
 
-// ── Build context ─────────────────────────────────────────────────────────────
+// ── Build context for Groq (text only, no product cards here) ─────────────────
 function buildContext(intent: ReturnType<typeof detectIntent>, dbResult: any): string {
   if (!dbResult) return '';
 
@@ -356,23 +332,8 @@ function buildContext(intent: ReturnType<typeof detectIntent>, dbResult: any): s
   if (intent.type === 'product_search') {
     const products = Array.isArray(dbResult) ? dbResult : [dbResult];
     if (!products.length) return '';
-
-    return (
-      `✅ تم إيجاد ${products.length} منتج في الداتابيز — اعرضهم كلهم بالظبط:\n\n` +
-      products.map((p: any, i: number) => {
-        const price = p.sale_price > 0
-          ? `${p.sale_price} ج.م (خصم من ${p.regular_price} ج.م)`
-          : `${p.regular_price} ج.م`;
-        return [
-          `[منتج ${i + 1}]`,
-          `الاسم: ${p.name}`,
-          `البراند: ${p.brand || 'غير محدد'}`,
-          `السيارة: ${[p.car_make, p.car_model, p.car_model_year].filter(Boolean).join(' ')}`,
-          `السعر: ${price}`,
-          `الرابط: https://zaitandfilters.com/products/${p.slug}`,
-        ].join('\n');
-      }).join('\n\n')
-    );
+    // ✅ Tell AI how many products found — it writes intro only, cards render separately
+    return `تم إيجاد ${products.length} منتج مناسب في الداتابيز. اكتب جملة قصيرة ومرحبة فقط مثل "لاقيت ${products.length} منتج مناسب ليك 😊" — المنتجات هتتعرض تلقائياً تحت ردك كـ cards.`;
   }
 
   return '';
@@ -428,12 +389,12 @@ export async function POST(req: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
         messages: groqMessages,
-        max_tokens: 900,
+        max_tokens: 300,  // ✅ short — AI only writes intro, not product list
         temperature: 0.1,
       }),
     });
@@ -446,7 +407,25 @@ export async function POST(req: NextRequest) {
 
     const data = await groqResponse.json();
     const reply = data.choices?.[0]?.message?.content || 'معلش، حصل خطأ. جرب تاني.';
-    return NextResponse.json({ reply });
+
+    // ✅ Return products as separate array for frontend card rendering
+    const products = (intent.type === 'product_search' && Array.isArray(dbResult) && dbResult.length > 0)
+      ? dbResult.map((p: any) => ({
+          id:              p.id,
+          name:            p.name?.trim(),
+          brand:           p.brand || null,
+          car_make:        p.car_make || null,
+          car_model:       p.car_model || null,
+          car_model_year:  p.car_model_year || null,
+          regular_price:   p.regular_price || 0,
+          sale_price:      p.sale_price || 0,
+          slug:            p.slug,
+          image_url:       p.image_url || null,
+          link:            `https://zaitandfilters.com/products/${p.slug}`,
+        }))
+      : null;
+
+    return NextResponse.json({ reply, products });
 
   } catch (err: any) {
     console.error('[Chat API Error]', err);
