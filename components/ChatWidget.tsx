@@ -28,6 +28,24 @@ const SUGGESTIONS = [
   'بيتوصل لفين؟',
 ];
 
+// ── Avatar Component (reused in 3 places) ────────────────────────────────────
+function BotAvatar({ size = 28 }: { size?: number }) {
+  return (
+    <img
+      src="/shawkat.png"
+      alt="شوكت"
+      style={{
+        width: size,
+        height: size,
+        borderRadius: '50%',
+        objectFit: 'cover',
+        flexShrink: 0,
+        border: '2px solid rgba(255,255,255,0.3)',
+      }}
+    />
+  );
+}
+
 // ── Product Card ──────────────────────────────────────────────────────────────
 function ProductCard({ product, index }: { product: Product; index: number }) {
   const hasDiscount = product.sale_price > 0 && product.sale_price < product.regular_price;
@@ -66,7 +84,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
         el.style.transform   = 'translateY(0)';
       }}
     >
-      {/* Top row: index + name + price */}
+      {/* Top row */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flex: 1, minWidth: 0 }}>
           <div style={{
@@ -85,7 +103,6 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
             {product.name}
           </span>
         </div>
-
         <div style={{ textAlign: 'left', flexShrink: 0 }}>
           <div style={{ fontSize: '0.95rem', fontWeight: '900', color: '#15803d', whiteSpace: 'nowrap' }}>
             {price.toLocaleString('ar-EG')} ج.م
@@ -98,7 +115,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
         </div>
       </div>
 
-      {/* Tags row */}
+      {/* Tags */}
       <div style={{ display: 'flex', gap: '5px', marginTop: '9px', flexWrap: 'wrap' }}>
         {product.brand && (
           <span style={{ padding: '2px 8px', borderRadius: '6px', background: '#eff6ff', color: '#1d4ed8', fontSize: '0.72rem', fontWeight: '700' }}>
@@ -152,7 +169,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
   );
 }
 
-// ── Products List wrapper ─────────────────────────────────────────────────────
+// ── Products List ─────────────────────────────────────────────────────────────
 function ProductsList({ products }: { products: Product[] }) {
   return (
     <div style={{
@@ -187,14 +204,14 @@ function ProductsList({ products }: { products: Product[] }) {
   );
 }
 
-
 // ── Main Widget ───────────────────────────────────────────────────────────────
 export default function ChatWidget() {
   const [open, setOpen]         = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: 'أهلاً بيك في زيت اند فلترز! 👋\nأنا هنا أساعدك — سواء تتابع أوردرك، تلاقي قطعة غيار مناسبة، أو أي سؤال تاني 🔧',
+      // ✅ CHANGE 1: Updated welcome message with شوكت name
+      content: 'أهلاً بيك! أنا شوكت، مساعدك الذكي في زيت اند فلترز 👋\nقولي إيه اللي تحتاجه — سواء تتابع أوردر، تلاقي قطعة غيار، أو تعرف الزيت المناسب لعربيتك 🔧',
     },
   ]);
   const [input, setInput]     = useState('');
@@ -225,8 +242,6 @@ export default function ChatWidget() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // ✅ FIX: strip products from history — only send role + content to API
-        // This prevents massive payloads on follow-up messages
         body: JSON.stringify({
           messages: newMessages.map(m => ({ role: m.role, content: m.content })),
         }),
@@ -270,6 +285,7 @@ export default function ChatWidget() {
       `}</style>
 
       {/* ── Floating Button ── */}
+      {/* ✅ CHANGE 2: شوكت avatar on floating button */}
       <div
         onClick={() => setOpen(true)}
         style={{
@@ -281,11 +297,14 @@ export default function ChatWidget() {
           alignItems: 'center', justifyContent: 'center',
           boxShadow: '0 4px 20px rgba(34,197,94,0.5)',
           animation: 'zf-bounce 2.5s ease-in-out infinite',
+          padding: 0, overflow: 'hidden',
         }}
       >
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
+        <img
+          src="/shawkat.png"
+          alt="شوكت"
+          style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '50%' }}
+        />
         {unread > 0 && (
           <div style={{ position: 'absolute', top: '-2px', right: '-2px', width: '20px', height: '20px', background: '#ef4444', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900', color: '#fff', border: '2px solid #fff' }}>
             {unread}
@@ -306,14 +325,22 @@ export default function ChatWidget() {
           direction: 'rtl', fontFamily: 'system-ui, -apple-system, sans-serif',
         }}>
 
-          {/* Header */}
+          {/* ✅ CHANGE 3: Header — شوكت name + avatar image */}
           <div style={{ background: 'linear-gradient(135deg, #15803d, #22c55e)', padding: '16px 18px', display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-            <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '20px' }}>
-              🛢️
+            <div style={{ width: '46px', height: '46px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid rgba(255,255,255,0.4)' }}>
+              <img
+                src="/shawkat.png"
+                alt="شوكت"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#fff' }}>زيت اند فلترز</div>
-              <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', gap: '5px', marginTop: '2px' }}>
+              {/* ✅ Bot name changed to شوكت */}
+              <div style={{ fontWeight: '900', fontSize: '1rem', color: '#fff' }}>شوكت</div>
+              <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.85)', fontWeight: '600', marginTop: '1px' }}>
+                المساعد الذكي • زيت اند فلترز
+              </div>
+              <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.75)', display: 'flex', alignItems: 'center', gap: '5px', marginTop: '3px' }}>
                 <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#86efac', animation: 'zf-pulse 2s infinite' }} />
                 متاح دلوقتي
               </div>
@@ -329,11 +356,12 @@ export default function ChatWidget() {
           <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px', background: '#f0fdf4' }}>
             {messages.map((msg, i) => (
               <div key={i} className={msg.role === 'user' ? 'zf-msg-user' : 'zf-msg-bot'}>
-
-                {/* Bubble */}
                 <div style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-start' : 'flex-end', alignItems: 'flex-end', gap: '8px' }}>
+                  {/* ✅ CHANGE 4: شوكت avatar in messages instead of 🛢️ */}
                   {msg.role === 'assistant' && (
-                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', flexShrink: 0, marginBottom: '2px' }}>🛢️</div>
+                    <div style={{ width: '30px', height: '30px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, marginBottom: '2px', border: '2px solid #22c55e' }}>
+                      <img src="/shawkat.png" alt="شوكت" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
                   )}
                   <div style={{
                     maxWidth: '82%', padding: '10px 14px',
@@ -347,9 +375,8 @@ export default function ChatWidget() {
                   </div>
                 </div>
 
-                {/* Product cards below bot message */}
                 {msg.role === 'assistant' && msg.products && msg.products.length > 0 && (
-                  <div style={{ marginRight: '36px', marginTop: '6px' }}>
+                  <div style={{ marginRight: '38px', marginTop: '6px' }}>
                     <ProductsList products={msg.products} />
                   </div>
                 )}
@@ -359,7 +386,9 @@ export default function ChatWidget() {
             {/* Loading dots */}
             {loading && (
               <div className="zf-msg-bot" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', gap: '8px' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', flexShrink: 0 }}>🛢️</div>
+                <div style={{ width: '30px', height: '30px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #22c55e' }}>
+                  <img src="/shawkat.png" alt="شوكت" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
                 <div style={{ padding: '12px 16px', borderRadius: '4px 16px 16px 16px', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', display: 'flex', gap: '5px', alignItems: 'center' }}>
                   {['zf-dot1','zf-dot2','zf-dot3'].map(cls => (
                     <div key={cls} className={cls} style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e' }} />
