@@ -337,17 +337,22 @@ export default function AbandonedCartsAdmin() {
       reminder_promo_code: promoCode,
     }).eq('id', cart.id);
 
+    const smile   = String.fromCodePoint(0x1F604);            // 😄
+    const oil     = String.fromCodePoint(0x1F6E2, 0xFE0F);   // 🛢️
+    const down    = String.fromCodePoint(0x1F447);            // 👇
+    const hands   = String.fromCodePoint(0x1F64C);            // 🙌
+
     const items = cart.cart_items?.slice(0, 2).map((i: any) => i.name).join('، ') || 'منتجات';
     const more = cart.cart_items?.length > 2 ? ` و${cart.cart_items.length - 2} منتجات أخرى` : '';
     const msg = encodeURIComponent(
-      `إزيك يا ${cart.customer_name || 'صديقنا'} 😄\n` +
-      `إحنا زيت اند فلترز 🛢️\n\n` +
+      `إزيك يا ${cart.customer_name || 'صديقنا'} ${smile}\n` +
+      `إحنا زيت اند فلترز ${oil}\n\n` +
       `سلتك بتستناك من امبارح — فيها ${items}${more}\n\n` +
       `مش هنضغط عليك، بس عشان إحنا بنحب عملاءنا، عملنالك كود خصم 5% خاص بيك:\n` +
       `*${promoCode}*\n\n` +
-      `استخدمه قبل بكره و كمل طلبك من هنا 👇\n` +
+      `استخدمه قبل بكره و كمل طلبك من هنا ${down}\n` +
       `https://zaitandfilters.com/checkout\n\n` +
-      `لو عندك أي سؤال، إحنا هنا 🙌`
+      `لو عندك أي سؤال، إحنا هنا ${hands}`
     );
     window.open(`https://wa.me/${toWhatsAppNumber(cart.customer_phone)}?text=${msg}`, '_blank');
     toast.success(`تم فتح واتساب لـ ${cart.customer_name} ✅`);
