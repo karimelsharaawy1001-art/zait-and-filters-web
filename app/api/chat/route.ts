@@ -25,164 +25,206 @@ const SYSTEM_PROMPT = `أنت مساعد ذكي لمتجر "زيت اند فلت
 - كون ودود وخفيف الدم لكن محترف
 - ردودك مختصرة ومفيدة
 
-⛔ قواعد صارمة جداً — لازم تتبعها:
-1. ❌ ممنوع منعاً باتاً تخترع أو تحدس أي منتج أو رابط من عندك.
-2. ✅ البيانات الوحيدة اللي تستخدمها هي اللي بتيجي من الداتابيز في الرسالة دي.
-3. لو الداتابيز ما رجعتش منتجات، قول بصراحة: "مش لاقي المنتج ده عندنا دلوقتي" وقترح واتساب.
-4. لو الداتابيز رجعت منتجات، اعرضهم كلهم — كل منتج في سطور منفصلة بالاسم والسعر والرابط بالظبط.
-5. ❌ ممنوع تعدل في الرابط أو تكتبه من عندك — انسخه بالظبط من البيانات.
-6. ❌ ممنوع تضيف منتجات مش موجودة في البيانات.`;
+⛔ قواعد صارمة جداً:
+1. ❌ ممنوع تخترع أي منتج أو رابط من عندك.
+2. ✅ البيانات الوحيدة اللي تستخدمها هي اللي بتيجي من الداتابيز.
+3. لو الداتابيز ما رجعتش منتجات، قول: "مش لاقي المنتج ده عندنا دلوقتي" وقترح واتساب.
+4. لو الداتابيز رجعت منتجات، اعرضهم كلهم — الاسم والسعر والرابط بالظبط.
+5. ❌ ممنوع تعدل في الرابط — انسخه بالظبط.
+6. ❌ ممنوع تضيف منتجات مش في البيانات.`;
 
 
-// ── Car make normalization map ────────────────────────────────────────────────
+// ── Car make normalization ────────────────────────────────────────────────────
 const CAR_MAKE_MAP: Record<string, string> = {
-  'تويوتا': 'Toyota',      'toyota': 'Toyota',
-  'هيونداي': 'Hyundai',    'hyundai': 'Hyundai',
-  'كيا': 'Kia',            'kia': 'Kia',
-  'أوبل': 'Opel',          'opel': 'Opel',
-  'شيفروليه': 'Chevrolet', 'chevrolet': 'Chevrolet',
-  'نيسان': 'Nissan',       'nissan': 'Nissan',
-  'هوندا': 'Honda',        'honda': 'Honda',
-  'بيجو': 'Peugeot',       'peugeot': 'Peugeot',
-  'رينو': 'Renault',       'renault': 'Renault',
-  'فيات': 'Fiat',          'fiat': 'Fiat',
+  'تويوتا': 'Toyota',       'toyota': 'Toyota',
+  'هيونداي': 'Hyundai',     'hyundai': 'Hyundai',
+  'كيا': 'Kia',             'kia': 'Kia',
+  'أوبل': 'Opel',           'opel': 'Opel',
+  'شيفروليه': 'Chevrolet',  'chevrolet': 'Chevrolet',
+  'نيسان': 'Nissan',        'nissan': 'Nissan',
+  'هوندا': 'Honda',         'honda': 'Honda',
+  'بيجو': 'Peugeot',        'peugeot': 'Peugeot',
+  'رينو': 'Renault',        'renault': 'Renault',
+  'فيات': 'Fiat',           'fiat': 'Fiat',
   'ميتسوبيشي': 'Mitsubishi','mitsubishi': 'Mitsubishi',
-  'سوزوكي': 'Suzuki',      'suzuki': 'Suzuki',
-  'فولكس': 'Volkswagen',   'volkswagen': 'Volkswagen',
-  'bmw': 'BMW',            'بي ام دبليو': 'BMW',
-  'مرسيدس': 'Mercedes',    'mercedes': 'Mercedes',
-  'لادا': 'Lada',          'lada': 'Lada',
-  'جيلي': 'Geely',         'geely': 'Geely',
+  'سوزوكي': 'Suzuki',       'suzuki': 'Suzuki',
+  'فولكس': 'Volkswagen',    'volkswagen': 'Volkswagen',
+  'bmw': 'BMW',             'بي ام دبليو': 'BMW',
+  'مرسيدس': 'Mercedes',     'mercedes': 'Mercedes',
+  'لادا': 'Lada',           'lada': 'Lada',
+  'جيلي': 'Geely',          'geely': 'Geely',
 };
 
-// Arabic part keywords → English equivalents for DB search
+// ✅ NEW: When only a model is mentioned, infer the make automatically
+const MODEL_TO_MAKE: Record<string, string> = {
+  // Toyota
+  'corolla': 'Toyota', 'camry': 'Toyota', 'yaris': 'Toyota',
+  'hilux': 'Toyota', 'fortuner': 'Toyota', 'prado': 'Toyota', 'land cruiser': 'Toyota',
+  // Hyundai
+  'elantra': 'Hyundai', 'tucson': 'Hyundai', 'accent': 'Hyundai',
+  'sonata': 'Hyundai', 'i10': 'Hyundai', 'i20': 'Hyundai', 'i30': 'Hyundai', 'creta': 'Hyundai',
+  // Kia
+  'sportage': 'Kia', 'cerato': 'Kia', 'picanto': 'Kia', 'rio': 'Kia',
+  // Mitsubishi ✅ KEY FIX
+  'lancer': 'Mitsubishi', 'لانسر': 'Mitsubishi',
+  'pajero': 'Mitsubishi', 'boma': 'Mitsubishi', 'بوما': 'Mitsubishi',
+  'puma': 'Mitsubishi',   'بومة': 'Mitsubishi',
+  'outlander': 'Mitsubishi', 'eclipse': 'Mitsubishi', 'galant': 'Mitsubishi',
+  // Chevrolet
+  'cruze': 'Chevrolet', 'captiva': 'Chevrolet', 'optra': 'Chevrolet',
+  'aveo': 'Chevrolet', 'spark': 'Chevrolet',
+  // Opel
+  'astra': 'Opel', 'vectra': 'Opel', 'corsa': 'Opel', 'zafira': 'Opel',
+  // Nissan
+  'sunny': 'Nissan', 'sentra': 'Nissan', 'qashqai': 'Nissan', 'navara': 'Nissan',
+  // Honda
+  'civic': 'Honda', 'accord': 'Honda', 'crv': 'Honda', 'hrv': 'Honda',
+  // Peugeot
+  '308': 'Peugeot', '206': 'Peugeot', '207': 'Peugeot', '301': 'Peugeot', '408': 'Peugeot',
+  // Renault
+  'logan': 'Renault', 'duster': 'Renault', 'symbol': 'Renault', 'megane': 'Renault',
+  // VW
+  'golf': 'Volkswagen', 'polo': 'Volkswagen', 'passat': 'Volkswagen',
+};
+
+// ✅ NEW: Arabic model → English DB value (DB stores models in English)
+const MODEL_EN_MAP: Record<string, string> = {
+  'لانسر': 'lancer',
+  'بوما':  'puma',
+  'بومة':  'puma',
+  'كورولا': 'corolla',
+  'كامري':  'camry',
+  'ياريس':  'yaris',
+  'أكسنت':  'accent',
+  'النترا':  'elantra',
+};
+
 const PART_KEYWORD_MAP: Record<string, string[]> = {
-  'فلتر زيت':  ['oil filter', 'فلتر زيت'],
-  'فلتر هواء': ['air filter', 'فلتر هواء'],
-  'فلتر':      ['filter', 'فلتر'],
-  'زيت محرك': ['engine oil', 'motor oil', 'زيت'],
-  'زيت':       ['oil', 'زيت'],
-  'فرامل':     ['brake', 'فرامل'],
-  'تيل فرامل': ['brake fluid', 'brake oil', 'تيل فرامل', 'فرامل'],
-  'تيل':       ['brake fluid', 'fluid', 'تيل'],
-  'بلوف':      ['valve', 'بلوف'],
-  'بواجي':     ['spark plug', 'بواجي'],
-  'بطارية':    ['battery', 'بطارية'],
-  'حزام':      ['belt', 'حزام'],
-  'امبير':     ['alternator', 'امبير'],
-  'كاوتش':     ['rubber', 'bushing', 'كاوتش'],
-  'فلنشة':     ['gasket', 'فلنشة'],
+  'فلتر زيت':   ['oil filter', 'فلتر زيت'],
+  'فلتر هواء':  ['air filter', 'فلتر هواء'],
+  'فلتر':       ['filter', 'فلتر'],
+  'زيت محرك':  ['engine oil', 'motor oil', 'زيت'],
+  'زيت':        ['oil', 'زيت'],
+  'تيل فرامل':  ['تيل فرامل', 'brake pad', 'brake pads'],
+  'فرامل':      ['brake', 'فرامل'],
+  'تيل':        ['تيل', 'brake pad'],
+  'بلوف':       ['valve', 'بلوف'],
+  'بواجي':      ['spark plug', 'بواجي'],
+  'بطارية':     ['battery', 'بطارية'],
+  'حزام':       ['belt', 'حزام'],
+  'امبير':      ['alternator', 'امبير'],
+  'كاوتش':      ['rubber', 'bushing', 'كاوتش'],
+  'فلنشة':      ['gasket', 'فلنشة'],
+  'كارتيرة':    ['كارتيرة', 'oil pan'],
+  'طرمبة زيت':  ['oil pump', 'طرمبة زيت'],
+  'مكينة':      ['engine', 'مكينة'],
 };
 
-// Common car models including Egyptian market variants
 const KNOWN_MODELS: string[] = [
-  'corolla', 'camry', 'yaris', 'hilux', 'fortuner', 'rav4', 'land cruiser', 'avalon', 'prado',
-  'elantra', 'tucson', 'accent', 'sonata', 'i10', 'i20', 'i30', 'i40', 'creta', 'santa fe',
-  'sportage', 'cerato', 'picanto', 'rio', 'sorento', 'stinger', 'carnival',
-  'lancer', 'لانسر', 'outlander', 'eclipse', 'pajero', 'galant', 'boma', 'بوما',
-  'cruze', 'captiva', 'optra', 'aveo', 'spark', 'malibu', 'equinox',
-  'astra', 'vectra', 'mokka', 'insignia', 'corsa', 'zafira',
-  'sunny', 'sentra', 'qashqai', 'navara', 'patrol', 'x-trail', 'juke',
-  'civic', 'accord', 'crv', 'cr-v', 'hrv', 'hr-v', 'odyssey', 'fit',
-  '308', '206', '207', '301', '408', '508', '2008', '3008',
-  'logan', 'duster', 'symbol', 'megane', 'fluence', 'koleos',
-  'punto', 'bravo', 'tipo', 'ducato', '500',
-  'swift', 'vitara', 'dzire', 'baleno', 'grand vitara',
-  'golf', 'polo', 'passat', 'tiguan', 'jetta',
-  '3 series', '5 series', 'x1', 'x3', 'x5', '316', '318', '320', '520',
-  'c class', 'c200', 'c180', 'e class', 'e200', 'a class', 'glc', 'gle',
-  'emgrand', 'lada vesta', 'lada granta',
+  'corolla', 'camry', 'yaris', 'hilux', 'fortuner', 'rav4', 'land cruiser', 'prado',
+  'elantra', 'tucson', 'accent', 'sonata', 'i10', 'i20', 'i30', 'i40', 'creta',
+  'sportage', 'cerato', 'picanto', 'rio', 'sorento',
+  'lancer', 'لانسر', 'pajero', 'outlander', 'eclipse', 'galant',
+  'boma', 'بوما', 'puma', 'بومة',            // ✅ Lancer Puma variants
+  'cruze', 'captiva', 'optra', 'aveo', 'spark', 'malibu',
+  'astra', 'vectra', 'mokka', 'corsa', 'zafira',
+  'sunny', 'sentra', 'qashqai', 'navara', 'patrol',
+  'civic', 'accord', 'crv', 'cr-v', 'hrv',
+  '308', '206', '207', '301', '408', '508',
+  'logan', 'duster', 'symbol', 'megane', 'fluence',
+  'punto', 'bravo', 'tipo',
+  'swift', 'vitara', 'dzire',
+  'golf', 'polo', 'passat', 'tiguan',
+  '316', '318', '320', '520', 'x1', 'x3', 'x5',
+  'c200', 'c180', 'e200', 'glc',
+  'emgrand',
 ];
 
 
-// ── Smart multi-field product search ─────────────────────────────────────────
+// ── Smart product search ──────────────────────────────────────────────────────
 async function searchProducts(
   carMake?: string,
-  carModel?: string,
+  carModel?: string,          // Arabic or English
+  carModelEn?: string,        // ✅ English equivalent
   carYear?: string,
   partKeywords?: string[]
 ): Promise<any[] | null> {
 
   const select = 'id, name, brand, car_make, car_model, car_model_year, regular_price, sale_price, slug';
 
-  // ── DEBUG: Connection test ─────────────────────────────────────────────────
-  const { data: testData, error: testError } = await supabase
-    .from('products')
-    .select('id, name, car_make, car_model')
-    .limit(3);
+  console.log('[SEARCH] make:', carMake, '| model:', carModel, '| modelEn:', carModelEn, '| year:', carYear, '| kw:', partKeywords);
 
-  console.log('[DB TEST] error:', testError?.message || 'none');
-  console.log('[DB TEST] sample rows:', JSON.stringify(testData));
-  // ── This tells you: (1) if connection works, (2) real column names & values in your DB
-
-  console.log('[SEARCH] Params → carMake:', carMake, '| carModel:', carModel, '| year:', carYear, '| keywords:', partKeywords);
-
-  const orFilters: string[] = [];
-  if (carMake)           orFilters.push(`car_make.ilike.%${carMake}%`, `name.ilike.%${carMake}%`);
-  if (carModel)          orFilters.push(`car_model.ilike.%${carModel}%`, `name.ilike.%${carModel}%`);
-  if (partKeywords?.length) {
-    for (const kw of partKeywords) orFilters.push(`name.ilike.%${kw}%`);
-  }
-
-  if (!orFilters.length) {
-    console.log('[SEARCH] No filters built — returning null');
-    return null;
-  }
-
-  // ── Attempt 1: make + model + keyword ─────────────────────────────────────
-  if (carMake && (carModel || partKeywords?.length)) {
-    let q = supabase.from('products').select(select).limit(8);
-    q = q.ilike('car_make', `%${carMake}%`);
-    if (carModel) q = q.ilike('car_model', `%${carModel}%`);
-    if (carYear)  q = q.ilike('car_model_year', `%${carYear}%`);
-    if (partKeywords?.length) {
-      const kwOr = partKeywords.map(k => `name.ilike.%${k}%`).join(',');
-      q = q.or(kwOr);
-    }
+  // ── Attempt 1: make + model (English) + keyword ───────────────────────────
+  if (carMake && carModelEn) {
+    let q = supabase.from('products').select(select)
+      .ilike('car_make', `%${carMake}%`)
+      .ilike('car_model', `%${carModelEn}%`)
+      .limit(8);
+    if (carYear) q = q.ilike('car_model_year', `%${carYear}%`);
+    if (partKeywords?.length) q = q.or(partKeywords.map(k => `name.ilike.%${k}%`).join(','));
     const { data, error } = await q;
-    console.log('[ATTEMPT 1] make+model+kw → error:', error?.message || 'none', '| count:', data?.length ?? 0);
+    console.log('[ATT 1] make+modelEn+kw →', error?.message || 'ok', '| count:', data?.length ?? 0);
     if (data?.length) return data;
   }
 
-  // ── Attempt 2: make + keyword only ────────────────────────────────────────
+  // ── Attempt 2: make + model (Arabic) + keyword ────────────────────────────
+  if (carMake && carModel) {
+    let q = supabase.from('products').select(select)
+      .ilike('car_make', `%${carMake}%`)
+      .ilike('car_model', `%${carModel}%`)
+      .limit(8);
+    if (partKeywords?.length) q = q.or(partKeywords.map(k => `name.ilike.%${k}%`).join(','));
+    const { data, error } = await q;
+    console.log('[ATT 2] make+modelAr+kw →', error?.message || 'ok', '| count:', data?.length ?? 0);
+    if (data?.length) return data;
+  }
+
+  // ── Attempt 3: make + keyword only (drop model) ───────────────────────────
   if (carMake && partKeywords?.length) {
     let q = supabase.from('products').select(select)
       .ilike('car_make', `%${carMake}%`)
       .limit(8);
-    const kwOr = partKeywords.map(k => `name.ilike.%${k}%`).join(',');
-    q = q.or(kwOr);
+    q = q.or(partKeywords.map(k => `name.ilike.%${k}%`).join(','));
     const { data, error } = await q;
-    console.log('[ATTEMPT 2] make+kw → error:', error?.message || 'none', '| count:', data?.length ?? 0);
+    console.log('[ATT 3] make+kw →', error?.message || 'ok', '| count:', data?.length ?? 0);
     if (data?.length) return data;
   }
 
-  // ── Attempt 3: make only ──────────────────────────────────────────────────
+  // ── Attempt 4: make only ──────────────────────────────────────────────────
   if (carMake) {
     const { data, error } = await supabase.from('products').select(select)
       .ilike('car_make', `%${carMake}%`).limit(8);
-    console.log('[ATTEMPT 3] make only → error:', error?.message || 'none', '| count:', data?.length ?? 0);
+    console.log('[ATT 4] make only →', error?.message || 'ok', '| count:', data?.length ?? 0);
     if (data?.length) return data;
   }
 
-  // ── Attempt 4: model in product name ──────────────────────────────────────
+  // ── Attempt 5: English model in car_model field ───────────────────────────
+  if (carModelEn) {
+    const { data, error } = await supabase.from('products').select(select)
+      .ilike('car_model', `%${carModelEn}%`).limit(8);
+    console.log('[ATT 5] modelEn in car_model →', error?.message || 'ok', '| count:', data?.length ?? 0);
+    if (data?.length) return data;
+  }
+
+  // ── Attempt 6: Arabic model in product name ───────────────────────────────
   if (carModel) {
     const { data, error } = await supabase.from('products').select(select)
       .ilike('name', `%${carModel}%`).limit(8);
-    console.log('[ATTEMPT 4] model in name → error:', error?.message || 'none', '| count:', data?.length ?? 0);
+    console.log('[ATT 6] modelAr in name →', error?.message || 'ok', '| count:', data?.length ?? 0);
     if (data?.length) return data;
   }
 
-  // ── Attempt 5: keyword in name ────────────────────────────────────────────
+  // ── Attempt 7: keyword in name ────────────────────────────────────────────
   if (partKeywords?.length) {
     for (const kw of partKeywords) {
       const { data, error } = await supabase.from('products').select(select)
         .ilike('name', `%${kw}%`).limit(8);
-      console.log(`[ATTEMPT 5] keyword "${kw}" → error:`, error?.message || 'none', '| count:', data?.length ?? 0);
+      console.log(`[ATT 7] kw "${kw}" →`, error?.message || 'ok', '| count:', data?.length ?? 0);
       if (data?.length) return data;
     }
   }
 
-  console.log('[SEARCH] All attempts exhausted — no products found');
+  console.log('[SEARCH] All attempts exhausted');
   return null;
 }
 
@@ -232,6 +274,7 @@ function detectIntent(message: string): {
   orderId?: string;
   carMake?: string;
   carModel?: string;
+  carModelEn?: string;
   carYear?: string;
   partKeywords?: string[];
 } {
@@ -244,12 +287,26 @@ function detectIntent(message: string): {
   const orderIdMatch = msg.match(/([0-9a-f]{8}-[0-9a-f]{4}|[A-Z0-9]{8})/i);
   if (orderIdMatch) return { type: 'order_id', orderId: orderIdMatch[1] };
 
+  // Car make from explicit mention
   const foundMakeKey = Object.keys(CAR_MAKE_MAP).find(k =>
     lowerMsg.includes(k.toLowerCase())
   );
 
+  // Car model detection
   const foundModel = KNOWN_MODELS.find(m => lowerMsg.includes(m.toLowerCase()));
 
+  // ✅ English equivalent of detected model
+  const foundModelEn = foundModel
+    ? (MODEL_EN_MAP[foundModel] || (MODEL_EN_MAP[foundModel.toLowerCase()]) || foundModel)
+    : undefined;
+
+  // ✅ Infer make from model if not explicitly mentioned
+  let inferredMake = foundMakeKey ? CAR_MAKE_MAP[foundMakeKey] : undefined;
+  if (!inferredMake && foundModel) {
+    inferredMake = MODEL_TO_MAKE[foundModel] || MODEL_TO_MAKE[foundModel.toLowerCase()];
+  }
+
+  // Part keywords
   const sortedKeys = Object.keys(PART_KEYWORD_MAP).sort((a, b) => b.length - a.length);
   const matchedKeywords: string[] = [];
   for (const k of sortedKeys) {
@@ -261,13 +318,14 @@ function detectIntent(message: string): {
 
   const yearMatch = msg.match(/20[0-9]{2}|19[0-9]{2}/);
 
-  console.log('[INTENT] foundMakeKey:', foundMakeKey, '| foundModel:', foundModel, '| keywords:', uniqueKeywords);
+  console.log('[INTENT] make:', inferredMake, '| model:', foundModel, '| modelEn:', foundModelEn, '| kw:', uniqueKeywords);
 
-  if (foundMakeKey || foundModel || uniqueKeywords.length > 0) {
+  if (inferredMake || foundModel || uniqueKeywords.length > 0) {
     return {
       type: 'product_search',
-      carMake: foundMakeKey ? CAR_MAKE_MAP[foundMakeKey] : undefined,
+      carMake: inferredMake,
       carModel: foundModel,
+      carModelEn: foundModelEn !== foundModel ? foundModelEn : foundModel,
       carYear: yearMatch ? yearMatch[0] : undefined,
       partKeywords: uniqueKeywords.length > 0 ? uniqueKeywords : undefined,
     };
@@ -297,11 +355,10 @@ function buildContext(intent: ReturnType<typeof detectIntent>, dbResult: any): s
 
   if (intent.type === 'product_search') {
     const products = Array.isArray(dbResult) ? dbResult : [dbResult];
-    if (!products.length) return 'NO_PRODUCTS_FOUND';
+    if (!products.length) return '';
 
     return (
-      `عدد المنتجات الموجودة في الداتابيز: ${products.length}\n\n` +
-      `⚠️ المنتجات دي هي الوحيدة الموجودة. اعرضهم بالظبط كما هم — لا تضيف ولا تعدل:\n\n` +
+      `✅ تم إيجاد ${products.length} منتج في الداتابيز — اعرضهم كلهم بالظبط:\n\n` +
       products.map((p: any, i: number) => {
         const price = p.sale_price > 0
           ? `${p.sale_price} ج.م (خصم من ${p.regular_price} ج.م)`
@@ -329,40 +386,37 @@ export async function POST(req: NextRequest) {
     if (!messages?.length) return NextResponse.json({ error: 'No messages' }, { status: 400 });
 
     const lastMessage = messages[messages.length - 1]?.content || '';
-    console.log('[CHAT] User message:', lastMessage);
-
     const intent = detectIntent(lastMessage);
-    console.log('[CHAT] Detected intent:', JSON.stringify(intent));
 
     let dbResult = null;
 
     if (intent.type === 'order_phone' && intent.phone) {
       dbResult = await getOrderByPhone(intent.phone);
-      console.log('[CHAT] Order by phone result:', dbResult ? `${dbResult.length} orders` : 'null');
     } else if (intent.type === 'order_id' && intent.orderId) {
       dbResult = await getOrderById(intent.orderId);
-      console.log('[CHAT] Order by ID result:', dbResult ? 'found' : 'null');
     } else if (intent.type === 'product_search') {
       dbResult = await searchProducts(
         intent.carMake,
         intent.carModel,
+        intent.carModelEn,
         intent.carYear,
         intent.partKeywords
       );
-      console.log('[CHAT] Product search result:', dbResult ? `${dbResult.length} products found` : 'null');
     }
+
+    console.log('[CHAT] DB result:', dbResult ? `${Array.isArray(dbResult) ? dbResult.length : 1} items` : 'null');
 
     const contextStr = dbResult ? buildContext(intent, dbResult) : '';
 
     const noResultsNote = (intent.type === 'product_search' && !dbResult)
-      ? '\n\n⚠️ الداتابيز ما رجعتش أي منتجات. قول للعميل بصراحة إن المنتج مش موجود دلوقتي واقترح يتواصل على واتساب.'
+      ? '\n\n⚠️ الداتابيز ما رجعتش أي منتجات. قول للعميل إن المنتج مش موجود دلوقتي واقترح يتواصل على واتساب.'
       : '';
 
     const systemContent =
       SYSTEM_PROMPT +
       noResultsNote +
       (contextStr
-        ? `\n\n════ بيانات من الداتابيز (استخدمها بالظبط) ════\n${contextStr}\n════ نهاية البيانات ════`
+        ? `\n\n════ بيانات من الداتابيز ════\n${contextStr}\n════ نهاية البيانات ════`
         : '');
 
     const groqMessages = [
@@ -392,8 +446,6 @@ export async function POST(req: NextRequest) {
 
     const data = await groqResponse.json();
     const reply = data.choices?.[0]?.message?.content || 'معلش، حصل خطأ. جرب تاني.';
-    console.log('[CHAT] Groq reply preview:', reply.slice(0, 100));
-
     return NextResponse.json({ reply });
 
   } catch (err: any) {
