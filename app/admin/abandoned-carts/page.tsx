@@ -316,9 +316,21 @@ export default function AbandonedCartsAdmin() {
     finally { setSendingEmail(null); }
   };
 
-  const sendWhatsApp = (phone: string, total: number) => {
-    const msg = encodeURIComponent(`مرحباً! 👋\n\nلاحظنا أنك تركت منتجات في سلتك بقيمة ${total.toFixed(2)} ج.م\n\nأكمل طلبك الآن واحصل على خصم 10% باستخدام كود: COMEBACK10\n\nhttps://zaitandfilters.com/checkout`);
-    window.open(`https://wa.me/${toWhatsAppNumber(phone)}?text=${msg}`, '_blank');
+  // ✅ UPDATED: Now uses إزيك message as default (مرحبا removed)
+  const sendWhatsApp = (cart: AbandonedCart) => {
+    const items = cart.cart_items?.slice(0, 2).map((i: any) => i.name).join('، ') || 'منتجات';
+    const more = cart.cart_items?.length > 2 ? ` و${cart.cart_items.length - 2} منتجات أخرى` : '';
+    const msg = encodeURIComponent(
+      `إزيك يا ${cart.customer_name || 'صديقنا'} 😄\n` +
+      `إحنا زيت اند فلترز 🛢️\n\n` +
+      `سلتك بتستناك من امبارح — فيها ${items}${more}\n\n` +
+      `مش هنضغط عليك، بس عشان إحنا بنحب عملاءنا، عملنالك كود خصم 5% خاص بيك:\n` +
+      `*COMEBACK10*\n\n` +
+      `استخدمه قبل بكره و كمل طلبك من هنا 👇\n` +
+      `https://zaitandfilters.com/checkout\n\n` +
+      `لو عندك أي سؤال، إحنا هنا 🙌`
+    );
+    window.open(`https://wa.me/${toWhatsAppNumber(cart.customer_phone)}?text=${msg}`, '_blank');
   };
 
   const handlePageChange = (page: number) => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); };
@@ -509,7 +521,7 @@ export default function AbandonedCartsAdmin() {
                             <Mail size={13} />
                           </button>
                           {cart.customer_phone && (
-                            <button onClick={() => sendWhatsApp(cart.customer_phone, cart.cart_total)} className="ac-btn" title="واتساب"
+                            <button onClick={() => sendWhatsApp(cart)} className="ac-btn" title="واتساب"
                               style={{ width: '30px', height: '30px', borderRadius: '8px', border: 'none', background: '#f0fdf4', color: '#15803d', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               <Send size={13} />
                             </button>
