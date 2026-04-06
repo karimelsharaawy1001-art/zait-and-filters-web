@@ -34,6 +34,10 @@ const SYSTEM_PROMPT = `أنت مساعد ذكي لمتجر "زيت اند فلت
 - ❌ ممنوع تخترع أو تعرض بيانات فاضية أو قوالب زي [رقم الأوردر] أو [الحالة].
 - ✅ اسأله بالعامية المصرية بس: "ممكن تديني رقم تليفونك أو رقم الأوردر عشان أجيب تفاصيله؟ 😊"
 
+❌ لو الداتابيز ما رجعتش أوردر بالرقم ده:
+- ❌ ممنوع تخترع أي بيانات أو أرقام أو تواريخ أو مبالغ.
+- ✅ قول بالعامية فقط: "مش لاقي أوردر بالبيانات دي، تأكد من الرقم أو تواصل معنا على واتساب 😊"
+
 📦 لو السؤال عن منتجات وفي منتجات في الداتابيز:
 - اكتب جملة ترحيبية قصيرة بس فقط مثل "لاقيت كذا منتج مناسب ليك 😊"
 - ❌ ممنوع تكتب أسماء منتجات أو أسعار أو روابط — الـ cards بتعمل ده تلقائياً.
@@ -250,7 +254,6 @@ const KNOWN_MODELS: string[] = [
   'إيبيزا', 'ليون', 'توليدو',
 ];
 
-// ── ✅ NEW: Order inquiry keywords ────────────────────────────────────────────
 const ORDER_INQUIRY_KEYWORDS = [
   'أوردر', 'اوردر', 'طلبي', 'طلب', 'حالة طلب', 'حالة الطلب',
   'وصل', 'وصلت', 'شحنة', 'شحنتي', 'تتبع', 'تتبع الطلب',
@@ -335,12 +338,16 @@ async function searchProducts(
   return null;
 }
 
+// ✅ UPDATED: searches by last 10 digits to match 01XXXXXXXXX, 201XXXXXXXXX, +201XXXXXXXXX
 async function getOrderByPhone(phone: string) {
   const cleaned = phone.replace(/\D/g, '');
+  // Last 10 digits covers all formats: 01XXXXXXXXX / 201XXXXXXXXX / +201XXXXXXXXX
+  const last10 = cleaned.slice(-10);
+  console.log('[PHONE] raw:', phone, '| cleaned:', cleaned, '| last10:', last10);
   const { data, error } = await supabase
     .from('orders')
     .select('id, status, total_price, items, created_at, tracking_number, city, payment_method')
-    .or(`customer_phone.ilike.%${cleaned}%,guest_phone.ilike.%${cleaned}%`)
+    .or(`customer_phone.ilike.%${last10}%,guest_phone.ilike.%${last10}%`)
     .order('created_at', { ascending: false })
     .limit(3);
   if (error || !data?.length) return null;
@@ -371,7 +378,6 @@ function translateStatus(status: string): string {
   return map[status] || status;
 }
 
-// ── ✅ UPDATED: detectIntent now includes order_inquiry ───────────────────────
 function detectIntent(message: string): {
   type: 'order_phone' | 'order_id' | 'order_inquiry' | 'product_search' | 'general';
   phone?: string;
@@ -385,21 +391,18 @@ function detectIntent(message: string): {
   const msg      = message.trim();
   const lowerMsg = msg.toLowerCase();
 
-  // 1. Phone number → look up order by phone
-  const phoneMatch = msg.match(/(\+?2?0?1[0-9]{9})/);
+  // ✅ UPDATED: catches 01XXXXXXXXX directly (no country code needed)
+  const phoneMatch = msg.match(/(0[0-9]{10}|\+?2?0[0-9]{10})/);
   if (phoneMatch) return { type: 'order_phone', phone: phoneMatch[1] };
 
-  // 2. Order ID → look up by ID
   const orderIdMatch = msg.match(/([0-9a-f]{8}-[0-9a-f]{4}|[A-Z0-9]{8})/i);
   if (orderIdMatch) return { type: 'order_id', orderId: orderIdMatch[1] };
 
-  // 3. ✅ Order inquiry WITHOUT phone/ID → ask for it
   const isOrderInquiry = ORDER_INQUIRY_KEYWORDS.some(k =>
     lowerMsg.includes(k.toLowerCase())
   );
   if (isOrderInquiry) return { type: 'order_inquiry' };
 
-  // 4. Product search
   const sortedModels = [...KNOWN_MODELS].sort((a, b) => b.length - a.length);
   const foundModel   = sortedModels.find(m => lowerMsg.includes(m.toLowerCase()));
 
@@ -489,18 +492,19 @@ export async function POST(req: NextRequest) {
         intent.partKeywords
       );
     }
-    // ✅ order_inquiry → no DB call, just ask for phone/ID
 
     console.log('[CHAT] intent:', intent.type, '| DB result:', dbResult ? `${Array.isArray(dbResult) ? dbResult.length : 1} items` : 'null');
 
     const contextStr = dbResult ? buildContext(intent, dbResult) : '';
 
-    // ✅ UPDATED: noResultsNote now handles order_inquiry separately
+    // ✅ UPDATED: handles all 4 cases cleanly
     const noResultsNote =
       (intent.type === 'product_search' && !dbResult)
         ? '\n\n⚠️ الداتابيز ما رجعتش أي منتجات. قول للعميل إن المنتج مش موجود دلوقتي واقترح يتواصل على واتساب.'
       : (intent.type === 'order_inquiry')
         ? '\n\n⚠️ العميل بيسأل عن أوردر بس ما فيش رقم تليفون أو رقم أوردر. اطلب منه رقم تليفونه أو رقم الأوردر فقط — ممنوع تعرض أي بيانات أو قوالب فاضية.'
+      : ((intent.type === 'order_phone' || intent.type === 'order_id') && !dbResult)
+        ? '\n\n⚠️ الداتابيز ما رجعتش أي أوردر بالبيانات دي. ❌ ممنوع تخترع أي بيانات. قول للعميل بالعامية: "مش لاقي أوردر بالبيانات دي، تأكد من الرقم أو تواصل معنا على واتساب 😊"'
       : '';
 
     const systemContent =
