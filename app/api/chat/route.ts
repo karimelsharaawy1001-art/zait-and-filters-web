@@ -7,8 +7,8 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const GROQ_API_URL    = 'https://api.groq.com/openai/v1/chat/completions';
-const TAVILY_API_URL  = 'https://api.tavily.com/search';
+const GROQ_API_URL   = 'https://api.groq.com/openai/v1/chat/completions';
+const TAVILY_API_URL = 'https://api.tavily.com/search';
 
 const WHATSAPP_LINK    = 'https://wa.me/message/WLUQAGMSE3Y4N1';
 const WHATSAPP_CHANNEL = 'https://whatsapp.com/channel/0029VazpGX92v1IjpokKBy3b';
@@ -94,14 +94,32 @@ const SYSTEM_PROMPT = `أنت "شوكت" — المساعد الذكي لمتج�
 - لو في بيانات بحث من الإنترنت هتتديلك في رسالة النظام، استخدمها عشان إجابتك تبقى دقيقة ومبنية على مصادر موثوقة
 - لو مفيش بيانات بحث، استخدم معرفتك عن مواصفات الشركات المصنّعة
 - قدّم التوصية بشكل واضح لزيت المحرك وزيت الفتيس معاً: درجة اللزوجة، نوع الزيت، وكمية التغيير المقترحة
-- بعد التوصية، قول للعميل إنه يقدر يلاقي الزيت ده عندنا في المتجر`;
+- بعد التوصية، قول للعميل إنه يقدر يلاقي الزيت ده عندنا في المتجر
+
+━━━━━━━━━━━━━━━━━━━━━━
+⚠️ معلومات تقنية مهمة — احفظها واستخدمها:
+━━━━━━━━━━━━━━━━━━━━━━
+زيت الفتيس الأوتوماتيك — حسب الماركة:
+- ميتسوبيشي لانسر بوما / شارك (4G92 / 4G93): Diamond SP-III أو Dia Queen ATF SP-III — مش Dexron III العادي
+- ميتسوبيشي لانسر مانيوال: GL-4 75W-90
+- تويوتا (معظم موديلات): Toyota T-IV أو WS (حسب السنة)
+- هيونداي / كيا (6-speed auto): SP-IV أو Diamond ATF SP-IV
+- نيسان (Jatco CVT): Nissan NS-2 أو NS-3 CVT Fluid — ممنوع تماماً Dexron
+- رينو / بيجو (CVT): Renault CVT Fluid أو EZL 799
+- شيفروليه كروز أوتوماتيك: Dexron VI
+- هوندا أوتوماتيك: Honda ATF DW-1 أو Z1 — مش Dexron
+- فولكس واجن / سيات (DSG): VW G052182 أو G052529
+
+زيت المحرك — قواعد عامة:
+- عربيات قبل 2010: في الغالب 10W-40 نصف تركيبي أو معدني
+- عربيات 2010 وبعدها: في الغالب 5W-30 أو 5W-40 تركيبي بالكامل
+- عربيات هجين (Hybrid): 0W-20 تركيبي بالكامل`;
 
 
 // ═══════════════════════════════════════════════
 // OIL RECOMMENDATION
 // ═══════════════════════════════════════════════
 
-// ✅ FIX 1: Expanded keywords to catch all oil-related questions
 const OIL_INQUIRY_KEYWORDS = [
   'زيت مناسب', 'انهي زيت', 'أي زيت', 'نوع الزيت', 'درجة الزيت',
   'مواصفات الزيت', 'زيت المحرك', 'زيت الفتيس', 'زيت العتاد',
@@ -128,15 +146,12 @@ function extractOilInfoFromHistory(messages: any[]): OilInfo {
   const lower  = recent.toLowerCase();
   const info: OilInfo = {};
 
-  // transmission
   if (/أوتوماتيك|اوتوماتيك|automatic|auto/i.test(recent)) info.transmission = 'automatic';
   else if (/مانيوال|يدوي|manual/i.test(recent))            info.transmission = 'manual';
 
-  // year
   const yearMatch = recent.match(/\b(19|20)\d{2}\b/);
   if (yearMatch) info.year = yearMatch[0];
 
-  // make (Arabic + English)
   const makeMap: Record<string, string> = {
     'تويوتا': 'Toyota',      'toyota': 'Toyota',
     'هيونداي': 'Hyundai',    'hyundai': 'Hyundai',
@@ -162,7 +177,6 @@ function extractOilInfoFromHistory(messages: any[]): OilInfo {
     if (lower.includes(key.toLowerCase())) { info.make = val; break; }
   }
 
-  // model (common Egyptian market models)
   const models = [
     'corolla','camry','yaris','hilux','fortuner','rav4','prado',
     'elantra','tucson','accent','sonata','i10','i20','i30','creta','matrix','verna',
@@ -192,9 +206,13 @@ function extractOilInfoFromHistory(messages: any[]): OilInfo {
   return info;
 }
 
+// ✅ FIX 1: Tavily query now includes both engine oil AND transmission fluid
 async function searchOilSpecs(make: string, model: string, year: string, transmission: string): Promise<string | null> {
   if (!process.env.TAVILY_API_KEY) return null;
-  const query = `${year} ${make} ${model} recommended engine oil viscosity grade ${transmission} transmission manufacturer specification`;
+  const isAuto = transmission === 'automatic';
+  const query = isAuto
+    ? `${year} ${make} ${model} engine oil viscosity grade AND automatic transmission fluid type ATF specification owner manual`
+    : `${year} ${make} ${model} engine oil viscosity grade AND manual gearbox oil GL-4 GL-5 75W-90 specification`;
   try {
     const res = await fetch(TAVILY_API_URL, {
       method: 'POST',
@@ -215,20 +233,62 @@ async function searchOilSpecs(make: string, model: string, year: string, transmi
   }
 }
 
-// ✅ FIX 2: New function to fetch oil products from DB
+// ✅ FIX 2: searchOilProducts now uses viscosity keywords and actively EXCLUDES filters
 async function searchOilProducts(carMake?: string): Promise<any[] | null> {
   const select = 'id, name, brand, car_make, car_model, car_model_year, regular_price, sale_price, slug, image_url';
 
+  // Real oil bottle keywords — viscosity grades + oil type names
+  const oilOr = [
+    'name.ilike.%5W-30%',
+    'name.ilike.%5W-40%',
+    'name.ilike.%10W-40%',
+    'name.ilike.%0W-20%',
+    'name.ilike.%5W-20%',
+    'name.ilike.%15W-40%',
+    'name.ilike.%0W-40%',
+    'name.ilike.%10W-30%',
+    'name.ilike.%ATF%',
+    'name.ilike.%Dexron%',
+    'name.ilike.%SP-III%',
+    'name.ilike.%SP-IV%',
+    'name.ilike.%Diamond ATF%',
+    'name.ilike.%Dia Queen%',
+    'name.ilike.%75W-90%',
+    'name.ilike.%80W-90%',
+    'name.ilike.%GL-4%',
+    'name.ilike.%GL-5%',
+    'name.ilike.%engine oil%',
+    'name.ilike.%motor oil%',
+    'name.ilike.%زيت محرك%',
+    'name.ilike.%زيت فتيس%',
+  ].join(',');
+
+  // ── Try car-specific first ──
   if (carMake) {
-    const { data } = await supabase.from('products').select(select)
+    const { data } = await supabase
+      .from('products')
+      .select(select)
       .ilike('car_make', `%${carMake}%`)
-      .or('name.ilike.%زيت%,name.ilike.%oil%,name.ilike.%ATF%')
+      .or(oilOr)
+      .not('name', 'ilike', '%فلتر%')
+      .not('name', 'ilike', '%filter%')
+      .not('name', 'ilike', '%حشو%')
+      .not('name', 'ilike', '%oring%')
+      .not('name', 'ilike', '%o-ring%')
       .limit(6);
     if (data?.length) return data;
   }
 
-  const { data } = await supabase.from('products').select(select)
-    .or('name.ilike.%زيت%,name.ilike.%engine oil%,name.ilike.%ATF%')
+  // ── Fall back: universal oil products (no make restriction) ──
+  const { data } = await supabase
+    .from('products')
+    .select(select)
+    .or(oilOr)
+    .not('name', 'ilike', '%فلتر%')
+    .not('name', 'ilike', '%filter%')
+    .not('name', 'ilike', '%حشو%')
+    .not('name', 'ilike', '%oring%')
+    .not('name', 'ilike', '%o-ring%')
     .limit(6);
   return data?.length ? data : null;
 }
@@ -574,7 +634,6 @@ function detectIntent(message: string, allMessages: any[]): Intent {
   // ── Oil recommendation flow ──────────────────
   const isOilInquiry = OIL_INQUIRY_KEYWORDS.some(k => lowerMsg.includes(k.toLowerCase()));
 
-  // ✅ FIX 3: Expanded mid-conversation oil detection
   const prevBotMessages = allMessages.filter(m => m.role === 'assistant').slice(-3);
   const askingForOilInfo = prevBotMessages.some(m =>
     m.content && (
@@ -669,32 +728,33 @@ function buildContext(intent: Intent, dbResult: any, oilSearchResult?: string | 
     return `لاقيت ${products.length} منتج مناسب. اكتب جملة ترحيب قصيرة طبيعية زي "تمام، لاقيتلك ${products.length} منتج مناسب 😊" — الكاردز بتتعرض تلقائياً. بعدين قول للعميل إنه لو عايز يشوف أكتر يدخل الصفحة الرئيسية ويختار ماركة وموديل عربيته.`;
   }
 
-  // ✅ FIX 4: Updated oil context — includes BOTH engine oil AND transmission oil
+  // ✅ FIX 3: Oil context forces structured response covering BOTH engine + transmission oils
   if (intent.type === 'oil_recommendation' && intent.oilInfo) {
     const { make, model, year, transmission } = intent.oilInfo;
     const isAuto = transmission === 'automatic';
     const searchContext = oilSearchResult
-      ? `\n\nنتائج البحث من الإنترنت:\n${oilSearchResult.slice(0, 2000)}`
-      : '\n\n[ملاحظة: استخدم معرفتك بمواصفات الشركة المصنّعة لإجابة دقيقة]';
+      ? `\n\nنتائج البحث من الإنترنت (استخدمها كمرجع للتوصية):\n${oilSearchResult.slice(0, 2000)}`
+      : '\n\n[ملاحظة: استخدم المعلومات التقنية الموجودة في رسالة النظام للإجابة بدقة]';
 
     return `العميل عنده: ${make} ${model} سنة ${year}، فتيس ${isAuto ? 'أوتوماتيك' : 'مانيوال'}.
 
-قدّم التوصية بالشكل ده بالظبط — رسالة واحدة منظمة وواضحة:
+قدّم ردك بالشكل ده بالظبط — رسالة واحدة منظمة وواضحة بالعامية المصرية:
 
 **زيت المحرك:**
-- درجة اللزوجة (مثلاً 5W-30 أو 5W-40)
-- نوع الزيت (معدني / نصف تركيبي / تركيبي بالكامل)
-- كمية التغيير المقترحة (مثلاً 3.5 لتر أو 4 لتر)
-- مدة التغيير (مثلاً كل 5000 كم أو 10,000 كم)
+- درجة اللزوجة (مثلاً: 5W-30 أو 10W-40)
+- نوع الزيت: معدني / نصف تركيبي / تركيبي بالكامل
+- كمية التغيير المقترحة (مثلاً: 3.5 لتر)
+- كل إمتى تغيّره (مثلاً: كل 5,000 كم أو 10,000 كم)
 
 **زيت الفتيس (${isAuto ? 'أوتوماتيك' : 'مانيوال'}):**
-- نوع الزيت المطلوب (${isAuto ? 'ATF — مثلاً Dexron III أو Dexron VI' : 'GL-4 أو GL-5 — مثلاً 75W-90'})
+- نوع الزيت بالظبط (${isAuto ? 'مثلاً: Diamond SP-III أو Dexron VI — مش بس Dexron' : 'مثلاً: GL-4 75W-90'})
 - كمية التغيير المقترحة
 
-بعد التوصية قول: "وده بعض الزيوت المتاحة عندنا في المتجر 👇" — الكاردز هتتعرض تلقائياً.
-ثم قول: "أي استفسار تاني، تواصل معنا على واتساب: ${WHATSAPP_LINK} 😊"
-
-⚠️ مهم جداً: الكلام لازم يبقى بالعامية المصرية الصح — ممنوع تماماً كلمة "نساعدناك"، الصح "نساعدك".
+⚠️ تعليمات مهمة:
+- اعتمد على المعلومات التقنية في رسالة النظام لتحديد نوع زيت الفتيس الصح لكل ماركة
+- لو مش متأكد من نوع ATF بالظبط، قول ذلك وانصحه يراجع دليل السيارة أو يتواصل معنا
+- الكلام لازم يبقى بالعامية المصرية الصح
+- بعد التوصية قول: "وده بعض الزيوت المتاحة عندنا 👇" ثم: "أي استفسار تاني تواصل معنا: ${WHATSAPP_LINK} 😊"
 ${searchContext}`;
   }
 
@@ -714,7 +774,7 @@ export async function POST(req: NextRequest) {
     const lastMessage = messages[messages.length - 1]?.content || '';
     const intent      = detectIntent(lastMessage, messages);
 
-    let dbResult: any        = null;
+    let dbResult: any                  = null;
     let oilSearchResult: string | null = null;
 
     if (intent.type === 'order_phone' && intent.phone) {
@@ -729,14 +789,13 @@ export async function POST(req: NextRequest) {
     } else if (intent.type === 'oil_recommendation' && intent.oilInfo) {
       const { make, model, year, transmission } = intent.oilInfo;
       if (make && model && year && transmission) {
-        // ✅ FIX 5: Run oil web search + oil product search in parallel
         const [oilSearch, oilProducts] = await Promise.all([
           searchOilSpecs(make, model, year, transmission),
           searchOilProducts(make),
         ]);
         oilSearchResult = oilSearch;
         dbResult        = oilProducts;
-        console.log('[OIL SEARCH]', oilSearchResult ? 'got results' : 'no results / no key');
+        console.log('[OIL SEARCH]',   oilSearchResult ? 'got results' : 'no results / no key');
         console.log('[OIL PRODUCTS]', dbResult ? `found ${dbResult.length}` : 'none');
       }
     }
@@ -745,7 +804,6 @@ export async function POST(req: NextRequest) {
 
     const contextStr = buildContext(intent, dbResult, oilSearchResult);
 
-    // Build the instruction note per intent
     const oilInfo = intent.oilInfo || {};
     const missingLines: string[] = [];
     if (!oilInfo.make)         missingLines.push('1️⃣ ماركة العربية؟ (مثلاً: تويوتا، هيونداي، نيسان، رينو...)');
@@ -754,7 +812,6 @@ export async function POST(req: NextRequest) {
     if (!oilInfo.transmission) missingLines.push('4️⃣ الفتيس أوتوماتيك ولا مانيوال؟');
 
     const noResultsNote =
-      // ✅ FIX 6: Ask ALL missing oil fields at once in one structured message
       (intent.type === 'oil_needs_info')
         ? `\n\n[تعليمات]: اسأل العميل عن المعلومات الناقصة دي كلها في رسالة واحدة بالظبط كده:
 "يلا نلاقيلك الزيت الصح! 💪 محتاج منك معلومات بسيطة:
@@ -807,7 +864,6 @@ ${missingLines.join('\n')}"
     const data  = await groqResponse.json();
     const reply = data.choices?.[0]?.message?.content || 'معلش، في مشكلة صغيرة. جرب تاني كمان شوية 😊';
 
-    // ✅ FIX 7: Products returned for BOTH product_search AND oil_recommendation
     const products = (
       (intent.type === 'product_search' || intent.type === 'oil_recommendation') &&
       Array.isArray(dbResult) && dbResult.length > 0
