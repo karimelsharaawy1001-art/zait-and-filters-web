@@ -77,7 +77,7 @@ const SYSTEM_PROMPT = `أنت "شوكت" — المساعد الذكي لمتج�
 "كل المنتجات عندنا ليها ضمان 6 شهور 👍"
 
 مثال 10 — بعد الحصول على كل المعلومات وعرض توصية الزيت:
-"ده الزيت المناسب لعربيتك حسب مواصفات الشركة المصنّعة. لو عايز تطلب، ابحث عنه عندنا في المتجر أو تواصل معنا على واتساب: ${WHATSAPP_LINK} 😊"
+"ده الزيت المناسب لعربيتك حسب مواصفات الشركة المصنّعة. الكاردز اللي تحت بتبين الزيوت المتاحة عندنا دلوقتي 👇 أي استفسار تواصل معنا على واتساب: ${WHATSAPP_LINK} 😊"
 
 ━━━━━━━━━━━━━━━━━━━━━━
 قواعد المنتجات والأوردرات:
@@ -94,7 +94,7 @@ const SYSTEM_PROMPT = `أنت "شوكت" — المساعد الذكي لمتج�
 - لو في بيانات بحث من الإنترنت هتتديلك في رسالة النظام، استخدمها عشان إجابتك تبقى دقيقة ومبنية على مصادر موثوقة
 - لو مفيش بيانات بحث، استخدم معرفتك عن مواصفات الشركات المصنّعة
 - قدّم التوصية بشكل واضح لزيت المحرك وزيت الفتيس معاً: درجة اللزوجة، نوع الزيت، وكمية التغيير المقترحة
-- بعد التوصية، قول للعميل إنه يقدر يلاقي الزيت ده عندنا في المتجر
+- ⚠️ ممنوع تماماً تقول "ابحث في المتجر" أو "ابحث عنه" — الكاردز بتتعرض تلقائياً تحت ردك
 
 ━━━━━━━━━━━━━━━━━━━━━━
 ⚠️ معلومات تقنية مهمة — احفظها واستخدمها:
@@ -153,25 +153,25 @@ function extractOilInfoFromHistory(messages: any[]): OilInfo {
   if (yearMatch) info.year = yearMatch[0];
 
   const makeMap: Record<string, string> = {
-    'تويوتا': 'Toyota',      'toyota': 'Toyota',
-    'هيونداي': 'Hyundai',    'hyundai': 'Hyundai',
-    'كيا': 'Kia',            'kia': 'Kia',
-    'نيسان': 'Nissan',       'nissan': 'Nissan',
-    'هوندا': 'Honda',        'honda': 'Honda',
-    'شيفروليه': 'Chevrolet', 'chevrolet': 'Chevrolet',
-    'أوبل': 'Opel',          'opel': 'Opel',
-    'رينو': 'Renault',       'renault': 'Renault',
-    'بيجو': 'Peugeot',       'peugeot': 'Peugeot',
+    'تويوتا': 'Toyota',       'toyota': 'Toyota',
+    'هيونداي': 'Hyundai',     'hyundai': 'Hyundai',
+    'كيا': 'Kia',             'kia': 'Kia',
+    'نيسان': 'Nissan',        'nissan': 'Nissan',
+    'هوندا': 'Honda',         'honda': 'Honda',
+    'شيفروليه': 'Chevrolet',  'chevrolet': 'Chevrolet',
+    'أوبل': 'Opel',           'opel': 'Opel',
+    'رينو': 'Renault',        'renault': 'Renault',
+    'بيجو': 'Peugeot',        'peugeot': 'Peugeot',
     'ميتسوبيشي': 'Mitsubishi','mitsubishi': 'Mitsubishi',
-    'فيات': 'Fiat',          'fiat': 'Fiat',
-    'مرسيدس': 'Mercedes',    'mercedes': 'Mercedes',
-    'بي ام دبليو': 'BMW',    'bmw': 'BMW',
-    'فولكس': 'Volkswagen',   'volkswagen': 'Volkswagen',
-    'إم جي': 'MG',           'mg': 'MG',
-    'سيات': 'Seat',          'seat': 'Seat',
-    'جيلي': 'Geely',         'geely': 'Geely',
-    'سوزوكي': 'Suzuki',      'suzuki': 'Suzuki',
-    'لادا': 'Lada',          'lada': 'Lada',
+    'فيات': 'Fiat',           'fiat': 'Fiat',
+    'مرسيدس': 'Mercedes',     'mercedes': 'Mercedes',
+    'بي ام دبليو': 'BMW',     'bmw': 'BMW',
+    'فولكس': 'Volkswagen',    'volkswagen': 'Volkswagen',
+    'إم جي': 'MG',            'mg': 'MG',
+    'سيات': 'Seat',           'seat': 'Seat',
+    'جيلي': 'Geely',          'geely': 'Geely',
+    'سوزوكي': 'Suzuki',       'suzuki': 'Suzuki',
+    'لادا': 'Lada',           'lada': 'Lada',
   };
   for (const [key, val] of Object.entries(makeMap)) {
     if (lower.includes(key.toLowerCase())) { info.make = val; break; }
@@ -206,7 +206,6 @@ function extractOilInfoFromHistory(messages: any[]): OilInfo {
   return info;
 }
 
-// ✅ FIX 1: Tavily query now includes both engine oil AND transmission fluid
 async function searchOilSpecs(make: string, model: string, year: string, transmission: string): Promise<string | null> {
   if (!process.env.TAVILY_API_KEY) return null;
   const isAuto = transmission === 'automatic';
@@ -233,63 +232,70 @@ async function searchOilSpecs(make: string, model: string, year: string, transmi
   }
 }
 
-// ✅ FIX 2: searchOilProducts now uses viscosity keywords and actively EXCLUDES filters
+// ✅ FIX: All viscosity format variants + brand name fallback + exclude non-oil products
 async function searchOilProducts(carMake?: string): Promise<any[] | null> {
   const select = 'id, name, brand, car_make, car_model, car_model_year, regular_price, sale_price, slug, image_url';
 
-  // Real oil bottle keywords — viscosity grades + oil type names
   const oilOr = [
-    'name.ilike.%5W-30%',
-    'name.ilike.%5W-40%',
-    'name.ilike.%10W-40%',
-    'name.ilike.%0W-20%',
-    'name.ilike.%5W-20%',
-    'name.ilike.%15W-40%',
-    'name.ilike.%0W-40%',
-    'name.ilike.%10W-30%',
+    // Viscosity — all format variants (dash / no-dash, upper / lower)
+    'name.ilike.%5w-30%','name.ilike.%5w30%','name.ilike.%5W-30%','name.ilike.%5W30%',
+    'name.ilike.%5w-40%','name.ilike.%5w40%','name.ilike.%5W-40%','name.ilike.%5W40%',
+    'name.ilike.%10w-40%','name.ilike.%10w40%','name.ilike.%10W-40%','name.ilike.%10W40%',
+    'name.ilike.%0w-20%','name.ilike.%0w20%','name.ilike.%0W-20%','name.ilike.%0W20%',
+    'name.ilike.%5w-20%','name.ilike.%5w20%','name.ilike.%5W-20%','name.ilike.%5W20%',
+    'name.ilike.%15w-40%','name.ilike.%15w40%','name.ilike.%15W-40%','name.ilike.%15W40%',
+    'name.ilike.%0w-40%','name.ilike.%0w40%','name.ilike.%0W-40%','name.ilike.%0W40%',
+    'name.ilike.%10w-30%','name.ilike.%10w30%','name.ilike.%10W-30%','name.ilike.%10W30%',
+    // ATF / Transmission
     'name.ilike.%ATF%',
-    'name.ilike.%Dexron%',
-    'name.ilike.%SP-III%',
-    'name.ilike.%SP-IV%',
+    'name.ilike.%Dexron%','name.ilike.%dexron%',
+    'name.ilike.%SP-III%','name.ilike.%SPIII%','name.ilike.%sp3%',
+    'name.ilike.%SP-IV%','name.ilike.%SPIV%','name.ilike.%sp4%',
     'name.ilike.%Diamond ATF%',
     'name.ilike.%Dia Queen%',
-    'name.ilike.%75W-90%',
-    'name.ilike.%80W-90%',
-    'name.ilike.%GL-4%',
-    'name.ilike.%GL-5%',
+    'name.ilike.%75w-90%','name.ilike.%75w90%','name.ilike.%75W-90%','name.ilike.%75W90%',
+    'name.ilike.%80w-90%','name.ilike.%80w90%','name.ilike.%80W-90%','name.ilike.%80W90%',
+    'name.ilike.%GL-4%','name.ilike.%GL4%',
+    'name.ilike.%GL-5%','name.ilike.%GL5%',
+    // Brand name fallback
+    'name.ilike.%castrol%',
+    'name.ilike.%total%',
+    'name.ilike.%mobil%',
+    'name.ilike.%shell%',
+    'name.ilike.%valvoline%',
+    'name.ilike.%gulf%',
+    'name.ilike.%mannol%',
+    'name.ilike.%motul%',
+    'name.ilike.%liqui moly%',
+    'name.ilike.%comma%',
+    // Arabic / English oil labels
     'name.ilike.%engine oil%',
     'name.ilike.%motor oil%',
     'name.ilike.%زيت محرك%',
     'name.ilike.%زيت فتيس%',
   ].join(',');
 
-  // ── Try car-specific first ──
-  if (carMake) {
-    const { data } = await supabase
-      .from('products')
-      .select(select)
-      .ilike('car_make', `%${carMake}%`)
-      .or(oilOr)
-      .not('name', 'ilike', '%فلتر%')
-      .not('name', 'ilike', '%filter%')
-      .not('name', 'ilike', '%حشو%')
-      .not('name', 'ilike', '%oring%')
-      .not('name', 'ilike', '%o-ring%')
-      .limit(6);
-    if (data?.length) return data;
-  }
-
-  // ── Fall back: universal oil products (no make restriction) ──
-  const { data } = await supabase
-    .from('products')
-    .select(select)
-    .or(oilOr)
+  const applyExclusions = (q: any) => q
     .not('name', 'ilike', '%فلتر%')
     .not('name', 'ilike', '%filter%')
     .not('name', 'ilike', '%حشو%')
     .not('name', 'ilike', '%oring%')
-    .not('name', 'ilike', '%o-ring%')
-    .limit(6);
+    .not('name', 'ilike', '%o-ring%');
+
+  // 1st try — car-make specific oils
+  if (carMake) {
+    const { data } = await applyExclusions(
+      supabase.from('products').select(select)
+        .ilike('car_make', `%${carMake}%`)
+        .or(oilOr)
+    ).limit(6);
+    if (data?.length) return data;
+  }
+
+  // 2nd try — universal oils (no make restriction)
+  const { data } = await applyExclusions(
+    supabase.from('products').select(select).or(oilOr)
+  ).limit(6);
   return data?.length ? data : null;
 }
 
@@ -303,11 +309,11 @@ const CAR_DATA = [
   { make: 'CHEVROLET', make_ar: 'شيفروليه', model: 'CRUZE', model_ar: 'كروز',    years: ['2009-2013', '2014-2017'] },
   { make: 'CHEVROLET', make_ar: 'شيفروليه', model: 'LANOS', model_ar: 'لانوس',   years: [] },
   { make: 'CHEVROLET', make_ar: 'شيفروليه', model: 'OPTRA', model_ar: 'أوبترا',  years: ['2004-2014', '2014-2023'] },
-  { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'ACCENT',     model_ar: 'أكسنت',      years: ['2006-2011', '2011-2024'] },
-  { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'ACCENT HCI', model_ar: 'أكسنت HCI',  years: ['2017-2023'] },
-  { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'MATRIX',     model_ar: 'ماتريكس',    years: [] },
-  { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'TUCSON',     model_ar: 'توسان',       years: ['2014-2021', '2022-2025'] },
-  { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'VERNA',      model_ar: 'فيرنا',       years: [] },
+  { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'ACCENT',     model_ar: 'أكسنت',     years: ['2006-2011', '2011-2024'] },
+  { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'ACCENT HCI', model_ar: 'أكسنت HCI', years: ['2017-2023'] },
+  { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'MATRIX',     model_ar: 'ماتريكس',   years: [] },
+  { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'TUCSON',     model_ar: 'توسان',      years: ['2014-2021', '2022-2025'] },
+  { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'VERNA',      model_ar: 'فيرنا',      years: [] },
   { make: 'KIA', make_ar: 'كيا', model: 'GRAND CERATO', model_ar: 'جراند سيراتو', years: ['2018-2022'] },
   { make: 'KIA', make_ar: 'كيا', model: 'SPORTAGE',     model_ar: 'سبورتاج',       years: ['2005-2010', '2010-2015', '2016-2022'] },
   { make: 'MG', make_ar: 'إم جي', model: '5',   model_ar: 'إم جي 5',   years: [] },
@@ -344,25 +350,25 @@ const CAR_DATA = [
 ];
 
 const CAR_MAKE_MAP: Record<string, string> = {
-  'تويوتا': 'Toyota',      'هيونداي': 'Hyundai',
-  'كيا': 'Kia',            'أوبل': 'Opel',
-  'شيفروليه': 'Chevrolet', 'نيسان': 'Nissan',
-  'هوندا': 'Honda',        'بيجو': 'Peugeot',
-  'رينو': 'Renault',       'فيات': 'Fiat',
+  'تويوتا': 'Toyota',       'هيونداي': 'Hyundai',
+  'كيا': 'Kia',             'أوبل': 'Opel',
+  'شيفروليه': 'Chevrolet',  'نيسان': 'Nissan',
+  'هوندا': 'Honda',         'بيجو': 'Peugeot',
+  'رينو': 'Renault',        'فيات': 'Fiat',
   'ميتسوبيشي': 'Mitsubishi','سوزوكي': 'Suzuki',
-  'فولكس': 'Volkswagen',   'بي ام دبليو': 'BMW',
-  'مرسيدس': 'Mercedes',    'لادا': 'Lada',
-  'جيلي': 'Geely',         'إم جي': 'MG',
+  'فولكس': 'Volkswagen',    'بي ام دبليو': 'BMW',
+  'مرسيدس': 'Mercedes',     'لادا': 'Lada',
+  'جيلي': 'Geely',          'إم جي': 'MG',
   'سيات': 'Seat',
-  'toyota': 'Toyota',      'hyundai': 'Hyundai',
-  'kia': 'Kia',            'opel': 'Opel',
-  'chevrolet': 'Chevrolet','nissan': 'Nissan',
-  'honda': 'Honda',        'peugeot': 'Peugeot',
-  'renault': 'Renault',    'fiat': 'Fiat',
+  'toyota': 'Toyota',       'hyundai': 'Hyundai',
+  'kia': 'Kia',             'opel': 'Opel',
+  'chevrolet': 'Chevrolet', 'nissan': 'Nissan',
+  'honda': 'Honda',         'peugeot': 'Peugeot',
+  'renault': 'Renault',     'fiat': 'Fiat',
   'mitsubishi': 'Mitsubishi','suzuki': 'Suzuki',
   'volkswagen': 'Volkswagen','bmw': 'BMW',
-  'mercedes': 'Mercedes',  'lada': 'Lada',
-  'geely': 'Geely',        'mg': 'MG',
+  'mercedes': 'Mercedes',   'lada': 'Lada',
+  'geely': 'Geely',         'mg': 'MG',
   'seat': 'Seat',
 };
 
@@ -370,71 +376,71 @@ const MODEL_TO_MAKE: Record<string, string> = {
   'corolla': 'Toyota',  'camry': 'Toyota',       'yaris': 'Toyota',
   'hilux': 'Toyota',    'fortuner': 'Toyota',     'prado': 'Toyota',
   'elantra': 'Hyundai', 'tucson': 'Hyundai',      'accent': 'Hyundai',
-  'sonata': 'Hyundai',  'i10': 'Hyundai',          'i20': 'Hyundai',
-  'i30': 'Hyundai',     'creta': 'Hyundai',        'matrix': 'Hyundai',
+  'sonata': 'Hyundai',  'i10': 'Hyundai',         'i20': 'Hyundai',
+  'i30': 'Hyundai',     'creta': 'Hyundai',       'matrix': 'Hyundai',
   'verna': 'Hyundai',   'accent hci': 'Hyundai',
-  'ماتريكس': 'Hyundai', 'فيرنا': 'Hyundai',        'توسان': 'Hyundai',
+  'ماتريكس': 'Hyundai', 'فيرنا': 'Hyundai',       'توسان': 'Hyundai',
   'أكسنت': 'Hyundai',
-  'sportage': 'Kia',    'cerato': 'Kia',           'picanto': 'Kia',
+  'sportage': 'Kia',    'cerato': 'Kia',          'picanto': 'Kia',
   'rio': 'Kia',         'grand cerato': 'Kia',
-  'سبورتاج': 'Kia',     'جراند سيراتو': 'Kia',     'سيراتو': 'Kia',
+  'سبورتاج': 'Kia',     'جراند سيراتو': 'Kia',    'سيراتو': 'Kia',
   'mg5': 'MG', 'mg 5': 'MG', 'mg6': 'MG', 'mg 6': 'MG',
   'mg hs': 'MG', 'mg rx5': 'MG', 'mg zs': 'MG',
   'إم جي 5': 'MG', 'إم جي 6': 'MG',
-  'lancer': 'Mitsubishi', 'لانسر': 'Mitsubishi',
+  'lancer': 'Mitsubishi',      'لانسر': 'Mitsubishi',
   'lancer puma': 'Mitsubishi', 'لانسر بوما': 'Mitsubishi',
   'lancer shark': 'Mitsubishi','لانسر شارك': 'Mitsubishi',
   'pajero': 'Mitsubishi', 'بوما': 'Mitsubishi', 'puma': 'Mitsubishi',
-  'بومة': 'Mitsubishi', 'outlander': 'Mitsubishi',
-  'eclipse': 'Mitsubishi', 'إيكليبس': 'Mitsubishi',
-  'cruze': 'Chevrolet', 'captiva': 'Chevrolet', 'optra': 'Chevrolet',
-  'aveo': 'Chevrolet', 'spark': 'Chevrolet', 'lanos': 'Chevrolet',
-  'كروز': 'Chevrolet', 'أفيو': 'Chevrolet', 'لانوس': 'Chevrolet', 'أوبترا': 'Chevrolet',
-  'astra': 'Opel', 'vectra': 'Opel', 'corsa': 'Opel',
+  'بومة': 'Mitsubishi',   'outlander': 'Mitsubishi',
+  'eclipse': 'Mitsubishi','إيكليبس': 'Mitsubishi',
+  'cruze': 'Chevrolet',  'captiva': 'Chevrolet', 'optra': 'Chevrolet',
+  'aveo': 'Chevrolet',   'spark': 'Chevrolet',   'lanos': 'Chevrolet',
+  'كروز': 'Chevrolet',   'أفيو': 'Chevrolet',    'لانوس': 'Chevrolet', 'أوبترا': 'Chevrolet',
+  'astra': 'Opel',  'vectra': 'Opel',  'corsa': 'Opel',
   'zafira': 'Opel', 'insignia': 'Opel',
-  'أسترا': 'Opel', 'إنسيجنيا': 'Opel',
+  'أسترا': 'Opel',  'إنسيجنيا': 'Opel',
   'sunny': 'Nissan', 'sentra': 'Nissan', 'qashqai': 'Nissan',
-  'navara': 'Nissan', 'sunny n16': 'Nissan', 'sunny n17': 'Nissan',
-  'صني': 'Nissan', 'قشقاي': 'Nissan', 'سنترا': 'Nissan',
-  'civic': 'Honda', 'accord': 'Honda', 'crv': 'Honda', 'hrv': 'Honda',
-  '206': 'Peugeot', '207': 'Peugeot', '301': 'Peugeot',
-  '308': 'Peugeot', '408': 'Peugeot', '508': 'Peugeot',
-  '2008': 'Peugeot', '3008': 'Peugeot', '5008': 'Peugeot',
-  'logan': 'Renault', 'duster': 'Renault', 'symbol': 'Renault',
-  'megane': 'Renault', 'fluence': 'Renault', 'captur': 'Renault',
-  'clio': 'Renault', 'kadjar': 'Renault', 'sandero': 'Renault', 'stepway': 'Renault',
-  'لوجان': 'Renault', 'داستر': 'Renault', 'ميجان': 'Renault',
-  'فلونس': 'Renault', 'كابتشر': 'Renault', 'كليو': 'Renault',
-  'كادجار': 'Renault', 'سانديرو': 'Renault', 'ستيبواي': 'Renault',
-  'ibiza': 'Seat', 'leon': 'Seat', 'toledo': 'Seat',
-  'إيبيزا': 'Seat', 'ليون': 'Seat', 'توليدو': 'Seat',
+  'navara': 'Nissan','sunny n16': 'Nissan','sunny n17': 'Nissan',
+  'صني': 'Nissan',   'قشقاي': 'Nissan',  'سنترا': 'Nissan',
+  'civic': 'Honda',  'accord': 'Honda',  'crv': 'Honda', 'hrv': 'Honda',
+  '206': 'Peugeot',  '207': 'Peugeot',   '301': 'Peugeot',
+  '308': 'Peugeot',  '408': 'Peugeot',   '508': 'Peugeot',
+  '2008': 'Peugeot', '3008': 'Peugeot',  '5008': 'Peugeot',
+  'logan': 'Renault',   'duster': 'Renault',  'symbol': 'Renault',
+  'megane': 'Renault',  'fluence': 'Renault', 'captur': 'Renault',
+  'clio': 'Renault',    'kadjar': 'Renault',  'sandero': 'Renault', 'stepway': 'Renault',
+  'لوجان': 'Renault',   'داستر': 'Renault',   'ميجان': 'Renault',
+  'فلونس': 'Renault',   'كابتشر': 'Renault',  'كليو': 'Renault',
+  'كادجار': 'Renault',  'سانديرو': 'Renault', 'ستيبواي': 'Renault',
+  'ibiza': 'Seat',  'leon': 'Seat',   'toledo': 'Seat',
+  'إيبيزا': 'Seat', 'ليون': 'Seat',   'توليدو': 'Seat',
   'golf': 'Volkswagen', 'polo': 'Volkswagen', 'passat': 'Volkswagen',
 };
 
 const MODEL_EN_MAP: Record<string, string> = {
-  'أفيو': 'aveo',     'كروز': 'cruze',    'لانوس': 'lanos',
-  'أوبترا': 'optra',  'أكسنت': 'accent',  'توسان': 'tucson',
-  'ماتريكس': 'matrix','فيرنا': 'verna',   'النترا': 'elantra',
+  'أفيو': 'aveo',       'كروز': 'cruze',      'لانوس': 'lanos',
+  'أوبترا': 'optra',    'أكسنت': 'accent',    'توسان': 'tucson',
+  'ماتريكس': 'matrix',  'فيرنا': 'verna',     'النترا': 'elantra',
   'سبورتاج': 'sportage','سيراتو': 'cerato',
   'جراند سيراتو': 'grand cerato',
-  'لانسر': 'lancer', 'لانسر بوما': 'lancer puma',
+  'لانسر': 'lancer',    'لانسر بوما': 'lancer puma',
   'لانسر شارك': 'lancer shark',
-  'بوما': 'puma',    'بومة': 'puma',     'إيكليبس': 'eclipse',
-  'قشقاي': 'qashqai','سنترا': 'sentra',  'صني': 'sunny',
+  'بوما': 'puma',       'بومة': 'puma',       'إيكليبس': 'eclipse',
+  'قشقاي': 'qashqai',  'سنترا': 'sentra',    'صني': 'sunny',
   'صني n16': 'sunny n16','صني n17': 'sunny n17',
-  'أسترا': 'astra',  'إنسيجنيا': 'insignia',
-  'لوجان': 'logan',  'داستر': 'duster',  'ميجان': 'megane',
-  'فلونس': 'fluence','كابتشر': 'captur', 'كليو': 'clio',
-  'كادجار': 'kadjar','سانديرو': 'sandero','ستيبواي': 'stepway',
-  'إيبيزا': 'ibiza', 'ليون': 'leon',     'توليدو': 'toledo',
-  'كورولا': 'corolla','كامري': 'camry',  'ياريس': 'yaris',
+  'أسترا': 'astra',     'إنسيجنيا': 'insignia',
+  'لوجان': 'logan',     'داستر': 'duster',    'ميجان': 'megane',
+  'فلونس': 'fluence',   'كابتشر': 'captur',   'كليو': 'clio',
+  'كادجار': 'kadjar',   'سانديرو': 'sandero', 'ستيبواي': 'stepway',
+  'إيبيزا': 'ibiza',    'ليون': 'leon',        'توليدو': 'toledo',
+  'كورولا': 'corolla',  'كامري': 'camry',     'ياريس': 'yaris',
 };
 
 const PART_KEYWORD_MAP: Record<string, string[]> = {
   'فلتر زيت':  ['oil filter', 'فلتر زيت'],
   'فلتر هواء': ['air filter', 'فلتر هواء'],
   'فلتر':      ['filter', 'فلتر'],
-  'زيت محرك': ['engine oil', 'motor oil', 'زيت'],
+  'زيت محرك':  ['engine oil', 'motor oil', 'زيت'],
   'زيت':       ['oil', 'زيت'],
   'تيل فرامل': ['تيل فرامل', 'brake pad', 'brake pads'],
   'فرامل':     ['brake', 'فرامل'],
@@ -502,7 +508,7 @@ async function searchProducts(
       .ilike('car_make', `%${carMake}%`)
       .ilike('car_model', `%${carModelEn}%`)
       .limit(8);
-    if (carYear) q = q.ilike('car_model_year', `%${carYear}%`);
+    if (carYear)           q = q.ilike('car_model_year', `%${carYear}%`);
     if (partKeywords?.length) q = q.or(partKeywords.map(k => `name.ilike.%${k}%`).join(','));
     const { data } = await q;
     if (data?.length) return data;
@@ -728,7 +734,7 @@ function buildContext(intent: Intent, dbResult: any, oilSearchResult?: string | 
     return `لاقيت ${products.length} منتج مناسب. اكتب جملة ترحيب قصيرة طبيعية زي "تمام، لاقيتلك ${products.length} منتج مناسب 😊" — الكاردز بتتعرض تلقائياً. بعدين قول للعميل إنه لو عايز يشوف أكتر يدخل الصفحة الرئيسية ويختار ماركة وموديل عربيته.`;
   }
 
-  // ✅ FIX 3: Oil context forces structured response covering BOTH engine + transmission oils
+  // ✅ FIX: Removed "ابحث في المتجر" — cards display automatically
   if (intent.type === 'oil_recommendation' && intent.oilInfo) {
     const { make, model, year, transmission } = intent.oilInfo;
     const isAuto = transmission === 'automatic';
@@ -754,7 +760,9 @@ function buildContext(intent: Intent, dbResult: any, oilSearchResult?: string | 
 - اعتمد على المعلومات التقنية في رسالة النظام لتحديد نوع زيت الفتيس الصح لكل ماركة
 - لو مش متأكد من نوع ATF بالظبط، قول ذلك وانصحه يراجع دليل السيارة أو يتواصل معنا
 - الكلام لازم يبقى بالعامية المصرية الصح
-- بعد التوصية قول: "وده بعض الزيوت المتاحة عندنا 👇" ثم: "أي استفسار تاني تواصل معنا: ${WHATSAPP_LINK} 😊"
+- ⚠️ ممنوع تماماً تقول "ابحث في المتجر" أو "ابحث عنه" — الكاردز بتتعرض تلقائياً تحت ردك
+- بعد التوصية قول فقط: "وده بعض الزيوت المتاحة عندنا دلوقتي 👇"
+- ثم: "أي استفسار تاني تواصل معنا على واتساب: ${WHATSAPP_LINK} 😊"
 ${searchContext}`;
   }
 

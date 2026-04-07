@@ -28,6 +28,38 @@ const SUGGESTIONS = [
   'بيتوصل لفين؟',
 ];
 
+// ── Render text with clickable URLs ──────────────────────────────────────────
+function renderContent(text: string) {
+  const urlRegex = /(https?:\/\/[^\s\u0600-\u06FF،؟!\n]+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part, i) => {
+    if (/^https?:\/\//.test(part)) {
+      const isWhatsApp = part.includes('wa.me') || part.includes('whatsapp.com');
+      return (
+        <a
+          key={i}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            color: isWhatsApp ? '#25D366' : '#15803d',
+            fontWeight: '700',
+            textDecoration: 'underline',
+            wordBreak: 'break-all',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '3px',
+          }}
+        >
+          {isWhatsApp ? '💬 ' : '🔗 '}
+          {part.replace('https://', '').replace('http://', '')}
+        </a>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
 // ── Product Card ──────────────────────────────────────────────────────────────
 function ProductCard({ product, index }: { product: Product; index: number }) {
   const hasDiscount = product.sale_price > 0 && product.sale_price < product.regular_price;
@@ -263,11 +295,21 @@ export default function ChatWidget() {
         .zf-suggestion:hover { background: #e8f5e9 !important; }
         .zf-send:hover       { background: #1a6b3a !important; }
         .zf-close:hover      { background: rgba(255,255,255,0.25) !important; }
+        .zf-link:hover       { opacity: 0.8; }
+
+        /* ✅ Mobile fix — raise above bottom nav bar */
+        .zf-fab    { bottom: calc(env(safe-area-inset-bottom, 0px) + 80px) !important; }
+        .zf-window { bottom: calc(env(safe-area-inset-bottom, 0px) + 80px) !important; }
+        @media (min-width: 640px) {
+          .zf-fab    { bottom: 24px !important; }
+          .zf-window { bottom: 24px !important; }
+        }
       `}</style>
 
-      {/* ── Floating Button — message icon only, NO avatar ── */}
+      {/* ── Floating Button ── */}
       <div
         onClick={() => setOpen(true)}
+        className="zf-fab"
         style={{
           display: open ? 'none' : 'flex',
           position: 'fixed', bottom: '24px', left: '24px',
@@ -291,25 +333,24 @@ export default function ChatWidget() {
 
       {/* ── Chat Window ── */}
       {open && (
-        <div style={{
-          position: 'fixed', bottom: '24px', left: '24px', zIndex: 9999,
-          width: 'min(400px, calc(100vw - 32px))',
-          height: 'min(620px, calc(100vh - 48px))',
-          background: '#fff', borderRadius: '20px',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
-          display: 'flex', flexDirection: 'column',
-          overflow: 'hidden', animation: 'zf-fadeup 0.25s ease',
-          direction: 'rtl', fontFamily: 'system-ui, -apple-system, sans-serif',
-        }}>
+        <div
+          className="zf-window"
+          style={{
+            position: 'fixed', bottom: '24px', left: '24px', zIndex: 9999,
+            width: 'min(400px, calc(100vw - 32px))',
+            height: 'min(620px, calc(100vh - 48px))',
+            background: '#fff', borderRadius: '20px',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+            display: 'flex', flexDirection: 'column',
+            overflow: 'hidden', animation: 'zf-fadeup 0.25s ease',
+            direction: 'rtl', fontFamily: 'system-ui, -apple-system, sans-serif',
+          }}
+        >
 
-          {/* Header — شوكت avatar + name */}
+          {/* Header */}
           <div style={{ background: 'linear-gradient(135deg, #15803d, #22c55e)', padding: '16px 18px', display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
             <div style={{ width: '46px', height: '46px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid rgba(255,255,255,0.4)' }}>
-              <img
-                src="/shawkat.png"
-                alt="شوكت"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
+              <img src="/shawkat.png" alt="شوكت" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: '900', fontSize: '1rem', color: '#fff' }}>شوكت</div>
@@ -333,7 +374,6 @@ export default function ChatWidget() {
             {messages.map((msg, i) => (
               <div key={i} className={msg.role === 'user' ? 'zf-msg-user' : 'zf-msg-bot'}>
                 <div style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-start' : 'flex-end', alignItems: 'flex-end', gap: '8px' }}>
-                  {/* شوكت avatar next to bot messages */}
                   {msg.role === 'assistant' && (
                     <div style={{ width: '30px', height: '30px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, marginBottom: '2px', border: '2px solid #22c55e' }}>
                       <img src="/shawkat.png" alt="شوكت" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -347,7 +387,7 @@ export default function ChatWidget() {
                     boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
                     whiteSpace: 'pre-wrap', wordBreak: 'break-word',
                   }}>
-                    {msg.content}
+                    {renderContent(msg.content)}
                   </div>
                 </div>
 
@@ -359,7 +399,7 @@ export default function ChatWidget() {
               </div>
             ))}
 
-            {/* Loading dots — شوكت avatar */}
+            {/* Loading dots */}
             {loading && (
               <div className="zf-msg-bot" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', gap: '8px' }}>
                 <div style={{ width: '30px', height: '30px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #22c55e' }}>
