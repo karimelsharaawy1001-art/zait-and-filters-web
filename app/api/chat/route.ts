@@ -13,74 +13,113 @@ const TAVILY_API_URL = 'https://api.tavily.com/search';
 const WHATSAPP_LINK    = 'https://wa.me/message/WLUQAGMSE3Y4N1';
 const WHATSAPP_CHANNEL = 'https://whatsapp.com/channel/0029VazpGX92v1IjpokKBy3b';
 
-const SYSTEM_PROMPT = `أنت "شوكت" — المساعد الذكي لمتجر زيت اند فلترز.
-
-⚠️ قاعدة رقم 1 — اللغة — مش قابل للنقاش:
-اتكلم بالعامية المصرية الحقيقية في كل رسالة بدون أي استثناء.
-
-❌ كلمات وجمل ممنوعة تماماً:
-- "بالتأكيد" / "يسعدني" / "كيف يمكنني" / "مرحباً بك" / "نعم، بالطبع"
-- "بنا" (الصح: "إحنا") / "أيام شغل" (الصح: "أيام عمل")
-- أي جملة رسمية أو فصحى
-
-✅ أمثلة على العامية المصرية الصح:
-- "ماشي، خليني أشوفلك"
-- "تمام يسطا، لاقيتلك اللي محتاجه 😊"
-- "إيه إصدار عربيتك؟"
-- "مش لاقي أوردر بالرقم ده، تأكد من الرقم"
-- "إحنا بنوصّل لكل مصر خلال 2 لـ 5 أيام عمل"
-- "أيوه عندنا ضمان 6 شهور على كل المنتجات"
-- "يلا نلاقيلك الزيت الصح 💪"
+const SYSTEM_PROMPT = `أنت "شوكت" — المساعد الذكي لمتجر زيت اند فلترز، متجر مصري متخصص في زيوت المحركات وقطع غيار السيارات.
 
 ━━━━━━━━━━━━━━━━━━━━━━
 معلومات المتجر:
 ━━━━━━━━━━━━━━━━━━━━━━
-- الاسم: زيت اند فلترز — متجر مصري لزيوت وقطع غيار السيارات
 - الموقع: zaitandfilters.com
 - التوصيل: لكل محافظات مصر خلال 2 إلى 5 أيام عمل
-- الشحن السريع: 48 ساعة للقاهرة والجيزة بس
+- الشحن السريع: خلال 48 ساعة داخل القاهرة والجيزة فقط
 - طرق الدفع: InstaPay، المحافظ الإلكترونية، شركات التقسيط، بطاقات الائتمان
 - الكاش باك: كل طلب بيكسب كاش باك في المحفظة
 - الضمان: 6 شهور على جميع المنتجات
-- واتساب: https://wa.me/message/WLUQAGMSE3Y4N1
-- قناة العروض: https://whatsapp.com/channel/0029VazpGX92v1IjpokKBy3b
+- واتساب: ${WHATSAPP_LINK}
+- قناة العروض على واتساب: ${WHATSAPP_CHANNEL}
+
+━━━━━━━━━━━━━━━━━━━━━━
+أسلوبك في الكلام — مهم جداً:
+━━━━━━━━━━━━━━━━━━━━━━
+- بتتكلم بالعامية المصرية الصح دايماً
+- ردودك قصيرة، واضحة، وطبيعية
+- بتستخدم كلمات زي: "تمام"، "ماشي"، "حلو"، "يلا"، "عندك"، "خليني أشوفلك"، "إيه اللي محتاجه"
+
+كلمات وجمل ممنوع تستخدمها أبداً:
+- ❌ "بنا" → الصح: "إحنا"
+- ❌ "أيام شغل" → الصح: "أيام عمل"
+- ❌ "نساعدناك" → الصح: "نساعدك"
+- ❌ أي جملة مكسورة أو مش مفهومة
+- ❌ ترجمة حرفية من الإنجليزية للعربية
+
+━━━━━━━━━━━━━━━━━━━━━━
+أمثلة على ردود صح — احفظها واتعلم منها:
+━━━━━━━━━━━━━━━━━━━━━━
+
+مثال 1 — لما حد يسأل عن التوصيل:
+"إحنا بنوصّل لكل محافظات مصر خلال 2 إلى 5 أيام عمل، ولو كنت في القاهرة أو الجيزة، بنوصّلك خلال 48 ساعة بس 😊"
+
+مثال 2 — لما حد يسأل عن طرق الدفع:
+"عندنا أكتر من طريقة دفع: InstaPay، المحافظ الإلكترونية زي فودافون كاش ووي باي، بطاقات الائتمان، أو عن طريق شركات التقسيط. تحب تدفع بإيه؟"
+
+مثال 3 — لما حد يسأل عن الزيت المناسب لعربيته:
+"يلا نلاقيلك الزيت الصح! 💪 محتاج منك معلومات بسيطة:
+1️⃣ ماركة العربية؟ (مثلاً: تويوتا، هيونداي، كيا...)
+2️⃣ الموديل؟ (مثلاً: كورولا، أكسنت، سبورتاج...)
+3️⃣ سنة الإصدار؟
+4️⃣ الفتيس أوتوماتيك ولا مانيوال؟"
+
+مثال 4 — بعد عرض المنتجات:
+"لو عايز تشوف أكتر، ادخل الصفحة الرئيسية واختار ماركة وموديل عربيتك وهتلاقي كل المنتجات المناسبة، وتقدر تفلتر حسب نوع المنتج اللي محتاجه 👍"
+
+مثال 5 — لما حد يسأل عن أوردر من غير رقم:
+"ممكن تديني رقم تليفونك أو رقم الأوردر عشان أجيبلك التفاصيل؟ 😊"
+
+مثال 6 — لما مفيش أوردر:
+"مش لاقي أوردر بالبيانات دي. تأكد من الرقم، أو تواصل معنا على واتساب وهنساعدك على طول: ${WHATSAPP_LINK}"
+
+مثال 7 — لما مفيش منتج:
+"للأسف المنتج ده مش متاح عندنا دلوقتي. تواصل معنا على واتساب وهنحاول نساعدك: ${WHATSAPP_LINK}"
+
+مثال 8 — إنهاء المحادثة:
+"أي حاجة تانية أساعدك فيها؟ 😊 وبالمناسبة، انضم لقناة الواتساب بتاعتنا عشان تعرف أول بأول بأحدث العروض والمنتجات الجديدة: ${WHATSAPP_CHANNEL}"
+
+مثال 9 — لما حد يسأل عن الضمان:
+"كل المنتجات عندنا ليها ضمان 6 شهور 👍"
+
+مثال 10 — بعد الحصول على كل المعلومات وعرض توصية الزيت:
+"ده الزيت المناسب لعربيتك حسب مواصفات الشركة المصنّعة. الكاردز اللي تحت بتبين الزيوت المتاحة عندنا دلوقتي 👇 أي استفسار تواصل معنا على واتساب: ${WHATSAPP_LINK} 😊"
 
 ━━━━━━━━━━━━━━━━━━━━━━
 قواعد المنتجات والأوردرات:
 ━━━━━━━━━━━━━━━━━━━━━━
-- لو في منتجات من الداتابيز: اكتب جملة ترحيب قصيرة طبيعية — الكاردز بتتعرض تلقائياً تحتك
+- قبل ما تدور على منتجات، اسأل عن سنة الموديل الأول
+- لو في منتجات من الداتابيز: اكتب جملة ترحيب قصيرة بس — الكاردز بتتعرض تلقائياً
 - لو في بيانات أوردر: اعرضها بشكل واضح ومرتب
 - متخترعش أي بيانات من عندك خالص
-- ممنوع تقول "ابحث في المتجر" — الكاردز بتظهر تلقائياً
 
 ━━━━━━━━━━━━━━━━━━━━━━
 قواعد توصية الزيت:
 ━━━━━━━━━━━━━━━━━━━━━━
-- لازم تجمع: الماركة، الموديل، السنة، ونوع الفتيس قبل أي توصية
-- لو في بيانات بحث في رسالة النظام، استخدمها
-- لو مفيش، استخدم المعلومات التقنية في رسالة النظام
-- قدّم التوصية لزيت المحرك وزيت الفتيس معاً: الدرجة، النوع، الكمية، فترة التغيير
+- لازم تجمع: الماركة، الموديل، السنة، ونوع الفتيس (أوتوماتيك / مانيوال) قبل ما تدي أي توصية
+- لو في بيانات بحث من الإنترنت هتتديلك في رسالة النظام، استخدمها عشان إجابتك تبقى دقيقة ومبنية على مصادر موثوقة
+- لو مفيش بيانات بحث، استخدم معرفتك عن مواصفات الشركات المصنّعة
+- قدّم التوصية بشكل واضح لزيت المحرك وزيت الفتيس معاً: درجة اللزوجة، نوع الزيت، وكمية التغيير المقترحة
+- ⚠️ ممنوع تماماً تقول "ابحث في المتجر" أو "ابحث عنه" — الكاردز بتتعرض تلقائياً تحت ردك
 
 ━━━━━━━━━━━━━━━━━━━━━━
-معلومات تقنية — احفظها:
+⚠️ معلومات تقنية مهمة — احفظها واستخدمها:
 ━━━━━━━━━━━━━━━━━━━━━━
-زيت الفتيس الأوتوماتيك:
-- ميتسوبيشي لانسر بوما/شارك: Diamond SP-III — مش Dexron III
-- ميتسوبيشي مانيوال: GL-4 75W-90
-- تويوتا: Toyota T-IV أو WS
-- هيونداي/كيا: SP-IV أو Diamond ATF SP-IV
-- نيسان CVT: Nissan NS-2 أو NS-3 — ممنوع Dexron
-- رينو/بيجو CVT: Renault CVT Fluid أو EZL 799
-- شيفروليه كروز: Dexron VI
-- هوندا: Honda ATF DW-1 أو Z1 — مش Dexron
-- فولكس/سيات DSG: VW G052182 أو G052529
+زيت الفتيس الأوتوماتيك — حسب الماركة:
+- ميتسوبيشي لانسر بوما / شارك (4G92 / 4G93): Diamond SP-III أو Dia Queen ATF SP-III — مش Dexron III العادي
+- ميتسوبيشي لانسر مانيوال: GL-4 75W-90
+- تويوتا (معظم موديلات): Toyota T-IV أو WS (حسب السنة)
+- هيونداي / كيا (6-speed auto): SP-IV أو Diamond ATF SP-IV
+- نيسان (Jatco CVT): Nissan NS-2 أو NS-3 CVT Fluid — ممنوع تماماً Dexron
+- رينو / بيجو (CVT): Renault CVT Fluid أو EZL 799
+- شيفروليه كروز أوتوماتيك: Dexron VI
+- هوندا أوتوماتيك: Honda ATF DW-1 أو Z1 — مش Dexron
+- فولكس واجن / سيات (DSG): VW G052182 أو G052529
 
-زيت المحرك:
-- قبل 2010: 10W-40 نصف تركيبي أو معدني
-- 2010 وبعدها: 5W-30 أو 5W-40 تركيبي بالكامل
-- هجين: 0W-20 تركيبي بالكامل`;
+زيت المحرك — قواعد عامة:
+- عربيات قبل 2010: في الغالب 10W-40 نصف تركيبي أو معدني
+- عربيات 2010 وبعدها: في الغالب 5W-30 أو 5W-40 تركيبي بالكامل
+- عربيات هجين (Hybrid): 0W-20 تركيبي بالكامل`;
 
-// OIL INQUIRY KEYWORDS
+
+// ═══════════════════════════════════════════════
+// OIL RECOMMENDATION
+// ═══════════════════════════════════════════════
+
 const OIL_INQUIRY_KEYWORDS = [
   'زيت مناسب', 'انهي زيت', 'أي زيت', 'نوع الزيت', 'درجة الزيت',
   'مواصفات الزيت', 'زيت المحرك', 'زيت الفتيس', 'زيت العتاد',
@@ -114,37 +153,34 @@ function extractOilInfoFromHistory(messages: any[]): OilInfo {
   if (yearMatch) info.year = yearMatch[0];
 
   const makeMap: Record<string, string> = {
-    'تويوتا': 'Toyota',        'toyota': 'Toyota',
-    'هيونداي': 'Hyundai',      'hyundai': 'Hyundai',
-    'كيا': 'Kia',              'kia': 'Kia',
-    'نيسان': 'Nissan',         'nissan': 'Nissan',
-    'هوندا': 'Honda',          'honda': 'Honda',
-    'شيفروليه': 'Chevrolet',   'chevrolet': 'Chevrolet',
-    'أوبل': 'Opel',            'opel': 'Opel',    'اوبل': 'Opel',
-    'رينو': 'Renault',         'renault': 'Renault',
-    'بيجو': 'Peugeot',         'peugeot': 'Peugeot',
-    'ميتسوبيشي': 'Mitsubishi', 'mitsubishi': 'Mitsubishi',
-    'فيات': 'Fiat',            'fiat': 'Fiat',
-    'مرسيدس': 'Mercedes',      'mercedes': 'Mercedes',
-    'بي ام دبليو': 'BMW',      'bmw': 'BMW',
-    'فولكس': 'Volkswagen',     'volkswagen': 'Volkswagen',
-    'إم جي': 'MG',             'mg': 'MG',
-    'سيات': 'Seat',            'seat': 'Seat',
-    'جيلي': 'Geely',           'geely': 'Geely',
-    'سوزوكي': 'Suzuki',        'suzuki': 'Suzuki',
-    'لادا': 'Lada',            'lada': 'Lada',
+    'تويوتا': 'Toyota',       'toyota': 'Toyota',
+    'هيونداي': 'Hyundai',     'hyundai': 'Hyundai',
+    'كيا': 'Kia',             'kia': 'Kia',
+    'نيسان': 'Nissan',        'nissan': 'Nissan',
+    'هوندا': 'Honda',         'honda': 'Honda',
+    'شيفروليه': 'Chevrolet',  'chevrolet': 'Chevrolet',
+    'أوبل': 'Opel',           'opel': 'Opel',
+    'رينو': 'Renault',        'renault': 'Renault',
+    'بيجو': 'Peugeot',        'peugeot': 'Peugeot',
+    'ميتسوبيشي': 'Mitsubishi','mitsubishi': 'Mitsubishi',
+    'فيات': 'Fiat',           'fiat': 'Fiat',
+    'مرسيدس': 'Mercedes',     'mercedes': 'Mercedes',
+    'بي ام دبليو': 'BMW',     'bmw': 'BMW',
+    'فولكس': 'Volkswagen',    'volkswagen': 'Volkswagen',
+    'إم جي': 'MG',            'mg': 'MG',
+    'سيات': 'Seat',           'seat': 'Seat',
+    'جيلي': 'Geely',          'geely': 'Geely',
+    'سوزوكي': 'Suzuki',       'suzuki': 'Suzuki',
+    'لادا': 'Lada',           'lada': 'Lada',
   };
-  const sortedMakeKeys = Object.keys(makeMap).sort((a, b) => b.length - a.length);
-  for (const key of sortedMakeKeys) {
-    if (lower.includes(key.toLowerCase())) { info.make = makeMap[key]; break; }
+  for (const [key, val] of Object.entries(makeMap)) {
+    if (lower.includes(key.toLowerCase())) { info.make = val; break; }
   }
 
   const models = [
-    'lancer puma','lancer shark','accent hci','grand cerato',
-    'sunny n16','sunny n17',
     'corolla','camry','yaris','hilux','fortuner','rav4','prado',
     'elantra','tucson','accent','sonata','i10','i20','i30','creta','matrix','verna',
-    'sportage','cerato','picanto','rio',
+    'sportage','cerato','grand cerato','picanto','rio',
     'sunny','sentra','qashqai','navara',
     'civic','accord','crv','hrv',
     'cruze','optra','aveo','lanos','captiva',
@@ -160,9 +196,7 @@ function extractOilInfoFromHistory(messages: any[]): OilInfo {
     'سبورتاج','سيراتو','جراند سيراتو',
     'كروز','أوبترا','أفيو','لانوس','أسترا','إنسيجنيا',
     'لوجان','داستر','ميجان','فلونس','كابتشر','كليو','كادجار','سانديرو','ستيبواي',
-    'لانسر بوما','لانسر شارك','لانسر','بوما',
-    'إيبيزا','ليون','توليدو',
-    'صني n16','صني n17','صني','سنترا','قشقاي',
+    'لانسر','لانسر بوما','لانسر شارك','بوما',
   ];
   const sortedModels = [...models].sort((a, b) => b.length - a.length);
   for (const m of sortedModels) {
@@ -181,7 +215,10 @@ async function searchOilSpecs(make: string, model: string, year: string, transmi
   try {
     const res = await fetch(TAVILY_API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` },
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${process.env.TAVILY_API_KEY}`,
+      },
       body: JSON.stringify({ query, search_depth: 'basic', max_results: 5, include_answer: true }),
     });
     if (!res.ok) { console.error('[Tavily Error]', await res.text()); return null; }
@@ -189,12 +226,18 @@ async function searchOilSpecs(make: string, model: string, year: string, transmi
     const answer  = data.answer || '';
     const results = (data.results || []).slice(0, 4).map((r: any) => r.content).join('\n\n');
     return `${answer}\n\n${results}`.trim() || null;
-  } catch (err) { console.error('[Tavily Fetch Error]', err); return null; }
+  } catch (err) {
+    console.error('[Tavily Fetch Error]', err);
+    return null;
+  }
 }
 
+// ✅ FIX: All viscosity format variants + brand name fallback + exclude non-oil products
 async function searchOilProducts(carMake?: string): Promise<any[] | null> {
   const select = 'id, name, brand, car_make, car_model, car_model_year, regular_price, sale_price, slug, image_url';
+
   const oilOr = [
+    // Viscosity — all format variants (dash / no-dash, upper / lower)
     'name.ilike.%5w-30%','name.ilike.%5w30%','name.ilike.%5W-30%','name.ilike.%5W30%',
     'name.ilike.%5w-40%','name.ilike.%5w40%','name.ilike.%5W-40%','name.ilike.%5W40%',
     'name.ilike.%10w-40%','name.ilike.%10w40%','name.ilike.%10W-40%','name.ilike.%10W40%',
@@ -203,106 +246,194 @@ async function searchOilProducts(carMake?: string): Promise<any[] | null> {
     'name.ilike.%15w-40%','name.ilike.%15w40%','name.ilike.%15W-40%','name.ilike.%15W40%',
     'name.ilike.%0w-40%','name.ilike.%0w40%','name.ilike.%0W-40%','name.ilike.%0W40%',
     'name.ilike.%10w-30%','name.ilike.%10w30%','name.ilike.%10W-30%','name.ilike.%10W30%',
-    'name.ilike.%ATF%','name.ilike.%Dexron%','name.ilike.%dexron%',
+    // ATF / Transmission
+    'name.ilike.%ATF%',
+    'name.ilike.%Dexron%','name.ilike.%dexron%',
     'name.ilike.%SP-III%','name.ilike.%SPIII%','name.ilike.%sp3%',
     'name.ilike.%SP-IV%','name.ilike.%SPIV%','name.ilike.%sp4%',
-    'name.ilike.%Diamond ATF%','name.ilike.%Dia Queen%',
+    'name.ilike.%Diamond ATF%',
+    'name.ilike.%Dia Queen%',
     'name.ilike.%75w-90%','name.ilike.%75w90%','name.ilike.%75W-90%','name.ilike.%75W90%',
     'name.ilike.%80w-90%','name.ilike.%80w90%','name.ilike.%80W-90%','name.ilike.%80W90%',
-    'name.ilike.%GL-4%','name.ilike.%GL4%','name.ilike.%GL-5%','name.ilike.%GL5%',
-    'name.ilike.%castrol%','name.ilike.%total%','name.ilike.%mobil%','name.ilike.%shell%',
-    'name.ilike.%valvoline%','name.ilike.%gulf%','name.ilike.%mannol%','name.ilike.%motul%',
-    'name.ilike.%liqui moly%','name.ilike.%comma%',
-    'name.ilike.%engine oil%','name.ilike.%motor oil%',
-    'name.ilike.%زيت محرك%','name.ilike.%زيت فتيس%',
+    'name.ilike.%GL-4%','name.ilike.%GL4%',
+    'name.ilike.%GL-5%','name.ilike.%GL5%',
+    // Brand name fallback
+    'name.ilike.%castrol%',
+    'name.ilike.%total%',
+    'name.ilike.%mobil%',
+    'name.ilike.%shell%',
+    'name.ilike.%valvoline%',
+    'name.ilike.%gulf%',
+    'name.ilike.%mannol%',
+    'name.ilike.%motul%',
+    'name.ilike.%liqui moly%',
+    'name.ilike.%comma%',
+    // Arabic / English oil labels
+    'name.ilike.%engine oil%',
+    'name.ilike.%motor oil%',
+    'name.ilike.%زيت محرك%',
+    'name.ilike.%زيت فتيس%',
   ].join(',');
+
   const applyExclusions = (q: any) => q
-    .not('name', 'ilike', '%فلتر%').not('name', 'ilike', '%filter%')
-    .not('name', 'ilike', '%حشو%').not('name', 'ilike', '%oring%').not('name', 'ilike', '%o-ring%');
+    .not('name', 'ilike', '%فلتر%')
+    .not('name', 'ilike', '%filter%')
+    .not('name', 'ilike', '%حشو%')
+    .not('name', 'ilike', '%oring%')
+    .not('name', 'ilike', '%o-ring%');
+
+  // 1st try — car-make specific oils
   if (carMake) {
-    const { data } = await applyExclusions(supabase.from('products').select(select).ilike('car_make', `%${carMake}%`).or(oilOr)).limit(6);
+    const { data } = await applyExclusions(
+      supabase.from('products').select(select)
+        .ilike('car_make', `%${carMake}%`)
+        .or(oilOr)
+    ).limit(6);
     if (data?.length) return data;
   }
-  const { data } = await applyExclusions(supabase.from('products').select(select).or(oilOr)).limit(6);
+
+  // 2nd try — universal oils (no make restriction)
+  const { data } = await applyExclusions(
+    supabase.from('products').select(select).or(oilOr)
+  ).limit(6);
   return data?.length ? data : null;
 }
 
-// CAR MAPS
+
+// ═══════════════════════════════════════════════
+// CAR DATA & MAPS
+// ═══════════════════════════════════════════════
+
+const CAR_DATA = [
+  { make: 'CHEVROLET', make_ar: 'شيفروليه', model: 'AVEO',  model_ar: 'أفيو',    years: ['2002-2011', '2012-2021'] },
+  { make: 'CHEVROLET', make_ar: 'شيفروليه', model: 'CRUZE', model_ar: 'كروز',    years: ['2009-2013', '2014-2017'] },
+  { make: 'CHEVROLET', make_ar: 'شيفروليه', model: 'LANOS', model_ar: 'لانوس',   years: [] },
+  { make: 'CHEVROLET', make_ar: 'شيفروليه', model: 'OPTRA', model_ar: 'أوبترا',  years: ['2004-2014', '2014-2023'] },
+  { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'ACCENT',     model_ar: 'أكسنت',     years: ['2006-2011', '2011-2024'] },
+  { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'ACCENT HCI', model_ar: 'أكسنت HCI', years: ['2017-2023'] },
+  { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'MATRIX',     model_ar: 'ماتريكس',   years: [] },
+  { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'TUCSON',     model_ar: 'توسان',      years: ['2014-2021', '2022-2025'] },
+  { make: 'HYUNDAI', make_ar: 'هيونداي', model: 'VERNA',      model_ar: 'فيرنا',      years: [] },
+  { make: 'KIA', make_ar: 'كيا', model: 'GRAND CERATO', model_ar: 'جراند سيراتو', years: ['2018-2022'] },
+  { make: 'KIA', make_ar: 'كيا', model: 'SPORTAGE',     model_ar: 'سبورتاج',       years: ['2005-2010', '2010-2015', '2016-2022'] },
+  { make: 'MG', make_ar: 'إم جي', model: '5',   model_ar: 'إم جي 5',   years: [] },
+  { make: 'MG', make_ar: 'إم جي', model: '6',   model_ar: 'إم جي 6',   years: [] },
+  { make: 'MG', make_ar: 'إم جي', model: 'HS',  model_ar: 'إم جي HS',  years: [] },
+  { make: 'MG', make_ar: 'إم جي', model: 'RX5', model_ar: 'إم جي RX5', years: [] },
+  { make: 'MG', make_ar: 'إم جي', model: 'ZS',  model_ar: 'إم جي ZS',  years: [] },
+  { make: 'MITSUBISHI', make_ar: 'ميتسوبيشي', model: 'ECLIPSE',      model_ar: 'إيكليبس',    years: [] },
+  { make: 'MITSUBISHI', make_ar: 'ميتسوبيشي', model: 'LANCER PUMA',  model_ar: 'لانسر بوما', years: [] },
+  { make: 'MITSUBISHI', make_ar: 'ميتسوبيشي', model: 'LANCER SHARK', model_ar: 'لانسر شارك', years: [] },
+  { make: 'NISSAN', make_ar: 'نيسان', model: 'QASHQAI',   model_ar: 'قشقاي',   years: ['2007-2013', '2014-2021', '2022-2025'] },
+  { make: 'NISSAN', make_ar: 'نيسان', model: 'SENTRA',    model_ar: 'سنترا',   years: [] },
+  { make: 'NISSAN', make_ar: 'نيسان', model: 'SUNNY N16', model_ar: 'صني N16', years: ['2005-2013'] },
+  { make: 'NISSAN', make_ar: 'نيسان', model: 'SUNNY N17', model_ar: 'صني N17', years: ['2014-2025'] },
+  { make: 'OPEL', make_ar: 'أوبل', model: 'ASTRA',    model_ar: 'أسترا',    years: ['2004-2009', '2010-2017', '2012-2018'] },
+  { make: 'OPEL', make_ar: 'أوبل', model: 'INSIGNIA', model_ar: 'إنسيجنيا', years: ['2013-2017'] },
+  { make: 'PEUGEOT', make_ar: 'بيجو', model: '2008', model_ar: 'بيجو 2008', years: ['2013-2018', '2019-2021'] },
+  { make: 'PEUGEOT', make_ar: 'بيجو', model: '3008', model_ar: 'بيجو 3008', years: ['2008-2016', '2017-2022'] },
+  { make: 'PEUGEOT', make_ar: 'بيجو', model: '308',  model_ar: 'بيجو 308',  years: ['2007-2013', '2011-2018', '2014-2021', '2018-2022'] },
+  { make: 'PEUGEOT', make_ar: 'بيجو', model: '5008', model_ar: 'بيجو 5008', years: ['2009-2016', '2017-2022'] },
+  { make: 'PEUGEOT', make_ar: 'بيجو', model: '508',  model_ar: 'بيجو 508',  years: ['2011-2018', '2018-2022'] },
+  { make: 'RENAULT', make_ar: 'رينو', model: 'CAPTUR',  model_ar: 'كابتشر',  years: ['2013-2018', '2018-2022'] },
+  { make: 'RENAULT', make_ar: 'رينو', model: 'CLIO',    model_ar: 'كليو',    years: ['2005-2008'] },
+  { make: 'RENAULT', make_ar: 'رينو', model: 'DUSTER',  model_ar: 'داستر',   years: ['2010-2018', '2018-2022'] },
+  { make: 'RENAULT', make_ar: 'رينو', model: 'FLUENCE', model_ar: 'فلونس',   years: [] },
+  { make: 'RENAULT', make_ar: 'رينو', model: 'KADJAR',  model_ar: 'كادجار',  years: [] },
+  { make: 'RENAULT', make_ar: 'رينو', model: 'LOGAN',   model_ar: 'لوجان',   years: ['2004-2013', '2012-2022'] },
+  { make: 'RENAULT', make_ar: 'رينو', model: 'MEGANE',  model_ar: 'ميجان',   years: ['2003-2009', '2009-2017', '2017-2023'] },
+  { make: 'RENAULT', make_ar: 'رينو', model: 'SANDERO', model_ar: 'سانديرو', years: ['2008-2013', '2013-2021'] },
+  { make: 'RENAULT', make_ar: 'رينو', model: 'STEPWAY', model_ar: 'ستيبواي', years: ['2010-2014'] },
+  { make: 'SEAT', make_ar: 'سيات', model: 'IBIZA',  model_ar: 'إيبيزا', years: ['2003-2008', '2008-2016', '2017-2022'] },
+  { make: 'SEAT', make_ar: 'سيات', model: 'LEON',   model_ar: 'ليون',   years: ['2013-2020', '2021-2024'] },
+  { make: 'SEAT', make_ar: 'سيات', model: 'TOLEDO', model_ar: 'توليدو', years: ['2012-2019'] },
+];
+
 const CAR_MAKE_MAP: Record<string, string> = {
-  'تويوتا': 'Toyota',        'toyota': 'Toyota',
-  'هيونداي': 'Hyundai',      'hyundai': 'Hyundai',
-  'كيا': 'Kia',              'kia': 'Kia',
-  'أوبل': 'Opel',            'opel': 'Opel',    'اوبل': 'Opel',
-  'شيفروليه': 'Chevrolet',   'chevrolet': 'Chevrolet',
-  'نيسان': 'Nissan',         'nissan': 'Nissan',
-  'هوندا': 'Honda',          'honda': 'Honda',
-  'بيجو': 'Peugeot',         'peugeot': 'Peugeot',
-  'رينو': 'Renault',         'renault': 'Renault',
-  'فيات': 'Fiat',            'fiat': 'Fiat',
-  'ميتسوبيشي': 'Mitsubishi', 'mitsubishi': 'Mitsubishi',
-  'سوزوكي': 'Suzuki',        'suzuki': 'Suzuki',
-  'فولكس': 'Volkswagen',     'volkswagen': 'Volkswagen',
-  'بي ام دبليو': 'BMW',      'bmw': 'BMW',
-  'مرسيدس': 'Mercedes',      'mercedes': 'Mercedes',
-  'لادا': 'Lada',            'lada': 'Lada',
-  'جيلي': 'Geely',           'geely': 'Geely',
-  'إم جي': 'MG',             'mg': 'MG',
-  'سيات': 'Seat',            'seat': 'Seat',
+  'تويوتا': 'Toyota',       'هيونداي': 'Hyundai',
+  'كيا': 'Kia',             'أوبل': 'Opel',
+  'شيفروليه': 'Chevrolet',  'نيسان': 'Nissan',
+  'هوندا': 'Honda',         'بيجو': 'Peugeot',
+  'رينو': 'Renault',        'فيات': 'Fiat',
+  'ميتسوبيشي': 'Mitsubishi','سوزوكي': 'Suzuki',
+  'فولكس': 'Volkswagen',    'بي ام دبليو': 'BMW',
+  'مرسيدس': 'Mercedes',     'لادا': 'Lada',
+  'جيلي': 'Geely',          'إم جي': 'MG',
+  'سيات': 'Seat',
+  'toyota': 'Toyota',       'hyundai': 'Hyundai',
+  'kia': 'Kia',             'opel': 'Opel',
+  'chevrolet': 'Chevrolet', 'nissan': 'Nissan',
+  'honda': 'Honda',         'peugeot': 'Peugeot',
+  'renault': 'Renault',     'fiat': 'Fiat',
+  'mitsubishi': 'Mitsubishi','suzuki': 'Suzuki',
+  'volkswagen': 'Volkswagen','bmw': 'BMW',
+  'mercedes': 'Mercedes',   'lada': 'Lada',
+  'geely': 'Geely',         'mg': 'MG',
+  'seat': 'Seat',
 };
 
 const MODEL_TO_MAKE: Record<string, string> = {
-  'corolla': 'Toyota',       'camry': 'Toyota',        'yaris': 'Toyota',
-  'hilux': 'Toyota',         'fortuner': 'Toyota',      'prado': 'Toyota',
-  'elantra': 'Hyundai',      'tucson': 'Hyundai',       'accent hci': 'Hyundai',
-  'accent': 'Hyundai',       'sonata': 'Hyundai',       'i10': 'Hyundai',
-  'i20': 'Hyundai',          'i30': 'Hyundai',          'creta': 'Hyundai',
-  'matrix': 'Hyundai',       'verna': 'Hyundai',
-  'ماتريكس': 'Hyundai',      'فيرنا': 'Hyundai',        'توسان': 'Hyundai', 'أكسنت': 'Hyundai',
-  'sportage': 'Kia',         'cerato': 'Kia',           'picanto': 'Kia',
-  'rio': 'Kia',              'grand cerato': 'Kia',
-  'سبورتاج': 'Kia',          'جراند سيراتو': 'Kia',     'سيراتو': 'Kia',
-  'mg5': 'MG', 'mg 5': 'MG', 'mg6': 'MG', 'mg 6': 'MG', 'mg hs': 'MG', 'mg rx5': 'MG', 'mg zs': 'MG',
+  'corolla': 'Toyota',  'camry': 'Toyota',       'yaris': 'Toyota',
+  'hilux': 'Toyota',    'fortuner': 'Toyota',     'prado': 'Toyota',
+  'elantra': 'Hyundai', 'tucson': 'Hyundai',      'accent': 'Hyundai',
+  'sonata': 'Hyundai',  'i10': 'Hyundai',         'i20': 'Hyundai',
+  'i30': 'Hyundai',     'creta': 'Hyundai',       'matrix': 'Hyundai',
+  'verna': 'Hyundai',   'accent hci': 'Hyundai',
+  'ماتريكس': 'Hyundai', 'فيرنا': 'Hyundai',       'توسان': 'Hyundai',
+  'أكسنت': 'Hyundai',
+  'sportage': 'Kia',    'cerato': 'Kia',          'picanto': 'Kia',
+  'rio': 'Kia',         'grand cerato': 'Kia',
+  'سبورتاج': 'Kia',     'جراند سيراتو': 'Kia',    'سيراتو': 'Kia',
+  'mg5': 'MG', 'mg 5': 'MG', 'mg6': 'MG', 'mg 6': 'MG',
+  'mg hs': 'MG', 'mg rx5': 'MG', 'mg zs': 'MG',
   'إم جي 5': 'MG', 'إم جي 6': 'MG',
-  'lancer puma': 'Mitsubishi', 'lancer shark': 'Mitsubishi', 'lancer': 'Mitsubishi',
-  'لانسر بوما': 'Mitsubishi',  'لانسر شارك': 'Mitsubishi',   'لانسر': 'Mitsubishi',
-  'pajero': 'Mitsubishi',    'بوما': 'Mitsubishi',       'puma': 'Mitsubishi',
-  'بومة': 'Mitsubishi',      'outlander': 'Mitsubishi',  'eclipse': 'Mitsubishi', 'إيكليبس': 'Mitsubishi',
-  'cruze': 'Chevrolet',      'captiva': 'Chevrolet',     'optra': 'Chevrolet',
-  'aveo': 'Chevrolet',       'spark': 'Chevrolet',       'lanos': 'Chevrolet',
-  'كروز': 'Chevrolet',       'أفيو': 'Chevrolet',        'لانوس': 'Chevrolet', 'أوبترا': 'Chevrolet',
-  'astra': 'Opel',   'vectra': 'Opel',  'corsa': 'Opel', 'zafira': 'Opel', 'insignia': 'Opel',
-  'أسترا': 'Opel',   'إنسيجنيا': 'Opel',
-  'sunny n16': 'Nissan', 'sunny n17': 'Nissan', 'sunny': 'Nissan',
-  'sentra': 'Nissan',    'qashqai': 'Nissan',   'navara': 'Nissan',
-  'صني n16': 'Nissan',   'صني n17': 'Nissan',   'صني': 'Nissan', 'قشقاي': 'Nissan', 'سنترا': 'Nissan',
-  'civic': 'Honda',  'accord': 'Honda', 'crv': 'Honda', 'hrv': 'Honda',
-  '206': 'Peugeot',  '207': 'Peugeot', '301': 'Peugeot', '308': 'Peugeot',
-  '408': 'Peugeot',  '508': 'Peugeot', '2008': 'Peugeot', '3008': 'Peugeot', '5008': 'Peugeot',
-  'logan': 'Renault',   'duster': 'Renault',  'symbol': 'Renault', 'megane': 'Renault',
-  'fluence': 'Renault', 'captur': 'Renault',  'clio': 'Renault',   'kadjar': 'Renault',
-  'sandero': 'Renault', 'stepway': 'Renault',
-  'لوجان': 'Renault',   'داستر': 'Renault',   'ميجان': 'Renault',  'فلونس': 'Renault',
-  'كابتشر': 'Renault',  'كليو': 'Renault',    'كادجار': 'Renault', 'سانديرو': 'Renault', 'ستيبواي': 'Renault',
-  'ibiza': 'Seat', 'leon': 'Seat', 'toledo': 'Seat',
-  'إيبيزا': 'Seat', 'ليون': 'Seat', 'توليدو': 'Seat',
+  'lancer': 'Mitsubishi',      'لانسر': 'Mitsubishi',
+  'lancer puma': 'Mitsubishi', 'لانسر بوما': 'Mitsubishi',
+  'lancer shark': 'Mitsubishi','لانسر شارك': 'Mitsubishi',
+  'pajero': 'Mitsubishi', 'بوما': 'Mitsubishi', 'puma': 'Mitsubishi',
+  'بومة': 'Mitsubishi',   'outlander': 'Mitsubishi',
+  'eclipse': 'Mitsubishi','إيكليبس': 'Mitsubishi',
+  'cruze': 'Chevrolet',  'captiva': 'Chevrolet', 'optra': 'Chevrolet',
+  'aveo': 'Chevrolet',   'spark': 'Chevrolet',   'lanos': 'Chevrolet',
+  'كروز': 'Chevrolet',   'أفيو': 'Chevrolet',    'لانوس': 'Chevrolet', 'أوبترا': 'Chevrolet',
+  'astra': 'Opel',  'vectra': 'Opel',  'corsa': 'Opel',
+  'zafira': 'Opel', 'insignia': 'Opel',
+  'أسترا': 'Opel',  'إنسيجنيا': 'Opel',
+  'sunny': 'Nissan', 'sentra': 'Nissan', 'qashqai': 'Nissan',
+  'navara': 'Nissan','sunny n16': 'Nissan','sunny n17': 'Nissan',
+  'صني': 'Nissan',   'قشقاي': 'Nissan',  'سنترا': 'Nissan',
+  'civic': 'Honda',  'accord': 'Honda',  'crv': 'Honda', 'hrv': 'Honda',
+  '206': 'Peugeot',  '207': 'Peugeot',   '301': 'Peugeot',
+  '308': 'Peugeot',  '408': 'Peugeot',   '508': 'Peugeot',
+  '2008': 'Peugeot', '3008': 'Peugeot',  '5008': 'Peugeot',
+  'logan': 'Renault',   'duster': 'Renault',  'symbol': 'Renault',
+  'megane': 'Renault',  'fluence': 'Renault', 'captur': 'Renault',
+  'clio': 'Renault',    'kadjar': 'Renault',  'sandero': 'Renault', 'stepway': 'Renault',
+  'لوجان': 'Renault',   'داستر': 'Renault',   'ميجان': 'Renault',
+  'فلونس': 'Renault',   'كابتشر': 'Renault',  'كليو': 'Renault',
+  'كادجار': 'Renault',  'سانديرو': 'Renault', 'ستيبواي': 'Renault',
+  'ibiza': 'Seat',  'leon': 'Seat',   'toledo': 'Seat',
+  'إيبيزا': 'Seat', 'ليون': 'Seat',   'توليدو': 'Seat',
   'golf': 'Volkswagen', 'polo': 'Volkswagen', 'passat': 'Volkswagen',
 };
 
 const MODEL_EN_MAP: Record<string, string> = {
-  'أفيو': 'aveo',         'كروز': 'cruze',           'لانوس': 'lanos',
-  'أوبترا': 'optra',      'أكسنت': 'accent',          'توسان': 'tucson',
-  'ماتريكس': 'matrix',    'فيرنا': 'verna',            'النترا': 'elantra',
-  'سبورتاج': 'sportage',  'سيراتو': 'cerato',         'جراند سيراتو': 'grand cerato',
-  'لانسر': 'lancer',      'لانسر بوما': 'lancer puma', 'لانسر شارك': 'lancer shark',
-  'بوما': 'puma',         'بومة': 'puma',              'إيكليبس': 'eclipse',
-  'صني n16': 'sunny n16', 'صني n17': 'sunny n17',      'صني': 'sunny',
-  'قشقاي': 'qashqai',     'سنترا': 'sentra',
-  'أسترا': 'astra',       'إنسيجنيا': 'insignia',
-  'لوجان': 'logan',       'داستر': 'duster',          'ميجان': 'megane',
-  'فلونس': 'fluence',     'كابتشر': 'captur',         'كليو': 'clio',
-  'كادجار': 'kadjar',     'سانديرو': 'sandero',       'ستيبواي': 'stepway',
-  'إيبيزا': 'ibiza',      'ليون': 'leon',              'توليدو': 'toledo',
-  'كورولا': 'corolla',    'كامري': 'camry',            'ياريس': 'yaris',
+  'أفيو': 'aveo',       'كروز': 'cruze',      'لانوس': 'lanos',
+  'أوبترا': 'optra',    'أكسنت': 'accent',    'توسان': 'tucson',
+  'ماتريكس': 'matrix',  'فيرنا': 'verna',     'النترا': 'elantra',
+  'سبورتاج': 'sportage','سيراتو': 'cerato',
+  'جراند سيراتو': 'grand cerato',
+  'لانسر': 'lancer',    'لانسر بوما': 'lancer puma',
+  'لانسر شارك': 'lancer shark',
+  'بوما': 'puma',       'بومة': 'puma',       'إيكليبس': 'eclipse',
+  'قشقاي': 'qashqai',  'سنترا': 'sentra',    'صني': 'sunny',
+  'صني n16': 'sunny n16','صني n17': 'sunny n17',
+  'أسترا': 'astra',     'إنسيجنيا': 'insignia',
+  'لوجان': 'logan',     'داستر': 'duster',    'ميجان': 'megane',
+  'فلونس': 'fluence',   'كابتشر': 'captur',   'كليو': 'clio',
+  'كادجار': 'kadjar',   'سانديرو': 'sandero', 'ستيبواي': 'stepway',
+  'إيبيزا': 'ibiza',    'ليون': 'leon',        'توليدو': 'toledo',
+  'كورولا': 'corolla',  'كامري': 'camry',     'ياريس': 'yaris',
 };
 
 const PART_KEYWORD_MAP: Record<string, string[]> = {
@@ -327,30 +458,31 @@ const PART_KEYWORD_MAP: Record<string, string[]> = {
 };
 
 const KNOWN_MODELS: string[] = [
-  'lancer puma','lancer shark','accent hci','grand cerato','sunny n16','sunny n17',
-  'صني n16','صني n17','لانسر بوما','لانسر شارك','جراند سيراتو',
-  'mg hs','mg rx5','mg zs','mg 5','mg 6','mg5','mg6',
-  'إم جي hs','إم جي rx5','إم جي zs','إم جي 5','إم جي 6',
-  'land cruiser','cr-v',
-  'corolla','camry','yaris','hilux','fortuner','rav4','prado',
-  'elantra','tucson','accent','sonata','i10','i20','i30','i40','creta','matrix','verna',
+  'corolla','camry','yaris','hilux','fortuner','rav4','land cruiser','prado',
+  'كورولا','كامري','ياريس',
+  'elantra','tucson','accent','accent hci','sonata','i10','i20','i30','i40','creta','matrix','verna',
   'النترا','توسان','أكسنت','ماتريكس','فيرنا',
-  'sportage','cerato','picanto','rio','sorento','سبورتاج','سيراتو',
-  'lancer','pajero','outlander','eclipse','galant','puma',
-  'لانسر','بوما','بومة','إيكليبس',
+  'sportage','cerato','grand cerato','picanto','rio','sorento',
+  'سبورتاج','سيراتو','جراند سيراتو',
+  'mg5','mg6','mg hs','mg rx5','mg zs','mg 5','mg 6',
+  'إم جي 5','إم جي 6','إم جي hs','إم جي rx5','إم جي zs',
+  'lancer','lancer puma','lancer shark','pajero','outlander','eclipse','galant','boma','puma',
+  'لانسر','لانسر بوما','لانسر شارك','بوما','بومة','إيكليبس',
   'cruze','captiva','optra','aveo','lanos','spark','malibu',
   'كروز','أوبترا','أفيو','لانوس',
-  'astra','vectra','mokka','corsa','zafira','insignia','أسترا','إنسيجنيا',
-  'sunny','sentra','qashqai','navara','patrol','صني','قشقاي','سنترا',
-  'civic','accord','crv','hrv',
+  'astra','vectra','mokka','corsa','zafira','insignia',
+  'أسترا','إنسيجنيا',
+  'sunny','sunny n16','sunny n17','sentra','qashqai','navara','patrol',
+  'صني','صني n16','صني n17','قشقاي','سنترا',
+  'civic','accord','crv','cr-v','hrv',
   '206','207','301','308','408','508','2008','3008','5008',
   'logan','duster','symbol','megane','fluence','captur','clio','kadjar','sandero','stepway',
   'لوجان','داستر','ميجان','فلونس','كابتشر','كليو','كادجار','سانديرو','ستيبواي',
   'punto','bravo','tipo','swift','vitara','dzire',
   'golf','polo','passat','tiguan',
-  '316','318','320','520','x1','x3','x5','c200','c180','e200','glc','emgrand',
+  '316','318','320','520','x1','x3','x5',
+  'c200','c180','e200','glc','emgrand',
   'ibiza','leon','toledo','إيبيزا','ليون','توليدو',
-  'كورولا','كامري','ياريس',
 ];
 
 const ORDER_INQUIRY_KEYWORDS = [
@@ -360,43 +492,66 @@ const ORDER_INQUIRY_KEYWORDS = [
   'بيتجهز','جاهز','شحن طلب','فين طلبي','عايز أعرف طلبي',
 ];
 
+
+// ═══════════════════════════════════════════════
 // DB FUNCTIONS
+// ═══════════════════════════════════════════════
+
 async function searchProducts(
   carMake?: string, carModel?: string, carModelEn?: string,
   carYear?: string, partKeywords?: string[]
 ): Promise<any[] | null> {
   const select = 'id, name, brand, car_make, car_model, car_model_year, regular_price, sale_price, slug, image_url';
+
   if (carMake && carModelEn) {
-    let q = supabase.from('products').select(select).ilike('car_make', `%${carMake}%`).ilike('car_model', `%${carModelEn}%`).limit(8);
-    if (carYear)              q = q.ilike('car_model_year', `%${carYear}%`);
+    let q = supabase.from('products').select(select)
+      .ilike('car_make', `%${carMake}%`)
+      .ilike('car_model', `%${carModelEn}%`)
+      .limit(8);
+    if (carYear)           q = q.ilike('car_model_year', `%${carYear}%`);
     if (partKeywords?.length) q = q.or(partKeywords.map(k => `name.ilike.%${k}%`).join(','));
     const { data } = await q;
     if (data?.length) return data;
   }
+
   if (carMake && carModel) {
-    let q = supabase.from('products').select(select).ilike('car_make', `%${carMake}%`).ilike('car_model', `%${carModel}%`).limit(8);
+    let q = supabase.from('products').select(select)
+      .ilike('car_make', `%${carMake}%`)
+      .ilike('car_model', `%${carModel}%`)
+      .limit(8);
     if (partKeywords?.length) q = q.or(partKeywords.map(k => `name.ilike.%${k}%`).join(','));
     const { data } = await q;
     if (data?.length) return data;
   }
+
   if (carMake && partKeywords?.length) {
-    const { data } = await supabase.from('products').select(select).ilike('car_make', `%${carMake}%`).or(partKeywords.map(k => `name.ilike.%${k}%`).join(',')).limit(8);
+    const { data } = await supabase.from('products').select(select)
+      .ilike('car_make', `%${carMake}%`)
+      .or(partKeywords.map(k => `name.ilike.%${k}%`).join(','))
+      .limit(8);
     if (data?.length) return data;
   }
+
   if (carMake) {
-    const { data } = await supabase.from('products').select(select).ilike('car_make', `%${carMake}%`).limit(8);
+    const { data } = await supabase.from('products').select(select)
+      .ilike('car_make', `%${carMake}%`).limit(8);
     if (data?.length) return data;
   }
+
   if (carModelEn) {
-    const { data } = await supabase.from('products').select(select).ilike('car_model', `%${carModelEn}%`).limit(8);
+    const { data } = await supabase.from('products').select(select)
+      .ilike('car_model', `%${carModelEn}%`).limit(8);
     if (data?.length) return data;
   }
+
   if (partKeywords?.length) {
     for (const kw of partKeywords) {
-      const { data } = await supabase.from('products').select(select).ilike('name', `%${kw}%`).limit(8);
+      const { data } = await supabase.from('products').select(select)
+        .ilike('name', `%${kw}%`).limit(8);
       if (data?.length) return data;
     }
   }
+
   return null;
 }
 
@@ -409,10 +564,13 @@ async function getOrderByPhone(phone: string) {
   const plusIntl = `+${intl}`;
   const last10   = local.slice(-10);
   const variants = [...new Set([local, intl, plusIntl, last10].filter(Boolean))];
-  const orParts  = variants.flatMap(v => [`customer_phone.ilike.%${v}%`, `guest_phone.ilike.%${v}%`]);
+  const orParts  = variants.flatMap(v => [
+    `customer_phone.ilike.%${v}%`,
+    `guest_phone.ilike.%${v}%`,
+  ]);
   const { data, error } = await supabase
     .from('orders')
-    .select('id, status, payment_status, total_price, items, created_at, tracking_number, city, payment_method, customer_name')
+    .select('id, status, total_price, items, created_at, tracking_number, city, payment_method')
     .or(orParts.join(','))
     .order('created_at', { ascending: false })
     .limit(3);
@@ -423,7 +581,7 @@ async function getOrderByPhone(phone: string) {
 async function getOrderById(orderId: string) {
   const { data, error } = await supabase
     .from('orders')
-    .select('id, status, payment_status, total_price, items, created_at, tracking_number, city, payment_method, customer_name')
+    .select('id, status, total_price, items, created_at, tracking_number, city, payment_method')
     .ilike('id', `%${orderId.trim()}%`)
     .limit(1).single();
   if (error || !data) return null;
@@ -432,23 +590,28 @@ async function getOrderById(orderId: string) {
 
 function translateStatus(status: string): string {
   const map: Record<string, string> = {
-    pending: 'جديد — بيتجهز دلوقتي', pending_payment: 'في انتظار الدفع',
-    processing: 'جاري التجهيز', shipped: 'اتشحن وفي الطريق إليك 🚚',
-    delivered: 'اتسلّم بنجاح ✅', cancelled: 'ملغي', refunded: 'تم الاسترجاع',
+    pending:         'جديد — بيتجهز دلوقتي',
+    pending_payment: 'في انتظار الدفع',
+    processing:      'جاري التجهيز',
+    shipped:         'اتشحن وفي الطريق إليك 🚚',
+    delivered:       'اتسلّم بنجاح ✅',
+    cancelled:       'ملغي',
+    refunded:        'تم الاسترجاع',
   };
   return map[status] || status;
 }
 
-function translatePayment(method: string): string {
-  const map: Record<string, string> = {
-    cash: 'كاش عند الاستلام', vodafone_cash: 'فودافون كاش', instapay: 'InstaPay',
-    bank_transfer: 'تحويل بنكي', card_installments: 'بطاقة / تقسيط', wallets: 'محفظة إلكترونية',
-  };
-  return map[method] || method;
-}
 
+// ═══════════════════════════════════════════════
 // INTENT DETECTION
-type IntentType = 'order_phone' | 'order_id' | 'order_inquiry' | 'product_search' | 'needs_year' | 'oil_needs_info' | 'oil_recommendation' | 'general';
+// ═══════════════════════════════════════════════
+
+type IntentType =
+  | 'order_phone' | 'order_id' | 'order_inquiry'
+  | 'product_search' | 'needs_year'
+  | 'oil_needs_info' | 'oil_recommendation'
+  | 'general';
+
 interface Intent {
   type: IntentType;
   phone?: string;
@@ -465,28 +628,32 @@ function detectIntent(message: string, allMessages: any[]): Intent {
   const msg      = message.trim();
   const lowerMsg = msg.toLowerCase();
 
-  // FIX: Strict Egyptian phone regex — 01[0125]XXXXXXXX only, word boundary
-  const phoneMatch = msg.match(/\b(01[0125][0-9]{8})\b/);
+  const phoneMatch = msg.match(/(\+?20?1[0-9]{9}|01[0-9]{9})/);
   if (phoneMatch) return { type: 'order_phone', phone: phoneMatch[1] };
 
-  // FIX: Order ID only triggers when user is clearly asking about an order
-  const isAskingAboutOrder = ORDER_INQUIRY_KEYWORDS.some(k => lowerMsg.includes(k.toLowerCase()));
-  const orderIdMatch = msg.match(/\b([0-9a-f]{8})\b/i);
-  if (orderIdMatch && isAskingAboutOrder) return { type: 'order_id', orderId: orderIdMatch[1] };
-  if (isAskingAboutOrder) return { type: 'order_inquiry' };
+  const orderIdMatch = msg.match(/([0-9a-f]{8}-[0-9a-f]{4}|[A-Z0-9]{8})/i);
+  if (orderIdMatch) return { type: 'order_id', orderId: orderIdMatch[1] };
 
-  // Oil flow
+  const isOrderInquiry = ORDER_INQUIRY_KEYWORDS.some(k => lowerMsg.includes(k.toLowerCase()));
+  if (isOrderInquiry) return { type: 'order_inquiry' };
+
+  // ── Oil recommendation flow ──────────────────
   const isOilInquiry = OIL_INQUIRY_KEYWORDS.some(k => lowerMsg.includes(k.toLowerCase()));
-  const prevBotMessages = allMessages.filter(m => m.role === 'assistant').slice(-4);
-  // FIX: Broader oil context detection
+
+  const prevBotMessages = allMessages.filter(m => m.role === 'assistant').slice(-3);
   const askingForOilInfo = prevBotMessages.some(m =>
     m.content && (
-      m.content.includes('أوتوماتيك') || m.content.includes('ماركة') ||
-      m.content.includes('سنة') || m.content.includes('زيت') ||
-      m.content.includes('نلاقيلك') || m.content.includes('إصدار') ||
-      m.content.includes('موديل') || m.content.includes('مانيوال')
+      m.content.includes('الفتيس أوتوماتيك') ||
+      m.content.includes('ماركة العربية') ||
+      m.content.includes('سنة الإصدار') ||
+      m.content.includes('نلاقيلك الزيت') ||
+      m.content.includes('الزيت الصح') ||
+      m.content.includes('زيت المناسب') ||
+      m.content.includes('إصدار إيه') ||
+      m.content.includes('أوتوماتيك ولا مانيوال')
     )
   );
+
   if (isOilInquiry || askingForOilInfo) {
     const oilInfo = extractOilInfoFromHistory([...allMessages, { role: 'user', content: msg }]);
     const hasAll  = oilInfo.make && oilInfo.model && oilInfo.year && oilInfo.transmission;
@@ -494,57 +661,66 @@ function detectIntent(message: string, allMessages: any[]): Intent {
     return { type: 'oil_needs_info', oilInfo };
   }
 
-  // FIX: Product search — scan ALL recent messages for context, not just last message
-  const recentText  = allMessages.slice(-8).map(m => m.content || '').join(' ');
-  const lowerRecent = recentText.toLowerCase();
-
+  // ── Product search flow ──────────────────────
   const sortedModels = [...KNOWN_MODELS].sort((a, b) => b.length - a.length);
-  const foundModel   = sortedModels.find(m => lowerRecent.includes(m.toLowerCase()));
-  const foundModelEn = foundModel ? (MODEL_EN_MAP[foundModel] ?? MODEL_EN_MAP[foundModel.toLowerCase()] ?? foundModel) : undefined;
+  const foundModel   = sortedModels.find(m => lowerMsg.includes(m.toLowerCase()));
+  const foundModelEn = foundModel
+    ? (MODEL_EN_MAP[foundModel] ?? MODEL_EN_MAP[foundModel.toLowerCase()] ?? foundModel)
+    : undefined;
 
   const sortedMakeKeys = Object.keys(CAR_MAKE_MAP).sort((a, b) => b.length - a.length);
-  const foundMakeKey   = sortedMakeKeys.find(k => lowerRecent.includes(k.toLowerCase()));
+  const foundMakeKey   = sortedMakeKeys.find(k => lowerMsg.includes(k.toLowerCase()));
   let inferredMake     = foundMakeKey ? CAR_MAKE_MAP[foundMakeKey] : undefined;
   if (!inferredMake && foundModel) {
     inferredMake = MODEL_TO_MAKE[foundModel] ?? MODEL_TO_MAKE[foundModel.toLowerCase()];
   }
 
-  // Part keywords — last message only (more relevant)
-  const sortedPartKeys = Object.keys(PART_KEYWORD_MAP).sort((a, b) => b.length - a.length);
+  const sortedPartKeys  = Object.keys(PART_KEYWORD_MAP).sort((a, b) => b.length - a.length);
   const matchedKeywords: string[] = [];
   for (const k of sortedPartKeys) {
     if (lowerMsg.includes(k.toLowerCase())) matchedKeywords.push(...PART_KEYWORD_MAP[k]);
   }
   const uniqueKeywords = [...new Set(matchedKeywords)];
-
-  // FIX: Year — check recent messages too
-  const yearMatch = recentText.match(/\b(20[0-9]{2}|19[0-9]{2})\b/);
+  const yearMatch = msg.match(/20[0-9]{2}|19[0-9]{2}/);
   const carYear   = yearMatch ? yearMatch[0] : undefined;
 
   if (inferredMake || foundModel || uniqueKeywords.length > 0) {
     if (!carYear) {
-      return { type: 'needs_year', carMake: inferredMake, carModel: foundModel, carModelEn: foundModelEn !== foundModel ? foundModelEn : foundModel, partKeywords: uniqueKeywords.length > 0 ? uniqueKeywords : undefined };
+      return {
+        type: 'needs_year', carMake: inferredMake,
+        carModel: foundModel,
+        carModelEn: foundModelEn !== foundModel ? foundModelEn : foundModel,
+        partKeywords: uniqueKeywords.length > 0 ? uniqueKeywords : undefined,
+      };
     }
-    return { type: 'product_search', carMake: inferredMake, carModel: foundModel, carModelEn: foundModelEn !== foundModel ? foundModelEn : foundModel, carYear, partKeywords: uniqueKeywords.length > 0 ? uniqueKeywords : undefined };
+    return {
+      type: 'product_search', carMake: inferredMake,
+      carModel: foundModel,
+      carModelEn: foundModelEn !== foundModel ? foundModelEn : foundModel,
+      carYear,
+      partKeywords: uniqueKeywords.length > 0 ? uniqueKeywords : undefined,
+    };
   }
 
   return { type: 'general' };
 }
 
+
+// ═══════════════════════════════════════════════
 // BUILD CONTEXT
+// ═══════════════════════════════════════════════
+
 function buildContext(intent: Intent, dbResult: any, oilSearchResult?: string | null): string {
   if (intent.type === 'order_phone' || intent.type === 'order_id') {
     if (!dbResult) return '';
     const orders = Array.isArray(dbResult) ? dbResult : [dbResult];
     const orderDetails = orders.map((o: any) => `
-رقم الأوردر: #${o.id.slice(0, 8).toUpperCase()}
-اسم العميل: ${o.customer_name || 'غير مسجل'}
+رقم الأوردر: ${o.id.slice(0, 8).toUpperCase()}
 الحالة: ${translateStatus(o.status)}
-حالة الدفع: ${o.payment_status === 'paid' ? 'تم الدفع ✅' : o.payment_status === 'pending' ? 'في انتظار الدفع' : 'غير محدد'}
 الإجمالي: ${o.total_price} ج.م
 المدينة: ${o.city || 'غير محددة'}
-طريقة الدفع: ${translatePayment(o.payment_method)}
-تاريخ الطلب: ${new Date(o.created_at).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })}
+طريقة الدفع: ${o.payment_method || 'غير محددة'}
+تاريخ الطلب: ${new Date(o.created_at).toLocaleDateString('ar-EG')}
 رقم التتبع: ${o.tracking_number || 'لم يُضاف لحد دلوقتي'}
 عدد المنتجات: ${o.items?.length || 0}
 المنتجات: ${o.items?.map((i: any) => i.name || i.product_name || i.title || 'منتج').join(' — ') || 'غير متاح'}
@@ -558,30 +734,46 @@ function buildContext(intent: Intent, dbResult: any, oilSearchResult?: string | 
     return `لاقيت ${products.length} منتج مناسب. اكتب جملة ترحيب قصيرة طبيعية زي "تمام، لاقيتلك ${products.length} منتج مناسب 😊" — الكاردز بتتعرض تلقائياً. بعدين قول للعميل إنه لو عايز يشوف أكتر يدخل الصفحة الرئيسية ويختار ماركة وموديل عربيته.`;
   }
 
+  // ✅ FIX: Removed "ابحث في المتجر" — cards display automatically
   if (intent.type === 'oil_recommendation' && intent.oilInfo) {
     const { make, model, year, transmission } = intent.oilInfo;
     const isAuto = transmission === 'automatic';
     const searchContext = oilSearchResult
-      ? `\n\nنتائج البحث من الإنترنت:\n${oilSearchResult.slice(0, 2000)}`
-      : '\n\n[استخدم المعلومات التقنية في رسالة النظام]';
+      ? `\n\nنتائج البحث من الإنترنت (استخدمها كمرجع للتوصية):\n${oilSearchResult.slice(0, 2000)}`
+      : '\n\n[ملاحظة: استخدم المعلومات التقنية الموجودة في رسالة النظام للإجابة بدقة]';
+
     return `العميل عنده: ${make} ${model} سنة ${year}، فتيس ${isAuto ? 'أوتوماتيك' : 'مانيوال'}.
 
-قدّم رد واحد واضح بالعامية المصرية:
+قدّم ردك بالشكل ده بالظبط — رسالة واحدة منظمة وواضحة بالعامية المصرية:
 
-زيت المحرك:
-- درجة اللزوجة / نوع الزيت / الكمية / فترة التغيير
+**زيت المحرك:**
+- درجة اللزوجة (مثلاً: 5W-30 أو 10W-40)
+- نوع الزيت: معدني / نصف تركيبي / تركيبي بالكامل
+- كمية التغيير المقترحة (مثلاً: 3.5 لتر)
+- كل إمتى تغيّره (مثلاً: كل 5,000 كم أو 10,000 كم)
 
-زيت الفتيس (${isAuto ? 'أوتوماتيك' : 'مانيوال'}):
-- نوع الزيت بالظبط / الكمية
+**زيت الفتيس (${isAuto ? 'أوتوماتيك' : 'مانيوال'}):**
+- نوع الزيت بالظبط (${isAuto ? 'مثلاً: Diamond SP-III أو Dexron VI — مش بس Dexron' : 'مثلاً: GL-4 75W-90'})
+- كمية التغيير المقترحة
 
-تعليمات: اعتمد على المعلومات التقنية في رسالة النظام. ممنوع "ابحث في المتجر". بعد التوصية قول: "وده بعض الزيوت المتاحة عندنا 👇" ثم: "أي استفسار: ${WHATSAPP_LINK} 😊"
+⚠️ تعليمات مهمة:
+- اعتمد على المعلومات التقنية في رسالة النظام لتحديد نوع زيت الفتيس الصح لكل ماركة
+- لو مش متأكد من نوع ATF بالظبط، قول ذلك وانصحه يراجع دليل السيارة أو يتواصل معنا
+- الكلام لازم يبقى بالعامية المصرية الصح
+- ⚠️ ممنوع تماماً تقول "ابحث في المتجر" أو "ابحث عنه" — الكاردز بتتعرض تلقائياً تحت ردك
+- بعد التوصية قول فقط: "وده بعض الزيوت المتاحة عندنا دلوقتي 👇"
+- ثم: "أي استفسار تاني تواصل معنا على واتساب: ${WHATSAPP_LINK} 😊"
 ${searchContext}`;
   }
 
   return '';
 }
 
-// MAIN HANDLER
+
+// ═══════════════════════════════════════════════
+// MAIN POST HANDLER
+// ═══════════════════════════════════════════════
+
 export async function POST(req: NextRequest) {
   try {
     const { messages } = await req.json();
@@ -598,7 +790,10 @@ export async function POST(req: NextRequest) {
     } else if (intent.type === 'order_id' && intent.orderId) {
       dbResult = await getOrderById(intent.orderId);
     } else if (intent.type === 'product_search') {
-      dbResult = await searchProducts(intent.carMake, intent.carModel, intent.carModelEn, intent.carYear, intent.partKeywords);
+      dbResult = await searchProducts(
+        intent.carMake, intent.carModel, intent.carModelEn,
+        intent.carYear, intent.partKeywords
+      );
     } else if (intent.type === 'oil_recommendation' && intent.oilInfo) {
       const { make, model, year, transmission } = intent.oilInfo;
       if (make && model && year && transmission) {
@@ -608,14 +803,16 @@ export async function POST(req: NextRequest) {
         ]);
         oilSearchResult = oilSearch;
         dbResult        = oilProducts;
+        console.log('[OIL SEARCH]',   oilSearchResult ? 'got results' : 'no results / no key');
+        console.log('[OIL PRODUCTS]', dbResult ? `found ${dbResult.length}` : 'none');
       }
     }
 
-    console.log('[CHAT] intent:', intent.type, '| DB:', dbResult ? 'found' : 'null', '| oil:', oilSearchResult ? 'yes' : 'no');
+    console.log('[CHAT] intent:', intent.type, '| DB:', dbResult ? 'found' : 'null', '| oil:', oilSearchResult ? 'found' : 'null');
 
     const contextStr = buildContext(intent, dbResult, oilSearchResult);
 
-    const oilInfo      = intent.oilInfo || {};
+    const oilInfo = intent.oilInfo || {};
     const missingLines: string[] = [];
     if (!oilInfo.make)         missingLines.push('1️⃣ ماركة العربية؟ (مثلاً: تويوتا، هيونداي، نيسان، رينو...)');
     if (!oilInfo.model)        missingLines.push('2️⃣ الموديل؟ (مثلاً: كورولا، أكسنت، سبورتاج، لوجان...)');
@@ -624,32 +821,46 @@ export async function POST(req: NextRequest) {
 
     const noResultsNote =
       (intent.type === 'oil_needs_info')
-        ? `\n\n[تعليمات]: اسأل العميل عن المعلومات الناقصة في رسالة واحدة:\n"يلا نلاقيلك الزيت الصح! 💪 محتاج منك:\n${missingLines.join('\n')}"\n— لا تعرض منتجات دلوقتي.`
+        ? `\n\n[تعليمات]: اسأل العميل عن المعلومات الناقصة دي كلها في رسالة واحدة بالظبط كده:
+"يلا نلاقيلك الزيت الصح! 💪 محتاج منك معلومات بسيطة:
+${missingLines.join('\n')}"
+— لا تعرض أي منتجات دلوقتي خالص.`
       : (intent.type === 'needs_year')
-        ? `\n\n[تعليمات]: اسأله ببساطة: "عربيتك إصدار إيه؟ 😊" — جملة واحدة فقط.`
+        ? `\n\n[تعليمات]: اسأله: "عربيتك إصدار إيه؟ يعني اشتريتها في سنة إيه تقريباً؟ 😊" — لا تعرض أي منتجات دلوقتي.`
       : (intent.type === 'product_search' && !dbResult)
-        ? `\n\n[تعليمات]: مفيش منتجات. قول: "للأسف مش متاح دلوقتي. تواصل معنا: ${WHATSAPP_LINK}" واقترح القناة: ${WHATSAPP_CHANNEL}`
+        ? `\n\n[تعليمات]: مفيش منتجات. قول: "للأسف المنتج ده مش متاح عندنا دلوقتي. تواصل معنا على واتساب وهنحاول نساعدك: ${WHATSAPP_LINK}" ثم اقترح القناة: ${WHATSAPP_CHANNEL}`
       : (intent.type === 'order_inquiry')
-        ? `\n\n[تعليمات]: قول: "ممكن تديني رقم تليفونك أو رقم الأوردر؟ 😊"`
+        ? `\n\n[تعليمات]: قول: "ممكن تديني رقم تليفونك أو رقم الأوردر عشان أجيبلك التفاصيل؟ 😊"`
       : ((intent.type === 'order_phone' || intent.type === 'order_id') && !dbResult)
-        ? `\n\n[تعليمات]: قول: "مش لاقي أوردر. تأكد من الرقم أو تواصل معنا: ${WHATSAPP_LINK}"`
+        ? `\n\n[تعليمات]: قول: "مش لاقي أوردر بالبيانات دي. تأكد من الرقم، أو تواصل معنا على واتساب: ${WHATSAPP_LINK}"`
       : '';
 
-    const systemContent = SYSTEM_PROMPT + noResultsNote + (contextStr ? `\n\n════ بيانات ════\n${contextStr}\n════ نهاية ════` : '');
+    const systemContent =
+      SYSTEM_PROMPT +
+      noResultsNote +
+      (contextStr
+        ? `\n\n════ بيانات ════\n${contextStr}\n════ نهاية ════`
+        : '');
 
     const groqMessages = [
       { role: 'system', content: systemContent },
-      ...messages.slice(-20).map((m: any) => ({ role: m.role as 'user' | 'assistant' | 'system', content: m.content as string })),
+      ...messages.slice(-20).map((m: any) => ({
+        role:    m.role    as 'user' | 'assistant' | 'system',
+        content: m.content as string,
+      })),
     ];
 
     const groqResponse = await fetch(GROQ_API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.GROQ_API_KEY}` },
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+      },
       body: JSON.stringify({
         model:       'llama-3.3-70b-versatile',
         messages:    groqMessages,
-        max_tokens:  900,
-        temperature: 0.4,
+        max_tokens:  700,
+        temperature: 0.7,
       }),
     });
 
@@ -659,19 +870,24 @@ export async function POST(req: NextRequest) {
     }
 
     const data  = await groqResponse.json();
-    const reply = data.choices?.[0]?.message?.content?.trim() || 'معلش، في مشكلة صغيرة. جرب تاني بعد شوية 😊';
+    const reply = data.choices?.[0]?.message?.content || 'معلش، في مشكلة صغيرة. جرب تاني كمان شوية 😊';
 
     const products = (
       (intent.type === 'product_search' || intent.type === 'oil_recommendation') &&
       Array.isArray(dbResult) && dbResult.length > 0
     )
       ? dbResult.map((p: any) => ({
-          id: p.id, name: p.name?.trim(), brand: p.brand || null,
-          car_make: p.car_make || null, car_model: p.car_model || null,
+          id:             p.id,
+          name:           p.name?.trim(),
+          brand:          p.brand          || null,
+          car_make:       p.car_make       || null,
+          car_model:      p.car_model      || null,
           car_model_year: p.car_model_year || null,
-          regular_price: p.regular_price || 0, sale_price: p.sale_price || 0,
-          slug: p.slug, image_url: p.image_url || null,
-          link: `https://zaitandfilters.com/products/${p.slug}`,
+          regular_price:  p.regular_price  || 0,
+          sale_price:     p.sale_price     || 0,
+          slug:           p.slug,
+          image_url:      p.image_url      || null,
+          link:           `https://zaitandfilters.com/products/${p.slug}`,
         }))
       : null;
 
