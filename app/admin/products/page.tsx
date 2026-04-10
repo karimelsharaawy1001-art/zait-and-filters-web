@@ -20,7 +20,9 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 
+
 const ITEMS_PER_PAGE = 20;
+
 
 // ── Confirmation Modal ────────────────────────────────────────────────────────
 function ConfirmModal({
@@ -106,17 +108,22 @@ function ConfirmModal({
   );
 }
 
+
 export default function AdminProducts() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
 
   const [products, setProducts] = useState<any[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
+
   // ── Read initial filter state from URL ──
   const [currentPage, setCurrentPage] = useState(() => Number(searchParams.get('page') || 1));
   const [searchName, setSearchName] = useState(() => searchParams.get('name') || '');
+  // ── NEW: search by ID ──
+  const [searchId, setSearchId] = useState(() => searchParams.get('id') || '');
   const [filterMake, setFilterMake] = useState(() => searchParams.get('make') || '');
   const [filterModel, setFilterModel] = useState(() => searchParams.get('model') || '');
   const [filterCategory, setFilterCategory] = useState(() => searchParams.get('category') || '');
@@ -126,30 +133,37 @@ export default function AdminProducts() {
   const [sortBy, setSortBy] = useState(() => searchParams.get('sortBy') || 'created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(() => (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc');
 
+
   const [availableMakes, setAvailableMakes] = useState<string[]>([]);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [availableSubcategories, setAvailableSubcategories] = useState<string[]>([]);
   const [availableBrands, setAvailableBrands] = useState<string[]>([]);
 
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState({ regular_price: '', sale_price: '' });
+
 
   // ── MULTI-SELECT STATE ──
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
+
   // ── MODAL STATE ──
   const [modal, setModal] = useState<{ message: string; onConfirm: () => void } | null>(null);
 
+
   // ── IMPORT PROGRESS ──
   const [importing, setImporting] = useState(false);
+
 
   // ── Sync filters to URL whenever they change ──────────────────────────────
   useEffect(() => {
     const params = new URLSearchParams();
     if (currentPage > 1) params.set('page', String(currentPage));
     if (searchName) params.set('name', searchName);
+    if (searchId) params.set('id', searchId); // ── NEW ──
     if (filterMake) params.set('make', filterMake);
     if (filterModel) params.set('model', filterModel);
     if (filterCategory) params.set('category', filterCategory);
@@ -159,18 +173,22 @@ export default function AdminProducts() {
     if (sortBy !== 'created_at') params.set('sortBy', sortBy);
     if (sortOrder !== 'desc') params.set('sortOrder', sortOrder);
 
+
     const newUrl = params.toString()
       ? `/admin/products?${params.toString()}`
       : '/admin/products';
 
+
     router.replace(newUrl, { scroll: false });
-  }, [currentPage, searchName, filterMake, filterModel, filterCategory, filterSubcategory, filterYear, filterBrand, sortBy, sortOrder]);
+  }, [currentPage, searchName, searchId, filterMake, filterModel, filterCategory, filterSubcategory, filterYear, filterBrand, sortBy, sortOrder]);
+
 
   useEffect(() => {
     fetchUniqueValues('car_make', setAvailableMakes);
     fetchUniqueValues('category', setAvailableCategories);
     fetchUniqueValues('brand', setAvailableBrands);
   }, []);
+
 
   useEffect(() => {
     if (filterMake) {
@@ -181,6 +199,7 @@ export default function AdminProducts() {
     }
   }, [filterMake]);
 
+
   useEffect(() => {
     if (filterCategory) {
       fetchUniqueValues('subcategory', setAvailableSubcategories, 'category', filterCategory);
@@ -189,6 +208,7 @@ export default function AdminProducts() {
       setFilterSubcategory('');
     }
   }, [filterCategory]);
+
 
   useEffect(() => {
     fetchProducts();
@@ -204,9 +224,11 @@ export default function AdminProducts() {
     sortOrder,
   ]);
 
+
   useEffect(() => {
     setSelectedIds(new Set());
   }, [currentPage, filterMake, filterModel, filterCategory, filterSubcategory, filterYear, filterBrand]);
+
 
   async function fetchUniqueValues(
     column: string,
@@ -225,9 +247,11 @@ export default function AdminProducts() {
     }
   }
 
+
   const buildFilteredQuery = () => {
     let query = supabase.from('products').select('*', { count: 'exact' });
     if (searchName) query = query.ilike('name', `%${searchName}%`);
+    if (searchId) query = query.ilike('id', `%${searchId}%`); // ── NEW ──
     if (filterMake === '__universal__') {
       query = query.or('car_make.is.null,car_make.eq.');
     } else if (filterMake) {
@@ -240,6 +264,7 @@ export default function AdminProducts() {
     if (filterBrand) query = query.eq('brand', filterBrand);
     return query;
   };
+
 
   async function fetchProducts() {
     setLoading(true);
@@ -254,6 +279,7 @@ export default function AdminProducts() {
     setLoading(false);
   }
 
+
   const toggleStatus = async (id: string, currentStatus: boolean) => {
     const { error } = await supabase
       .from('products')
@@ -263,6 +289,7 @@ export default function AdminProducts() {
       setProducts(products.map((p) => (p.id === id ? { ...p, is_active: !currentStatus } : p)));
     }
   };
+
 
   const handleUpdatePrice = async (id: string) => {
     const { error } = await supabase
@@ -278,6 +305,7 @@ export default function AdminProducts() {
       toast.success('تم تحديث السعر');
     }
   };
+
 
   // ── DELETE SINGLE with modal ──────────────────────────────────────────────
   const deleteProduct = (id: string) => {
@@ -297,6 +325,7 @@ export default function AdminProducts() {
     });
   };
 
+
   // ── MULTI-SELECT HANDLERS ─────────────────────────────────────────────────
   const toggleSelectOne = (id: string) => {
     setSelectedIds((prev) => {
@@ -307,9 +336,11 @@ export default function AdminProducts() {
     });
   };
 
+
   const isAllSelected = products.length > 0 && products.every((p) => selectedIds.has(p.id));
   const isPartialSelected =
     products.some((p) => selectedIds.has(p.id)) && !isAllSelected;
+
 
   const toggleSelectAll = () => {
     if (isAllSelected) {
@@ -326,6 +357,7 @@ export default function AdminProducts() {
       });
     }
   };
+
 
   // ── BULK DELETE with modal ────────────────────────────────────────────────
   const handleBulkDelete = () => {
@@ -348,6 +380,7 @@ export default function AdminProducts() {
       },
     });
   };
+
 
   // ── EXPORT ───────────────────────────────────────────────────────────────
   const exportToCSV = async () => {
@@ -394,6 +427,7 @@ export default function AdminProducts() {
     toast.success(`تم تصدير ${data.length} منتج`);
   };
 
+
   const downloadTemplate = () => {
     const headers =
       'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url\n';
@@ -409,17 +443,20 @@ export default function AdminProducts() {
     link.click();
   };
 
+
   // ── IMPORT ───────────────────────────────────────────────────────────────
   const handleImport = async (e: any) => {
     const file = e.target.files[0];
     if (!file) return;
     e.target.value = '';
 
+
     const reader = new FileReader();
     reader.onload = async (event: any) => {
       const text = event.target.result;
       const lines = text.split('\n').slice(1);
       const imported: any[] = [];
+
 
       for (const line of lines) {
         if (!line.trim()) continue;
@@ -440,10 +477,12 @@ export default function AdminProducts() {
         cols.push(current.trim());
         if (cols.length < 6 || !cols[1]) continue;
 
+
         let warrantyVal = cols[10];
         if (warrantyVal && !isNaN(Number(warrantyVal))) {
           warrantyVal = `${warrantyVal} شهور`;
         }
+
 
         imported.push({
           id: cols[0],
@@ -463,13 +502,16 @@ export default function AdminProducts() {
         });
       }
 
+
       if (imported.length === 0) {
         toast.error('لم يتم العثور على منتجات صالحة في الملف');
         return;
       }
 
+
       setImporting(true);
       const importToast = toast.loading(`جاري استيراد ${imported.length} منتج...`);
+
 
       try {
         const res = await fetch('/api/admin/import-products', {
@@ -478,10 +520,13 @@ export default function AdminProducts() {
           body: JSON.stringify({ products: imported }),
         });
 
+
         const result = await res.json();
+
 
         toast.dismiss(importToast);
         setImporting(false);
+
 
         if (result.error) {
           toast.error('خطأ: ' + result.error);
@@ -501,14 +546,17 @@ export default function AdminProducts() {
       }
     };
 
+
     reader.readAsText(file);
   };
+
 
   // ── Build the edit URL with current filters encoded as ?from=... ──────────
   const buildEditUrl = (productId: string) => {
     const params = new URLSearchParams();
     if (currentPage > 1) params.set('page', String(currentPage));
     if (searchName) params.set('name', searchName);
+    if (searchId) params.set('id', searchId); // ── NEW ──
     if (filterMake) params.set('make', filterMake);
     if (filterModel) params.set('model', filterModel);
     if (filterCategory) params.set('category', filterCategory);
@@ -518,12 +566,15 @@ export default function AdminProducts() {
     if (sortBy !== 'created_at') params.set('sortBy', sortBy);
     if (sortOrder !== 'desc') params.set('sortOrder', sortOrder);
 
+
     const returnUrl = params.toString()
       ? `/admin/products?${params.toString()}`
       : '/admin/products';
 
+
     return `/admin/products/edit/${productId}?returnUrl=${encodeURIComponent(returnUrl)}`;
   };
+
 
   return (
     <div style={{ direction: 'rtl', color: '#fff', fontFamily: 'sans-serif' }}>
@@ -535,6 +586,7 @@ export default function AdminProducts() {
           onCancel={() => setModal(null)}
         />
       )}
+
 
       {/* Header */}
       <div
@@ -577,6 +629,7 @@ export default function AdminProducts() {
         </div>
       </div>
 
+
       {/* Filters */}
       <div
         style={{
@@ -596,6 +649,18 @@ export default function AdminProducts() {
             placeholder="ابحث..."
             value={searchName}
             onChange={(e) => setSearchName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && fetchProducts()}
+            style={filterInputStyle}
+          />
+        </div>
+        {/* ── NEW: Search by ID ── */}
+        <div>
+          <label style={labelStyle}>بحث بالـ ID</label>
+          <input
+            type="text"
+            placeholder="أدخل ID..."
+            value={searchId}
+            onChange={(e) => setSearchId(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && fetchProducts()}
             style={filterInputStyle}
           />
@@ -705,6 +770,7 @@ export default function AdminProducts() {
         </div>
       </div>
 
+
       {/* Bulk action bar */}
       {selectedIds.size > 0 && (
         <div style={bulkBarStyle}>
@@ -736,6 +802,7 @@ export default function AdminProducts() {
           </div>
         </div>
       )}
+
 
       {/* Table */}
       <div
@@ -778,6 +845,8 @@ export default function AdminProducts() {
               </th>
               <th style={thStyle}>الحالة</th>
               <th style={thStyle}>الصورة والاسم</th>
+              {/* ── NEW: ID column header ── */}
+              <th style={thStyle}>ID</th>
               <th style={thStyle}>العلامة التجارية</th>
               <th style={thStyle}>السيارة</th>
               <th style={thStyle}>الموديل</th>
@@ -789,7 +858,7 @@ export default function AdminProducts() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={9} style={{ textAlign: 'center', padding: '40px' }}>
+                <td colSpan={10} style={{ textAlign: 'center', padding: '40px' }}>
                   جاري التحميل...
                 </td>
               </tr>
@@ -845,6 +914,7 @@ export default function AdminProducts() {
                       </button>
                     </td>
 
+
                     <td style={tdStyle}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div style={{ width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#1a1a1a', border: '1px solid #222', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -856,6 +926,24 @@ export default function AdminProducts() {
                         <span>{product.name}</span>
                       </div>
                     </td>
+
+
+                    {/* ── NEW: ID cell ── */}
+                    <td style={tdStyle}>
+                      <span
+                        title={product.id}
+                        style={{
+                          fontFamily: 'monospace',
+                          fontSize: '0.75rem',
+                          color: '#555',
+                          cursor: 'default',
+                          userSelect: 'all',
+                        }}
+                      >
+                        {product.id.slice(0, 8)}…
+                      </span>
+                    </td>
+
 
                     <td style={tdStyle}>{product.brand}</td>
                     <td style={tdStyle}>{product.car_make}</td>
@@ -958,6 +1046,7 @@ export default function AdminProducts() {
         </table>
       </div>
 
+
       {/* Pagination */}
       <div
         style={{
@@ -988,6 +1077,7 @@ export default function AdminProducts() {
     </div>
   );
 }
+
 
 const labelStyle = { display: 'block', fontSize: '0.8rem', color: '#555', marginBottom: '8px' };
 const filterInputStyle = { width: '100%', padding: '12px', backgroundColor: '#000', border: '1px solid #222', color: '#fff', borderRadius: '10px', outline: 'none', fontSize: '0.85rem' };
