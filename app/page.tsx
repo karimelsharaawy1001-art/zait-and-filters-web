@@ -190,7 +190,7 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
               key={cat.name}
               onClick={() => {
                 if (absOffset === 0) {
-                  window.location.href = `/store?category=${encodeURIComponent(cat.name)}`;
+                  window.location.href = `/categories/${encodeURIComponent(cat.name)}`;
                 } else {
                   setActive(index);
                 }
