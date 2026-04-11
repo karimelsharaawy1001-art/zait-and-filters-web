@@ -110,20 +110,16 @@ function SearchCard({
 // ─────────────────────────────────────────────────────────────────────────────
 
 
-// ─── 3D Half-Circle Coverflow Carousel ───────────────────────────────────────
+// ─── 3D Wheel Arc Carousel ────────────────────────────────────────────────────
 function CategoriesCarousel3D({ categories }: { categories: any[] }) {
   const [active, setActive] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartX = useRef(0);
   const total = categories.length;
 
-  useEffect(() => {
-    if (total === 0) return;
-    const timer = setInterval(() => {
-      setActive((prev) => (prev + 1) % total);
-    }, 3000);
-    return () => clearInterval(timer);
-  }, [total]);
+  // Wheel geometry constants
+  const RADIUS    = 440;   // px — radius of the imaginary wheel
+  const ANGLE_DEG = 30;    // degrees between each card on the wheel
 
   const prev = () => setActive((p) => (p - 1 + total) % total);
   const next = () => setActive((p) => (p + 1) % total);
@@ -136,33 +132,34 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
     if (!isDragging) return;
     setIsDragging(false);
     const delta = dragStartX.current - clientX;
-    if (Math.abs(delta) > 50) delta > 0 ? next() : prev();
+    if (Math.abs(delta) > 40) delta > 0 ? next() : prev();
   };
 
   if (total === 0) return null;
 
   return (
-    <div style={{ position: 'relative', width: '100%', overflow: 'hidden', padding: '20px 0 60px' }}>
+    <div style={{ position: 'relative', width: '100%', overflow: 'hidden', padding: '20px 0 50px' }}>
+
       {/* 3D Stage */}
       <div
         style={{
-          perspective: '1100px',
-          perspectiveOrigin: '50% 40%',
+          perspective: '1300px',
+          perspectiveOrigin: '50% 55%',
           width: '100%',
-          height: '260px',
+          height: '290px',
           position: 'relative',
           cursor: isDragging ? 'grabbing' : 'grab',
         }}
         onMouseDown={(e) => onDragStart(e.clientX)}
         onMouseUp={(e) => onDragEnd(e.clientX)}
         onMouseLeave={(e) => { if (isDragging) onDragEnd(e.clientX); }}
-        onTouchStart={(e) => onDragStart(e.touches[0].clientX)}
+        onTouchStart={(e) => { e.preventDefault(); onDragStart(e.touches[0].clientX); }}
         onTouchEnd={(e) => onDragEnd(e.changedTouches[0].clientX)}
       >
-        {/* Edge faders */}
+        {/* Soft edge faders */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 20, pointerEvents: 'none',
-          background: 'linear-gradient(to right, #fdfdfd 0%, transparent 18%, transparent 82%, #fdfdfd 100%)',
+          background: 'linear-gradient(to right, #fdfdfd 0%, transparent 22%, transparent 78%, #fdfdfd 100%)',
         }} />
 
         {categories.map((cat, index) => {
@@ -170,15 +167,21 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
           if (offset > total / 2)  offset -= total;
           if (offset < -total / 2) offset += total;
 
-          const absOffset  = Math.abs(offset);
-          const visible    = absOffset <= 3;
-          const rotateY    = offset * 42;
-          const translateX = offset * 200;
-          const translateZ = -absOffset * 90;
-          const scale      = 1 - absOffset * 0.14;
-          const opacity    = absOffset === 0 ? 1 : absOffset === 1 ? 0.85 : absOffset === 2 ? 0.55 : 0.25;
-          const zIndex     = 10 - absOffset;
-          const brightness = absOffset === 0 ? 1 : absOffset === 1 ? 0.8 : 0.55;
+          const absOffset = Math.abs(offset);
+          const visible   = absOffset <= 4;
+
+          // Wheel arc positioning
+          const angleRad   = (offset * ANGLE_DEG * Math.PI) / 180;
+          const translateX = Math.sin(angleRad) * RADIUS;
+          const translateZ = (Math.cos(angleRad) - 1) * RADIUS; // 0 at center, deeper behind
+          const rotateY    = offset * ANGLE_DEG;
+          const scale      = absOffset === 0 ? 1 : Math.max(0.62, 1 - absOffset * 0.11);
+          const opacity    = absOffset === 0 ? 1
+                           : absOffset === 1 ? 0.88
+                           : absOffset === 2 ? 0.62
+                           : absOffset === 3 ? 0.38
+                           : 0.18;
+          const zIndex = 10 - absOffset;
 
           if (!visible) return null;
 
@@ -187,95 +190,98 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
               key={cat.name}
               onClick={() => {
                 if (absOffset === 0) {
-                  window.location.href = `/categories/${encodeURIComponent(cat.name)}`;
+                  window.location.href = `/store?category=${encodeURIComponent(cat.name)}`;
                 } else {
                   setActive(index);
                 }
               }}
               animate={{
-                rotateY,
                 x: `calc(-50% + ${translateX}px)`,
                 z: translateZ,
+                rotateY,
                 scale,
                 opacity,
-                filter: `brightness(${brightness})`,
               }}
-              transition={{ type: 'spring', stiffness: 260, damping: 28 }}
+              transition={{
+                type: 'spring',
+                stiffness: 160,
+                damping: 38,
+                mass: 1.3,
+              }}
               style={{
                 position: 'absolute',
                 left: '50%',
                 top: '50%',
                 translateY: '-50%',
-                width: '230px',
-                height: '220px',
+                width: '225px',
+                height: '235px',
                 borderRadius: '18px',
                 overflow: 'hidden',
                 zIndex,
                 cursor: 'pointer',
                 transformStyle: 'preserve-3d',
                 boxShadow: absOffset === 0
-                  ? '0 25px 60px rgba(0,0,0,0.35), 0 0 0 3px #22c55e'
-                  : '0 10px 30px rgba(0,0,0,0.2)',
+                  ? '0 30px 70px rgba(0,0,0,0.45), 0 0 0 3px #22c55e'
+                  : '0 8px 28px rgba(0,0,0,0.22)',
                 userSelect: 'none',
+                WebkitUserSelect: 'none',
               }}
             >
+              {/* Image */}
               <img
                 src={cat.image}
                 alt={cat.name}
                 draggable={false}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
+                style={{
+                  width: '100%', height: '100%',
+                  objectFit: 'cover', display: 'block',
+                  pointerEvents: 'none',
+                }}
               />
+
+              {/* Darkening overlay — heavier on inactive cards */}
               <div style={{
                 position: 'absolute', inset: 0,
-                background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)',
+                background: absOffset === 0
+                  ? 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.28) 55%, rgba(0,0,0,0.10) 100%)'
+                  : 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.60) 100%)',
+                transition: 'background 0.4s ease',
               }} />
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 12px 14px', textAlign: 'center' }}>
+
+              {/* Category name label */}
+              <div style={{
+                position: 'absolute', bottom: 0, left: 0, right: 0,
+                padding: '10px 10px 14px',
+                textAlign: 'center',
+              }}>
                 <span style={{
                   color: '#fff',
-                  fontSize: absOffset === 0 ? '1.15rem' : '0.95rem',
+                  fontSize: absOffset === 0 ? '1.1rem' : '0.9rem',
                   fontWeight: 900,
-                  textShadow: '0 2px 8px rgba(0,0,0,0.9)',
-                  transition: 'font-size 0.3s',
+                  textShadow: '0 2px 10px rgba(0,0,0,1)',
+                  lineHeight: 1.3,
                 }}>
                   {cat.name}
                 </span>
-                {absOffset === 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    style={{
-                      marginTop: '5px',
-                      background: '#22c55e',
-                      color: '#fff',
-                      fontSize: '0.7rem',
-                      fontWeight: 800,
-                      padding: '3px 10px',
-                      borderRadius: '20px',
-                      display: 'inline-block',
-                    }}
-                  >
-                    تصفح الآن ←
-                  </motion.div>
-                )}
               </div>
             </motion.div>
           );
         })}
       </div>
 
-      {/* Navigation */}
-      <div style={{
+      {/* Navigation — hidden on mobile via CSS class */}
+      <div className="wheel-carousel-nav" style={{
         display: 'flex', justifyContent: 'center', alignItems: 'center',
-        gap: '16px', marginTop: '12px', position: 'relative', zIndex: 30,
+        gap: '16px', marginTop: '14px', position: 'relative', zIndex: 30,
       }}>
         <button onClick={next} style={{
-          width: '42px', height: '42px', borderRadius: '50%',
+          width: '40px', height: '40px', borderRadius: '50%',
           border: '2px solid #e5e7eb', background: '#fff',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
           transition: 'all 0.2s',
         }}>
-          <ChevronRight size={20} color="#1a1a1a" />
+          <ChevronRight size={18} color="#1a1a1a" />
         </button>
 
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
@@ -292,15 +298,16 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
         </div>
 
         <button onClick={prev} style={{
-          width: '42px', height: '42px', borderRadius: '50%',
+          width: '40px', height: '40px', borderRadius: '50%',
           border: '2px solid #e5e7eb', background: '#fff',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
           transition: 'all 0.2s',
         }}>
-          <ChevronLeft size={20} color="#1a1a1a" />
+          <ChevronLeft size={18} color="#1a1a1a" />
         </button>
       </div>
+
     </div>
   );
 }
@@ -686,6 +693,9 @@ export default function HomePage() {
               padding: 18px 16px 20px; border-radius: 22px;
               box-shadow: 0 12px 36px rgba(0,0,0,0.3);
             }
+
+            /* Hide wheel navigation on mobile */
+            .wheel-carousel-nav { display: none !important; }
           }
 
           @media (max-width: 380px) {
@@ -1107,7 +1117,7 @@ export default function HomePage() {
               </section>
             </ScrollReveal>
 
-            {/* Categories Section — 3D Coverflow Carousel */}
+            {/* Categories Section — 3D Wheel Arc Carousel */}
             {categories.length > 0 && (
               <ScrollReveal direction="up" delay={0.2}>
                 <section style={{ padding: '40px 0 20px', maxWidth: '1200px', margin: '0 auto' }}>
