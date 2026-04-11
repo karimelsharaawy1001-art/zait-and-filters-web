@@ -112,81 +112,80 @@ function SearchCard({
 
 // ─── 3D Wheel Arc Carousel ────────────────────────────────────────────────────
 function CategoriesCarousel3D({ categories }: { categories: any[] }) {
-  // liveOffset is a continuous float (e.g. 2.73) — not just integers
-  // This lets the wheel spin fluidly as the user drags
-  const liveOffset   = useRef(0);
-  const [tick, setTick] = useState(0);          // forces re-render during drag
-  const isDragging   = useRef(false);
+  const liveOffset    = useRef(0);
+  const [tick, setTick] = useState(0);
+  const isDragging    = useRef(false);
   const pointerStartX = useRef(0);
-  const baseAtDrag   = useRef(0);
-  const velX         = useRef(0);
-  const lastX        = useRef(0);
-  const lastT        = useRef(0);
-  const rafId        = useRef<number | undefined>(undefined);
-  const total        = categories.length;
+  const baseAtDrag    = useRef(0);
+  const velX          = useRef(0);
+  const lastX         = useRef(0);
+  const lastT         = useRef(0);
+  const rafId         = useRef<number | undefined>(undefined);
+  const total         = categories.length;
 
-  const CARD_W          = 215;
-  const CARD_H          = 265;
-  const DRAG_PX_PER_CARD = 115;   // how many px of drag = 1 card advance
+  const CARD_W           = 215;
+  const CARD_H           = 265;
+  const DRAG_PX_PER_CARD = 115;
 
-  // Continuous arc math — works with fractional offsets for smooth spin
   const getTransform = (frac: number) => {
     const abs = Math.abs(frac);
     return {
-      x:     frac * 202,               // linear horizontal spread
-      y:     abs * abs * 86,           // QUADRATIC drop → parabola = arc shape
-      ry:    frac * 25,                // rotation follows arc angle
+      x:     frac * 202,
+      y:     abs * abs * 86,
+      ry:    frac * 25,
       scale: Math.max(0.50, 1 - abs * 0.155),
       op:    Math.max(0.12, 1 - abs * 0.27),
       br:    Math.max(0.28, 1 - abs * 0.36),
     };
   };
 
-  const scheduleRender = () => {
-    if (rafId.current) return;
-    rafId.current = requestAnimationFrame(() => {
-      rafId.current = undefined;
+  // ── Window-level pointer listeners — fire regardless of which element is under finger ──
+  useEffect(() => {
+    const scheduleRender = () => {
+      if (rafId.current) return;
+      rafId.current = requestAnimationFrame(() => {
+        rafId.current = undefined;
+        setTick(t => t + 1);
+      });
+    };
+
+    const handleMove = (e: PointerEvent) => {
+      if (!isDragging.current) return;
+      const now = Date.now();
+      const dt  = Math.max(1, now - lastT.current);
+      velX.current  = (e.clientX - lastX.current) / dt;
+      lastX.current = e.clientX;
+      lastT.current = now;
+      liveOffset.current = baseAtDrag.current + (pointerStartX.current - e.clientX) / DRAG_PX_PER_CARD;
+      scheduleRender();
+    };
+
+    const handleUp = () => {
+      if (!isDragging.current) return;
+      isDragging.current = false;
+      const momentum = (-velX.current * 140) / DRAG_PX_PER_CARD;
+      const raw      = liveOffset.current + momentum;
+      const snapped  = Math.round(raw);
+      liveOffset.current = ((snapped % total) + total) % total;
       setTick(t => t + 1);
-    });
-  };
+    };
 
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup',   handleUp);
+    return () => {
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup',   handleUp);
+    };
+  }, [total]);
+
+  // Only pointerdown lives on the stage — it just records the start position
   const onPointerDown = (e: React.PointerEvent) => {
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    isDragging.current   = true;
+    isDragging.current    = true;
     pointerStartX.current = e.clientX;
-    lastX.current        = e.clientX;
-    lastT.current        = Date.now();
-    velX.current         = 0;
-    baseAtDrag.current   = liveOffset.current;
-  };
-
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!isDragging.current) return;
-    const now = Date.now();
-    const dt  = Math.max(1, now - lastT.current);
-    velX.current  = (e.clientX - lastX.current) / dt;
-    lastX.current = e.clientX;
-    lastT.current = now;
-    liveOffset.current = baseAtDrag.current + (pointerStartX.current - e.clientX) / DRAG_PX_PER_CARD;
-    scheduleRender();
-  };
-
-  const onPointerUp = () => {
-    if (!isDragging.current) return;
-    isDragging.current = false;
-    // Momentum: project forward using velocity, then snap to nearest card
-    const momentum = (-velX.current * 140) / DRAG_PX_PER_CARD;
-    const raw      = liveOffset.current + momentum;
-    const snapped  = Math.round(raw);
-    liveOffset.current = ((snapped % total) + total) % total;
-    setTick(t => t + 1); // one final render with snap transition
-  };
-
-  const onPointerCancel = () => {
-    if (!isDragging.current) return;
-    isDragging.current = false;
-    liveOffset.current = Math.round(liveOffset.current);
-    liveOffset.current = ((liveOffset.current % total) + total) % total;
+    lastX.current         = e.clientX;
+    lastT.current         = Date.now();
+    velX.current          = 0;
+    baseAtDrag.current    = liveOffset.current;
     setTick(t => t + 1);
   };
 
@@ -209,10 +208,6 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
           WebkitUserSelect: 'none',
         }}
         onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerCancel}
-        onPointerLeave={onPointerCancel}
       >
         {/* Edge faders */}
         <div style={{
@@ -221,7 +216,6 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
         }} />
 
         {categories.map((cat, index) => {
-          // Compute continuous fractional offset with wrapping
           let frac = index - liveOffset.current;
           while (frac >  total / 2) frac -= total;
           while (frac < -total / 2) frac += total;
@@ -230,19 +224,18 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
           if (abs > 3.6) return null;
 
           const t       = getTransform(frac);
-          const zIndex  = Math.round(10 - abs);
           const isCenter = abs < 0.5;
-          const dragging = isDragging.current;
 
           return (
             <div
               key={cat.name}
               onClick={() => {
-                if (!dragging && abs < 0.5) {
+                if (isDragging.current) return;
+                if (isCenter) {
                   window.location.href = `/categories/${encodeURIComponent(cat.name)}`;
-                } else if (!dragging) {
-                  const target = ((Math.round(liveOffset.current + frac) % total) + total) % total;
-                  liveOffset.current = target;
+                } else {
+                  const target = index;
+                  liveOffset.current = ((target % total) + total) % total;
                   setTick(n => n + 1);
                 }
               }}
@@ -256,11 +249,10 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
                 borderRadius: '16px',
                 overflow: 'hidden',
                 cursor: 'pointer',
-                zIndex,
+                zIndex: Math.round(10 - abs),
                 opacity: t.op,
                 transform: `translateX(${t.x}px) translateY(${t.y}px) rotateY(${t.ry}deg) scale(${t.scale})`,
-                // No transition while dragging (instant follow), smooth snap on release
-                transition: dragging
+                transition: isDragging.current
                   ? 'none'
                   : 'transform 0.55s cubic-bezier(0.34, 1.08, 0.64, 1), opacity 0.4s ease, filter 0.4s ease, box-shadow 0.4s ease',
                 filter: `brightness(${t.br})`,
@@ -268,6 +260,8 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
                   ? '0 28px 65px rgba(0,0,0,0.42), 0 0 0 3px #22c55e'
                   : '0 5px 18px rgba(0,0,0,0.16)',
                 willChange: 'transform',
+                // Disable pointer events on card children so drag events reach the stage
+                pointerEvents: 'auto',
               }}
             >
               <img
@@ -277,12 +271,12 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
               />
               <div style={{
-                position: 'absolute', inset: 0,
+                position: 'absolute', inset: 0, pointerEvents: 'none',
                 background: isCenter
                   ? 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.18) 55%, transparent 100%)'
                   : 'linear-gradient(to top, rgba(0,0,0,0.84) 0%, rgba(0,0,0,0.50) 100%)',
               }} />
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 8px 12px', textAlign: 'center' }}>
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 8px 12px', textAlign: 'center', pointerEvents: 'none' }}>
                 <span style={{
                   color: '#fff', fontWeight: 900, lineHeight: 1.3, display: 'block',
                   fontSize: isCenter ? '1.05rem' : '0.82rem',
