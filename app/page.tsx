@@ -1,1076 +1,1103 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/app/lib/supabase';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
-import { 
-  Car, ChevronLeft, ChevronRight, Zap, ShoppingCart, 
-  Globe, Settings2, Calendar, Flame, 
-  LayoutGrid, Tags, Sparkles, Shield, TrendingUp
+import { useRouter, useSearchParams } from 'next/navigation';
+import toast from 'react-hot-toast';
+import {
+  Eye,
+  Edit3,
+  DollarSign,
+  Trash2,
+  Check,
+  X,
+  FileDown,
+  FileUp,
+  ClipboardList,
+  CheckSquare,
+  Square,
+  Minus,
+  AlertTriangle,
 } from 'lucide-react';
-import { motion, useInView, AnimatePresence } from 'framer-motion';
-import { useCart } from '@/context/CartContext'; 
-import toast from 'react-hot-toast'; 
 
 
-const Select = dynamic(() => import('react-select'), { 
-  ssr: false,
-  loading: () => <div style={{ height: '52px', backgroundColor: '#f8f8f8', borderRadius: '12px', display: 'flex', alignItems: 'center', padding: '0 15px', color: '#999' }}>جاري التحميل...</div>
-});
+const ITEMS_PER_PAGE = 20;
 
 
-// Optimized Scroll Reveal Component
-function ScrollReveal({ children, delay = 0, direction = 'up' }: { children: React.ReactNode; delay?: number; direction?: 'up' | 'down' | 'left' | 'right' }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: '-50px' });
-  const directions = { up: { y: 40, x: 0 }, down: { y: -40, x: 0 }, left: { x: 40, y: 0 }, right: { x: -40, y: 0 } };
+// ── Confirmation Modal ────────────────────────────────────────────────────────
+function ConfirmModal({
+  message,
+  onConfirm,
+  onCancel,
+}: {
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
   return (
-    <motion.div ref={ref} initial={{ opacity: 0, ...directions[direction] }} animate={isInView ? { opacity: 1, y: 0, x: 0 } : {}}
-      transition={{ duration: 0.5, delay, ease: [0.25, 0.46, 0.45, 0.94] }}>
-      {children}
-    </motion.div>
-  );
-}
-
-
-// SEO: Structured Data Component
-function StructuredData() {
-  const organizationSchema = {
-    '@context': 'https://schema.org', '@type': 'AutoPartsStore',
-    name: 'Zait and Filters | زيت أند فلترز', description: 'المتجر الأول لبيع قطع غيار السيارات الأصلية في مصر',
-    url: 'https://zaitandfilters.com', logo: 'https://zaitandfilters.com/logo.png',
-    image: 'https://zaitandfilters.com/og-image.jpg', telephone: '+201023862436',
-    email: 'orders@sales.zaitandfilters.com',
-    address: { '@type': 'PostalAddress', addressCountry: 'EG', addressLocality: 'Cairo', addressRegion: 'Cairo' },
-    priceRange: '$$', currenciesAccepted: 'EGP', paymentAccepted: 'Cash, Credit Card, Debit Card', openingHours: 'Mo-Sa 09:00-21:00',
-  };
-  const websiteSchema = {
-    '@context': 'https://schema.org', '@type': 'WebSite', name: 'Zait and Filters', url: 'https://zaitandfilters.com',
-    potentialAction: { '@type': 'SearchAction', target: 'https://zaitandfilters.com/store?q={search_term_string}', 'query-input': 'required name=search_term_string' },
-  };
-  const breadcrumbSchema = {
-    '@context': 'https://schema.org', '@type': 'BreadcrumbList',
-    itemListElement: [{ '@type': 'ListItem', position: 1, name: 'الرئيسية', item: 'https://zaitandfilters.com' }],
-  };
-  return (
-    <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-    </>
-  );
-}
-
-
-// ─── Search Card ──────────────────────────────────────────────────────────────
-function SearchCard({
-  selectLoaded, makesOptions, modelsOptions, selectedMake, selectedModel,
-  selectedYear, setSelectedMake, setSelectedModel, setSelectedYear, handleSearch, customSelectStyles,
-}: any) {
-  return (
-    <>
-      <h3 style={{ marginBottom: '20px', fontSize: '1.2rem', fontWeight: '900', textAlign: 'center' }}>
-        ابحث بمواصفات سيارتك
-      </h3>
-      {selectLoaded && (
-        <>
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{ fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block' }}>الماركة</label>
-            <Select instanceId="make-select" options={makesOptions} styles={customSelectStyles} placeholder="اختر الماركة"
-              isRtl={true} isSearchable={false} value={selectedMake} onChange={(opt: any) => setSelectedMake(opt)}
-              formatOptionLabel={(brand: any) => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  {brand.logo ? <img src={brand.logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} /> : <Car size={20} color="#ccc" />}
-                  <span>{brand.label}</span>
-                </div>
-              )}
-            />
-          </div>
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{ fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block' }}>الموديل</label>
-            <Select instanceId="model-select" options={modelsOptions} styles={customSelectStyles} placeholder="اختر الموديل"
-              isRtl={true} isSearchable={false} value={selectedModel} isDisabled={!selectedMake}
-              onChange={(opt: any) => setSelectedModel(opt)} />
-          </div>
-        </>
-      )}
-      <div style={{ marginBottom: '12px' }}>
-        <label style={{ fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block' }}>سنة الصنع</label>
-        <input type="text" placeholder="مثلاً: 2024" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}
-          style={{ width: '100%', height: '52px', padding: '0 15px', backgroundColor: '#f8f8f8', border: 'none', borderRadius: '12px', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }} />
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'rgba(0,0,0,0.75)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+        direction: 'rtl',
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: '#111',
+          border: '1px solid #ff4d4d44',
+          borderRadius: '16px',
+          padding: '32px',
+          maxWidth: '420px',
+          width: '90%',
+          textAlign: 'center',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+        }}
+      >
+        <AlertTriangle size={48} color="#ff4d4d" style={{ margin: '0 auto 16px' }} />
+        <p
+          style={{
+            color: '#fff',
+            fontSize: '1rem',
+            fontWeight: '700',
+            lineHeight: '1.6',
+            marginBottom: '28px',
+          }}
+        >
+          {message}
+        </p>
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+          <button
+            onClick={onCancel}
+            style={{
+              padding: '12px 28px',
+              backgroundColor: '#1a1a1a',
+              color: '#aaa',
+              border: '1px solid #333',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              fontWeight: '700',
+              fontSize: '0.9rem',
+            }}
+          >
+            إلغاء
+          </button>
+          <button
+            onClick={onConfirm}
+            style={{
+              padding: '12px 28px',
+              backgroundColor: '#ff4d4d',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              fontWeight: '900',
+              fontSize: '0.9rem',
+            }}
+          >
+            تأكيد الحذف
+          </button>
+        </div>
       </div>
-      <button onClick={handleSearch}
-        style={{ width: '100%', marginTop: '15px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', padding: '16px', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontSize: '1.1rem' }}>
-        بحث الآن <ChevronLeft size={22} />
-      </button>
-    </>
+    </div>
   );
 }
-// ─────────────────────────────────────────────────────────────────────────────
 
 
-export default function HomePage() {
+export default function AdminProducts() {
   const router = useRouter();
-  const { addToCart } = useCart(); 
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const bestSellerRef = useRef<HTMLDivElement>(null); 
-  
-  const [isMounted, setIsMounted] = useState(false);
-  const [selectLoaded, setSelectLoaded] = useState(false);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [makesOptions, setMakesOptions] = useState<any[]>([]); 
-  const [modelsOptions, setModelsOptions] = useState<any[]>([]);
-  const [selectedMake, setSelectedMake] = useState<any>(null);
-  const [selectedModel, setSelectedModel] = useState<any>(null);
-  const [selectedYear, setSelectedYear] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [brandLogos, setBrandLogos] = useState<any[]>([]);
-  const [slides, setSlides] = useState<any[]>([]);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [saleProducts, setSaleProducts] = useState<any[]>([]);
-  const [bestSellers, setBestSellers] = useState<any[]>([]); 
-  const [loadingMessage, setLoadingMessage] = useState(0);
-  const [homeBanner, setHomeBanner] = useState<any>(null);
-  const [garageMode, setGarageMode] = useState(false);
-  const [userCar, setUserCar] = useState<any>(null);
+  const searchParams = useSearchParams();
 
-  const loadingMessages = [
-    { icon: <Shield size={22} color="#22c55e" />, text: 'منتجات أصلية 100%' },
-    { icon: <Sparkles size={22} color="#22c55e" />, text: 'أفضل الأسعار في السوق' },
-    { icon: <TrendingUp size={22} color="#22c55e" />, text: 'توصيل سريع لجميع المحافظات' },
-  ];
+
+  const [products, setProducts] = useState<any[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+
+  // ── Read initial filter state from URL ──
+  const [currentPage, setCurrentPage] = useState(() => Number(searchParams.get('page') || 1));
+  const [searchName, setSearchName] = useState(() => searchParams.get('name') || '');
+  // ── search by ID ──
+  const [searchId, setSearchId] = useState(() => searchParams.get('id') || '');
+  const [filterMake, setFilterMake] = useState(() => searchParams.get('make') || '');
+  const [filterModel, setFilterModel] = useState(() => searchParams.get('model') || '');
+  const [filterCategory, setFilterCategory] = useState(() => searchParams.get('category') || '');
+  const [filterSubcategory, setFilterSubcategory] = useState(() => searchParams.get('subcategory') || '');
+  const [filterYear, setFilterYear] = useState(() => searchParams.get('year') || '');
+  const [filterBrand, setFilterBrand] = useState(() => searchParams.get('brand') || '');
+  const [sortBy, setSortBy] = useState(() => searchParams.get('sortBy') || 'created_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(() => (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc');
+
+
+  const [availableMakes, setAvailableMakes] = useState<string[]>([]);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [availableSubcategories, setAvailableSubcategories] = useState<string[]>([]);
+  const [availableBrands, setAvailableBrands] = useState<string[]>([]);
+
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editData, setEditData] = useState({ regular_price: '', sale_price: '' });
+
+
+  // ── MULTI-SELECT STATE ──
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+
+
+  // ── MODAL STATE ──
+  const [modal, setModal] = useState<{ message: string; onConfirm: () => void } | null>(null);
+
+
+  // ── IMPORT PROGRESS ──
+  const [importing, setImporting] = useState(false);
+
+
+  // ── Sync filters to URL whenever they change ──────────────────────────────
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (currentPage > 1) params.set('page', String(currentPage));
+    if (searchName) params.set('name', searchName);
+    if (searchId) params.set('id', searchId);
+    if (filterMake) params.set('make', filterMake);
+    if (filterModel) params.set('model', filterModel);
+    if (filterCategory) params.set('category', filterCategory);
+    if (filterSubcategory) params.set('subcategory', filterSubcategory);
+    if (filterYear) params.set('year', filterYear);
+    if (filterBrand) params.set('brand', filterBrand);
+    if (sortBy !== 'created_at') params.set('sortBy', sortBy);
+    if (sortOrder !== 'desc') params.set('sortOrder', sortOrder);
+
+
+    const newUrl = params.toString()
+      ? `/admin/products?${params.toString()}`
+      : '/admin/products';
+
+
+    router.replace(newUrl, { scroll: false });
+  }, [currentPage, searchName, searchId, filterMake, filterModel, filterCategory, filterSubcategory, filterYear, filterBrand, sortBy, sortOrder]);
+
 
   useEffect(() => {
-    setIsMounted(true);
-    setSelectLoaded(true); 
-    fetchInitialData();
-    fetchGarageData();
-    fetchHomeBanner();
-    const syncGarageMode = () => { setGarageMode(localStorage.getItem('garageMode') === 'true'); };
-    syncGarageMode();
-    window.addEventListener('garageModeChanged', syncGarageMode);
-    const messageInterval = setInterval(() => { setLoadingMessage((prev) => (prev + 1) % loadingMessages.length); }, 1500);
-    return () => { clearInterval(messageInterval); window.removeEventListener('garageModeChanged', syncGarageMode); };
+    fetchUniqueValues('car_make', setAvailableMakes);
+    fetchUniqueValues('category', setAvailableCategories);
+    fetchUniqueValues('brand', setAvailableBrands);
   }, []);
 
+
   useEffect(() => {
-    if (slides.length > 1) {
-      const timer = setInterval(() => { setCurrentSlide((prev) => (prev + 1) % slides.length); }, 6000);
-      return () => clearInterval(timer);
+    if (filterMake) {
+      fetchUniqueValues('car_model', setAvailableModels, 'car_make', filterMake);
+    } else {
+      setAvailableModels([]);
+      setFilterModel('');
     }
-  }, [slides]);
+  }, [filterMake]);
+
 
   useEffect(() => {
-    if (selectedMake) fetchModels(selectedMake.value);
-    else { setModelsOptions([]); setSelectedModel(null); }
-  }, [selectedMake]);
+    if (filterCategory) {
+      fetchUniqueValues('subcategory', setAvailableSubcategories, 'category', filterCategory);
+    } else {
+      setAvailableSubcategories([]);
+      setFilterSubcategory('');
+    }
+  }, [filterCategory]);
 
-  const isValidImg = (url: any) => url && String(url).trim().startsWith('http');
 
-  async function fetchGarageData() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase.from('user_garage').select('*').eq('user_id', user.id).maybeSingle();
-        if (data) setUserCar(data);
+  // FIX 1: Added searchId to dependency array so typing triggers a fetch
+  useEffect(() => {
+    fetchProducts();
+  }, [
+    currentPage,
+    searchId,
+    filterMake,
+    filterModel,
+    filterCategory,
+    filterSubcategory,
+    filterYear,
+    filterBrand,
+    sortBy,
+    sortOrder,
+  ]);
+
+
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [currentPage, filterMake, filterModel, filterCategory, filterSubcategory, filterYear, filterBrand]);
+
+
+  async function fetchUniqueValues(
+    column: string,
+    setter: (vals: string[]) => void,
+    filterCol?: string,
+    filterVal?: string,
+  ) {
+    let query = supabase.from('products').select(column);
+    if (filterCol && filterVal) query = query.eq(filterCol, filterVal);
+    const { data } = await query;
+    if (data) {
+      const uniqueValues = Array.from(
+        new Set(data.map((i: any) => i[column]).filter(Boolean)),
+      ) as string[];
+      setter(uniqueValues.sort());
+    }
+  }
+
+
+  const buildFilteredQuery = () => {
+    let query = supabase.from('products').select('*', { count: 'exact' });
+    if (searchName) query = query.ilike('name', `%${searchName}%`);
+    // FIX 2: UUID columns don't support ilike — use .eq() for exact UUID match,
+    // or startsWith match for partial (first 8 chars the admin copies from the table).
+    if (searchId) {
+      const clean = searchId.trim().toLowerCase();
+      // Full UUID (36 chars with dashes) → exact match
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(clean)) {
+        query = query.eq('id', clean);
+      } else {
+        // Partial (e.g. first 8 chars) → startsWith on the UUID string
+        query = query.gte('id', clean).lte('id', clean + '\uffff');
       }
-    } catch (err) { console.error('Garage fetch error:', err); }
+    }
+    if (filterMake === '__universal__') {
+      query = query.or('car_make.is.null,car_make.eq.');
+    } else if (filterMake) {
+      query = query.eq('car_make', filterMake);
+    }
+    if (filterModel) query = query.eq('car_model', filterModel);
+    if (filterCategory) query = query.eq('category', filterCategory);
+    if (filterSubcategory) query = query.eq('subcategory', filterSubcategory);
+    if (filterYear) query = query.ilike('car_model_year', `%${filterYear}%`);
+    if (filterBrand) query = query.eq('brand', filterBrand);
+    return query;
+  };
+
+
+  async function fetchProducts() {
+    setLoading(true);
+    let query = buildFilteredQuery();
+    query = query.order(sortBy, { ascending: sortOrder === 'asc' });
+    const from = (currentPage - 1) * ITEMS_PER_PAGE;
+    const to = from + ITEMS_PER_PAGE - 1;
+    query = query.range(from, to);
+    const { data, count } = await query;
+    if (data) setProducts(data);
+    if (typeof count === 'number') setTotalCount(count);
+    setLoading(false);
   }
 
-  async function fetchHomeBanner() {
-    try {
-      const { data } = await supabase.from('home_banners').select('*').eq('is_active', true)
-        .order('updated_at', { ascending: false }).limit(1).maybeSingle();
-      if (data) setHomeBanner(data);
-    } catch (err) { console.error('Banner fetch error:', err); }
-  }
 
-  async function fetchInitialData() {
-    try {
-      setLoading(true);
-      const [heroRes, customImgRes, partBrandsRes, carBrandsRes, makesRes] = await Promise.all([
-        supabase.from('hero_settings').select('*').order('id', { ascending: true }),
-        supabase.from('category_images').select('name, image_url'),
-        supabase.from('part_brands').select('name, logo_url').neq('logo_url', ''),
-        supabase.from('car_brands').select('name, logo_url'),
-        supabase.from('products').select('car_make').not('car_make', 'is', null)
-      ]);
-      if (heroRes.data) setSlides(heroRes.data);
-      if (partBrandsRes.data) setBrandLogos(partBrandsRes.data);
+  const toggleStatus = async (id: string, currentStatus: boolean) => {
+    const { error } = await supabase
+      .from('products')
+      .update({ is_active: !currentStatus })
+      .eq('id', id);
+    if (!error) {
+      setProducts(products.map((p) => (p.id === id ? { ...p, is_active: !currentStatus } : p)));
+    }
+  };
 
-      const [allProductsRes, saleProductsRes] = await Promise.all([
-        supabase.from('products').select('*').order('created_at', { ascending: false }),
-        supabase.from('products')
-          .select('*')
-          .gt('sale_price', 0)
-          .order('sale_order', { ascending: true, nullsFirst: false }),
-      ]);
 
-      if (allProductsRes.error) console.error('Products fetch error:', allProductsRes.error);
-      const products = allProductsRes.data || [];
-      const customImages = customImgRes.data || [];
+  const handleUpdatePrice = async (id: string) => {
+    const { error } = await supabase
+      .from('products')
+      .update({
+        regular_price: parseFloat(editData.regular_price),
+        sale_price: editData.sale_price ? parseFloat(editData.sale_price) : null,
+      })
+      .eq('id', id);
+    if (!error) {
+      setProducts(products.map((p) => (p.id === id ? { ...p, ...editData } : p)));
+      setEditingId(null);
+      toast.success('تم تحديث السعر');
+    }
+  };
 
-      if (products.length > 0) {
-        const rawSale = (saleProductsRes.data || []).filter(
-          (p: any) => Number(p.sale_price) > 0 && Number(p.regular_price) > Number(p.sale_price) && isValidImg(p.image_url)
-        );
-        rawSale.sort((a: any, b: any) => {
-          if (a.sale_order != null && b.sale_order != null) return a.sale_order - b.sale_order;
-          if (a.sale_order != null) return -1;
-          if (b.sale_order != null) return 1;
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        });
-        setSaleProducts(rawSale);
 
-        const { data: orders } = await supabase.from('orders').select('items').limit(100);
-        const productCounts: Record<string, number> = {};
-        orders?.forEach((order: any) => { order.items?.forEach((item: any) => { productCounts[item.id] = (productCounts[item.id] || 0) + (item.quantity || 1); }); });
-        const sortedBestIds = Object.entries(productCounts).sort(([, a], [, b]) => b - a).map(([id]) => id);
-        let bestSellersList = sortedBestIds.map(id => products.find(p => p.id === id)).filter(p => p && isValidImg(p.image_url));
-        if (bestSellersList.length < 4) {
-          bestSellersList = [...bestSellersList, ...products.filter(p => !bestSellersList.find(b => b?.id === p.id) && isValidImg(p.image_url))];
+  // ── DELETE SINGLE with modal ──────────────────────────────────────────────
+  const deleteProduct = (id: string) => {
+    setModal({
+      message:
+        'هل أنت متأكد من حذف هذا المنتج نهائياً؟ لا يمكن التراجع عن هذا الإجراء.',
+      onConfirm: async () => {
+        setModal(null);
+        const { error } = await supabase.from('products').delete().eq('id', id);
+        if (error) {
+          toast.error('حدث خطأ أثناء الحذف: ' + error.message);
+        } else {
+          toast.success('تم حذف المنتج');
+          fetchProducts();
         }
-        setBestSellers(bestSellersList);
-        const uniqueCats = Array.from(new Set(products.map(i => i.category?.trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ar"));
-        setCategories(uniqueCats.map(cat => {
-          const imgObj = customImages.find((img: any) => img.name?.trim().toUpperCase() === cat.toUpperCase());
-          const prodObj = products.find(p => p.category?.trim().toUpperCase() === cat.toUpperCase() && isValidImg(p.image_url));
-          return { name: cat, image: imgObj?.image_url || prodObj?.image_url || "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?q=80&w=500" };
-        }));
-      }
-      if (carBrandsRes.data && makesRes.data) {
-        const uniqueMakes = Array.from(new Set(makesRes.data.map((i: any) => i.car_make?.trim()).filter(Boolean))).sort() as string[];
-        setMakesOptions(uniqueMakes.map(makeName => {
-          const brandInfo = carBrandsRes.data?.find((b: any) => b.name?.trim().toLowerCase() === makeName.toLowerCase());
-          return { value: makeName, label: makeName, logo: brandInfo?.logo_url || null };
-        }));
-      }
-    } catch (err) { console.error('Fetch error:', err); }
-    finally { setTimeout(() => setLoading(false), 800); }
-  }
-
-  async function fetchModels(make: string) {
-    try {
-      const { data } = await supabase.from('products').select('car_model').ilike('car_make', make.trim()).not('car_model', 'is', null);
-      if (data) {
-        const uniqueModels = Array.from(new Set(data.map((i: any) => i.car_model?.trim()).filter(Boolean))).sort();
-        setModelsOptions(uniqueModels.map(m => ({ value: m, label: m })));
-      }
-    } catch (err) { console.error('Error fetching models:', err); }
-  }
-
-  const handleSearch = () => {
-    const query = new URLSearchParams();
-    if (selectedMake) query.set('make', selectedMake.value.trim().toUpperCase());
-    if (selectedModel) query.set('model', selectedModel.value.trim().toUpperCase());
-    if (selectedYear) query.set('year', selectedYear.trim());
-    router.push(`/store?${query.toString()}`);
+      },
+    });
   };
 
-  const scroll = (ref: any, direction: 'left' | 'right') => {
-    if (ref.current) {
-      const { scrollLeft, clientWidth } = ref.current;
-      ref.current.scrollTo({ left: direction === 'left' ? scrollLeft - clientWidth : scrollLeft + clientWidth, behavior: 'smooth' });
+
+  // ── MULTI-SELECT HANDLERS ─────────────────────────────────────────────────
+  const toggleSelectOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+
+  const isAllSelected = products.length > 0 && products.every((p) => selectedIds.has(p.id));
+  const isPartialSelected =
+    products.some((p) => selectedIds.has(p.id)) && !isAllSelected;
+
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        products.forEach((p) => next.delete(p.id));
+        return next;
+      });
+    } else {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        products.forEach((p) => next.add(p.id));
+        return next;
+      });
     }
   };
 
-  const customSelectStyles = {
-    control: (base: any) => ({ ...base, height: '52px', borderRadius: '12px', border: 'none', backgroundColor: '#f8f8f8', fontSize: '1rem', textAlign: 'right', display: 'flex', flexDirection: 'row-reverse', cursor: 'pointer' }),
-    option: (base: any, state: any) => ({ ...base, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', flexDirection: 'row-reverse', gap: '8px', padding: '10px 15px', fontSize: '0.95rem', backgroundColor: state.isFocused ? '#eefcf5' : '#fff', color: '#1a1a1a', cursor: 'pointer' }),
-    singleValue: (base: any) => ({ ...base, display: 'flex', alignItems: 'center', gap: '8px', flexDirection: 'row-reverse' }),
-    valueContainer: (base: any) => ({ ...base, padding: '0 12px', display: 'flex', flexDirection: 'row-reverse' }),
-    menu: (base: any) => ({ ...base, zIndex: 10000 }),
-    menuList: (base: any) => ({ ...base, maxHeight: '250px' })
+
+  // ── BULK DELETE with modal ────────────────────────────────────────────────
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return;
+    setModal({
+      message: `هل أنت متأكد من حذف ${selectedIds.size} منتج نهائياً؟ لا يمكن التراجع عن هذا الإجراء.`,
+      onConfirm: async () => {
+        setModal(null);
+        setBulkDeleting(true);
+        const idsArray = Array.from(selectedIds);
+        const { error } = await supabase.from('products').delete().in('id', idsArray);
+        setBulkDeleting(false);
+        if (error) {
+          toast.error('حدث خطأ أثناء الحذف: ' + error.message);
+        } else {
+          toast.success(`تم حذف ${idsArray.length} منتج بنجاح`);
+          setSelectedIds(new Set());
+          fetchProducts();
+        }
+      },
+    });
   };
 
-  if (!isMounted) return null;
 
-  // GARAGE FILTER LOGIC — preserves sale_order within the filtered set
-  const filteredSaleProducts = garageMode && userCar 
-    ? saleProducts.filter(p => 
-        (p.car_make?.toUpperCase() === userCar.make?.toUpperCase() && 
-         p.car_model?.toUpperCase() === userCar.model?.toUpperCase()) ||
-        (!p.car_make || p.car_make?.toUpperCase() === 'UNIVERSAL' || p.car_make?.toUpperCase() === 'عام')
-      ).slice(0, 6)
-    : saleProducts.slice(0, 6);
+  // ── EXPORT ───────────────────────────────────────────────────────────────
+  const exportToCSV = async () => {
+    setLoading(true);
+    const { data } = await buildFilteredQuery();
+    if (!data || data.length === 0) {
+      toast.error('لا توجد منتجات مطابقة للفلاتر الحالية لتصديرها');
+      setLoading(false);
+      return;
+    }
+    const safe = (val: any) =>
+      val === null || val === undefined ? '' : String(val);
+    const headers =
+      'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url\n';
+    const rows = data
+      .map((p: any) =>
+        [
+          `"${safe(p.id)}"`,
+          `"${safe(p.name)}"`,
+          `"${safe(p.brand)}"`,
+          `"${safe(p.category)}"`,
+          `"${safe(p.subcategory)}"`,
+          `"${safe(p.car_make)}"`,
+          `"${safe(p.car_model)}"`,
+          `"${safe(p.car_model_year)}"`,
+          safe(p.regular_price),
+          safe(p.sale_price),
+          `"${safe(p.warranty)}"`,
+          p.is_active ? 1 : 0,
+          `"${safe(p.country_of_origin)}"`,
+          `"${safe(p.image_url)}"`,
+        ].join(','),
+      )
+      .join('\n');
+    const csvContent = '\uFEFF' + headers + rows;
+    const blob = new Blob([csvContent], {
+      type: 'text/csv;charset=utf-8;',
+    });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `\u0645\u062e\u0632\u0646_\u0645\u0635\u062f\u0631_${new Date().toLocaleDateString('ar-EG')}.csv`;
+    link.click();
+    setLoading(false);
+    toast.success(`\u062a\u0645 \u062a\u0635\u062f\u064a\u0631 ${data.length} \u0645\u0646\u062a\u062c`);
+  };
 
-  const filteredBestSellers = garageMode && userCar
-    ? bestSellers.filter(p => 
-        (p.car_make?.toUpperCase() === userCar.make?.toUpperCase() && 
-         p.car_model?.toUpperCase() === userCar.model?.toUpperCase()) ||
-        (!p.car_make || p.car_make?.toUpperCase() === 'UNIVERSAL' || p.car_make?.toUpperCase() === 'عام')
-      ).slice(0, 6)
-    : bestSellers.slice(0, 6);
 
-  const activeSlide = slides[currentSlide] ?? {};
+  const downloadTemplate = () => {
+    const headers =
+      'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url\n';
+    const example =
+      ',\u062a\u064a\u0644 \u0641\u0631\u0627\u0645\u0644 \u0635\u0646\u064a,Hi-Q,\u0641\u0631\u0627\u0645\u0644,\u062a\u064a\u0644,\u0646\u064a\u0633\u0627\u0646,\u0635\u0646\u064a,2015-2024,1200,1100,6,1,\u0643\u0648\u0631\u064a,https://res.cloudinary.com/example.jpg';
+    const csvContent = '\uFEFF' + headers + example;
+    const blob = new Blob([csvContent], {
+      type: 'text/csv;charset=utf-8;',
+    });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = '\u0642\u0627\u0644\u0628_\u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a.csv';
+    link.click();
+  };
 
-  const searchCardProps = {
-    selectLoaded, makesOptions, modelsOptions, selectedMake, selectedModel, selectedYear,
-    setSelectedMake, setSelectedModel, setSelectedYear, handleSearch, customSelectStyles,
+
+  // ── IMPORT ───────────────────────────────────────────────────────────────
+  const handleImport = async (e: any) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    e.target.value = '';
+
+
+    const reader = new FileReader();
+    reader.onload = async (event: any) => {
+      const text = event.target.result;
+      const lines = text.split('\n').slice(1);
+      const imported: any[] = [];
+
+
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        const cols: string[] = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            cols.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        cols.push(current.trim());
+        if (cols.length < 6 || !cols[1]) continue;
+
+
+        let warrantyVal = cols[10];
+        if (warrantyVal && !isNaN(Number(warrantyVal))) {
+          warrantyVal = `${warrantyVal} \u0634\u0647\u0648\u0631`;
+        }
+
+
+        imported.push({
+          id: cols[0],
+          name: cols[1],
+          brand: cols[2],
+          category: cols[3],
+          subcategory: cols[4],
+          car_make: cols[5],
+          car_model: cols[6],
+          car_model_year: cols[7],
+          regular_price: parseFloat(cols[8]),
+          sale_price: cols[9] ? parseFloat(cols[9]) : null,
+          warranty: warrantyVal,
+          is_active: cols[11] === '1' || cols[11]?.toLowerCase() === 'true',
+          country_of_origin: cols[12],
+          image_url: cols[13],
+        });
+      }
+
+
+      if (imported.length === 0) {
+        toast.error('\u0644\u0645 \u064a\u062a\u0645 \u0627\u0644\u0639\u062b\u0648\u0631 \u0639\u0644\u0649 \u0645\u0646\u062a\u062c\u0627\u062a \u0635\u0627\u0644\u062d\u0629 \u0641\u064a \u0627\u0644\u0645\u0644\u0641');
+        return;
+      }
+
+
+      setImporting(true);
+      const importToast = toast.loading(`\u062c\u0627\u0631\u064a \u0627\u0633\u062a\u064a\u0631\u0627\u062f ${imported.length} \u0645\u0646\u062a\u062c...`);
+
+
+      try {
+        const res = await fetch('/api/admin/import-products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ products: imported }),
+        });
+
+
+        const result = await res.json();
+
+
+        toast.dismiss(importToast);
+        setImporting(false);
+
+
+        if (result.error) {
+          toast.error('\u062e\u0637\u0623: ' + result.error);
+        } else {
+          toast.success(`\u2705 \u062a\u062d\u062f\u064a\u062b ${result.updateCount} | \u0625\u0636\u0627\u0641\u0629 ${result.insertCount}`, {
+            duration: 5000,
+          });
+          if (result.errorCount > 0) {
+            toast.error(`\u26a0\ufe0f ${result.errorCount} \u0623\u062e\u0637\u0627\u0621 \u0641\u064a \u0627\u0644\u0627\u0633\u062a\u064a\u0631\u0627\u062f`, { duration: 5000 });
+          }
+          fetchProducts();
+        }
+      } catch (err: any) {
+        toast.dismiss(importToast);
+        setImporting(false);
+        toast.error('\u062e\u0637\u0623 \u0641\u064a \u0627\u0644\u0627\u062a\u0635\u0627\u0644: ' + err.message);
+      }
+    };
+
+
+    reader.readAsText(file);
+  };
+
+
+  // ── Build the edit URL with current filters encoded as ?from=... ──────────
+  const buildEditUrl = (productId: string) => {
+    const params = new URLSearchParams();
+    if (currentPage > 1) params.set('page', String(currentPage));
+    if (searchName) params.set('name', searchName);
+    if (searchId) params.set('id', searchId);
+    if (filterMake) params.set('make', filterMake);
+    if (filterModel) params.set('model', filterModel);
+    if (filterCategory) params.set('category', filterCategory);
+    if (filterSubcategory) params.set('subcategory', filterSubcategory);
+    if (filterYear) params.set('year', filterYear);
+    if (filterBrand) params.set('brand', filterBrand);
+    if (sortBy !== 'created_at') params.set('sortBy', sortBy);
+    if (sortOrder !== 'desc') params.set('sortOrder', sortOrder);
+
+
+    const returnUrl = params.toString()
+      ? `/admin/products?${params.toString()}`
+      : '/admin/products';
+
+
+    return `/admin/products/edit/${productId}?returnUrl=${encodeURIComponent(returnUrl)}`;
   };
 
 
   return (
-    <>
-      <StructuredData />
-      
-      <div style={{ direction: 'rtl', backgroundColor: '#fdfdfd', color: '#1a1a1a', minHeight: '100vh', fontSize: '13px' }}>
-        
-        {loading && (
-          <motion.div initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }} style={fullPageLoaderStyle}>
-            <div style={{ textAlign: 'center', maxWidth: '480px', width: '100%', padding: '0 24px', boxSizing: 'border-box' }}>
-              <motion.h1 initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.6, ease: 'easeOut' }} style={brandNameText}>
-                <span style={{ color: '#fff' }}>ZAIT</span>
-                <span style={{ color: '#22c55e' }}>&nbsp;&amp; FILTERS</span>
-              </motion.h1>
-              <motion.h2 initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.6 }} style={mainHeadline}>قطع الغيار بضغطة زرار</motion.h2>
-              <motion.p initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35, duration: 0.6 }} style={tagline}>وجهتك الأولى لقطع غيار السيارات الأصلية في مصر</motion.p>
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} style={loadingBarContainer}>
-                <motion.div initial={{ width: '0%' }} animate={{ width: '100%' }} transition={{ duration: 1.5, ease: 'easeInOut' }} style={loadingBar} />
-              </motion.div>
-              <motion.div key={loadingMessage} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.4 }} style={messageContainer}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-                  {loadingMessages[loadingMessage].icon}
-                  <span style={messageText}>{loadingMessages[loadingMessage].text}</span>
-                </div>
-              </motion.div>
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} style={featurePills}>
-                <div style={pill}><Shield size={16} color="#22c55e" /><span>ضمان الجودة</span></div>
-                <div style={pill}><Sparkles size={16} color="#22c55e" /><span>أسعار تنافسية</span></div>
-                <div style={pill}><TrendingUp size={16} color="#22c55e" /><span>شحن مجاني</span></div>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
+    <div style={{ direction: 'rtl', color: '#fff', fontFamily: 'sans-serif' }}>
+      {/* ── Confirmation Modal ── */}
+      {modal && (
+        <ConfirmModal
+          message={modal.message}
+          onConfirm={modal.onConfirm}
+          onCancel={() => setModal(null)}
+        />
+      )}
 
 
-        <style dangerouslySetInnerHTML={{ __html: `
-          * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-          @keyframes pageLoad { from { opacity: 0; } to { opacity: 1; } }
-          @keyframes slideIn  { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
-          @keyframes slideUp  { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-          @keyframes shimmer  { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
-          @keyframes badgePulse {
-            0%, 100% { box-shadow: 0 0 6px 2px rgba(255,200,0,0.45), 0 2px 8px rgba(0,0,0,0.25); }
-            50%       { box-shadow: 0 0 14px 5px rgba(255,200,0,0.75), 0 2px 8px rgba(0,0,0,0.25); }
-          }
-
-          .badge-asli {
-            position: absolute; top: 8px; left: 8px;
-            background: linear-gradient(120deg, #b8860b 0%, #ffd700 25%, #fffacd 50%, #ffd700 75%, #b8860b 100%);
-            background-size: 200% auto;
-            animation: shimmer 2.5s linear infinite, badgePulse 2s ease-in-out infinite;
-            color: #3d2200; padding: 3px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: 900;
-            z-index: 11; letter-spacing: 0.5px; border: 1px solid rgba(255,215,0,0.7);
-            text-shadow: 0 1px 0 rgba(255,255,255,0.6);
-          }
-
-          .page-container { animation: pageLoad 0.4s ease-out; }
-
-          .hero-section {
-            position: relative;
-            width: 100%;
-            background: #000;
-            overflow: hidden;
-          }
-
-          .hero-bg-layer {
-            position: absolute; inset: 0; z-index: 0;
-            pointer-events: none; transform: translateZ(0);
-          }
-          .hero-bg-slide {
-            position: absolute; inset: 0; background-size: cover;
-            background-position: center; opacity: 0;
-            transition: opacity 0.8s ease-in-out; will-change: opacity;
-          }
-          .hero-bg-slide.active { opacity: 1; }
-
-          /* ══════════════════════════════════════════
-             DESKTOP HERO  (≥ 769px)
-          ══════════════════════════════════════════ */
-          @media (min-width: 769px) {
-            .hero-section { height: 650px; }
-
-            .hero-content-layer {
-              position: absolute; inset: 0; z-index: 10;
-              display: flex; align-items: center;
-            }
-            .hero-inner {
-              width: 100%; max-width: 1300px; margin: 0 auto;
-              padding: 40px 50px;
-              display: flex; flex-direction: row;
-              gap: 60px;
-              align-items: center;
-              justify-content: space-between;
-              direction: rtl;
-            }
-
-            /* ── Text block — RIGHT side in RTL ── */
-            .hero-text {
-              flex: 1;
-              direction: rtl;
-              text-align: right;
-              display: flex;
-              flex-direction: column;
-              align-items: flex-end;
-              animation: slideIn 0.6s ease-out 0.15s both;
-            }
-            .hero-text-title { width: 100%; }
-
-            /* ── MASSIVE title on desktop ── */
-            .hero-text h1 {
-              font-size: 5rem !important;
-              font-weight: 900 !important;
-              line-height: 1.2 !important;
-              margin: 0 0 22px 0 !important;
-              color: #22c55e !important;
-              direction: rtl !important;
-              text-align: right !important;
-              text-shadow:
-                0 2px 0 rgba(0,0,0,0.5),
-                0 4px 24px rgba(0,0,0,0.9),
-                0 0 60px rgba(0,0,0,0.6) !important;
-              letter-spacing: -1.5px !important;
-              width: 100% !important;
-              display: block !important;
-            }
-            .hero-text p {
-              font-size: 1.45rem !important;
-              font-weight: 700 !important;
-              line-height: 1.7 !important;
-              color: #fff !important;
-              direction: rtl !important;
-              text-align: right !important;
-              text-shadow: 0 2px 16px rgba(0,0,0,0.95) !important;
-              margin: 0 0 36px 0 !important;
-              max-width: 580px !important;
-              display: block !important;
-              width: 100% !important;
-            }
-
-            /* ── CTA button on desktop — right-aligned, NOT full-width ── */
-            .hero-cta-btn {
-              display: inline-flex !important;
-              align-items: center !important;
-              justify-content: center !important;
-              gap: 12px !important;
-              padding: 20px 56px !important;
-              background-color: #22c55e !important;
-              color: #fff !important;
-              border-radius: 18px !important;
-              text-decoration: none !important;
-              font-weight: 900 !important;
-              font-size: 1.35rem !important;
-              letter-spacing: -0.3px !important;
-              box-shadow: 0 10px 40px rgba(34,197,94,0.55) !important;
-              transition: all 0.25s ease !important;
-              white-space: nowrap !important;
-              align-self: flex-end !important;
-            }
-            .hero-cta-btn:hover {
-              background-color: #16a34a !important;
-              transform: translateY(-3px) !important;
-              box-shadow: 0 16px 50px rgba(34,197,94,0.65) !important;
-            }
-
-            .hero-card-desktop {
-              width: 400px; flex-shrink: 0; background: #fff;
-              padding: 30px; border-radius: 30px;
-              box-shadow: 0 20px 50px rgba(0,0,0,0.35);
-              animation: slideUp 0.6s ease-out 0.25s both;
-              align-self: center;
-            }
-            .hero-card-mobile { display: none; }
-          }
-
-          /* ══════════════════════════════════════════
-             MOBILE HERO  (≤ 768px)
-          ══════════════════════════════════════════ */
-          @media (max-width: 768px) {
-            .hero-section { height: 980px; }
-
-            .hero-content-layer {
-              position: absolute; inset: 0; z-index: 10;
-              display: flex; align-items: flex-start;
-              padding-top: 100px;
-            }
-            .hero-inner {
-              width: 100%; padding: 0 18px;
-              box-sizing: border-box;
-              display: flex; flex-direction: column; gap: 36px;
-              direction: rtl;
-            }
-
-            /* ── Text block ── */
-            .hero-text {
-              direction: rtl;
-              text-align: right;
-              display: flex; flex-direction: column; align-items: flex-end;
-              width: 100%;
-            }
-            .hero-text-title { width: 100%; }
-
-            /* ── MASSIVE title on mobile ── */
-            .hero-text h1 {
-              font-size: 2.8rem !important;
-              font-weight: 900 !important;
-              line-height: 1.3 !important;
-              margin: 0 0 18px 0 !important;
-              color: #22c55e !important;
-              direction: rtl !important;
-              text-align: right !important;
-              text-shadow:
-                0 2px 0 rgba(0,0,0,0.5),
-                0 4px 20px rgba(0,0,0,0.98),
-                0 0 40px rgba(0,0,0,0.8) !important;
-              letter-spacing: -0.5px !important;
-              width: 100% !important;
-              display: block !important;
-            }
-            .hero-text p {
-              font-size: 1.2rem !important;
-              font-weight: 700 !important;
-              line-height: 1.7 !important;
-              color: #fff !important;
-              direction: rtl !important;
-              text-align: right !important;
-              text-shadow: 0 2px 14px rgba(0,0,0,0.98) !important;
-              margin: 0 0 28px 0 !important;
-              width: 100% !important;
-              display: block !important;
-            }
-
-            /* ── CTA button on mobile ── */
-            .hero-cta-btn {
-              display: flex !important;
-              align-items: center !important;
-              justify-content: center !important;
-              gap: 10px !important;
-              width: 100% !important;
-              padding: 20px 24px !important;
-              background-color: #22c55e !important;
-              color: #fff !important;
-              border-radius: 16px !important;
-              text-decoration: none !important;
-              font-weight: 900 !important;
-              font-size: 1.25rem !important;
-              box-shadow: 0 8px 28px rgba(34,197,94,0.45) !important;
-            }
-
-            .hero-card-desktop { display: none; }
-            .hero-card-mobile {
-              width: 100%; box-sizing: border-box;
-              background: #fff; padding: 18px 16px 20px;
-              border-radius: 22px;
-              box-shadow: 0 12px 36px rgba(0,0,0,0.3);
-            }
-          }
-
-          @media (max-width: 380px) {
-            .hero-section       { height: 1020px; }
-            .hero-content-layer { padding-top: 80px; }
-            .hero-inner         { gap: 28px; }
-            .hero-text h1       { font-size: 2.3rem !important; }
-            .hero-text p        { font-size: 1.05rem !important; }
-            .hero-cta-btn       { font-size: 1.1rem !important; padding: 17px 20px !important; }
-          }
-
-          .no-scrollbar::-webkit-scrollbar { display: none; }
-          .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-          
-          .product-grid-carousel { 
-            display: flex !important; flex-wrap: nowrap !important; gap: 15px; 
-            overflow-x: auto !important; scroll-snap-type: x mandatory; 
-            padding: 10px 20px; -webkit-overflow-scrolling: touch; 
-          }
-          .product-card-mdrn { 
-            flex: 0 0 320px !important; min-width: 320px !important; max-width: 320px !important; 
-            background: #fff; border-radius: 18px; border: 1px solid #f2f2f2; 
-            transition: all 0.3s ease; position: relative; display: flex; 
-            flex-direction: column; overflow: hidden; scroll-snap-align: start; 
-          }
-          .product-card-mdrn:hover { transform: translateY(-6px); border-color: #22c55e; box-shadow: 0 10px 30px rgba(34,197,94,0.15); }
-          .img-container { background: #f9f9f9; height: 200px; width: 100%; position: relative; cursor: pointer; overflow: hidden; }
-          .img-fill-100  { width: 100%; height: 200px; object-fit: contain; padding: 0; display: block; transition: transform 0.3s ease; }
-          .img-container:hover .img-fill-100 { transform: scale(1.02); }
-          
-          .category-grid-v3   { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; padding: 20px; }
-          .category-item-mdrn { position: relative; height: 150px; border-radius: 14px; overflow: hidden; background-color: #1a1a1a; transition: 0.3s ease; cursor: pointer; }
-          .category-item-mdrn:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
-          .category-item-mdrn:hover .cat-bg-img { transform: scale(1.1); filter: brightness(0.9); }
-          .cat-bg-img       { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; filter: brightness(0.7); transition: 0.4s ease; }
-          .cat-info-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: flex-end; justify-content: center; background: linear-gradient(to top,rgba(0,0,0,0.75) 0%,transparent 60%); padding: 10px 8px; }
-          .cat-title-text   { color: #fff; font-size: 1.25rem; font-weight: 900; text-align: center; text-shadow: 2px 2px 8px rgba(0,0,0,0.9); }
-          
-          @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-          .marquee-inner   { display: flex; width: max-content; animation: marquee 35s linear infinite; }
-          .brand-logo-wrap { width: 180px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 10px 25px; }
-          .logo-img-v3     { max-width: 130px; max-height: 60px; filter: grayscale(100%); opacity: 0.5; transition: 0.3s; }
-          .logo-img-v3:hover { filter: grayscale(0%); opacity: 1; transform: scale(1.1); }
-
-          /* ── Features Strip ── */
-          .features-strip {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
-            align-items: center;
-            padding: 20px 0;
-          }
-          .feature-item {
-            display: flex; align-items: center; gap: 14px;
-            padding: 12px 16px; justify-content: center;
-          }
-          .feature-icon-wrap {
-            width: 52px; height: 52px; border-radius: 14px;
-            background: #f0fdf4; display: flex; align-items: center;
-            justify-content: center; flex-shrink: 0;
-          }
-          .feature-text { display: flex; flex-direction: column; gap: 2px; }
-          .feature-title { font-size: 0.88rem; font-weight: 900; color: #1a1a1a; line-height: 1.3; }
-          .feature-sub   { font-size: 0.75rem; font-weight: 600; color: #888; line-height: 1.3; }
-          .feature-divider { width: 1px; height: 48px; background: #f0f0f0; flex-shrink: 0; }
-
-          @media (max-width: 768px) {
-            .features-strip {
-              grid-template-columns: 1fr 1fr;
-              gap: 0;
-              padding: 8px 0;
-            }
-            .feature-divider { display: none; }
-            .feature-item {
-              padding: 14px 10px;
-              border-bottom: 1px solid #f5f5f5;
-              justify-content: flex-start;
-            }
-            .feature-item:nth-child(odd)  { border-right: 1px solid #f5f5f5; }
-            .feature-item:nth-last-child(-n+2) { border-bottom: none; }
-            .feature-icon-wrap { width: 42px; height: 42px; border-radius: 11px; }
-            .feature-title { font-size: 0.8rem; }
-            .feature-sub   { font-size: 0.68rem; }
-          }
-
-          /* ══════════════════════════════════════════
-             HOME BANNER — DESKTOP
-          ══════════════════════════════════════════ */
-          .home-banner-section { max-width: 1200px; margin: 0 auto; padding: 16px 20px; }
-          .home-banner-inner {
-            position: relative; width: 100%; height: 260px; border-radius: 20px;
-            overflow: hidden; cursor: pointer;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-          }
-          .home-banner-inner:hover { transform: translateY(-3px); box-shadow: 0 16px 44px rgba(0,0,0,0.22); }
-          .home-banner-bg  { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-          .home-banner-overlay { position: absolute; inset: 0; background: linear-gradient(to left, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.82) 60%, rgba(0,0,0,0.88) 100%); }
-          .home-banner-content {
-            position: absolute; inset: 0;
-            display: flex; align-items: center; justify-content: flex-start;
-            padding: 0 48px; direction: rtl;
-          }
-          .home-banner-text-block { text-align: right; max-width: 72%; }
-          .home-banner-title {
-            color: #fff; font-size: 3.2rem; font-weight: 900; line-height: 1.15;
-            text-shadow: 0 4px 24px rgba(0,0,0,0.9), 0 2px 0 rgba(0,0,0,0.6); margin: 0 0 12px;
-            letter-spacing: -1.5px;
-          }
-          .home-banner-subtitle {
-            color: rgba(255,255,255,0.97); font-size: 1.35rem; font-weight: 700;
-            text-shadow: 0 2px 14px rgba(0,0,0,0.85); margin: 0 0 22px; line-height: 1.5;
-          }
-          .home-banner-cta {
-            display: inline-flex; align-items: center; gap: 7px;
-            background: #22c55e; color: #fff; padding: 13px 28px; border-radius: 12px;
-            font-size: 1.05rem; font-weight: 900; text-decoration: none;
-            box-shadow: 0 4px 16px rgba(34,197,94,0.45);
-            transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-            border: none; cursor: pointer; white-space: nowrap;
-          }
-          .home-banner-cta:hover { background: #16a34a; transform: translateY(-1px); box-shadow: 0 6px 22px rgba(34,197,94,0.55); }
-
-          /* ══════════════════════════════════════════
-             HOME BANNER — MOBILE
-          ══════════════════════════════════════════ */
-          @media (max-width: 768px) {
-            .home-banner-section { padding: 12px 12px; }
-            .home-banner-inner   { height: 200px; border-radius: 16px; }
-            .home-banner-overlay { background: linear-gradient(to left, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.82) 60%, rgba(0,0,0,0.9) 100%); }
-            .home-banner-content {
-              align-items: center; justify-content: flex-start;
-              padding: 0 22px;
-            }
-            .home-banner-text-block { text-align: right; max-width: 88%; }
-            .home-banner-title    { font-size: 2rem; margin-bottom: 8px; letter-spacing: -0.5px; }
-            .home-banner-subtitle { font-size: 1.1rem; margin-bottom: 16px; }
-            .home-banner-cta      { padding: 10px 22px; font-size: 0.95rem; }
-          }
-
-          @media (max-width: 480px) {
-            .home-banner-inner    { height: 190px; }
-            .home-banner-title    { font-size: 1.65rem; }
-            .home-banner-subtitle { font-size: 0.95rem; }
-            .loader-brand-name { font-size: 2.4rem !important; letter-spacing: -1px !important; margin-bottom: 16px !important; }
-            .loader-headline   { font-size: 1.6rem !important; margin-bottom: 12px !important; }
-            .loader-tagline    { font-size: 0.95rem !important; margin-bottom: 28px !important; }
-          }
-
-          @media (max-width: 768px) {
-            .category-grid-v3 { grid-template-columns: repeat(3,1fr); gap: 8px; padding: 12px; }
-            .img-fill-100     { height: 140px !important; }
-            .product-grid-carousel {
-              display: grid !important; grid-template-columns: repeat(2,1fr) !important;
-              gap: 10px !important; padding: 10px !important; overflow-x: visible !important;
-            }
-            .product-card-mdrn { flex: 0 0 100% !important; min-width: 0 !important; max-width: 100% !important; width: 100% !important; border-radius: 12px !important; }
-            .product-card-mdrn h3     { font-size: 0.85rem !important; height: 38px !important; }
-            .product-card-mdrn span   { font-size: 0.9rem !important; }
-            .product-card-mdrn button { font-size: 0.8rem !important; padding: 8px !important; }
-          }
-        `}} />
-
-
-        {!loading && (
-          <div className="page-container">
-
-            <section className="hero-section">
-              <div className="hero-bg-layer">
-                {slides.map((slide, index) => (
-                  <div key={index} className={`hero-bg-slide ${index === currentSlide ? 'active' : ''}`}
-                    style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6),rgba(0,0,0,0.6)),url("${slide.bg_image_url}")` }} />
-                ))}
-              </div>
-
-              <div className="hero-content-layer">
-                <div className="hero-inner">
-
-                  {/* ── TEXT BLOCK (right side in RTL) ── */}
-                  <div className="hero-text" dir="rtl">
-                    <div className="hero-text-title" dir="rtl">
-                      {activeSlide.title && (
-                        <h1 dir="rtl">{activeSlide.title.replace(/<[^>]*>/g, '')}</h1>
-                      )}
-                      {activeSlide.subtitle && (
-                        <p dir="rtl">{activeSlide.subtitle}</p>
-                      )}
-                    </div>
-                    <Link
-                      href={activeSlide.button_link || '/store'}
-                      className="hero-cta-btn"
-                    >
-                      {activeSlide.button_text || 'تصفح المتجر'} ←
-                    </Link>
-                  </div>
-
-                  {/* ── SEARCH CARD (left side in RTL) ── */}
-                  <div className="hero-card-desktop">
-                    <SearchCard {...searchCardProps} />
-                  </div>
-                  <div className="hero-card-mobile">
-                    <SearchCard {...searchCardProps} />
-                  </div>
-
-                </div>
-              </div>
-            </section>
-
-
-            {/* Brand Logos */}
-            {brandLogos.length > 0 && (
-              <ScrollReveal direction="up" delay={0.05}>
-                <section style={{ padding: '12px 0', background: '#fff', borderBottom: '1px solid #f5f5f5', position: 'relative', zIndex: 1 }}>
-                  <div style={{ overflow: 'hidden', direction: 'ltr' }}>
-                    <div className="marquee-inner">
-                      {[...brandLogos, ...brandLogos].map((brand, index) => (
-                        <div key={index} className="brand-logo-wrap">
-                          <Link href={`/store?brand=${brand.name}`}>
-                            <img src={brand.logo_url} alt={brand.name} className="logo-img-v3" loading="lazy"/>
-                          </Link>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </section>
-              </ScrollReveal>
-            )}
-
-
-            {/* HOME BANNER */}
-            {homeBanner && (
-              <ScrollReveal direction="up" delay={0.07}>
-                <div className="home-banner-section">
-                  {homeBanner.link_url ? (
-                    <Link href={homeBanner.link_url} style={{ textDecoration: 'none' }}>
-                      <div className="home-banner-inner">
-                        {homeBanner.image_url && <img src={homeBanner.image_url} alt={homeBanner.title || 'banner'} className="home-banner-bg" loading="lazy" />}
-                        <div className="home-banner-overlay" />
-                        <div className="home-banner-content">
-                          <div className="home-banner-text-block">
-                            {homeBanner.title && <p className="home-banner-title">{homeBanner.title}</p>}
-                            {homeBanner.subtitle && <p className="home-banner-subtitle">{homeBanner.subtitle}</p>}
-                            <span className="home-banner-cta">{homeBanner.cta_text || 'اكتشف الآن'} ←</span>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  ) : (
-                    <div className="home-banner-inner">
-                      {homeBanner.image_url && <img src={homeBanner.image_url} alt={homeBanner.title || 'banner'} className="home-banner-bg" loading="lazy" />}
-                      <div className="home-banner-overlay" />
-                      <div className="home-banner-content">
-                        <div className="home-banner-text-block">
-                          {homeBanner.title && <p className="home-banner-title">{homeBanner.title}</p>}
-                          {homeBanner.subtitle && <p className="home-banner-subtitle">{homeBanner.subtitle}</p>}
-                          {homeBanner.cta_text && <span className="home-banner-cta">{homeBanner.cta_text} ←</span>}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </ScrollReveal>
-            )}
-
-
-            {/* Offers Section */}
-            {saleProducts.length > 0 && (
-              <ScrollReveal direction="up" delay={0.1}>
-                <section style={{ padding: '25px 0', maxWidth: '1200px', margin: '0 auto' }}>
-                  <div style={{ padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '15px' }}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ff4d4d', marginBottom: '4px' }}>
-                        <Zap size={16} fill="#ff4d4d" />
-                        <span style={{ fontWeight: '800', fontSize: '0.85rem' }}>{garageMode && userCar ? `عروض لسيارتك ${userCar.make}` : 'أقوى الخصومات'}</span>
-                      </div>
-                      <h2 style={{ fontSize: '1.8rem', fontWeight: '900', margin: 0 }}>عروض حصرية 🔥</h2>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <Link href="/store?filter=sales" style={{ color: '#22c55e', fontWeight: '800', textDecoration: 'none', marginLeft: '15px', fontSize: '0.9rem' }}>عرض الكل</Link>
-                      <button onClick={() => scroll(scrollRef, 'right')} style={arrowBtnSmall}><ChevronRight size={14}/></button>
-                      <button onClick={() => scroll(scrollRef, 'left')} style={arrowBtnSmall}><ChevronLeft size={14}/></button>
-                    </div>
-                  </div>
-                  <div ref={scrollRef} className="no-scrollbar product-grid-carousel">
-                    {filteredSaleProducts.map((p) => {
-                      const country = p.country_origin || p.country_of_origin || p.origin || 'أصلي';
-                      const isAsli = (p.country_origin || p.country_of_origin || p.origin)?.trim() === 'اصلي';
-                      return (
-                        <div key={p.id} className="product-card-mdrn">
-                          <div style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#ff4d4d', color: '#fff', padding: '2px 6px', borderRadius: '5px', fontSize: '0.6rem', fontWeight: '900', zIndex: 10 }}>
-                            -{Math.round(((p.regular_price - p.sale_price) / p.regular_price) * 100)}%
-                          </div>
-                          {isAsli && <div className="badge-asli">✦ أصلي</div>}
-                          <Link href={`/products/${p.id}`} className="img-container">
-                            <img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" />
-                            <div style={{ position: 'absolute', bottom: 6, left: 6, background: 'rgba(255,255,255,0.9)', padding: '2px 6px', borderRadius: '5px', fontSize: '0.65rem', fontWeight: '800' }}>
-                              <Car size={9} /> {p.car_make}
-                            </div>
-                          </Link>
-                          <div style={{ padding: '15px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                              <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.8rem' }}>{p.brand}</span>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#666', fontWeight: '700' }}><Globe size={14} color="#22c55e" /><span>{country}</span></div>
-                            </div>
-                            <h3 style={{ fontSize: '1rem', fontWeight: '900', marginBottom: '4px', height: '45px', overflow: 'hidden' }}>{p.name}</h3>
-                            <div className="md-hidden" style={{ background: '#f9f9f9', padding: '10px', borderRadius: '10px', marginBottom: '10px' }}>
-                              <div style={{fontSize:'0.8rem',color:'#1a1a1a',fontWeight:'800',marginBottom:'3px',display:'flex',alignItems:'center',gap:'6px'}}><Settings2 size={14} color="#22c55e"/> {p.car_make} {p.car_model}</div>
-                              <div style={{fontSize:'0.8rem',color:'#666',fontWeight:'700',display:'flex',alignItems:'center',gap:'6px',marginBottom:'3px'}}><Calendar size={14} color="#22c55e"/> {p.car_model_year || 'الكل'}</div>
-                              <div style={{fontSize:'0.8rem',color:'#22c55e',fontWeight:'800',display:'flex',alignItems:'center',gap:'6px',marginBottom:'3px'}}><LayoutGrid size={14}/> {p.category}</div>
-                              <div style={{fontSize:'0.8rem',color:'#888',fontWeight:'700',display:'flex',alignItems:'center',gap:'6px'}}><Tags size={14}/> {p.subcategory || 'عام'}</div>
-                            </div>
-                            <div style={{ marginTop: 'auto', display:'flex', flexDirection:'column', gap:'12px' }}>
-                              <div>
-                                <span style={{ display: 'block', color: '#bbb', textDecoration: 'line-through', fontSize: '0.75rem' }}>{p.regular_price} ج.م</span>
-                                <span style={{ fontSize: '1.2rem', fontWeight: '900' }}>{p.sale_price} ج.م</span>
-                              </div>
-                              <button style={cartBtnStyleSmall} onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, 1); toast.success('تمت الإضافة'); }}>
-                                <ShoppingCart size={16} /> أضف إلى السلة
-                              </button>
-                              <Link href={`/checkout?buyNow=true&productId=${p.id}&price=${p.sale_price}`} style={buyNowBtnStyle} onClick={() => { addToCart({...p, price: p.sale_price}, 1); }}>
-                                ⚡ اشتري الآن
-                              </Link>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </section>
-              </ScrollReveal>
-            )}
-
-
-            {/* Trending Section */}
-            {bestSellers.length > 0 && (
-              <ScrollReveal direction="up" delay={0.15}>
-                <section style={{ padding: '25px 0', maxWidth: '1200px', margin: '0 auto', background: '#fff', borderRadius: '30px' }}>
-                  <div style={{ padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '15px' }}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#22c55e', marginBottom: '4px' }}>
-                        <Flame size={16} fill="#22c55e" />
-                        <span style={{ fontWeight: '800', fontSize: '0.85rem' }}>{garageMode && userCar ? `تريند لسيارتك ${userCar.make}` : 'الأكثر طلباً'}</span>
-                      </div>
-                      <h2 style={{ fontSize: '1.8rem', fontWeight: '900', margin: 0 }}>تريند الآن 🔥</h2>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <button onClick={() => scroll(bestSellerRef, 'right')} style={arrowBtnSmall}><ChevronRight size={14}/></button>
-                      <button onClick={() => scroll(bestSellerRef, 'left')} style={arrowBtnSmall}><ChevronLeft size={14}/></button>
-                    </div>
-                  </div>
-                  <div ref={bestSellerRef} className="no-scrollbar product-grid-carousel">
-                    {filteredBestSellers.map((p) => {
-                      const country = p.country_origin || p.country_of_origin || p.origin || 'أصلي';
-                      const isAsli = p.brand?.trim() === 'اصلي';
-                      return (
-                        <div key={p.id} className="product-card-mdrn">
-                          <div style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#22c55e', color: '#fff', padding: '2px 6px', borderRadius: '5px', fontSize: '0.6rem', fontWeight: '900', zIndex: 10 }}>تريند ✨</div>
-                          {isAsli && <div className="badge-asli">✦ أصلي</div>}
-                          <Link href={`/products/${p.id}`} className="img-container">
-                            <img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" />
-                          </Link>
-                          <div style={{ padding: '15px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                              <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.8rem' }}>{p.brand}</span>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#666', fontWeight: '700' }}><Globe size={14} color="#22c55e" /><span>{country}</span></div>
-                            </div>
-                            <h3 style={{ fontSize: '1rem', fontWeight: '900', marginBottom: '4px', height: '45px', overflow: 'hidden' }}>{p.name}</h3>
-                            <div className="md-hidden" style={{ background: '#f9f9f9', padding: '8px', borderRadius: '10px', marginBottom: '10px' }}>
-                              <div style={{fontSize:'0.8rem',color:'#1a1a1a',fontWeight:'800',marginBottom:'3px',display:'flex',alignItems:'center',gap:'6px'}}><Settings2 size={14} color="#22c55e"/> {p.car_make} {p.car_model}</div>
-                              <div style={{fontSize:'0.8rem',color:'#666',fontWeight:'700',display:'flex',alignItems:'center',gap:'6px',marginBottom:'3px'}}><Calendar size={14} color="#22c55e"/> {p.car_model_year || 'الكل'}</div>
-                              <div style={{fontSize:'0.8rem',color:'#22c55e',fontWeight:'800',display:'flex',alignItems:'center',gap:'6px',marginBottom:'3px'}}><LayoutGrid size={14}/> {p.category}</div>
-                              <div style={{fontSize:'0.8rem',color:'#888',fontWeight:'700',display:'flex',alignItems:'center',gap:'6px'}}><Tags size={14}/> {p.subcategory || 'عام'}</div>
-                            </div>
-                            <div style={{ marginTop: 'auto', display:'flex', flexDirection:'column', gap:'12px' }}>
-                              <span style={{ fontSize: '1.2rem', fontWeight: '900' }}>{p.sale_price || p.regular_price} ج.م</span>
-                              <button style={cartBtnStyleSmall} onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price || p.regular_price}, 1); toast.success('تمت الإضافة'); }}>
-                                <ShoppingCart size={16} /> أضف إلى السلة
-                              </button>
-                              <Link href={`/checkout?buyNow=true&productId=${p.id}&price=${p.sale_price || p.regular_price}`} style={buyNowBtnStyle} onClick={() => { addToCart({...p, price: p.sale_price || p.regular_price}, 1); }}>
-                                ⚡ اشتري الآن
-                              </Link>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </section>
-              </ScrollReveal>
-            )}
-
-
-            {/* ── Static Features Strip ── */}
-            <ScrollReveal direction="up" delay={0.18}>
-              <section style={{ background: '#fff', borderTop: '1px solid #f0f0f0', borderBottom: '1px solid #f0f0f0' }}>
-                <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
-                  <div className="features-strip">
-
-                    <div className="feature-item">
-                      <div className="feature-icon-wrap">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="1"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
-                      </div>
-                      <div className="feature-text">
-                        <span className="feature-title">شحن لأي مكان في مصر</span>
-                        <span className="feature-sub">مع أكبر شركة شحن مصرية</span>
-                      </div>
-                    </div>
-
-                    <div className="feature-divider" />
-
-                    <div className="feature-item">
-                      <div className="feature-icon-wrap">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                      </div>
-                      <div className="feature-text">
-                        <span className="feature-title">قطع أصلية 100%</span>
-                        <span className="feature-sub">بضمان حقيقي على كل منتج</span>
-                      </div>
-                    </div>
-
-                    <div className="feature-divider" />
-
-                    <div className="feature-item">
-                      <div className="feature-icon-wrap">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                      </div>
-                      <div className="feature-text">
-                        <span className="feature-title">أكتر من 15+ طريقة دفع</span>
-                        <span className="feature-sub">منها شركات التقسيط</span>
-                      </div>
-                    </div>
-
-                    <div className="feature-divider" />
-
-                    <div className="feature-item">
-                      <div className="feature-icon-wrap">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
-                      </div>
-                      <div className="feature-text">
-                        <span className="feature-title">من الوكيل الرسمي فقط</span>
-                        <span className="feature-sub">جميع المنتجات معتمدة</span>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-              </section>
-            </ScrollReveal>
-
-            {/* Categories Section */}
-            <ScrollReveal direction="up" delay={0.2}>
-              <section style={{ padding: '40px 20px 80px', maxWidth: '1200px', margin: '0 auto' }}>
-                <div style={{ textAlign: 'right', marginBottom: '30px' }}>
-                  <h2 style={{ fontSize: '2.2rem', fontWeight: '900', margin: 0 }}>تسوق حسب الفئة</h2>
-                </div>
-                <div className="category-grid-v3">
-                  {categories.map((cat, index) => (
-                    <motion.div key={index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }} transition={{ delay: index * 0.08, duration: 0.4, ease: 'easeOut' }}>
-                      <Link href={`/categories/${encodeURIComponent(cat.name)}`}>
-                        <div className="category-item-mdrn">
-                          <img src={cat.image} alt={cat.name} className="cat-bg-img" loading="lazy" />
-                          <div className="cat-info-overlay"><span className="cat-title-text">{cat.name}</span></div>
-                        </div>
-                      </Link>
-                    </motion.div>
-                  ))}
-                </div>
-              </section>
-            </ScrollReveal>
-
-          </div>
-        )}
-
-        {/* STICKY GARAGE NOTIFICATION */}
-        <AnimatePresence>
-          {garageMode && userCar && (
-            <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }} style={stickyNotificationStyle}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={garageIconWrapMini}><Car size={18} color="#fff" /></div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '0.9rem', fontWeight: '900', color: '#fff', lineHeight: '1.2' }}>وضع جراجي مفعل لسيارة {userCar.make}</div>
-                  <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.8)', fontWeight: '700' }}>نعرض المنتجات المتوافقة والعامة فقط</div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* Header */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '20px',
+          flexWrap: 'wrap',
+          gap: '10px',
+        }}
+      >
+        <h1 style={{ color: '#2ecc71', fontWeight: '900' }}>\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0645\u062e\u0632\u0646 ({totalCount})</h1>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button onClick={downloadTemplate} style={secondaryBtnStyle}>
+            <ClipboardList size={16} /> \u0627\u0644\u0642\u0627\u0644\u0628
+          </button>
+          <label
+            style={{
+              ...secondaryBtnStyle,
+              opacity: importing ? 0.6 : 1,
+              pointerEvents: importing ? 'none' : 'auto',
+            }}
+          >
+            <FileUp size={16} /> {importing ? '\u062c\u0627\u0631\u064a \u0627\u0644\u0627\u0633\u062a\u064a\u0631\u0627\u062f...' : '\u0627\u0633\u062a\u064a\u0631\u0627\u062f'}
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleImport}
+              style={{ display: 'none' }}
+            />
+          </label>
+          <button
+            onClick={exportToCSV}
+            disabled={loading}
+            style={{ ...secondaryBtnStyle, backgroundColor: '#2ecc71', color: '#000' }}
+          >
+            <FileDown size={16} /> {loading ? '\u062c\u0627\u0631\u064a \u0627\u0644\u062a\u062d\u0645\u064a\u0644...' : '\u062a\u0635\u062f\u064a\u0631 \u0627\u0644\u0641\u0644\u062a\u0631 \u0627\u0644\u062d\u0627\u0644\u064a'}
+          </button>
+        </div>
       </div>
-    </>
+
+
+      {/* Filters */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+          gap: '15px',
+          marginBottom: '25px',
+          backgroundColor: '#0a0a0a',
+          padding: '20px',
+          borderRadius: '12px',
+        }}
+      >
+        <div>
+          <label style={labelStyle}>\u0628\u062d\u062b \u0628\u0627\u0644\u0627\u0633\u0645</label>
+          <input
+            type="text"
+            placeholder="\u0627\u0628\u062d\u062b..."
+            value={searchName}
+            onChange={(e) => setSearchName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && fetchProducts()}
+            style={filterInputStyle}
+          />
+        </div>
+        {/* ── Search by ID ── */}
+        <div>
+          <label style={labelStyle}>\u0628\u062d\u062b \u0628\u0627\u0644\u0640 ID</label>
+          <input
+            type="text"
+            placeholder="\u0623\u062f\u062e\u0644 ID..."
+            value={searchId}
+            onChange={(e) => {
+              setSearchId(e.target.value);
+              setCurrentPage(1);
+            }}
+            onKeyDown={(e) => e.key === 'Enter' && fetchProducts()}
+            style={filterInputStyle}
+          />
+        </div>
+        <div>
+          <label style={labelStyle}>\u0627\u0644\u0642\u0633\u0645 \u0627\u0644\u0631\u0626\u064a\u0633\u064a</label>
+          <select
+            value={filterCategory}
+            onChange={(e) => {
+              setFilterCategory(e.target.value);
+              setCurrentPage(1);
+            }}
+            style={filterInputStyle}
+          >
+            <option value="">\u0627\u0644\u0643\u0644</option>
+            {availableCategories.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>\u0627\u0644\u0642\u0633\u0645 \u0627\u0644\u0641\u0631\u0639\u064a</label>
+          <select
+            value={filterSubcategory}
+            onChange={(e) => {
+              setFilterSubcategory(e.target.value);
+              setCurrentPage(1);
+            }}
+            style={filterInputStyle}
+            disabled={!filterCategory}
+          >
+            <option value="">\u0627\u0644\u0643\u0644</option>
+            {availableSubcategories.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>\u0627\u0644\u0645\u0627\u0631\u0643\u0629</label>
+          <select
+            value={filterMake}
+            onChange={(e) => {
+              setFilterMake(e.target.value);
+              setCurrentPage(1);
+            }}
+            style={filterInputStyle}
+          >
+            <option value="">\u0627\u0644\u0643\u0644</option>
+            <option value="__universal__">\ud83c\udf10 \u0639\u0627\u0645 (\u0628\u062f\u0648\u0646 \u0633\u064a\u0627\u0631\u0629)</option>
+            {availableMakes.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>\u0627\u0644\u0645\u0648\u062f\u064a\u0644</label>
+          <select
+            value={filterModel}
+            onChange={(e) => {
+              setFilterModel(e.target.value);
+              setCurrentPage(1);
+            }}
+            style={filterInputStyle}
+            disabled={!filterMake}
+          >
+            <option value="">\u0627\u0644\u0643\u0644</option>
+            {availableModels.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>\u0627\u0644\u0633\u0646\u0629</label>
+          <input
+            type="text"
+            placeholder="2020"
+            value={filterYear}
+            onChange={(e) => setFilterYear(e.target.value)}
+            style={filterInputStyle}
+          />
+        </div>
+        <div>
+          <label style={labelStyle}>\u0627\u0644\u0639\u0644\u0627\u0645\u0629 \u0627\u0644\u062a\u062c\u0627\u0631\u064a\u0629</label>
+          <select
+            value={filterBrand}
+            onChange={(e) => {
+              setFilterBrand(e.target.value);
+              setCurrentPage(1);
+            }}
+            style={filterInputStyle}
+          >
+            <option value="">\u0627\u0644\u0643\u0644</option>
+            {availableBrands.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div style={bulkBarStyle}>
+          <span style={{ color: '#fff', fontWeight: '700', fontSize: '0.95rem' }}>
+            \u062a\u0645 \u062a\u062d\u062f\u064a\u062f{' '}
+            <span style={{ color: '#ff4d4d', fontSize: '1.1rem' }}>{selectedIds.size}</span>{' '}
+            \u0645\u0646\u062a\u062c
+          </span>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              style={{ ...secondaryBtnStyle, color: '#aaa' }}
+            >
+              <X size={15} /> \u0625\u0644\u063a\u0627\u0621 \u0627\u0644\u062a\u062d\u062f\u064a\u062f
+            </button>
+            <button
+              onClick={handleBulkDelete}
+              disabled={bulkDeleting}
+              style={{
+                ...secondaryBtnStyle,
+                backgroundColor: '#ff4d4d',
+                color: '#fff',
+                border: 'none',
+              }}
+            >
+              <Trash2 size={15} />
+              {bulkDeleting ? '\u062c\u0627\u0631\u064a \u0627\u0644\u062d\u0630\u0641...' : `\u062d\u0630\u0641 ${selectedIds.size} \u0645\u0646\u062a\u062c`}
+            </button>
+          </div>
+        </div>
+      )}
+
+
+      {/* Table */}
+      <div
+        style={{
+          backgroundColor: '#0a0a0a',
+          borderRadius: '15px',
+          border: '1px solid #111',
+          overflow: 'hidden',
+        }}
+      >
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right' }}>
+          <thead>
+            <tr style={{ backgroundColor: '#111', color: '#2ecc71' }}>
+              <th style={{ ...thStyle, width: '40px', textAlign: 'center' }}>
+                <button
+                  onClick={toggleSelectAll}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto',
+                  }}
+                  title={isAllSelected ? '\u0625\u0644\u063a\u0627\u0621 \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0643\u0644' : '\u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0643\u0644'}
+                >
+                  {isAllSelected ? (
+                    <CheckSquare size={20} color="#ff4d4d" />
+                  ) : isPartialSelected ? (
+                    <Minus
+                      size={20}
+                      color="#f1c40f"
+                      style={{ border: '2px solid #f1c40f', borderRadius: '4px' }}
+                    />
+                  ) : (
+                    <Square size={20} color="#444" />
+                  )}
+                </button>
+              </th>
+              <th style={thStyle}>\u0627\u0644\u062d\u0627\u0644\u0629</th>
+              <th style={thStyle}>\u0627\u0644\u0635\u0648\u0631\u0629 \u0648\u0627\u0644\u0627\u0633\u0645</th>
+              <th style={thStyle}>ID</th>
+              <th style={thStyle}>\u0627\u0644\u0639\u0644\u0627\u0645\u0629 \u0627\u0644\u062a\u062c\u0627\u0631\u064a\u0629</th>
+              <th style={thStyle}>\u0627\u0644\u0633\u064a\u0627\u0631\u0629</th>
+              <th style={thStyle}>\u0627\u0644\u0645\u0648\u062f\u064a\u0644</th>
+              <th style={thStyle}>\u0627\u0644\u0633\u0646\u0629</th>
+              <th style={thStyle}>\u0627\u0644\u0633\u0639\u0631</th>
+              <th style={thStyle}>\u0625\u062f\u0627\u0631\u0629</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={10} style={{ textAlign: 'center', padding: '40px' }}>
+                  \u062c\u0627\u0631\u064a \u0627\u0644\u062a\u062d\u0645\u064a\u0644...
+                </td>
+              </tr>
+            ) : (
+              products.map((product) => {
+                const isSelected = selectedIds.has(product.id);
+                return (
+                  <tr
+                    key={product.id}
+                    style={{
+                      borderBottom: '1px solid #111',
+                      backgroundColor: isSelected
+                        ? 'rgba(255, 77, 77, 0.08)'
+                        : 'transparent',
+                      transition: 'background-color 0.15s ease',
+                    }}
+                  >
+                    <td style={{ ...tdStyle, textAlign: 'center', width: '40px' }}>
+                      <button
+                        onClick={() => toggleSelectOne(product.id)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          margin: '0 auto',
+                        }}
+                      >
+                        {isSelected ? (
+                          <CheckSquare size={18} color="#ff4d4d" />
+                        ) : (
+                          <Square size={18} color="#444" />
+                        )}
+                      </button>
+                    </td>
+                    <td style={tdStyle}>
+                      <button
+                        onClick={() => toggleStatus(product.id, product.is_active)}
+                        style={{
+                          padding: '6px 14px',
+                          borderRadius: '25px',
+                          fontSize: '0.75rem',
+                          fontWeight: 'bold',
+                          border: 'none',
+                          cursor: 'pointer',
+                          backgroundColor: product.is_active ? '#2ecc7133' : '#333',
+                          color: product.is_active ? '#2ecc71' : '#888',
+                        }}
+                      >
+                        {product.is_active ? 'Active' : 'Inactive'}
+                      </button>
+                    </td>
+
+
+                    <td style={tdStyle}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#1a1a1a', border: '1px solid #222', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {product.image_url
+                            ? <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                            : <span style={{ fontSize: '1.2rem' }}>\ud83d\udce6</span>
+                          }
+                        </div>
+                        <span>{product.name}</span>
+                      </div>
+                    </td>
+
+
+                    {/* ID cell */}
+                    <td style={tdStyle}>
+                      <span
+                        title={product.id}
+                        style={{
+                          fontFamily: 'monospace',
+                          fontSize: '0.75rem',
+                          color: '#555',
+                          cursor: 'default',
+                          userSelect: 'all',
+                        }}
+                      >
+                        {product.id.slice(0, 8)}\u2026
+                      </span>
+                    </td>
+
+
+                    <td style={tdStyle}>{product.brand}</td>
+                    <td style={tdStyle}>{product.car_make}</td>
+                    <td style={tdStyle}>{product.car_model}</td>
+                    <td style={tdStyle}>{product.car_model_year}</td>
+                    <td style={tdStyle}>
+                      {editingId === product.id ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                          <input
+                            type="number"
+                            placeholder="\u0627\u0644\u0623\u0633\u0627\u0633\u064a"
+                            value={editData.regular_price}
+                            onChange={(e) =>
+                              setEditData({ ...editData, regular_price: e.target.value })
+                            }
+                            style={miniInputStyle}
+                            autoFocus
+                          />
+                          <input
+                            type="number"
+                            placeholder="\u0627\u0644\u062e\u0635\u0645"
+                            value={editData.sale_price}
+                            onChange={(e) =>
+                              setEditData({ ...editData, sale_price: e.target.value })
+                            }
+                            style={{ ...miniInputStyle, borderColor: '#2ecc71' }}
+                          />
+                          <div style={{ display: 'flex', gap: '5px' }}>
+                            <button
+                              onClick={() => handleUpdatePrice(product.id)}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                            >
+                              <Check size={16} color="#2ecc71" />
+                            </button>
+                            <button
+                              onClick={() => setEditingId(null)}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                            >
+                              <X size={16} color="#ff4d4d" />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ lineHeight: '1.2' }}>
+                          <div
+                            style={{
+                              fontSize: product.sale_price ? '0.8rem' : '1rem',
+                              color: product.sale_price ? '#888' : '#fff',
+                              textDecoration: product.sale_price ? 'line-through' : 'none',
+                            }}
+                          >
+                            {product.regular_price} \u062c.\u0645
+                          </div>
+                          {product.sale_price && (
+                            <div style={{ color: '#2ecc71', fontWeight: 'bold' }}>
+                              {product.sale_price} \u062c.\u0645
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </td>
+                    <td style={tdStyle}>
+                      <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                        <Link href={`/products/${product.id}`} target="_blank" title="\u0639\u0631\u0636">
+                          <Eye size={18} color="#2ecc71" />
+                        </Link>
+                        <Link href={buildEditUrl(product.id)} title="\u062a\u0639\u062f\u064a\u0644">
+                          <Edit3 size={18} color="#f1c40f" />
+                        </Link>
+                        <button
+                          onClick={() => {
+                            setEditingId(product.id);
+                            setEditData({
+                              regular_price: product.regular_price.toString(),
+                              sale_price: product.sale_price
+                                ? product.sale_price.toString()
+                                : '',
+                            });
+                          }}
+                          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                          title="\u0627\u0644\u0633\u0639\u0631"
+                        >
+                          <DollarSign size={18} color="#3b82f6" />
+                        </button>
+                        <button
+                          onClick={() => deleteProduct(product.id)}
+                          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                          title="\u062d\u0630\u0641"
+                        >
+                          <Trash2 size={18} color="#ff4d4d" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+
+
+      {/* Pagination */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '20px',
+          marginTop: '30px',
+          paddingBottom: '30px',
+        }}
+      >
+        <button
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage((p) => p - 1)}
+          style={pageBtnStyle}
+        >
+          \u0627\u0644\u0633\u0627\u0628\u0642
+        </button>
+        <span style={{ color: '#666' }}>\u0635\u0641\u062d\u0629 {currentPage}</span>
+        <button
+          disabled={currentPage * ITEMS_PER_PAGE >= totalCount}
+          onClick={() => setCurrentPage((p) => p + 1)}
+          style={pageBtnStyle}
+        >
+          \u0627\u0644\u062a\u0627\u0644\u064a
+        </button>
+      </div>
+    </div>
   );
 }
 
 
-// Styles
-const fullPageLoaderStyle: any = { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(135deg,#0a0a0a 0%,#1a1a1a 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '0 16px', boxSizing: 'border-box' };
-const brandNameText: any = { fontSize: 'clamp(2.2rem,8vw,4rem)', fontWeight: '900', fontStyle: 'italic', letterSpacing: '-2px', marginBottom: '20px', lineHeight: '1', textTransform: 'uppercase', filter: 'drop-shadow(0 10px 30px rgba(34,197,94,0.4))' };
-const mainHeadline: any = { color: '#fff', fontWeight: '900', fontSize: 'clamp(1.6rem,6vw,3.5rem)', marginBottom: '16px', letterSpacing: '-1px', lineHeight: '1.2', textShadow: '0 4px 20px rgba(34,197,94,0.3)' };
-const tagline: any = { color: '#a0a0a0', fontSize: 'clamp(0.9rem,3vw,1.5rem)', fontWeight: '600', marginBottom: '36px', lineHeight: '1.7' };
-const loadingBarContainer: any = { width: '100%', height: '5px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '10px', overflow: 'hidden', marginBottom: '32px' };
-const loadingBar: any = { height: '100%', background: 'linear-gradient(90deg,#22c55e 0%,#16a34a 50%,#22c55e 100%)', borderRadius: '10px' };
-const messageContainer: any = { marginBottom: '28px', minHeight: '35px' };
-const messageText: any = { fontSize: '1.1rem', fontWeight: '700', color: '#fff' };
-const featurePills: any = { display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' };
-const pill: any = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', backgroundColor: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '25px', fontSize: '0.82rem', fontWeight: '700', color: '#22c55e', backdropFilter: 'blur(10px)' };
-const arrowBtnSmall = { width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#fff', border: '1px solid #eee', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' };
-const cartBtnStyleSmall: any = { width: '100%', padding: '12px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '1rem' };
-const stickyNotificationStyle: any = { position: 'fixed', bottom: '85px', left: '50%', transform: 'translateX(-50%)', backgroundColor: 'rgba(39,174,96,0.95)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', color: '#fff', padding: '12px 20px', borderRadius: '20px', zIndex: 1000, boxShadow: '0 10px 30px rgba(0,0,0,0.2)', width: 'max-content', maxWidth: '90%', border: '1px solid rgba(255,255,255,0.2)', direction: 'rtl' };
-const garageIconWrapMini: any = { width: '32px', height: '32px', borderRadius: '10px', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' };
-const buyNowBtnStyle: any = { width: '100%', padding: '12px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '1rem', textDecoration: 'none' };
+const labelStyle = { display: 'block', fontSize: '0.8rem', color: '#555', marginBottom: '8px' };
+const filterInputStyle = { width: '100%', padding: '12px', backgroundColor: '#000', border: '1px solid #222', color: '#fff', borderRadius: '10px', outline: 'none', fontSize: '0.85rem' };
+const secondaryBtnStyle: any = { padding: '8px 15px', backgroundColor: '#111', color: '#888', border: '1px solid #222', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' };
+const thStyle: any = { padding: '18px 15px', fontSize: '0.9rem' };
+const tdStyle: any = { padding: '15px', color: '#bbb', fontSize: '0.85rem' };
+const miniInputStyle: any = { width: '80px', padding: '8px', backgroundColor: '#000', color: '#fff', border: '1px solid #333', borderRadius: '6px', fontSize: '0.8rem', outline: 'none' };
+const pageBtnStyle: any = { padding: '10px 25px', backgroundColor: '#111', color: '#fff', border: '1px solid #222', borderRadius: '10px', cursor: 'pointer' };
+const bulkBarStyle: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1a0a0a', border: '1px solid #ff4d4d44', borderRadius: '12px', padding: '14px 20px', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' };

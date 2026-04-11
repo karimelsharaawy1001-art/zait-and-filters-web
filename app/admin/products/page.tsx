@@ -122,7 +122,7 @@ export default function AdminProducts() {
   // ── Read initial filter state from URL ──
   const [currentPage, setCurrentPage] = useState(() => Number(searchParams.get('page') || 1));
   const [searchName, setSearchName] = useState(() => searchParams.get('name') || '');
-  // ── NEW: search by ID ──
+  // ── search by ID ──
   const [searchId, setSearchId] = useState(() => searchParams.get('id') || '');
   const [filterMake, setFilterMake] = useState(() => searchParams.get('make') || '');
   const [filterModel, setFilterModel] = useState(() => searchParams.get('model') || '');
@@ -163,7 +163,7 @@ export default function AdminProducts() {
     const params = new URLSearchParams();
     if (currentPage > 1) params.set('page', String(currentPage));
     if (searchName) params.set('name', searchName);
-    if (searchId) params.set('id', searchId); // ── NEW ──
+    if (searchId) params.set('id', searchId);
     if (filterMake) params.set('make', filterMake);
     if (filterModel) params.set('model', filterModel);
     if (filterCategory) params.set('category', filterCategory);
@@ -210,7 +210,7 @@ export default function AdminProducts() {
   }, [filterCategory]);
 
 
-  // FIX 1: Added searchId to dependency array
+  // FIX 1: Added searchId to dependency array so typing triggers a fetch
   useEffect(() => {
     fetchProducts();
   }, [
@@ -253,10 +253,17 @@ export default function AdminProducts() {
   const buildFilteredQuery = () => {
     let query = supabase.from('products').select('*', { count: 'exact' });
     if (searchName) query = query.ilike('name', `%${searchName}%`);
-    // FIX 2: UUID columns need a text cast — ilike on uuid type silently returns nothing
+    // FIX 2: UUID columns don't support ilike — use .eq() for exact UUID match,
+    // or startsWith match for partial (first 8 chars the admin copies from the table).
     if (searchId) {
-      const cleanId = searchId.trim().toLowerCase();
-      query = (query as any).filter('id::text', 'ilike', `%${cleanId}%`);
+      const clean = searchId.trim().toLowerCase();
+      // Full UUID (36 chars with dashes) → exact match
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(clean)) {
+        query = query.eq('id', clean);
+      } else {
+        // Partial (e.g. first 8 chars) → startsWith on the UUID string
+        query = query.gte('id', clean).lte('id', clean + '\uffff');
+      }
     }
     if (filterMake === '__universal__') {
       query = query.or('car_make.is.null,car_make.eq.');
@@ -400,8 +407,7 @@ export default function AdminProducts() {
     const safe = (val: any) =>
       val === null || val === undefined ? '' : String(val);
     const headers =
-      'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url
-';
+      'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url\n';
     const rows = data
       .map((p: any) =>
         [
@@ -421,34 +427,32 @@ export default function AdminProducts() {
           `"${safe(p.image_url)}"`,
         ].join(','),
       )
-      .join('
-');
-    const csvContent = '﻿' + headers + rows;
+      .join('\n');
+    const csvContent = '\uFEFF' + headers + rows;
     const blob = new Blob([csvContent], {
       type: 'text/csv;charset=utf-8;',
     });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `مخزن_مصدر_${new Date().toLocaleDateString('ar-EG')}.csv`;
+    link.download = `\u0645\u062e\u0632\u0646_\u0645\u0635\u062f\u0631_${new Date().toLocaleDateString('ar-EG')}.csv`;
     link.click();
     setLoading(false);
-    toast.success(`تم تصدير ${data.length} منتج`);
+    toast.success(`\u062a\u0645 \u062a\u0635\u062f\u064a\u0631 ${data.length} \u0645\u0646\u062a\u062c`);
   };
 
 
   const downloadTemplate = () => {
     const headers =
-      'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url
-';
+      'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url\n';
     const example =
-      ',تيل فرامل صني,Hi-Q,فرامل,تيل,نيسان,صني,2015-2024,1200,1100,6,1,كوري,https://res.cloudinary.com/example.jpg';
-    const csvContent = '﻿' + headers + example;
+      ',\u062a\u064a\u0644 \u0641\u0631\u0627\u0645\u0644 \u0635\u0646\u064a,Hi-Q,\u0641\u0631\u0627\u0645\u0644,\u062a\u064a\u0644,\u0646\u064a\u0633\u0627\u0646,\u0635\u0646\u064a,2015-2024,1200,1100,6,1,\u0643\u0648\u0631\u064a,https://res.cloudinary.com/example.jpg';
+    const csvContent = '\uFEFF' + headers + example;
     const blob = new Blob([csvContent], {
       type: 'text/csv;charset=utf-8;',
     });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = 'قالب_المنتجات.csv';
+    link.download = '\u0642\u0627\u0644\u0628_\u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a.csv';
     link.click();
   };
 
@@ -463,8 +467,7 @@ export default function AdminProducts() {
     const reader = new FileReader();
     reader.onload = async (event: any) => {
       const text = event.target.result;
-      const lines = text.split('
-').slice(1);
+      const lines = text.split('\n').slice(1);
       const imported: any[] = [];
 
 
@@ -490,7 +493,7 @@ export default function AdminProducts() {
 
         let warrantyVal = cols[10];
         if (warrantyVal && !isNaN(Number(warrantyVal))) {
-          warrantyVal = `${warrantyVal} شهور`;
+          warrantyVal = `${warrantyVal} \u0634\u0647\u0648\u0631`;
         }
 
 
@@ -514,13 +517,13 @@ export default function AdminProducts() {
 
 
       if (imported.length === 0) {
-        toast.error('لم يتم العثور على منتجات صالحة في الملف');
+        toast.error('\u0644\u0645 \u064a\u062a\u0645 \u0627\u0644\u0639\u062b\u0648\u0631 \u0639\u0644\u0649 \u0645\u0646\u062a\u062c\u0627\u062a \u0635\u0627\u0644\u062d\u0629 \u0641\u064a \u0627\u0644\u0645\u0644\u0641');
         return;
       }
 
 
       setImporting(true);
-      const importToast = toast.loading(`جاري استيراد ${imported.length} منتج...`);
+      const importToast = toast.loading(`\u062c\u0627\u0631\u064a \u0627\u0633\u062a\u064a\u0631\u0627\u062f ${imported.length} \u0645\u0646\u062a\u062c...`);
 
 
       try {
@@ -539,20 +542,20 @@ export default function AdminProducts() {
 
 
         if (result.error) {
-          toast.error('خطأ: ' + result.error);
+          toast.error('\u062e\u0637\u0623: ' + result.error);
         } else {
-          toast.success(`✅ تحديث ${result.updateCount} | إضافة ${result.insertCount}`, {
+          toast.success(`\u2705 \u062a\u062d\u062f\u064a\u062b ${result.updateCount} | \u0625\u0636\u0627\u0641\u0629 ${result.insertCount}`, {
             duration: 5000,
           });
           if (result.errorCount > 0) {
-            toast.error(`⚠️ ${result.errorCount} أخطاء في الاستيراد`, { duration: 5000 });
+            toast.error(`\u26a0\ufe0f ${result.errorCount} \u0623\u062e\u0637\u0627\u0621 \u0641\u064a \u0627\u0644\u0627\u0633\u062a\u064a\u0631\u0627\u062f`, { duration: 5000 });
           }
           fetchProducts();
         }
       } catch (err: any) {
         toast.dismiss(importToast);
         setImporting(false);
-        toast.error('خطأ في الاتصال: ' + err.message);
+        toast.error('\u062e\u0637\u0623 \u0641\u064a \u0627\u0644\u0627\u062a\u0635\u0627\u0644: ' + err.message);
       }
     };
 
@@ -566,7 +569,7 @@ export default function AdminProducts() {
     const params = new URLSearchParams();
     if (currentPage > 1) params.set('page', String(currentPage));
     if (searchName) params.set('name', searchName);
-    if (searchId) params.set('id', searchId); // ── NEW ──
+    if (searchId) params.set('id', searchId);
     if (filterMake) params.set('make', filterMake);
     if (filterModel) params.set('model', filterModel);
     if (filterCategory) params.set('category', filterCategory);
@@ -609,10 +612,10 @@ export default function AdminProducts() {
           gap: '10px',
         }}
       >
-        <h1 style={{ color: '#2ecc71', fontWeight: '900' }}>إدارة المخزن ({totalCount})</h1>
+        <h1 style={{ color: '#2ecc71', fontWeight: '900' }}>\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0645\u062e\u0632\u0646 ({totalCount})</h1>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button onClick={downloadTemplate} style={secondaryBtnStyle}>
-            <ClipboardList size={16} /> القالب
+            <ClipboardList size={16} /> \u0627\u0644\u0642\u0627\u0644\u0628
           </button>
           <label
             style={{
@@ -621,7 +624,7 @@ export default function AdminProducts() {
               pointerEvents: importing ? 'none' : 'auto',
             }}
           >
-            <FileUp size={16} /> {importing ? 'جاري الاستيراد...' : 'استيراد'}
+            <FileUp size={16} /> {importing ? '\u062c\u0627\u0631\u064a \u0627\u0644\u0627\u0633\u062a\u064a\u0631\u0627\u062f...' : '\u0627\u0633\u062a\u064a\u0631\u0627\u062f'}
             <input
               type="file"
               accept=".csv"
@@ -634,7 +637,7 @@ export default function AdminProducts() {
             disabled={loading}
             style={{ ...secondaryBtnStyle, backgroundColor: '#2ecc71', color: '#000' }}
           >
-            <FileDown size={16} /> {loading ? 'جاري التحميل...' : 'تصدير الفلتر الحالي'}
+            <FileDown size={16} /> {loading ? '\u062c\u0627\u0631\u064a \u0627\u0644\u062a\u062d\u0645\u064a\u0644...' : '\u062a\u0635\u062f\u064a\u0631 \u0627\u0644\u0641\u0644\u062a\u0631 \u0627\u0644\u062d\u0627\u0644\u064a'}
           </button>
         </div>
       </div>
@@ -653,10 +656,10 @@ export default function AdminProducts() {
         }}
       >
         <div>
-          <label style={labelStyle}>بحث بالاسم</label>
+          <label style={labelStyle}>\u0628\u062d\u062b \u0628\u0627\u0644\u0627\u0633\u0645</label>
           <input
             type="text"
-            placeholder="ابحث..."
+            placeholder="\u0627\u0628\u062d\u062b..."
             value={searchName}
             onChange={(e) => setSearchName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && fetchProducts()}
@@ -665,10 +668,10 @@ export default function AdminProducts() {
         </div>
         {/* ── Search by ID ── */}
         <div>
-          <label style={labelStyle}>بحث بالـ ID</label>
+          <label style={labelStyle}>\u0628\u062d\u062b \u0628\u0627\u0644\u0640 ID</label>
           <input
             type="text"
-            placeholder="أدخل ID..."
+            placeholder="\u0623\u062f\u062e\u0644 ID..."
             value={searchId}
             onChange={(e) => {
               setSearchId(e.target.value);
@@ -679,7 +682,7 @@ export default function AdminProducts() {
           />
         </div>
         <div>
-          <label style={labelStyle}>القسم الرئيسي</label>
+          <label style={labelStyle}>\u0627\u0644\u0642\u0633\u0645 \u0627\u0644\u0631\u0626\u064a\u0633\u064a</label>
           <select
             value={filterCategory}
             onChange={(e) => {
@@ -688,7 +691,7 @@ export default function AdminProducts() {
             }}
             style={filterInputStyle}
           >
-            <option value="">الكل</option>
+            <option value="">\u0627\u0644\u0643\u0644</option>
             {availableCategories.map((c) => (
               <option key={c} value={c}>
                 {c}
@@ -697,7 +700,7 @@ export default function AdminProducts() {
           </select>
         </div>
         <div>
-          <label style={labelStyle}>القسم الفرعي</label>
+          <label style={labelStyle}>\u0627\u0644\u0642\u0633\u0645 \u0627\u0644\u0641\u0631\u0639\u064a</label>
           <select
             value={filterSubcategory}
             onChange={(e) => {
@@ -707,7 +710,7 @@ export default function AdminProducts() {
             style={filterInputStyle}
             disabled={!filterCategory}
           >
-            <option value="">الكل</option>
+            <option value="">\u0627\u0644\u0643\u0644</option>
             {availableSubcategories.map((s) => (
               <option key={s} value={s}>
                 {s}
@@ -716,7 +719,7 @@ export default function AdminProducts() {
           </select>
         </div>
         <div>
-          <label style={labelStyle}>الماركة</label>
+          <label style={labelStyle}>\u0627\u0644\u0645\u0627\u0631\u0643\u0629</label>
           <select
             value={filterMake}
             onChange={(e) => {
@@ -725,8 +728,8 @@ export default function AdminProducts() {
             }}
             style={filterInputStyle}
           >
-            <option value="">الكل</option>
-            <option value="__universal__">🌐 عام (بدون سيارة)</option>
+            <option value="">\u0627\u0644\u0643\u0644</option>
+            <option value="__universal__">\ud83c\udf10 \u0639\u0627\u0645 (\u0628\u062f\u0648\u0646 \u0633\u064a\u0627\u0631\u0629)</option>
             {availableMakes.map((m) => (
               <option key={m} value={m}>
                 {m}
@@ -735,7 +738,7 @@ export default function AdminProducts() {
           </select>
         </div>
         <div>
-          <label style={labelStyle}>الموديل</label>
+          <label style={labelStyle}>\u0627\u0644\u0645\u0648\u062f\u064a\u0644</label>
           <select
             value={filterModel}
             onChange={(e) => {
@@ -745,7 +748,7 @@ export default function AdminProducts() {
             style={filterInputStyle}
             disabled={!filterMake}
           >
-            <option value="">الكل</option>
+            <option value="">\u0627\u0644\u0643\u0644</option>
             {availableModels.map((m) => (
               <option key={m} value={m}>
                 {m}
@@ -754,7 +757,7 @@ export default function AdminProducts() {
           </select>
         </div>
         <div>
-          <label style={labelStyle}>السنة</label>
+          <label style={labelStyle}>\u0627\u0644\u0633\u0646\u0629</label>
           <input
             type="text"
             placeholder="2020"
@@ -764,7 +767,7 @@ export default function AdminProducts() {
           />
         </div>
         <div>
-          <label style={labelStyle}>العلامة التجارية</label>
+          <label style={labelStyle}>\u0627\u0644\u0639\u0644\u0627\u0645\u0629 \u0627\u0644\u062a\u062c\u0627\u0631\u064a\u0629</label>
           <select
             value={filterBrand}
             onChange={(e) => {
@@ -773,7 +776,7 @@ export default function AdminProducts() {
             }}
             style={filterInputStyle}
           >
-            <option value="">الكل</option>
+            <option value="">\u0627\u0644\u0643\u0644</option>
             {availableBrands.map((b) => (
               <option key={b} value={b}>
                 {b}
@@ -788,16 +791,16 @@ export default function AdminProducts() {
       {selectedIds.size > 0 && (
         <div style={bulkBarStyle}>
           <span style={{ color: '#fff', fontWeight: '700', fontSize: '0.95rem' }}>
-            تم تحديد{' '}
+            \u062a\u0645 \u062a\u062d\u062f\u064a\u062f{' '}
             <span style={{ color: '#ff4d4d', fontSize: '1.1rem' }}>{selectedIds.size}</span>{' '}
-            منتج
+            \u0645\u0646\u062a\u062c
           </span>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             <button
               onClick={() => setSelectedIds(new Set())}
               style={{ ...secondaryBtnStyle, color: '#aaa' }}
             >
-              <X size={15} /> إلغاء التحديد
+              <X size={15} /> \u0625\u0644\u063a\u0627\u0621 \u0627\u0644\u062a\u062d\u062f\u064a\u062f
             </button>
             <button
               onClick={handleBulkDelete}
@@ -810,7 +813,7 @@ export default function AdminProducts() {
               }}
             >
               <Trash2 size={15} />
-              {bulkDeleting ? 'جاري الحذف...' : `حذف ${selectedIds.size} منتج`}
+              {bulkDeleting ? '\u062c\u0627\u0631\u064a \u0627\u0644\u062d\u0630\u0641...' : `\u062d\u0630\u0641 ${selectedIds.size} \u0645\u0646\u062a\u062c`}
             </button>
           </div>
         </div>
@@ -841,7 +844,7 @@ export default function AdminProducts() {
                     justifyContent: 'center',
                     margin: '0 auto',
                   }}
-                  title={isAllSelected ? 'إلغاء تحديد الكل' : 'تحديد الكل'}
+                  title={isAllSelected ? '\u0625\u0644\u063a\u0627\u0621 \u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0643\u0644' : '\u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0643\u0644'}
                 >
                   {isAllSelected ? (
                     <CheckSquare size={20} color="#ff4d4d" />
@@ -856,23 +859,22 @@ export default function AdminProducts() {
                   )}
                 </button>
               </th>
-              <th style={thStyle}>الحالة</th>
-              <th style={thStyle}>الصورة والاسم</th>
-              {/* ── NEW: ID column header ── */}
+              <th style={thStyle}>\u0627\u0644\u062d\u0627\u0644\u0629</th>
+              <th style={thStyle}>\u0627\u0644\u0635\u0648\u0631\u0629 \u0648\u0627\u0644\u0627\u0633\u0645</th>
               <th style={thStyle}>ID</th>
-              <th style={thStyle}>العلامة التجارية</th>
-              <th style={thStyle}>السيارة</th>
-              <th style={thStyle}>الموديل</th>
-              <th style={thStyle}>السنة</th>
-              <th style={thStyle}>السعر</th>
-              <th style={thStyle}>إدارة</th>
+              <th style={thStyle}>\u0627\u0644\u0639\u0644\u0627\u0645\u0629 \u0627\u0644\u062a\u062c\u0627\u0631\u064a\u0629</th>
+              <th style={thStyle}>\u0627\u0644\u0633\u064a\u0627\u0631\u0629</th>
+              <th style={thStyle}>\u0627\u0644\u0645\u0648\u062f\u064a\u0644</th>
+              <th style={thStyle}>\u0627\u0644\u0633\u0646\u0629</th>
+              <th style={thStyle}>\u0627\u0644\u0633\u0639\u0631</th>
+              <th style={thStyle}>\u0625\u062f\u0627\u0631\u0629</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
                 <td colSpan={10} style={{ textAlign: 'center', padding: '40px' }}>
-                  جاري التحميل...
+                  \u062c\u0627\u0631\u064a \u0627\u0644\u062a\u062d\u0645\u064a\u0644...
                 </td>
               </tr>
             ) : (
@@ -933,7 +935,7 @@ export default function AdminProducts() {
                         <div style={{ width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#1a1a1a', border: '1px solid #222', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           {product.image_url
                             ? <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                            : <span style={{ fontSize: '1.2rem' }}>📦</span>
+                            : <span style={{ fontSize: '1.2rem' }}>\ud83d\udce6</span>
                           }
                         </div>
                         <span>{product.name}</span>
@@ -941,7 +943,7 @@ export default function AdminProducts() {
                     </td>
 
 
-                    {/* ── NEW: ID cell ── */}
+                    {/* ID cell */}
                     <td style={tdStyle}>
                       <span
                         title={product.id}
@@ -953,7 +955,7 @@ export default function AdminProducts() {
                           userSelect: 'all',
                         }}
                       >
-                        {product.id.slice(0, 8)}…
+                        {product.id.slice(0, 8)}\u2026
                       </span>
                     </td>
 
@@ -967,7 +969,7 @@ export default function AdminProducts() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                           <input
                             type="number"
-                            placeholder="الأساسي"
+                            placeholder="\u0627\u0644\u0623\u0633\u0627\u0633\u064a"
                             value={editData.regular_price}
                             onChange={(e) =>
                               setEditData({ ...editData, regular_price: e.target.value })
@@ -977,7 +979,7 @@ export default function AdminProducts() {
                           />
                           <input
                             type="number"
-                            placeholder="الخصم"
+                            placeholder="\u0627\u0644\u062e\u0635\u0645"
                             value={editData.sale_price}
                             onChange={(e) =>
                               setEditData({ ...editData, sale_price: e.target.value })
@@ -1008,11 +1010,11 @@ export default function AdminProducts() {
                               textDecoration: product.sale_price ? 'line-through' : 'none',
                             }}
                           >
-                            {product.regular_price} ج.م
+                            {product.regular_price} \u062c.\u0645
                           </div>
                           {product.sale_price && (
                             <div style={{ color: '#2ecc71', fontWeight: 'bold' }}>
-                              {product.sale_price} ج.م
+                              {product.sale_price} \u062c.\u0645
                             </div>
                           )}
                         </div>
@@ -1020,11 +1022,10 @@ export default function AdminProducts() {
                     </td>
                     <td style={tdStyle}>
                       <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                        <Link href={`/products/${product.id}`} target="_blank" title="عرض">
+                        <Link href={`/products/${product.id}`} target="_blank" title="\u0639\u0631\u0636">
                           <Eye size={18} color="#2ecc71" />
                         </Link>
-                        {/* ── Edit button now carries the returnUrl ── */}
-                        <Link href={buildEditUrl(product.id)} title="تعديل">
+                        <Link href={buildEditUrl(product.id)} title="\u062a\u0639\u062f\u064a\u0644">
                           <Edit3 size={18} color="#f1c40f" />
                         </Link>
                         <button
@@ -1038,14 +1039,14 @@ export default function AdminProducts() {
                             });
                           }}
                           style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-                          title="السعر"
+                          title="\u0627\u0644\u0633\u0639\u0631"
                         >
                           <DollarSign size={18} color="#3b82f6" />
                         </button>
                         <button
                           onClick={() => deleteProduct(product.id)}
                           style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-                          title="حذف"
+                          title="\u062d\u0630\u0641"
                         >
                           <Trash2 size={18} color="#ff4d4d" />
                         </button>
@@ -1076,15 +1077,15 @@ export default function AdminProducts() {
           onClick={() => setCurrentPage((p) => p - 1)}
           style={pageBtnStyle}
         >
-          السابق
+          \u0627\u0644\u0633\u0627\u0628\u0642
         </button>
-        <span style={{ color: '#666' }}>صفحة {currentPage}</span>
+        <span style={{ color: '#666' }}>\u0635\u0641\u062d\u0629 {currentPage}</span>
         <button
           disabled={currentPage * ITEMS_PER_PAGE >= totalCount}
           onClick={() => setCurrentPage((p) => p + 1)}
           style={pageBtnStyle}
         >
-          التالي
+          \u0627\u0644\u062a\u0627\u0644\u064a
         </button>
       </div>
     </div>
