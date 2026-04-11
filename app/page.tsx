@@ -116,23 +116,34 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
   const pointerStartX = useRef<number | null>(null);
   const total = categories.length;
 
-  // Classic CSS 3D wheel: each card is rotateY(angle) translateZ(radius)
-  // This naturally creates a wheel arc — no hacks needed.
-  const RADIUS    = 340;  // wheel radius px — controls how deep the arc curves
-  const ANGLE_DEG = 28;   // degrees between adjacent cards
+  const CARD_W = 172;
+  const CARD_H = 222;
+
+  // Explicit per-offset arc positions — zero guesswork, zero overlap
+  // x: horizontal distance from center (px)
+  // y: downward drop creating the arc curve (px)
+  // ry: card Y-rotation so it faces the angle of the arc (deg)
+  // scale / op / br: size, opacity, brightness falloff
+  const getSlot = (abs: number, sign: number) => {
+    const s = sign === 0 ? 1 : sign;
+    const slots: Record<number, any> = {
+      0: { x: 0,        y: 0,   ry: 0,      scale: 1.00, op: 1.00, br: 1.00 },
+      1: { x: s * 220,  y: 22,  ry: s * 28, scale: 0.86, op: 0.88, br: 0.74 },
+      2: { x: s * 400,  y: 72,  ry: s * 50, scale: 0.72, op: 0.58, br: 0.54 },
+      3: { x: s * 555,  y: 130, ry: s * 65, scale: 0.58, op: 0.28, br: 0.38 },
+    };
+    return slots[abs] ?? null;
+  };
 
   const prev = () => setActive((p) => (p - 1 + total) % total);
   const next = () => setActive((p) => (p + 1) % total);
 
-  // Unified pointer events (mouse + touch) — eliminates swipe glitch
-  const onPointerDown = (e: React.PointerEvent) => {
-    pointerStartX.current = e.clientX;
-  };
-  const onPointerUp = (e: React.PointerEvent) => {
+  const onPointerDown = (e: React.PointerEvent) => { pointerStartX.current = e.clientX; };
+  const onPointerUp   = (e: React.PointerEvent) => {
     if (pointerStartX.current === null) return;
     const delta = pointerStartX.current - e.clientX;
     pointerStartX.current = null;
-    if (Math.abs(delta) > 45) delta > 0 ? next() : prev();
+    if (Math.abs(delta) > 40) delta > 0 ? next() : prev();
   };
   const onPointerCancel = () => { pointerStartX.current = null; };
 
@@ -141,13 +152,13 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
   return (
     <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0 50px', touchAction: 'pan-y' }}>
 
-      {/* ── 3D Stage ── */}
+      {/* Stage */}
       <div
         style={{
-          perspective: '900px',
+          perspective: '1400px',
           perspectiveOrigin: '50% 50%',
           width: '100%',
-          height: '300px',
+          height: '370px',
           position: 'relative',
           cursor: 'grab',
           userSelect: 'none',
@@ -161,63 +172,44 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
         {/* Edge faders */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 20, pointerEvents: 'none',
-          background: 'linear-gradient(to right, #fdfdfd 0%, transparent 22%, transparent 78%, #fdfdfd 100%)',
+          background: 'linear-gradient(to right, #fdfdfd 0%, transparent 18%, transparent 82%, #fdfdfd 100%)',
         }} />
 
-        {/* Wheel hub — positioned at stage center; cards orbit around it */}
-        <div style={{
-          position: 'absolute',
-          left: '50%', top: '50%',
-          width: 0, height: 0,
-          transformStyle: 'preserve-3d',
-        }}>
+        {/* Arc hub — all cards radiate from this center point */}
+        <div style={{ position: 'absolute', left: '50%', top: '40px', transformStyle: 'preserve-3d' }}>
           {categories.map((cat, index) => {
             let offset = index - active;
             if (offset > total / 2)  offset -= total;
             if (offset < -total / 2) offset += total;
 
             const absOffset = Math.abs(offset);
-            if (absOffset > 3) return null;
-
-            const angleDeg = offset * ANGLE_DEG;
-            const opacity  = absOffset === 0 ? 1
-                           : absOffset === 1 ? 0.82
-                           : absOffset === 2 ? 0.55
-                           : 0.28;
-            const brightness = absOffset === 0 ? 1.0
-                             : absOffset === 1 ? 0.72
-                             : 0.48;
-            const zIndex = 10 - absOffset;
+            const slot = getSlot(absOffset, Math.sign(offset));
+            if (!slot) return null;
 
             return (
               <div
                 key={cat.name}
-                onClick={() => {
-                  if (absOffset === 0) {
-                    window.location.href = `/categories/${encodeURIComponent(cat.name)}`;
-                  } else {
-                    setActive(index);
-                  }
-                }}
+                onClick={() => absOffset === 0
+                  ? (window.location.href = `/categories/${encodeURIComponent(cat.name)}`)
+                  : setActive(index)
+                }
                 style={{
                   position: 'absolute',
-                  width: '220px',
-                  height: '248px',
-                  marginLeft: '-110px',
-                  marginTop: '-124px',
-                  borderRadius: '18px',
+                  width: `${CARD_W}px`,
+                  height: `${CARD_H}px`,
+                  marginLeft: `${-CARD_W / 2}px`,
+                  borderRadius: '16px',
                   overflow: 'hidden',
                   cursor: 'pointer',
-                  zIndex,
-                  opacity,
-                  // The magic: rotateY spins the card on the wheel, translateZ pushes it outward
-                  // Together they place each card on the rim of an arc
-                  transform: `rotateY(${angleDeg}deg) translateZ(${RADIUS}px)`,
-                  transition: 'transform 0.65s cubic-bezier(0.34, 1.15, 0.64, 1), opacity 0.45s ease, filter 0.45s ease, box-shadow 0.45s ease',
-                  filter: `brightness(${brightness})`,
+                  zIndex: 10 - absOffset,
+                  opacity: slot.op,
+                  // Arc transform: move sideways + drop down + rotate to face arc angle
+                  transform: `translateX(${slot.x}px) translateY(${slot.y}px) rotateY(${slot.ry}deg) scale(${slot.scale})`,
+                  transition: 'transform 0.62s cubic-bezier(0.34, 1.12, 0.64, 1), opacity 0.42s ease, filter 0.42s ease, box-shadow 0.42s ease',
+                  filter: `brightness(${slot.br})`,
                   boxShadow: absOffset === 0
-                    ? '0 28px 65px rgba(0,0,0,0.42), 0 0 0 3px #22c55e'
-                    : '0 6px 22px rgba(0,0,0,0.2)',
+                    ? '0 24px 60px rgba(0,0,0,0.40), 0 0 0 3px #22c55e'
+                    : '0 6px 20px rgba(0,0,0,0.18)',
                   willChange: 'transform, opacity, filter',
                 }}
               >
@@ -227,20 +219,19 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
                   draggable={false}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
                 />
+                {/* Dark overlay */}
                 <div style={{
                   position: 'absolute', inset: 0,
                   background: absOffset === 0
-                    ? 'linear-gradient(to top, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.22) 55%, rgba(0,0,0,0.08) 100%)'
-                    : 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 100%)',
+                    ? 'linear-gradient(to top, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.20) 55%, transparent 100%)'
+                    : 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.50) 100%)',
                 }} />
-                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 10px 14px', textAlign: 'center' }}>
+                {/* Label */}
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 8px 12px', textAlign: 'center' }}>
                   <span style={{
-                    color: '#fff',
-                    fontSize: absOffset === 0 ? '1.1rem' : '0.88rem',
-                    fontWeight: 900,
-                    textShadow: '0 2px 10px rgba(0,0,0,1)',
-                    lineHeight: 1.3,
-                    display: 'block',
+                    color: '#fff', fontWeight: 900, lineHeight: 1.3, display: 'block',
+                    fontSize: absOffset === 0 ? '1.05rem' : '0.82rem',
+                    textShadow: '0 2px 8px rgba(0,0,0,1)',
                   }}>
                     {cat.name}
                   </span>
@@ -254,12 +245,11 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
       {/* Navigation — hidden on mobile */}
       <div className="wheel-carousel-nav" style={{
         display: 'flex', justifyContent: 'center', alignItems: 'center',
-        gap: '16px', marginTop: '14px', position: 'relative', zIndex: 30,
+        gap: '16px', marginTop: '10px', position: 'relative', zIndex: 30,
       }}>
         <button onClick={next} style={{
-          width: '40px', height: '40px', borderRadius: '50%',
-          border: '2px solid #e5e7eb', background: '#fff',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #e5e7eb',
+          background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
         }}>
           <ChevronRight size={18} color="#1a1a1a" />
@@ -269,15 +259,13 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
             <button key={i} onClick={() => setActive(i)} style={{
               width: i === active ? '22px' : '8px', height: '8px', borderRadius: '4px',
               background: i === active ? '#22c55e' : '#d1d5db',
-              border: 'none', cursor: 'pointer', padding: 0,
-              transition: 'all 0.3s ease',
+              border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.3s ease',
             }} />
           ))}
         </div>
         <button onClick={prev} style={{
-          width: '40px', height: '40px', borderRadius: '50%',
-          border: '2px solid #e5e7eb', background: '#fff',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #e5e7eb',
+          background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
         }}>
           <ChevronLeft size={18} color="#1a1a1a" />
