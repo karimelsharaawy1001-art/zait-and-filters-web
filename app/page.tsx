@@ -112,43 +112,91 @@ function SearchCard({
 
 // ─── 3D Wheel Arc Carousel ────────────────────────────────────────────────────
 function CategoriesCarousel3D({ categories }: { categories: any[] }) {
-  const [active, setActive] = useState(0);
-  const pointerStartX = useRef<number | null>(null);
-  const total = categories.length;
+  // liveOffset is a continuous float (e.g. 2.73) — not just integers
+  // This lets the wheel spin fluidly as the user drags
+  const liveOffset   = useRef(0);
+  const [tick, setTick] = useState(0);          // forces re-render during drag
+  const isDragging   = useRef(false);
+  const pointerStartX = useRef(0);
+  const baseAtDrag   = useRef(0);
+  const velX         = useRef(0);
+  const lastX        = useRef(0);
+  const lastT        = useRef(0);
+  const rafId        = useRef<number | undefined>(undefined);
+  const total        = categories.length;
 
-  const CARD_W = 215;
-  const CARD_H = 265;
+  const CARD_W          = 215;
+  const CARD_H          = 265;
+  const DRAG_PX_PER_CARD = 115;   // how many px of drag = 1 card advance
 
-  // Bigger cards, tighter spacing
-  const getSlot = (abs: number, sign: number) => {
-    const s = sign || 1;
-    const map: Record<number, any> = {
-      0: { x: 0,      y: 0,   ry: 0,      scale: 1.00, op: 1.00, br: 1.00 },
-      1: { x: s*205,  y: 28,  ry: s*26,   scale: 0.84, op: 0.88, br: 0.70 },
-      2: { x: s*375,  y: 82,  ry: s*48,   scale: 0.68, op: 0.56, br: 0.50 },
-      3: { x: s*522,  y: 148, ry: s*62,   scale: 0.54, op: 0.25, br: 0.35 },
+  // Continuous arc math — works with fractional offsets for smooth spin
+  const getTransform = (frac: number) => {
+    const abs = Math.abs(frac);
+    return {
+      x:     frac * 202,               // linear horizontal spread
+      y:     abs * abs * 86,           // QUADRATIC drop → parabola = arc shape
+      ry:    frac * 25,                // rotation follows arc angle
+      scale: Math.max(0.50, 1 - abs * 0.155),
+      op:    Math.max(0.12, 1 - abs * 0.27),
+      br:    Math.max(0.28, 1 - abs * 0.36),
     };
-    return map[abs] ?? null;
   };
 
-  const prev = () => setActive((p) => (p - 1 + total) % total);
-  const next = () => setActive((p) => (p + 1) % total);
-
-  const onPointerDown = (e: React.PointerEvent) => { pointerStartX.current = e.clientX; };
-  const onPointerUp   = (e: React.PointerEvent) => {
-    if (pointerStartX.current === null) return;
-    const delta = pointerStartX.current - e.clientX;
-    pointerStartX.current = null;
-    if (Math.abs(delta) > 40) delta > 0 ? next() : prev();
+  const scheduleRender = () => {
+    if (rafId.current) return;
+    rafId.current = requestAnimationFrame(() => {
+      rafId.current = undefined;
+      setTick(t => t + 1);
+    });
   };
-  const onPointerCancel = () => { pointerStartX.current = null; };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    isDragging.current   = true;
+    pointerStartX.current = e.clientX;
+    lastX.current        = e.clientX;
+    lastT.current        = Date.now();
+    velX.current         = 0;
+    baseAtDrag.current   = liveOffset.current;
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!isDragging.current) return;
+    const now = Date.now();
+    const dt  = Math.max(1, now - lastT.current);
+    velX.current  = (e.clientX - lastX.current) / dt;
+    lastX.current = e.clientX;
+    lastT.current = now;
+    liveOffset.current = baseAtDrag.current + (pointerStartX.current - e.clientX) / DRAG_PX_PER_CARD;
+    scheduleRender();
+  };
+
+  const onPointerUp = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    // Momentum: project forward using velocity, then snap to nearest card
+    const momentum = (-velX.current * 140) / DRAG_PX_PER_CARD;
+    const raw      = liveOffset.current + momentum;
+    const snapped  = Math.round(raw);
+    liveOffset.current = ((snapped % total) + total) % total;
+    setTick(t => t + 1); // one final render with snap transition
+  };
+
+  const onPointerCancel = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    liveOffset.current = Math.round(liveOffset.current);
+    liveOffset.current = ((liveOffset.current % total) + total) % total;
+    setTick(t => t + 1);
+  };
 
   if (total === 0) return null;
+
+  const currentSnapped = ((Math.round(liveOffset.current) % total) + total) % total;
 
   return (
     <div style={{ width: '100%', overflow: 'hidden', padding: '5px 0 16px', touchAction: 'pan-y' }}>
 
-      {/* perspective on stage but NO preserve-3d → z-index works normally */}
       <div
         style={{
           perspective: '900px',
@@ -156,37 +204,48 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
           width: '100%',
           height: '360px',
           position: 'relative',
-          cursor: 'grab',
+          cursor: isDragging.current ? 'grabbing' : 'grab',
           userSelect: 'none',
           WebkitUserSelect: 'none',
         }}
         onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
         onPointerLeave={onPointerCancel}
       >
-        {/* Edge faders — always on top */}
+        {/* Edge faders */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 50, pointerEvents: 'none',
           background: 'linear-gradient(to right, #fdfdfd 0%, transparent 20%, transparent 80%, #fdfdfd 100%)',
         }} />
 
         {categories.map((cat, index) => {
-          let offset = index - active;
-          if (offset > total / 2)  offset -= total;
-          if (offset < -total / 2) offset += total;
+          // Compute continuous fractional offset with wrapping
+          let frac = index - liveOffset.current;
+          while (frac >  total / 2) frac -= total;
+          while (frac < -total / 2) frac += total;
 
-          const absOffset = Math.abs(offset);
-          const slot = getSlot(absOffset, Math.sign(offset));
-          if (!slot) return null;
+          const abs = Math.abs(frac);
+          if (abs > 3.6) return null;
+
+          const t       = getTransform(frac);
+          const zIndex  = Math.round(10 - abs);
+          const isCenter = abs < 0.5;
+          const dragging = isDragging.current;
 
           return (
             <div
               key={cat.name}
-              onClick={() => absOffset === 0
-                ? (window.location.href = `/categories/${encodeURIComponent(cat.name)}`)
-                : setActive(index)
-              }
+              onClick={() => {
+                if (!dragging && abs < 0.5) {
+                  window.location.href = `/categories/${encodeURIComponent(cat.name)}`;
+                } else if (!dragging) {
+                  const target = ((Math.round(liveOffset.current + frac) % total) + total) % total;
+                  liveOffset.current = target;
+                  setTick(n => n + 1);
+                }
+              }}
               style={{
                 position: 'absolute',
                 left: '50%',
@@ -197,12 +256,15 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
                 borderRadius: '16px',
                 overflow: 'hidden',
                 cursor: 'pointer',
-                zIndex: 10 - absOffset,
-                opacity: slot.op,
-                transform: `translateX(${slot.x}px) translateY(${slot.y}px) rotateY(${slot.ry}deg) scale(${slot.scale})`,
-                transition: 'transform 0.65s cubic-bezier(0.34, 1.10, 0.64, 1), opacity 0.45s ease, filter 0.45s ease, box-shadow 0.45s ease',
-                filter: `brightness(${slot.br})`,
-                boxShadow: absOffset === 0
+                zIndex,
+                opacity: t.op,
+                transform: `translateX(${t.x}px) translateY(${t.y}px) rotateY(${t.ry}deg) scale(${t.scale})`,
+                // No transition while dragging (instant follow), smooth snap on release
+                transition: dragging
+                  ? 'none'
+                  : 'transform 0.55s cubic-bezier(0.34, 1.08, 0.64, 1), opacity 0.4s ease, filter 0.4s ease, box-shadow 0.4s ease',
+                filter: `brightness(${t.br})`,
+                boxShadow: isCenter
                   ? '0 28px 65px rgba(0,0,0,0.42), 0 0 0 3px #22c55e'
                   : '0 5px 18px rgba(0,0,0,0.16)',
                 willChange: 'transform',
@@ -216,14 +278,14 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
               />
               <div style={{
                 position: 'absolute', inset: 0,
-                background: absOffset === 0
+                background: isCenter
                   ? 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.18) 55%, transparent 100%)'
                   : 'linear-gradient(to top, rgba(0,0,0,0.84) 0%, rgba(0,0,0,0.50) 100%)',
               }} />
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 8px 12px', textAlign: 'center' }}>
                 <span style={{
                   color: '#fff', fontWeight: 900, lineHeight: 1.3, display: 'block',
-                  fontSize: absOffset === 0 ? '1.05rem' : '0.82rem',
+                  fontSize: isCenter ? '1.05rem' : '0.82rem',
                   textShadow: '0 2px 8px rgba(0,0,0,1)',
                 }}>
                   {cat.name}
@@ -234,32 +296,28 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
         })}
       </div>
 
-      {/* Navigation — hidden on mobile */}
+      {/* Navigation dots — hidden on mobile */}
       <div className="wheel-carousel-nav" style={{
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         gap: '16px', marginTop: '10px', position: 'relative', zIndex: 30,
       }}>
-        <button onClick={next} style={{
-          width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #e5e7eb',
-          background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-        }}>
+        <button
+          onClick={() => { liveOffset.current = ((Math.round(liveOffset.current) + 1) % total); setTick(t => t + 1); }}
+          style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #e5e7eb', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
           <ChevronRight size={18} color="#1a1a1a" />
         </button>
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
           {categories.map((_, i) => (
-            <button key={i} onClick={() => setActive(i)} style={{
-              width: i === active ? '22px' : '8px', height: '8px', borderRadius: '4px',
-              background: i === active ? '#22c55e' : '#d1d5db',
+            <button key={i} onClick={() => { liveOffset.current = i; setTick(t => t + 1); }} style={{
+              width: i === currentSnapped ? '22px' : '8px', height: '8px', borderRadius: '4px',
+              background: i === currentSnapped ? '#22c55e' : '#d1d5db',
               border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.3s ease',
             }} />
           ))}
         </div>
-        <button onClick={prev} style={{
-          width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #e5e7eb',
-          background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-        }}>
+        <button
+          onClick={() => { liveOffset.current = ((Math.round(liveOffset.current) - 1 + total) % total); setTick(t => t + 1); }}
+          style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #e5e7eb', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
           <ChevronLeft size={18} color="#1a1a1a" />
         </button>
       </div>
