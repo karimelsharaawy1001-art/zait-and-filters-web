@@ -116,23 +116,20 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
   const pointerStartX = useRef<number | null>(null);
   const total = categories.length;
 
-  const CARD_W = 172;
-  const CARD_H = 222;
+  const CARD_W = 185;
+  const CARD_H = 235;
 
-  // Explicit per-offset arc positions — zero guesswork, zero overlap
-  // x: horizontal distance from center (px)
-  // y: downward drop creating the arc curve (px)
-  // ry: card Y-rotation so it faces the angle of the arc (deg)
-  // scale / op / br: size, opacity, brightness falloff
+  // Each slot: x=horizontal spread, y=downward arc drop, ry=Y-rotation, scale, opacity, brightness
+  // y increases on sides → this is what creates the visible arc/curve shape
   const getSlot = (abs: number, sign: number) => {
-    const s = sign === 0 ? 1 : sign;
-    const slots: Record<number, any> = {
-      0: { x: 0,        y: 0,   ry: 0,      scale: 1.00, op: 1.00, br: 1.00 },
-      1: { x: s * 220,  y: 22,  ry: s * 28, scale: 0.86, op: 0.88, br: 0.74 },
-      2: { x: s * 400,  y: 72,  ry: s * 50, scale: 0.72, op: 0.58, br: 0.54 },
-      3: { x: s * 555,  y: 130, ry: s * 65, scale: 0.58, op: 0.28, br: 0.38 },
+    const s = sign || 1;
+    const map: Record<number, any> = {
+      0: { x: 0,      y: 0,   ry: 0,      scale: 1.00, op: 1.00, br: 1.00 },
+      1: { x: s*230,  y: 40,  ry: s*28,   scale: 0.84, op: 0.86, br: 0.70 },
+      2: { x: s*420,  y: 110, ry: s*50,   scale: 0.68, op: 0.55, br: 0.50 },
+      3: { x: s*580,  y: 190, ry: s*64,   scale: 0.54, op: 0.24, br: 0.35 },
     };
-    return slots[abs] ?? null;
+    return map[abs] ?? null;
   };
 
   const prev = () => setActive((p) => (p - 1 + total) % total);
@@ -152,13 +149,13 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
   return (
     <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0 50px', touchAction: 'pan-y' }}>
 
-      {/* Stage */}
+      {/* perspective on stage but NO preserve-3d → z-index works normally */}
       <div
         style={{
-          perspective: '1400px',
-          perspectiveOrigin: '50% 50%',
+          perspective: '900px',
+          perspectiveOrigin: '50% 25%',
           width: '100%',
-          height: '370px',
+          height: '420px',
           position: 'relative',
           cursor: 'grab',
           userSelect: 'none',
@@ -169,77 +166,73 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
         onPointerCancel={onPointerCancel}
         onPointerLeave={onPointerCancel}
       >
-        {/* Edge faders */}
+        {/* Edge faders — always on top */}
         <div style={{
-          position: 'absolute', inset: 0, zIndex: 20, pointerEvents: 'none',
-          background: 'linear-gradient(to right, #fdfdfd 0%, transparent 18%, transparent 82%, #fdfdfd 100%)',
+          position: 'absolute', inset: 0, zIndex: 50, pointerEvents: 'none',
+          background: 'linear-gradient(to right, #fdfdfd 0%, transparent 20%, transparent 80%, #fdfdfd 100%)',
         }} />
 
-        {/* Arc hub — all cards radiate from this center point */}
-        <div style={{ position: 'absolute', left: '50%', top: '40px', transformStyle: 'preserve-3d' }}>
-          {categories.map((cat, index) => {
-            let offset = index - active;
-            if (offset > total / 2)  offset -= total;
-            if (offset < -total / 2) offset += total;
+        {categories.map((cat, index) => {
+          let offset = index - active;
+          if (offset > total / 2)  offset -= total;
+          if (offset < -total / 2) offset += total;
 
-            const absOffset = Math.abs(offset);
-            const slot = getSlot(absOffset, Math.sign(offset));
-            if (!slot) return null;
+          const absOffset = Math.abs(offset);
+          const slot = getSlot(absOffset, Math.sign(offset));
+          if (!slot) return null;
 
-            return (
-              <div
-                key={cat.name}
-                onClick={() => absOffset === 0
-                  ? (window.location.href = `/categories/${encodeURIComponent(cat.name)}`)
-                  : setActive(index)
-                }
-                style={{
-                  position: 'absolute',
-                  width: `${CARD_W}px`,
-                  height: `${CARD_H}px`,
-                  marginLeft: `${-CARD_W / 2}px`,
-                  borderRadius: '16px',
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                  zIndex: 10 - absOffset,
-                  opacity: slot.op,
-                  // Arc transform: move sideways + drop down + rotate to face arc angle
-                  transform: `translateX(${slot.x}px) translateY(${slot.y}px) rotateY(${slot.ry}deg) scale(${slot.scale})`,
-                  transition: 'transform 0.62s cubic-bezier(0.34, 1.12, 0.64, 1), opacity 0.42s ease, filter 0.42s ease, box-shadow 0.42s ease',
-                  filter: `brightness(${slot.br})`,
-                  boxShadow: absOffset === 0
-                    ? '0 24px 60px rgba(0,0,0,0.40), 0 0 0 3px #22c55e'
-                    : '0 6px 20px rgba(0,0,0,0.18)',
-                  willChange: 'transform, opacity, filter',
-                }}
-              >
-                <img
-                  src={cat.image}
-                  alt={cat.name}
-                  draggable={false}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
-                />
-                {/* Dark overlay */}
-                <div style={{
-                  position: 'absolute', inset: 0,
-                  background: absOffset === 0
-                    ? 'linear-gradient(to top, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.20) 55%, transparent 100%)'
-                    : 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.50) 100%)',
-                }} />
-                {/* Label */}
-                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 8px 12px', textAlign: 'center' }}>
-                  <span style={{
-                    color: '#fff', fontWeight: 900, lineHeight: 1.3, display: 'block',
-                    fontSize: absOffset === 0 ? '1.05rem' : '0.82rem',
-                    textShadow: '0 2px 8px rgba(0,0,0,1)',
-                  }}>
-                    {cat.name}
-                  </span>
-                </div>
+          return (
+            <div
+              key={cat.name}
+              onClick={() => absOffset === 0
+                ? (window.location.href = `/categories/${encodeURIComponent(cat.name)}`)
+                : setActive(index)
+              }
+              style={{
+                position: 'absolute',
+                left: '50%',
+                top: '20px',
+                width: `${CARD_W}px`,
+                height: `${CARD_H}px`,
+                marginLeft: `${-CARD_W / 2}px`,
+                borderRadius: '16px',
+                overflow: 'hidden',
+                cursor: 'pointer',
+                zIndex: 10 - absOffset,
+                opacity: slot.op,
+                transform: `translateX(${slot.x}px) translateY(${slot.y}px) rotateY(${slot.ry}deg) scale(${slot.scale})`,
+                transition: 'transform 0.65s cubic-bezier(0.34, 1.10, 0.64, 1), opacity 0.45s ease, filter 0.45s ease, box-shadow 0.45s ease',
+                filter: `brightness(${slot.br})`,
+                boxShadow: absOffset === 0
+                  ? '0 28px 65px rgba(0,0,0,0.42), 0 0 0 3px #22c55e'
+                  : '0 5px 18px rgba(0,0,0,0.16)',
+                willChange: 'transform',
+              }}
+            >
+              <img
+                src={cat.image}
+                alt={cat.name}
+                draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
+              />
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: absOffset === 0
+                  ? 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.18) 55%, transparent 100%)'
+                  : 'linear-gradient(to top, rgba(0,0,0,0.84) 0%, rgba(0,0,0,0.50) 100%)',
+              }} />
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 8px 12px', textAlign: 'center' }}>
+                <span style={{
+                  color: '#fff', fontWeight: 900, lineHeight: 1.3, display: 'block',
+                  fontSize: absOffset === 0 ? '1.05rem' : '0.82rem',
+                  textShadow: '0 2px 8px rgba(0,0,0,1)',
+                }}>
+                  {cat.name}
+                </span>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Navigation — hidden on mobile */}
