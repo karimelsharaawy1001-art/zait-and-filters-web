@@ -117,9 +117,14 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
   const dragStartX = useRef(0);
   const total = categories.length;
 
-  // Wheel geometry constants
-  const RADIUS    = 440;   // px — radius of the imaginary wheel
-  const ANGLE_DEG = 30;    // degrees between each card on the wheel
+  // Wheel geometry — cards sit on the rim of a large circle
+  const RADIUS    = 560;   // px — larger = flatter arc
+  const ANGLE_DEG = 24;    // degrees between each card
+  const ARC_DROP  = 160;   // px — how much side cards drop downward
+  const CARD_W    = 220;
+  const CARD_H    = 240;
+  const STAGE_H   = 420;   // tall enough to show the arc drop
+  const BASE_TOP  = (STAGE_H - CARD_H) / 2; // center card vertical anchor
 
   const prev = () => setActive((p) => (p - 1 + total) % total);
   const next = () => setActive((p) => (p + 1) % total);
@@ -138,15 +143,15 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
   if (total === 0) return null;
 
   return (
-    <div style={{ position: 'relative', width: '100%', overflow: 'hidden', padding: '20px 0 50px' }}>
+    <div style={{ position: 'relative', width: '100%', overflow: 'hidden', padding: '10px 0 50px' }}>
 
       {/* 3D Stage */}
       <div
         style={{
-          perspective: '1300px',
-          perspectiveOrigin: '50% 55%',
+          perspective: '1000px',
+          perspectiveOrigin: '50% 20%',   // looking slightly from above → arc becomes visible
           width: '100%',
-          height: '290px',
+          height: `${STAGE_H}px`,
           position: 'relative',
           cursor: isDragging ? 'grabbing' : 'grab',
         }}
@@ -159,7 +164,7 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
         {/* Soft edge faders */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 20, pointerEvents: 'none',
-          background: 'linear-gradient(to right, #fdfdfd 0%, transparent 22%, transparent 78%, #fdfdfd 100%)',
+          background: 'linear-gradient(to right, #fdfdfd 0%, transparent 20%, transparent 80%, #fdfdfd 100%)',
         }} />
 
         {categories.map((cat, index) => {
@@ -170,15 +175,17 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
           const absOffset = Math.abs(offset);
           const visible   = absOffset <= 4;
 
-          // Wheel arc positioning
+          // True circular arc: cards travel along the rim of a wheel
           const angleRad   = (offset * ANGLE_DEG * Math.PI) / 180;
-          const translateX = Math.sin(angleRad) * RADIUS;
-          const translateZ = (Math.cos(angleRad) - 1) * RADIUS; // 0 at center, deeper behind
+          const translateX = Math.sin(angleRad) * RADIUS;                    // horizontal spread
+          const translateZ = (Math.cos(angleRad) - 1) * RADIUS;              // depth recession
+          const arcDropY   = (1 - Math.cos(angleRad)) * ARC_DROP;            // vertical drop → arc shape
+          const finalY     = BASE_TOP + arcDropY;                             // absolute y in stage
           const rotateY    = offset * ANGLE_DEG;
-          const scale      = absOffset === 0 ? 1 : Math.max(0.62, 1 - absOffset * 0.11);
+          const scale      = absOffset === 0 ? 1 : Math.max(0.60, 1 - absOffset * 0.10);
           const opacity    = absOffset === 0 ? 1
-                           : absOffset === 1 ? 0.88
-                           : absOffset === 2 ? 0.62
+                           : absOffset === 1 ? 0.90
+                           : absOffset === 2 ? 0.65
                            : absOffset === 3 ? 0.38
                            : 0.18;
           const zIndex = 10 - absOffset;
@@ -197,6 +204,7 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
               }}
               animate={{
                 x: `calc(-50% + ${translateX}px)`,
+                y: finalY,
                 z: translateZ,
                 rotateY,
                 scale,
@@ -211,10 +219,9 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
               style={{
                 position: 'absolute',
                 left: '50%',
-                top: '50%',
-                translateY: '-50%',
-                width: '225px',
-                height: '235px',
+                top: 0,
+                width: `${CARD_W}px`,
+                height: `${CARD_H}px`,
                 borderRadius: '18px',
                 overflow: 'hidden',
                 zIndex,
@@ -227,19 +234,12 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
                 WebkitUserSelect: 'none',
               }}
             >
-              {/* Image */}
               <img
                 src={cat.image}
                 alt={cat.name}
                 draggable={false}
-                style={{
-                  width: '100%', height: '100%',
-                  objectFit: 'cover', display: 'block',
-                  pointerEvents: 'none',
-                }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
               />
-
-              {/* Darkening overlay — heavier on inactive cards */}
               <div style={{
                 position: 'absolute', inset: 0,
                 background: absOffset === 0
@@ -247,13 +247,7 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
                   : 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.60) 100%)',
                 transition: 'background 0.4s ease',
               }} />
-
-              {/* Category name label */}
-              <div style={{
-                position: 'absolute', bottom: 0, left: 0, right: 0,
-                padding: '10px 10px 14px',
-                textAlign: 'center',
-              }}>
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 10px 14px', textAlign: 'center' }}>
                 <span style={{
                   color: '#fff',
                   fontSize: absOffset === 0 ? '1.1rem' : '0.9rem',
@@ -269,7 +263,7 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
         })}
       </div>
 
-      {/* Navigation — hidden on mobile via CSS class */}
+      {/* Navigation — hidden on mobile */}
       <div className="wheel-carousel-nav" style={{
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         gap: '16px', marginTop: '14px', position: 'relative', zIndex: 30,
@@ -279,35 +273,28 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
           border: '2px solid #e5e7eb', background: '#fff',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-          transition: 'all 0.2s',
         }}>
           <ChevronRight size={18} color="#1a1a1a" />
         </button>
-
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
           {categories.map((_, i) => (
             <button key={i} onClick={() => setActive(i)} style={{
-              width: i === active ? '22px' : '8px',
-              height: '8px',
-              borderRadius: '4px',
+              width: i === active ? '22px' : '8px', height: '8px', borderRadius: '4px',
               background: i === active ? '#22c55e' : '#d1d5db',
               border: 'none', cursor: 'pointer', padding: 0,
               transition: 'all 0.3s ease',
             }} />
           ))}
         </div>
-
         <button onClick={prev} style={{
           width: '40px', height: '40px', borderRadius: '50%',
           border: '2px solid #e5e7eb', background: '#fff',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-          transition: 'all 0.2s',
         }}>
           <ChevronLeft size={18} color="#1a1a1a" />
         </button>
       </div>
-
     </div>
   );
 }
