@@ -116,18 +116,17 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
   const pointerStartX = useRef<number | null>(null);
   const total = categories.length;
 
-  const CARD_W = 185;
-  const CARD_H = 235;
+  const CARD_W = 215;
+  const CARD_H = 265;
 
-  // Each slot: x=horizontal spread, y=downward arc drop, ry=Y-rotation, scale, opacity, brightness
-  // y increases on sides → this is what creates the visible arc/curve shape
+  // Bigger cards, tighter spacing
   const getSlot = (abs: number, sign: number) => {
     const s = sign || 1;
     const map: Record<number, any> = {
       0: { x: 0,      y: 0,   ry: 0,      scale: 1.00, op: 1.00, br: 1.00 },
-      1: { x: s*230,  y: 40,  ry: s*28,   scale: 0.84, op: 0.86, br: 0.70 },
-      2: { x: s*420,  y: 110, ry: s*50,   scale: 0.68, op: 0.55, br: 0.50 },
-      3: { x: s*580,  y: 190, ry: s*64,   scale: 0.54, op: 0.24, br: 0.35 },
+      1: { x: s*205,  y: 28,  ry: s*26,   scale: 0.84, op: 0.88, br: 0.70 },
+      2: { x: s*375,  y: 82,  ry: s*48,   scale: 0.68, op: 0.56, br: 0.50 },
+      3: { x: s*522,  y: 148, ry: s*62,   scale: 0.54, op: 0.25, br: 0.35 },
     };
     return map[abs] ?? null;
   };
@@ -147,7 +146,7 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
   if (total === 0) return null;
 
   return (
-    <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0 50px', touchAction: 'pan-y' }}>
+    <div style={{ width: '100%', overflow: 'hidden', padding: '5px 0 16px', touchAction: 'pan-y' }}>
 
       {/* perspective on stage but NO preserve-3d → z-index works normally */}
       <div
@@ -155,7 +154,7 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
           perspective: '900px',
           perspectiveOrigin: '50% 25%',
           width: '100%',
-          height: '420px',
+          height: '360px',
           position: 'relative',
           cursor: 'grab',
           userSelect: 'none',
@@ -1076,7 +1075,7 @@ export default function HomePage() {
             {/* Categories Section — 3D Wheel Arc Carousel */}
             {categories.length > 0 && (
               <ScrollReveal direction="up" delay={0.2}>
-                <section style={{ padding: '40px 0 20px', maxWidth: '1200px', margin: '0 auto' }}>
+                <section style={{ padding: '20px 0 8px', maxWidth: '1200px', margin: '0 auto' }}>
                   <div style={{ textAlign: 'right', marginBottom: '10px', padding: '0 20px' }}>
                     <h2 style={{ fontSize: '2.2rem', fontWeight: '900', margin: 0 }}>تسوق حسب الفئة</h2>
                   </div>
