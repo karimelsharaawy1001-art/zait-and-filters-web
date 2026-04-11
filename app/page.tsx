@@ -113,154 +113,142 @@ function SearchCard({
 // ─── 3D Wheel Arc Carousel ────────────────────────────────────────────────────
 function CategoriesCarousel3D({ categories }: { categories: any[] }) {
   const [active, setActive] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartX = useRef(0);
+  const pointerStartX = useRef<number | null>(null);
   const total = categories.length;
 
-  // Wheel geometry — cards sit on the rim of a large circle
-  const RADIUS    = 560;   // px — larger = flatter arc
-  const ANGLE_DEG = 24;    // degrees between each card
-  const ARC_DROP  = 160;   // px — how much side cards drop downward
-  const CARD_W    = 220;
-  const CARD_H    = 240;
-  const STAGE_H   = 420;   // tall enough to show the arc drop
-  const BASE_TOP  = (STAGE_H - CARD_H) / 2; // center card vertical anchor
+  // Classic CSS 3D wheel: each card is rotateY(angle) translateZ(radius)
+  // This naturally creates a wheel arc — no hacks needed.
+  const RADIUS    = 340;  // wheel radius px — controls how deep the arc curves
+  const ANGLE_DEG = 28;   // degrees between adjacent cards
 
   const prev = () => setActive((p) => (p - 1 + total) % total);
   const next = () => setActive((p) => (p + 1) % total);
 
-  const onDragStart = (clientX: number) => {
-    setIsDragging(true);
-    dragStartX.current = clientX;
+  // Unified pointer events (mouse + touch) — eliminates swipe glitch
+  const onPointerDown = (e: React.PointerEvent) => {
+    pointerStartX.current = e.clientX;
   };
-  const onDragEnd = (clientX: number) => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    const delta = dragStartX.current - clientX;
-    if (Math.abs(delta) > 40) delta > 0 ? next() : prev();
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (pointerStartX.current === null) return;
+    const delta = pointerStartX.current - e.clientX;
+    pointerStartX.current = null;
+    if (Math.abs(delta) > 45) delta > 0 ? next() : prev();
   };
+  const onPointerCancel = () => { pointerStartX.current = null; };
 
   if (total === 0) return null;
 
   return (
-    <div style={{ position: 'relative', width: '100%', overflow: 'hidden', padding: '10px 0 50px' }}>
+    <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0 50px', touchAction: 'pan-y' }}>
 
-      {/* 3D Stage */}
+      {/* ── 3D Stage ── */}
       <div
         style={{
-          perspective: '1000px',
-          perspectiveOrigin: '50% 20%',   // looking slightly from above → arc becomes visible
+          perspective: '900px',
+          perspectiveOrigin: '50% 50%',
           width: '100%',
-          height: `${STAGE_H}px`,
+          height: '300px',
           position: 'relative',
-          cursor: isDragging ? 'grabbing' : 'grab',
+          cursor: 'grab',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
         }}
-        onMouseDown={(e) => onDragStart(e.clientX)}
-        onMouseUp={(e) => onDragEnd(e.clientX)}
-        onMouseLeave={(e) => { if (isDragging) onDragEnd(e.clientX); }}
-        onTouchStart={(e) => { e.preventDefault(); onDragStart(e.touches[0].clientX); }}
-        onTouchEnd={(e) => onDragEnd(e.changedTouches[0].clientX)}
+        onPointerDown={onPointerDown}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerCancel}
+        onPointerLeave={onPointerCancel}
       >
-        {/* Soft edge faders */}
+        {/* Edge faders */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 20, pointerEvents: 'none',
-          background: 'linear-gradient(to right, #fdfdfd 0%, transparent 20%, transparent 80%, #fdfdfd 100%)',
+          background: 'linear-gradient(to right, #fdfdfd 0%, transparent 22%, transparent 78%, #fdfdfd 100%)',
         }} />
 
-        {categories.map((cat, index) => {
-          let offset = index - active;
-          if (offset > total / 2)  offset -= total;
-          if (offset < -total / 2) offset += total;
+        {/* Wheel hub — positioned at stage center; cards orbit around it */}
+        <div style={{
+          position: 'absolute',
+          left: '50%', top: '50%',
+          width: 0, height: 0,
+          transformStyle: 'preserve-3d',
+        }}>
+          {categories.map((cat, index) => {
+            let offset = index - active;
+            if (offset > total / 2)  offset -= total;
+            if (offset < -total / 2) offset += total;
 
-          const absOffset = Math.abs(offset);
-          const visible   = absOffset <= 4;
+            const absOffset = Math.abs(offset);
+            if (absOffset > 3) return null;
 
-          // True circular arc: cards travel along the rim of a wheel
-          const angleRad   = (offset * ANGLE_DEG * Math.PI) / 180;
-          const translateX = Math.sin(angleRad) * RADIUS;                    // horizontal spread
-          const translateZ = (Math.cos(angleRad) - 1) * RADIUS;              // depth recession
-          const arcDropY   = (1 - Math.cos(angleRad)) * ARC_DROP;            // vertical drop → arc shape
-          const finalY     = BASE_TOP + arcDropY;                             // absolute y in stage
-          const rotateY    = offset * ANGLE_DEG;
-          const scale      = absOffset === 0 ? 1 : Math.max(0.60, 1 - absOffset * 0.10);
-          const opacity    = absOffset === 0 ? 1
-                           : absOffset === 1 ? 0.90
-                           : absOffset === 2 ? 0.65
-                           : absOffset === 3 ? 0.38
-                           : 0.18;
-          const zIndex = 10 - absOffset;
+            const angleDeg = offset * ANGLE_DEG;
+            const opacity  = absOffset === 0 ? 1
+                           : absOffset === 1 ? 0.82
+                           : absOffset === 2 ? 0.55
+                           : 0.28;
+            const brightness = absOffset === 0 ? 1.0
+                             : absOffset === 1 ? 0.72
+                             : 0.48;
+            const zIndex = 10 - absOffset;
 
-          if (!visible) return null;
-
-          return (
-            <motion.div
-              key={cat.name}
-              onClick={() => {
-                if (absOffset === 0) {
-                  window.location.href = `/categories/${encodeURIComponent(cat.name)}`;
-                } else {
-                  setActive(index);
-                }
-              }}
-              animate={{
-                x: `calc(-50% + ${translateX}px)`,
-                y: finalY,
-                z: translateZ,
-                rotateY,
-                scale,
-                opacity,
-              }}
-              transition={{
-                type: 'spring',
-                stiffness: 160,
-                damping: 38,
-                mass: 1.3,
-              }}
-              style={{
-                position: 'absolute',
-                left: '50%',
-                top: 0,
-                width: `${CARD_W}px`,
-                height: `${CARD_H}px`,
-                borderRadius: '18px',
-                overflow: 'hidden',
-                zIndex,
-                cursor: 'pointer',
-                transformStyle: 'preserve-3d',
-                boxShadow: absOffset === 0
-                  ? '0 30px 70px rgba(0,0,0,0.45), 0 0 0 3px #22c55e'
-                  : '0 8px 28px rgba(0,0,0,0.22)',
-                userSelect: 'none',
-                WebkitUserSelect: 'none',
-              }}
-            >
-              <img
-                src={cat.image}
-                alt={cat.name}
-                draggable={false}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
-              />
-              <div style={{
-                position: 'absolute', inset: 0,
-                background: absOffset === 0
-                  ? 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.28) 55%, rgba(0,0,0,0.10) 100%)'
-                  : 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.60) 100%)',
-                transition: 'background 0.4s ease',
-              }} />
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 10px 14px', textAlign: 'center' }}>
-                <span style={{
-                  color: '#fff',
-                  fontSize: absOffset === 0 ? '1.1rem' : '0.9rem',
-                  fontWeight: 900,
-                  textShadow: '0 2px 10px rgba(0,0,0,1)',
-                  lineHeight: 1.3,
-                }}>
-                  {cat.name}
-                </span>
+            return (
+              <div
+                key={cat.name}
+                onClick={() => {
+                  if (absOffset === 0) {
+                    window.location.href = `/categories/${encodeURIComponent(cat.name)}`;
+                  } else {
+                    setActive(index);
+                  }
+                }}
+                style={{
+                  position: 'absolute',
+                  width: '220px',
+                  height: '248px',
+                  marginLeft: '-110px',
+                  marginTop: '-124px',
+                  borderRadius: '18px',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  zIndex,
+                  opacity,
+                  // The magic: rotateY spins the card on the wheel, translateZ pushes it outward
+                  // Together they place each card on the rim of an arc
+                  transform: `rotateY(${angleDeg}deg) translateZ(${RADIUS}px)`,
+                  transition: 'transform 0.65s cubic-bezier(0.34, 1.15, 0.64, 1), opacity 0.45s ease, filter 0.45s ease, box-shadow 0.45s ease',
+                  filter: `brightness(${brightness})`,
+                  boxShadow: absOffset === 0
+                    ? '0 28px 65px rgba(0,0,0,0.42), 0 0 0 3px #22c55e'
+                    : '0 6px 22px rgba(0,0,0,0.2)',
+                  willChange: 'transform, opacity, filter',
+                }}
+              >
+                <img
+                  src={cat.image}
+                  alt={cat.name}
+                  draggable={false}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
+                />
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  background: absOffset === 0
+                    ? 'linear-gradient(to top, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.22) 55%, rgba(0,0,0,0.08) 100%)'
+                    : 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 100%)',
+                }} />
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 10px 14px', textAlign: 'center' }}>
+                  <span style={{
+                    color: '#fff',
+                    fontSize: absOffset === 0 ? '1.1rem' : '0.88rem',
+                    fontWeight: 900,
+                    textShadow: '0 2px 10px rgba(0,0,0,1)',
+                    lineHeight: 1.3,
+                    display: 'block',
+                  }}>
+                    {cat.name}
+                  </span>
+                </div>
               </div>
-            </motion.div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Navigation — hidden on mobile */}
