@@ -210,10 +210,12 @@ export default function AdminProducts() {
   }, [filterCategory]);
 
 
+  // FIX 1: Added searchId to dependency array
   useEffect(() => {
     fetchProducts();
   }, [
     currentPage,
+    searchId,
     filterMake,
     filterModel,
     filterCategory,
@@ -251,7 +253,11 @@ export default function AdminProducts() {
   const buildFilteredQuery = () => {
     let query = supabase.from('products').select('*', { count: 'exact' });
     if (searchName) query = query.ilike('name', `%${searchName}%`);
-    if (searchId) query = query.ilike('id', `%${searchId}%`); // ── NEW ──
+    // FIX 2: UUID columns need a text cast — ilike on uuid type silently returns nothing
+    if (searchId) {
+      const cleanId = searchId.trim().toLowerCase();
+      query = (query as any).filter('id::text', 'ilike', `%${cleanId}%`);
+    }
     if (filterMake === '__universal__') {
       query = query.or('car_make.is.null,car_make.eq.');
     } else if (filterMake) {
@@ -394,7 +400,8 @@ export default function AdminProducts() {
     const safe = (val: any) =>
       val === null || val === undefined ? '' : String(val);
     const headers =
-      'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url\n';
+      'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url
+';
     const rows = data
       .map((p: any) =>
         [
@@ -414,8 +421,9 @@ export default function AdminProducts() {
           `"${safe(p.image_url)}"`,
         ].join(','),
       )
-      .join('\n');
-    const csvContent = '\uFEFF' + headers + rows;
+      .join('
+');
+    const csvContent = '﻿' + headers + rows;
     const blob = new Blob([csvContent], {
       type: 'text/csv;charset=utf-8;',
     });
@@ -430,10 +438,11 @@ export default function AdminProducts() {
 
   const downloadTemplate = () => {
     const headers =
-      'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url\n';
+      'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url
+';
     const example =
       ',تيل فرامل صني,Hi-Q,فرامل,تيل,نيسان,صني,2015-2024,1200,1100,6,1,كوري,https://res.cloudinary.com/example.jpg';
-    const csvContent = '\uFEFF' + headers + example;
+    const csvContent = '﻿' + headers + example;
     const blob = new Blob([csvContent], {
       type: 'text/csv;charset=utf-8;',
     });
@@ -454,7 +463,8 @@ export default function AdminProducts() {
     const reader = new FileReader();
     reader.onload = async (event: any) => {
       const text = event.target.result;
-      const lines = text.split('\n').slice(1);
+      const lines = text.split('
+').slice(1);
       const imported: any[] = [];
 
 
@@ -653,14 +663,17 @@ export default function AdminProducts() {
             style={filterInputStyle}
           />
         </div>
-        {/* ── NEW: Search by ID ── */}
+        {/* ── Search by ID ── */}
         <div>
           <label style={labelStyle}>بحث بالـ ID</label>
           <input
             type="text"
             placeholder="أدخل ID..."
             value={searchId}
-            onChange={(e) => setSearchId(e.target.value)}
+            onChange={(e) => {
+              setSearchId(e.target.value);
+              setCurrentPage(1);
+            }}
             onKeyDown={(e) => e.key === 'Enter' && fetchProducts()}
             style={filterInputStyle}
           />
