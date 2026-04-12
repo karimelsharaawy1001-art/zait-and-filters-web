@@ -110,8 +110,9 @@ function SearchCard({
 // ─────────────────────────────────────────────────────────────────────────────
 
 
-// ─── SVG Fan Wheel Carousel ──────────────────────────────────────────────────
+// ─── Wheel Arc Card Carousel ─────────────────────────────────────────────────
 function CategoriesCarousel3D({ categories }: { categories: any[] }) {
+  // Continuous float offset — enables smooth wheel spin (not just 1-step jumps)
   const liveAngle   = useRef(0);
   const [tick, setTick] = useState(0);
   const isDragging  = useRef(false);
@@ -124,48 +125,28 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
   const renderRaf   = useRef<number | undefined>(undefined);
   const total       = categories.length;
 
-  // SVG geometry
-  const SVG_W    = 400;
-  const SVG_H    = 235;
-  const CX       = 200;
-  const CY       = 305;   // pivot below SVG bottom → fan spreads upward
-  const INNER_R  = 82;
-  const SEG_DEG  = 33;    // degrees per segment
-  const GAP_DEG  = 2.2;
-  const DRAG_DEG_PER_PX = 1 / 3.0;
+  const CARD_W    = 190;
+  const CARD_H    = 245;
+  const SEG_DEG   = 33;   // degrees per category on the wheel
+  const PX_PER_DEG = 3.2; // drag sensitivity
 
-  const PALETTE = [
-    '#22c55e','#3b82f6','#ec4899','#f97316',
-    '#8b5cf6','#06b6d4','#ef4444','#84cc16',
-    '#f59e0b','#6366f1','#14b8a6','#e11d48',
-    '#0ea5e9','#d946ef','#fb923c',
-  ];
-
-  // Outer radius: tallest at center (dispAngle=0), shrinks toward edges
-  const getOuterR = (absDeg: number) => {
-    const t = Math.min(1, absDeg / 75);
-    return 198 - t * t * 92;
+  // Arc positioning from fractional offset n (can be decimal during drag)
+  // x: linear spread, y: quadratic drop → parabola = arc/wheel shape
+  const getPos = (n: number) => {
+    const abs = Math.abs(n);
+    return {
+      x:     n * 193,              // horizontal spread
+      y:     n * n * 30,           // quadratic drop = arc curve
+      ry:    n * 23,               // Y-rotation follows arc tangent
+      scale: Math.max(0.52, 1 - abs * 0.148),
+      op:    Math.max(0.10, 1 - abs * 0.26),
+      br:    Math.max(0.28, 1 - abs * 0.34),
+    };
   };
 
-  // SVG wedge path: segment centered at dispAngle, from INNER_R to outerR
-  const wedgePath = (outerR: number, startDeg: number, endDeg: number) => {
-    const r = (d: number) => (d - 90) * Math.PI / 180;
-    const s = r(startDeg), e = r(endDeg);
-    const p = (rad: number, angle: number) =>
-      `${(CX + rad * Math.cos(angle)).toFixed(2)},${(CY + rad * Math.sin(angle)).toFixed(2)}`;
-    return [
-      `M ${p(INNER_R, s)}`,
-      `L ${p(outerR,  s)}`,
-      `A ${outerR} ${outerR} 0 0 1 ${p(outerR, e)}`,
-      `L ${p(INNER_R, e)}`,
-      `A ${INNER_R} ${INNER_R} 0 0 0 ${p(INNER_R, s)}`,
-      'Z',
-    ].join(' ');
-  };
-
-  // Smooth snap via RAF easing
+  // Smooth snap via RAF cubic ease-out
   const snapTo = (targetDeg: number) => {
-    if (snapRaf.current !== undefined) if (snapRaf.current !== undefined) cancelAnimationFrame(snapRaf.current);
+    if (snapRaf.current !== undefined) cancelAnimationFrame(snapRaf.current);
     const from = liveAngle.current;
     const dist = targetDeg - from;
     const dur  = 480;
@@ -180,7 +161,7 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
     snapRaf.current = requestAnimationFrame(step);
   };
 
-  // Window listeners — always receive events even when finger is over a segment
+  // Window-level pointer listeners — fire even when finger is over a card
   useEffect(() => {
     const scheduleRender = () => {
       if (renderRaf.current !== undefined) return;
@@ -196,13 +177,13 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
       velX.current  = (e.clientX - lastX.current) / dt;
       lastX.current = e.clientX;
       lastT.current = now;
-      liveAngle.current = baseAngle.current + (pStartX.current - e.clientX) * DRAG_DEG_PER_PX;
+      liveAngle.current = baseAngle.current + (pStartX.current - e.clientX) / PX_PER_DEG;
       scheduleRender();
     };
     const onUp = () => {
       if (!isDragging.current) return;
       isDragging.current = false;
-      const momentum   = (-velX.current * 120) * DRAG_DEG_PER_PX;
+      const momentum   = (-velX.current * 130) / PX_PER_DEG;
       const raw        = liveAngle.current + momentum;
       const snappedIdx = Math.round(raw / SEG_DEG);
       snapTo(snappedIdx * SEG_DEG);
@@ -216,7 +197,7 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
   }, [total]);
 
   const onPointerDown = (e: React.PointerEvent) => {
-    if (snapRaf.current !== undefined) if (snapRaf.current !== undefined) cancelAnimationFrame(snapRaf.current);
+    if (snapRaf.current !== undefined) cancelAnimationFrame(snapRaf.current);
     isDragging.current = true;
     pStartX.current    = e.clientX;
     lastX.current      = e.clientX;
@@ -229,135 +210,131 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
   if (total === 0) return null;
 
   const activeIdx = ((Math.round(liveAngle.current / SEG_DEG) % total) + total) % total;
-  const activeColor = PALETTE[activeIdx % PALETTE.length];
 
-  // Compute display angle for each category, filter to visible range
-  const segments = categories
-    .map((cat, i) => {
-      let d = i * SEG_DEG - liveAngle.current;
-      const half = (total * SEG_DEG) / 2;
-      while (d >  half) d -= total * SEG_DEG;
-      while (d < -half) d += total * SEG_DEG;
-      return { cat, i, d };
-    })
-    .filter(s => Math.abs(s.d) < 78)
-    .sort((a, b) => Math.abs(b.d) - Math.abs(a.d)); // paint sides first, center last
+  // Compute fractional offset per card with wrapping
+  const cards = categories.map((cat, i) => {
+    let n = (i * SEG_DEG - liveAngle.current) / SEG_DEG; // fractional offset
+    const half = total / 2;
+    while (n >  half) n -= total;
+    while (n < -half) n += total;
+    return { cat, i, n };
+  })
+  .filter(c => Math.abs(c.n) < 3.6)
+  .sort((a, b) => Math.abs(b.n) - Math.abs(a.n)); // paint far cards first
 
   return (
-    <div style={{ width: '100%', padding: '6px 0 14px', touchAction: 'pan-y' }}>
+    <div style={{ width: '100%', overflow: 'hidden', padding: '5px 0 16px', touchAction: 'pan-y' }}>
 
-      {/* Active label above wheel */}
-      <div style={{ textAlign: 'center', height: '28px', marginBottom: '4px' }}>
-        <span style={{ fontSize: '1.1rem', fontWeight: 900, color: activeColor, transition: 'color 0.3s' }}>
-          {categories[activeIdx]?.name}
-        </span>
-      </div>
-
-      <svg
-        width="100%"
-        viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-        style={{ display: 'block', overflow: 'visible', cursor: isDragging.current ? 'grabbing' : 'grab', WebkitUserSelect: 'none', userSelect: 'none' }}
+      <div
+        style={{
+          perspective: '820px',
+          perspectiveOrigin: '50% 8%',   // slight bird's-eye → arc curve visible
+          width: '100%',
+          height: '345px',
+          position: 'relative',
+          cursor: isDragging.current ? 'grabbing' : 'grab',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+        }}
         onPointerDown={onPointerDown}
       >
-        <defs>
-          {/* Clip path per segment */}
-          {segments.map(({ i, d }) => {
-            const outerR = getOuterR(Math.abs(d));
-            return (
-              <clipPath key={i} id={`wclip${i}`}>
-                <path d={wedgePath(outerR, d - SEG_DEG / 2 + GAP_DEG / 2, d + SEG_DEG / 2 - GAP_DEG / 2)} />
-              </clipPath>
-            );
-          })}
-        </defs>
+        {/* Edge faders */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 50, pointerEvents: 'none',
+          background: 'linear-gradient(to right, #fdfdfd 0%, transparent 20%, transparent 80%, #fdfdfd 100%)',
+        }} />
 
-        {segments.map(({ cat, i, d }) => {
-          const outerR   = getOuterR(Math.abs(d));
-          const startDeg = d - SEG_DEG / 2 + GAP_DEG / 2;
-          const endDeg   = d + SEG_DEG / 2 - GAP_DEG / 2;
-          const path     = wedgePath(outerR, startDeg, endDeg);
-          const color    = PALETTE[i % PALETTE.length];
-          const isActive = i === activeIdx;
-
-          // Text position: midpoint along wedge centerline
-          const midR    = INNER_R + (outerR - INNER_R) * 0.52;
-          const midRad  = (d - 90) * Math.PI / 180;
-          const tx      = CX + midR * Math.cos(midRad);
-          const ty      = CY + midR * Math.sin(midRad);
+        {cards.map(({ cat, i, n }) => {
+          const p        = getPos(n);
+          const abs      = Math.abs(n);
+          const isCenter = abs < 0.5;
 
           return (
-            <g
+            <div
               key={i}
-              style={{ cursor: 'pointer' }}
               onClick={() => {
                 if (isDragging.current) return;
-                if (isActive) {
+                if (isCenter) {
                   window.location.href = `/categories/${encodeURIComponent(cat.name)}`;
                 } else {
                   snapTo(i * SEG_DEG);
                 }
               }}
+              style={{
+                position: 'absolute',
+                left: '50%',
+                top: '18px',
+                width: `${CARD_W}px`,
+                height: `${CARD_H}px`,
+                marginLeft: `${-CARD_W / 2}px`,
+                borderRadius: '16px',
+                overflow: 'hidden',
+                cursor: 'pointer',
+                zIndex: Math.round(10 - abs),
+                opacity: p.op,
+                transform: `translateX(${p.x}px) translateY(${p.y}px) rotateY(${p.ry}deg) scale(${p.scale})`,
+                // No transition while dragging (instant follow), smooth snap on release
+                transition: isDragging.current
+                  ? 'none'
+                  : 'transform 0.55s cubic-bezier(0.34, 1.08, 0.64, 1), opacity 0.4s ease, filter 0.4s ease, box-shadow 0.4s ease',
+                filter: `brightness(${p.br})`,
+                boxShadow: isCenter
+                  ? '0 28px 65px rgba(0,0,0,0.42), 0 0 0 3px #22c55e'
+                  : '0 5px 18px rgba(0,0,0,0.16)',
+                willChange: 'transform',
+              }}
             >
-              {/* Photo fill */}
-              <image
-                href={cat.image}
-                x={CX - outerR}
-                y={CY - outerR}
-                width={outerR * 2}
-                height={outerR * 2}
-                preserveAspectRatio="xMidYMid slice"
-                clipPath={`url(#wclip${i})`}
+              {/* Photo */}
+              <img
+                src={cat.image}
+                alt={cat.name}
+                draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
               />
-              {/* Color tint overlay */}
-              <path d={path} fill={color} opacity={isActive ? 0.45 : 0.60} />
-              {/* Active white border glow */}
-              {isActive && (
-                <path
-                  d={path}
-                  fill="none"
-                  stroke="rgba(255,255,255,0.85)"
-                  strokeWidth="3"
-                  style={{ filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.8))' }}
-                />
-              )}
-              {/* Category name, rotated to follow wedge direction */}
-              <text
-                x={tx}
-                y={ty}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                transform={`rotate(${d}, ${tx}, ${ty})`}
-                style={{ pointerEvents: 'none', userSelect: 'none', letterSpacing: '0.6px' }}
-                fill="#fff"
-                fontSize={isActive ? 11 : 9}
-                fontWeight="900"
-                
-              >
-                {cat.name.toUpperCase().slice(0, 9)}
-              </text>
-            </g>
+              {/* Dark overlay */}
+              <div style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                background: isCenter
+                  ? 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.15) 55%, transparent 100%)'
+                  : 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.52) 100%)',
+              }} />
+              {/* Name */}
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 10px 13px', textAlign: 'center', pointerEvents: 'none' }}>
+                <span style={{
+                  color: '#fff', fontWeight: 900, display: 'block', lineHeight: 1.3,
+                  fontSize: isCenter ? '1.05rem' : '0.82rem',
+                  textShadow: '0 2px 8px rgba(0,0,0,1)',
+                }}>
+                  {cat.name}
+                </span>
+              </div>
+            </div>
           );
         })}
-
-        {/* Small pivot dot at the visible bottom of the fan */}
-        <circle cx={CX} cy={CY - INNER_R + 4} r={7} fill="#fff" stroke="#e5e7eb" strokeWidth="2" />
-        <circle cx={CX} cy={CY - INNER_R + 4} r={3} fill={activeColor} style={{ transition: 'fill 0.3s' }} />
-      </svg>
+      </div>
 
       {/* Navigation dots — hidden on mobile */}
       <div className="wheel-carousel-nav" style={{
-        display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '10px',
+        display: 'flex', justifyContent: 'center', alignItems: 'center',
+        gap: '16px', marginTop: '8px', position: 'relative', zIndex: 30,
       }}>
-        {categories.map((_, i) => (
-          <button key={i}
-            onClick={() => snapTo(i * SEG_DEG)}
-            style={{
-              width: i === activeIdx ? '22px' : '8px', height: '8px', borderRadius: '4px',
-              background: i === activeIdx ? activeColor : '#d1d5db',
+        <button onClick={() => snapTo(((Math.round(liveAngle.current / SEG_DEG) + 1) % total) * SEG_DEG)}
+          style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #e5e7eb', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+          <ChevronRight size={18} color="#1a1a1a" />
+        </button>
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+          {categories.map((_, idx) => (
+            <button key={idx} onClick={() => snapTo(idx * SEG_DEG)} style={{
+              width: idx === activeIdx ? '22px' : '8px', height: '8px', borderRadius: '4px',
+              background: idx === activeIdx ? '#22c55e' : '#d1d5db',
               border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.3s ease',
-            }}
-          />
-        ))}
+            }} />
+          ))}
+        </div>
+        <button onClick={() => snapTo(((Math.round(liveAngle.current / SEG_DEG) - 1 + total) % total) * SEG_DEG)}
+          style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #e5e7eb', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+          <ChevronLeft size={18} color="#1a1a1a" />
+        </button>
       </div>
     </div>
   );
@@ -1171,7 +1148,7 @@ export default function HomePage() {
             {/* Categories Section — 3D Wheel Arc Carousel */}
             {categories.length > 0 && (
               <ScrollReveal direction="up" delay={0.2}>
-                <section style={{ padding: '20px 0 8px', maxWidth: '1200px', margin: '0 auto' }}>
+                <section style={{ padding: '20px 0 5px', maxWidth: '1200px', margin: '0 auto' }}>
                   <div style={{ textAlign: 'right', marginBottom: '10px', padding: '0 20px' }}>
                     <h2 style={{ fontSize: '2.2rem', fontWeight: '900', margin: 0 }}>تسوق حسب الفئة</h2>
                   </div>
