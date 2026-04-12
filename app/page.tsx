@@ -120,8 +120,8 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
   const velX        = useRef(0);
   const lastX       = useRef(0);
   const lastT       = useRef(0);
-  const snapRaf     = useRef<number>();
-  const renderRaf   = useRef<number>();
+  const snapRaf     = useRef<number | undefined>(undefined);
+  const renderRaf   = useRef<number | undefined>(undefined);
   const total       = categories.length;
 
   // SVG geometry
@@ -165,7 +165,7 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
 
   // Smooth snap via RAF easing
   const snapTo = (targetDeg: number) => {
-    if (snapRaf.current) cancelAnimationFrame(snapRaf.current);
+    if (snapRaf.current !== undefined) if (snapRaf.current !== undefined) cancelAnimationFrame(snapRaf.current);
     const from = liveAngle.current;
     const dist = targetDeg - from;
     const dur  = 480;
@@ -183,7 +183,7 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
   // Window listeners — always receive events even when finger is over a segment
   useEffect(() => {
     const scheduleRender = () => {
-      if (renderRaf.current) return;
+      if (renderRaf.current !== undefined) return;
       renderRaf.current = requestAnimationFrame(() => {
         renderRaf.current = undefined;
         setTick(n => n + 1);
@@ -216,7 +216,7 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
   }, [total]);
 
   const onPointerDown = (e: React.PointerEvent) => {
-    if (snapRaf.current) cancelAnimationFrame(snapRaf.current);
+    if (snapRaf.current !== undefined) if (snapRaf.current !== undefined) cancelAnimationFrame(snapRaf.current);
     isDragging.current = true;
     pStartX.current    = e.clientX;
     lastX.current      = e.clientX;
@@ -327,11 +327,11 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
                 textAnchor="middle"
                 dominantBaseline="middle"
                 transform={`rotate(${d}, ${tx}, ${ty})`}
-                style={{ pointerEvents: 'none', userSelect: 'none' }}
+                style={{ pointerEvents: 'none', userSelect: 'none', letterSpacing: '0.6px' }}
                 fill="#fff"
                 fontSize={isActive ? 11 : 9}
                 fontWeight="900"
-                letterSpacing="0.6"
+                
               >
                 {cat.name.toUpperCase().slice(0, 9)}
               </text>
