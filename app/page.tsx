@@ -241,7 +241,7 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
         {/* Edge faders */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 50, pointerEvents: 'none',
-          background: 'linear-gradient(to right, #fdfdfd 0%, transparent 20%, transparent 80%, #fdfdfd 100%)',
+          background: 'linear-gradient(to right, #22c55e 0%, rgba(34,197,94,0.18) 14%, transparent 26%, transparent 74%, rgba(34,197,94,0.18) 86%, #22c55e 100%)',
         }} />
 
         {cards.map(({ cat, i, n }) => {
