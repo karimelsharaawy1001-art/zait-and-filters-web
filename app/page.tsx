@@ -241,7 +241,7 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
         {/* Edge faders */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 50, pointerEvents: 'none',
-          background: 'linear-gradient(to right, rgba(34,197,94,0.55) 0%, rgba(34,197,94,0.10) 18%, transparent 32%, transparent 68%, rgba(34,197,94,0.10) 82%, rgba(34,197,94,0.55) 100%)',
+          background: 'linear-gradient(to right, #fdfdfd 0%, transparent 20%, transparent 80%, #fdfdfd 100%)',
         }} />
 
         {cards.map(({ cat, i, n }) => {
@@ -1148,12 +1148,11 @@ export default function HomePage() {
             {/* Categories Section — 3D Wheel Arc Carousel */}
             {categories.length > 0 && (
               <ScrollReveal direction="up" delay={0.2}>
-                <section style={{ padding: '20px 0 5px', width: '100%', background: 'linear-gradient(to bottom, transparent 0%, rgba(34,197,94,0.10) 20%, rgba(34,197,94,0.13) 50%, rgba(34,197,94,0.10) 80%, transparent 100%)', overflow: 'hidden' }}><div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                <section style={{ padding: '20px 0 5px', maxWidth: '1200px', margin: '0 auto' }}>
                   <div style={{ textAlign: 'right', marginBottom: '10px', padding: '0 20px' }}>
                     <h2 style={{ fontSize: '2.2rem', fontWeight: '900', margin: 0 }}>تسوق حسب الفئة</h2>
                   </div>
                   <CategoriesCarousel3D categories={categories} />
-                </div>
                 </section>
               </ScrollReveal>
             )}
