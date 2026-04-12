@@ -995,7 +995,7 @@ export default function CheckoutPage() {
                   </div>
                   {paymentMethod === 'instapay' && (
                     <div style={payDetailsBox}>
-                      <a href="https://ipn.eg/S/jimmydodo2/instapay/4sB0bA" target="_blank" className="action-hover" style={actionBtnLink}><ExternalLink size={14} /> اذهب للدفع الآن</a>
+                      <a href="https://ipn.eg/S/jimmydodo/instapay/3Jvfcf" target="_blank" className="action-hover" style={actionBtnLink}><ExternalLink size={14} /> اذهب للدفع الآن</a>
                       <label htmlFor="u-insta" className="upload-hover" style={uploadArea}><Upload size={14}/> {screenshot ? '✅ تم اختيار الإثبات' : 'رفع سكرين شوت التحويل'}</label>
                       <input id="u-insta" type="file" accept="image/*" onChange={handleFileUpload} style={{display:'none'}}/>
                     </div>
