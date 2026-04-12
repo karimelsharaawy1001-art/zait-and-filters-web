@@ -7,7 +7,7 @@ import {
   RefreshCw, Search, Send, CheckCircle, Clock, MapPin,
   User, Smartphone, Trash2, ChevronLeft, ChevronRight,
   TrendingUp, AlertCircle, Monitor, ChevronsLeft, ChevronsRight,
-  MoreHorizontal, Bell, Tag, Zap, MessageCircle
+  MoreHorizontal, Bell, Tag, Zap, MessageCircle, RotateCcw
 } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 12;
@@ -33,6 +33,9 @@ interface AbandonedCart {
   reminder_sent?: boolean;
   reminder_sent_at?: string | null;
   reminder_promo_code?: string | null;
+  // UI-only fields added during dedup
+  _returnCount?: number;
+  _isDuplicate?: boolean;
 }
 
 function formatExactTime(dateString: string): { date: string; time: string; relative: string } {
@@ -70,6 +73,35 @@ function toWhatsAppNumber(phone: string): string {
 function generatePromoCode(cartId: string): string {
   const suffix = cartId.replace(/-/g, '').slice(0, 6).toUpperCase();
   return `BACK-${suffix}`;
+}
+
+// ── Dedup logic: group carts by customer phone/email, keep latest, tag with returnCount ──
+function deduplicateCarts(carts: AbandonedCart[]): AbandonedCart[] {
+  const groups = new Map<string, AbandonedCart[]>();
+  for (const cart of carts) {
+    // Key: phone if available, else email, else id
+    const key = cart.customer_phone?.trim() || cart.customer_email?.trim() || cart.id;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(cart);
+  }
+  const result: AbandonedCart[] = [];
+  for (const [, group] of groups) {
+    // Sort by last_activity_at desc → newest first
+    group.sort((a, b) =>
+      new Date(b.last_activity_at || b.created_at).getTime() -
+      new Date(a.last_activity_at || a.created_at).getTime()
+    );
+    const latest = { ...group[0] };
+    latest._returnCount = group.length; // how many times this customer appeared
+    latest._isDuplicate = group.length > 1;
+    result.push(latest);
+  }
+  // Sort final list by last_activity_at desc
+  result.sort((a, b) =>
+    new Date(b.last_activity_at || b.created_at).getTime() -
+    new Date(a.last_activity_at || a.created_at).getTime()
+  );
+  return result;
 }
 
 // ── Pagination ────────────────────────────────────────────────────────────────
@@ -119,7 +151,7 @@ function SmartPagination({ currentPage, totalPages, totalItems, onPageChange }: 
   );
 }
 
-// ── Reminder Modal ────────────────────────────────────────────────────────────
+// ── Reminder Modal (WhatsApp) ─────────────────────────────────────────────────
 function ReminderModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onClose: () => void; onDone: () => void; }) {
   const eligible = carts.filter(c => !c.recovered && isWithin24Hours(c.last_activity_at || c.created_at) && c.customer_phone);
   const [sent, setSent] = useState<Set<string>>(new Set());
@@ -130,37 +162,24 @@ function ReminderModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onC
     const promoCode = cart.reminder_promo_code || generatePromoCode(cart.id);
     const expiry = new Date();
     expiry.setDate(expiry.getDate() + 2);
-
-    // Save promo code to coupons table
-    const { error: couponError } = await supabase.from('coupons').upsert({
-      code: promoCode,
-      discount_type: 'percentage',
-      discount_value: 5,
-      is_active: true,
-      expiry_date: expiry.toISOString(),
-    }, { onConflict: 'code' });
-
+    const { error: couponError } = await supabase.from('coupons').upsert({ code: promoCode, discount_type: 'percentage', discount_value: 5, is_active: true, expiry_date: expiry.toISOString() }, { onConflict: 'code' });
     if (couponError) { toast.error('فشل إنشاء كود الخصم: ' + couponError.message); setSending(null); return; }
-
-    // Mark reminder sent
-    await supabase.from('abandoned_carts').update({
-      reminder_sent: true,
-      reminder_sent_at: new Date().toISOString(),
-      reminder_promo_code: promoCode,
-    }).eq('id', cart.id);
-
-    // Build WhatsApp message
+    await supabase.from('abandoned_carts').update({ reminder_sent: true, reminder_sent_at: new Date().toISOString(), reminder_promo_code: promoCode }).eq('id', cart.id);
+    const smile = String.fromCodePoint(0x1F604);
+    const oil   = String.fromCodePoint(0x1F6E2, 0xFE0F);
+    const down  = String.fromCodePoint(0x1F447);
+    const hands = String.fromCodePoint(0x1F64C);
     const items = cart.cart_items?.slice(0, 2).map((i: any) => i.name).join('، ') || 'منتجات';
-    const more = cart.cart_items?.length > 2 ? ` و${cart.cart_items.length - 2} منتجات أخرى` : '';
+    const more  = cart.cart_items?.length > 2 ? ` و${cart.cart_items.length - 2} منتجات أخرى` : '';
     const msg = encodeURIComponent(
-      `إزيك يا ${cart.customer_name || 'صديقنا'} \n` +
-      `إحنا زيت اند فلترز \n\n` +
+      `إزيك يا ${cart.customer_name || 'صديقنا'} ${smile}\n` +
+      `إحنا زيت اند فلترز ${oil}\n\n` +
       `سلتك بتستناك من امبارح — فيها ${items}${more}\n\n` +
       `مش هنضغط عليك، بس عشان إحنا بنحب عملاءنا، عملنالك كود خصم 5% خاص بيك:\n` +
       `*${promoCode}*\n\n` +
-      `استخدمه قبل بكره و كمل طلبك من هنا \n` +
+      `استخدمه قبل بكره و كمل طلبك من هنا ${down}\n` +
       `https://zaitandfilters.com/checkout\n\n` +
-      `لو عندك أي سؤال، إحنا هنا `
+      `لو عندك أي سؤال، إحنا هنا ${hands}`
     );
     window.open(`https://wa.me/${toWhatsAppNumber(cart.customer_phone)}?text=${msg}`, '_blank');
     setSent(prev => new Set([...prev, cart.id]));
@@ -179,13 +198,12 @@ function ReminderModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onC
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px', backdropFilter: 'blur(4px)' }}>
       <div style={{ background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '620px', maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 60px rgba(0,0,0,0.2)', direction: 'rtl' }}>
-
         <div style={{ padding: '24px 28px 16px', borderBottom: '1px solid #f1f5f9' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '900', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{ width: '38px', height: '38px', background: '#f0fdf4', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Bell size={18} color="#15803d" /></div>
-                إرسال تذكير بخصم 5%
+                إرسال تذكير واتساب بخصم 5%
               </h2>
               <p style={{ margin: '6px 0 0', color: '#94a3b8', fontSize: '0.88rem', fontWeight: '600' }}>السلات المتروكة خلال آخر 24 ساعة — {eligible.length} عميل</p>
             </div>
@@ -199,7 +217,6 @@ function ReminderModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onC
             </div>
           </div>
         </div>
-
         <div style={{ overflowY: 'auto', flex: 1, padding: '16px 28px' }}>
           {eligible.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8' }}>
@@ -239,11 +256,122 @@ function ReminderModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onC
             );
           })}
         </div>
-
         {eligible.length > 0 && (
           <div style={{ padding: '16px 28px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '10px' }}>
             <button onClick={sendAll} style={{ flex: 1, padding: '13px', background: 'linear-gradient(135deg, #25D366, #128C7E)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '900', fontSize: '0.95rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
               <Zap size={16} /> إرسال للكل ({eligible.filter(c => !sent.has(c.id) && !c.reminder_sent).length} عميل)
+            </button>
+            <button onClick={() => { onDone(); onClose(); }} style={{ padding: '13px 20px', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer' }}>إغلاق</button>
+          </div>
+        )}
+      </div>
+      <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
+    </div>
+  );
+}
+
+// ── Email Modal ───────────────────────────────────────────────────────────────
+function EmailModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onClose: () => void; onDone: () => void; }) {
+  // Carts with email but no phone
+  const eligible = carts.filter(c => !c.recovered && c.customer_email && !c.customer_phone);
+  const [sent, setSent] = useState<Set<string>>(new Set());
+  const [sending, setSending] = useState<string | null>(null);
+
+  async function sendEmail(cart: AbandonedCart) {
+    setSending(cart.id);
+    try {
+      const res = await fetch('/api/send-cart-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cartId: cart.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'فشل الإرسال');
+      setSent(prev => new Set([...prev, cart.id]));
+      toast.success(`تم إرسال الإيميل لـ ${cart.customer_email} ✅`);
+    } catch (err: any) {
+      toast.error('خطأ: ' + err.message);
+    } finally {
+      setSending(null);
+    }
+  }
+
+  async function sendAll() {
+    for (const cart of eligible) {
+      if (!sent.has(cart.id) && !cart.recovery_email_sent) {
+        await sendEmail(cart);
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+    toast.success('تم إرسال كل الإيميلات! 🎉');
+    onDone();
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px', backdropFilter: 'blur(4px)' }}>
+      <div style={{ background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '620px', maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 60px rgba(0,0,0,0.2)', direction: 'rtl' }}>
+        <div style={{ padding: '24px 28px 16px', borderBottom: '1px solid #f1f5f9' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '900', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '38px', height: '38px', background: '#eff6ff', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Mail size={18} color="#3b82f6" /></div>
+                إرسال إيميل تذكير بخصم 5%
+              </h2>
+              <p style={{ margin: '6px 0 0', color: '#94a3b8', fontSize: '0.88rem', fontWeight: '600' }}>العملاء اللي عندهم إيميل بس من غير رقم — {eligible.length} عميل</p>
+            </div>
+            <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', color: '#64748b' }}>✕</button>
+          </div>
+          <div style={{ marginTop: '14px', background: 'linear-gradient(135deg, #eff6ff, #dbeafe)', border: '1px solid #93c5fd', borderRadius: '12px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Mail size={16} color="#3b82f6" />
+            <div>
+              <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#1d4ed8' }}>إيميل HTML احترافي مع كود خصم 5%</div>
+              <div style={{ fontSize: '0.78rem', color: '#2563eb', marginTop: '2px' }}>يتبعت عبر Resend — يُنشأ كوبون لكل عميل، صالح 48 ساعة</div>
+            </div>
+          </div>
+        </div>
+        <div style={{ overflowY: 'auto', flex: 1, padding: '16px 28px' }}>
+          {eligible.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8' }}>
+              <Mail size={40} strokeWidth={1} style={{ margin: '0 auto 12px', display: 'block' }} />
+              <p style={{ fontWeight: '700', fontSize: '0.95rem' }}>مفيش عملاء عندهم إيميل بس من غير رقم موبايل</p>
+            </div>
+          ) : eligible.map(cart => {
+            const isSent = sent.has(cart.id) || !!cart.recovery_email_sent;
+            const promoCode = cart.reminder_promo_code || generatePromoCode(cart.id);
+            const ts = formatExactTime(cart.last_activity_at || cart.created_at);
+            return (
+              <div key={cart.id} style={{ background: isSent ? '#f0fdf4' : '#f8fafc', border: `1px solid ${isSent ? '#86efac' : '#e2e8f0'}`, borderRadius: '14px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px', transition: 'all 0.2s' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: isSent ? '#dcfce7' : '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {isSent ? <CheckCircle size={18} color="#15803d" /> : <Mail size={18} color="#3b82f6" />}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#0f172a' }}>{cart.customer_name || 'عميل'}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <span style={{ color: '#3b82f6' }}>{cart.customer_email}</span>
+                    <span style={{ color: '#cbd5e1' }}>·</span>
+                    <span>{(cart.cart_total || 0).toFixed(0)} ج.م</span>
+                    <span style={{ color: '#cbd5e1' }}>·</span>
+                    <span style={{ color: '#f59e0b', fontWeight: '700' }}>{ts.relative} مضت</span>
+                  </div>
+                  <div style={{ marginTop: '6px', display: 'inline-flex', alignItems: 'center', gap: '5px', background: isSent ? '#dcfce7' : '#fff', border: `1px solid ${isSent ? '#86efac' : '#e2e8f0'}`, borderRadius: '7px', padding: '3px 9px' }}>
+                    <Tag size={11} color={isSent ? '#15803d' : '#94a3b8'} />
+                    <span style={{ fontFamily: 'monospace', fontSize: '0.82rem', fontWeight: '900', color: isSent ? '#15803d' : '#475569', letterSpacing: '0.5px' }}>{promoCode}</span>
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '600' }}>— خصم 5%</span>
+                  </div>
+                </div>
+                <button onClick={() => sendEmail(cart)} disabled={sending === cart.id || isSent}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', borderRadius: '10px', border: 'none', background: isSent ? '#dcfce7' : 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: isSent ? '#15803d' : '#fff', fontWeight: '800', fontSize: '0.85rem', cursor: isSent || sending === cart.id ? 'not-allowed' : 'pointer', flexShrink: 0, whiteSpace: 'nowrap', opacity: sending === cart.id ? 0.7 : 1 }}>
+                  {sending === cart.id ? <RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} /> : isSent ? <CheckCircle size={14} /> : <Mail size={14} />}
+                  {sending === cart.id ? 'جاري...' : isSent ? 'تم الإرسال' : 'إرسال إيميل'}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+        {eligible.length > 0 && (
+          <div style={{ padding: '16px 28px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '10px' }}>
+            <button onClick={sendAll} style={{ flex: 1, padding: '13px', background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '900', fontSize: '0.95rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <Zap size={16} /> إرسال للكل ({eligible.filter(c => !sent.has(c.id) && !c.recovery_email_sent).length} عميل)
             </button>
             <button onClick={() => { onDone(); onClose(); }} style={{ padding: '13px 20px', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer' }}>إغلاق</button>
           </div>
@@ -266,6 +394,7 @@ export default function AbandonedCartsAdmin() {
   const [deletingCart, setDeletingCart] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [showReminderModal, setShowReminderModal] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
 
   useEffect(() => { fetchAbandonedCarts(); }, []);
   useEffect(() => { applyFilters(); setCurrentPage(1); }, [carts, filter, searchTerm]);
@@ -281,15 +410,16 @@ export default function AbandonedCartsAdmin() {
   };
 
   const applyFilters = () => {
-    let filtered = [...carts];
-    if (filter === 'pending') filtered = filtered.filter(c => !c.recovered);
-    else if (filter === 'recovered') filtered = filtered.filter(c => c.recovered);
-    if (searchTerm) filtered = filtered.filter(c =>
+    // Dedup first, then filter
+    let deduped = deduplicateCarts(carts);
+    if (filter === 'pending') deduped = deduped.filter(c => !c.recovered);
+    else if (filter === 'recovered') deduped = deduped.filter(c => c.recovered);
+    if (searchTerm) deduped = deduped.filter(c =>
       c.customer_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.customer_phone?.includes(searchTerm)
     );
-    setFilteredCarts(filtered);
+    setFilteredCarts(deduped);
   };
 
   const deleteCart = async (cartId: string) => {
@@ -304,13 +434,13 @@ export default function AbandonedCartsAdmin() {
     finally { setDeletingCart(null); }
   };
 
-  const sendRecoveryEmail = async (cartId: string, customerEmail: string) => {
+  const sendRecoveryEmail = async (cartId: string) => {
     setSendingEmail(cartId);
     try {
-      const response = await fetch('/api/send-recovery-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cartId, customerEmail }) });
-      if (!response.ok) throw new Error('Failed to send email');
-      await supabase.from('abandoned_carts').update({ recovery_email_sent: true, recovery_email_sent_at: new Date().toISOString() }).eq('id', cartId);
-      toast.success('تم الإرسال ✓');
+      const res = await fetch('/api/send-cart-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cartId }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'فشل الإرسال');
+      toast.success('تم إرسال الإيميل ✓');
       fetchAbandonedCarts();
     } catch (err: any) { toast.error('خطأ: ' + err.message); }
     finally { setSendingEmail(null); }
@@ -318,32 +448,16 @@ export default function AbandonedCartsAdmin() {
 
   const sendWhatsApp = async (cart: AbandonedCart) => {
     const promoCode = cart.reminder_promo_code || generatePromoCode(cart.id);
-    const expiry = new Date();
-    expiry.setDate(expiry.getDate() + 2);
-
-    const { error: couponError } = await supabase.from('coupons').upsert({
-      code: promoCode,
-      discount_type: 'percentage',
-      discount_value: 5,
-      is_active: true,
-      expiry_date: expiry.toISOString(),
-    }, { onConflict: 'code' });
-
+    const expiry = new Date(); expiry.setDate(expiry.getDate() + 2);
+    const { error: couponError } = await supabase.from('coupons').upsert({ code: promoCode, discount_type: 'percentage', discount_value: 5, is_active: true, expiry_date: expiry.toISOString() }, { onConflict: 'code' });
     if (couponError) { toast.error('فشل إنشاء كود الخصم: ' + couponError.message); return; }
-
-    await supabase.from('abandoned_carts').update({
-      reminder_sent: true,
-      reminder_sent_at: new Date().toISOString(),
-      reminder_promo_code: promoCode,
-    }).eq('id', cart.id);
-
-    const smile   = String.fromCodePoint(0x1F604);            // 😄
-    const oil     = String.fromCodePoint(0x1F6E2, 0xFE0F);   // 🛢️
-    const down    = String.fromCodePoint(0x1F447);            // 👇
-    const hands   = String.fromCodePoint(0x1F64C);            // 🙌
-
+    await supabase.from('abandoned_carts').update({ reminder_sent: true, reminder_sent_at: new Date().toISOString(), reminder_promo_code: promoCode }).eq('id', cart.id);
+    const smile = String.fromCodePoint(0x1F604);
+    const oil   = String.fromCodePoint(0x1F6E2, 0xFE0F);
+    const down  = String.fromCodePoint(0x1F447);
+    const hands = String.fromCodePoint(0x1F64C);
     const items = cart.cart_items?.slice(0, 2).map((i: any) => i.name).join('، ') || 'منتجات';
-    const more = cart.cart_items?.length > 2 ? ` و${cart.cart_items.length - 2} منتجات أخرى` : '';
+    const more  = cart.cart_items?.length > 2 ? ` و${cart.cart_items.length - 2} منتجات أخرى` : '';
     const msg = encodeURIComponent(
       `إزيك يا ${cart.customer_name || 'صديقنا'} ${smile}\n` +
       `إحنا زيت اند فلترز ${oil}\n\n` +
@@ -360,9 +474,11 @@ export default function AbandonedCartsAdmin() {
 
   const handlePageChange = (page: number) => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
+  // Stats on raw (non-deduped) carts
   const eligible24h = carts.filter(c => !c.recovered && isWithin24Hours(c.last_activity_at || c.created_at) && c.customer_phone);
+  const eligibleEmail = carts.filter(c => !c.recovered && c.customer_email && !c.customer_phone);
   const stats = {
-    total: carts.length,
+    total: filteredCarts.length,
     pending: carts.filter(c => !c.recovered).length,
     recovered: carts.filter(c => c.recovered).length,
     totalValue: carts.reduce((s, c) => s + (c.cart_total || 0), 0),
@@ -392,6 +508,7 @@ export default function AbandonedCartsAdmin() {
       `}</style>
 
       {showReminderModal && <ReminderModal carts={carts} onClose={() => setShowReminderModal(false)} onDone={() => { setShowReminderModal(false); fetchAbandonedCarts(); }} />}
+      {showEmailModal && <EmailModal carts={carts} onClose={() => setShowEmailModal(false)} onDone={() => { setShowEmailModal(false); fetchAbandonedCarts(); }} />}
 
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '22px', flexWrap: 'wrap', gap: '12px' }}>
@@ -399,12 +516,20 @@ export default function AbandonedCartsAdmin() {
           <h1 style={{ fontSize: '1.8rem', fontWeight: '900', color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>السلات المتروكة</h1>
           <p style={{ fontSize: '0.92rem', color: '#94a3b8', marginTop: '3px', fontWeight: '500' }}>تتبع واسترجع العملاء المحتملين</p>
         </div>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* WhatsApp reminder button */}
           <button onClick={() => setShowReminderModal(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: eligible24h.length > 0 ? 'linear-gradient(135deg, #25D366, #128C7E)' : '#e2e8f0', color: eligible24h.length > 0 ? '#fff' : '#94a3b8', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.93rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: eligible24h.length > 0 ? '0 4px 14px rgba(37,211,102,0.35)' : 'none', animation: eligible24h.length > 0 ? 'pulse 2s ease-in-out infinite' : 'none' }}>
-            <Bell size={16} />
-            تذكير 24 ساعة
-            {eligible24h.length > 0 && <span style={{ background: 'rgba(255,255,255,0.25)', borderRadius: '8px', padding: '1px 8px', fontSize: '0.82rem', fontWeight: '900' }}>{eligible24h.length}</span>}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', background: eligible24h.length > 0 ? 'linear-gradient(135deg, #25D366, #128C7E)' : '#e2e8f0', color: eligible24h.length > 0 ? '#fff' : '#94a3b8', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: eligible24h.length > 0 ? '0 4px 14px rgba(37,211,102,0.35)' : 'none', animation: eligible24h.length > 0 ? 'pulse 2s ease-in-out infinite' : 'none' }}>
+            <Bell size={15} />
+            واتساب 24س
+            {eligible24h.length > 0 && <span style={{ background: 'rgba(255,255,255,0.25)', borderRadius: '8px', padding: '1px 8px', fontSize: '0.8rem', fontWeight: '900' }}>{eligible24h.length}</span>}
+          </button>
+          {/* Email reminder button */}
+          <button onClick={() => setShowEmailModal(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', background: eligibleEmail.length > 0 ? 'linear-gradient(135deg, #3b82f6, #1d4ed8)' : '#e2e8f0', color: eligibleEmail.length > 0 ? '#fff' : '#94a3b8', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: eligibleEmail.length > 0 ? '0 4px 14px rgba(59,130,246,0.35)' : 'none' }}>
+            <Mail size={15} />
+            إيميل تذكير
+            {eligibleEmail.length > 0 && <span style={{ background: 'rgba(255,255,255,0.25)', borderRadius: '8px', padding: '1px 8px', fontSize: '0.8rem', fontWeight: '900' }}>{eligibleEmail.length}</span>}
           </button>
           <button onClick={fetchAbandonedCarts} className="ac-btn" style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 16px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '0.93rem', cursor: 'pointer' }}>
             <RefreshCw size={14} /> تحديث
@@ -412,18 +537,34 @@ export default function AbandonedCartsAdmin() {
         </div>
       </div>
 
-      {/* 24h Alert Banner */}
+      {/* 24h WhatsApp Alert Banner */}
       {eligible24h.length > 0 && (
-        <div style={{ marginBottom: '18px', background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '1.5px solid #86efac', borderRadius: '14px', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', animation: 'fadeUp 0.3s ease' }}>
+        <div style={{ marginBottom: '12px', background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '1.5px solid #86efac', borderRadius: '14px', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', animation: 'fadeUp 0.3s ease' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '40px', height: '40px', background: '#22c55e', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Bell size={18} color="#fff" /></div>
             <div>
               <div style={{ fontWeight: '900', fontSize: '1rem', color: '#15803d' }}>{eligible24h.length} عميل تركوا سلتهم في آخر 24 ساعة</div>
-              <div style={{ fontSize: '0.82rem', color: '#16a34a', marginTop: '2px' }}>أرسل لهم تذكير واتساب مع خصم 5% — فرصة كبيرة لاسترجاعهم!</div>
+              <div style={{ fontSize: '0.82rem', color: '#16a34a', marginTop: '2px' }}>أرسل لهم تذكير واتساب مع خصم 5%</div>
             </div>
           </div>
-          <button onClick={() => setShowReminderModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 20px', background: 'linear-gradient(135deg, #25D366, #128C7E)', color: '#fff', border: 'none', borderRadius: '11px', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', flexShrink: 0, boxShadow: '0 4px 14px rgba(37,211,102,0.3)' }}>
+          <button onClick={() => setShowReminderModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 18px', background: 'linear-gradient(135deg, #25D366, #128C7E)', color: '#fff', border: 'none', borderRadius: '11px', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', flexShrink: 0 }}>
             <MessageCircle size={16} /> إرسال التذكيرات
+          </button>
+        </div>
+      )}
+
+      {/* Email Alert Banner */}
+      {eligibleEmail.length > 0 && (
+        <div style={{ marginBottom: '18px', background: 'linear-gradient(135deg, #eff6ff, #dbeafe)', border: '1.5px solid #93c5fd', borderRadius: '14px', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', animation: 'fadeUp 0.3s ease' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '40px', height: '40px', background: '#3b82f6', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Mail size={18} color="#fff" /></div>
+            <div>
+              <div style={{ fontWeight: '900', fontSize: '1rem', color: '#1d4ed8' }}>{eligibleEmail.length} عميل عندهم إيميل بس من غير رقم موبايل</div>
+              <div style={{ fontSize: '0.82rem', color: '#2563eb', marginTop: '2px' }}>أرسل لهم إيميل HTML احترافي مع كود خصم 5%</div>
+            </div>
+          </div>
+          <button onClick={() => setShowEmailModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 18px', background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: '#fff', border: 'none', borderRadius: '11px', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', flexShrink: 0 }}>
+            <Mail size={16} /> إرسال الإيميلات
           </button>
         </div>
       )}
@@ -497,10 +638,16 @@ export default function AbandonedCartsAdmin() {
                       </div>
                       <div>
                         <div style={{ fontSize: '1rem', fontWeight: '800', color: '#0f172a', lineHeight: 1.2 }}>{cart.customer_name || 'غير محدد'}</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px', flexWrap: 'wrap' }}>
                           {cart.device_type === 'mobile' ? <Smartphone size={10} color="#cbd5e1" /> : <Monitor size={10} color="#cbd5e1" />}
                           <span style={{ fontSize: '0.8rem', color: '#cbd5e1', fontWeight: '600' }}>{cart.device_type === 'mobile' ? 'موبايل' : 'كمبيوتر'}</span>
-                          {is24h && !cart.recovered && <span style={{ fontSize: '0.72rem', fontWeight: '800', color: '#15803d', background: '#dcfce7', padding: '1px 5px', borderRadius: '4px', marginRight: '2px' }}>24س</span>}
+                          {is24h && !cart.recovered && <span style={{ fontSize: '0.72rem', fontWeight: '800', color: '#15803d', background: '#dcfce7', padding: '1px 5px', borderRadius: '4px' }}>24س</span>}
+                          {/* ── RETURN BADGE ── */}
+                          {cart._isDuplicate && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.68rem', fontWeight: '900', color: '#7c3aed', background: '#f5f3ff', border: '1px solid #ddd6fe', padding: '1px 6px', borderRadius: '6px' }}>
+                              <RotateCcw size={9} /> رجع {cart._returnCount}x
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -508,6 +655,11 @@ export default function AbandonedCartsAdmin() {
                     <div style={{ paddingRight: '10px' }}>
                       <div style={{ fontSize: '0.88rem', color: '#475569', fontWeight: '600', marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>{cart.customer_email}</div>
                       {cart.customer_phone && <div style={{ fontSize: '0.84rem', color: '#94a3b8', fontWeight: '600', direction: 'ltr', textAlign: 'right' }}>{cart.customer_phone}</div>}
+                      {!cart.customer_phone && cart.customer_email && (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.68rem', fontWeight: '800', color: '#3b82f6', background: '#eff6ff', padding: '1px 6px', borderRadius: '5px', marginTop: '2px' }}>
+                          <Mail size={9} /> إيميل فقط
+                        </div>
+                      )}
                     </div>
 
                     <div style={{ paddingRight: '10px' }}>
@@ -541,10 +693,13 @@ export default function AbandonedCartsAdmin() {
                     <div style={{ display: 'flex', gap: '5px', alignItems: 'center', paddingRight: '10px' }} onClick={e => e.stopPropagation()}>
                       {!cart.recovered && (
                         <>
-                          <button onClick={() => sendRecoveryEmail(cart.id, cart.customer_email)} disabled={sendingEmail === cart.id || cart.recovery_email_sent} className="ac-btn" title={cart.recovery_email_sent ? 'تم الإرسال' : 'إيميل'}
-                            style={{ width: '30px', height: '30px', borderRadius: '8px', border: 'none', background: cart.recovery_email_sent ? '#dcfce7' : '#eff6ff', color: cart.recovery_email_sent ? '#15803d' : '#3b82f6', cursor: cart.recovery_email_sent ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Mail size={13} />
-                          </button>
+                          {/* Email button — show for all who have email */}
+                          {cart.customer_email && (
+                            <button onClick={() => sendRecoveryEmail(cart.id)} disabled={sendingEmail === cart.id || cart.recovery_email_sent} className="ac-btn" title={cart.recovery_email_sent ? 'تم الإرسال' : 'إرسال إيميل'}
+                              style={{ width: '30px', height: '30px', borderRadius: '8px', border: 'none', background: cart.recovery_email_sent ? '#dcfce7' : '#eff6ff', color: cart.recovery_email_sent ? '#15803d' : '#3b82f6', cursor: cart.recovery_email_sent ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              {sendingEmail === cart.id ? <RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Mail size={13} />}
+                            </button>
+                          )}
                           {cart.customer_phone && (
                             <button onClick={() => sendWhatsApp(cart)} className="ac-btn" title="واتساب"
                               style={{ width: '30px', height: '30px', borderRadius: '8px', border: 'none', background: '#f0fdf4', color: '#15803d', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -572,6 +727,16 @@ export default function AbandonedCartsAdmin() {
 
                   {isExpanded && (
                     <div style={{ padding: '14px 20px 16px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
+                      {/* Return notice */}
+                      {cart._isDuplicate && (
+                        <div style={{ marginBottom: '12px', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '10px', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <RotateCcw size={14} color="#7c3aed" />
+                          <div>
+                            <div style={{ fontSize: '0.82rem', fontWeight: '800', color: '#7c3aed' }}>العميل ده رجع للموقع {cart._returnCount} مرات بنفس العناصر في السلة</div>
+                            <div style={{ fontSize: '0.74rem', color: '#8b5cf6', marginTop: '2px' }}>بيتعرض آخر زيارة — الزيارات القديمة اتدمجت تلقائياً</div>
+                          </div>
+                        </div>
+                      )}
                       <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '10px' }}>تفاصيل المنتجات</div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {cart.cart_items?.map((item: any, i: number) => (
