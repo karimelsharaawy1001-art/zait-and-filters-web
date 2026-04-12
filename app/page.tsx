@@ -110,210 +110,254 @@ function SearchCard({
 // ─────────────────────────────────────────────────────────────────────────────
 
 
-// ─── 3D Wheel Arc Carousel ────────────────────────────────────────────────────
+// ─── SVG Fan Wheel Carousel ──────────────────────────────────────────────────
 function CategoriesCarousel3D({ categories }: { categories: any[] }) {
-  const liveOffset    = useRef(0);
+  const liveAngle   = useRef(0);
   const [tick, setTick] = useState(0);
-  const isDragging    = useRef(false);
-  const pointerStartX = useRef(0);
-  const baseAtDrag    = useRef(0);
-  const velX          = useRef(0);
-  const lastX         = useRef(0);
-  const lastT         = useRef(0);
-  const rafId         = useRef<number | undefined>(undefined);
-  const total         = categories.length;
+  const isDragging  = useRef(false);
+  const pStartX     = useRef(0);
+  const baseAngle   = useRef(0);
+  const velX        = useRef(0);
+  const lastX       = useRef(0);
+  const lastT       = useRef(0);
+  const snapRaf     = useRef<number>();
+  const renderRaf   = useRef<number>();
+  const total       = categories.length;
 
-  const CARD_W           = 215;
-  const CARD_H           = 265;
-  const DRAG_PX_PER_CARD = 115;
+  // SVG geometry
+  const SVG_W    = 400;
+  const SVG_H    = 235;
+  const CX       = 200;
+  const CY       = 305;   // pivot below SVG bottom → fan spreads upward
+  const INNER_R  = 82;
+  const SEG_DEG  = 33;    // degrees per segment
+  const GAP_DEG  = 2.2;
+  const DRAG_DEG_PER_PX = 1 / 3.0;
 
-  const getTransform = (frac: number) => {
-    const abs = Math.abs(frac);
-    return {
-      x:     frac * 202,
-      y:     abs * abs * 86,
-      ry:    frac * 25,
-      scale: Math.max(0.50, 1 - abs * 0.155),
-      op:    Math.max(0.12, 1 - abs * 0.27),
-      br:    Math.max(0.28, 1 - abs * 0.36),
-    };
+  const PALETTE = [
+    '#22c55e','#3b82f6','#ec4899','#f97316',
+    '#8b5cf6','#06b6d4','#ef4444','#84cc16',
+    '#f59e0b','#6366f1','#14b8a6','#e11d48',
+    '#0ea5e9','#d946ef','#fb923c',
+  ];
+
+  // Outer radius: tallest at center (dispAngle=0), shrinks toward edges
+  const getOuterR = (absDeg: number) => {
+    const t = Math.min(1, absDeg / 75);
+    return 198 - t * t * 92;
   };
 
-  // ── Window-level pointer listeners — fire regardless of which element is under finger ──
+  // SVG wedge path: segment centered at dispAngle, from INNER_R to outerR
+  const wedgePath = (outerR: number, startDeg: number, endDeg: number) => {
+    const r = (d: number) => (d - 90) * Math.PI / 180;
+    const s = r(startDeg), e = r(endDeg);
+    const p = (rad: number, angle: number) =>
+      `${(CX + rad * Math.cos(angle)).toFixed(2)},${(CY + rad * Math.sin(angle)).toFixed(2)}`;
+    return [
+      `M ${p(INNER_R, s)}`,
+      `L ${p(outerR,  s)}`,
+      `A ${outerR} ${outerR} 0 0 1 ${p(outerR, e)}`,
+      `L ${p(INNER_R, e)}`,
+      `A ${INNER_R} ${INNER_R} 0 0 0 ${p(INNER_R, s)}`,
+      'Z',
+    ].join(' ');
+  };
+
+  // Smooth snap via RAF easing
+  const snapTo = (targetDeg: number) => {
+    if (snapRaf.current) cancelAnimationFrame(snapRaf.current);
+    const from = liveAngle.current;
+    const dist = targetDeg - from;
+    const dur  = 480;
+    const t0   = Date.now();
+    const step = () => {
+      const p    = Math.min(1, (Date.now() - t0) / dur);
+      const ease = 1 - Math.pow(1 - p, 3);
+      liveAngle.current = from + dist * ease;
+      setTick(n => n + 1);
+      if (p < 1) snapRaf.current = requestAnimationFrame(step);
+    };
+    snapRaf.current = requestAnimationFrame(step);
+  };
+
+  // Window listeners — always receive events even when finger is over a segment
   useEffect(() => {
     const scheduleRender = () => {
-      if (rafId.current) return;
-      rafId.current = requestAnimationFrame(() => {
-        rafId.current = undefined;
-        setTick(t => t + 1);
+      if (renderRaf.current) return;
+      renderRaf.current = requestAnimationFrame(() => {
+        renderRaf.current = undefined;
+        setTick(n => n + 1);
       });
     };
-
-    const handleMove = (e: PointerEvent) => {
+    const onMove = (e: PointerEvent) => {
       if (!isDragging.current) return;
       const now = Date.now();
       const dt  = Math.max(1, now - lastT.current);
       velX.current  = (e.clientX - lastX.current) / dt;
       lastX.current = e.clientX;
       lastT.current = now;
-      liveOffset.current = baseAtDrag.current + (pointerStartX.current - e.clientX) / DRAG_PX_PER_CARD;
+      liveAngle.current = baseAngle.current + (pStartX.current - e.clientX) * DRAG_DEG_PER_PX;
       scheduleRender();
     };
-
-    const handleUp = () => {
+    const onUp = () => {
       if (!isDragging.current) return;
       isDragging.current = false;
-      const momentum = (-velX.current * 140) / DRAG_PX_PER_CARD;
-      const raw      = liveOffset.current + momentum;
-      const snapped  = Math.round(raw);
-      liveOffset.current = ((snapped % total) + total) % total;
-      setTick(t => t + 1);
+      const momentum   = (-velX.current * 120) * DRAG_DEG_PER_PX;
+      const raw        = liveAngle.current + momentum;
+      const snappedIdx = Math.round(raw / SEG_DEG);
+      snapTo(snappedIdx * SEG_DEG);
     };
-
-    window.addEventListener('pointermove', handleMove);
-    window.addEventListener('pointerup',   handleUp);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup',   onUp);
     return () => {
-      window.removeEventListener('pointermove', handleMove);
-      window.removeEventListener('pointerup',   handleUp);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup',   onUp);
     };
   }, [total]);
 
-  // Only pointerdown lives on the stage — it just records the start position
   const onPointerDown = (e: React.PointerEvent) => {
-    isDragging.current    = true;
-    pointerStartX.current = e.clientX;
-    lastX.current         = e.clientX;
-    lastT.current         = Date.now();
-    velX.current          = 0;
-    baseAtDrag.current    = liveOffset.current;
-    setTick(t => t + 1);
+    if (snapRaf.current) cancelAnimationFrame(snapRaf.current);
+    isDragging.current = true;
+    pStartX.current    = e.clientX;
+    lastX.current      = e.clientX;
+    lastT.current      = Date.now();
+    velX.current       = 0;
+    baseAngle.current  = liveAngle.current;
+    setTick(n => n + 1);
   };
 
   if (total === 0) return null;
 
-  const currentSnapped = ((Math.round(liveOffset.current) % total) + total) % total;
+  const activeIdx = ((Math.round(liveAngle.current / SEG_DEG) % total) + total) % total;
+  const activeColor = PALETTE[activeIdx % PALETTE.length];
+
+  // Compute display angle for each category, filter to visible range
+  const segments = categories
+    .map((cat, i) => {
+      let d = i * SEG_DEG - liveAngle.current;
+      const half = (total * SEG_DEG) / 2;
+      while (d >  half) d -= total * SEG_DEG;
+      while (d < -half) d += total * SEG_DEG;
+      return { cat, i, d };
+    })
+    .filter(s => Math.abs(s.d) < 78)
+    .sort((a, b) => Math.abs(b.d) - Math.abs(a.d)); // paint sides first, center last
 
   return (
-    <div style={{ width: '100%', overflow: 'hidden', padding: '5px 0 16px', touchAction: 'pan-y' }}>
+    <div style={{ width: '100%', padding: '6px 0 14px', touchAction: 'pan-y' }}>
 
-      <div
-        style={{
-          perspective: '900px',
-          perspectiveOrigin: '50% 25%',
-          width: '100%',
-          height: '360px',
-          position: 'relative',
-          cursor: isDragging.current ? 'grabbing' : 'grab',
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-        }}
+      {/* Active label above wheel */}
+      <div style={{ textAlign: 'center', height: '28px', marginBottom: '4px' }}>
+        <span style={{ fontSize: '1.1rem', fontWeight: 900, color: activeColor, transition: 'color 0.3s' }}>
+          {categories[activeIdx]?.name}
+        </span>
+      </div>
+
+      <svg
+        width="100%"
+        viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+        style={{ display: 'block', overflow: 'visible', cursor: isDragging.current ? 'grabbing' : 'grab', WebkitUserSelect: 'none', userSelect: 'none' }}
         onPointerDown={onPointerDown}
       >
-        {/* Edge faders */}
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 50, pointerEvents: 'none',
-          background: 'linear-gradient(to right, #fdfdfd 0%, transparent 20%, transparent 80%, #fdfdfd 100%)',
-        }} />
+        <defs>
+          {/* Clip path per segment */}
+          {segments.map(({ i, d }) => {
+            const outerR = getOuterR(Math.abs(d));
+            return (
+              <clipPath key={i} id={`wclip${i}`}>
+                <path d={wedgePath(outerR, d - SEG_DEG / 2 + GAP_DEG / 2, d + SEG_DEG / 2 - GAP_DEG / 2)} />
+              </clipPath>
+            );
+          })}
+        </defs>
 
-        {categories.map((cat, index) => {
-          let frac = index - liveOffset.current;
-          while (frac >  total / 2) frac -= total;
-          while (frac < -total / 2) frac += total;
+        {segments.map(({ cat, i, d }) => {
+          const outerR   = getOuterR(Math.abs(d));
+          const startDeg = d - SEG_DEG / 2 + GAP_DEG / 2;
+          const endDeg   = d + SEG_DEG / 2 - GAP_DEG / 2;
+          const path     = wedgePath(outerR, startDeg, endDeg);
+          const color    = PALETTE[i % PALETTE.length];
+          const isActive = i === activeIdx;
 
-          const abs = Math.abs(frac);
-          if (abs > 3.6) return null;
-
-          const t       = getTransform(frac);
-          const isCenter = abs < 0.5;
+          // Text position: midpoint along wedge centerline
+          const midR    = INNER_R + (outerR - INNER_R) * 0.52;
+          const midRad  = (d - 90) * Math.PI / 180;
+          const tx      = CX + midR * Math.cos(midRad);
+          const ty      = CY + midR * Math.sin(midRad);
 
           return (
-            <div
-              key={cat.name}
+            <g
+              key={i}
+              style={{ cursor: 'pointer' }}
               onClick={() => {
                 if (isDragging.current) return;
-                if (isCenter) {
+                if (isActive) {
                   window.location.href = `/categories/${encodeURIComponent(cat.name)}`;
                 } else {
-                  const target = index;
-                  liveOffset.current = ((target % total) + total) % total;
-                  setTick(n => n + 1);
+                  snapTo(i * SEG_DEG);
                 }
               }}
-              style={{
-                position: 'absolute',
-                left: '50%',
-                top: '20px',
-                width: `${CARD_W}px`,
-                height: `${CARD_H}px`,
-                marginLeft: `${-CARD_W / 2}px`,
-                borderRadius: '16px',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                zIndex: Math.round(10 - abs),
-                opacity: t.op,
-                transform: `translateX(${t.x}px) translateY(${t.y}px) rotateY(${t.ry}deg) scale(${t.scale})`,
-                transition: isDragging.current
-                  ? 'none'
-                  : 'transform 0.55s cubic-bezier(0.34, 1.08, 0.64, 1), opacity 0.4s ease, filter 0.4s ease, box-shadow 0.4s ease',
-                filter: `brightness(${t.br})`,
-                boxShadow: isCenter
-                  ? '0 28px 65px rgba(0,0,0,0.42), 0 0 0 3px #22c55e'
-                  : '0 5px 18px rgba(0,0,0,0.16)',
-                willChange: 'transform',
-                // Disable pointer events on card children so drag events reach the stage
-                pointerEvents: 'auto',
-              }}
             >
-              <img
-                src={cat.image}
-                alt={cat.name}
-                draggable={false}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
+              {/* Photo fill */}
+              <image
+                href={cat.image}
+                x={CX - outerR}
+                y={CY - outerR}
+                width={outerR * 2}
+                height={outerR * 2}
+                preserveAspectRatio="xMidYMid slice"
+                clipPath={`url(#wclip${i})`}
               />
-              <div style={{
-                position: 'absolute', inset: 0, pointerEvents: 'none',
-                background: isCenter
-                  ? 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.18) 55%, transparent 100%)'
-                  : 'linear-gradient(to top, rgba(0,0,0,0.84) 0%, rgba(0,0,0,0.50) 100%)',
-              }} />
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 8px 12px', textAlign: 'center', pointerEvents: 'none' }}>
-                <span style={{
-                  color: '#fff', fontWeight: 900, lineHeight: 1.3, display: 'block',
-                  fontSize: isCenter ? '1.05rem' : '0.82rem',
-                  textShadow: '0 2px 8px rgba(0,0,0,1)',
-                }}>
-                  {cat.name}
-                </span>
-              </div>
-            </div>
+              {/* Color tint overlay */}
+              <path d={path} fill={color} opacity={isActive ? 0.45 : 0.60} />
+              {/* Active white border glow */}
+              {isActive && (
+                <path
+                  d={path}
+                  fill="none"
+                  stroke="rgba(255,255,255,0.85)"
+                  strokeWidth="3"
+                  style={{ filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.8))' }}
+                />
+              )}
+              {/* Category name, rotated to follow wedge direction */}
+              <text
+                x={tx}
+                y={ty}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                transform={`rotate(${d}, ${tx}, ${ty})`}
+                style={{ pointerEvents: 'none', userSelect: 'none' }}
+                fill="#fff"
+                fontSize={isActive ? 11 : 9}
+                fontWeight="900"
+                letterSpacing="0.6"
+              >
+                {cat.name.toUpperCase().slice(0, 9)}
+              </text>
+            </g>
           );
         })}
-      </div>
+
+        {/* Small pivot dot at the visible bottom of the fan */}
+        <circle cx={CX} cy={CY - INNER_R + 4} r={7} fill="#fff" stroke="#e5e7eb" strokeWidth="2" />
+        <circle cx={CX} cy={CY - INNER_R + 4} r={3} fill={activeColor} style={{ transition: 'fill 0.3s' }} />
+      </svg>
 
       {/* Navigation dots — hidden on mobile */}
       <div className="wheel-carousel-nav" style={{
-        display: 'flex', justifyContent: 'center', alignItems: 'center',
-        gap: '16px', marginTop: '10px', position: 'relative', zIndex: 30,
+        display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '10px',
       }}>
-        <button
-          onClick={() => { liveOffset.current = ((Math.round(liveOffset.current) + 1) % total); setTick(t => t + 1); }}
-          style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #e5e7eb', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
-          <ChevronRight size={18} color="#1a1a1a" />
-        </button>
-        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-          {categories.map((_, i) => (
-            <button key={i} onClick={() => { liveOffset.current = i; setTick(t => t + 1); }} style={{
-              width: i === currentSnapped ? '22px' : '8px', height: '8px', borderRadius: '4px',
-              background: i === currentSnapped ? '#22c55e' : '#d1d5db',
+        {categories.map((_, i) => (
+          <button key={i}
+            onClick={() => snapTo(i * SEG_DEG)}
+            style={{
+              width: i === activeIdx ? '22px' : '8px', height: '8px', borderRadius: '4px',
+              background: i === activeIdx ? activeColor : '#d1d5db',
               border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.3s ease',
-            }} />
-          ))}
-        </div>
-        <button
-          onClick={() => { liveOffset.current = ((Math.round(liveOffset.current) - 1 + total) % total); setTick(t => t + 1); }}
-          style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #e5e7eb', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
-          <ChevronLeft size={18} color="#1a1a1a" />
-        </button>
+            }}
+          />
+        ))}
       </div>
     </div>
   );
