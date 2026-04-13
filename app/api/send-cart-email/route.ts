@@ -283,13 +283,15 @@ export async function POST(req: NextRequest) {
     const resendRes = await fetch(RESEND_API_URL, {
       method: 'POST',
       headers: {
+        'List-Unsubscribe': '<mailto:unsubscribe@zaitandfilters.com>',
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'زيت اند فلترز <noreply@zaitandfilters.com>',
+        from: 'زيت اند فلترز <orders@zaitandfilters.com>',
         to: [cart.customer_email],
-        subject: `${cart.customer_name ? cart.customer_name + '،' : ''} سلتك بتستناك 🛒 — خصم 5% لـ 48 ساعة`,
+        subject: `${cart.customer_name ? cart.customer_name + '،' : ''} حجزنالك منتجاتك و عملنالك عليها خصم كمان`,
         html,
       }),
     });
