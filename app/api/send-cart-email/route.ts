@@ -289,7 +289,7 @@ export async function POST(req: NextRequest) {
         'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'زيت اند فلترز <orders@zaitandfilters.com>',
+        from: 'Zait and Filters <orders@zaitandfilters.com>',
         to: [cart.customer_email],
         subject: `${cart.customer_name ? cart.customer_name + '،' : ''} حجزنالك منتجاتك و عملنالك عليها خصم كمان`,
         html,
