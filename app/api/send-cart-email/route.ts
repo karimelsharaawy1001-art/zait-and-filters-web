@@ -72,7 +72,7 @@ function buildEmailHtml(params: {
                 ZAIT <span style="color:#22c55e;">&amp; FILTERS</span>
               </div>
               <div style="color:rgb(255, 255, 255); font-size:1.00rem; letter-spacing:2px; margin-top:4px;">
-                .وجهتك الموثوقة لقطع الغيار الأصلية
+                .أكبر موقع لقطع الغيار الأصلية و البديلة في مصر
               </div>
             </td>
           </tr>
