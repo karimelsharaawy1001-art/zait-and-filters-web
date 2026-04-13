@@ -71,8 +71,8 @@ function buildEmailHtml(params: {
               <div style="font-size:2rem; font-weight:900; font-style:italic; color:#fff; letter-spacing:-1px;">
                 ZAIT <span style="color:#22c55e;">&amp; FILTERS</span>
               </div>
-              <div style="color:rgba(255,255,255,0.45); font-size:0.72rem; letter-spacing:2px; margin-top:4px;">
-                AUTO PARTS · قطع غيار
+              <div style="color:rgb(255, 255, 255); font-size:1.00rem; letter-spacing:2px; margin-top:4px;">
+                .وجهتك الموثوقة لقطع الغيار الأصلية
               </div>
             </td>
           </tr>
