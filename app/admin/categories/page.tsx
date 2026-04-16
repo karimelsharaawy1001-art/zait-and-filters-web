@@ -1,13 +1,13 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/app/lib/supabase';
-import { Loader2, Pencil, Trash2, Check, X, Image as ImageIcon, GitMerge, Upload, ChevronDown, ChevronRight } from 'lucide-react';
+import { Loader2, Pencil, Trash2, Image as ImageIcon, GitMerge, Upload, ChevronDown, ChevronRight, FileDown } from 'lucide-react';
 
 interface SubcatData {
   name: string;
   productCount: number;
   imageUrl: string | null;
-  imageId: string | null; // id in category_images table
+  imageId: string | null;
 }
 interface CategoryData {
   name: string;
@@ -35,6 +35,7 @@ export default function CategoriesPage() {
   const [mergeTarget, setMergeTarget] = useState('');
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function fetchData() {
@@ -92,13 +93,122 @@ export default function CategoriesPage() {
 
   const closeModal = () => { setModal(null); setModalValue(''); setMergeTarget(''); };
 
+  // ── Export to Excel ────────────────────────────────────────────────────────
+  const exportToExcel = async () => {
+    setExporting(true);
+    try {
+      // Dynamically import xlsx to keep bundle size small
+      const XLSX = await import('xlsx');
+
+      // ── Sheet 1: Summary ──────────────────────────────────────────────────
+      const summaryRows: any[][] = [
+        ['تقرير الفئات والأقسام الفرعية — زيت اند فلترز'],
+        ['تاريخ التصدير:', new Date().toLocaleDateString('ar-EG')],
+        [],
+        ['الفئات الرئيسية', categories.length],
+        ['الأقسام الفرعية', categories.reduce((s, c) => s + c.subcategories.length, 0)],
+        ['إجمالي المنتجات', categories.reduce((s, c) => s + c.productCount, 0)],
+      ];
+      const summarySheet = XLSX.utils.aoa_to_sheet(summaryRows);
+      summarySheet['!cols'] = [{ wch: 30 }, { wch: 20 }];
+
+      // ── Sheet 2: Categories flat list ─────────────────────────────────────
+      const catRows: any[][] = [
+        ['الفئة الرئيسية', 'عدد الأقسام الفرعية', 'عدد المنتجات', 'لها صورة؟'],
+      ];
+      for (const cat of categories) {
+        catRows.push([
+          cat.name,
+          cat.subcategories.length,
+          cat.productCount,
+          cat.imageUrl ? 'نعم' : 'لا',
+        ]);
+      }
+      // Totals row
+      catRows.push([
+        'الإجمالي',
+        `=SUM(B2:B${catRows.length})`,
+        `=SUM(C2:C${catRows.length})`,
+        '',
+      ]);
+      const catSheet = XLSX.utils.aoa_to_sheet(catRows);
+      catSheet['!cols'] = [{ wch: 28 }, { wch: 20 }, { wch: 18 }, { wch: 12 }];
+
+      // ── Sheet 3: Full breakdown (cat + subcats) ───────────────────────────
+      const breakdownRows: any[][] = [
+        ['الفئة الرئيسية', 'النوع', 'القسم الفرعي', 'عدد المنتجات', 'لها صورة؟'],
+      ];
+      for (const cat of categories) {
+        // Category row
+        breakdownRows.push([
+          cat.name,
+          'فئة رئيسية',
+          '',
+          cat.productCount,
+          cat.imageUrl ? 'نعم' : 'لا',
+        ]);
+        // Subcategory rows
+        for (const sub of cat.subcategories) {
+          breakdownRows.push([
+            cat.name,
+            'قسم فرعي',
+            sub.name,
+            sub.productCount,
+            sub.imageUrl ? 'نعم' : 'لا',
+          ]);
+        }
+      }
+      const breakdownSheet = XLSX.utils.aoa_to_sheet(breakdownRows);
+      breakdownSheet['!cols'] = [{ wch: 28 }, { wch: 14 }, { wch: 28 }, { wch: 18 }, { wch: 12 }];
+
+      // ── Style header rows (bold + green background) ───────────────────────
+      const styleHeader = (sheet: any, headerRow: number, colCount: number) => {
+        for (let c = 0; c < colCount; c++) {
+          const cellRef = XLSX.utils.encode_cell({ r: headerRow, c });
+          if (!sheet[cellRef]) continue;
+          sheet[cellRef].s = {
+            font: { bold: true, color: { rgb: 'FFFFFF' } },
+            fill: { fgColor: { rgb: '16A34A' } },
+            alignment: { horizontal: 'center', wrapText: true },
+          };
+        }
+      };
+      styleHeader(catSheet, 0, 4);
+      styleHeader(breakdownSheet, 0, 5);
+
+      // ── Build workbook ────────────────────────────────────────────────────
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, summarySheet, 'ملخص');
+      XLSX.utils.book_append_sheet(wb, catSheet, 'الفئات');
+      XLSX.utils.book_append_sheet(wb, breakdownSheet, 'التفصيلي');
+
+      // Set RTL direction hint via workbook props
+      wb.Workbook = {
+        Views: [{ RTL: true }],
+        Sheets: [
+          { Hidden: 0 },
+          { Hidden: 0 },
+          { Hidden: 0 },
+        ],
+      };
+
+      // ── Download ──────────────────────────────────────────────────────────
+      const fileName = `فئات_زيت_اند_فلترز_${new Date().toLocaleDateString('ar-EG').replace(/\//g, '-')}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+
+    } catch (err: any) {
+      alert('حدث خطأ أثناء التصدير: ' + err.message);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   // ── Rename ─────────────────────────────────────────────────────────────────
   const handleRename = async () => {
     if (!modal || !modalValue.trim()) return;
     setSaving(true);
     if (modal.type === 'rename-cat') {
       await supabase.from('products').update({ category: modalValue.trim() }).eq('category', modal.cat);
-      // also update category_images name
       const ci = categories.find(c => c.name === modal.cat);
       if (ci?.imageId) await supabase.from('category_images').update({ name: modalValue.trim() }).eq('id', ci.imageId);
     } else if (modal.type === 'rename-sub') {
@@ -151,10 +261,8 @@ export default function CategoriesPage() {
     const { error: upErr } = await supabase.storage.from('product-images').upload(path, file);
     if (upErr) { alert('خطأ في الرفع: ' + upErr.message); setUploading(false); return; }
     const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(path);
-
     const name = modal.type === 'image-cat' ? modal.cat : modal.sub;
     const imageId = modal.imageId;
-
     if (imageId) {
       await supabase.from('category_images').update({ image_url: publicUrl }).eq('id', imageId);
     } else {
@@ -204,7 +312,7 @@ export default function CategoriesPage() {
 
         .cat-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.1s; }
         .cat-row:hover { background: #f8fafc; }
-        .sub-row { display: flex; align-items: center; gap: 8px; padding: 7px 12px 7px 12px; border-bottom: 1px solid #f8fafc; transition: background 0.1s; }
+        .sub-row { display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-bottom: 1px solid #f8fafc; transition: background 0.1s; }
         .sub-row:hover { background: #f0fdf4; }
 
         .pill { font-size: 0.65rem; font-weight: 700; padding: 1px 7px; border-radius: 10px; }
@@ -220,20 +328,34 @@ export default function CategoriesPage() {
 
         .thumb { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; border: 1px solid #e2e8f0; flex-shrink: 0; }
         .thumb-placeholder { width: 32px; height: 32px; border-radius: 6px; background: #f1f5f9; border: 1px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+        .export-btn { display: flex; align-items: center; gap: 7px; padding: 9px 18px; background: linear-gradient(135deg, #16a34a, #15803d); color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 0.82rem; font-family: 'Cairo', sans-serif; transition: opacity 0.15s; box-shadow: 0 2px 8px rgba(22,163,74,0.3); }
+        .export-btn:hover { opacity: 0.88; }
+        .export-btn:disabled { opacity: 0.55; cursor: not-allowed; }
       `}</style>
 
       {/* Header */}
-      <div style={{ marginBottom: '18px' }}>
-        <h1 style={{ fontSize: '1.2rem', fontWeight: '900', margin: 0, color: '#0f172a' }}>إدارة الفئات والأقسام</h1>
-        <p style={{ color: '#94a3b8', fontSize: '0.72rem', margin: '3px 0 0', fontWeight: '600' }}>التعديل هنا يؤثر فوراً على جميع المنتجات المرتبطة</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
+        <div>
+          <h1 style={{ fontSize: '1.2rem', fontWeight: '900', margin: 0, color: '#0f172a' }}>إدارة الفئات والأقسام</h1>
+          <p style={{ color: '#94a3b8', fontSize: '0.72rem', margin: '3px 0 0', fontWeight: '600' }}>التعديل هنا يؤثر فوراً على جميع المنتجات المرتبطة</p>
+        </div>
+
+        {/* ── Export button ── */}
+        <button className="export-btn" onClick={exportToExcel} disabled={exporting || categories.length === 0}>
+          {exporting
+            ? <><Loader2 size={14} className="animate-spin" /> جاري التصدير...</>
+            : <><FileDown size={14} /> تصدير Excel</>
+          }
+        </button>
       </div>
 
       {/* Stats */}
       <div style={{ display: 'flex', gap: '10px', marginBottom: '18px', flexWrap: 'wrap' }}>
         {[
-          { label: 'فئات رئيسية', value: categories.length, color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
-          { label: 'أقسام فرعية', value: totalSubs, color: '#0284c7', bg: '#f0f9ff', border: '#bae6fd' },
-          { label: 'إجمالي المنتجات', value: totalProducts, color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
+          { label: 'فئات رئيسية',    value: categories.length, color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
+          { label: 'أقسام فرعية',    value: totalSubs,         color: '#0284c7', bg: '#f0f9ff', border: '#bae6fd' },
+          { label: 'إجمالي المنتجات', value: totalProducts,     color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
         ].map(s => (
           <div key={s.label} style={{ background: s.bg, border: `1px solid ${s.border}`, borderRadius: '10px', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '1.4rem', fontWeight: '900', color: s.color, lineHeight: 1 }}>{s.value}</span>
@@ -258,33 +380,22 @@ export default function CategoriesPage() {
 
               {/* ── Category row ── */}
               <div className="cat-row" onClick={() => cat.subcategories.length > 0 && toggleExpand(cat.name)}>
-                {/* Arrow */}
                 <span style={{ width: '14px', color: '#94a3b8', flexShrink: 0 }}>
                   {cat.subcategories.length > 0
                     ? (isOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />)
                     : null}
                 </span>
-
-                {/* Image */}
                 {cat.imageUrl
                   ? <img src={cat.imageUrl} className="thumb" alt={cat.name} />
                   : <div className="thumb-placeholder"><ImageIcon size={12} color="#cbd5e1" /></div>
                 }
-
-                {/* Name */}
                 <span style={{ flex: 1, fontWeight: '800', fontSize: '0.88rem', color: '#0f172a' }}>{cat.name}</span>
-
-                {/* Sub count pill */}
                 {cat.subcategories.length > 0 && (
                   <span className="pill" style={{ background: '#f0f9ff', color: '#0284c7', border: '1px solid #bae6fd' }}>
                     {cat.subcategories.length} فرعي
                   </span>
                 )}
-
-                {/* Product count */}
                 <span style={{ width: '60px', textAlign: 'center', fontSize: '0.78rem', fontWeight: '700', color: '#64748b' }}>{cat.productCount}</span>
-
-                {/* Actions */}
                 <div style={{ width: '90px', display: 'flex', justifyContent: 'flex-end', gap: '2px' }} onClick={e => e.stopPropagation()}>
                   <button className="ib blue" title="تغيير الصورة" onClick={() => setModal({ type: 'image-cat', cat: cat.name, currentUrl: cat.imageUrl, imageId: cat.imageId })}>
                     <ImageIcon size={13} color="#0284c7" />
@@ -292,7 +403,7 @@ export default function CategoriesPage() {
                   <button className="ib" title="تعديل الاسم" onClick={() => { setModal({ type: 'rename-cat', cat: cat.name }); setModalValue(cat.name); }}>
                     <Pencil size={13} color="#64748b" />
                   </button>
-                  <button className="ib green" title="دمج مع فئة أخرى" onClick={() => { setModal({ type: 'merge-cat', cat: cat.name }); }}>
+                  <button className="ib green" title="دمج مع فئة أخرى" onClick={() => setModal({ type: 'merge-cat', cat: cat.name })}>
                     <GitMerge size={13} color="#16a34a" />
                   </button>
                   <button className="ib red" title="حذف" onClick={() => handleDeleteCat(cat)}>
@@ -307,20 +418,12 @@ export default function CategoriesPage() {
                   <span style={{ width: '14px', flexShrink: 0 }} />
                   <span style={{ width: '2px', height: '18px', background: '#d1fae5', borderRadius: '2px', flexShrink: 0 }} />
                   <span style={{ width: '8px', flexShrink: 0 }} />
-
-                  {/* Image */}
                   {sub.imageUrl
                     ? <img src={sub.imageUrl} className="thumb" alt={sub.name} />
                     : <div className="thumb-placeholder"><ImageIcon size={11} color="#cbd5e1" /></div>
                   }
-
-                  {/* Name */}
                   <span style={{ flex: 1, fontSize: '0.82rem', fontWeight: '600', color: '#334155' }}>{sub.name}</span>
-
-                  {/* Product count */}
                   <span style={{ width: '60px', textAlign: 'center', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8' }}>{sub.productCount}</span>
-
-                  {/* Actions */}
                   <div style={{ width: '90px', display: 'flex', justifyContent: 'flex-end', gap: '2px' }}>
                     <button className="ib blue" title="تغيير الصورة" onClick={() => setModal({ type: 'image-sub', cat: cat.name, sub: sub.name, currentUrl: sub.imageUrl, imageId: sub.imageId })}>
                       <ImageIcon size={12} color="#0284c7" />
@@ -347,12 +450,10 @@ export default function CategoriesPage() {
       </div>
 
       {/* ══════════════════ MODALS ══════════════════ */}
-
       {modal && (
         <div className="overlay" onClick={closeModal}>
           <div className="modal" onClick={e => e.stopPropagation()}>
 
-            {/* ── Rename modal ── */}
             {(modal.type === 'rename-cat' || modal.type === 'rename-sub') && (
               <>
                 <div className="modal-title">
@@ -370,23 +471,15 @@ export default function CategoriesPage() {
               </>
             )}
 
-            {/* ── Merge modal ── */}
             {(modal.type === 'merge-cat' || modal.type === 'merge-sub') && (
               <>
                 <div className="modal-title">
-                  {modal.type === 'merge-cat'
-                    ? `دمج فئة "${modal.cat}" مع:`
-                    : `دمج قسم "${modal.sub}" مع:`}
+                  {modal.type === 'merge-cat' ? `دمج فئة "${modal.cat}" مع:` : `دمج قسم "${modal.sub}" مع:`}
                 </div>
                 <p style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: '12px', fontWeight: '600' }}>
                   جميع المنتجات ستنتقل إلى الفئة/القسم الذي تختاره.
                 </p>
-                <select
-                  className="modal-input"
-                  value={mergeTarget}
-                  onChange={e => setMergeTarget(e.target.value)}
-                  style={{ appearance: 'auto' }}
-                >
+                <select className="modal-input" value={mergeTarget} onChange={e => setMergeTarget(e.target.value)} style={{ appearance: 'auto' }}>
                   <option value="">اختر الوجهة...</option>
                   {modal.type === 'merge-cat'
                     ? categories.filter(c => c.name !== modal.cat).map(c => (
@@ -408,18 +501,14 @@ export default function CategoriesPage() {
               </>
             )}
 
-            {/* ── Image modal ── */}
             {(modal.type === 'image-cat' || modal.type === 'image-sub') && (
               <>
                 <div className="modal-title">
                   {modal.type === 'image-cat' ? `صورة الفئة: ${modal.cat}` : `صورة القسم: ${modal.sub}`}
                 </div>
-
                 {modal.currentUrl && (
                   <img src={modal.currentUrl} alt="current" style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '10px', marginBottom: '14px', border: '1px solid #e2e8f0' }} />
                 )}
-
-                {/* Upload */}
                 <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }}
                   onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} />
                 <button
@@ -431,11 +520,8 @@ export default function CategoriesPage() {
                   {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                   {uploading ? 'جاري الرفع...' : 'رفع صورة من الجهاز'}
                 </button>
-
-                {/* URL input */}
                 <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '600', marginBottom: '5px' }}>أو أدخل رابط مباشر</div>
                 <input className="modal-input" value={modalValue} onChange={e => setModalValue(e.target.value)} placeholder="https://..." style={{ marginBottom: '10px', direction: 'ltr' }} />
-
                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                   <button className="modal-btn" style={{ background: '#f1f5f9', color: '#64748b' }} onClick={closeModal}>إلغاء</button>
                   <button className="modal-btn" style={{ background: '#16a34a', color: '#fff' }} onClick={handleUrlSave} disabled={saving || !modalValue.trim()}>
