@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import toast from 'react-hot-toast';
 import {
-  ShoppingCart, Mail, Phone, Calendar, DollarSign,
-  RefreshCw, Search, Send, CheckCircle, Clock, MapPin,
+  ShoppingCart, Mail, Phone, DollarSign,
+  RefreshCw, Search, Send, CheckCircle, Clock,
   User, Smartphone, Trash2, ChevronLeft, ChevronRight,
   TrendingUp, AlertCircle, Monitor, ChevronsLeft, ChevronsRight,
   MoreHorizontal, Bell, Tag, Zap, MessageCircle, RotateCcw
@@ -38,7 +38,7 @@ interface AbandonedCart {
   _isDuplicate?: boolean;
 }
 
-function formatExactTime(dateString: string): { date: string; time: string; relative: string } {
+function formatExactTime(dateString: string | null | undefined): { date: string; time: string; relative: string } {
   if (!dateString) return { date: '—', time: '—', relative: '—' };
   const date = new Date(dateString);
   const now = new Date();
@@ -57,12 +57,12 @@ function formatExactTime(dateString: string): { date: string; time: string; rela
   return { date: dateStr, time: timeStr, relative };
 }
 
-function isWithin24Hours(dateString: string): boolean {
+function isWithin24Hours(dateString: string | null | undefined): boolean {
   if (!dateString) return false;
   return Date.now() - new Date(dateString).getTime() < 24 * 60 * 60 * 1000;
 }
 
-function toWhatsAppNumber(phone: string): string {
+function toWhatsAppNumber(phone: string | null | undefined): string {
   if (!phone) return '';
   const digits = phone.replace(/\D/g, '');
   if (digits.startsWith('20')) return digits;
