@@ -41,7 +41,6 @@ export default function AdminLayoutClient({ children }: Props) {
     return () => { subs.forEach(s => supabase.removeChannel(s)); clearInterval(interval); };
   }, []);
 
-  // Close mobile menu on navigation
   useEffect(() => { setMobileMenuOpen(false); }, [pathname]);
 
   if (pathname === '/admin-login' || pathname === '/admin/login') return <>{children}</>;
@@ -50,31 +49,31 @@ export default function AdminLayoutClient({ children }: Props) {
     {
       label: 'الرئيسية',
       items: [
-        { name: 'الإحصائيات',     href: '/admin/dashboard',       icon: '📊', badge: 0 },
-        { name: 'إدارة الطلبات',  href: '/admin/orders',          icon: '🛍️', badge: badges.orders },
-        { name: 'إدارة الشحن',    href: '/admin/shipping',        icon: '🚚', badge: 0 },
+        { name: 'الإحصائيات',    href: '/admin/dashboard',      icon: '📊', badge: 0 },
+        { name: 'إدارة الطلبات', href: '/admin/orders',         icon: '🛍️', badge: badges.orders },
+        { name: 'إدارة الشحن',   href: '/admin/shipping',       icon: '🚚', badge: 0 },
       ]
     },
     {
       label: 'المنتجات',
       items: [
-        { name: 'إضافة منتج',             href: '/admin/add-product',     icon: '➕', badge: 0 },
-        { name: 'إدارة المنتجات',         href: '/admin/products',        icon: '📦', badge: 0 },
-        { name: 'إدارة الفئات',           href: '/admin/categories',      icon: '🗂️', badge: 0 },
-        { name: 'إدارة الأقسام الفرعية',  href: '/admin/subcategories',   icon: '📂', badge: 0 },
-        { name: 'إدارة الماركات',         href: '/admin/brands',          icon: '🏎️', badge: 0 },
-        { name: 'صور السيارات',           href: '/admin/car-images',      icon: '🚗', badge: 0 },
+        { name: 'إضافة منتج',            href: '/admin/add-product',    icon: '➕', badge: 0 },
+        { name: 'إدارة المنتجات',        href: '/admin/products',       icon: '📦', badge: 0 },
+        { name: 'إدارة الفئات',          href: '/admin/categories',     icon: '🗂️', badge: 0 },
+        { name: 'إدارة الأقسام الفرعية', href: '/admin/subcategories',  icon: '📂', badge: 0 },
+        { name: 'إدارة الماركات',        href: '/admin/brands',         icon: '🏎️', badge: 0 },
+        { name: 'صور السيارات',          href: '/admin/car-images',     icon: '🚗', badge: 0 },
       ]
     },
     {
       label: 'التسويق',
       items: [
-        { name: 'المدونة',              href: '/admin/blog',            icon: '📝', badge: 0 },
-        { name: 'إعدادات الهيرو',      href: '/admin/hero',            icon: '🖼️', badge: 0 },
-        { name: 'بانر الرئيسية',       href: '/admin/home-banner',     icon: '🏷️', badge: 0 },
-        { name: 'أكواد الخصم',         href: '/admin/promo-codes',     icon: '🎫', badge: 0 },
-        { name: 'إدارة المسوقين',      href: '/admin/marketers',       icon: '👥', badge: 0 },
-        { name: 'ترتيب منتجات العروض', href: '/admin/sale-order',      icon: '🔥', badge: 0 },
+        { name: 'المدونة',             href: '/admin/blog',          icon: '📝', badge: 0 },
+        { name: 'إعدادات الهيرو',     href: '/admin/hero',          icon: '🖼️', badge: 0 },
+        { name: 'بانر الرئيسية',      href: '/admin/home-banner',   icon: '🏷️', badge: 0 },
+        { name: 'أكواد الخصم',        href: '/admin/promo-codes',   icon: '🎫', badge: 0 },
+        { name: 'إدارة المسوقين',     href: '/admin/marketers',     icon: '👥', badge: 0 },
+        { name: 'ترتيب منتجات العروض',href: '/admin/sale-order',    icon: '🔥', badge: 0 },
       ]
     },
     {
@@ -86,13 +85,12 @@ export default function AdminLayoutClient({ children }: Props) {
     },
   ];
 
-  // Bottom tab bar items (most used)
   const bottomTabs = [
-    { name: 'إحصائيات', href: '/admin/dashboard',   icon: '📊', badge: 0 },
-    { name: 'الطلبات',  href: '/admin/orders',       icon: '🛍️', badge: badges.orders },
-    { name: 'منتج جديد',href: '/admin/add-product',  icon: '➕', badge: 0 },
-    { name: 'المنتجات', href: '/admin/products',     icon: '📦', badge: 0 },
-    { name: 'القائمة',  href: '#',                   icon: '☰',  badge: badges.messages + badges.abandonedCarts, isMenu: true },
+    { name: 'إحصائيات', href: '/admin/dashboard',  icon: '📊', badge: 0 },
+    { name: 'الطلبات',  href: '/admin/orders',      icon: '🛍️', badge: badges.orders },
+    { name: 'منتج',     href: '/admin/add-product', icon: '➕', badge: 0 },
+    { name: 'المنتجات', href: '/admin/products',    icon: '📦', badge: 0 },
+    { name: 'القائمة',  href: '#', icon: '☰', badge: badges.messages + badges.abandonedCarts, isMenu: true },
   ];
 
   const sidebarW = collapsed ? '64px' : '232px';
@@ -105,27 +103,30 @@ export default function AdminLayoutClient({ children }: Props) {
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
         * { box-sizing: border-box; }
 
+        /* ── Hide any storefront nav/footer that might bleed in ── */
+        body:has(.admin-layout) header,
+        body:has(.admin-layout) footer,
+        body:has(.admin-layout) nav:not(.admin-nav),
+        body:has(.admin-layout) [class*="navbar"],
+        body:has(.admin-layout) [class*="Navbar"],
+        body:has(.admin-layout) [class*="footer"],
+        body:has(.admin-layout) [class*="Footer"],
+        body:has(.admin-layout) [class*="chat-widget"],
+        body:has(.admin-layout) [class*="ChatWidget"] {
+          display: none !important;
+        }
+
         @keyframes badgePulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.5); }
-          50%       { box-shadow: 0 0 0 4px rgba(220,38,38,0); }
+          0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.5); }
+          50%      { box-shadow: 0 0 0 4px rgba(220,38,38,0); }
         }
-        @keyframes slideIn {
-          from { opacity: 0; transform: translateX(4px); }
-          to   { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes dotPulse {
-          0%, 100% { opacity: 1; }
-          50%       { opacity: 0.4; }
-        }
+        @keyframes slideIn  { from { opacity:0; transform:translateX(4px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes slideUp  { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes dotPulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
 
         .admin-sidebar {
           transition: width 0.22s cubic-bezier(0.4,0,0.2,1);
-          scrollbar-width: thin;
-          scrollbar-color: #e2e8f0 transparent;
+          scrollbar-width: thin; scrollbar-color: #e2e8f0 transparent;
         }
         .admin-sidebar::-webkit-scrollbar { width: 3px; }
         .admin-sidebar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
@@ -139,9 +140,9 @@ export default function AdminLayoutClient({ children }: Props) {
           position: relative; overflow: visible; white-space: nowrap;
           margin-bottom: 1px; font-family: 'Cairo', sans-serif;
         }
-        .nav-item:hover { background: #f0fdf4; color: #15803d; }
+        .nav-item:hover  { background: #f0fdf4; color: #15803d; }
         .nav-item.active { background: #dcfce7; color: #15803d; font-weight: 700; box-shadow: inset 2px 0 0 #16a34a; }
-        .nav-item .nav-icon { font-size: 0.95rem; width: 20px; text-align: center; flex-shrink: 0; position: relative; }
+        .nav-item .nav-icon  { font-size: 0.95rem; width: 20px; text-align: center; flex-shrink: 0; position: relative; }
         .nav-item .nav-label { flex: 1; animation: slideIn 0.18s ease; }
 
         .badge {
@@ -155,7 +156,7 @@ export default function AdminLayoutClient({ children }: Props) {
         .dot-badge {
           position: absolute; top: -2px; right: -2px;
           width: 6px; height: 6px; background: #dc2626; border-radius: 50%;
-          animation: dotPulse 2s ease-in-out infinite; border: 1.5px solid #ffffff;
+          animation: dotPulse 2s ease-in-out infinite; border: 1.5px solid #fff;
         }
         .section-label {
           font-size: 0.58rem; font-weight: 700; letter-spacing: 0.1em;
@@ -167,7 +168,7 @@ export default function AdminLayoutClient({ children }: Props) {
           transform: translateY(-50%); background: #1e293b; color: #f8fafc;
           padding: 5px 10px; border-radius: 7px; font-size: 0.72rem;
           white-space: nowrap; pointer-events: none; opacity: 0;
-          transition: opacity 0.12s; z-index: 200;
+          transition: opacity 0.12s; z-index: 9999;
           box-shadow: 0 4px 16px rgba(0,0,0,0.15);
           font-family: 'Cairo', sans-serif; font-weight: 600;
         }
@@ -193,45 +194,50 @@ export default function AdminLayoutClient({ children }: Props) {
         .logout-btn:hover { background: #fff5f5; color: #ef4444; border-color: #fecaca; }
         .divider { height: 1px; background: #f1f5f9; margin: 8px 0; }
 
-        /* ── Mobile bottom bar ── */
-        .bottom-tab-bar {
+        /* ── Mobile bottom tab bar ─────────────────────────────────────────
+           z-index: 99999 ensures it sits above ANY storefront element        */
+        .admin-bottom-bar {
           display: none;
-          position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
-          background: #fff; border-top: 1px solid #e2e8f0;
-          box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
-          padding: 6px 0 env(safe-area-inset-bottom, 6px);
+          position: fixed; bottom: 0; left: 0; right: 0;
+          z-index: 99999;                         /* ← beats everything */
+          background: #fff; border-top: 2px solid #e2e8f0;
+          box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
+          padding: 4px 0 env(safe-area-inset-bottom, 4px);
+          height: 60px;
+        }
+        .admin-bottom-bar-inner {
+          display: flex; height: 100%; align-items: stretch;
         }
         .bottom-tab {
           display: flex; flex-direction: column; align-items: center;
           justify-content: center; gap: 2px; flex: 1;
           text-decoration: none; color: #94a3b8;
-          font-family: 'Cairo', sans-serif; font-size: 0.6rem; font-weight: 700;
+          font-family: 'Cairo', sans-serif; font-size: 0.58rem; font-weight: 700;
           padding: 4px 2px; cursor: pointer; background: none; border: none;
-          position: relative; transition: color 0.15s;
-          min-height: 52px;
+          position: relative; transition: color 0.15s; border: none;
         }
         .bottom-tab.active { color: #16a34a; }
-        .bottom-tab .tab-icon { font-size: 1.3rem; line-height: 1; }
-        .bottom-tab .tab-badge {
-          position: absolute; top: 2px; right: calc(50% - 18px);
+        .bottom-tab .tab-icon { font-size: 1.25rem; line-height: 1; }
+        .tab-badge {
+          position: absolute; top: 4px; right: calc(50% - 20px);
           min-width: 16px; height: 16px; padding: 0 4px;
           background: #dc2626; color: #fff; border-radius: 8px;
-          font-size: 0.55rem; font-weight: 900;
+          font-size: 0.52rem; font-weight: 900;
           display: flex; align-items: center; justify-content: center;
           border: 2px solid #fff;
           animation: badgePulse 2.5s ease-in-out infinite;
         }
 
-        /* ── Mobile drawer overlay ── */
+        /* ── Mobile drawer ── */
         .mobile-overlay {
-          display: none; position: fixed; inset: 0; z-index: 300;
+          display: none; position: fixed; inset: 0; z-index: 99997;
           background: rgba(0,0,0,0.5); backdrop-filter: blur(2px);
         }
         .mobile-drawer {
-          position: fixed; bottom: 0; left: 0; right: 0; z-index: 301;
+          position: fixed; bottom: 60px; left: 0; right: 0; z-index: 99998;
           background: #fff; border-radius: 20px 20px 0 0;
-          max-height: 80vh; overflow-y: auto;
-          padding: 12px 16px env(safe-area-inset-bottom, 16px);
+          max-height: calc(100vh - 60px); overflow-y: auto;
+          padding: 12px 16px 16px;
           animation: slideUp 0.25s cubic-bezier(0.34,1.56,0.64,1);
           scrollbar-width: thin;
         }
@@ -244,35 +250,43 @@ export default function AdminLayoutClient({ children }: Props) {
           padding: 12px 14px; border-radius: 10px;
           text-decoration: none; color: #374151;
           font-family: 'Cairo', sans-serif; font-size: 0.88rem; font-weight: 600;
-          margin-bottom: 2px; transition: background 0.12s;
-          position: relative;
+          margin-bottom: 2px; transition: background 0.12s; position: relative;
         }
-        .drawer-nav-item:hover { background: #f0fdf4; color: #15803d; }
+        .drawer-nav-item:hover  { background: #f0fdf4; color: #15803d; }
         .drawer-nav-item.active { background: #dcfce7; color: #15803d; font-weight: 700; }
         .drawer-section-label {
           font-size: 0.65rem; font-weight: 700; color: #94a3b8;
           letter-spacing: 0.08em; text-transform: uppercase;
           padding: 12px 14px 4px; font-family: 'Cairo', sans-serif;
         }
-        .mobile-header {
+
+        /* ── Mobile top header ── */
+        .admin-mobile-header {
           display: none;
-          position: fixed; top: 0; left: 0; right: 0; z-index: 150;
+          position: fixed; top: 0; left: 0; right: 0; z-index: 99996;
           background: #fff; border-bottom: 1px solid #e2e8f0;
-          padding: 12px 16px; align-items: center; justify-content: space-between;
+          padding: 0 16px;
+          height: 52px;
+          align-items: center; justify-content: space-between;
           box-shadow: 0 1px 8px rgba(0,0,0,0.06);
         }
 
-        /* ── Responsive breakpoint ── */
+        /* ── Responsive ── */
         @media (max-width: 768px) {
-          .admin-sidebar { display: none !important; }
-          .admin-main { margin-right: 0 !important; padding: 12px 12px 80px !important; }
-          .bottom-tab-bar { display: flex !important; }
-          .mobile-header { display: flex !important; }
-          .admin-content-card { margin-top: 60px; padding: 16px !important; border-radius: 12px !important; }
+          .admin-sidebar        { display: none !important; }
+          .admin-main           { margin-right: 0 !important; padding: 8px 10px 72px !important; }
+          .admin-bottom-bar     { display: block !important; }
+          .admin-mobile-header  { display: flex !important; }
+          .admin-content-card   {
+            margin-top: 60px !important;
+            padding: 14px !important;
+            border-radius: 12px !important;
+            min-height: calc(100vh - 140px) !important;
+          }
         }
         @media (min-width: 769px) {
           .mobile-overlay { display: none !important; }
-          .mobile-drawer { display: none !important; }
+          .mobile-drawer  { display: none !important; }
         }
       `}</style>
 
@@ -280,7 +294,7 @@ export default function AdminLayoutClient({ children }: Props) {
       <aside
         className="admin-sidebar"
         style={{
-          width: sidebarW, backgroundColor: '#ffffff',
+          width: sidebarW, backgroundColor: '#fff',
           borderLeft: '1px solid #e2e8f0', padding: '14px 8px',
           position: 'fixed', height: '100vh', right: 0, zIndex: 100,
           display: 'flex', flexDirection: 'column',
@@ -293,7 +307,7 @@ export default function AdminLayoutClient({ children }: Props) {
           {!collapsed && (
             <div style={{ animation: 'slideIn 0.2s ease', minWidth: 0 }}>
               <div style={{ color: '#16a34a', fontWeight: '900', fontSize: '0.88rem', letterSpacing: '1.5px', fontStyle: 'italic', lineHeight: 1 }}>ZAIT & FILTERS</div>
-              <div style={{ color: '#94a3b8', fontSize: '0.6rem', marginTop: '3px', fontWeight: '600', letterSpacing: '0.05em' }}>لوحة الإدارة</div>
+              <div style={{ color: '#94a3b8', fontSize: '0.6rem', marginTop: '3px', fontWeight: '600' }}>لوحة الإدارة</div>
             </div>
           )}
           <button className="collapse-btn" onClick={() => setCollapsed(c => !c)} title={collapsed ? 'توسيع' : 'طي'}>
@@ -302,7 +316,7 @@ export default function AdminLayoutClient({ children }: Props) {
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, paddingBottom: '56px' }}>
+        <nav className="admin-nav" style={{ flex: 1, paddingBottom: '56px' }}>
           {sections.map((section) => (
             <div key={section.label}>
               {!collapsed ? <div className="section-label">{section.label}</div> : <div className="divider" />}
@@ -339,27 +353,27 @@ export default function AdminLayoutClient({ children }: Props) {
         </div>
       </aside>
 
-      {/* ══ MOBILE HEADER ════════════════════════════════════════════════════ */}
-      <div className="mobile-header">
-        <div style={{ color: '#16a34a', fontWeight: '900', fontSize: '0.95rem', fontStyle: 'italic' }}>
+      {/* ══ MOBILE TOP HEADER ════════════════════════════════════════════════ */}
+      <div className="admin-mobile-header">
+        <div style={{ color: '#16a34a', fontWeight: '900', fontSize: '0.92rem', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '8px' }}>
           ZAIT & FILTERS
           {totalBadges > 0 && (
-            <span style={{ marginRight: '8px', background: '#dc2626', color: '#fff', borderRadius: '8px', fontSize: '0.6rem', fontWeight: '900', padding: '2px 7px', animation: 'badgePulse 2.5s ease-in-out infinite' }}>
+            <span style={{ background: '#dc2626', color: '#fff', borderRadius: '8px', fontSize: '0.58rem', fontWeight: '900', padding: '2px 7px', animation: 'badgePulse 2.5s ease-in-out infinite' }}>
               {totalBadges}
             </span>
           )}
         </div>
-        <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontFamily: "'Cairo', sans-serif", fontWeight: '600' }}>لوحة الإدارة</div>
+        <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '600' }}>لوحة الإدارة</div>
       </div>
 
-      {/* ══ MOBILE DRAWER OVERLAY ════════════════════════════════════════════ */}
+      {/* ══ MOBILE DRAWER ════════════════════════════════════════════════════ */}
       {mobileMenuOpen && (
         <>
           <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)} style={{ display: 'block' }} />
           <div className="mobile-drawer">
             <div className="drawer-handle" />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', padding: '0 4px' }}>
-              <span style={{ fontFamily: "'Cairo', sans-serif", fontWeight: '900', color: '#16a34a', fontSize: '0.95rem', fontStyle: 'italic' }}>ZAIT & FILTERS</span>
+              <span style={{ fontFamily: "'Cairo', sans-serif", fontWeight: '900', color: '#16a34a', fontSize: '0.92rem', fontStyle: 'italic' }}>ZAIT & FILTERS</span>
               <button
                 onClick={() => supabase.auth.signOut()}
                 style={{ background: '#fff5f5', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontFamily: "'Cairo', sans-serif", fontSize: '0.8rem', fontWeight: '700' }}
@@ -393,42 +407,54 @@ export default function AdminLayoutClient({ children }: Props) {
       )}
 
       {/* ══ MOBILE BOTTOM TAB BAR ════════════════════════════════════════════ */}
-      <div className="bottom-tab-bar">
-        {bottomTabs.map((tab) => {
-          const isActive = !tab.isMenu && pathname === tab.href;
-          const hasBadge = tab.badge > 0;
-          if (tab.isMenu) {
+      <div className="admin-bottom-bar">
+        <div className="admin-bottom-bar-inner">
+          {bottomTabs.map((tab) => {
+            const isActive = !tab.isMenu && pathname === tab.href;
+            const hasBadge = tab.badge > 0;
+            if (tab.isMenu) {
+              return (
+                <button
+                  key="menu"
+                  className={`bottom-tab${mobileMenuOpen ? ' active' : ''}`}
+                  onClick={() => setMobileMenuOpen(o => !o)}
+                >
+                  <span className="tab-icon">{mobileMenuOpen ? '✕' : tab.icon}</span>
+                  {hasBadge && !mobileMenuOpen && <span className="tab-badge">{tab.badge > 99 ? '99+' : tab.badge}</span>}
+                  <span>{mobileMenuOpen ? 'إغلاق' : tab.name}</span>
+                </button>
+              );
+            }
             return (
-              <button key="menu" className={`bottom-tab${mobileMenuOpen ? ' active' : ''}`} onClick={() => setMobileMenuOpen(o => !o)}>
-                <span className="tab-icon">{mobileMenuOpen ? '✕' : tab.icon}</span>
-                {hasBadge && !mobileMenuOpen && <span className="tab-badge">{tab.badge > 99 ? '99+' : tab.badge}</span>}
-                <span>{mobileMenuOpen ? 'إغلاق' : tab.name}</span>
-              </button>
+              <Link key={tab.href} href={tab.href} className={`bottom-tab${isActive ? ' active' : ''}`}>
+                <span className="tab-icon">{tab.icon}</span>
+                {hasBadge && <span className="tab-badge">{tab.badge > 99 ? '99+' : tab.badge}</span>}
+                <span>{tab.name}</span>
+              </Link>
             );
-          }
-          return (
-            <Link key={tab.href} href={tab.href} className={`bottom-tab${isActive ? ' active' : ''}`}>
-              <span className="tab-icon">{tab.icon}</span>
-              {hasBadge && <span className="tab-badge">{tab.badge > 99 ? '99+' : tab.badge}</span>}
-              <span>{tab.name}</span>
-            </Link>
-          );
-        })}
+          })}
+        </div>
       </div>
 
       {/* ══ MAIN CONTENT ═════════════════════════════════════════════════════ */}
       <main
-        className="admin-main"
+        className="admin-main admin-layout"
         style={{
-          flex: 1, marginRight: sidebarW,
-          padding: '20px', backgroundColor: '#f1f5f9', minHeight: '100vh',
+          flex: 1,
+          marginRight: sidebarW,
+          padding: '20px',
+          backgroundColor: '#f1f5f9',
+          minHeight: '100vh',
         }}
       >
         <div
           className="admin-content-card"
           style={{
-            background: '#ffffff', borderRadius: '16px', padding: '28px',
-            border: '1px solid #e2e8f0', minHeight: 'calc(100vh - 40px)',
+            background: '#fff',
+            borderRadius: '16px',
+            padding: '28px',
+            border: '1px solid #e2e8f0',
+            minHeight: 'calc(100vh - 40px)',
             boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
           }}
         >
