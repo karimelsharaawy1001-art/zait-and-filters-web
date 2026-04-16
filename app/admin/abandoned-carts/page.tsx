@@ -496,7 +496,7 @@ export default function AbandonedCartsAdmin() {
   );
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1500px', margin: '0 auto', direction: 'rtl', background: '#f8fafc', minHeight: '100vh' }}>
+    <div className="ac-page-wrap" style={{ maxWidth: '1500px', margin: '0 auto', direction: 'rtl', background: '#f8fafc', minHeight: '100vh' }}>
       <style>{`
         @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
         @keyframes spin { to { transform:rotate(360deg); } }
@@ -505,18 +505,59 @@ export default function AbandonedCartsAdmin() {
         .ac-btn { transition: all 0.15s; }
         .ac-btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.05); }
         .ac-chip:hover { opacity: 0.85; }
+
+        /* ── Mobile responsive ── */
+        .ac-page-wrap { padding: 24px; }
+        .ac-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; flex-wrap: wrap; gap: 12px; }
+        .ac-header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .ac-stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+        .ac-filters { display: flex; gap: 12px; align-items: center; }
+        .ac-filters-chips { display: flex; gap: 6px; }
+        .ac-table-header { display: grid; grid-template-columns: 1.8fr 1.6fr 2.2fr 0.9fr 1.4fr 0.8fr 1.6fr; padding: 10px 18px; }
+        .ac-table-row { display: grid; grid-template-columns: 1.8fr 1.6fr 2.2fr 0.9fr 1.4fr 0.8fr 1.6fr; padding: 11px 18px; }
+        .ac-table-desktop { display: contents; }
+        .ac-mobile-card { display: none; }
+        .ac-pagination-wrap { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+        .ac-pagination-jump { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; color: #64748b; }
+
+        @media (max-width: 768px) {
+          .ac-page-wrap { padding: 12px; }
+          .ac-header { flex-direction: column; gap: 10px; margin-bottom: 14px; }
+          .ac-header-actions { width: 100%; }
+          .ac-header-actions button { flex: 1; justify-content: center; font-size: 0.82rem; padding: 9px 10px; }
+          .ac-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+          .ac-stats-grid > div:last-child { grid-column: span 2; }
+          .ac-filters { flex-direction: column; gap: 8px; align-items: stretch; }
+          .ac-filters-chips { flex-wrap: wrap; }
+          .ac-filters-chips button { flex: 1; min-width: calc(33% - 6px); }
+          .ac-table-header { display: none; }
+          .ac-table-row { display: none; }
+          .ac-table-desktop { display: none; }
+          .ac-mobile-card { display: block; }
+          .ac-pagination-wrap { flex-direction: column; align-items: stretch; }
+          .ac-pagination-wrap > div { justify-content: center; }
+          .ac-pagination-jump { display: none; }
+          .banner-text { font-size: 0.88rem !important; }
+          .banner-sub { font-size: 0.76rem !important; }
+          .banner-btn { font-size: 0.82rem !important; padding: 8px 12px !important; }
+        }
+
+        @media (max-width: 480px) {
+          .ac-stats-grid { grid-template-columns: repeat(2, 1fr); }
+          .ac-stats-grid > div:last-child { grid-column: span 2; }
+        }
       `}</style>
 
       {showReminderModal && <ReminderModal carts={carts} onClose={() => setShowReminderModal(false)} onDone={() => { setShowReminderModal(false); fetchAbandonedCarts(); }} />}
       {showEmailModal && <EmailModal carts={carts} onClose={() => setShowEmailModal(false)} onDone={() => { setShowEmailModal(false); fetchAbandonedCarts(); }} />}
 
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '22px', flexWrap: 'wrap', gap: '12px' }}>
+      <div className="ac-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '22px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h1 style={{ fontSize: '1.8rem', fontWeight: '900', color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>السلات المتروكة</h1>
           <p style={{ fontSize: '0.92rem', color: '#94a3b8', marginTop: '3px', fontWeight: '500' }}>تتبع واسترجع العملاء المحتملين</p>
         </div>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="ac-header-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
           {/* WhatsApp reminder button */}
           <button onClick={() => setShowReminderModal(true)}
             style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', background: eligible24h.length > 0 ? 'linear-gradient(135deg, #25D366, #128C7E)' : '#e2e8f0', color: eligible24h.length > 0 ? '#fff' : '#94a3b8', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: eligible24h.length > 0 ? '0 4px 14px rgba(37,211,102,0.35)' : 'none', animation: eligible24h.length > 0 ? 'pulse 2s ease-in-out infinite' : 'none' }}>
@@ -543,11 +584,11 @@ export default function AbandonedCartsAdmin() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '40px', height: '40px', background: '#22c55e', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Bell size={18} color="#fff" /></div>
             <div>
-              <div style={{ fontWeight: '900', fontSize: '1rem', color: '#15803d' }}>{eligible24h.length} عميل تركوا سلتهم في آخر 24 ساعة</div>
-              <div style={{ fontSize: '0.82rem', color: '#16a34a', marginTop: '2px' }}>أرسل لهم تذكير واتساب مع خصم 5%</div>
+              <div className="banner-text" style={{ fontWeight: '900', fontSize: '1rem', color: '#15803d' }}>{eligible24h.length} عميل تركوا سلتهم في آخر 24 ساعة</div>
+              <div className="banner-sub" style={{ fontSize: '0.82rem', color: '#16a34a', marginTop: '2px' }}>أرسل لهم تذكير واتساب مع خصم 5%</div>
             </div>
           </div>
-          <button onClick={() => setShowReminderModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 18px', background: 'linear-gradient(135deg, #25D366, #128C7E)', color: '#fff', border: 'none', borderRadius: '11px', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', flexShrink: 0 }}>
+          <button onClick={() => setShowReminderModal(true)} className="banner-btn" style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 18px', background: 'linear-gradient(135deg, #25D366, #128C7E)', color: '#fff', border: 'none', borderRadius: '11px', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', flexShrink: 0 }}>
             <MessageCircle size={16} /> إرسال التذكيرات
           </button>
         </div>
@@ -559,18 +600,18 @@ export default function AbandonedCartsAdmin() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '40px', height: '40px', background: '#3b82f6', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Mail size={18} color="#fff" /></div>
             <div>
-              <div style={{ fontWeight: '900', fontSize: '1rem', color: '#1d4ed8' }}>{eligibleEmail.length} عميل عندهم إيميل بس من غير رقم موبايل</div>
-              <div style={{ fontSize: '0.82rem', color: '#2563eb', marginTop: '2px' }}>أرسل لهم إيميل HTML احترافي مع كود خصم 5%</div>
+              <div className="banner-text" style={{ fontWeight: '900', fontSize: '1rem', color: '#1d4ed8' }}>{eligibleEmail.length} عميل عندهم إيميل بس من غير رقم موبايل</div>
+              <div className="banner-sub" style={{ fontSize: '0.82rem', color: '#2563eb', marginTop: '2px' }}>أرسل لهم إيميل HTML احترافي مع كود خصم 5%</div>
             </div>
           </div>
-          <button onClick={() => setShowEmailModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 18px', background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: '#fff', border: 'none', borderRadius: '11px', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', flexShrink: 0 }}>
+          <button onClick={() => setShowEmailModal(true)} className="banner-btn" style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 18px', background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: '#fff', border: 'none', borderRadius: '11px', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', flexShrink: 0 }}>
             <Mail size={16} /> إرسال الإيميلات
           </button>
         </div>
       )}
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', marginBottom: '20px' }}>
+      <div className="ac-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', marginBottom: '20px' }}>
         {[
           { label: 'إجمالي السلات', value: stats.total, icon: <ShoppingCart size={16} />, color: '#0f172a', light: '#f1f5f9' },
           { label: 'قيد الانتظار', value: stats.pending, icon: <AlertCircle size={16} />, color: '#d97706', light: '#fffbeb' },
@@ -589,12 +630,12 @@ export default function AbandonedCartsAdmin() {
       </div>
 
       {/* Filters */}
-      <div style={{ background: '#fff', borderRadius: '14px', padding: '12px 16px', marginBottom: '14px', display: 'flex', gap: '12px', alignItems: 'center', border: '1px solid #f1f5f9' }}>
+      <div className="ac-filters" style={{ background: '#fff', borderRadius: '14px', padding: '12px 16px', marginBottom: '14px', display: 'flex', gap: '12px', alignItems: 'center', border: '1px solid #f1f5f9' }}>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', borderRadius: '9px', padding: '8px 12px' }}>
           <Search size={15} color="#cbd5e1" />
           <input type="text" placeholder="بحث بالاسم، الإيميل، أو الموبايل..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: '0.96rem', color: '#334155' }} />
         </div>
-        <div style={{ display: 'flex', gap: '6px' }}>
+        <div className="ac-filters-chips" style={{ display: 'flex', gap: '6px' }}>
           {(['all', 'pending', 'recovered'] as const).map(f => (
             <button key={f} onClick={() => setFilter(f)} className="ac-chip" style={{ padding: '7px 14px', background: filter === f ? '#0f172a' : '#f1f5f9', color: filter === f ? '#fff' : '#64748b', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.15s' }}>
               {f === 'all' ? `الكل · ${stats.total}` : f === 'pending' ? `انتظار · ${stats.pending}` : `مسترجع · ${stats.recovered}`}
@@ -612,7 +653,7 @@ export default function AbandonedCartsAdmin() {
       ) : (
         <>
           <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', overflow: 'hidden', boxShadow: '0 1px 8px rgba(0,0,0,0.04)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.6fr 2.2fr 0.9fr 1.4fr 0.8fr 1.6fr', padding: '10px 18px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
+            <div className="ac-table-header" style={{ background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
               {['العميل', 'التواصل', 'المنتجات', 'الإجمالي', 'التوقيت', 'الحالة', 'إجراءات'].map((h, i) => (
                 <div key={i} style={{ fontSize: '0.78rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', paddingRight: i > 0 ? '10px' : 0 }}>{h}</div>
               ))}
@@ -625,7 +666,7 @@ export default function AbandonedCartsAdmin() {
 
               return (
                 <div key={cart.id} style={{ animation: `fadeUp 0.25s ease ${idx * 0.03}s both` }}>
-                  <div className="ac-row" style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.6fr 2.2fr 0.9fr 1.4fr 0.8fr 1.6fr', padding: '11px 18px', borderBottom: '1px solid #f8fafc', background: cart.recovered ? '#fafffe' : '#fff', alignItems: 'center', cursor: 'pointer', transition: 'background 0.15s' }}
+                  <div className="ac-row ac-table-row" style={{ borderBottom: '1px solid #f8fafc', background: cart.recovered ? '#fafffe' : '#fff', alignItems: 'center', cursor: 'pointer', transition: 'background 0.15s' }}
                     onClick={() => setExpandedCart(isExpanded ? null : cart.id)}>
 
                     {/* Customer */}
@@ -722,6 +763,76 @@ export default function AbandonedCartsAdmin() {
                         style={{ width: '30px', height: '30px', borderRadius: '8px', border: '1px solid #f1f5f9', background: isExpanded ? '#f0fdf4' : '#fff', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '900' }}>
                         {isExpanded ? '▲' : '▼'}
                       </button>
+                    </div>
+                  </div>
+
+                  {/* ── Mobile Card (shown only on small screens) ── */}
+                  <div className="ac-mobile-card" style={{ padding: '12px 14px', borderBottom: '1px solid #f8fafc', background: cart.recovered ? '#fafffe' : '#fff', cursor: 'pointer' }} onClick={() => setExpandedCart(isExpanded ? null : cart.id)}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                      {/* Avatar */}
+                      <div style={{ position: 'relative', flexShrink: 0 }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: cart.recovered ? '#dcfce7' : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <User size={16} color={cart.recovered ? '#15803d' : '#94a3b8'} />
+                        </div>
+                        {is24h && !cart.recovered && <div style={{ position: 'absolute', top: '-3px', right: '-3px', width: '10px', height: '10px', borderRadius: '50%', background: '#22c55e', border: '2px solid #fff' }} />}
+                      </div>
+                      {/* Info */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '0.95rem', fontWeight: '800', color: '#0f172a' }}>{cart.customer_name || 'غير محدد'}</span>
+                          <span style={{ fontSize: '1rem', fontWeight: '900', color: '#0f172a', flexShrink: 0 }}>{(cart.cart_total || 0).toFixed(0)} ج.م</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '3px', alignItems: 'center' }}>
+                          {cart.customer_phone && <span style={{ fontSize: '0.78rem', color: '#475569', direction: 'ltr' }}>{cart.customer_phone}</span>}
+                          {!cart.customer_phone && cart.customer_email && <span style={{ fontSize: '0.78rem', color: '#3b82f6', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }}>{cart.customer_email}</span>}
+                          <span style={{ fontSize: '0.74rem', fontWeight: '700', color: '#f59e0b' }}>{ts.relative}</span>
+                          {is24h && !cart.recovered && <span style={{ fontSize: '0.68rem', fontWeight: '800', color: '#15803d', background: '#dcfce7', padding: '1px 5px', borderRadius: '4px' }}>24س</span>}
+                          {cart._isDuplicate && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '0.65rem', fontWeight: '900', color: '#7c3aed', background: '#f5f3ff', border: '1px solid #ddd6fe', padding: '1px 5px', borderRadius: '5px' }}><RotateCcw size={8} /> {cart._returnCount}x</span>}
+                        </div>
+                        {/* Products */}
+                        <div style={{ marginTop: '5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ display: 'inline-block', padding: '1px 7px', background: '#f0fdf4', borderRadius: '5px', fontSize: '0.76rem', fontWeight: '800', color: '#15803d' }}>{cart.cart_items?.length || 0} منتج</span>
+                          {cart.cart_items?.[0] && <span style={{ fontSize: '0.78rem', color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>{cart.cart_items[0].name}</span>}
+                        </div>
+                        {/* Status + Actions */}
+                        <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '7px', fontSize: '0.76rem', fontWeight: '800', background: cart.recovered ? '#dcfce7' : '#fef3c7', color: cart.recovered ? '#15803d' : '#92400e' }}>
+                              {cart.recovered ? <CheckCircle size={10} /> : <Clock size={10} />}
+                              {cart.recovered ? 'تم' : 'قيد الانتظار'}
+                            </div>
+                            {cart.reminder_sent && <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', padding: '2px 6px', borderRadius: '5px', fontSize: '0.68rem', fontWeight: '800', background: '#f0fdf4', color: '#15803d' }}><MessageCircle size={9} /> تذكير</div>}
+                          </div>
+                          <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
+                            {!cart.recovered && cart.customer_email && (
+                              <button onClick={() => sendRecoveryEmail(cart.id)} disabled={sendingEmail === cart.id || cart.recovery_email_sent} className="ac-btn" title={cart.recovery_email_sent ? 'تم الإرسال' : 'إيميل'}
+                                style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: cart.recovery_email_sent ? '#dcfce7' : '#eff6ff', color: cart.recovery_email_sent ? '#15803d' : '#3b82f6', cursor: cart.recovery_email_sent ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                {sendingEmail === cart.id ? <RefreshCw size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Mail size={14} />}
+                              </button>
+                            )}
+                            {!cart.recovered && cart.customer_phone && (
+                              <button onClick={() => sendWhatsApp(cart)} className="ac-btn" title="واتساب"
+                                style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#f0fdf4', color: '#15803d', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Send size={14} />
+                              </button>
+                            )}
+                            {!cart.recovered && cart.customer_phone && (
+                              <button onClick={() => window.open(`tel:${cart.customer_phone}`, '_self')} className="ac-btn" title="اتصال"
+                                style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#eff6ff', color: '#6366f1', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Phone size={14} />
+                              </button>
+                            )}
+                            <button onClick={() => deleteCart(cart.id)} disabled={deletingCart === cart.id} className="ac-btn" title="حذف"
+                              style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#fff1f2', color: '#e11d48', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              {deletingCart === cart.id ? <RefreshCw size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />}
+                            </button>
+                            <button onClick={() => setExpandedCart(isExpanded ? null : cart.id)} className="ac-btn"
+                              style={{ width: '34px', height: '34px', borderRadius: '8px', border: '1px solid #f1f5f9', background: isExpanded ? '#f0fdf4' : '#fff', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '900' }}>
+                              {isExpanded ? '▲' : '▼'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
