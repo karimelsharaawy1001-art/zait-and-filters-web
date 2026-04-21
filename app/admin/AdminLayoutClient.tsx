@@ -5,27 +5,30 @@ import { usePathname } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
 
 type Props = { children: React.ReactNode };
-interface Badges { messages: number; orders: number; abandonedCarts: number; }
+interface Badges { messages: number; orders: number; abandonedCarts: number; pendingReviews: number; }
 
 export default function AdminLayoutClient({ children }: Props) {
   const pathname = usePathname();
-  const [badges, setBadges] = useState<Badges>({ messages: 0, orders: 0, abandonedCarts: 0 });
+  const [badges, setBadges] = useState<Badges>({ messages: 0, orders: 0, abandonedCarts: 0, pendingReviews: 0 });
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   async function fetchBadges() {
     try {
-      const [messagesRes, ordersRes, cartsRes] = await Promise.all([
+      const [messagesRes, ordersRes, cartsRes, reviewsRes] = await Promise.all([
         supabase.from('messages').select('id', { count: 'exact', head: true }).eq('is_read', false),
         supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('abandoned_carts').select('id', { count: 'exact', head: true })
           .eq('contacted', false)
           .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
+        supabase.from('product_reviews').select('id', { count: 'exact', head: true })
+          .eq('is_approved', false),
       ]);
       setBadges({
         messages: messagesRes.count ?? 0,
         orders: ordersRes.count ?? 0,
         abandonedCarts: cartsRes.count ?? 0,
+        pendingReviews: reviewsRes.count ?? 0,
       });
     } catch (err) { console.error('Badge fetch error:', err); }
   }
@@ -81,6 +84,7 @@ export default function AdminLayoutClient({ children }: Props) {
       items: [
         { name: 'السلات المتروكة', href: '/admin/abandoned-carts', icon: '🛒', badge: badges.abandonedCarts },
         { name: 'رسائل العملاء',   href: '/admin/messages',        icon: '💬', badge: badges.messages },
+        { name: 'التقييمات',       href: '/admin/reviews',         icon: '⭐', badge: badges.pendingReviews ?? 0 },
       ]
     },
   ];
