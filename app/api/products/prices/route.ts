@@ -1,4 +1,4 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
@@ -9,7 +9,7 @@ export async function POST(req: Request) {
       return NextResponse.json([]);
     }
 
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = createServerComponentClient({ cookies });
     const { data, error } = await supabase
       .from('products')
       .select('id, price')
