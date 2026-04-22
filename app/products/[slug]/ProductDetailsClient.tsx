@@ -20,15 +20,25 @@ import { useRef } from 'react';
 function getPurchaseCount(productId: string): number {
   if (!productId) return 47;
   const seed = productId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  // Base: 28–147 depending on product
-  const base = 28 + (seed % 120);
-  // Days since Jan 1 2025 — adds 1 purchase per day
-  const epoch = new Date('2025-01-01').getTime();
-  const daysElapsed = Math.floor((Date.now() - epoch) / (1000 * 60 * 60 * 24));
-  // Offset per product so not all products increase on the same day
-  const dayOffset = seed % 30;
-  const dailyGrowth = Math.max(0, daysElapsed - dayOffset);
-  return base + dailyGrowth;
+
+  // Wide base: 12–180 — gives very different starting points per product
+  const base = 12 + (seed % 169);
+
+  // Each product "started selling" at a different time: 6 to 29 months ago.
+  // Products with higher seed started selling longer ago → more purchases.
+  // Products with lower seed started more recently → fewer purchases.
+  const monthsBack = 6 + (seed % 24);           // 6–29 months of history
+  const daysAvailable = monthsBack * 30;
+
+  // Daily sales rate varies: 0.2 to 1.2 sales/day per product
+  const dailyRateX10 = 2 + (seed % 11);         // 2–12 → 0.2–1.2 per day
+  const historicalGrowth = Math.floor(daysAvailable * dailyRateX10 / 10);
+
+  // Add 1 more per day since Jan 1 2025 so the counter still ticks forward
+  const todayEpoch = new Date('2025-01-01').getTime();
+  const recentDays = Math.max(0, Math.floor((Date.now() - todayEpoch) / (1000 * 60 * 60 * 24)));
+
+  return base + historicalGrowth + recentDays;
 }
 
 function PurchaseCounter({ productId }: { productId: string }) {
