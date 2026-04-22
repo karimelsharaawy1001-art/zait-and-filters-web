@@ -798,7 +798,7 @@ export default function HomePage() {
                       بيثقوا فينا ليه؟
                     </h2>
                     <p style={{ color: '#64748b', fontSize: '1rem', fontWeight: '600', margin: 0 }}>
-                      أكتر من 500+ عميل سعيد بتجربته معانا
+                      أكتر من 2000+ عميل سعيد بتجربته معانا
                     </p>
                   </div>
 
