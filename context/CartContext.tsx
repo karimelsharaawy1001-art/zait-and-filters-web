@@ -1,11 +1,14 @@
 'use client';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+
 const CartContext = createContext<any>(null);
+
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [cart, setCart] = useState<any[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
+
 
   // 1. تحميل السلة من LocalStorage عند بدء التشغيل
   useEffect(() => {
@@ -20,12 +23,14 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     setIsInitialized(true);
   }, []);
 
+
   // 2. مزامنة أي تغيير في السلة مع LocalStorage فوراً
   useEffect(() => {
     if (isInitialized) {
       localStorage.setItem('zait_cart', JSON.stringify(cart));
     }
   }, [cart, isInitialized]);
+
 
   // 3. دالة الإضافة (تدعم استقبال كافة تفاصيل المنتج والكمية المطلوبة)
   const addToCart = (product: any, quantity: number = 1) => {
@@ -42,6 +47,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     });
   };
 
+
   // 4. دالة الحذف أو تقليل الكمية
   const removeFromCart = (productId: string, decreaseOnly: boolean = false) => {
     setCart((prev) => {
@@ -56,7 +62,18 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     });
   };
 
-  // 5. حساب الإجمالي النهائي (مع ضمان تحويل الأسعار لأرقام)
+
+  // 5. تحديث سعر منتج موجود في السلة (للمزامنة مع أحدث أسعار قاعدة البيانات)
+  const updateCartItemPrice = (productId: string, newPrice: number) => {
+    setCart((prev) =>
+      prev.map((item) =>
+        item.id === productId ? { ...item, price: newPrice } : item
+      )
+    );
+  };
+
+
+  // 6. حساب الإجمالي النهائي (مع ضمان تحويل الأسعار لأرقام)
   const getCartTotal = () => {
     return cart.reduce((sum, item) => {
       const price = parseFloat(item.price || 0);
@@ -65,15 +82,18 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }, 0);
   };
 
-  // 6. حساب عدد القطع في السلة (للأيقونة في الهيدر)
+
+  // 7. حساب عدد القطع في السلة (للأيقونة في الهيدر)
   const getCartCount = () => {
     return cart.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
   };
+
 
   const clearCart = () => {
     setCart([]);
     localStorage.removeItem('zait_cart');
   };
+
 
   return (
     <CartContext.Provider 
@@ -82,6 +102,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         cartItems: cart, // دعم للمسمى القديم لضمان عدم حدوث Error
         addToCart, 
         removeFromCart, 
+        updateCartItemPrice,
         getCartTotal, 
         getCartCount,
         clearCart, 
@@ -93,6 +114,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
@@ -102,6 +124,7 @@ export const useCart = () => {
       cartItems: [], 
       addToCart: () => {}, 
       removeFromCart: () => {}, 
+      updateCartItemPrice: () => {},
       getCartTotal: () => 0, 
       getCartCount: () => 0,
       clearCart: () => {},

@@ -2,9 +2,38 @@
 import { useCart } from '@/context/CartContext';
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Info, Car, Tag, Globe, Loader2, Calendar } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect } from 'react';
+import { createClient } from '@/utils/supabase/client';
+
 
 export default function CartPage() {
-  const { cart, addToCart, removeFromCart, getCartTotal, isInitialized } = useCart();
+  const { cart, addToCart, removeFromCart, getCartTotal, isInitialized, updateCartItemPrice } = useCart();
+
+  // Sync cart prices with latest DB prices on load
+  useEffect(() => {
+    if (!isInitialized || !cart || cart.length === 0) return;
+
+    const syncPrices = async () => {
+      const supabase = createClient();
+      const ids = cart.map((item: any) => item.id);
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, price')
+        .in('id', ids);
+
+      if (error || !data) return;
+
+      data.forEach((product: { id: string; price: number }) => {
+        const cartItem = cart.find((i: any) => i.id === product.id);
+        if (cartItem && parseFloat(cartItem.price) !== product.price) {
+          updateCartItemPrice(product.id, product.price);
+        }
+      });
+    };
+
+    syncPrices();
+  }, [isInitialized]);
+
 
   if (!isInitialized) {
     return (
@@ -15,6 +44,7 @@ export default function CartPage() {
     );
   }
 
+
   if (!cart || cart.length === 0) {
     return (
       <div style={emptyContainer}>
@@ -24,6 +54,7 @@ export default function CartPage() {
       </div>
     );
   }
+
 
   return (
     <>
@@ -36,12 +67,14 @@ export default function CartPage() {
           box-sizing: border-box;
         }
 
+
         .cart-grid {
           display: grid;
           grid-template-columns: 1fr 320px;
           gap: 20px;
           align-items: start;
         }
+
 
         .cart-item-row {
           display: flex;
@@ -55,6 +88,7 @@ export default function CartPage() {
           min-width: 0;
         }
 
+
         .item-main-info {
           flex: 1;
           display: flex;
@@ -64,6 +98,7 @@ export default function CartPage() {
           overflow: hidden;
         }
 
+
         .item-header-row {
           display: flex;
           justify-content: space-between;
@@ -71,6 +106,7 @@ export default function CartPage() {
           gap: 8px;
           flex-wrap: wrap;
         }
+
 
         .item-name {
           font-size: 0.95rem;
@@ -80,12 +116,14 @@ export default function CartPage() {
           word-break: break-word;
         }
 
+
         .price-text {
           font-size: 1rem;
           font-weight: 900;
           color: #27ae60;
           white-space: nowrap;
         }
+
 
         .cart-summary-card {
           background: #fff;
@@ -97,19 +135,23 @@ export default function CartPage() {
           box-sizing: border-box;
         }
 
+
         @media (max-width: 640px) {
           .cart-page-container {
             padding: 0 12px;
             margin: 12px auto;
           }
 
+
           .cart-grid {
             grid-template-columns: 1fr;
           }
 
+
           .cart-summary-card {
             position: static;
           }
+
 
           .cart-item-row {
             padding: 12px;
@@ -117,24 +159,29 @@ export default function CartPage() {
             border-radius: 14px;
           }
 
+
           .item-image-box {
             width: 80px !important;
             height: 80px !important;
             flex-shrink: 0;
           }
 
+
           .item-header-row {
             flex-direction: column;
             gap: 2px;
           }
 
+
           .price-text {
             font-size: 0.95rem;
           }
 
+
           .item-name {
             font-size: 0.88rem;
           }
+
 
           .footer-row {
             flex-wrap: wrap;
@@ -142,10 +189,12 @@ export default function CartPage() {
           }
         }
 
+
         @media (max-width: 380px) {
           .cart-page-container {
             padding: 0 8px;
           }
+
 
           .item-image-box {
             width: 65px !important;
@@ -154,8 +203,10 @@ export default function CartPage() {
         }
       `}</style>
 
+
       <div className="cart-page-container">
         <h1 style={title}>سلة المشتريات 🛒</h1>
+
 
         <div className="cart-grid">
           <div style={itemsSection}>
@@ -164,6 +215,7 @@ export default function CartPage() {
               const productImg = item.image_url || item.image || 'https://via.placeholder.com/150?text=No+Image';
               const origin = item.country_origin || item.country_of_origin || 'أصلي';
               const carYear = item.car_model_year || item.year || '';
+
 
               return (
                 <div key={item.id} className="cart-item-row">
@@ -174,11 +226,13 @@ export default function CartPage() {
                     <img src={productImg} alt={item.name} style={itemImage} />
                   </div>
 
+
                   <div className="item-main-info">
                     <div className="item-header-row">
                       <h3 className="item-name">{item.name}</h3>
                       <span className="price-text">{(itemPrice * item.quantity).toLocaleString()} ج.م</span>
                     </div>
+
 
                     <div style={specsWrapper}>
                       <div style={specEntry}>
@@ -194,6 +248,7 @@ export default function CartPage() {
                         <span>المنشأ: <b>{origin}</b></span>
                       </div>
                     </div>
+
 
                     <div className="footer-row" style={footerRow}>
                       <div style={qtyBox}>
@@ -211,6 +266,7 @@ export default function CartPage() {
             })}
           </div>
 
+
           <aside className="cart-summary-card">
             <h2 style={summaryTitle}>ملخص الحساب</h2>
             <div style={sumRow}><span>إجمالي المنتجات:</span> <b>{getCartTotal().toLocaleString()} ج.م</b></div>
@@ -226,6 +282,7 @@ export default function CartPage() {
     </>
   );
 }
+
 
 // --- Styles ---
 const title: any = { fontSize: '1.4rem', fontWeight: '900', marginBottom: '20px' };
