@@ -3,7 +3,6 @@ import { useCart } from '@/context/CartContext';
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Info, Car, Tag, Globe, Loader2, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect } from 'react';
-import { createClient } from '@/utils/supabase/client';
 
 
 export default function CartPage() {
@@ -14,21 +13,27 @@ export default function CartPage() {
     if (!isInitialized || !cart || cart.length === 0) return;
 
     const syncPrices = async () => {
-      const supabase = createClient();
-      const ids = cart.map((item: any) => item.id);
-      const { data, error } = await supabase
-        .from('products')
-        .select('id, price')
-        .in('id', ids);
+      try {
+        const ids = cart.map((item: any) => item.id);
+        const res = await fetch('/api/products/prices', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids }),
+        });
 
-      if (error || !data) return;
+        if (!res.ok) return;
 
-      data.forEach((product: { id: string; price: number }) => {
-        const cartItem = cart.find((i: any) => i.id === product.id);
-        if (cartItem && parseFloat(cartItem.price) !== product.price) {
-          updateCartItemPrice(product.id, product.price);
-        }
-      });
+        const data: { id: string; price: number }[] = await res.json();
+
+        data.forEach((product) => {
+          const cartItem = cart.find((i: any) => i.id === product.id);
+          if (cartItem && parseFloat(cartItem.price) !== product.price) {
+            updateCartItemPrice(product.id, product.price);
+          }
+        });
+      } catch (e) {
+        console.error('خطأ في مزامنة الأسعار:', e);
+      }
     };
 
     syncPrices();
