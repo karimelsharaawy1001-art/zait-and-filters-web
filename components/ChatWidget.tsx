@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 
+
 interface Product {
   id: string;
   name: string;
@@ -15,11 +16,13 @@ interface Product {
   link: string;
 }
 
+
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   products?: Product[];
 }
+
 
 const SUGGESTIONS = [
   'عايز أعرف حالة أوردري',
@@ -27,6 +30,7 @@ const SUGGESTIONS = [
   'ازاي أدفع؟',
   'بيتوصل لفين؟',
 ];
+
 
 // ── Render text with clickable URLs ──────────────────────────────────────────
 function renderContent(text: string) {
@@ -60,6 +64,7 @@ function renderContent(text: string) {
   });
 }
 
+
 // ── Product Card ──────────────────────────────────────────────────────────────
 function ProductCard({ product, index }: { product: Product; index: number }) {
   const hasDiscount = product.sale_price > 0 && product.sale_price < product.regular_price;
@@ -67,6 +72,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
   const discountPct = hasDiscount
     ? Math.round(((product.regular_price - product.sale_price) / product.regular_price) * 100)
     : 0;
+
 
   return (
     <a
@@ -129,6 +135,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
         </div>
       </div>
 
+
       {/* Tags */}
       <div style={{ display: 'flex', gap: '5px', marginTop: '9px', flexWrap: 'wrap' }}>
         {product.brand && (
@@ -158,6 +165,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
         )}
       </div>
 
+
       {/* Footer */}
       <div style={{
         marginTop: '9px', paddingTop: '9px',
@@ -182,6 +190,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
     </a>
   );
 }
+
 
 // ── Products List ─────────────────────────────────────────────────────────────
 function ProductsList({ products }: { products: Product[] }) {
@@ -218,6 +227,7 @@ function ProductsList({ products }: { products: Product[] }) {
   );
 }
 
+
 // ── Main Widget ───────────────────────────────────────────────────────────────
 export default function ChatWidget() {
   const [open, setOpen]         = useState(false);
@@ -233,23 +243,28 @@ export default function ChatWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef       = useRef<HTMLInputElement>(null);
 
+
   useEffect(() => {
     if (open) { setUnread(0); setTimeout(() => inputRef.current?.focus(), 100); }
   }, [open]);
+
 
   useEffect(() => {
     if (open) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, open]);
 
+
   async function sendMessage(text?: string) {
     const content = (text || input).trim();
     if (!content || loading) return;
+
 
     const userMsg: Message = { role: 'user', content };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput('');
     setLoading(true);
+
 
     try {
       const res = await fetch('/api/chat', {
@@ -263,6 +278,7 @@ export default function ChatWidget() {
       const reply    = data.reply    || 'معلش، حصل خطأ. جرب تاني.';
       const products = data.products || null;
 
+
       setMessages(prev => [...prev, { role: 'assistant', content: reply, products }]);
       if (!open) setUnread(prev => prev + 1);
     } catch {
@@ -275,9 +291,11 @@ export default function ChatWidget() {
     }
   }
 
+
   function handleKey(e: React.KeyboardEvent) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   }
+
 
   return (
     <>
@@ -297,6 +315,7 @@ export default function ChatWidget() {
         .zf-close:hover      { background: rgba(255,255,255,0.25) !important; }
         .zf-link:hover       { opacity: 0.8; }
 
+
         /* ✅ Mobile fix — raise above bottom nav bar */
         .zf-fab    { bottom: calc(env(safe-area-inset-bottom, 0px) + 80px) !important; }
         .zf-window { bottom: calc(env(safe-area-inset-bottom, 0px) + 80px) !important; }
@@ -306,13 +325,14 @@ export default function ChatWidget() {
         }
       `}</style>
 
+
       {/* ── Floating Button ── */}
       <div
         onClick={() => setOpen(true)}
         className="zf-fab"
         style={{
           display: open ? 'none' : 'flex',
-          position: 'fixed', bottom: '24px', left: '24px',
+          position: 'fixed', bottom: '24px', right: '24px',
           width: '60px', height: '60px',
           background: 'linear-gradient(135deg, #22c55e, #15803d)',
           borderRadius: '50%', cursor: 'pointer', zIndex: 9999,
@@ -331,12 +351,13 @@ export default function ChatWidget() {
         )}
       </div>
 
+
       {/* ── Chat Window ── */}
       {open && (
         <div
           className="zf-window"
           style={{
-            position: 'fixed', bottom: '24px', left: '24px', zIndex: 9999,
+            position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999,
             width: 'min(400px, calc(100vw - 32px))',
             height: 'min(620px, calc(100vh - 48px))',
             background: '#fff', borderRadius: '20px',
@@ -346,6 +367,7 @@ export default function ChatWidget() {
             direction: 'rtl', fontFamily: 'system-ui, -apple-system, sans-serif',
           }}
         >
+
 
           {/* Header */}
           <div style={{ background: 'linear-gradient(135deg, #15803d, #22c55e)', padding: '16px 18px', display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
@@ -369,6 +391,7 @@ export default function ChatWidget() {
             >✕</button>
           </div>
 
+
           {/* Messages */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px', background: '#f0fdf4' }}>
             {messages.map((msg, i) => (
@@ -391,6 +414,7 @@ export default function ChatWidget() {
                   </div>
                 </div>
 
+
                 {msg.role === 'assistant' && msg.products && msg.products.length > 0 && (
                   <div style={{ marginRight: '38px', marginTop: '6px' }}>
                     <ProductsList products={msg.products} />
@@ -398,6 +422,7 @@ export default function ChatWidget() {
                 )}
               </div>
             ))}
+
 
             {/* Loading dots */}
             {loading && (
@@ -415,6 +440,7 @@ export default function ChatWidget() {
             <div ref={messagesEndRef} />
           </div>
 
+
           {/* Quick suggestions */}
           {messages.length <= 1 && (
             <div style={{ padding: '10px 14px 0', background: '#fff', display: 'flex', gap: '6px', flexWrap: 'wrap', flexShrink: 0 }}>
@@ -426,6 +452,7 @@ export default function ChatWidget() {
               ))}
             </div>
           )}
+
 
           {/* Input */}
           <div style={{ padding: '12px 14px', background: '#fff', borderTop: '1px solid #f0f0f0', display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
