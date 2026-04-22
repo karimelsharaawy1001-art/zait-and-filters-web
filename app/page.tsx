@@ -20,6 +20,111 @@ const Select = dynamic(() => import('react-select'), {
 });
 
 
+// ─── Customer Reviews Data ────────────────────────────────────────────────────
+const ALL_REVIEWS = [
+  { name: 'طارق شوقي',     text: 'أخيرا لقينا موقع بيبيع قطع الغيار وبيقبل فاليو وشركات التقسيط عامة', rating: 5 },
+  { name: 'وليد منصور',    text: 'البوجيهات أصلية واستهلاك البنزين اتظبط عندي', rating: 5 },
+  { name: 'حسن فهمي',      text: 'أسعاركم أرخص من السوق والمنتجات مضمونة 100%', rating: 5 },
+  { name: 'MOHAMED HUSSIEN', text: 'تيل الفرامل ركبته ومفيش أي تصفير، جودة محترمة', rating: 5 },
+  { name: 'منى السيد',     text: 'زيت الفتيس فرق معايا جدا في النقلات، شكرا ليكم', rating: 5 },
+  { name: 'AHMED EZZAT',   text: 'السعر غالي شوية بس الجودة كويسة', rating: 4 },
+  { name: 'شادي علي',      text: 'أحسن موقع أشتري منه قطع غيار، أسعاركم ممتازة', rating: 5 },
+  { name: 'ALI MABROUK',   text: 'شكرًا ليكم على السرعة والاهتمام، التجربة كانت ممتازة', rating: 5 },
+  { name: 'إبراهيم رمضان', text: 'خدمة ممتازة والموقع سهل لأي حد يطلب منه', rating: 5 },
+  { name: 'عمر رضوان',     text: 'الأسعار مناسبة جدًا مقابل الجودة', rating: 5 },
+  { name: 'محمود سالم',    text: 'المنتجات أصلية وواضح فيها فرق الجودة', rating: 5 },
+  { name: 'SHERIF HASSAN', text: 'من أفضل المواقع اللي اتعاملت معاها في قطع الغيار', rating: 5 },
+  { name: 'دعاء يوسف',     text: 'شكرًا على المصداقية والالتزام في كل التفاصيل', rating: 5 },
+  { name: 'KARIM ELALFY',  text: 'الموقع وفر عليا وقت كبير بدل النزول واللف', rating: 5 },
+  { name: 'عمر سالم',      text: 'التعامل كان محترم من بداية الطلب للنهاية', rating: 5 },
+  { name: 'سامح رضوان',    text: 'الموقع ممتاز للناس اللي بتدور على جودة وثقة', rating: 5 },
+];
+const REVIEWS_ROW1 = ALL_REVIEWS.slice(0, 8);
+const REVIEWS_ROW2 = ALL_REVIEWS.slice(8);
+
+// Avatar color palette — assigns a consistent color per name
+const AVATAR_COLORS = ['#16a34a','#0284c7','#7c3aed','#db2777','#d97706','#0891b2','#dc2626','#65a30d'];
+function avatarColor(name: string) {
+  const seed = name.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  return AVATAR_COLORS[seed % AVATAR_COLORS.length];
+}
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function StarRow({ rating }: { rating: number }) {
+  return (
+    <div style={{ display: 'flex', gap: '2px' }}>
+      {[1,2,3,4,5].map(i => (
+        <svg key={i} width="13" height="13" viewBox="0 0 24 24" fill={i <= rating ? '#f59e0b' : '#e2e8f0'}>
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
+      ))}
+    </div>
+  );
+}
+
+function ReviewCard({ r }: { r: typeof ALL_REVIEWS[0] }) {
+  const bg = avatarColor(r.name);
+  return (
+    <div style={{
+      flexShrink: 0,
+      width: '290px',
+      margin: '0 8px',
+      background: '#fff',
+      border: '1px solid #f1f5f9',
+      borderRadius: '18px',
+      padding: '18px 20px',
+      boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '10px',
+      direction: 'rtl',
+    }}>
+      {/* Stars */}
+      <StarRow rating={r.rating} />
+      {/* Review text */}
+      <p style={{
+        fontSize: '0.88rem',
+        color: '#334155',
+        lineHeight: '1.6',
+        fontWeight: '600',
+        margin: 0,
+        flex: 1,
+      }}>
+        "{r.text}"
+      </p>
+      {/* Author */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{
+          width: '34px',
+          height: '34px',
+          borderRadius: '50%',
+          background: bg,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          fontSize: '0.72rem',
+          fontWeight: '900',
+          color: '#fff',
+          letterSpacing: '0.5px',
+        }}>
+          {initials(r.name)}
+        </div>
+        <div>
+          <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#0f172a', lineHeight: 1.2 }}>{r.name}</div>
+          <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '600', marginTop: '1px' }}>عميل موثق ✓</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+
 // Optimized Scroll Reveal Component
 function ScrollReveal({ children, delay = 0, direction = 'up' }: { children: React.ReactNode; delay?: number; direction?: 'up' | 'down' | 'left' | 'right' }) {
   const ref = useRef(null);
@@ -107,12 +212,10 @@ function SearchCard({
     </>
   );
 }
-// ─────────────────────────────────────────────────────────────────────────────
 
 
 // ─── Wheel Arc Card Carousel ─────────────────────────────────────────────────
 function CategoriesCarousel3D({ categories }: { categories: any[] }) {
-  // Continuous float offset — enables smooth wheel spin (not just 1-step jumps)
   const liveAngle   = useRef(0);
   const [tick, setTick] = useState(0);
   const isDragging  = useRef(false);
@@ -127,24 +230,21 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
 
   const CARD_W    = 190;
   const CARD_H    = 245;
-  const SEG_DEG   = 33;   // degrees per category on the wheel
-  const PX_PER_DEG = 3.2; // drag sensitivity
+  const SEG_DEG   = 33;
+  const PX_PER_DEG = 3.2;
 
-  // Arc positioning from fractional offset n (can be decimal during drag)
-  // x: linear spread, y: quadratic drop → parabola = arc/wheel shape
   const getPos = (n: number) => {
     const abs = Math.abs(n);
     return {
-      x:     n * 193,              // horizontal spread
-      y:     n * n * 30,           // quadratic drop = arc curve
-      ry:    n * 23,               // Y-rotation follows arc tangent
+      x:     n * 193,
+      y:     n * n * 30,
+      ry:    n * 23,
       scale: Math.max(0.52, 1 - abs * 0.148),
       op:    Math.max(0.10, 1 - abs * 0.26),
       br:    Math.max(0.28, 1 - abs * 0.34),
     };
   };
 
-  // Smooth snap via RAF cubic ease-out
   const snapTo = (targetDeg: number) => {
     if (snapRaf.current !== undefined) cancelAnimationFrame(snapRaf.current);
     const from = liveAngle.current;
@@ -161,7 +261,6 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
     snapRaf.current = requestAnimationFrame(step);
   };
 
-  // Window-level pointer listeners — fire even when finger is over a card
   useEffect(() => {
     const scheduleRender = () => {
       if (renderRaf.current !== undefined) return;
@@ -211,135 +310,55 @@ function CategoriesCarousel3D({ categories }: { categories: any[] }) {
 
   const activeIdx = ((Math.round(liveAngle.current / SEG_DEG) % total) + total) % total;
 
-  // Compute fractional offset per card with wrapping
   const cards = categories.map((cat, i) => {
-    let n = (i * SEG_DEG - liveAngle.current) / SEG_DEG; // fractional offset
+    let n = (i * SEG_DEG - liveAngle.current) / SEG_DEG;
     const half = total / 2;
     while (n >  half) n -= total;
     while (n < -half) n += total;
     return { cat, i, n };
   })
   .filter(c => Math.abs(c.n) < 3.6)
-  .sort((a, b) => Math.abs(b.n) - Math.abs(a.n)); // paint far cards first
+  .sort((a, b) => Math.abs(b.n) - Math.abs(a.n));
 
   return (
     <div style={{ width: '100%', overflow: 'hidden', padding: '5px 0 16px', touchAction: 'pan-y' }}>
-
       <div
-        style={{
-          perspective: '820px',
-          perspectiveOrigin: '50% 8%',   // slight bird's-eye → arc curve visible
-          width: '100%',
-          height: '345px',
-          position: 'relative',
-          cursor: isDragging.current ? 'grabbing' : 'grab',
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-        }}
+        style={{ perspective: '820px', perspectiveOrigin: '50% 8%', width: '100%', height: '345px', position: 'relative', cursor: isDragging.current ? 'grabbing' : 'grab', userSelect: 'none', WebkitUserSelect: 'none' }}
         onPointerDown={onPointerDown}
       >
-        {/* Edge faders */}
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 50, pointerEvents: 'none',
-          background: 'linear-gradient(to right, #fdfdfd 0%, transparent 20%, transparent 80%, #fdfdfd 100%)',
-        }} />
-
+        <div style={{ position: 'absolute', inset: 0, zIndex: 50, pointerEvents: 'none', background: 'linear-gradient(to right, #fdfdfd 0%, transparent 20%, transparent 80%, #fdfdfd 100%)' }} />
         {cards.map(({ cat, i, n }) => {
           const p        = getPos(n);
           const abs      = Math.abs(n);
           const isCenter = abs < 0.5;
-
           return (
-            <div
-              key={i}
-              onClick={() => {
-                if (isDragging.current) return;
-                if (isCenter) {
-                  window.location.href = `/categories/${encodeURIComponent(cat.name)}`;
-                } else {
-                  snapTo(i * SEG_DEG);
-                }
-              }}
-              style={{
-                position: 'absolute',
-                left: '50%',
-                top: '18px',
-                width: `${CARD_W}px`,
-                height: `${CARD_H}px`,
-                marginLeft: `${-CARD_W / 2}px`,
-                borderRadius: '16px',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                zIndex: Math.round(10 - abs),
-                opacity: p.op,
-                transform: `translateX(${p.x}px) translateY(${p.y}px) rotateY(${p.ry}deg) scale(${p.scale})`,
-                // No transition while dragging (instant follow), smooth snap on release
-                transition: isDragging.current
-                  ? 'none'
-                  : 'transform 0.55s cubic-bezier(0.34, 1.08, 0.64, 1), opacity 0.4s ease, filter 0.4s ease, box-shadow 0.4s ease',
-                filter: `brightness(${p.br})`,
-                boxShadow: isCenter
-                  ? '0 28px 65px rgba(0,0,0,0.42), 0 0 0 3px #22c55e'
-                  : '0 5px 18px rgba(0,0,0,0.16)',
-                willChange: 'transform',
-              }}
-            >
-              {/* Photo */}
-              <img
-                src={cat.image}
-                alt={cat.name}
-                draggable={false}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
-              />
-              {/* Dark overlay */}
-              <div style={{
-                position: 'absolute', inset: 0, pointerEvents: 'none',
-                background: isCenter
-                  ? 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.15) 55%, transparent 100%)'
-                  : 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.52) 100%)',
-              }} />
-              {/* Name */}
+            <div key={i} onClick={() => { if (isDragging.current) return; if (isCenter) { window.location.href = `/categories/${encodeURIComponent(cat.name)}`; } else { snapTo(i * SEG_DEG); } }}
+              style={{ position: 'absolute', left: '50%', top: '18px', width: `${CARD_W}px`, height: `${CARD_H}px`, marginLeft: `${-CARD_W / 2}px`, borderRadius: '16px', overflow: 'hidden', cursor: 'pointer', zIndex: Math.round(10 - abs), opacity: p.op, transform: `translateX(${p.x}px) translateY(${p.y}px) rotateY(${p.ry}deg) scale(${p.scale})`, transition: isDragging.current ? 'none' : 'transform 0.55s cubic-bezier(0.34, 1.08, 0.64, 1), opacity 0.4s ease, filter 0.4s ease, box-shadow 0.4s ease', filter: `brightness(${p.br})`, boxShadow: isCenter ? '0 28px 65px rgba(0,0,0,0.42), 0 0 0 3px #22c55e' : '0 5px 18px rgba(0,0,0,0.16)', willChange: 'transform' }}>
+              <img src={cat.image} alt={cat.name} draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: isCenter ? 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.15) 55%, transparent 100%)' : 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.52) 100%)' }} />
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 10px 13px', textAlign: 'center', pointerEvents: 'none' }}>
-                <span style={{
-                  color: '#fff', fontWeight: 900, display: 'block', lineHeight: 1.3,
-                  fontSize: isCenter ? '1.05rem' : '0.82rem',
-                  textShadow: '0 2px 8px rgba(0,0,0,1)',
-                }}>
-                  {cat.name}
-                </span>
+                <span style={{ color: '#fff', fontWeight: 900, display: 'block', lineHeight: 1.3, fontSize: isCenter ? '1.05rem' : '0.82rem', textShadow: '0 2px 8px rgba(0,0,0,1)' }}>{cat.name}</span>
               </div>
             </div>
           );
         })}
       </div>
-
-      {/* Navigation dots — hidden on mobile */}
-      <div className="wheel-carousel-nav" style={{
-        display: 'flex', justifyContent: 'center', alignItems: 'center',
-        gap: '16px', marginTop: '8px', position: 'relative', zIndex: 30,
-      }}>
-        <button onClick={() => snapTo(((Math.round(liveAngle.current / SEG_DEG) + 1) % total) * SEG_DEG)}
-          style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #e5e7eb', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+      <div className="wheel-carousel-nav" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', marginTop: '8px', position: 'relative', zIndex: 30 }}>
+        <button onClick={() => snapTo(((Math.round(liveAngle.current / SEG_DEG) + 1) % total) * SEG_DEG)} style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #e5e7eb', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
           <ChevronRight size={18} color="#1a1a1a" />
         </button>
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
           {categories.map((_, idx) => (
-            <button key={idx} onClick={() => snapTo(idx * SEG_DEG)} style={{
-              width: idx === activeIdx ? '22px' : '8px', height: '8px', borderRadius: '4px',
-              background: idx === activeIdx ? '#22c55e' : '#d1d5db',
-              border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.3s ease',
-            }} />
+            <button key={idx} onClick={() => snapTo(idx * SEG_DEG)} style={{ width: idx === activeIdx ? '22px' : '8px', height: '8px', borderRadius: '4px', background: idx === activeIdx ? '#22c55e' : '#d1d5db', border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.3s ease' }} />
           ))}
         </div>
-        <button onClick={() => snapTo(((Math.round(liveAngle.current / SEG_DEG) - 1 + total) % total) * SEG_DEG)}
-          style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #e5e7eb', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+        <button onClick={() => snapTo(((Math.round(liveAngle.current / SEG_DEG) - 1 + total) % total) * SEG_DEG)} style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #e5e7eb', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
           <ChevronLeft size={18} color="#1a1a1a" />
         </button>
       </div>
     </div>
   );
 }
-// ─────────────────────────────────────────────────────────────────────────────
 
 
 export default function HomePage() {
@@ -433,10 +452,7 @@ export default function HomePage() {
 
       const [allProductsRes, saleProductsRes] = await Promise.all([
         supabase.from('products').select('*').order('created_at', { ascending: false }),
-        supabase.from('products')
-          .select('*')
-          .gt('sale_price', 0)
-          .order('sale_order', { ascending: true, nullsFirst: false }),
+        supabase.from('products').select('*').gt('sale_price', 0).order('sale_order', { ascending: true, nullsFirst: false }),
       ]);
 
       if (allProductsRes.error) console.error('Products fetch error:', allProductsRes.error);
@@ -586,6 +602,10 @@ export default function HomePage() {
             50%       { box-shadow: 0 0 14px 5px rgba(255,200,0,0.75), 0 2px 8px rgba(0,0,0,0.25); }
           }
 
+          /* ── Reviews marquee ── */
+          @keyframes reviewsMarquee1 { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+          @keyframes reviewsMarquee2 { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
+
           .badge-asli {
             position: absolute; top: 8px; left: 8px;
             background: linear-gradient(120deg, #b8860b 0%, #ffd700 25%, #fffacd 50%, #ffd700 75%, #b8860b 100%);
@@ -598,157 +618,53 @@ export default function HomePage() {
 
           .page-container { animation: pageLoad 0.4s ease-out; }
 
-          .hero-section {
-            position: relative;
-            width: 100%;
-            background: #000;
-            overflow: hidden;
-          }
-
-          .hero-bg-layer {
-            position: absolute; inset: 0; z-index: 0;
-            pointer-events: none; transform: translateZ(0);
-          }
-          .hero-bg-slide {
-            position: absolute; inset: 0; background-size: cover;
-            background-position: center; opacity: 0;
-            transition: opacity 0.8s ease-in-out; will-change: opacity;
-          }
+          .hero-section { position: relative; width: 100%; background: #000; overflow: hidden; }
+          .hero-bg-layer { position: absolute; inset: 0; z-index: 0; pointer-events: none; transform: translateZ(0); }
+          .hero-bg-slide { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 0.8s ease-in-out; will-change: opacity; }
           .hero-bg-slide.active { opacity: 1; }
 
           @media (min-width: 769px) {
             .hero-section { height: 650px; }
-            .hero-content-layer {
-              position: absolute; inset: 0; z-index: 10;
-              display: flex; align-items: center;
-            }
-            .hero-inner {
-              width: 100%; max-width: 1300px; margin: 0 auto;
-              padding: 40px 50px;
-              display: flex; flex-direction: row;
-              gap: 60px;
-              align-items: center;
-              justify-content: space-between;
-              direction: rtl;
-            }
-            .hero-text {
-              flex: 1; direction: rtl; text-align: right;
-              display: flex; flex-direction: column; align-items: flex-end;
-              animation: slideIn 0.6s ease-out 0.15s both;
-            }
+            .hero-content-layer { position: absolute; inset: 0; z-index: 10; display: flex; align-items: center; }
+            .hero-inner { width: 100%; max-width: 1300px; margin: 0 auto; padding: 40px 50px; display: flex; flex-direction: row; gap: 60px; align-items: center; justify-content: space-between; direction: rtl; }
+            .hero-text { flex: 1; direction: rtl; text-align: right; display: flex; flex-direction: column; align-items: flex-end; animation: slideIn 0.6s ease-out 0.15s both; }
             .hero-text-title { width: 100%; }
-            .hero-text h1 {
-              font-size: 5rem !important; font-weight: 900 !important;
-              line-height: 1.2 !important; margin: 0 0 22px 0 !important;
-              color: #22c55e !important; direction: rtl !important; text-align: right !important;
-              text-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 4px 24px rgba(0,0,0,0.9), 0 0 60px rgba(0,0,0,0.6) !important;
-              letter-spacing: -1.5px !important; width: 100% !important; display: block !important;
-            }
-            .hero-text p {
-              font-size: 1.45rem !important; font-weight: 700 !important;
-              line-height: 1.7 !important; color: #fff !important;
-              direction: rtl !important; text-align: right !important;
-              text-shadow: 0 2px 16px rgba(0,0,0,0.95) !important;
-              margin: 0 0 36px 0 !important; max-width: 580px !important;
-              display: block !important; width: 100% !important;
-            }
-            .hero-cta-btn {
-              display: inline-flex !important; align-items: center !important;
-              justify-content: center !important; gap: 12px !important;
-              padding: 20px 56px !important; background-color: #22c55e !important;
-              color: #fff !important; border-radius: 18px !important;
-              text-decoration: none !important; font-weight: 900 !important;
-              font-size: 1.35rem !important; letter-spacing: -0.3px !important;
-              box-shadow: 0 10px 40px rgba(34,197,94,0.55) !important;
-              transition: all 0.25s ease !important; white-space: nowrap !important;
-              align-self: flex-end !important;
-            }
-            .hero-cta-btn:hover {
-              background-color: #16a34a !important; transform: translateY(-3px) !important;
-              box-shadow: 0 16px 50px rgba(34,197,94,0.65) !important;
-            }
-            .hero-card-desktop {
-              width: 400px; flex-shrink: 0; background: #fff;
-              padding: 30px; border-radius: 30px;
-              box-shadow: 0 20px 50px rgba(0,0,0,0.35);
-              animation: slideUp 0.6s ease-out 0.25s both;
-              align-self: center;
-            }
+            .hero-text h1 { font-size: 5rem !important; font-weight: 900 !important; line-height: 1.2 !important; margin: 0 0 22px 0 !important; color: #22c55e !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 4px 24px rgba(0,0,0,0.9), 0 0 60px rgba(0,0,0,0.6) !important; letter-spacing: -1.5px !important; width: 100% !important; display: block !important; }
+            .hero-text p { font-size: 1.45rem !important; font-weight: 700 !important; line-height: 1.7 !important; color: #fff !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 16px rgba(0,0,0,0.95) !important; margin: 0 0 36px 0 !important; max-width: 580px !important; display: block !important; width: 100% !important; }
+            .hero-cta-btn { display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 12px !important; padding: 20px 56px !important; background-color: #22c55e !important; color: #fff !important; border-radius: 18px !important; text-decoration: none !important; font-weight: 900 !important; font-size: 1.35rem !important; letter-spacing: -0.3px !important; box-shadow: 0 10px 40px rgba(34,197,94,0.55) !important; transition: all 0.25s ease !important; white-space: nowrap !important; align-self: flex-end !important; }
+            .hero-cta-btn:hover { background-color: #16a34a !important; transform: translateY(-3px) !important; box-shadow: 0 16px 50px rgba(34,197,94,0.65) !important; }
+            .hero-card-desktop { width: 400px; flex-shrink: 0; background: #fff; padding: 30px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.35); animation: slideUp 0.6s ease-out 0.25s both; align-self: center; }
             .hero-card-mobile { display: none; }
           }
 
           @media (max-width: 768px) {
             .hero-section { height: 980px; }
-            .hero-content-layer {
-              position: absolute; inset: 0; z-index: 10;
-              display: flex; align-items: flex-start; padding-top: 100px;
-            }
-            .hero-inner {
-              width: 100%; padding: 0 18px; box-sizing: border-box;
-              display: flex; flex-direction: column; gap: 36px; direction: rtl;
-            }
-            .hero-text {
-              direction: rtl; text-align: right;
-              display: flex; flex-direction: column; align-items: flex-end; width: 100%;
-            }
+            .hero-content-layer { position: absolute; inset: 0; z-index: 10; display: flex; align-items: flex-start; padding-top: 100px; }
+            .hero-inner { width: 100%; padding: 0 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 36px; direction: rtl; }
+            .hero-text { direction: rtl; text-align: right; display: flex; flex-direction: column; align-items: flex-end; width: 100%; }
             .hero-text-title { width: 100%; }
-            .hero-text h1 {
-              font-size: 2.8rem !important; font-weight: 900 !important;
-              line-height: 1.3 !important; margin: 0 0 18px 0 !important;
-              color: #22c55e !important; direction: rtl !important; text-align: right !important;
-              text-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 4px 20px rgba(0,0,0,0.98), 0 0 40px rgba(0,0,0,0.8) !important;
-              letter-spacing: -0.5px !important; width: 100% !important; display: block !important;
-            }
-            .hero-text p {
-              font-size: 1.2rem !important; font-weight: 700 !important;
-              line-height: 1.7 !important; color: #fff !important;
-              direction: rtl !important; text-align: right !important;
-              text-shadow: 0 2px 14px rgba(0,0,0,0.98) !important;
-              margin: 0 0 28px 0 !important; width: 100% !important; display: block !important;
-            }
-            .hero-cta-btn {
-              display: flex !important; align-items: center !important;
-              justify-content: center !important; gap: 10px !important;
-              width: 100% !important; padding: 20px 24px !important;
-              background-color: #22c55e !important; color: #fff !important;
-              border-radius: 16px !important; text-decoration: none !important;
-              font-weight: 900 !important; font-size: 1.25rem !important;
-              box-shadow: 0 8px 28px rgba(34,197,94,0.45) !important;
-            }
+            .hero-text h1 { font-size: 2.8rem !important; font-weight: 900 !important; line-height: 1.3 !important; margin: 0 0 18px 0 !important; color: #22c55e !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 4px 20px rgba(0,0,0,0.98), 0 0 40px rgba(0,0,0,0.8) !important; letter-spacing: -0.5px !important; width: 100% !important; display: block !important; }
+            .hero-text p { font-size: 1.2rem !important; font-weight: 700 !important; line-height: 1.7 !important; color: #fff !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 14px rgba(0,0,0,0.98) !important; margin: 0 0 28px 0 !important; width: 100% !important; display: block !important; }
+            .hero-cta-btn { display: flex !important; align-items: center !important; justify-content: center !important; gap: 10px !important; width: 100% !important; padding: 20px 24px !important; background-color: #22c55e !important; color: #fff !important; border-radius: 16px !important; text-decoration: none !important; font-weight: 900 !important; font-size: 1.25rem !important; box-shadow: 0 8px 28px rgba(34,197,94,0.45) !important; }
             .hero-card-desktop { display: none; }
-            .hero-card-mobile {
-              width: 100%; box-sizing: border-box; background: #fff;
-              padding: 18px 16px 20px; border-radius: 22px;
-              box-shadow: 0 12px 36px rgba(0,0,0,0.3);
-            }
-
-            /* Hide wheel navigation on mobile */
+            .hero-card-mobile { width: 100%; box-sizing: border-box; background: #fff; padding: 18px 16px 20px; border-radius: 22px; box-shadow: 0 12px 36px rgba(0,0,0,0.3); }
             .wheel-carousel-nav { display: none !important; }
           }
 
           @media (max-width: 380px) {
-            .hero-section       { height: 1020px; }
+            .hero-section { height: 1020px; }
             .hero-content-layer { padding-top: 80px; }
-            .hero-inner         { gap: 28px; }
-            .hero-text h1       { font-size: 2.3rem !important; }
-            .hero-text p        { font-size: 1.05rem !important; }
-            .hero-cta-btn       { font-size: 1.1rem !important; padding: 17px 20px !important; }
+            .hero-inner { gap: 28px; }
+            .hero-text h1 { font-size: 2.3rem !important; }
+            .hero-text p { font-size: 1.05rem !important; }
+            .hero-cta-btn { font-size: 1.1rem !important; padding: 17px 20px !important; }
           }
 
           .no-scrollbar::-webkit-scrollbar { display: none; }
           .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-          .product-grid-carousel { 
-            display: flex !important; flex-wrap: nowrap !important; gap: 15px; 
-            overflow-x: auto !important; scroll-snap-type: x mandatory; 
-            padding: 10px 20px; -webkit-overflow-scrolling: touch; 
-          }
-          .product-card-mdrn { 
-            flex: 0 0 320px !important; min-width: 320px !important; max-width: 320px !important; 
-            background: #fff; border-radius: 18px; border: 1px solid #f2f2f2; 
-            transition: all 0.3s ease; position: relative; display: flex; 
-            flex-direction: column; overflow: hidden; scroll-snap-align: start; 
-          }
+          .product-grid-carousel { display: flex !important; flex-wrap: nowrap !important; gap: 15px; overflow-x: auto !important; scroll-snap-type: x mandatory; padding: 10px 20px; -webkit-overflow-scrolling: touch; }
+          .product-card-mdrn { flex: 0 0 320px !important; min-width: 320px !important; max-width: 320px !important; background: #fff; border-radius: 18px; border: 1px solid #f2f2f2; transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; overflow: hidden; scroll-snap-align: start; }
           .product-card-mdrn:hover { transform: translateY(-6px); border-color: #22c55e; box-shadow: 0 10px 30px rgba(34,197,94,0.15); }
           .img-container { background: #f9f9f9; height: 200px; width: 100%; position: relative; cursor: pointer; overflow: hidden; }
           .img-fill-100  { width: 100%; height: 200px; object-fit: contain; padding: 0; display: block; transition: transform 0.3s ease; }
@@ -760,36 +676,18 @@ export default function HomePage() {
           .logo-img-v3     { max-width: 130px; max-height: 60px; filter: grayscale(100%); opacity: 0.5; transition: 0.3s; }
           .logo-img-v3:hover { filter: grayscale(0%); opacity: 1; transform: scale(1.1); }
 
-          .features-strip {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
-            align-items: center;
-            padding: 20px 0;
-          }
-          .feature-item {
-            display: flex; align-items: center; gap: 14px;
-            padding: 12px 16px; justify-content: center;
-          }
-          .feature-icon-wrap {
-            width: 52px; height: 52px; border-radius: 14px;
-            background: #f0fdf4; display: flex; align-items: center;
-            justify-content: center; flex-shrink: 0;
-          }
+          .features-strip { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr; align-items: center; padding: 20px 0; }
+          .feature-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px; justify-content: center; }
+          .feature-icon-wrap { width: 52px; height: 52px; border-radius: 14px; background: #f0fdf4; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
           .feature-text { display: flex; flex-direction: column; gap: 2px; }
           .feature-title { font-size: 0.88rem; font-weight: 900; color: #1a1a1a; line-height: 1.3; }
           .feature-sub   { font-size: 0.75rem; font-weight: 600; color: #888; line-height: 1.3; }
           .feature-divider { width: 1px; height: 48px; background: #f0f0f0; flex-shrink: 0; }
 
           @media (max-width: 768px) {
-            .features-strip {
-              grid-template-columns: 1fr 1fr;
-              gap: 0; padding: 8px 0;
-            }
+            .features-strip { grid-template-columns: 1fr 1fr; gap: 0; padding: 8px 0; }
             .feature-divider { display: none; }
-            .feature-item {
-              padding: 14px 10px; border-bottom: 1px solid #f5f5f5;
-              justify-content: flex-start;
-            }
+            .feature-item { padding: 14px 10px; border-bottom: 1px solid #f5f5f5; justify-content: flex-start; }
             .feature-item:nth-child(odd)  { border-right: 1px solid #f5f5f5; }
             .feature-item:nth-last-child(-n+2) { border-bottom: none; }
             .feature-icon-wrap { width: 42px; height: 42px; border-radius: 11px; }
@@ -798,38 +696,15 @@ export default function HomePage() {
           }
 
           .home-banner-section { max-width: 1200px; margin: 0 auto; padding: 16px 20px; }
-          .home-banner-inner {
-            position: relative; width: 100%; height: 260px; border-radius: 20px;
-            overflow: hidden; cursor: pointer;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-          }
+          .home-banner-inner { position: relative; width: 100%; height: 260px; border-radius: 20px; overflow: hidden; cursor: pointer; box-shadow: 0 8px 30px rgba(0,0,0,0.15); transition: transform 0.3s ease, box-shadow 0.3s ease; }
           .home-banner-inner:hover { transform: translateY(-3px); box-shadow: 0 16px 44px rgba(0,0,0,0.22); }
           .home-banner-bg  { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
           .home-banner-overlay { position: absolute; inset: 0; background: linear-gradient(to left, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.82) 60%, rgba(0,0,0,0.88) 100%); }
-          .home-banner-content {
-            position: absolute; inset: 0;
-            display: flex; align-items: center; justify-content: flex-start;
-            padding: 0 48px; direction: rtl;
-          }
+          .home-banner-content { position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-start; padding: 0 48px; direction: rtl; }
           .home-banner-text-block { text-align: right; max-width: 72%; }
-          .home-banner-title {
-            color: #fff; font-size: 3.2rem; font-weight: 900; line-height: 1.15;
-            text-shadow: 0 4px 24px rgba(0,0,0,0.9), 0 2px 0 rgba(0,0,0,0.6); margin: 0 0 12px;
-            letter-spacing: -1.5px;
-          }
-          .home-banner-subtitle {
-            color: rgba(255,255,255,0.97); font-size: 1.35rem; font-weight: 700;
-            text-shadow: 0 2px 14px rgba(0,0,0,0.85); margin: 0 0 22px; line-height: 1.5;
-          }
-          .home-banner-cta {
-            display: inline-flex; align-items: center; gap: 7px;
-            background: #22c55e; color: #fff; padding: 13px 28px; border-radius: 12px;
-            font-size: 1.05rem; font-weight: 900; text-decoration: none;
-            box-shadow: 0 4px 16px rgba(34,197,94,0.45);
-            transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-            border: none; cursor: pointer; white-space: nowrap;
-          }
+          .home-banner-title { color: #fff; font-size: 3.2rem; font-weight: 900; line-height: 1.15; text-shadow: 0 4px 24px rgba(0,0,0,0.9), 0 2px 0 rgba(0,0,0,0.6); margin: 0 0 12px; letter-spacing: -1.5px; }
+          .home-banner-subtitle { color: rgba(255,255,255,0.97); font-size: 1.35rem; font-weight: 700; text-shadow: 0 2px 14px rgba(0,0,0,0.85); margin: 0 0 22px; line-height: 1.5; }
+          .home-banner-cta { display: inline-flex; align-items: center; gap: 7px; background: #22c55e; color: #fff; padding: 13px 28px; border-radius: 12px; font-size: 1.05rem; font-weight: 900; text-decoration: none; box-shadow: 0 4px 16px rgba(34,197,94,0.45); transition: background 0.2s, transform 0.2s, box-shadow 0.2s; border: none; cursor: pointer; white-space: nowrap; }
           .home-banner-cta:hover { background: #16a34a; transform: translateY(-1px); box-shadow: 0 6px 22px rgba(34,197,94,0.55); }
 
           @media (max-width: 768px) {
@@ -853,11 +728,8 @@ export default function HomePage() {
           }
 
           @media (max-width: 768px) {
-            .img-fill-100     { height: 140px !important; }
-            .product-grid-carousel {
-              display: grid !important; grid-template-columns: repeat(2,1fr) !important;
-              gap: 10px !important; padding: 10px !important; overflow-x: visible !important;
-            }
+            .img-fill-100 { height: 140px !important; }
+            .product-grid-carousel { display: grid !important; grid-template-columns: repeat(2,1fr) !important; gap: 10px !important; padding: 10px !important; overflow-x: visible !important; }
             .product-card-mdrn { flex: 0 0 100% !important; min-width: 0 !important; max-width: 100% !important; width: 100% !important; border-radius: 12px !important; }
             .product-card-mdrn h3     { font-size: 0.85rem !important; height: 38px !important; }
             .product-card-mdrn span   { font-size: 0.9rem !important; }
@@ -876,34 +748,19 @@ export default function HomePage() {
                     style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6),rgba(0,0,0,0.6)),url("${slide.bg_image_url}")` }} />
                 ))}
               </div>
-
               <div className="hero-content-layer">
                 <div className="hero-inner">
-
                   <div className="hero-text" dir="rtl">
                     <div className="hero-text-title" dir="rtl">
-                      {activeSlide.title && (
-                        <h1 dir="rtl">{activeSlide.title.replace(/<[^>]*>/g, '')}</h1>
-                      )}
-                      {activeSlide.subtitle && (
-                        <p dir="rtl">{activeSlide.subtitle}</p>
-                      )}
+                      {activeSlide.title && <h1 dir="rtl">{activeSlide.title.replace(/<[^>]*>/g, '')}</h1>}
+                      {activeSlide.subtitle && <p dir="rtl">{activeSlide.subtitle}</p>}
                     </div>
-                    <Link
-                      href={activeSlide.button_link || '/store'}
-                      className="hero-cta-btn"
-                    >
+                    <Link href={activeSlide.button_link || '/store'} className="hero-cta-btn">
                       {activeSlide.button_text || 'تصفح المتجر'} ←
                     </Link>
                   </div>
-
-                  <div className="hero-card-desktop">
-                    <SearchCard {...searchCardProps} />
-                  </div>
-                  <div className="hero-card-mobile">
-                    <SearchCard {...searchCardProps} />
-                  </div>
-
+                  <div className="hero-card-desktop"><SearchCard {...searchCardProps} /></div>
+                  <div className="hero-card-mobile"><SearchCard {...searchCardProps} /></div>
                 </div>
               </div>
             </section>
@@ -927,6 +784,46 @@ export default function HomePage() {
               </ScrollReveal>
             )}
 
+            {/* ══ CUSTOMER REVIEWS ════════════════════════════════════════════ */}
+            <ScrollReveal direction="up" delay={0.06}>
+              <section style={{ background: '#fafcff', padding: '52px 0 56px', borderBottom: '1px solid #f0f0f0' }}>
+                <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+
+                  {/* Header */}
+                  <div style={{ textAlign: 'center', marginBottom: '38px' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '20px', padding: '6px 18px', marginBottom: '14px' }}>
+                      <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#16a34a', letterSpacing: '0.05em' }}>⭐ آراء عملاؤنا</span>
+                    </div>
+                    <h2 style={{ fontSize: '2.1rem', fontWeight: '900', color: '#0f172a', margin: '0 0 8px', letterSpacing: '-0.5px' }}>
+                      بيثقوا فينا ليه؟
+                    </h2>
+                    <p style={{ color: '#64748b', fontSize: '1rem', fontWeight: '600', margin: 0 }}>
+                      أكتر من 500+ عميل سعيد بتجربته معانا
+                    </p>
+                  </div>
+
+                  {/* Row 1 — scrolls right */}
+                  <div style={{ overflow: 'hidden', marginBottom: '14px', direction: 'ltr' }}>
+                    <div style={{ display: 'flex', width: 'max-content', animation: 'reviewsMarquee1 40s linear infinite' }}>
+                      {[...REVIEWS_ROW1, ...REVIEWS_ROW1].map((r, i) => (
+                        <ReviewCard key={`r1-${i}`} r={r} />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Row 2 — scrolls left (reverse) */}
+                  <div style={{ overflow: 'hidden', direction: 'ltr' }}>
+                    <div style={{ display: 'flex', width: 'max-content', animation: 'reviewsMarquee2 44s linear infinite' }}>
+                      {[...REVIEWS_ROW2, ...REVIEWS_ROW2].map((r, i) => (
+                        <ReviewCard key={`r2-${i}`} r={r} />
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+              </section>
+            </ScrollReveal>
+            {/* ════════════════════════════════════════════════════════════════ */}
 
             {/* HOME BANNER */}
             {homeBanner && (
@@ -1088,12 +985,11 @@ export default function HomePage() {
               </ScrollReveal>
             )}
 
-            {/* ── Static Features Strip ── */}
+            {/* Features Strip */}
             <ScrollReveal direction="up" delay={0.18}>
               <section style={{ background: '#fff', borderTop: '1px solid #f0f0f0', borderBottom: '1px solid #f0f0f0' }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
                   <div className="features-strip">
-
                     <div className="feature-item">
                       <div className="feature-icon-wrap">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="1"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
@@ -1103,9 +999,7 @@ export default function HomePage() {
                         <span className="feature-sub">مع أكبر شركة شحن مصرية</span>
                       </div>
                     </div>
-
                     <div className="feature-divider" />
-
                     <div className="feature-item">
                       <div className="feature-icon-wrap">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -1115,9 +1009,7 @@ export default function HomePage() {
                         <span className="feature-sub">بضمان حقيقي على كل منتج</span>
                       </div>
                     </div>
-
                     <div className="feature-divider" />
-
                     <div className="feature-item">
                       <div className="feature-icon-wrap">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
@@ -1127,9 +1019,7 @@ export default function HomePage() {
                         <span className="feature-sub">منها شركات التقسيط</span>
                       </div>
                     </div>
-
                     <div className="feature-divider" />
-
                     <div className="feature-item">
                       <div className="feature-icon-wrap">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
@@ -1139,13 +1029,12 @@ export default function HomePage() {
                         <span className="feature-sub">جميع المنتجات معتمدة</span>
                       </div>
                     </div>
-
                   </div>
                 </div>
               </section>
             </ScrollReveal>
 
-            {/* Categories Section — 3D Wheel Arc Carousel */}
+            {/* Categories Section */}
             {categories.length > 0 && (
               <ScrollReveal direction="up" delay={0.2}>
                 <section style={{ padding: '20px 0 5px', maxWidth: '1200px', margin: '0 auto' }}>
