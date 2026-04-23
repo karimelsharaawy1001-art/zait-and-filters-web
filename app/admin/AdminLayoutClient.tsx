@@ -85,6 +85,7 @@ export default function AdminLayoutClient({ children }: Props) {
         { name: 'السلات المتروكة', href: '/admin/abandoned-carts', icon: '🛒', badge: badges.abandonedCarts },
         { name: 'رسائل العملاء',   href: '/admin/messages',        icon: '💬', badge: badges.messages },
         { name: 'التقييمات',       href: '/admin/reviews',         icon: '⭐', badge: badges.pendingReviews ?? 0 },
+        { name: 'المحافظ والكاش باك', href: '/admin/wallets',      icon: '💰', badge: 0 },
       ]
     },
   ];
