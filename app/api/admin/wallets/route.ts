@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     const search = req.nextUrl.searchParams.get('search') || '';
     const userId = req.nextUrl.searchParams.get('user_id') || '';
 
-    // If fetching a single user's transactions
+    // ── Single user transactions ──
     if (userId) {
       const { data, error } = await supabase
         .from('wallet_transactions')
@@ -23,20 +23,25 @@ export async function GET(req: NextRequest) {
         .limit(100);
 
       if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error('Wallet transactions fetch error:', error);
+        // Return empty array so frontend .map() never crashes
+        return NextResponse.json(
+          { transactions: [], error: error.message },
+          { status: 200 }
+        );
       }
 
-      // Always return an array so the UI can safely .map() without crashing
       return NextResponse.json({ transactions: data || [] });
     }
 
-    // Otherwise list all wallets joined with profiles
+    // ── All wallets list ──
     const { data: wallets, error: wErr } = await supabase
       .from('wallets')
       .select('user_id, balance');
 
     if (wErr) {
-      return NextResponse.json({ error: wErr.message }, { status: 500 });
+      console.error('Wallets fetch error:', wErr);
+      return NextResponse.json({ wallets: [], error: wErr.message }, { status: 200 });
     }
 
     if (!wallets || wallets.length === 0) {
@@ -45,17 +50,15 @@ export async function GET(req: NextRequest) {
 
     const userIds = wallets.map(w => w.user_id);
 
-    // Fetch profiles for those user IDs
     const { data: profiles, error: pErr } = await supabase
       .from('profiles')
       .select('id, full_name, phone_number, email')
       .in('id', userIds);
 
     if (pErr) {
-      return NextResponse.json({ error: pErr.message }, { status: 500 });
+      console.error('Profiles fetch error:', pErr);
     }
 
-    // Build profile lookup map
     const profileMap: Record<string, any> = {};
     (profiles || []).forEach(p => {
       profileMap[p.id] = p;
@@ -69,7 +72,6 @@ export async function GET(req: NextRequest) {
       email: profileMap[w.user_id]?.email || '—',
     }));
 
-    // Apply search filter
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       merged = merged.filter(w =>
@@ -79,12 +81,15 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Sort by balance desc
     merged.sort((a, b) => b.balance - a.balance);
 
     return NextResponse.json({ wallets: merged });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error('GET /api/admin/wallets fatal error:', err);
+    return NextResponse.json(
+      { wallets: [], transactions: [], error: err.message },
+      { status: 200 }
+    );
   }
 }
 
@@ -92,9 +97,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { user_id, amount, type, description } = body;
+    const { user_id, amount, type, description, admin_note } = body;
 
-    // Validate required fields
     if (!user_id) {
       return NextResponse.json({ error: 'معرف المستخدم مطلوب' }, { status: 400 });
     }
@@ -111,14 +115,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'السبب مطلوب' }, { status: 400 });
     }
 
-    // Get current balance (wallet might not exist yet)
+    // Get current balance (wallet may not exist yet)
     const { data: wallet, error: walletSelectErr } = await supabase
       .from('wallets')
       .select('balance')
       .eq('user_id', user_id)
       .single();
 
-    // PGRST116 = no rows returned, which is fine — we'll create the wallet
+    // PGRST116 = row not found, which is fine; we will create it
     if (walletSelectErr && walletSelectErr.code !== 'PGRST116') {
       throw walletSelectErr;
     }
@@ -126,16 +130,14 @@ export async function POST(req: NextRequest) {
     const currentBalance = wallet?.balance ?? 0;
     const newBalance = Math.max(0, currentBalance + numericAmount);
 
-    // Update wallet balance
+    // Update wallet
     const { error: walletErr } = await supabase
       .from('wallets')
       .upsert({ user_id, balance: newBalance }, { onConflict: 'user_id' });
 
     if (walletErr) throw walletErr;
 
-    // Insert transaction record
-    // NOTE: admin_note was removed because that column does not exist in your
-    //       current Supabase schema. If you add it later, you can pass it back in.
+    // Insert transaction
     const { error: txErr } = await supabase
       .from('wallet_transactions')
       .insert({
@@ -143,6 +145,7 @@ export async function POST(req: NextRequest) {
         amount: numericAmount,
         type: type || (numericAmount > 0 ? 'adjustment' : 'deduction'),
         description: description.trim(),
+        admin_note: admin_note?.trim() || null,
         balance_after: newBalance,
       });
 
@@ -150,6 +153,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, new_balance: newBalance });
   } catch (err: any) {
+    console.error('POST /api/admin/wallets error:', err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
