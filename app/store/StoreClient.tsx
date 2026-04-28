@@ -935,7 +935,7 @@ function StoreContent() {
         return;
       }
 
-      let query = supabase.from('products').select('*').eq('is_active', true).order('created_at', { ascending: false });
+      let query = supabase.from('products').select('*').order('created_at', { ascending: false });
 
       if (gMode && gCar) {
         query = query.or(
@@ -988,6 +988,13 @@ function StoreContent() {
         );
       }
 
+      // Sort: active products first, inactive (out of stock) at the end
+      fetchedProducts.sort((a: any, b: any) => {
+        const aActive = a.is_active !== false;
+        const bActive = b.is_active !== false;
+        if (aActive === bActive) return 0;
+        return aActive ? -1 : 1;
+      });
       setProducts(fetchedProducts);
       setFilteredProducts(fetchedProducts);
     } catch (error) {
@@ -1274,6 +1281,27 @@ function StoreContent() {
               height: 160px;
             }
           }
+          .store-product-card.out-of-stock {
+            opacity: 0.65;
+            filter: grayscale(40%);
+          }
+          .store-product-card.out-of-stock:hover {
+            transform: none;
+            border-color: #e0e0e0;
+            box-shadow: none;
+          }
+          .out-of-stock-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #6b7280;
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            z-index: 10;
+          }
         `,
         }}
       />
@@ -1517,14 +1545,21 @@ function StoreContent() {
                       const price = product.sale_price || product.regular_price;
                       const origin = (product.country_origin || product.country_of_origin || '').trim();
                       const isOriginal = ['اصلي', 'أصلي', 'original', 'اصلى'].includes(origin.toLowerCase());
+                      const isOutOfStock = product.is_active === false;
                       return (
                         <motion.div
                           key={product.id}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.4 }}
-                          className="store-product-card"
+                          className={`store-product-card${isOutOfStock ? ' out-of-stock' : ''}`}
                         >
+                          {/* Out of stock badge */}
+                          {isOutOfStock && (
+                            <div className="out-of-stock-badge">
+                              نفذت الكمية
+                            </div>
+                          )}
                           {/* Sale badge */}
                           {product.sale_price > 0 && product.regular_price > product.sale_price && (
                             <div style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: '#ff4d4d', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '900', zIndex: 10 }}>
@@ -1598,14 +1633,22 @@ function StoreContent() {
                               <button
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  addToCart({ ...product, price }, 1);
-                                  toast.success('تمت الإضافة');
+                                  if (!isOutOfStock) { addToCart({ ...product, price }, 1); toast.success('تمت الإضافة'); }
                                 }}
-                                style={{ width: '100%', padding: '11px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', transition: '0.2s' }}
+                                disabled={isOutOfStock}
+                                style={{ width: '100%', padding: '11px', backgroundColor: isOutOfStock ? '#9ca3af' : '#1a1a1a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: isOutOfStock ? 'not-allowed' : 'pointer', fontSize: '0.9rem', transition: '0.2s' }}
                               >
                                 <ShoppingCart size={16} />
-                                أضف إلى السلة
+                                {isOutOfStock ? 'نفذت الكمية' : 'أضف إلى السلة'}
                               </button>
+                              {isOutOfStock ? (
+                                <div
+                                  style={{ width: '100%', padding: '11px', backgroundColor: '#e5e7eb', color: '#9ca3af', borderRadius: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'not-allowed' }}
+                                >
+                                  <Zap size={16} />
+                                  غير متاح
+                                </div>
+                              ) : (
                               <Link
                                 href={`/checkout?buyNow=true&productId=${product.id}&price=${price}`}
                                 onClick={() => addToCart({ ...product, price }, 1)}
@@ -1615,6 +1658,7 @@ function StoreContent() {
                                 <Zap size={16} fill="#fff" />
                                 اشتري الآن
                               </Link>
+                              )}
                             </div>
                           </div>
                         </motion.div>
