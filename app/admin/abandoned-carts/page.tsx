@@ -7,7 +7,8 @@ import {
   RefreshCw, Search, Send, CheckCircle, Clock,
   User, Smartphone, Trash2, ChevronLeft, ChevronRight,
   TrendingUp, AlertCircle, Monitor, ChevronsLeft, ChevronsRight,
-  MoreHorizontal, Bell, Tag, Zap, MessageCircle, RotateCcw
+  MoreHorizontal, Bell, Tag, Zap, MessageCircle, RotateCcw,
+  ArrowRightLeft,
 } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 12;
@@ -385,6 +386,7 @@ export default function AbandonedCartsAdmin() {
   const [expandedCart, setExpandedCart] = useState<string | null>(null);
   const [sendingEmail, setSendingEmail] = useState<string | null>(null);
   const [deletingCart, setDeletingCart] = useState<string | null>(null);
+  const [transferringCart, setTransferringCart] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [showReminderModal, setShowReminderModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -424,6 +426,63 @@ export default function AbandonedCartsAdmin() {
       setCarts(prev => prev.filter(c => c.id !== cartId));
     } catch (err: any) { toast.error('خطأ: ' + err.message); }
     finally { setDeletingCart(null); }
+  };
+
+  const transferToOrder = async (cart: AbandonedCart) => {
+    if (!confirm(`هل أنت متأكد من تحويل سلة "${cart.customer_name || 'غير محدد'}" إلى طلب ناجح؟`)) return;
+    setTransferringCart(cart.id);
+    try {
+      // 1. Create the order
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          customer_name: cart.customer_name,
+          customer_email: cart.customer_email,
+          customer_phone: cart.customer_phone,
+          total_amount: cart.cart_total || 0,
+          subtotal: cart.cart_subtotal || 0,
+          shipping_city: cart.shipping_city,
+          status: 'completed',
+          source: 'abandoned_cart_transfer',
+          abandoned_cart_id: cart.id,
+          created_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // 2. Create order items
+      const orderItems = (cart.cart_items || []).map((item: any) => ({
+        order_id: orderData.id,
+        product_id: item.product_id || item.id || null,
+        product_name: item.name,
+        quantity: item.quantity || 1,
+        price: parseFloat(item.price) || 0,
+        total: (parseFloat(item.price) || 0) * (item.quantity || 1),
+        image_url: item.image_url || item.image || null,
+      }));
+
+      if (orderItems.length > 0) {
+        const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
+        if (itemsError) throw itemsError;
+      }
+
+      // 3. Mark abandoned cart as recovered
+      const { error: updateError } = await supabase
+        .from('abandoned_carts')
+        .update({ recovered: true, recovered_at: new Date().toISOString() })
+        .eq('id', cart.id);
+
+      if (updateError) throw updateError;
+
+      toast.success(`✅ تم تحويل السلة إلى طلب رقم #${orderData.id.slice(0, 8)}`);
+      fetchAbandonedCarts();
+    } catch (err: any) {
+      toast.error('خطأ في التحويل: ' + err.message);
+    } finally {
+      setTransferringCart(null);
+    }
   };
 
   const sendRecoveryEmail = async (cartId: string) => {
@@ -529,7 +588,7 @@ export default function AbandonedCartsAdmin() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '22px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h1 style={{ fontSize: '1.8rem', fontWeight: '900', color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>السلات المتروكة</h1>
-          <p style={{ fontSize: '0.92rem', color: '#94a3b8', marginTop: '3px', fontWeight: '500' }}>تتبع واسترجع العملاء المحتملين</p>
+          <p style={{ fontSize: '0.92rem', color: '#94a3b8', marginTop: '3px', fontWeight: '500' }}>تتبع واسترجاع العملاء المحتملين</p>
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
           <button onClick={() => setShowReminderModal(true)}
@@ -693,6 +752,10 @@ export default function AbandonedCartsAdmin() {
                     <div style={{ display: 'flex', gap: '5px', alignItems: 'center', paddingRight: '10px' }} onClick={e => e.stopPropagation()}>
                       {!cart.recovered && (
                         <>
+                          <button onClick={() => transferToOrder(cart)} disabled={transferringCart === cart.id} className="ac-btn" title="تحويل لطلب"
+                            style={{ width: '30px', height: '30px', borderRadius: '8px', border: 'none', background: '#fef3c7', color: '#92400e', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {transferringCart === cart.id ? <RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRightLeft size={13} />}
+                          </button>
                           {cart.customer_email && (
                             <button onClick={() => sendRecoveryEmail(cart.id)} disabled={sendingEmail === cart.id || cart.recovery_email_sent} className="ac-btn" title={cart.recovery_email_sent ? 'تم الإرسال' : 'إرسال إيميل'}
                               style={{ width: '30px', height: '30px', borderRadius: '8px', border: 'none', background: cart.recovery_email_sent ? '#dcfce7' : '#eff6ff', color: cart.recovery_email_sent ? '#15803d' : '#3b82f6', cursor: cart.recovery_email_sent ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -758,23 +821,31 @@ export default function AbandonedCartsAdmin() {
                             {cart.reminder_sent && <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', padding: '2px 6px', borderRadius: '5px', fontSize: '0.68rem', fontWeight: '800', background: '#f0fdf4', color: '#15803d' }}><MessageCircle size={9} /> تذكير</div>}
                           </div>
                           <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
-                            {!cart.recovered && cart.customer_email && (
-                              <button onClick={() => sendRecoveryEmail(cart.id)} disabled={sendingEmail === cart.id || cart.recovery_email_sent} className="ac-btn"
-                                style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: cart.recovery_email_sent ? '#dcfce7' : '#eff6ff', color: cart.recovery_email_sent ? '#15803d' : '#3b82f6', cursor: cart.recovery_email_sent ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                {sendingEmail === cart.id ? <RefreshCw size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Mail size={14} />}
-                              </button>
-                            )}
-                            {!cart.recovered && cart.customer_phone && (
-                              <button onClick={() => sendWhatsApp(cart)} className="ac-btn"
-                                style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#f0fdf4', color: '#15803d', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Send size={14} />
-                              </button>
-                            )}
-                            {!cart.recovered && cart.customer_phone && (
-                              <button onClick={() => window.open(`tel:${cart.customer_phone}`, '_self')} className="ac-btn"
-                                style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#eff6ff', color: '#6366f1', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Phone size={14} />
-                              </button>
+                            {!cart.recovered && (
+                              <>
+                                <button onClick={() => transferToOrder(cart)} disabled={transferringCart === cart.id} className="ac-btn" title="تحويل لطلب"
+                                  style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#fef3c7', color: '#92400e', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  {transferringCart === cart.id ? <RefreshCw size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRightLeft size={14} />}
+                                </button>
+                                {cart.customer_email && (
+                                  <button onClick={() => sendRecoveryEmail(cart.id)} disabled={sendingEmail === cart.id || cart.recovery_email_sent} className="ac-btn"
+                                    style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: cart.recovery_email_sent ? '#dcfce7' : '#eff6ff', color: cart.recovery_email_sent ? '#15803d' : '#3b82f6', cursor: cart.recovery_email_sent ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    {sendingEmail === cart.id ? <RefreshCw size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Mail size={14} />}
+                                  </button>
+                                )}
+                                {cart.customer_phone && (
+                                  <button onClick={() => sendWhatsApp(cart)} className="ac-btn"
+                                    style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#f0fdf4', color: '#15803d', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Send size={14} />
+                                  </button>
+                                )}
+                                {cart.customer_phone && (
+                                  <button onClick={() => window.open(`tel:${cart.customer_phone}`, '_self')} className="ac-btn"
+                                    style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#eff6ff', color: '#6366f1', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Phone size={14} />
+                                  </button>
+                                )}
+                              </>
                             )}
                             <button onClick={() => deleteCart(cart.id)} disabled={deletingCart === cart.id} className="ac-btn"
                               style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#fff1f2', color: '#e11d48', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
