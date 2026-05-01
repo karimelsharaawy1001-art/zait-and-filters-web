@@ -394,7 +394,7 @@ export default function AdminProducts() {
     const safe = (val: any) =>
       val === null || val === undefined ? '' : String(val);
     const headers =
-      'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url\n';
+      'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url,delete\n';
     const rows = data
       .map((p: any) =>
         [
@@ -412,6 +412,7 @@ export default function AdminProducts() {
           p.is_active ? 1 : 0,
           `"${safe(p.country_of_origin)}"`,
           `"${safe(p.image_url)}"`,
+          '0',
         ].join(','),
       )
       .join('\n');
@@ -430,9 +431,9 @@ export default function AdminProducts() {
 
   const downloadTemplate = () => {
     const headers =
-      'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url\n';
+      'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url,delete\n';
     const example =
-      ',تيل فرامل صني,Hi-Q,فرامل,تيل,نيسان,صني,2015-2024,1200,1100,6,1,كوري,https://res.cloudinary.com/example.jpg';
+      ',تيل فرامل صني,Hi-Q,فرامل,تيل,نيسان,صني,2015-2024,1200,1100,6,1,كوري,https://res.cloudinary.com/example.jpg,0';
     const csvContent = '\uFEFF' + headers + example;
     const blob = new Blob([csvContent], {
       type: 'text/csv;charset=utf-8;',
@@ -499,6 +500,7 @@ export default function AdminProducts() {
           is_active: cols[11] === '1' || cols[11]?.toLowerCase() === 'true',
           country_of_origin: cols[12],
           image_url: cols[13],
+          delete: cols[14],
         });
       }
 
