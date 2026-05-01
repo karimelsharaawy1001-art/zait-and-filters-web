@@ -57,7 +57,10 @@ export async function POST(req: Request) {
       // so we don't overwrite good data with blanks
       const cleanData: any = {};
       for (const [key, val] of Object.entries(productData)) {
-        if (val !== undefined && val !== '') {
+        if (key === 'delete') continue;
+        if (key === 'active' && (val === undefined || val === '' || val === null)) {
+          cleanData[key] = 0;
+        } else if (val !== undefined && val !== '') {
           cleanData[key] = val;
         }
       }
