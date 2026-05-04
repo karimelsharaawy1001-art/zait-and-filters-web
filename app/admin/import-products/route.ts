@@ -8,6 +8,21 @@ function getSupabaseAdmin() {
   );
 }
 
+// ─── Slug Generator ─────────────────────────────────────────────
+function generateSlug(name: string, brand: string, carMake: string, carModel: string, id: string): string {
+  const base = [brand, carMake, carModel, name]
+    .filter(Boolean)
+    .join('-')
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')      // remove special chars
+    .replace(/\s+/g, '-')           // spaces to hyphens
+    .replace(/-+/g, '-');           // collapse multiple hyphens
+  
+  // Add short ID suffix to guarantee uniqueness
+  const shortId = id.slice(0, 8);
+  return `${base}-${shortId}`;
+}
+
 export async function POST(req: Request) {
   try {
     const supabaseAdmin = getSupabaseAdmin();
@@ -22,7 +37,7 @@ export async function POST(req: Request) {
     for (const product of products) {
       const { id, ...productData } = product;
 
-      // Find delete column safely, even if header has spaces or different case
+      // Find delete column safely
       const deleteKey = Object.keys(productData).find(
         (k) => k.toLowerCase().trim() === 'delete'
       );
@@ -30,7 +45,6 @@ export async function POST(req: Request) {
       const deleteValue =
         deleteKey !== undefined ? (productData as any)[deleteKey] : undefined;
 
-      // Delete only if value is clearly marked
       const shouldDelete =
         deleteValue === true ||
         deleteValue === 1 ||
@@ -72,6 +86,19 @@ export async function POST(req: Request) {
         }
       }
 
+      // ─── GENERATE SLUG ──────────────────────────────────────
+      const productId = id && String(id).trim().length > 10 
+        ? String(id).trim() 
+        : crypto.randomUUID();
+      
+      cleanData.slug = generateSlug(
+        cleanData.name || '',
+        cleanData.brand || '',
+        cleanData.car_make || '',
+        cleanData.car_model || '',
+        productId
+      );
+
       if (id && String(id).trim().length > 10) {
         const { data: existing, error: fetchError } = await supabaseAdmin
           .from('products')
@@ -109,7 +136,7 @@ export async function POST(req: Request) {
       } else {
         const { error: insertError } = await supabaseAdmin
           .from('products')
-          .insert([cleanData]);
+          .insert([{ id: productId, ...cleanData }]);
 
         if (insertError) {
           errors.push(`Insert error for ${cleanData.name}: ${insertError.message}`);

@@ -1650,7 +1650,7 @@ function StoreContent() {
                                 </div>
                               ) : (
                               <Link
-                                href={`/checkout?buyNow=true&productId=${product.id}&price=${price}`}
+                                href={`/products/${product.slug || product.id}`}
                                 onClick={() => addToCart({ ...product, price }, 1)}
                                 className="buy-now-btn"
                                 style={{ width: '100%', padding: '11px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', textDecoration: 'none', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(34,197,94,0.3)' }}
