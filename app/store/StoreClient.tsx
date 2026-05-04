@@ -1583,7 +1583,7 @@ function StoreContent() {
                           )}
 
                           <Link
-                            href={`/products/${product.id}`}
+                            href={`/products/${product.slug || product.id}`}
                             className="product-img-link"
                           >
                             <img
