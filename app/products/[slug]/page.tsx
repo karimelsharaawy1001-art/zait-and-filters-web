@@ -6,7 +6,6 @@ import { notFound, redirect } from 'next/navigation';
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
 
-  // Support both slug and legacy UUID
   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
   const query = isUUID
     ? supabase.from('products').select('*').eq('id', slug).single()
@@ -135,16 +134,29 @@ function ProductSchema({ product }: { product: any }) {
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  // Detect if it's an old UUID and redirect to slug URL (301 redirect)
   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
 
   if (isUUID) {
-    const { data: product } = await supabase.from('products').select('id, slug').eq('id', slug).single();
-    if (product?.slug) {
-      redirect(`/products/${product.slug}`); // 301 redirect automatically
+    const { data: product } = await supabase.from('products').select('*').eq('id', slug).single();
+
+    // Product doesn't exist at all
+    if (!product) notFound();
+
+    // Has a slug → redirect to the clean URL
+    if (product.slug) {
+      redirect(`/products/${product.slug}`);
     }
+
+    // No slug yet (Excel upload) → serve directly via UUID, page still works
+    return (
+      <>
+        <ProductSchema product={product} />
+        <ProductDetailsClient initialProduct={product} productId={product.id} />
+      </>
+    );
   }
 
+  // Normal slug-based lookup
   const { data: initialProduct } = await supabase
     .from('products')
     .select('*')
@@ -155,7 +167,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
-      {initialProduct && <ProductSchema product={initialProduct} />}
+      <ProductSchema product={initialProduct} />
       <ProductDetailsClient initialProduct={initialProduct} productId={initialProduct.id} />
     </>
   );
