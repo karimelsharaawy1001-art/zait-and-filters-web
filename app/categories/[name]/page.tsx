@@ -108,14 +108,14 @@ export default function SubCategoriesPage() {
                     width: '100%', 
                     height: '100%', 
                     objectFit: 'cover', 
-                    opacity: 0.4,
-                    filter: 'brightness(0.5)'
+                    opacity: 0.65,
+                    filter: 'brightness(0.75)'
                   }}
                 />
                 <div style={{
                   position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 100%)',
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.15) 100%)',
                   padding: '10px'
                 }}>
                   <span style={{ 
