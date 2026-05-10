@@ -684,13 +684,15 @@ function StoreContent() {
       const makesOpts = uniqueMakes.map((make) => ({ value: make, label: make }));
       setMakesOptions(makesOpts);
 
-      const uniqueCategories = Array.from(new Set(productsRes.data.map((p) => p.category?.trim()).filter(Boolean)));
-      const catsOpts = uniqueCategories.map((cat) => ({ value: cat, label: cat }));
-      setCategoriesOptions(catsOpts);
+      const uniqueCategories = Array.from(new Set(productsRes.data.map((p) => p.category?.trim()).filter(Boolean)))
+  .sort((a, b) => a.localeCompare(b, 'ar'));  // ← add this line
+const catsOpts = uniqueCategories.map((cat) => ({ value: cat, label: cat }));
+setCategoriesOptions(catsOpts);
 
-      const uniqueBrands = Array.from(new Set(productsRes.data.map((p) => p.brand?.trim()).filter(Boolean)));
-      const brandsOpts = uniqueBrands.map((brand) => ({ value: brand, label: brand }));
-      setBrandsOptions(brandsOpts);
+      const uniqueBrands = Array.from(new Set(productsRes.data.map((p) => p.brand?.trim()).filter(Boolean)))
+  .sort((a, b) => a.localeCompare(b, 'ar'));  // ← add this line
+const brandsOpts = uniqueBrands.map((brand) => ({ value: brand, label: brand }));
+setBrandsOptions(brandsOpts);
 
       await applyURLFilters(makesOpts, catsOpts, brandsOpts, resolvedGarageMode, resolvedUserCar);
     } catch (error) {

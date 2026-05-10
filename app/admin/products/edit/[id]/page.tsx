@@ -1,8 +1,15 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
 import { Save, ArrowRight, Loader2, Image as ImageIcon, Car, Tag, Globe, Upload, Plus, X } from 'lucide-react';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 🔧 CLOUDINARY CONFIG — fill these in with your own values
+// ─────────────────────────────────────────────────────────────────────────────
+const CLOUDINARY_CLOUD_NAME = 'dht6kx2jx';       // e.g. 'dxyz123abc'
+const CLOUDINARY_UPLOAD_PRESET = 'zaitandfilters_preset'; // must be UNSIGNED preset
+// ─────────────────────────────────────────────────────────────────────────────
 
 interface CarRow {
   id?: string;
@@ -17,13 +24,18 @@ export default function EditProduct() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // ── Read returnUrl so we go back to the exact filtered list ──
   const returnUrl = searchParams.get('returnUrl') || '/admin/products';
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const dropZoneRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [options, setOptions] = useState({
     makes: [] as string[],
@@ -120,25 +132,138 @@ export default function EditProduct() {
     setLoading(false);
   }
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // ── Cloudinary Upload ──────────────────────────────────────────────────────
+  const uploadToCloudinary = useCallback(async (file: File) => {
+    setUploadError(null);
+
+    // Basic validation
+    if (!file.type.startsWith('image/')) {
+      setUploadError('الملف المختار ليس صورة. يرجى اختيار صورة صحيحة.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError('حجم الصورة كبير جداً. الحد الأقصى 10 ميغابايت.');
+      return;
+    }
+
+    if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === 'YOUR_CLOUD_NAME') {
+      setUploadError('لم يتم ضبط إعدادات Cloudinary. يرجى إضافة CLOUD_NAME و UPLOAD_PRESET في الكود.');
+      return;
+    }
+
     try {
       setUploading(true);
-      const file = e.target.files?.[0];
-      if (!file) return;
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `products/${fileName}`;
-      const { error: uploadError } = await supabase.storage.from('product-images').upload(filePath, file);
-      if (uploadError) throw uploadError;
-      const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(filePath);
-      setFormData(prev => ({ ...prev, image_url: publicUrl }));
+      setUploadProgress(0);
+
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+      formDataUpload.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+      formDataUpload.append('folder', 'products'); // optional: organise in a folder
+
+      // Use XMLHttpRequest so we can track progress
+      const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
+      const result = await new Promise<string>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            setUploadProgress(Math.round((e.loaded / e.total) * 100));
+          }
+        });
+
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              if (data.secure_url) {
+                resolve(data.secure_url);
+              } else if (data.error) {
+                reject(new Error(data.error.message || 'فشل الرفع'));
+              } else {
+                reject(new Error('استجابة غير متوقعة من Cloudinary'));
+              }
+            } catch {
+              reject(new Error('فشل تحليل استجابة Cloudinary'));
+            }
+          } else {
+            // Try to parse error from Cloudinary
+            try {
+              const errData = JSON.parse(xhr.responseText);
+              reject(new Error(errData.error?.message || `HTTP ${xhr.status}`));
+            } catch {
+              reject(new Error(`فشل الرفع — HTTP ${xhr.status}`));
+            }
+          }
+        });
+
+        xhr.addEventListener('error', () => {
+          reject(new Error('خطأ في الشبكة — تحقق من اتصالك بالإنترنت'));
+        });
+
+        xhr.addEventListener('abort', () => {
+          reject(new Error('تم إلغاء الرفع'));
+        });
+
+        xhr.open('POST', url);
+        xhr.send(formDataUpload);
+      });
+
+      setFormData(prev => ({ ...prev, image_url: result }));
+      setUploadProgress(100);
     } catch (error: any) {
-      alert('خطأ في الرفع: ' + error.message);
+      console.error('Cloudinary upload error:', error);
+      setUploadError('خطأ في الرفع: ' + (error.message || 'حدث خطأ غير معروف'));
     } finally {
       setUploading(false);
     }
+  }, []);
+
+  // ── File input handler ─────────────────────────────────────────────────────
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadToCloudinary(file);
+    // Reset so same file can be re-selected
+    e.target.value = '';
   };
 
+  // ── Drag-and-drop handlers ─────────────────────────────────────────────────
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set false if leaving the drop zone itself (not a child)
+    if (e.currentTarget === dropZoneRef.current && !dropZoneRef.current?.contains(e.relatedTarget as Node)) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(f => f.type.startsWith('image/'));
+    if (imageFile) {
+      uploadToCloudinary(imageFile);
+    } else if (files.length > 0) {
+      setUploadError('الملف المُسقَط ليس صورة. يرجى سحب ملف صورة فقط.');
+    }
+  };
+
+  // ── Car rows ───────────────────────────────────────────────────────────────
   const addCarRow = () => {
     setCarRows(prev => [...prev, { car_make: '', car_model: '', car_model_year: '', isNew: true }]);
   };
@@ -218,7 +343,6 @@ export default function EditProduct() {
       }
 
       alert('✅ تم حفظ البيانات بنجاح');
-      // ── Go back to exactly where we came from (filters preserved) ──
       router.push(returnUrl);
 
     } catch (err: any) {
@@ -243,7 +367,6 @@ export default function EditProduct() {
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '40px' }}>
-          {/* ── Back button also uses returnUrl ── */}
           <button onClick={() => router.push(returnUrl)} style={backBtnStyle}>
             <ArrowRight size={20} />
           </button>
@@ -317,15 +440,114 @@ export default function EditProduct() {
             {/* ── الصورة ── */}
             <section style={formSection}>
               <h3 style={sectionTitle}><ImageIcon size={18} /> صورة المنتج</h3>
-              <div style={uploadContainer}>
-                {formData.image_url && <img src={formData.image_url} style={previewImage} alt="Preview" />}
-                <label style={uploadLabel}>
-                  {uploading ? <Loader2 className="animate-spin" /> : <Upload size={20} />}
-                  {uploading ? 'جاري الرفع...' : 'رفع صورة من الجهاز'}
-                  <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
-                </label>
-                <input type="text" value={formData.image_url} placeholder="أو ضع رابط خارجي" onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))} style={{ ...inputStyle, marginTop: '10px' }} />
+
+              {/* Upload Error */}
+              {uploadError && (
+                <div style={{ background: '#2a0a0a', border: '1px solid #ff4d4d', borderRadius: '8px', padding: '10px 14px', marginBottom: '12px', color: '#ff4d4d', fontSize: '0.82rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  ❌ {uploadError}
+                  <button type="button" onClick={() => setUploadError(null)} style={{ marginRight: 'auto', background: 'none', border: 'none', color: '#ff4d4d', cursor: 'pointer', fontSize: '1rem', lineHeight: 1, padding: '0 4px' }}>×</button>
+                </div>
+              )}
+
+              {/* Drag & Drop Zone */}
+              <div
+                ref={dropZoneRef}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                onClick={() => !uploading && fileInputRef.current?.click()}
+                style={{
+                  ...dropZoneStyle,
+                  border: isDragging
+                    ? '2px dashed #2ecc71'
+                    : '2px dashed #333',
+                  backgroundColor: isDragging ? 'rgba(46,204,113,0.05)' : '#000',
+                  cursor: uploading ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {/* Preview */}
+                {formData.image_url && !uploading && (
+                  <div style={{ position: 'relative', marginBottom: '12px' }}>
+                    <img
+                      src={formData.image_url}
+                      style={previewImage}
+                      alt="Preview"
+                    />
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setFormData(prev => ({ ...prev, image_url: '' })); }}
+                      style={{ position: 'absolute', top: '-8px', left: '-8px', background: '#ff4d4d', border: 'none', borderRadius: '50%', width: '22px', height: '22px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', lineHeight: 1 }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+
+                {/* Upload progress */}
+                {uploading && (
+                  <div style={{ width: '100%', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '0.8rem', color: '#2ecc71' }}>
+                      <span>جاري الرفع إلى Cloudinary...</span>
+                      <span>{uploadProgress}%</span>
+                    </div>
+                    <div style={{ background: '#111', borderRadius: '99px', height: '6px', overflow: 'hidden' }}>
+                      <div style={{ background: '#2ecc71', height: '100%', width: `${uploadProgress}%`, borderRadius: '99px', transition: 'width 0.2s ease' }} />
+                    </div>
+                  </div>
+                )}
+
+                {!uploading && (
+                  <>
+                    <div style={{ color: isDragging ? '#2ecc71' : '#555', marginBottom: '8px' }}>
+                      <Upload size={28} />
+                    </div>
+                    <div style={{ fontWeight: '700', fontSize: '0.9rem', color: isDragging ? '#2ecc71' : '#aaa', marginBottom: '4px' }}>
+                      {isDragging ? 'أفلت الصورة هنا ✨' : 'اسحب وأفلت صورة هنا'}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#444' }}>
+                      أو اضغط لاختيار ملف • JPG, PNG, WEBP, GIF حتى 10MB
+                    </div>
+                  </>
+                )}
+
+                {uploading && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#2ecc71', fontWeight: '700', fontSize: '0.85rem' }}>
+                    <Loader2 size={18} className="animate-spin" />
+                    يتم الرفع...
+                  </div>
+                )}
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  style={{ display: 'none' }}
+                />
               </div>
+
+              {/* OR: external URL */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '12px 0' }}>
+                <div style={{ flex: 1, height: '1px', background: '#1a1a1a' }} />
+                <span style={{ color: '#333', fontSize: '0.75rem', fontWeight: '700' }}>أو</span>
+                <div style={{ flex: 1, height: '1px', background: '#1a1a1a' }} />
+              </div>
+
+              <input
+                type="text"
+                value={formData.image_url}
+                placeholder="أدخل رابط صورة خارجية مباشر"
+                onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
+                style={{ ...inputStyle, direction: 'ltr' }}
+              />
+
+              {formData.image_url && !uploading && (
+                <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#444', wordBreak: 'break-all', direction: 'ltr' }}>
+                  🔗 {formData.image_url.length > 60 ? formData.image_url.slice(0, 60) + '...' : formData.image_url}
+                </div>
+              )}
             </section>
 
             {/* ── فيديو يوتيوب ── */}
@@ -428,9 +650,9 @@ export default function EditProduct() {
             </button>
           </section>
 
-          <button type="submit" disabled={saving} style={saveBtnStyle}>
+          <button type="submit" disabled={saving || uploading} style={{ ...saveBtnStyle, opacity: uploading ? 0.7 : 1, cursor: uploading ? 'not-allowed' : 'pointer' }}>
             {saving ? <Loader2 className="animate-spin" /> : <Save />}
-            {saving ? 'جاري الحفظ...' : 'حفظ التعديلات النهائية'}
+            {saving ? 'جاري الحفظ...' : uploading ? 'انتظر حتى اكتمال الرفع...' : 'حفظ التعديلات النهائية'}
           </button>
         </form>
       </div>
@@ -443,10 +665,9 @@ const formSection: any = { backgroundColor: '#0a0a0a', padding: '25px', borderRa
 const sectionTitle: any = { fontSize: '1rem', fontWeight: 'bold', marginBottom: '20px', color: '#2ecc71', display: 'flex', alignItems: 'center', gap: '10px' };
 const inputGroup = { marginBottom: '18px' };
 const labelStyle: any = { display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '8px' };
-const inputStyle: any = { width: '100%', padding: '10px 12px', backgroundColor: '#000', border: '1px solid #222', borderRadius: '10px', color: '#fff', outline: 'none', fontSize: '0.85rem' };
-const uploadContainer: any = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', padding: '15px', border: '2px dashed #222', borderRadius: '12px' };
-const uploadLabel: any = { cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', color: '#2ecc71', fontWeight: 'bold', fontSize: '0.9rem' };
-const previewImage: any = { width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #333' };
+const inputStyle: any = { width: '100%', padding: '10px 12px', backgroundColor: '#000', border: '1px solid #222', borderRadius: '10px', color: '#fff', outline: 'none', fontSize: '0.85rem', boxSizing: 'border-box' };
+const dropZoneStyle: any = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '28px 20px', borderRadius: '14px', minHeight: '160px', textAlign: 'center', userSelect: 'none' };
+const previewImage: any = { width: '110px', height: '110px', objectFit: 'cover', borderRadius: '10px', border: '1px solid #2ecc71', display: 'block' };
 const saveBtnStyle: any = { width: '100%', padding: '18px', backgroundColor: '#2ecc71', color: '#000', border: 'none', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', fontSize: '1rem' };
 const backBtnStyle: any = { backgroundColor: '#111', border: '1px solid #222', borderRadius: '10px', padding: '10px', color: '#fff', cursor: 'pointer' };
 const fullPageCenter: any = { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#050505' };
