@@ -272,7 +272,7 @@ function CategoriesGrid({ categories }: { categories: any[] }) {
         .cat-label-arrow {
           display: inline-block;
           margin-top: 5px;
-          font-size: 0.72rem;
+          font-size: 1.3rem;
           font-weight: 700;
           color: #22c55e;
           letter-spacing: 0.04em;
@@ -286,7 +286,7 @@ function CategoriesGrid({ categories }: { categories: any[] }) {
         }
         @media (max-width: 768px) {
           .cat-label {
-            font-size: 0.78rem;
+            font-size: 1.3rem;
             padding: 10px 6px 10px;
           }
           .cat-label-arrow { display: none; }
