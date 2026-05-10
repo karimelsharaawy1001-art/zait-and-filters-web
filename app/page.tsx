@@ -263,7 +263,7 @@ function CategoriesGrid({ categories }: { categories: any[] }) {
           padding: 14px 10px 14px;
           text-align: center;
           color: #fff;
-          font-size: 1rem;
+          font-size: 1.3rem;
           font-weight: 900;
           line-height: 1.3;
           text-shadow: 0 2px 10px rgba(0,0,0,0.8);
@@ -272,7 +272,7 @@ function CategoriesGrid({ categories }: { categories: any[] }) {
         .cat-label-arrow {
           display: inline-block;
           margin-top: 5px;
-          font-size: 2rem;
+          font-size: 1.3rem;
           font-weight: 700;
           color: #22c55e;
           letter-spacing: 0.04em;
@@ -286,7 +286,7 @@ function CategoriesGrid({ categories }: { categories: any[] }) {
         }
         @media (max-width: 768px) {
           .cat-label {
-            font-size: 2rem;
+            font-size: 1.3rem;
             padding: 10px 6px 10px;
           }
           .cat-label-arrow { display: none; }
