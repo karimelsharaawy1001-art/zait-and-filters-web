@@ -83,35 +83,12 @@ function ReviewCard({ r }: { r: typeof ALL_REVIEWS[0] }) {
       gap: '10px',
       direction: 'rtl',
     }}>
-      {/* Stars */}
       <StarRow rating={r.rating} />
-      {/* Review text */}
-      <p style={{
-        fontSize: '0.88rem',
-        color: '#334155',
-        lineHeight: '1.6',
-        fontWeight: '600',
-        margin: 0,
-        flex: 1,
-      }}>
+      <p style={{ fontSize: '0.88rem', color: '#334155', lineHeight: '1.6', fontWeight: '600', margin: 0, flex: 1 }}>
         "{r.text}"
       </p>
-      {/* Author */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <div style={{
-          width: '34px',
-          height: '34px',
-          borderRadius: '50%',
-          background: bg,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          fontSize: '0.72rem',
-          fontWeight: '900',
-          color: '#fff',
-          letterSpacing: '0.5px',
-        }}>
+        <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.72rem', fontWeight: '900', color: '#fff', letterSpacing: '0.5px' }}>
           {initials(r.name)}
         </div>
         <div>
@@ -214,149 +191,125 @@ function SearchCard({
 }
 
 
-// ─── Wheel Arc Card Carousel ─────────────────────────────────────────────────
-function CategoriesCarousel3D({ categories }: { categories: any[] }) {
-  const liveAngle   = useRef(0);
-  const [tick, setTick] = useState(0);
-  const isDragging  = useRef(false);
-  const pStartX     = useRef(0);
-  const baseAngle   = useRef(0);
-  const velX        = useRef(0);
-  const lastX       = useRef(0);
-  const lastT       = useRef(0);
-  const snapRaf     = useRef<number | undefined>(undefined);
-  const renderRaf   = useRef<number | undefined>(undefined);
-  const total       = categories.length;
-
-  const CARD_W    = 190;
-  const CARD_H    = 245;
-  const SEG_DEG   = 33;
-  const PX_PER_DEG = 3.2;
-
-  const getPos = (n: number) => {
-    const abs = Math.abs(n);
-    return {
-      x:     n * 193,
-      y:     n * n * 30,
-      ry:    n * 23,
-      scale: Math.max(0.52, 1 - abs * 0.148),
-      op:    Math.max(0.10, 1 - abs * 0.26),
-      br:    Math.max(0.28, 1 - abs * 0.34),
-    };
-  };
-
-  const snapTo = (targetDeg: number) => {
-    if (snapRaf.current !== undefined) cancelAnimationFrame(snapRaf.current);
-    const from = liveAngle.current;
-    const dist = targetDeg - from;
-    const dur  = 480;
-    const t0   = Date.now();
-    const step = () => {
-      const p    = Math.min(1, (Date.now() - t0) / dur);
-      const ease = 1 - Math.pow(1 - p, 3);
-      liveAngle.current = from + dist * ease;
-      setTick(n => n + 1);
-      if (p < 1) snapRaf.current = requestAnimationFrame(step);
-    };
-    snapRaf.current = requestAnimationFrame(step);
-  };
-
-  useEffect(() => {
-    const scheduleRender = () => {
-      if (renderRaf.current !== undefined) return;
-      renderRaf.current = requestAnimationFrame(() => {
-        renderRaf.current = undefined;
-        setTick(n => n + 1);
-      });
-    };
-    const onMove = (e: PointerEvent) => {
-      if (!isDragging.current) return;
-      const now = Date.now();
-      const dt  = Math.max(1, now - lastT.current);
-      velX.current  = (e.clientX - lastX.current) / dt;
-      lastX.current = e.clientX;
-      lastT.current = now;
-      liveAngle.current = baseAngle.current + (pStartX.current - e.clientX) / PX_PER_DEG;
-      scheduleRender();
-    };
-    const onUp = () => {
-      if (!isDragging.current) return;
-      isDragging.current = false;
-      const momentum   = (-velX.current * 130) / PX_PER_DEG;
-      const raw        = liveAngle.current + momentum;
-      const snappedIdx = Math.round(raw / SEG_DEG);
-      snapTo(snappedIdx * SEG_DEG);
-    };
-    window.addEventListener('pointermove', onMove);
-    window.addEventListener('pointerup',   onUp);
-    return () => {
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup',   onUp);
-    };
-  }, [total]);
-
-  const onPointerDown = (e: React.PointerEvent) => {
-    if (snapRaf.current !== undefined) cancelAnimationFrame(snapRaf.current);
-    isDragging.current = true;
-    pStartX.current    = e.clientX;
-    lastX.current      = e.clientX;
-    lastT.current      = Date.now();
-    velX.current       = 0;
-    baseAngle.current  = liveAngle.current;
-    setTick(n => n + 1);
-  };
-
-  if (total === 0) return null;
-
-  const activeIdx = ((Math.round(liveAngle.current / SEG_DEG) % total) + total) % total;
-
-  const cards = categories.map((cat, i) => {
-    let n = (i * SEG_DEG - liveAngle.current) / SEG_DEG;
-    const half = total / 2;
-    while (n >  half) n -= total;
-    while (n < -half) n += total;
-    return { cat, i, n };
-  })
-  .filter(c => Math.abs(c.n) < 3.6)
-  .sort((a, b) => Math.abs(b.n) - Math.abs(a.n));
-
+// ─── Categories Grid ──────────────────────────────────────────────────────────
+function CategoriesGrid({ categories }: { categories: any[] }) {
+  if (categories.length === 0) return null;
   return (
-    <div style={{ width: '100%', overflow: 'hidden', padding: '5px 0 16px', touchAction: 'pan-y' }}>
-      <div
-        style={{ perspective: '820px', perspectiveOrigin: '50% 8%', width: '100%', height: '345px', position: 'relative', cursor: isDragging.current ? 'grabbing' : 'grab', userSelect: 'none', WebkitUserSelect: 'none' }}
-        onPointerDown={onPointerDown}
-      >
-        <div style={{ position: 'absolute', inset: 0, zIndex: 50, pointerEvents: 'none', background: 'linear-gradient(to right, #fdfdfd 0%, transparent 20%, transparent 80%, #fdfdfd 100%)' }} />
-        {cards.map(({ cat, i, n }) => {
-          const p        = getPos(n);
-          const abs      = Math.abs(n);
-          const isCenter = abs < 0.5;
-          return (
-            <div key={i} onClick={() => { if (isDragging.current) return; if (isCenter) { window.location.href = `/categories/${encodeURIComponent(cat.name)}`; } else { snapTo(i * SEG_DEG); } }}
-              style={{ position: 'absolute', left: '50%', top: '18px', width: `${CARD_W}px`, height: `${CARD_H}px`, marginLeft: `${-CARD_W / 2}px`, borderRadius: '16px', overflow: 'hidden', cursor: 'pointer', zIndex: Math.round(10 - abs), opacity: p.op, transform: `translateX(${p.x}px) translateY(${p.y}px) rotateY(${p.ry}deg) scale(${p.scale})`, transition: isDragging.current ? 'none' : 'transform 0.55s cubic-bezier(0.34, 1.08, 0.64, 1), opacity 0.4s ease, filter 0.4s ease, box-shadow 0.4s ease', filter: `brightness(${p.br})`, boxShadow: isCenter ? '0 28px 65px rgba(0,0,0,0.42), 0 0 0 3px #22c55e' : '0 5px 18px rgba(0,0,0,0.16)', willChange: 'transform' }}>
-              <img src={cat.image} alt={cat.name} draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }} />
-              <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: isCenter ? 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.15) 55%, transparent 100%)' : 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.52) 100%)' }} />
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 10px 13px', textAlign: 'center', pointerEvents: 'none' }}>
-                <span style={{ color: '#fff', fontWeight: 900, display: 'block', lineHeight: 1.3, fontSize: isCenter ? '1.05rem' : '0.82rem', textShadow: '0 2px 8px rgba(0,0,0,1)' }}>{cat.name}</span>
-              </div>
-            </div>
+    <>
+      <style>{`
+        .cat-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 14px;
+          padding: 0 20px;
+        }
+        @media (max-width: 768px) {
+          .cat-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 0 12px;
+          }
+        }
+        .cat-card {
+          position: relative;
+          border-radius: 16px;
+          overflow: hidden;
+          aspect-ratio: 3/4;
+          cursor: pointer;
+          text-decoration: none;
+          display: block;
+          box-shadow: 0 4px 18px rgba(0,0,0,0.13);
+          transition: transform 0.22s cubic-bezier(.34,1.28,.64,1), box-shadow 0.22s ease;
+          background: #1a1a1a;
+        }
+        .cat-card:hover {
+          transform: translateY(-5px) scale(1.025);
+          box-shadow: 0 12px 36px rgba(0,0,0,0.22);
+        }
+        .cat-card img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          transition: transform 0.35s ease;
+        }
+        .cat-card:hover img {
+          transform: scale(1.07);
+        }
+        .cat-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            to top,
+            rgba(0,0,0,0.82) 0%,
+            rgba(0,0,0,0.45) 45%,
+            rgba(0,0,0,0.18) 100%
           );
-        })}
+          transition: background 0.22s ease;
+        }
+        .cat-card:hover .cat-overlay {
+          background: linear-gradient(
+            to top,
+            rgba(0,0,0,0.88) 0%,
+            rgba(0,0,0,0.52) 45%,
+            rgba(0,0,0,0.22) 100%
+          );
+        }
+        .cat-label {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          padding: 14px 10px 14px;
+          text-align: center;
+          color: #fff;
+          font-size: 1rem;
+          font-weight: 900;
+          line-height: 1.3;
+          text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+          letter-spacing: -0.2px;
+        }
+        .cat-label-arrow {
+          display: inline-block;
+          margin-top: 5px;
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: #22c55e;
+          letter-spacing: 0.04em;
+          opacity: 0;
+          transform: translateY(4px);
+          transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .cat-card:hover .cat-label-arrow {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        @media (max-width: 768px) {
+          .cat-label {
+            font-size: 0.78rem;
+            padding: 10px 6px 10px;
+          }
+          .cat-label-arrow { display: none; }
+          .cat-card { border-radius: 12px; }
+        }
+      `}</style>
+      <div className="cat-grid">
+        {categories.map((cat) => (
+          <Link
+            key={cat.name}
+            href={`/categories/${encodeURIComponent(cat.name)}`}
+            className="cat-card"
+          >
+            <img src={cat.image} alt={cat.name} loading="lazy" />
+            <div className="cat-overlay" />
+            <div className="cat-label">
+              {cat.name}
+              <div className="cat-label-arrow">تصفح ←</div>
+            </div>
+          </Link>
+        ))}
       </div>
-      <div className="wheel-carousel-nav" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', marginTop: '8px', position: 'relative', zIndex: 30 }}>
-        <button onClick={() => snapTo(((Math.round(liveAngle.current / SEG_DEG) + 1) % total) * SEG_DEG)} style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #e5e7eb', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
-          <ChevronRight size={18} color="#1a1a1a" />
-        </button>
-        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-          {categories.map((_, idx) => (
-            <button key={idx} onClick={() => snapTo(idx * SEG_DEG)} style={{ width: idx === activeIdx ? '22px' : '8px', height: '8px', borderRadius: '4px', background: idx === activeIdx ? '#22c55e' : '#d1d5db', border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.3s ease' }} />
-          ))}
-        </div>
-        <button onClick={() => snapTo(((Math.round(liveAngle.current / SEG_DEG) - 1 + total) % total) * SEG_DEG)} style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #e5e7eb', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
-          <ChevronLeft size={18} color="#1a1a1a" />
-        </button>
-      </div>
-    </div>
+    </>
   );
 }
 
@@ -648,7 +601,6 @@ export default function HomePage() {
             .hero-cta-btn { display: flex !important; align-items: center !important; justify-content: center !important; gap: 10px !important; width: 100% !important; padding: 20px 24px !important; background-color: #22c55e !important; color: #fff !important; border-radius: 16px !important; text-decoration: none !important; font-weight: 900 !important; font-size: 1.25rem !important; box-shadow: 0 8px 28px rgba(34,197,94,0.45) !important; }
             .hero-card-desktop { display: none; }
             .hero-card-mobile { width: 100%; box-sizing: border-box; background: #fff; padding: 18px 16px 20px; border-radius: 22px; box-shadow: 0 12px 36px rgba(0,0,0,0.3); }
-            .wheel-carousel-nav { display: none !important; }
           }
 
           @media (max-width: 380px) {
@@ -788,8 +740,6 @@ export default function HomePage() {
             <ScrollReveal direction="up" delay={0.06}>
               <section style={{ background: '#fafcff', padding: '52px 0 56px', borderBottom: '1px solid #f0f0f0' }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
-
-                  {/* Header */}
                   <div style={{ textAlign: 'center', marginBottom: '38px' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '20px', padding: '6px 18px', marginBottom: '14px' }}>
                       <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#16a34a', letterSpacing: '0.05em' }}>⭐ آراء عملاؤنا</span>
@@ -801,8 +751,6 @@ export default function HomePage() {
                       أكتر من 20,000+ عميل سعيد بتجربته معانا
                     </p>
                   </div>
-
-                  {/* Row 1 — scrolls right */}
                   <div style={{ overflow: 'hidden', marginBottom: '14px', direction: 'ltr' }}>
                     <div style={{ display: 'flex', width: 'max-content', animation: 'reviewsMarquee1 40s linear infinite' }}>
                       {[...REVIEWS_ROW1, ...REVIEWS_ROW1].map((r, i) => (
@@ -810,8 +758,6 @@ export default function HomePage() {
                       ))}
                     </div>
                   </div>
-
-                  {/* Row 2 — scrolls left (reverse) */}
                   <div style={{ overflow: 'hidden', direction: 'ltr' }}>
                     <div style={{ display: 'flex', width: 'max-content', animation: 'reviewsMarquee2 44s linear infinite' }}>
                       {[...REVIEWS_ROW2, ...REVIEWS_ROW2].map((r, i) => (
@@ -819,7 +765,6 @@ export default function HomePage() {
                       ))}
                     </div>
                   </div>
-
                 </div>
               </section>
             </ScrollReveal>
@@ -1037,11 +982,14 @@ export default function HomePage() {
             {/* Categories Section */}
             {categories.length > 0 && (
               <ScrollReveal direction="up" delay={0.2}>
-                <section style={{ padding: '20px 0 5px', maxWidth: '1200px', margin: '0 auto' }}>
-                  <div style={{ textAlign: 'right', marginBottom: '10px', padding: '0 20px' }}>
+                <section style={{ padding: '20px 0 40px', maxWidth: '1200px', margin: '0 auto' }}>
+                  <div style={{ textAlign: 'right', marginBottom: '18px', padding: '0 20px' }}>
                     <h2 style={{ fontSize: '2.2rem', fontWeight: '900', margin: 0 }}>تسوق حسب الفئة</h2>
+                    <p style={{ fontSize: '0.9rem', color: '#888', fontWeight: '700', margin: '6px 0 0' }}>
+                      اختر فئة لعرض الأقسام الفرعية والمنتجات
+                    </p>
                   </div>
-                  <CategoriesCarousel3D categories={categories} />
+                  <CategoriesGrid categories={categories} />
                 </section>
               </ScrollReveal>
             )}
