@@ -1032,24 +1032,12 @@ export default function CheckoutPage() {
                   {/* ── Professional card options grid ── */}
                   <div style={cardOptionsGrid}>
                     {[
-                      { label: 'فيزا', color: '#1a1f71' },
-                      { label: 'ماستر كارد', color: '#eb001b' },
-                      { label: 'ميزة', color: '#0060a9' },
-                      { label: 'Apple Pay', color: '#1a1a1a' },
-                      { label: 'فاليو', color: '#6d28d9' },
-                      { label: 'أمان', color: '#0369a1' },
-                      { label: 'سهولة', color: '#0f766e' },
-                      { label: 'فرصة', color: '#b45309' },
-                      { label: 'كونتاكت', color: '#be185d' },
-                      { label: 'ترو', color: '#15803d' },
-                      { label: 'كليفر', color: '#7c3aed' },
-                      { label: 'كارت فوري', color: '#c2410c' },
-                      { label: 'كارت حالا', color: '#0369a1' },
-                      { label: 'كارت لاكي', color: '#0f766e' },
-                      { label: 'تقسيط الأهلي', color: '#1a1f71' },
-                      { label: 'كارت تكة', color: '#92400e' },
-                    ].map(({ label, color }) => (
-                      <div key={label} style={{ ...cardOptionBadge, borderColor: color + '33', color: color, background: color + '0d' }}>
+                      'فيزا', 'ماستر كارد', 'ميزة', 'Apple Pay', 'فاليو',
+                      'أمان', 'سهولة', 'فرصة', 'كونتاكت', 'ترو',
+                      'كليفر', 'كارت فوري', 'كارت حالا', 'كارت لاكي',
+                      'تقسيط الأهلي', 'كارت تكة',
+                    ].map((label) => (
+                      <div key={label} style={cardOptionBadge}>
                         {label}
                       </div>
                     ))}
@@ -1151,7 +1139,7 @@ const promoSuccessText: any = { fontSize: '0.8rem', color: '#15803d', marginTop:
 const logosGrid: any = { display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '2px', paddingRight: '52px' };
 const miniLogoImg: any = { height: '26px', width: 'auto', borderRadius: '6px', border: '1px solid #f0f0f0', padding: '2px 4px', background: '#fff' };
 const cardOptionsGrid: any = { display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px', paddingRight: '52px' };
-const cardOptionBadge: any = { display: 'inline-flex', alignItems: 'center', padding: '5px 12px', borderRadius: '8px', fontSize: '0.72rem', fontWeight: '800', border: '1.5px solid', whiteSpace: 'nowrap', letterSpacing: '0.2px' };
+const cardOptionBadge: any = { display: 'inline-flex', alignItems: 'center', padding: '4px 11px', borderRadius: '7px', fontSize: '0.71rem', fontWeight: '700', border: '1px solid #e2e8f0', whiteSpace: 'nowrap', letterSpacing: '0.2px', background: '#fff', color: '#374151' };
 const payBadgeGreen: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 10px', borderRadius: '6px', background: '#dcfce7', color: '#15803d', whiteSpace: 'nowrap', border: '1px solid #bbf7d0' };
 const payBadgeAmber: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 10px', borderRadius: '6px', background: '#fef3c7', color: '#92400e', whiteSpace: 'nowrap', border: '1px solid #fde68a' };
 const payBadgeGray: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 10px', borderRadius: '6px', background: '#f3f4f6', color: '#6b7280', whiteSpace: 'nowrap', border: '1px solid #e5e7eb' };
