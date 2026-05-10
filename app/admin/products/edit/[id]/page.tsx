@@ -146,10 +146,10 @@ export default function EditProduct() {
       return;
     }
 
-    if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === 'YOUR_CLOUD_NAME') {
-      setUploadError('لم يتم ضبط إعدادات Cloudinary. يرجى إضافة CLOUD_NAME و UPLOAD_PRESET في الكود.');
-      return;
-    }
+    if (!CLOUDINARY_CLOUD_NAME) {
+  setUploadError('لم يتم ضبط إعدادات Cloudinary. يرجى إضافة CLOUD_NAME في الكود.');
+  return;
+}
 
     try {
       setUploading(true);
