@@ -256,30 +256,34 @@ function CategoriesGrid({ categories }: { categories: any[] }) {
           );
         }
         .cat-label {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          padding: 14px 10px 14px;
-          text-align: center;
-          color: #fff;
-          font-size: 1.3rem;
-          font-weight: 900;
-          line-height: 1.3;
-          text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-          letter-spacing: -0.2px;
-        }
-        .cat-label-arrow {
-          display: inline-block;
-          margin-top: 5px;
-          font-size: 1.3rem;
-          font-weight: 700;
-          color: #22c55e;
-          letter-spacing: 0.04em;
-          opacity: 0;
-          transform: translateY(4px);
-          transition: opacity 0.2s ease, transform 0.2s ease;
-        }
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 14px 10px 14px;
+  text-align: center;
+  color: #fff;
+  font-size: 1.3rem !important;
+  font-weight: 900;
+  line-height: 1.3;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+  letter-spacing: -0.2px;
+  display: flex;                /* ← add */
+  flex-direction: column;       /* ← add */
+  align-items: center;          /* ← add */
+  gap: 4px;                     /* ← add */
+}
+
+.cat-label-arrow {
+  display: block;               /* ← change from inline-block to block */
+  font-size: 3rem;
+  font-weight: 700;
+  color: #22c55e;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
         .cat-card:hover .cat-label-arrow {
           opacity: 1;
           transform: translateY(0);
