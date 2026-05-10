@@ -30,7 +30,6 @@ export default function CheckoutPage() {
   const [shippingRates, setShippingRates] = useState<any[]>([]);
   const [selectedCity, setSelectedCity] = useState<any>(null);
   const [expressShipping, setExpressShipping] = useState(false);
-  // ── CHANGED: default payment is now InstaPay ──
   const [paymentMethod, setPaymentMethod] = useState('instapay');
   const [screenshot, setScreenshot] = useState<File | null>(null);
 
@@ -39,7 +38,6 @@ export default function CheckoutPage() {
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
   const [appliedPromoType, setAppliedPromoType] = useState<string | null>(null);
 
-  // ── Wallet / cashback ────────────────────────────────────────────────────
   const [walletBalance, setWalletBalance] = useState(0);
   const [walletDiscount, setWalletDiscount] = useState(0);
   const [walletApplied, setWalletApplied] = useState(false);
@@ -63,18 +61,15 @@ export default function CheckoutPage() {
   const CLOUD_NAME = "dxtncdxfh";
   const UPLOAD_PRESET = "zaitandfiltersnew";
 
-  // ── Express shipping ──────────────────────────────────────────────────────
   const EXPRESS_COST = 150;
   const EXPRESS_CITIES = ['القاهرة', 'الجيزة'];
   const isExpressAvailable = EXPRESS_CITIES.includes(selectedCity?.city_name || '');
-  // If city changes away from Cairo/Giza, reset express
+
   useEffect(() => {
     if (!isExpressAvailable && expressShipping) setExpressShipping(false);
-    // If express is on but card_installments selected, switch back to instapay
     if (expressShipping && paymentMethod === 'card_installments') setPaymentMethod('instapay');
   }, [selectedCity, expressShipping, paymentMethod, isExpressAvailable]);
 
-  // ── Warn user if they try to leave with items in cart ──
   useExitWarning(cart.length > 0 && !completedOrderId);
 
   useEffect(() => {
@@ -114,7 +109,6 @@ export default function CheckoutPage() {
         await trackReferralClick(refCode);
       }
 
-      // ── Load wallet balance + cashback % ──────────────────────────────
       const { data: { user: u } } = await supabase.auth.getUser();
       if (u) {
         const [walletRes, cashbackRes] = await Promise.all([
@@ -262,7 +256,6 @@ export default function CheckoutPage() {
     }
   };
 
-  // ── Apply / remove wallet balance ────────────────────────────────────────
   const applyWallet = async () => {
     if (walletBalance <= 0) return toast.error('رصيد المحفظة صفر');
     setWalletLoading(true);
@@ -302,7 +295,6 @@ export default function CheckoutPage() {
     }
   };
 
-  // ── UPDATED: takes customerReference as a param instead of building it from orderId ──
   const initiateEasyKashPayment = async (orderId: string, customerReference: number) => {
     try {
       const payload = {
@@ -477,7 +469,6 @@ export default function CheckoutPage() {
         created_at: new Date().toISOString()
       };
 
-      // ── CHANGED: EasyKash now saves directly to orders table so it appears in admin ──
       if (paymentMethod === 'card_installments') {
         const { data: newOrder, error } = await supabase.from('orders').insert([orderData]).select().single();
         if (error) throw error;
@@ -490,18 +481,15 @@ export default function CheckoutPage() {
         await markAsRecovered(newOrder.id);
         localStorage.removeItem('zf_marketer_ref');
 
-        // Redirect to EasyKash using the real order id
         const customerReference = Date.now() % 100000000;
         await initiateEasyKashPayment(newOrder.id, customerReference);
 
       } else {
-        // ── Other payment methods: create order immediately as before ──
         const { data: newOrder, error } = await supabase.from('orders').insert([orderData]).select().single();
         if (error) throw error;
 
         if (finalMarketerId) await trackAffiliateCommission(newOrder.id, finalMarketerId);
 
-        // ── Deduct wallet balance if used ────────────────────────────────
         if (walletDiscount > 0 && user?.id) {
           await supabase.rpc('deduct_wallet', {
             p_user_id: user.id,
@@ -510,7 +498,6 @@ export default function CheckoutPage() {
           });
         }
 
-        // ── Credit cashback to wallet ─────────────────────────────────────
         if (user?.id) {
           const cashbackAmount = parseFloat((finalTotal * cashbackPct / 100).toFixed(2));
           if (cashbackAmount > 0) {
@@ -790,6 +777,7 @@ export default function CheckoutPage() {
         .upload-hover:hover { background: #f0fdf4 !important; border-color: #15803d !important; }
         .promo-btn:hover { background: #1a1a1a !important; color: #fff !important; transform: scale(1.02); }
         input:focus, select:focus, textarea:focus { border-color: #15803d !important; box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1); }
+        .pay-card-label:hover { border-color: #15803d !important; box-shadow: 0 4px 16px rgba(21,128,61,0.10) !important; }
       `}} />
 
       <h1 style={title}>🏁 إتمام عملية الشراء</h1>
@@ -890,7 +878,6 @@ export default function CheckoutPage() {
               </div>
             )}
             <div style={finalRow}><span>الإجمالي النهائي:</span><span>{finalTotal.toFixed(2)} ج.م</span></div>
-            {/* ── Cashback preview ── */}
             <div style={{ marginTop: '10px', padding: '8px 12px', background: '#fffbeb', borderRadius: '10px', border: '1px solid #fde68a', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '0.78rem', color: '#92400e', fontWeight: '700' }}>🎁 كاش باك ستحصل عليه في محفظتك</span>
               <span style={{ fontSize: '0.88rem', fontWeight: '900', color: '#d97706' }}>+{(finalTotal * cashbackPct / 100).toFixed(2)} ج.م</span>
@@ -978,17 +965,41 @@ export default function CheckoutPage() {
             <textarea value={customerInfo.address} onChange={(e)=>setCustomerInfo({...customerInfo, address: e.target.value})} required style={{...inp, height: '80px', paddingTop: '12px'}} />
           </div>
 
+          {/* ── Payment Methods ── */}
           <div style={{ marginTop: '20px', marginBottom: '20px' }}>
             <h3 style={sectionTitle}><Banknote size={18} /> وسيلة الدفع</h3>
+
+            {/* ── Sorry note: no COD ── */}
+            <div style={{
+              display: 'flex', alignItems: 'flex-start', gap: '12px',
+              background: '#fff8f0',
+              border: '1.5px solid #f59e0b',
+              borderRight: '4px solid #f59e0b',
+              borderRadius: '12px',
+              padding: '14px 16px',
+              marginBottom: '16px',
+            }}>
+              <span style={{ fontSize: '1.1rem', flexShrink: 0, marginTop: '1px' }}>🙏</span>
+              <p style={{ fontSize: '0.82rem', color: '#92400e', fontWeight: '700', lineHeight: '1.6', margin: 0 }}>
+                نأسف لعملائنا الكرام — الدفع عند الاستلام غير متاح على موقعنا حاليًا بسبب مشاكل لوجيستية. يرجى اختيار أحد خيارات الدفع المتاحة أدناه.
+              </p>
+            </div>
+
             <div style={paymentContainer}>
 
               {/* ── 1st: InstaPay ── */}
-              <label style={paymentCard(paymentMethod === 'instapay')}>
+              <label className="pay-card-label" style={paymentCard(paymentMethod === 'instapay')}>
                 <input type="radio" value="instapay" checked={paymentMethod === 'instapay'} onChange={(e) => setPaymentMethod(e.target.value)} style={hideRadio}/>
                 <div style={payCardInner}>
                   <div style={payHeader}>
-                    <div style={payIconWrapper}><SmartphoneNfc size={16} color={paymentMethod === 'instapay' ? '#15803d' : '#666'} /></div>
-                    <div style={payTextContent}><span style={payTitle}>تطبيق انستا باي (InstaPay)</span></div>
+                    <div style={paymentMethod === 'instapay' ? payIconWrapperActive : payIconWrapper}>
+                      <SmartphoneNfc size={18} color={paymentMethod === 'instapay' ? '#15803d' : '#888'} />
+                    </div>
+                    <div style={{ ...payTextContent, flex: 1 }}>
+                      <span style={payTitle}>InstaPay — انستا باي</span>
+                      <span style={paySubTitle}>تحويل فوري عبر تطبيق انستا باي</span>
+                    </div>
+                    <span style={paymentMethod === 'instapay' ? payBadgeGreen : payBadgeGray}>الأسرع</span>
                   </div>
                   <div style={logosGrid}>
                     <img src="https://i.postimg.cc/3r19c1zy/Pv1p8v-KJq4Z-LLOj-Qj-BZp-K8DNJg4Zb5.png" alt="InstaPay" style={miniLogoImg} />
@@ -1005,36 +1016,60 @@ export default function CheckoutPage() {
 
               {/* ── 2nd: EasyKash (card/installments) — hidden for express shipping ── */}
               {!expressShipping && (
-              <label style={paymentCard(paymentMethod === 'card_installments')}>
+              <label className="pay-card-label" style={paymentCard(paymentMethod === 'card_installments')}>
                 <input type="radio" value="card_installments" checked={paymentMethod === 'card_installments'} onChange={(e) => setPaymentMethod(e.target.value)} style={hideRadio}/>
                 <div style={payCardInner}>
                   <div style={payHeader}>
-                    <div style={payIconWrapper}><CreditCard size={16} color={paymentMethod === 'card_installments' ? '#15803d' : '#666'} /></div>
-                    <div style={payTextContent}>
-                      <span style={payTitle}>دفع بالتقسيط أو الفيرا</span>
+                    <div style={paymentMethod === 'card_installments' ? payIconWrapperActive : payIconWrapper}>
+                      <CreditCard size={18} color={paymentMethod === 'card_installments' ? '#15803d' : '#888'} />
                     </div>
+                    <div style={{ ...payTextContent, flex: 1 }}>
+                      <span style={payTitle}>بطاقة بنكية أو تقسيط</span>
+                      <span style={paySubTitle}>فيزا · ماستر كارد · ميزة · Apple Pay والمزيد</span>
+                    </div>
+                    <span style={paymentMethod === 'card_installments' ? payBadgeAmber : payBadgeGray}>تقسيط متاح</span>
                   </div>
-                  <div style={logosGrid}>
+                  {/* ── Professional card options grid ── */}
+                  <div style={cardOptionsGrid}>
                     {[
-                      'فيزا', 'ماستر كارد', 'ميزة', 'Apple Pay', 'فاليو',
-                      'أمان', 'سهولة', 'فرصة', 'كونتاكت', 'ترو',
-                      'كليفر', 'كارت فوري', 'كارت حالا', 'كارت لاكي',
-                      'تقسيط البنك الأهلي', 'كارت تكة',
-                    ].map((label) => (
-                      <span key={label} style={paymentBadge}>{label}</span>
+                      { label: 'فيزا', color: '#1a1f71' },
+                      { label: 'ماستر كارد', color: '#eb001b' },
+                      { label: 'ميزة', color: '#0060a9' },
+                      { label: 'Apple Pay', color: '#1a1a1a' },
+                      { label: 'فاليو', color: '#6d28d9' },
+                      { label: 'أمان', color: '#0369a1' },
+                      { label: 'سهولة', color: '#0f766e' },
+                      { label: 'فرصة', color: '#b45309' },
+                      { label: 'كونتاكت', color: '#be185d' },
+                      { label: 'ترو', color: '#15803d' },
+                      { label: 'كليفر', color: '#7c3aed' },
+                      { label: 'كارت فوري', color: '#c2410c' },
+                      { label: 'كارت حالا', color: '#0369a1' },
+                      { label: 'كارت لاكي', color: '#0f766e' },
+                      { label: 'تقسيط الأهلي', color: '#1a1f71' },
+                      { label: 'كارت تكة', color: '#92400e' },
+                    ].map(({ label, color }) => (
+                      <div key={label} style={{ ...cardOptionBadge, borderColor: color + '33', color: color, background: color + '0d' }}>
+                        {label}
+                      </div>
                     ))}
                   </div>
                 </div>
               </label>
-              )} {/* end !expressShipping */}
+              )}
 
               {/* ── 3rd: E-Wallets ── */}
-              <label style={paymentCard(paymentMethod === 'wallets')}>
+              <label className="pay-card-label" style={paymentCard(paymentMethod === 'wallets')}>
                 <input type="radio" value="wallets" checked={paymentMethod === 'wallets'} onChange={(e) => setPaymentMethod(e.target.value)} style={hideRadio}/>
                 <div style={payCardInner}>
                   <div style={payHeader}>
-                    <div style={payIconWrapper}><Wallet size={16} color={paymentMethod === 'wallets' ? '#15803d' : '#666'} /></div>
-                    <div style={payTextContent}><span style={payTitle}>محافظ إلكترونية (كاش)</span></div>
+                    <div style={paymentMethod === 'wallets' ? payIconWrapperActive : payIconWrapper}>
+                      <Wallet size={18} color={paymentMethod === 'wallets' ? '#15803d' : '#888'} />
+                    </div>
+                    <div style={{ ...payTextContent, flex: 1 }}>
+                      <span style={payTitle}>محافظ إلكترونية (كاش)</span>
+                      <span style={paySubTitle}>فودافون كاش · أورنج موني · إتصالات كاش</span>
+                    </div>
                   </div>
                   <div style={logosGrid}>
                     <img src="https://i.postimg.cc/ryjgPj7K/VODAFONE.jpg" alt="Vodafone Cash" style={miniLogoImg} />
@@ -1043,7 +1078,10 @@ export default function CheckoutPage() {
                   </div>
                   {paymentMethod === 'wallets' && (
                     <div style={payDetailsBox}>
-                      <span style={{fontSize:'0.8rem', color:'#666'}}>التحويل للرقم: <strong>01023862436</strong></span>
+                      <div style={{ padding: '10px 14px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: '600' }}>رقم التحويل</span>
+                        <span style={{ fontSize: '0.95rem', fontWeight: '900', color: '#1a1a1a', letterSpacing: '0.5px', direction: 'ltr' }}>01023862436</span>
+                      </div>
                       <label htmlFor="u-cash" className="upload-hover" style={uploadArea}><Upload size={14}/> {screenshot ? '✅ تم اختيار الإثبات' : 'رفع إثبات التحويل'}</label>
                       <input id="u-cash" type="file" accept="image/*" onChange={handleFileUpload} style={{display:'none'}}/>
                     </div>
@@ -1084,21 +1122,31 @@ const itemsList: any = { maxHeight: '350px', overflowY: 'auto' };
 const detailsGrid = { display: 'flex', flexDirection: 'column' as const, gap: '3px', marginTop: '8px' };
 const detailItem = { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#666' };
 const qtyBadge = { backgroundColor: '#f0fdf4', color: '#15803d', padding: '4px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800' };
-const paymentContainer: any = { display: 'flex', flexDirection: 'column', gap: '6px' };
-const paymentCard = (isActive: boolean) => ({ display: 'block', padding: '10px 14px', borderRadius: '12px', border: isActive ? '2px solid #15803d' : '1px solid #e8e8e8', borderRight: isActive ? '4px solid #15803d' : '1px solid #e8e8e8', background: isActive ? '#f7fff9' : '#fafafa', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: isActive ? '0 2px 10px rgba(21, 128, 61, 0.08)' : 'none' });
-const payCardInner: any = { display: 'flex', flexDirection: 'column', gap: '4px' };
-const payHeader: any = { display: 'flex', alignItems: 'center', gap: '10px' };
-const payIconWrapper: any = { width: '32px', height: '32px', borderRadius: '8px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #ececec', flexShrink: 0 };
-const payTextContent: any = { display: 'flex', flexDirection: 'column' };
-const payTitle: any = { fontWeight: '800', fontSize: '0.85rem', color: '#1a1a1a' };
-const paySubTitle: any = { fontSize: '0.67rem', color: '#999', fontWeight: '500' };
+const paymentContainer: any = { display: 'flex', flexDirection: 'column', gap: '10px' };
+const paymentCard = (isActive: boolean): any => ({
+  display: 'block',
+  borderRadius: '14px',
+  border: isActive ? '2px solid #15803d' : '1.5px solid #e0e0e0',
+  borderRight: isActive ? '4px solid #15803d' : '1.5px solid #e0e0e0',
+  background: isActive ? '#f7fff9' : '#fafafa',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+  boxShadow: isActive ? '0 4px 16px rgba(21, 128, 61, 0.10)' : 'none',
+  overflow: 'hidden',
+});
+const payCardInner: any = { display: 'flex', flexDirection: 'column', gap: '4px', padding: '14px 16px' };
+const payHeader: any = { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' };
+const payIconWrapper: any = { width: '40px', height: '40px', borderRadius: '10px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #e8e8e8', flexShrink: 0 };
+const payIconWrapperActive: any = { width: '40px', height: '40px', borderRadius: '10px', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #bbf7d0', flexShrink: 0 };
+const payTextContent: any = { display: 'flex', flexDirection: 'column', gap: '2px' };
+const payTitle: any = { fontWeight: '800', fontSize: '0.88rem', color: '#1a1a1a' };
+const paySubTitle: any = { fontSize: '0.72rem', color: '#888', fontWeight: '600' };
 const hideRadio: any = { display: 'none' };
-const payDetailsBox: any = { marginTop: '6px', padding: '10px 12px', background: '#fff', borderRadius: '10px', border: '1px dashed #b6e9c8', display: 'flex', flexDirection: 'column', gap: '6px' };
+const payDetailsBox: any = { marginTop: '8px', padding: '10px 12px', background: '#fff', borderRadius: '10px', border: '1px dashed #b6e9c8', display: 'flex', flexDirection: 'column', gap: '8px' };
 const actionBtnLink: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#1a1a1a', color: '#fff', padding: '9px 12px', borderRadius: '10px', textDecoration: 'none', fontSize: '0.82rem', fontWeight: 'bold', transition: '0.3s ease' };
 const uploadArea: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '1.5px dashed #15803d', color: '#15803d', padding: '8px 12px', borderRadius: '10px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: '800', transition: '0.3s ease' };
 const promoWrapper: any = { marginTop: '20px', padding: '15px', background: '#fff', borderRadius: '20px', border: '1px dashed #ddd', marginBottom: '15px' };
 const promoBtnStyle: any = { padding: '0 25px', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', transition: '0.3s ease', fontSize: '0.9rem' };
 const promoSuccessText: any = { fontSize: '0.8rem', color: '#15803d', marginTop: '10px', fontWeight: 'bold' };
-const logosGrid: any = { display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '3px', paddingRight: '42px' };
-const miniLogoImg: any = { height: '22px', width: 'auto', borderRadius: '4px', border: '1px solid #f0f0f0', padding: '1px', background: '#fff' };
-const paymentBadge: any = { display: 'inline-flex', alignItems: 'center', padding: '2px 7px', background: '#f0fdf4', color: '#15803d', borderRadius: '5px', fontSize: '0.65rem', fontWeight: '800', border: '1px solid #dcfce7', whiteSpace: 'nowrap' };
+const logosGrid: any = { display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '2px', paddingRight: '52px' };
+const miniLogoImg: any = { height: '26px', width: 'auto', borderRadius: '6px', border: '1px solid #f0f0f0', padding: '2px 4px', backgr
