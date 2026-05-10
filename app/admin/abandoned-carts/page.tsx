@@ -62,24 +62,52 @@ function isWithin24Hours(dateString: string | null | undefined): boolean {
   return Date.now() - new Date(dateString).getTime() < 24 * 60 * 60 * 1000;
 }
 
-// ── FIXED: handles all Egyptian number formats correctly ─────────────────────
 function toWhatsAppNumber(phone: string | null | undefined): string {
   if (!phone) return '';
-  // Strip everything except digits
   let digits = phone.replace(/\D/g, '');
   if (!digits) return '';
-  // Strip international dialing prefix 00 (e.g. 00201xxxxxxxxx → 201xxxxxxxxx)
   if (digits.startsWith('00')) digits = digits.slice(2);
-  // Already correct: 201XXXXXXXXX (12 digits)
   if (digits.startsWith('20') && digits.length === 12) return digits;
-  // Has 20 prefix but wrong length — strip it and re-normalize below
   if (digits.startsWith('20') && digits.length !== 12) digits = digits.slice(2);
-  // 01XXXXXXXXX (11 digits) → 201XXXXXXXXX
   if (digits.startsWith('0') && digits.length === 11) return '2' + digits;
-  // 1XXXXXXXXX (10 digits, no leading zero) → 201XXXXXXXXX
   if (digits.startsWith('1') && digits.length === 10) return '20' + digits;
-  // Fallback: prepend 20
   return '20' + digits;
+}
+
+// ── Fixed: each emoji is its own fromCodePoint call ──────────────────────────
+const EMOJI = {
+  smile: '\u{1F604}',
+  oil:   '\u{1F6E2}\u{FE0F}',
+  down:  '\u{1F447}',
+  hands: '\u{1F64C}',
+};
+
+// ── Fixed: opens WhatsApp correctly on both mobile and desktop ────────────────
+function openWhatsApp(waNumber: string, msg: string) {
+  const waUrl = `https://wa.me/${waNumber}?text=${msg}`;
+  // On mobile, wa.me opens the app directly via the browser
+  // Using location.href avoids popup blockers that block window.open on mobile
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if (isMobile) {
+    window.location.href = waUrl;
+  } else {
+    window.open(waUrl, '_blank');
+  }
+}
+
+function buildWhatsAppMessage(cart: AbandonedCart, promoCode: string): string {
+  const items = cart.cart_items?.slice(0, 2).map((i: any) => i.name).join('، ') || 'منتجات';
+  const more  = cart.cart_items?.length > 2 ? ` و${cart.cart_items.length - 2} منتجات أخرى` : '';
+  return encodeURIComponent(
+    `إزيك يا ${cart.customer_name || 'صديقنا'} ${EMOJI.smile}\n` +
+    `إحنا زيت اند فلترز ${EMOJI.oil}\n\n` +
+    `سلتك بتستناك من امبارح — فيها ${items}${more}\n\n` +
+    `مش هنضغط عليك، بس عشان إحنا بنحب عملاءنا، عملنالك كود خصم 5% خاص بيك:\n` +
+    `*${promoCode}*\n\n` +
+    `استخدمه قبل بكره و كمل طلبك من هنا ${EMOJI.down}\n` +
+    `https://zaitandfilters.com/checkout\n\n` +
+    `لو عندك أي سؤال، إحنا هنا ${EMOJI.hands}`
+  );
 }
 
 function generatePromoCode(cartId: string): string {
@@ -168,27 +196,19 @@ function ReminderModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onC
     const promoCode = cart.reminder_promo_code || generatePromoCode(cart.id);
     const expiry = new Date();
     expiry.setDate(expiry.getDate() + 2);
-    const { error: couponError } = await supabase.from('coupons').upsert({ code: promoCode, discount_type: 'percentage', discount_value: 5, is_active: true, expiry_date: expiry.toISOString() }, { onConflict: 'code' });
-    if (couponError) { toast.error('فشل إنشاء كود الخصم: ' + couponError.message); setSending(null); return; }
-    await supabase.from('abandoned_carts').update({ reminder_sent: true, reminder_sent_at: new Date().toISOString(), reminder_promo_code: promoCode }).eq('id', cart.id);
-    const smile = String.fromCodePoint(0x1F604);
-    const oil   = String.fromCodePoint(0x1F6E2, 0xFE0F);
-    const down  = String.fromCodePoint(0x1F447);
-    const hands = String.fromCodePoint(0x1F64C);
-    const items = cart.cart_items?.slice(0, 2).map((i: any) => i.name).join('، ') || 'منتجات';
-    const more  = cart.cart_items?.length > 2 ? ` و${cart.cart_items.length - 2} منتجات أخرى` : '';
-    const waNumber = toWhatsAppNumber(cart.customer_phone);
-    const msg = encodeURIComponent(
-      `إزيك يا ${cart.customer_name || 'صديقنا'} ${smile}\n` +
-      `إحنا زيت اند فلترز ${oil}\n\n` +
-      `سلتك بتستناك من امبارح — فيها ${items}${more}\n\n` +
-      `مش هنضغط عليك، بس عشان إحنا بنحب عملاءنا، عملنالك كود خصم 5% خاص بيك:\n` +
-      `*${promoCode}*\n\n` +
-      `استخدمه قبل بكره و كمل طلبك من هنا ${down}\n` +
-      `https://zaitandfilters.com/checkout\n\n` +
-      `لو عندك أي سؤال، إحنا هنا ${hands}`
+    const { error: couponError } = await supabase.from('coupons').upsert(
+      { code: promoCode, discount_type: 'percentage', discount_value: 5, is_active: true, expiry_date: expiry.toISOString() },
+      { onConflict: 'code' }
     );
-    window.open(`https://wa.me/${waNumber}?text=${msg}`, '_blank');
+    if (couponError) { toast.error('فشل إنشاء كود الخصم: ' + couponError.message); setSending(null); return; }
+    await supabase.from('abandoned_carts').update({
+      reminder_sent: true,
+      reminder_sent_at: new Date().toISOString(),
+      reminder_promo_code: promoCode,
+    }).eq('id', cart.id);
+    const waNumber = toWhatsAppNumber(cart.customer_phone);
+    const msg = buildWhatsAppMessage(cart, promoCode);
+    openWhatsApp(waNumber, msg);
     setSent(prev => new Set([...prev, cart.id]));
     setSending(null);
     toast.success(`تم فتح واتساب لـ ${cart.customer_name} ✅`);
@@ -432,7 +452,6 @@ export default function AbandonedCartsAdmin() {
     if (!confirm(`هل أنت متأكد من تحويل سلة "${cart.customer_name || 'غير محدد'}" إلى طلب ناجح؟`)) return;
     setTransferringCart(cart.id);
     try {
-      // 1. Create the order
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -449,10 +468,7 @@ export default function AbandonedCartsAdmin() {
         })
         .select()
         .single();
-
       if (orderError) throw orderError;
-
-      // 2. Create order items
       const orderItems = (cart.cart_items || []).map((item: any) => ({
         order_id: orderData.id,
         product_id: item.product_id || item.id || null,
@@ -462,20 +478,15 @@ export default function AbandonedCartsAdmin() {
         total: (parseFloat(item.price) || 0) * (item.quantity || 1),
         image_url: item.image_url || item.image || null,
       }));
-
       if (orderItems.length > 0) {
         const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
         if (itemsError) throw itemsError;
       }
-
-      // 3. Mark abandoned cart as recovered
       const { error: updateError } = await supabase
         .from('abandoned_carts')
         .update({ recovered: true, recovered_at: new Date().toISOString() })
         .eq('id', cart.id);
-
       if (updateError) throw updateError;
-
       toast.success(`✅ تم تحويل السلة إلى طلب رقم #${orderData.id.slice(0, 8)}`);
       fetchAbandonedCarts();
     } catch (err: any) {
@@ -499,28 +510,21 @@ export default function AbandonedCartsAdmin() {
 
   const sendWhatsApp = async (cart: AbandonedCart) => {
     const promoCode = cart.reminder_promo_code || generatePromoCode(cart.id);
-    const expiry = new Date(); expiry.setDate(expiry.getDate() + 2);
-    const { error: couponError } = await supabase.from('coupons').upsert({ code: promoCode, discount_type: 'percentage', discount_value: 5, is_active: true, expiry_date: expiry.toISOString() }, { onConflict: 'code' });
-    if (couponError) { toast.error('فشل إنشاء كود الخصم: ' + couponError.message); return; }
-    await supabase.from('abandoned_carts').update({ reminder_sent: true, reminder_sent_at: new Date().toISOString(), reminder_promo_code: promoCode }).eq('id', cart.id);
-    const smile = String.fromCodePoint(0x1F604);
-    const oil   = String.fromCodePoint(0x1F6E2, 0xFE0F);
-    const down  = String.fromCodePoint(0x1F447);
-    const hands = String.fromCodePoint(0x1F64C);
-    const items = cart.cart_items?.slice(0, 2).map((i: any) => i.name).join('، ') || 'منتجات';
-    const more  = cart.cart_items?.length > 2 ? ` و${cart.cart_items.length - 2} منتجات أخرى` : '';
-    const waNumber = toWhatsAppNumber(cart.customer_phone);
-    const msg = encodeURIComponent(
-      `إزيك يا ${cart.customer_name || 'صديقنا'} ${smile}\n` +
-      `إحنا زيت اند فلترز ${oil}\n\n` +
-      `سلتك بتستناك من امبارح — فيها ${items}${more}\n\n` +
-      `مش هنضغط عليك، بس عشان إحنا بنحب عملاءنا، عملنالك كود خصم 5% خاص بيك:\n` +
-      `*${promoCode}*\n\n` +
-      `استخدمه قبل بكره و كمل طلبك من هنا ${down}\n` +
-      `https://zaitandfilters.com/checkout\n\n` +
-      `لو عندك أي سؤال، إحنا هنا ${hands}`
+    const expiry = new Date();
+    expiry.setDate(expiry.getDate() + 2);
+    const { error: couponError } = await supabase.from('coupons').upsert(
+      { code: promoCode, discount_type: 'percentage', discount_value: 5, is_active: true, expiry_date: expiry.toISOString() },
+      { onConflict: 'code' }
     );
-    window.open(`https://wa.me/${waNumber}?text=${msg}`, '_blank');
+    if (couponError) { toast.error('فشل إنشاء كود الخصم: ' + couponError.message); return; }
+    await supabase.from('abandoned_carts').update({
+      reminder_sent: true,
+      reminder_sent_at: new Date().toISOString(),
+      reminder_promo_code: promoCode,
+    }).eq('id', cart.id);
+    const waNumber = toWhatsAppNumber(cart.customer_phone);
+    const msg = buildWhatsAppMessage(cart, promoCode);
+    openWhatsApp(waNumber, msg);
     toast.success(`تم فتح واتساب لـ ${cart.customer_name} ✅`);
   };
 
