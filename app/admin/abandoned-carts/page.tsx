@@ -449,52 +449,73 @@ export default function AbandonedCartsAdmin() {
   };
 
   const transferToOrder = async (cart: AbandonedCart) => {
-    if (!confirm(`هل أنت متأكد من تحويل سلة "${cart.customer_name || 'غير محدد'}" إلى طلب ناجح؟`)) return;
-    setTransferringCart(cart.id);
-    try {
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          customer_name: cart.customer_name,
-          customer_email: cart.customer_email,
-          customer_phone: cart.customer_phone,
-          total_amount: cart.cart_total || 0,
-          subtotal: cart.cart_subtotal || 0,
-          shipping_city: cart.shipping_city,
-          status: 'completed',
-          source: 'abandoned_cart_transfer',
-          abandoned_cart_id: cart.id,
-          created_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-      if (orderError) throw orderError;
-      const orderItems = (cart.cart_items || []).map((item: any) => ({
-        order_id: orderData.id,
-        product_id: item.product_id || item.id || null,
-        product_name: item.name,
-        quantity: item.quantity || 1,
-        price: parseFloat(item.price) || 0,
-        total: (parseFloat(item.price) || 0) * (item.quantity || 1),
-        image_url: item.image_url || item.image || null,
-      }));
-      if (orderItems.length > 0) {
-        const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
-        if (itemsError) throw itemsError;
-      }
-      const { error: updateError } = await supabase
-        .from('abandoned_carts')
-        .update({ recovered: true, recovered_at: new Date().toISOString() })
-        .eq('id', cart.id);
-      if (updateError) throw updateError;
-      toast.success(`✅ تم تحويل السلة إلى طلب رقم #${orderData.id.slice(0, 8)}`);
-      fetchAbandonedCarts();
-    } catch (err: any) {
-      toast.error('خطأ في التحويل: ' + err.message);
-    } finally {
-      setTransferringCart(null);
+  if (!confirm(`هل أنت متأكد من تحويل سلة "${cart.customer_name || 'غير محدد'}" إلى طلب ناجح؟`)) return;
+  setTransferringCart(cart.id);
+
+  try {
+    const now = new Date().toISOString();
+
+    const { data: orderData, error: orderError } = await supabase
+      .from('orders')
+      .insert({
+        customer_name: cart.customer_name || 'غير محدد',
+        customer_email: cart.customer_email || null,
+        customer_phone: cart.customer_phone || null,
+        total_amount: cart.cart_total || 0,
+        subtotal: cart.cart_subtotal || 0,
+        shipping_city: cart.shipping_city || null,
+        status: 'completed',
+        source: 'abandoned_cart_transfer',
+        abandoned_cart_id: cart.id,
+        created_at: now,
+      })
+      .select()
+      .single();
+
+    if (orderError) {
+      console.error('Order insert error:', orderError);
+      throw new Error(orderError.message);
     }
-  };
+
+    if (!orderData?.id) {
+      throw new Error('لم يتم إرجاع بيانات الطلب');
+    }
+
+    // Insert order items
+    const orderItems = (cart.cart_items || []).map((item: any) => ({
+      order_id: orderData.id,
+      product_id: item.product_id || item.id || null,
+      product_name: item.name || 'منتج غير معروف',
+      quantity: item.quantity || 1,
+      price: parseFloat(item.price) || 0,
+      total: (parseFloat(item.price) || 0) * (item.quantity || 1),
+      image_url: item.image_url || item.image || null,
+    }));
+
+    if (orderItems.length > 0) {
+      const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
+      if (itemsError) {
+        console.error('Order items error:', itemsError);
+        toast.error('تم إنشاء الطلب لكن فشل إضافة المنتجات');
+      }
+    }
+
+    // Mark cart as recovered
+    await supabase
+      .from('abandoned_carts')
+      .update({ recovered: true, recovered_at: now })
+      .eq('id', cart.id);
+
+    toast.success(`✅ تم تحويل السلة إلى طلب رقم #${orderData.id.slice(0, 8)}`);
+    fetchAbandonedCarts();
+
+  } catch (err: any) {
+    console.error('Transfer error:', err);
+    toast.error('خطأ في التحويل: ' + (err.message || 'حدث خطأ غير متوقع'));
+  } finally {
+    setTransferringCart(null);
+  }
+};
 
   const sendRecoveryEmail = async (cartId: string) => {
     setSendingEmail(cartId);
