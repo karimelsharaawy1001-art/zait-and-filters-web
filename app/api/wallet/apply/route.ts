@@ -35,8 +35,8 @@ export async function POST(req: Request) {
     if (balance <= 0)
       return NextResponse.json({ error: 'رصيد المحفظة صفر' }, { status: 400 });
 
-    // Max: wallet balance OR 50% of order total — whichever is less
-    const maxAllowed = Math.min(balance, orderTotal * 0.5);
+    // Max: wallet balance OR 75% of order total — whichever is less
+    const maxAllowed = Math.min(balance, orderTotal * 0.75);
     const applied = Math.min(amountToUse, maxAllowed);
 
     return NextResponse.json({ applied: parseFloat(applied.toFixed(2)), balance });

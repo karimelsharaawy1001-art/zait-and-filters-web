@@ -825,7 +825,7 @@ export default function CheckoutPage() {
                 </span>
               </div>
               <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '10px' }}>
-                يمكنك استخدام حتى 50% من قيمة الطلب كخصم من محفظتك
+                يمكنك استخدام حتى 75% من قيمة الطلب كخصم من محفظتك
               </div>
               {!walletApplied ? (
                 <button
