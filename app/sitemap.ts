@@ -6,11 +6,6 @@ export const maxDuration = 60;
 
 const baseUrl = 'https://zaitandfilters.com';
 
-const supabase = createClient(
-  'https://dcaecjzsmitzuagjlyll.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjYWVjanpzbWl0enVhZ2pseWxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4OTg2MzUsImV4cCI6MjA4NjQ3NDYzNX0.UhXXRtxAaUcqSAD2wZQZGYMi0y-vBgXFRQCuxMBKMmk'
-);
-
 const STATIC_PAGES: MetadataRoute.Sitemap = [
   { url: baseUrl, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
   { url: `${baseUrl}/store`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
@@ -28,9 +23,15 @@ const CATEGORIES = [
   'دبرياج و قطع فتيس','إطارات','مساحات',
 ];
 
-const highTraffic = ['زيوت موتور','فلاتر','الفرامل','عفشة','سيور و بلي','دورة البنزين','بوجيهات و سلوك بوجيهات و موبينة'];
+const highTraffic = ['زيوت موتور','فلاتر','الفرامل','عفشة','سيور و بلي','دورة البنزين','بوجيهات و سلوك بوجيهات وموبينة'];
 
-async function getAllProducts() {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // Create client inside the function
+  const supabase = createClient(
+    'https://dcaecjzsmitzuagjlyll.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjYWVjanpzbWl0enVhZ2pseWxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4OTg2MzUsImV4cCI6MjA4NjQ3NDYzNX0.UhXXRtxAaUcqSAD2wZQZGYMi0y-vBgXFRQCuxMBKMmk'
+  );
+
   const allProducts: { slug: string; id: string; updated_at: string; category: string }[] = [];
   const batchSize = 1000;
   let from = 0;
@@ -52,11 +53,6 @@ async function getAllProducts() {
   }
 
   console.log(`Sitemap total products fetched: ${allProducts.length}`);
-  return allProducts;
-}
-
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const products = await getAllProducts();
 
   const categoryEntries: MetadataRoute.Sitemap = CATEGORIES.map((cat) => ({
     url: `${baseUrl}/categories/${encodeURIComponent(cat)}`,
@@ -65,7 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }));
 
-  const productEntries: MetadataRoute.Sitemap = products.map((p) => ({
+  const productEntries: MetadataRoute.Sitemap = allProducts.map((p) => ({
     url: `${baseUrl}/products/${p.slug ?? p.id}`,
     lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
     changeFrequency: 'weekly' as const,
