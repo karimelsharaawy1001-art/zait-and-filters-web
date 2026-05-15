@@ -430,10 +430,12 @@ export default function AbandonedCartsAdmin() {
         .order('last_activity_at', { ascending: false });
       if (error) throw error;
 
+      // Match against ANY order status — a customer who placed an order in any
+      // state (new, processing, shipped, completed…) has recovered their cart.
       const { data: ordersData } = await supabase
         .from('orders')
         .select('customer_phone, customer_email, created_at')
-        .eq('status', 'completed');
+        .not('status', 'eq', 'cancelled');
 
       // Normalize phone numbers the same way toWhatsAppNumber does, for reliable matching
       const normalizePhone = (p: string | null | undefined) => {
