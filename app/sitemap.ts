@@ -27,14 +27,32 @@ const CATEGORIES = [
   'دبرياج و قطع فتيس','إطارات','مساحات',
 ];
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const { data: products } = await supabase
-    .from('products')
-    .select('slug, id, updated_at, category')
-    .eq('is_active', true)
-    .order('id', { ascending: true });
+const highTraffic = ['زيوت موتور','فلاتر','الفرامل','عفشة','سيور و بلي','دورة البنزين','بوجيهات و سلوك بوجيهات و موبينة'];
 
-  const highTraffic = ['زيوت موتور','فلاتر','الفرامل','عفشة','سيور و بلي','دورة البنزين','بوجيهات و سلوك بوجيهات و موبينة'];
+async function getAllProducts() {
+  const allProducts: { slug: string; id: string; updated_at: string; category: string }[] = [];
+  const batchSize = 1000;
+  let from = 0;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from('products')
+      .select('slug, id, updated_at, category')
+      .eq('is_active', true)
+      .order('id', { ascending: true })
+      .range(from, from + batchSize - 1);
+
+    if (error || !data || data.length === 0) break;
+    allProducts.push(...data);
+    if (data.length < batchSize) break;
+    from += batchSize;
+  }
+
+  return allProducts;
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const products = await getAllProducts();
 
   const categoryEntries: MetadataRoute.Sitemap = CATEGORIES.map((cat) => ({
     url: `${baseUrl}/categories/${encodeURIComponent(cat)}`,
@@ -43,7 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }));
 
-  const productEntries: MetadataRoute.Sitemap = (products ?? []).map((p) => ({
+  const productEntries: MetadataRoute.Sitemap = products.map((p) => ({
     url: `${baseUrl}/products/${p.slug ?? p.id}`,
     lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
     changeFrequency: 'weekly' as const,
