@@ -79,11 +79,12 @@ function toWhatsAppNumber(phone: string | null | undefined): string {
   return '20' + digits;
 }
 
+// ── FIX: Use String.fromCodePoint() so emojis survive file encoding and encodeURIComponent ──
 const EMOJI = {
-  smile: '😄',
-  oil:   '🛢️',
-  down:  '👇',
-  hands: '🙌',
+  smile: String.fromCodePoint(0x1F604),          // 😄
+  oil:   String.fromCodePoint(0x1F6E2, 0xFE0F),  // 🛢️  (oil drum + VS-16 variation selector)
+  down:  String.fromCodePoint(0x1F447),           // 👇
+  hands: String.fromCodePoint(0x1F64C),           // 🙌
 };
 
 function openWhatsApp(waNumber: string, msg: string) {
@@ -99,7 +100,8 @@ function openWhatsApp(waNumber: string, msg: string) {
 function buildWhatsAppMessage(cart: AbandonedCart, promoCode: string): string {
   const items = cart.cart_items?.slice(0, 2).map((i: any) => i.name).join('، ') || 'منتجات';
   const more  = cart.cart_items?.length > 2 ? ` و${cart.cart_items.length - 2} منتجات أخرى` : '';
-  return encodeURIComponent(
+  // Build the plain text first, then encode — emojis from EMOJI constant are valid Unicode
+  const plainText =
     `إزيك يا ${cart.customer_name || 'صديقنا'} ${EMOJI.smile}\n` +
     `إحنا زيت اند فلترز ${EMOJI.oil}\n\n` +
     `سلتك بتستناك من امبارح — فيها ${items}${more}\n\n` +
@@ -107,8 +109,8 @@ function buildWhatsAppMessage(cart: AbandonedCart, promoCode: string): string {
     `*${promoCode}*\n\n` +
     `استخدمه قبل بكره و كمل طلبك من هنا ${EMOJI.down}\n` +
     `https://zaitandfilters.com/checkout\n\n` +
-    `لو عندك أي سؤال، إحنا هنا ${EMOJI.hands}`
-  );
+    `لو عندك أي سؤال، إحنا هنا ${EMOJI.hands}`;
+  return encodeURIComponent(plainText);
 }
 
 function generatePromoCode(cartId: string): string {
@@ -133,7 +135,6 @@ function deduplicateCarts(carts: AbandonedCart[]): AbandonedCart[] {
     const latest = { ...group[0] };
     latest._returnCount = group.length;
     latest._isDuplicate = group.length > 1;
-    // If ANY entry in the group is recovered, mark the deduplicated entry recovered too
     if (!latest.recovered && group.some(c => c.recovered)) {
       latest.recovered = true;
       latest.recovered_at = group.find(c => c.recovered)?.recovered_at ?? null;
@@ -430,14 +431,11 @@ export default function AbandonedCartsAdmin() {
         .order('last_activity_at', { ascending: false });
       if (error) throw error;
 
-      // Match against ANY order status — a customer who placed an order in any
-      // state (new, processing, shipped, completed…) has recovered their cart.
       const { data: ordersData } = await supabase
         .from('orders')
         .select('customer_phone, customer_email, created_at')
         .not('status', 'eq', 'cancelled');
 
-      // Normalize phone numbers the same way toWhatsAppNumber does, for reliable matching
       const normalizePhone = (p: string | null | undefined) => {
         if (!p) return '';
         let d = p.replace(/\D/g, '');
@@ -605,7 +603,6 @@ export default function AbandonedCartsAdmin() {
 
   const handlePageChange = (page: number) => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
-  // ── FIX 2: use isWithin48Hours to match the modal ─────────────────────────
   const eligible24h = carts.filter(c => !c.recovered && isWithin48Hours(c.last_activity_at || c.created_at) && c.customer_phone);
   const eligibleEmail = carts.filter(c => !c.recovered && c.customer_email && !c.customer_phone);
   const stats = {
@@ -687,7 +684,6 @@ export default function AbandonedCartsAdmin() {
         </div>
       </div>
 
-      {/* ── FIX 3: banner now says "آخر 48 ساعة" ── */}
       {eligible24h.length > 0 && (
         <div style={{ marginBottom: '12px', background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '1.5px solid #86efac', borderRadius: '14px', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', animation: 'fadeUp 0.3s ease' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
