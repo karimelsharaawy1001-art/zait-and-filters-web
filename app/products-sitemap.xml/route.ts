@@ -5,7 +5,6 @@ const baseUrl = 'https://zaitandfilters.com';
 const URLS_PER_SITEMAP = 50000;
 
 // ─── Static pages ─────────────────────────────────────────────────────────────
-// Add or remove pages here as your site grows
 const STATIC_PAGES: MetadataRoute.Sitemap = [
   { url: baseUrl,                          lastModified: new Date(), changeFrequency: 'daily',   priority: 1.0 },
   { url: `${baseUrl}/store`,               lastModified: new Date(), changeFrequency: 'daily',   priority: 0.9 },
@@ -15,8 +14,7 @@ const STATIC_PAGES: MetadataRoute.Sitemap = [
   { url: `${baseUrl}/privacy`,             lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
 ];
 
-// ─── Arabic category names (must match what's stored in DB) ──────────────────
-// These are your top-level categories from page.tsx — each gets its own URL
+// ─── Arabic category names ────────────────────────────────────────────────────
 const CATEGORIES = [
   'فلاتر',
   'زيوت موتور',
@@ -42,12 +40,11 @@ export async function generateSitemaps() {
     .select('*', { count: 'exact', head: true })
     .eq('is_active', true);
 
-  const total = count || 0;
-  // +1 for the "static + categories" sitemap which always gets id=0
+  const total = count ?? 0;
   const productPages = Math.ceil(total / URLS_PER_SITEMAP);
 
   // id=0  → static pages + category pages
-  // id=1+ → product pages (shifted by 1)
+  // id=1+ → product pages
   return Array.from({ length: productPages + 1 }, (_, i) => ({ id: i }));
 }
 
@@ -59,10 +56,10 @@ export default async function sitemap({
 
   // ── Sitemap 0: static pages + all category pages ──────────────────────────
   if (id === 0) {
-    const categoryEntries: MetadataRoute.Sitemap = CATEGORIES.map(cat => ({
+    const categoryEntries: MetadataRoute.Sitemap = CATEGORIES.map((cat) => ({
       url: `${baseUrl}/categories/${encodeURIComponent(cat)}`,
       lastModified: new Date(),
-      changeFrequency: 'weekly',
+      changeFrequency: 'weekly' as const,
       priority: 0.9,
     }));
 
@@ -70,7 +67,6 @@ export default async function sitemap({
   }
 
   // ── Sitemap 1+: product pages ──────────────────────────────────────────────
-  // id=1 maps to page=0, id=2 maps to page=1, etc.
   const page  = id - 1;
   const start = page * URLS_PER_SITEMAP;
   const end   = start + URLS_PER_SITEMAP - 1;
@@ -82,24 +78,20 @@ export default async function sitemap({
     .order('id', { ascending: true })
     .range(start, end);
 
-  return (products || []).map((p) => {
-    // High-traffic categories from your SEO work get higher priority
-    const highTraffic = [
-      'زيوت موتور',
-      'فلاتر',
-      'الفرامل',
-      'عفشة',
-      'سيور و بلي',
-      'دورة البنزين',
-      'بوجيهات و سلوك بوجيهات و موبينة',
-    ];
-    const priority = highTraffic.includes(p.category) ? 0.85 : 0.7;
+  const highTraffic = [
+    'زيوت موتور',
+    'فلاتر',
+    'الفرامل',
+    'عفشة',
+    'سيور و بلي',
+    'دورة البنزين',
+    'بوجيهات و سلوك بوجيهات و موبينة',
+  ];
 
-    return {
-      url: `${baseUrl}/products/${p.slug || p.id}`,
-      lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
-      changeFrequency: 'weekly' as const,
-      priority,
-    };
-  });
+  return (products ?? []).map((p) => ({
+    url: `${baseUrl}/products/${p.slug ?? p.id}`,
+    lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: highTraffic.includes(p.category) ? 0.85 : 0.7,
+  }));
 }
