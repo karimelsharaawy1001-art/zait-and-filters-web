@@ -1,8 +1,16 @@
 import { MetadataRoute } from 'next';
-import { supabase } from '@/app/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+export const dynamic = 'force-dynamic';
 
 const baseUrl = 'https://zaitandfilters.com';
 const URLS_PER_SITEMAP = 50000;
+
+// Use a direct server client instead of createBrowserClient
+const supabase = createClient(
+  'https://dcaecjzsmitzuagjlyll.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjYWVjanpzbWl0enVhZ2pseWxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4OTg2MzUsImV4cCI6MjA4NjQ3NDYzNX0.UhXXRtxAaUcqSAD2wZQZGYMi0y-vBgXFRQCuxMBKMmk'
+);
 
 // ─── Static pages ─────────────────────────────────────────────────────────────
 const STATIC_PAGES: MetadataRoute.Sitemap = [
@@ -43,8 +51,6 @@ export async function generateSitemaps() {
   const total = count ?? 0;
   const productPages = Math.ceil(total / URLS_PER_SITEMAP);
 
-  // id=0  → static pages + category pages
-  // id=1+ → product pages
   return Array.from({ length: productPages + 1 }, (_, i) => ({ id: i }));
 }
 
@@ -73,7 +79,7 @@ export default async function sitemap({
 
   const { data: products } = await supabase
     .from('products')
-    .select('slug, id, updated_at, category, car_make, car_model')
+    .select('slug, id, updated_at, category')
     .eq('is_active', true)
     .order('id', { ascending: true })
     .range(start, end);
