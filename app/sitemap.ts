@@ -2,6 +2,7 @@ import { MetadataRoute } from 'next';
 import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 const baseUrl = 'https://zaitandfilters.com';
 
@@ -42,12 +43,15 @@ async function getAllProducts() {
       .order('id', { ascending: true })
       .range(from, from + batchSize - 1);
 
+    console.log(`Sitemap batch from=${from} got=${data?.length} error=${error?.message}`);
+
     if (error || !data || data.length === 0) break;
     allProducts.push(...data);
     if (data.length < batchSize) break;
     from += batchSize;
   }
 
+  console.log(`Sitemap total products fetched: ${allProducts.length}`);
   return allProducts;
 }
 
