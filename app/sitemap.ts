@@ -23,23 +23,22 @@ const CATEGORIES = [
   'دبرياج و قطع فتيس','إطارات','مساحات',
 ];
 
-const highTraffic = ['زيوت موتور','فلاتر','الفرامل','عفشة','سيور و بلي','دورة البنزين','بوجيهات و سلوك بوجيهات وموبينة'];
+const highTraffic = ['زيوت موتور','فلاتر','الفرامل','عفشة','سيور و بلي','دورة البنزين','بوجيهات و سلوك بوجيهات و موبينة'];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Create client inside the function
   const supabase = createClient(
     'https://dcaecjzsmitzuagjlyll.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjYWVjanpzbWl0enVhZ2pseWxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4OTg2MzUsImV4cCI6MjA4NjQ3NDYzNX0.UhXXRtxAaUcqSAD2wZQZGYMi0y-vBgXFRQCuxMBKMmk'
   );
 
-  const allProducts: { slug: string; id: string; updated_at: string; category: string }[] = [];
+  const allProducts: { slug: string; id: string; created_at: string; category: string }[] = [];
   const batchSize = 1000;
   let from = 0;
 
   while (true) {
     const { data, error } = await supabase
       .from('products')
-      .select('slug, id, updated_at, category')
+      .select('slug, id, created_at, category')
       .eq('is_active', true)
       .order('id', { ascending: true })
       .range(from, from + batchSize - 1);
@@ -63,7 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const productEntries: MetadataRoute.Sitemap = allProducts.map((p) => ({
     url: `${baseUrl}/products/${p.slug ?? p.id}`,
-    lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
+    lastModified: p.created_at ? new Date(p.created_at) : new Date(),
     changeFrequency: 'weekly' as const,
     priority: highTraffic.includes(p.category) ? 0.85 : 0.7,
   }));
