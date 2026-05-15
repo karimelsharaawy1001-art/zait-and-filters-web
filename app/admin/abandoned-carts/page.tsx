@@ -80,75 +80,35 @@ function toWhatsAppNumber(phone: string | null | undefined): string {
 }
 
 const EMOJI = {
-  smile: String.fromCodePoint(0x1F604),         // 😄
-  oil: String.fromCodePoint(0x1F6E2, 0xFE0F),   // 🛢️
-  down: String.fromCodePoint(0x1F447),          // 👇
-  hands: String.fromCodePoint(0x1F64C),         // 🙌
+  smile: '😄',
+  oil:   '🛢️',
+  down:  '👇',
+  hands: '🙌',
 };
 
-async function copyTextToClipboard(text: string) {
-  if (navigator.clipboard && window.isSecureContext) {
-    await navigator.clipboard.writeText(text);
-    return;
-  }
-
-  const textArea = document.createElement('textarea');
-  textArea.value = text;
-  textArea.style.position = 'fixed';
-  textArea.style.left = '-999999px';
-  textArea.style.top = '-999999px';
-  document.body.appendChild(textArea);
-  textArea.focus();
-  textArea.select();
-
-  const ok = document.execCommand('copy');
-  document.body.removeChild(textArea);
-
-  if (!ok) {
-    throw new Error('تعذر نسخ الرسالة تلقائياً');
-  }
-}
-
-function openWhatsAppChat(waNumber: string) {
-  const waUrl = `https://wa.me/${waNumber}`;
+function openWhatsApp(waNumber: string, msg: string) {
+  const waUrl = `https://wa.me/${waNumber}?text=${msg}`;
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
   if (isMobile) {
     window.location.href = waUrl;
   } else {
-    window.open(waUrl, '_blank', 'noopener,noreferrer');
+    window.open(waUrl, '_blank');
   }
 }
 
 function buildWhatsAppMessage(cart: AbandonedCart, promoCode: string): string {
-  const firstName = cart.customer_name?.trim()?.split(' ')?.[0] || 'عميلنا العزيز';
-
-  const items = (cart.cart_items || [])
-    .slice(0, 2)
-    .map((i: any) => i.name)
-    .filter(Boolean)
-    .join('، ');
-
-  const moreCount = Math.max((cart.cart_items?.length || 0) - 2, 0);
-  const itemsLine = items
-    ? `${items}${moreCount > 0 ? ` + ${moreCount} منتجات` : ''}`
-    : 'المنتجات الموجودة في السلة';
-
-  return [
-    `${EMOJI.smile} إزيك يا ${firstName}`,
-    `إحنا زيت اند فلترز ${EMOJI.oil}`,
-    ``,
-    `سلتك بتستناك من امبارح — فيها:`,
-    `${itemsLine}`,
-    ``,
-    `عملنالك كود خصم 5% خاص بيك:`,
-    `*${promoCode}*`,
-    ``,
-    `استخدمه قبل بكره وكمل طلبك من هنا ${EMOJI.down}`,
-    `https://zaitandfilters.com/checkout`,
-    ``,
-    `لو عندك أي سؤال، إحنا هنا ${EMOJI.hands}`,
-  ].join('\n');
+  const items = cart.cart_items?.slice(0, 2).map((i: any) => i.name).join('، ') || 'منتجات';
+  const more  = cart.cart_items?.length > 2 ? ` و${cart.cart_items.length - 2} منتجات أخرى` : '';
+  return encodeURIComponent(
+    `إزيك يا ${cart.customer_name || 'صديقنا'} ` +
+    `إحنا زيت اند فلترز ` +
+    `سلتك بتستناك من امبارح — فيها ${items}${more}\n\n` +
+    `مش هنضغط عليك، بس عشان إحنا بنحب عملاءنا، عملنالك كود خصم 5% خاص بيك:\n` +
+    `*${promoCode}*\n\n` +
+    `استخدمه قبل بكره و كمل طلبك من هنا ` +
+    `https://zaitandfilters.com/checkout\n\n` +
+    `لو عندك أي سؤال، إحنا هنا عشانك!`
+  );
 }
 
 function generatePromoCode(cartId: string): string {
@@ -173,6 +133,7 @@ function deduplicateCarts(carts: AbandonedCart[]): AbandonedCart[] {
     const latest = { ...group[0] };
     latest._returnCount = group.length;
     latest._isDuplicate = group.length > 1;
+    // If ANY entry in the group is recovered, mark the deduplicated entry recovered too
     if (!latest.recovered && group.some(c => c.recovered)) {
       latest.recovered = true;
       latest.recovered_at = group.find(c => c.recovered)?.recovered_at ?? null;
@@ -239,47 +200,25 @@ function ReminderModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onC
 
   async function sendReminder(cart: AbandonedCart) {
     setSending(cart.id);
-
-    try {
-      const promoCode = cart.reminder_promo_code || generatePromoCode(cart.id);
-      const expiry = new Date();
-      expiry.setDate(expiry.getDate() + 2);
-
-      const { error: couponError } = await supabase.from('coupons').upsert(
-        {
-          code: promoCode,
-          discount_type: 'percentage',
-          discount_value: 5,
-          is_active: true,
-          expiry_date: expiry.toISOString(),
-        },
-        { onConflict: 'code' }
-      );
-
-      if (couponError) {
-        toast.error('فشل إنشاء كود الخصم: ' + couponError.message);
-        return;
-      }
-
-      await supabase.from('abandoned_carts').update({
-        reminder_sent: true,
-        reminder_sent_at: new Date().toISOString(),
-        reminder_promo_code: promoCode,
-      }).eq('id', cart.id);
-
-      const waNumber = toWhatsAppNumber(cart.customer_phone);
-      const msg = buildWhatsAppMessage(cart, promoCode);
-
-      await copyTextToClipboard(msg);
-      openWhatsAppChat(waNumber);
-
-      setSent(prev => new Set([...prev, cart.id]));
-      toast.success(`تم نسخ الرسالة وفتح واتساب لـ ${cart.customer_name} ✅`);
-    } catch (err: any) {
-      toast.error(err?.message || 'حدث خطأ أثناء تجهيز رسالة واتساب');
-    } finally {
-      setSending(null);
-    }
+    const promoCode = cart.reminder_promo_code || generatePromoCode(cart.id);
+    const expiry = new Date();
+    expiry.setDate(expiry.getDate() + 2);
+    const { error: couponError } = await supabase.from('coupons').upsert(
+      { code: promoCode, discount_type: 'percentage', discount_value: 5, is_active: true, expiry_date: expiry.toISOString() },
+      { onConflict: 'code' }
+    );
+    if (couponError) { toast.error('فشل إنشاء كود الخصم: ' + couponError.message); setSending(null); return; }
+    await supabase.from('abandoned_carts').update({
+      reminder_sent: true,
+      reminder_sent_at: new Date().toISOString(),
+      reminder_promo_code: promoCode,
+    }).eq('id', cart.id);
+    const waNumber = toWhatsAppNumber(cart.customer_phone);
+    const msg = buildWhatsAppMessage(cart, promoCode);
+    openWhatsApp(waNumber, msg);
+    setSent(prev => new Set([...prev, cart.id]));
+    setSending(null);
+    toast.success(`تم فتح واتساب لـ ${cart.customer_name} ✅`);
   }
 
   async function sendAll() {
@@ -491,11 +430,14 @@ export default function AbandonedCartsAdmin() {
         .order('last_activity_at', { ascending: false });
       if (error) throw error;
 
+      // Match against ANY order status — a customer who placed an order in any
+      // state (new, processing, shipped, completed…) has recovered their cart.
       const { data: ordersData } = await supabase
         .from('orders')
         .select('customer_phone, customer_email, created_at')
         .not('status', 'eq', 'cancelled');
 
+      // Normalize phone numbers the same way toWhatsAppNumber does, for reliable matching
       const normalizePhone = (p: string | null | undefined) => {
         if (!p) return '';
         let d = p.replace(/\D/g, '');
@@ -642,48 +584,28 @@ export default function AbandonedCartsAdmin() {
   };
 
   const sendWhatsApp = async (cart: AbandonedCart) => {
-    try {
-      const promoCode = cart.reminder_promo_code || generatePromoCode(cart.id);
-      const expiry = new Date();
-      expiry.setDate(expiry.getDate() + 2);
-
-      const { error: couponError } = await supabase.from('coupons').upsert(
-        {
-          code: promoCode,
-          discount_type: 'percentage',
-          discount_value: 5,
-          is_active: true,
-          expiry_date: expiry.toISOString(),
-        },
-        { onConflict: 'code' }
-      );
-
-      if (couponError) {
-        toast.error('فشل إنشاء كود الخصم: ' + couponError.message);
-        return;
-      }
-
-      await supabase.from('abandoned_carts').update({
-        reminder_sent: true,
-        reminder_sent_at: new Date().toISOString(),
-        reminder_promo_code: promoCode,
-      }).eq('id', cart.id);
-
-      const waNumber = toWhatsAppNumber(cart.customer_phone);
-      const msg = buildWhatsAppMessage(cart, promoCode);
-
-      await copyTextToClipboard(msg);
-      openWhatsAppChat(waNumber);
-
-      toast.success(`تم نسخ الرسالة وفتح واتساب لـ ${cart.customer_name} ✅`);
-      fetchAbandonedCarts();
-    } catch (err: any) {
-      toast.error(err?.message || 'حدث خطأ أثناء إرسال واتساب');
-    }
+    const promoCode = cart.reminder_promo_code || generatePromoCode(cart.id);
+    const expiry = new Date();
+    expiry.setDate(expiry.getDate() + 2);
+    const { error: couponError } = await supabase.from('coupons').upsert(
+      { code: promoCode, discount_type: 'percentage', discount_value: 5, is_active: true, expiry_date: expiry.toISOString() },
+      { onConflict: 'code' }
+    );
+    if (couponError) { toast.error('فشل إنشاء كود الخصم: ' + couponError.message); return; }
+    await supabase.from('abandoned_carts').update({
+      reminder_sent: true,
+      reminder_sent_at: new Date().toISOString(),
+      reminder_promo_code: promoCode,
+    }).eq('id', cart.id);
+    const waNumber = toWhatsAppNumber(cart.customer_phone);
+    const msg = buildWhatsAppMessage(cart, promoCode);
+    openWhatsApp(waNumber, msg);
+    toast.success(`تم فتح واتساب لـ ${cart.customer_name} ✅`);
   };
 
   const handlePageChange = (page: number) => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
+  // ── FIX 2: use isWithin48Hours to match the modal ─────────────────────────
   const eligible24h = carts.filter(c => !c.recovered && isWithin48Hours(c.last_activity_at || c.created_at) && c.customer_phone);
   const eligibleEmail = carts.filter(c => !c.recovered && c.customer_email && !c.customer_phone);
   const stats = {
@@ -765,6 +687,7 @@ export default function AbandonedCartsAdmin() {
         </div>
       </div>
 
+      {/* ── FIX 3: banner now says "آخر 48 ساعة" ── */}
       {eligible24h.length > 0 && (
         <div style={{ marginBottom: '12px', background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '1.5px solid #86efac', borderRadius: '14px', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', animation: 'fadeUp 0.3s ease' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
