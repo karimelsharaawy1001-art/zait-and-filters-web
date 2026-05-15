@@ -62,6 +62,12 @@ function isWithin24Hours(dateString: string | null | undefined): boolean {
   return Date.now() - new Date(dateString).getTime() < 24 * 60 * 60 * 1000;
 }
 
+// ── FIX 1: 48-hour helper for the reminder modal eligible filter ──────────────
+function isWithin48Hours(dateString: string | null | undefined): boolean {
+  if (!dateString) return false;
+  return Date.now() - new Date(dateString).getTime() < 48 * 60 * 60 * 1000;
+}
+
 function toWhatsAppNumber(phone: string | null | undefined): string {
   if (!phone) return '';
   let digits = phone.replace(/\D/g, '');
@@ -74,7 +80,6 @@ function toWhatsAppNumber(phone: string | null | undefined): string {
   return '20' + digits;
 }
 
-// ── Fixed: each emoji is its own fromCodePoint call ──────────────────────────
 const EMOJI = {
   smile: '\u{1F604}',
   oil:   '\u{1F6E2}\u{FE0F}',
@@ -82,11 +87,8 @@ const EMOJI = {
   hands: '\u{1F64C}',
 };
 
-// ── Fixed: opens WhatsApp correctly on both mobile and desktop ────────────────
 function openWhatsApp(waNumber: string, msg: string) {
   const waUrl = `https://wa.me/${waNumber}?text=${msg}`;
-  // On mobile, wa.me opens the app directly via the browser
-  // Using location.href avoids popup blockers that block window.open on mobile
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   if (isMobile) {
     window.location.href = waUrl;
@@ -186,8 +188,9 @@ function SmartPagination({ currentPage, totalPages, totalItems, onPageChange }: 
   );
 }
 
+// ── FIX 2: ReminderModal now uses isWithin48Hours and shows "48 ساعة" ─────────
 function ReminderModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onClose: () => void; onDone: () => void; }) {
-  const eligible = carts.filter(c => !c.recovered && isWithin24Hours(c.last_activity_at || c.created_at) && c.customer_phone);
+  const eligible = carts.filter(c => !c.recovered && isWithin48Hours(c.last_activity_at || c.created_at) && c.customer_phone);
   const [sent, setSent] = useState<Set<string>>(new Set());
   const [sending, setSending] = useState<string | null>(null);
 
@@ -232,7 +235,7 @@ function ReminderModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onC
                 <div style={{ width: '38px', height: '38px', background: '#f0fdf4', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Bell size={18} color="#15803d" /></div>
                 إرسال تذكير واتساب بخصم 5%
               </h2>
-              <p style={{ margin: '6px 0 0', color: '#94a3b8', fontSize: '0.88rem', fontWeight: '600' }}>السلات المتروكة خلال آخر 24 ساعة — {eligible.length} عميل</p>
+              <p style={{ margin: '6px 0 0', color: '#94a3b8', fontSize: '0.88rem', fontWeight: '600' }}>السلات المتروكة خلال آخر 48 ساعة — {eligible.length} عميل</p>
             </div>
             <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', color: '#64748b' }}>✕</button>
           </div>
@@ -248,7 +251,7 @@ function ReminderModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onC
           {eligible.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8' }}>
               <Clock size={40} strokeWidth={1} style={{ margin: '0 auto 12px', display: 'block' }} />
-              <p style={{ fontWeight: '700', fontSize: '0.95rem' }}>لا توجد سلات متروكة في آخر 24 ساعة</p>
+              <p style={{ fontWeight: '700', fontSize: '0.95rem' }}>لا توجد سلات متروكة في آخر 48 ساعة</p>
             </div>
           ) : eligible.map(cart => {
             const isSent = sent.has(cart.id) || !!cart.reminder_sent;
@@ -414,14 +417,53 @@ export default function AbandonedCartsAdmin() {
   useEffect(() => { fetchAbandonedCarts(); }, []);
   useEffect(() => { applyFilters(); setCurrentPage(1); }, [carts, filter, searchTerm]);
 
+  // ── FIX 3: Cross-check completed orders to auto-reconcile recovered status ──
   const fetchAbandonedCarts = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.from('abandoned_carts').select('*').order('last_activity_at', { ascending: false });
+      const { data: cartsData, error } = await supabase
+        .from('abandoned_carts')
+        .select('*')
+        .order('last_activity_at', { ascending: false });
       if (error) throw error;
-      setCarts(data || []);
-    } catch (err: any) { toast.error('Error: ' + err.message); }
-    finally { setLoading(false); }
+
+      // Fetch all completed orders to cross-check against abandoned carts
+      const { data: ordersData } = await supabase
+        .from('orders')
+        .select('customer_phone, customer_email, created_at')
+        .eq('status', 'completed');
+
+      const completedPhones = new Set(
+        (ordersData || []).map((o: any) => o.customer_phone?.trim()).filter(Boolean)
+      );
+      const completedEmails = new Set(
+        (ordersData || []).map((o: any) => o.customer_email?.trim().toLowerCase()).filter(Boolean)
+      );
+
+      // Mark any cart as recovered if the customer has a completed order,
+      // even if the abandoned_carts.recovered flag was never set
+      const reconciled = (cartsData || []).map((cart: AbandonedCart) => {
+        if (cart.recovered) return cart;
+        const phoneMatch = cart.customer_phone && completedPhones.has(cart.customer_phone.trim());
+        const emailMatch = cart.customer_email && completedEmails.has(cart.customer_email.trim().toLowerCase());
+        if (phoneMatch || emailMatch) {
+          // Silently patch the DB record so it stays fixed on future loads
+          supabase
+            .from('abandoned_carts')
+            .update({ recovered: true })
+            .eq('id', cart.id)
+            .then(() => {});
+          return { ...cart, recovered: true };
+        }
+        return cart;
+      });
+
+      setCarts(reconciled);
+    } catch (err: any) {
+      toast.error('Error: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const applyFilters = () => {
@@ -449,73 +491,71 @@ export default function AbandonedCartsAdmin() {
   };
 
   const transferToOrder = async (cart: AbandonedCart) => {
-  if (!confirm(`هل أنت متأكد من تحويل سلة "${cart.customer_name || 'غير محدد'}" إلى طلب ناجح؟`)) return;
-  setTransferringCart(cart.id);
+    if (!confirm(`هل أنت متأكد من تحويل سلة "${cart.customer_name || 'غير محدد'}" إلى طلب ناجح؟`)) return;
+    setTransferringCart(cart.id);
 
-  try {
-    const now = new Date().toISOString();
+    try {
+      const now = new Date().toISOString();
 
-    const { data: orderData, error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        customer_name: cart.customer_name || 'غير محدد',
-        customer_email: cart.customer_email || null,
-        customer_phone: cart.customer_phone || null,
-        total_amount: cart.cart_total || 0,
-        subtotal: cart.cart_subtotal || 0,
-        shipping_city: cart.shipping_city || null,
-        status: 'completed',
-        source: 'abandoned_cart_transfer',
-        abandoned_cart_id: cart.id,
-        created_at: now,
-      })
-      .select()
-      .single();
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          customer_name: cart.customer_name || 'غير محدد',
+          customer_email: cart.customer_email || null,
+          customer_phone: cart.customer_phone || null,
+          total_amount: cart.cart_total || 0,
+          subtotal: cart.cart_subtotal || 0,
+          shipping_city: cart.shipping_city || null,
+          status: 'completed',
+          source: 'abandoned_cart_transfer',
+          abandoned_cart_id: cart.id,
+          created_at: now,
+        })
+        .select()
+        .single();
 
-    if (orderError) {
-      console.error('Order insert error:', orderError);
-      throw new Error(orderError.message);
-    }
-
-    if (!orderData?.id) {
-      throw new Error('لم يتم إرجاع بيانات الطلب');
-    }
-
-    // Insert order items
-    const orderItems = (cart.cart_items || []).map((item: any) => ({
-      order_id: orderData.id,
-      product_id: item.product_id || item.id || null,
-      product_name: item.name || 'منتج غير معروف',
-      quantity: item.quantity || 1,
-      price: parseFloat(item.price) || 0,
-      total: (parseFloat(item.price) || 0) * (item.quantity || 1),
-      image_url: item.image_url || item.image || null,
-    }));
-
-    if (orderItems.length > 0) {
-      const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
-      if (itemsError) {
-        console.error('Order items error:', itemsError);
-        toast.error('تم إنشاء الطلب لكن فشل إضافة المنتجات');
+      if (orderError) {
+        console.error('Order insert error:', orderError);
+        throw new Error(orderError.message);
       }
+
+      if (!orderData?.id) {
+        throw new Error('لم يتم إرجاع بيانات الطلب');
+      }
+
+      const orderItems = (cart.cart_items || []).map((item: any) => ({
+        order_id: orderData.id,
+        product_id: item.product_id || item.id || null,
+        product_name: item.name || 'منتج غير معروف',
+        quantity: item.quantity || 1,
+        price: parseFloat(item.price) || 0,
+        total: (parseFloat(item.price) || 0) * (item.quantity || 1),
+        image_url: item.image_url || item.image || null,
+      }));
+
+      if (orderItems.length > 0) {
+        const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
+        if (itemsError) {
+          console.error('Order items error:', itemsError);
+          toast.error('تم إنشاء الطلب لكن فشل إضافة المنتجات');
+        }
+      }
+
+      await supabase
+        .from('abandoned_carts')
+        .update({ recovered: true, recovered_at: now })
+        .eq('id', cart.id);
+
+      toast.success(`✅ تم تحويل السلة إلى طلب رقم #${orderData.id.slice(0, 8)}`);
+      fetchAbandonedCarts();
+
+    } catch (err: any) {
+      console.error('Transfer error:', err);
+      toast.error('خطأ في التحويل: ' + (err.message || 'حدث خطأ غير متوقع'));
+    } finally {
+      setTransferringCart(null);
     }
-
-    // Mark cart as recovered
-    await supabase
-      .from('abandoned_carts')
-      .update({ recovered: true, recovered_at: now })
-      .eq('id', cart.id);
-
-    toast.success(`✅ تم تحويل السلة إلى طلب رقم #${orderData.id.slice(0, 8)}`);
-    fetchAbandonedCarts();
-
-  } catch (err: any) {
-    console.error('Transfer error:', err);
-    toast.error('خطأ في التحويل: ' + (err.message || 'حدث خطأ غير متوقع'));
-  } finally {
-    setTransferringCart(null);
-  }
-};
+  };
 
   const sendRecoveryEmail = async (cartId: string) => {
     setSendingEmail(cartId);
@@ -618,7 +658,7 @@ export default function AbandonedCartsAdmin() {
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
           <button onClick={() => setShowReminderModal(true)}
             style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', background: eligible24h.length > 0 ? 'linear-gradient(135deg, #25D366, #128C7E)' : '#e2e8f0', color: eligible24h.length > 0 ? '#fff' : '#94a3b8', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: eligible24h.length > 0 ? '0 4px 14px rgba(37,211,102,0.35)' : 'none', animation: eligible24h.length > 0 ? 'pulse 2s ease-in-out infinite' : 'none' }}>
-            <Bell size={15} /> واتساب 24س
+            <Bell size={15} /> واتساب 48س
             {eligible24h.length > 0 && <span style={{ background: 'rgba(255,255,255,0.25)', borderRadius: '8px', padding: '1px 8px', fontSize: '0.8rem', fontWeight: '900' }}>{eligible24h.length}</span>}
           </button>
           <button onClick={() => setShowEmailModal(true)}
