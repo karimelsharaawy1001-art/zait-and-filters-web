@@ -27,11 +27,11 @@ export async function GET() {
       <item>
         <g:id>${escapeXml(p.id)}</g:id>
         <g:title>${escapeXml(p.name)}</g:title>
-        <g:description>${escapeXml(p.description || buildDescription(p))}</g:description>
+        <g:description>${escapeXml(p.description || `${p.name} ماركة ${brand} متوفرة في زيت أند فلترز`)}</g:description>
         <g:link>${escapeXml(`${BASE_URL}/products/${slug}`)}</g:link>
         <g:image_link>${escapeXml(image)}</g:image_link>
         <g:condition>new</g:condition>
-        <g:availability>${p.available ? 'in_stock' : 'out_of_stock'}</g:availability>
+        <g:availability>in_stock</g:availability>
         <g:price>${price.toFixed(2)} EGP</g:price>
         <g:brand>${escapeXml(brand)}</g:brand>
         <g:mpn>${escapeXml(p.part_number || p.id)}</g:mpn>
@@ -62,12 +62,4 @@ export async function GET() {
       'Cache-Control': 'public, max-age=3600',
     },
   });
-}
-
-// Reuse your existing description builder
-function buildDescription(product: any): string {
-  const brand = product.brand || '';
-  const price = product.sale_price || product.regular_price || '';
-  const pricePhrase = price ? `السعر: ${price} ج.م.` : '';
-  return `${product.name} ماركة ${brand}. ${pricePhrase} قطعة أصلية متوفرة في زيت أند فلترز بأفضل سعر في مصر مع شحن لباب البيت.`;
 }
