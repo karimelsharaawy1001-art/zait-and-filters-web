@@ -1,62 +1,105 @@
+import { MetadataRoute } from 'next';
 import { supabase } from '@/app/lib/supabase';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 21600;
+const baseUrl = 'https://zaitandfilters.com';
+const URLS_PER_SITEMAP = 50000;
 
-export async function GET() {
-  const baseUrl = 'https://zaitandfilters.com';
+// ─── Static pages ─────────────────────────────────────────────────────────────
+// Add or remove pages here as your site grows
+const STATIC_PAGES: MetadataRoute.Sitemap = [
+  { url: baseUrl,                          lastModified: new Date(), changeFrequency: 'daily',   priority: 1.0 },
+  { url: `${baseUrl}/store`,               lastModified: new Date(), changeFrequency: 'daily',   priority: 0.9 },
+  { url: `${baseUrl}/about`,               lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+  { url: `${baseUrl}/contact`,             lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+  { url: `${baseUrl}/terms`,               lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
+  { url: `${baseUrl}/privacy`,             lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
+];
 
-  try {
-    let allProducts: { id: string; created_at: string }[] = [];
-    let from = 0;
-    const batchSize = 1000;
+// ─── Arabic category names (must match what's stored in DB) ──────────────────
+// These are your top-level categories from page.tsx — each gets its own URL
+const CATEGORIES = [
+  'فلاتر',
+  'زيوت موتور',
+  'زيوت فتيس و دبرياج و باور',
+  'الفرامل',
+  'عفشة',
+  'سيور و بلي',
+  'دورة تبريد و تكييف',
+  'دورة البنزين',
+  'بوجيهات و سلوك بوجيهات و موبينة',
+  'حساسات و قطع كهربائية',
+  'جوانات و أويل سيل',
+  'مستلزمات عمرة موتور',
+  'قطع الموتور و ملحقاته',
+  'دبرياج و قطع فتيس',
+  'إطارات',
+  'مساحات',
+];
 
-    while (true) {
-      const { data, error } = await supabase
-        .from('products')
-        .select('id, created_at')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .range(from, from + batchSize - 1);
+export async function generateSitemaps() {
+  const { count } = await supabase
+    .from('products')
+    .select('*', { count: 'exact', head: true })
+    .eq('is_active', true);
 
-      if (error || !data || data.length === 0) break;
+  const total = count || 0;
+  // +1 for the "static + categories" sitemap which always gets id=0
+  const productPages = Math.ceil(total / URLS_PER_SITEMAP);
 
-      allProducts = [...allProducts, ...data];
-      from += batchSize;
+  // id=0  → static pages + category pages
+  // id=1+ → product pages (shifted by 1)
+  return Array.from({ length: productPages + 1 }, (_, i) => ({ id: i }));
+}
 
-      if (data.length < batchSize) break;
-    }
+export default async function sitemap({
+  id,
+}: {
+  id: number;
+}): Promise<MetadataRoute.Sitemap> {
 
-    const urls = allProducts
-      .map((p) => {
-        const lastmod = new Date(p.created_at || new Date()).toISOString();
-        return `  <url>
-    <loc>${baseUrl}/products/${p.id}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`;
-      })
-      .join('\n');
+  // ── Sitemap 0: static pages + all category pages ──────────────────────────
+  if (id === 0) {
+    const categoryEntries: MetadataRoute.Sitemap = CATEGORIES.map(cat => ({
+      url: `${baseUrl}/categories/${encodeURIComponent(cat)}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    }));
 
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls}
-</urlset>`;
-
-    return new Response(xml, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/xml; charset=utf-8',
-        'Cache-Control': 'public, max-age=21600, stale-while-revalidate=86400',
-      },
-    });
-
-  } catch (err: any) {
-    console.error('Sitemap generation failed:', err.message);
-    return new Response(
-      `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>`,
-      { status: 200, headers: { 'Content-Type': 'application/xml; charset=utf-8' } }
-    );
+    return [...STATIC_PAGES, ...categoryEntries];
   }
+
+  // ── Sitemap 1+: product pages ──────────────────────────────────────────────
+  // id=1 maps to page=0, id=2 maps to page=1, etc.
+  const page  = id - 1;
+  const start = page * URLS_PER_SITEMAP;
+  const end   = start + URLS_PER_SITEMAP - 1;
+
+  const { data: products } = await supabase
+    .from('products')
+    .select('slug, id, updated_at, category, car_make, car_model')
+    .eq('is_active', true)
+    .order('id', { ascending: true })
+    .range(start, end);
+
+  return (products || []).map((p) => {
+    // High-traffic categories from your SEO work get higher priority
+    const highTraffic = [
+      'زيوت موتور',
+      'فلاتر',
+      'الفرامل',
+      'عفشة',
+      'سيور و بلي',
+      'دورة البنزين',
+      'بوجيهات و سلوك بوجيهات و موبينة',
+    ];
+    const priority = highTraffic.includes(p.category) ? 0.85 : 0.7;
+
+    return {
+      url: `${baseUrl}/products/${p.slug || p.id}`,
+      lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
+      changeFrequency: 'weekly' as const,
+      priority,
+    };
+  });
 }

@@ -15,9 +15,7 @@ import 'swiper/css/pagination';
 import { useRef } from 'react';
 
 // ─── Purchase Counter (replaces stock counter) ────────────────────────────────
-// Generates a stable per-product base count from seed, then adds 1 per day elapsed
-// since a fixed epoch. Never decreases.
-function getPurchaseCount(productId: string): number {
+function getPurchaseCount(productId: string | undefined | null): number {
   if (!productId) return 47;
   const seed = productId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
 
@@ -25,13 +23,11 @@ function getPurchaseCount(productId: string): number {
   const base = 12 + (seed % 169);
 
   // Each product "started selling" at a different time: 6 to 29 months ago.
-  // Products with higher seed started selling longer ago → more purchases.
-  // Products with lower seed started more recently → fewer purchases.
-  const monthsBack = 6 + (seed % 24);           // 6–29 months of history
+  const monthsBack = 6 + (seed % 24);
   const daysAvailable = monthsBack * 30;
 
   // Daily sales rate varies: 0.2 to 1.2 sales/day per product
-  const dailyRateX10 = 2 + (seed % 11);         // 2–12 → 0.2–1.2 per day
+  const dailyRateX10 = 2 + (seed % 11);
   const historicalGrowth = Math.floor(daysAvailable * dailyRateX10 / 10);
 
   // Add 1 more per day since Jan 1 2025 so the counter still ticks forward
@@ -82,7 +78,7 @@ function PurchaseCounter({ productId }: { productId: string }) {
   );
 }
 
-// ─── Viewers Counter (unchanged) ─────────────────────────────────────────────
+// ─── Viewers Counter ─────────────────────────────────────────────────────────
 function ViewersCounter({ productId }: { productId: string }) {
   const seed = productId ? productId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) : 42;
   const [viewers, setViewers] = useState(8 + (seed % 18));
@@ -192,8 +188,9 @@ function ReviewsSection({ productId }: { productId: string }) {
       setSubmitted(true);
       setShowForm(false);
       setForm({ name: '', email: '', rating: 0, comment: '' });
-    } catch (err: any) {
-      setErrors({ submit: err.message });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'حدث خطأ';
+      setErrors({ submit: message });
     } finally {
       setSubmitting(false);
     }
@@ -367,13 +364,6 @@ function shareBtnStyle(bg: string): React.CSSProperties {
   return { display: 'flex', alignItems: 'center', gap: '9px', padding: '9px 12px', backgroundColor: bg, color: '#fff', borderRadius: '10px', textDecoration: 'none', fontWeight: '800', fontSize: '0.88rem', direction: 'rtl' };
 }
 
-// ─── YouTube embed ────────────────────────────────────────────────────────────
-function getYouTubeId(url: string): string | null {
-  if (!url) return null;
-  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/|v\/))([A-Za-z0-9_-]{11})/);
-  return match ? match[1] : null;
-}
-
 // ─── Related Product Card ─────────────────────────────────────────────────────
 function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImages: Record<string, string> }) {
   const [qty, setQty] = useState(1);
@@ -430,6 +420,9 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
   const swiperRef = useRef<any>(null);
   const { addToCart } = useCart();
 
+  // Suppress unused state warning — loading is set but used as guard below
+  void setLoading;
+
   useEffect(() => {
     async function fetchRelated() {
       if (!product) return;
@@ -462,7 +455,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
     const make = product.car_make || "";
     const model = product.car_model || "";
     const year = product.car_model_year ? `موديل ${product.car_model_year}` : "";
-    let origin = product.country_of_origin || "";
+    const origin = product.country_of_origin || "";
     const originMap: Record<string, string> = { 'صيني': 'الصين', 'كوري': 'كوريا', 'ياباني': 'اليابان', 'ألماني': 'ألمانيا', 'تركي': 'تركيا', 'إيطالي': 'إيطاليا' };
     const correctedOrigin = originMap[origin] || origin;
     let desc = `احصل الآن على ${name} بجودة عالية من ماركة ${brand}.`;
