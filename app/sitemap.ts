@@ -4,7 +4,6 @@ import { createClient } from '@supabase/supabase-js';
 export const dynamic = 'force-dynamic';
 
 const baseUrl = 'https://zaitandfilters.com';
-const URLS_PER_SITEMAP = 50000;
 
 const supabase = createClient(
   'https://dcaecjzsmitzuagjlyll.supabase.co',
@@ -28,44 +27,28 @@ const CATEGORIES = [
   'دبرياج و قطع فتيس','إطارات','مساحات',
 ];
 
-export async function generateSitemaps() {
-  const { count } = await supabase
-    .from('products')
-    .select('*', { count: 'exact', head: true })
-    .eq('is_active', true);
-  const total = count ?? 0;
-  const productPages = Math.ceil(total / URLS_PER_SITEMAP);
-  return Array.from({ length: productPages + 1 }, (_, i) => ({ id: i }));
-}
-
-export default async function sitemap({ id }: { id: number }): Promise<MetadataRoute.Sitemap> {
-  if (id === 0) {
-    const categoryEntries: MetadataRoute.Sitemap = CATEGORIES.map((cat) => ({
-      url: `${baseUrl}/categories/${encodeURIComponent(cat)}`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.9,
-    }));
-    return [...STATIC_PAGES, ...categoryEntries];
-  }
-
-  const page = id - 1;
-  const start = page * URLS_PER_SITEMAP;
-  const end = start + URLS_PER_SITEMAP - 1;
-
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { data: products } = await supabase
     .from('products')
     .select('slug, id, updated_at, category')
     .eq('is_active', true)
-    .order('id', { ascending: true })
-    .range(start, end);
+    .order('id', { ascending: true });
 
   const highTraffic = ['زيوت موتور','فلاتر','الفرامل','عفشة','سيور و بلي','دورة البنزين','بوجيهات و سلوك بوجيهات و موبينة'];
 
-  return (products ?? []).map((p) => ({
+  const categoryEntries: MetadataRoute.Sitemap = CATEGORIES.map((cat) => ({
+    url: `${baseUrl}/categories/${encodeURIComponent(cat)}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.9,
+  }));
+
+  const productEntries: MetadataRoute.Sitemap = (products ?? []).map((p) => ({
     url: `${baseUrl}/products/${p.slug ?? p.id}`,
     lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
     changeFrequency: 'weekly' as const,
     priority: highTraffic.includes(p.category) ? 0.85 : 0.7,
   }));
+
+  return [...STATIC_PAGES, ...categoryEntries, ...productEntries];
 }
