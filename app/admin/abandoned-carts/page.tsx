@@ -62,7 +62,6 @@ function isWithin24Hours(dateString: string | null | undefined): boolean {
   return Date.now() - new Date(dateString).getTime() < 24 * 60 * 60 * 1000;
 }
 
-// ── FIX 1: 48-hour helper for the reminder modal eligible filter ──────────────
 function isWithin48Hours(dateString: string | null | undefined): boolean {
   if (!dateString) return false;
   return Date.now() - new Date(dateString).getTime() < 48 * 60 * 60 * 1000;
@@ -117,6 +116,7 @@ function generatePromoCode(cartId: string): string {
   return `BACK-${suffix}`;
 }
 
+// ── FIX 1: propagate recovered=true if ANY entry in the group is recovered ────
 function deduplicateCarts(carts: AbandonedCart[]): AbandonedCart[] {
   const groups = new Map<string, AbandonedCart[]>();
   for (const cart of carts) {
@@ -133,6 +133,11 @@ function deduplicateCarts(carts: AbandonedCart[]): AbandonedCart[] {
     const latest = { ...group[0] };
     latest._returnCount = group.length;
     latest._isDuplicate = group.length > 1;
+    // If ANY entry in the group is recovered, mark the deduplicated entry recovered too
+    if (!latest.recovered && group.some(c => c.recovered)) {
+      latest.recovered = true;
+      latest.recovered_at = group.find(c => c.recovered)?.recovered_at ?? null;
+    }
     result.push(latest);
   }
   result.sort((a, b) =>
@@ -188,7 +193,6 @@ function SmartPagination({ currentPage, totalPages, totalItems, onPageChange }: 
   );
 }
 
-// ── FIX 2: ReminderModal now uses isWithin48Hours and shows "48 ساعة" ─────────
 function ReminderModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onClose: () => void; onDone: () => void; }) {
   const eligible = carts.filter(c => !c.recovered && isWithin48Hours(c.last_activity_at || c.created_at) && c.customer_phone);
   const [sent, setSent] = useState<Set<string>>(new Set());
@@ -417,7 +421,6 @@ export default function AbandonedCartsAdmin() {
   useEffect(() => { fetchAbandonedCarts(); }, []);
   useEffect(() => { applyFilters(); setCurrentPage(1); }, [carts, filter, searchTerm]);
 
-  // ── FIX 3: Cross-check completed orders to auto-reconcile recovered status ──
   const fetchAbandonedCarts = async () => {
     setLoading(true);
     try {
@@ -427,27 +430,36 @@ export default function AbandonedCartsAdmin() {
         .order('last_activity_at', { ascending: false });
       if (error) throw error;
 
-      // Fetch all completed orders to cross-check against abandoned carts
       const { data: ordersData } = await supabase
         .from('orders')
         .select('customer_phone, customer_email, created_at')
         .eq('status', 'completed');
 
+      // Normalize phone numbers the same way toWhatsAppNumber does, for reliable matching
+      const normalizePhone = (p: string | null | undefined) => {
+        if (!p) return '';
+        let d = p.replace(/\D/g, '');
+        if (!d) return '';
+        if (d.startsWith('00')) d = d.slice(2);
+        if (d.startsWith('20') && d.length === 12) return d;
+        if (d.startsWith('20') && d.length !== 12) d = d.slice(2);
+        if (d.startsWith('0') && d.length === 11) return '2' + d;
+        if (d.startsWith('1') && d.length === 10) return '20' + d;
+        return '20' + d;
+      };
+
       const completedPhones = new Set(
-        (ordersData || []).map((o: any) => o.customer_phone?.trim()).filter(Boolean)
+        (ordersData || []).map((o: any) => normalizePhone(o.customer_phone)).filter(Boolean)
       );
       const completedEmails = new Set(
         (ordersData || []).map((o: any) => o.customer_email?.trim().toLowerCase()).filter(Boolean)
       );
 
-      // Mark any cart as recovered if the customer has a completed order,
-      // even if the abandoned_carts.recovered flag was never set
       const reconciled = (cartsData || []).map((cart: AbandonedCart) => {
         if (cart.recovered) return cart;
-        const phoneMatch = cart.customer_phone && completedPhones.has(cart.customer_phone.trim());
+        const phoneMatch = cart.customer_phone && completedPhones.has(normalizePhone(cart.customer_phone));
         const emailMatch = cart.customer_email && completedEmails.has(cart.customer_email.trim().toLowerCase());
         if (phoneMatch || emailMatch) {
-          // Silently patch the DB record so it stays fixed on future loads
           supabase
             .from('abandoned_carts')
             .update({ recovered: true })
@@ -591,7 +603,8 @@ export default function AbandonedCartsAdmin() {
 
   const handlePageChange = (page: number) => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
-  const eligible24h = carts.filter(c => !c.recovered && isWithin24Hours(c.last_activity_at || c.created_at) && c.customer_phone);
+  // ── FIX 2: use isWithin48Hours to match the modal ─────────────────────────
+  const eligible24h = carts.filter(c => !c.recovered && isWithin48Hours(c.last_activity_at || c.created_at) && c.customer_phone);
   const eligibleEmail = carts.filter(c => !c.recovered && c.customer_email && !c.customer_phone);
   const stats = {
     total: filteredCarts.length,
@@ -672,12 +685,13 @@ export default function AbandonedCartsAdmin() {
         </div>
       </div>
 
+      {/* ── FIX 3: banner now says "آخر 48 ساعة" ── */}
       {eligible24h.length > 0 && (
         <div style={{ marginBottom: '12px', background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '1.5px solid #86efac', borderRadius: '14px', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', animation: 'fadeUp 0.3s ease' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '40px', height: '40px', background: '#22c55e', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Bell size={18} color="#fff" /></div>
             <div>
-              <div className="banner-text" style={{ fontWeight: '900', fontSize: '1rem', color: '#15803d' }}>{eligible24h.length} عميل تركوا سلتهم في آخر 24 ساعة</div>
+              <div className="banner-text" style={{ fontWeight: '900', fontSize: '1rem', color: '#15803d' }}>{eligible24h.length} عميل تركوا سلتهم في آخر 48 ساعة</div>
               <div className="banner-sub" style={{ fontSize: '0.82rem', color: '#16a34a', marginTop: '2px' }}>أرسل لهم تذكير واتساب مع خصم 5%</div>
             </div>
           </div>
