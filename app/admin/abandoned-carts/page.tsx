@@ -80,10 +80,10 @@ function toWhatsAppNumber(phone: string | null | undefined): string {
 }
 
 const EMOJI = {
-  smile: '\u{1F604}',
-  oil:   '\u{1F6E2}\u{FE0F}',
-  down:  '\u{1F447}',
-  hands: '\u{1F64C}',
+  smile: '😄',
+  oil:   '🛢️',
+  down:  '👇',
+  hands: '🙌',
 };
 
 function openWhatsApp(waNumber: string, msg: string) {
