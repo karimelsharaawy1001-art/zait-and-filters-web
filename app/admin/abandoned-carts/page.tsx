@@ -79,38 +79,76 @@ function toWhatsAppNumber(phone: string | null | undefined): string {
   return '20' + digits;
 }
 
-// ── FIX: Use String.fromCodePoint() so emojis survive file encoding and encodeURIComponent ──
 const EMOJI = {
-  smile: String.fromCodePoint(0x1F604),          // 😄
-  oil:   String.fromCodePoint(0x1F6E2, 0xFE0F),  // 🛢️  (oil drum + VS-16 variation selector)
-  down:  String.fromCodePoint(0x1F447),           // 👇
-  hands: String.fromCodePoint(0x1F64C),           // 🙌
+  smile: String.fromCodePoint(0x1F604),         // 😄
+  oil: String.fromCodePoint(0x1F6E2, 0xFE0F),   // 🛢️
+  down: String.fromCodePoint(0x1F447),          // 👇
+  hands: String.fromCodePoint(0x1F64C),         // 🙌
 };
 
-function openWhatsApp(waNumber: string, msg: string) {
-  const waUrl = `https://wa.me/${waNumber}?text=${msg}`;
+async function copyTextToClipboard(text: string) {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-999999px';
+  textArea.style.top = '-999999px';
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+
+  const ok = document.execCommand('copy');
+  document.body.removeChild(textArea);
+
+  if (!ok) {
+    throw new Error('تعذر نسخ الرسالة تلقائياً');
+  }
+}
+
+function openWhatsAppChat(waNumber: string) {
+  const waUrl = `https://wa.me/${waNumber}`;
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
   if (isMobile) {
     window.location.href = waUrl;
   } else {
-    window.open(waUrl, '_blank');
+    window.open(waUrl, '_blank', 'noopener,noreferrer');
   }
 }
 
 function buildWhatsAppMessage(cart: AbandonedCart, promoCode: string): string {
-  const items = cart.cart_items?.slice(0, 2).map((i: any) => i.name).join('، ') || 'منتجات';
-  const more  = cart.cart_items?.length > 2 ? ` و${cart.cart_items.length - 2} منتجات أخرى` : '';
-  // Build the plain text first, then encode — emojis from EMOJI constant are valid Unicode
-  const plainText =
-    `إزيك يا ${cart.customer_name || 'صديقنا'} ${EMOJI.smile}\n` +
-    `إحنا زيت اند فلترز ${EMOJI.oil}\n\n` +
-    `سلتك بتستناك من امبارح — فيها ${items}${more}\n\n` +
-    `مش هنضغط عليك، بس عشان إحنا بنحب عملاءنا، عملنالك كود خصم 5% خاص بيك:\n` +
-    `*${promoCode}*\n\n` +
-    `استخدمه قبل بكره و كمل طلبك من هنا ${EMOJI.down}\n` +
-    `https://zaitandfilters.com/checkout\n\n` +
-    `لو عندك أي سؤال، إحنا هنا ${EMOJI.hands}`;
-  return encodeURIComponent(plainText);
+  const firstName = cart.customer_name?.trim()?.split(' ')?.[0] || 'عميلنا العزيز';
+
+  const items = (cart.cart_items || [])
+    .slice(0, 2)
+    .map((i: any) => i.name)
+    .filter(Boolean)
+    .join('، ');
+
+  const moreCount = Math.max((cart.cart_items?.length || 0) - 2, 0);
+  const itemsLine = items
+    ? `${items}${moreCount > 0 ? ` + ${moreCount} منتجات` : ''}`
+    : 'المنتجات الموجودة في السلة';
+
+  return [
+    `${EMOJI.smile} إزيك يا ${firstName}`,
+    `إحنا زيت اند فلترز ${EMOJI.oil}`,
+    ``,
+    `سلتك بتستناك من امبارح — فيها:`,
+    `${itemsLine}`,
+    ``,
+    `عملنالك كود خصم 5% خاص بيك:`,
+    `*${promoCode}*`,
+    ``,
+    `استخدمه قبل بكره وكمل طلبك من هنا ${EMOJI.down}`,
+    `https://zaitandfilters.com/checkout`,
+    ``,
+    `لو عندك أي سؤال، إحنا هنا ${EMOJI.hands}`,
+  ].join('\n');
 }
 
 function generatePromoCode(cartId: string): string {
@@ -201,25 +239,47 @@ function ReminderModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onC
 
   async function sendReminder(cart: AbandonedCart) {
     setSending(cart.id);
-    const promoCode = cart.reminder_promo_code || generatePromoCode(cart.id);
-    const expiry = new Date();
-    expiry.setDate(expiry.getDate() + 2);
-    const { error: couponError } = await supabase.from('coupons').upsert(
-      { code: promoCode, discount_type: 'percentage', discount_value: 5, is_active: true, expiry_date: expiry.toISOString() },
-      { onConflict: 'code' }
-    );
-    if (couponError) { toast.error('فشل إنشاء كود الخصم: ' + couponError.message); setSending(null); return; }
-    await supabase.from('abandoned_carts').update({
-      reminder_sent: true,
-      reminder_sent_at: new Date().toISOString(),
-      reminder_promo_code: promoCode,
-    }).eq('id', cart.id);
-    const waNumber = toWhatsAppNumber(cart.customer_phone);
-    const msg = buildWhatsAppMessage(cart, promoCode);
-    openWhatsApp(waNumber, msg);
-    setSent(prev => new Set([...prev, cart.id]));
-    setSending(null);
-    toast.success(`تم فتح واتساب لـ ${cart.customer_name} ✅`);
+
+    try {
+      const promoCode = cart.reminder_promo_code || generatePromoCode(cart.id);
+      const expiry = new Date();
+      expiry.setDate(expiry.getDate() + 2);
+
+      const { error: couponError } = await supabase.from('coupons').upsert(
+        {
+          code: promoCode,
+          discount_type: 'percentage',
+          discount_value: 5,
+          is_active: true,
+          expiry_date: expiry.toISOString(),
+        },
+        { onConflict: 'code' }
+      );
+
+      if (couponError) {
+        toast.error('فشل إنشاء كود الخصم: ' + couponError.message);
+        return;
+      }
+
+      await supabase.from('abandoned_carts').update({
+        reminder_sent: true,
+        reminder_sent_at: new Date().toISOString(),
+        reminder_promo_code: promoCode,
+      }).eq('id', cart.id);
+
+      const waNumber = toWhatsAppNumber(cart.customer_phone);
+      const msg = buildWhatsAppMessage(cart, promoCode);
+
+      await copyTextToClipboard(msg);
+      openWhatsAppChat(waNumber);
+
+      setSent(prev => new Set([...prev, cart.id]));
+      toast.success(`تم نسخ الرسالة وفتح واتساب لـ ${cart.customer_name} ✅`);
+    } catch (err: any) {
+      toast.error(err?.message || 'حدث خطأ أثناء تجهيز رسالة واتساب');
+    } finally {
+      setSending(null);
+    }
   }
 
   async function sendAll() {
@@ -582,23 +642,44 @@ export default function AbandonedCartsAdmin() {
   };
 
   const sendWhatsApp = async (cart: AbandonedCart) => {
-    const promoCode = cart.reminder_promo_code || generatePromoCode(cart.id);
-    const expiry = new Date();
-    expiry.setDate(expiry.getDate() + 2);
-    const { error: couponError } = await supabase.from('coupons').upsert(
-      { code: promoCode, discount_type: 'percentage', discount_value: 5, is_active: true, expiry_date: expiry.toISOString() },
-      { onConflict: 'code' }
-    );
-    if (couponError) { toast.error('فشل إنشاء كود الخصم: ' + couponError.message); return; }
-    await supabase.from('abandoned_carts').update({
-      reminder_sent: true,
-      reminder_sent_at: new Date().toISOString(),
-      reminder_promo_code: promoCode,
-    }).eq('id', cart.id);
-    const waNumber = toWhatsAppNumber(cart.customer_phone);
-    const msg = buildWhatsAppMessage(cart, promoCode);
-    openWhatsApp(waNumber, msg);
-    toast.success(`تم فتح واتساب لـ ${cart.customer_name} ✅`);
+    try {
+      const promoCode = cart.reminder_promo_code || generatePromoCode(cart.id);
+      const expiry = new Date();
+      expiry.setDate(expiry.getDate() + 2);
+
+      const { error: couponError } = await supabase.from('coupons').upsert(
+        {
+          code: promoCode,
+          discount_type: 'percentage',
+          discount_value: 5,
+          is_active: true,
+          expiry_date: expiry.toISOString(),
+        },
+        { onConflict: 'code' }
+      );
+
+      if (couponError) {
+        toast.error('فشل إنشاء كود الخصم: ' + couponError.message);
+        return;
+      }
+
+      await supabase.from('abandoned_carts').update({
+        reminder_sent: true,
+        reminder_sent_at: new Date().toISOString(),
+        reminder_promo_code: promoCode,
+      }).eq('id', cart.id);
+
+      const waNumber = toWhatsAppNumber(cart.customer_phone);
+      const msg = buildWhatsAppMessage(cart, promoCode);
+
+      await copyTextToClipboard(msg);
+      openWhatsAppChat(waNumber);
+
+      toast.success(`تم نسخ الرسالة وفتح واتساب لـ ${cart.customer_name} ✅`);
+      fetchAbandonedCarts();
+    } catch (err: any) {
+      toast.error(err?.message || 'حدث خطأ أثناء إرسال واتساب');
+    }
   };
 
   const handlePageChange = (page: number) => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); };
