@@ -18,6 +18,14 @@ const nextConfig: NextConfig = {
     EASYKASH_HMAC_SECRET: process.env.EASYKASH_HMAC_SECRET || '87ca3d5640dc3f5809d3dfbf4a5045ad',
     EASYKASH_MERCHANT_ID: process.env.EASYKASH_MERCHANT_ID || 'DNH7034',
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/merchant-feed.xml',
+        destination: '/api/merchant-feed',
+      },
+    ];
+  },
 };
 
 export default nextConfig;
