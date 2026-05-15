@@ -106,25 +106,25 @@ function buildWhatsAppMessage(cart: AbandonedCart, promoCode: string): string {
   const more  = cart.cart_items?.length > 2 ? ` و${cart.cart_items.length - 2} منتجات أخرى` : '';
 
   return (
-    `إزيك يا ${cart.customer_name || 'صديقنا'} ${EMOJI.smile}
+    `إزيك يا ${cart.customer_name || 'صديقنا'}
 ` +
-    `إحنا زيت اند فلترز ${EMOJI.oil}
+    `إحنا زيت اند فلترز
 
 ` +
     `سلتك بتستناك من امبارح — فيها ${items}${more}
 
 ` +
-    `مش هنضغط عليك، بس عشان إحنا بنحب عملاءنا، عملنالك كود خصم 5% خاص بيك:
+    `مش هنضغط عليك، بس عشان إحنا بنحب نفرح عملاءنا، عملنالك كود خصم 5% خاص بيك:
 ` +
     `*${promoCode}*
 
 ` +
-    `استخدمه قبل بكره و كمل طلبك من هنا ${EMOJI.down}
+    `استخدمه قبل بكره و كمل طلبك من هنا
 ` +
     `https://zaitandfilters.com/checkout
 
 ` +
-    `لو عندك أي سؤال، إحنا هنا ${EMOJI.hands}`
+    `لو عندك أي سؤال، إحنا هنا عشانك `
   );
 }
 
