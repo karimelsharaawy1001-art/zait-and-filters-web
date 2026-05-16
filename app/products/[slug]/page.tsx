@@ -57,10 +57,17 @@ const POPULAR_MODELS = [
 ];
 
 // ============================================================
+// [ADDED] Popular tire sizes — used for tire keywords/FAQs
+// ============================================================
+const POPULAR_TIRE_SIZES = [
+  '185/65R15', '195/65R15', '205/55R16', '215/60R16',
+  '225/60R17', '235/55R17', '205/60R15', '175/65R14',
+  '195/60R15', '215/65R16',
+];
+
+// ============================================================
 // Sensor subcategory label helpers
 // ============================================================
-// Maps common sensor name fragments to human-readable labels used in
-// descriptions, titles, FAQs and keywords.
 const SENSOR_LABELS: { match: string[]; ar: string; arAlt?: string }[] = [
   {
     match: ['شكمان', 'اوكسجين', 'oxygen', 'o2', 'lambda'],
@@ -125,7 +132,6 @@ function getSensorLabel(product: any): { ar: string; arAlt: string } {
       return { ar: entry.ar, arAlt: entry.arAlt || entry.ar };
     }
   }
-  // fallback: use subcategory or generic
   return { ar: `حساس ${product.subcategory || ''}`.trim(), arAlt: 'حساس كهربائي' };
 }
 
@@ -147,38 +153,40 @@ function buildDescription(product: any): string {
 
   if (cat === 'فلاتر') {
     if (sub === 'فلتر زيت' || sub === 'فلتر الزيت')
-      return `فلتر زيت ${brand} ${fitPhrase}. ${pricePhrase} اشتري فلتر زيت أصلي ماركة ${brand} بأفضل سعر في مصر من زيت أند فلترز مع شحن سريع لباب البيت. ${partNumber}`;
+      return `فلتر زيت ${brand} ${fitPhrase}. ${pricePhrase} اشتري فلتر زيت أصلي ماركة ${brand} بأفضل سعر في مصر من زيت أند فلترز مع شحن سريع لباب البيت. فلتر الزيت يحمي الموتور من الشوائب ويطيل عمره. مناسب لسيارات أوبترا، كروز، كورولا، لانسر، النترا وجميع السيارات المتوافقة. ${partNumber}`;
     if (sub === 'فلتر هواء')
-      return `فلتر هواء ${brand} ${fitPhrase}. ${pricePhrase} فلتر هواء أصلي ماركة ${brand} يحمي موتور سيارتك ويحسن الأداء. متوفر الآن في زيت أند فلترز. ${partNumber}`;
+      return `فلتر هواء ${brand} ${fitPhrase}. ${pricePhrase} فلتر هواء أصلي ماركة ${brand} يحمي موتور سيارتك من الأتربة والشوائب ويحسن أداء الاحتراق. تغيير فلتر الهواء بانتظام يوفر الوقود ويحمي الموتور. متوفر الآن في زيت أند فلترز بأفضل سعر في مصر مع شحن لباب البيت. ${partNumber}`;
     if (sub === 'فلتر تكييف' || sub === 'فلتر كابينة')
-      return `فلتر تكييف ${brand} ${fitPhrase}. ${pricePhrase} فلتر كابينة أصلي لتنقية هواء التكييف داخل السيارة. اطلبه الآن من زيت أند فلترز بشحن لباب البيت. ${partNumber}`;
+      return `فلتر تكييف ${brand} ${fitPhrase}. ${pricePhrase} فلتر كابينة أصلي ماركة ${brand} لتنقية هواء التكييف داخل السيارة من الأتربة والروائح والجراثيم. يُنصح بتغييره كل 15,000 كيلومتر. اطلبه الآن من زيت أند فلترز بشحن لباب البيت. ${partNumber}`;
     if (sub === 'فلتر بنزين' || sub === 'فتر بنزين')
-      return `فلتر بنزين ${brand} ${fitPhrase}. ${pricePhrase} فلتر وقود أصلي ماركة ${brand} يحمي طلمبة البنزين ويضمن أداء الموتور. متوفر في زيت أند فلترز. ${partNumber}`;
+      return `فلتر بنزين ${brand} ${fitPhrase}. ${pricePhrase} فلتر وقود أصلي ماركة ${brand} يحمي طلمبة البنزين والإنجكتورات من الشوائب ويضمن أداء الموتور. متوفر في زيت أند فلترز بأفضل سعر في مصر مع شحن لباب البيت. ${partNumber}`;
     return `${sub} ${brand} ${fitPhrase}. ${pricePhrase} قطعة أصلية من ماركة ${brand} متوفرة في زيت أند فلترز بأفضل سعر في مصر. ${partNumber}`;
   }
 
   if (cat === 'زيوت موتور')
-    return `زيت موتور ${brand} مواصفة ${sub} - ${product.name}. ${pricePhrase} زيت موتور ${sub} ماركة ${brand} أصلي تخليقي كامل. يحمي الموتور في درجات الحرارة العالية ويطيل عمره. مناسب لسيارات أوبترا، كروز، كورولا، لانسر، النترا، وجميع أنواع السيارات التي تستخدم مواصفة ${sub}. احسن زيت موتور بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات.`;
+    return `زيت موتور ${brand} مواصفة ${sub} - ${product.name}. ${pricePhrase} زيت موتور ${sub} ماركة ${brand} أصلي تخليقي كامل. يحمي الموتور في درجات الحرارة العالية ويطيل عمره ويقلل الاحتكاك. مناسب لسيارات أوبترا، كروز، كورولا، لانسر، النترا، كامري، سبورتاج، قاشقاي، وجميع أنواع السيارات التي تستخدم مواصفة ${sub}. احسن زيت موتور بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات.`;
 
-  // *** UPDATED: more descriptive for gear/clutch/power steering oils ***
   if (cat === 'زيوت فتيس و دبرياج و باور')
-    return `زيت ${sub} ماركة ${brand} - ${product.name}. ${pricePhrase} زيت ${sub} أصلي ماركة ${brand} لحماية الفتيس والدبرياج وتقليل الاحتكاك. مناسب لسيارات أوبترا، كروز، كورولا، لانسر، النترا وجميع السيارات التي تستخدم مواصفة ${sub}. اشتري زيت ${brand} ${sub} بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات.`;
+    return `زيت ${sub} ماركة ${brand} - ${product.name}. ${pricePhrase} زيت ${sub} أصلي ماركة ${brand} لحماية الفتيس والدبرياج وتقليل الاحتكاك وضمان أداء ناعم. مناسب لسيارات أوبترا، كروز، كورولا، لانسر، النترا وجميع السيارات التي تستخدم مواصفة ${sub}. اشتري زيت ${brand} ${sub} بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات.`;
 
   if (cat === 'الفرامل') {
     if (sub === 'تيل فرامل')
-      return `تيل فرامل ${brand} ${fitPhrase}. ${pricePhrase} تيل فرامل أصلي ماركة ${brand} لضمان الأمان والتوقف الآمن. احسن تيل فرامل بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت. ${partNumber}`;
+      return `تيل فرامل ${brand} ${fitPhrase}. ${pricePhrase} تيل فرامل أصلي ماركة ${brand} لضمان الأمان والتوقف الآمن. يحمي أسطوانات الفرامل ويضمن أداء منظومة الفرامل الكاملة. احسن تيل فرامل بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت. ${partNumber}`;
     if (sub === 'طنابير')
-      return `طنبور فرامل ${brand} ${fitPhrase}. ${pricePhrase} طنابير فرامل أصلية ماركة ${brand} بأفضل جودة وسعر في مصر. متوفر في زيت أند فلترز مع شحن لباب البيت. ${partNumber}`;
+      return `طنبور فرامل ${brand} ${fitPhrase}. ${pricePhrase} طنابير فرامل أصلية ماركة ${brand} بأفضل جودة وسعر في مصر. توفر توقف آمن وعمر طويل. متوفر في زيت أند فلترز مع شحن لباب البيت. ${partNumber}`;
     if (sub === 'ماستر فرامل')
-      return `ماستر فرامل ${brand} ${fitPhrase}. ${pricePhrase} ماستر فرامل أصلي ماركة ${brand}. اطلبه الآن من زيت أند فلترز بأفضل سعر في مصر. ${partNumber}`;
+      return `ماستر فرامل ${brand} ${fitPhrase}. ${pricePhrase} ماستر فرامل أصلي ماركة ${brand} يضمن ضغط الفرامل الصحيح وأمان التوقف. اطلبه الآن من زيت أند فلترز بأفضل سعر في مصر. ${partNumber}`;
+    // [ADDED] تربيتة فرامل / تيل أمامي وخلفي
+    if (sub === 'تيل امامي' || sub === 'تيل خلفي')
+      return `${sub === 'تيل امامي' ? 'تيل فرامل أمامي' : 'تيل فرامل خلفي'} ${brand} ${fitPhrase}. ${pricePhrase} تيل فرامل أصلي ماركة ${brand} يضمن أداء الفرامل وأمان القيادة. متوفر في زيت أند فلترز بأفضل سعر في مصر مع شحن لباب البيت. ${partNumber}`;
     return `${sub} ${brand} ${fitPhrase}. ${pricePhrase} قطعة فرامل أصلية ماركة ${brand} متوفرة في زيت أند فلترز. ${partNumber}`;
   }
 
   if (cat === 'عفشة') {
     if (sub === 'مساعدين و صدادات')
-      return `مساعد ${brand} ${fitPhrase}. ${pricePhrase} مساعدين أصليين ماركة ${brand} لتحسين ثبات السيارة وراحة الركوب. احسن مساعدين بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت. ${partNumber}`;
+      return `مساعد ${brand} ${fitPhrase}. ${pricePhrase} مساعدين أصليين ماركة ${brand} لتحسين ثبات السيارة وراحة الركوب وحماية الإطارات من التآكل السريع. احسن مساعدين بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت. ${partNumber}`;
     if (sub === 'بلية عجل')
-      return `بلية عجل ${brand} ${fitPhrase}. ${pricePhrase} بلية عجل أصلية ماركة ${brand} لضمان أمان القيادة وتقليل الاهتزاز. اطلبها من زيت أند فلترز. ${partNumber}`;
+      return `بلية عجل ${brand} ${fitPhrase}. ${pricePhrase} بلية عجل أصلية ماركة ${brand} لضمان أمان القيادة وتقليل الاهتزاز والصوت. اطلبها من زيت أند فلترز بأفضل سعر في مصر. ${partNumber}`;
     if (sub === 'مقصات كاملة')
       return `مقص كامل ${brand} ${fitPhrase}. ${pricePhrase} مقصات عفشة أصلية ماركة ${brand} متوفرة في زيت أند فلترز بأفضل سعر. ${partNumber}`;
     if (sub === 'جلب و بيض مقصات')
@@ -212,30 +220,32 @@ function buildDescription(product: any): string {
 
   if (cat === 'دورة تبريد و تكييف') {
     if (sub === 'طلمبات مياه')
-      return `طلمبة مياه ${brand} ${fitPhrase}. ${pricePhrase} طلمبة مياه أصلية ماركة ${brand} لضمان تبريد الموتور بكفاءة. متوفرة في زيت أند فلترز بأفضل سعر في مصر. ${partNumber}`;
+      return `طلمبة مياه ${brand} ${fitPhrase}. ${pricePhrase} طلمبة مياه أصلية ماركة ${brand} لضمان تبريد الموتور بكفاءة ومنع الاحتراق. متوفرة في زيت أند فلترز بأفضل سعر في مصر. ${partNumber}`;
     if (sub === 'ردياتير')
-      return `ردياتير ${brand} ${fitPhrase}. ${pricePhrase} ردياتير أصلي ماركة ${brand} لتبريد الموتور. اطلبه من زيت أند فلترز بأفضل سعر مع شحن لباب البيت. ${partNumber}`;
+      return `ردياتير ${brand} ${fitPhrase}. ${pricePhrase} ردياتير أصلي ماركة ${brand} لتبريد الموتور وحمايته من الاحتراق. اطلبه من زيت أند فلترز بأفضل سعر مع شحن لباب البيت. ${partNumber}`;
     if (sub === 'كوعة و ثرموستات')
-      return `ثرموستات و كوعة ${brand} ${fitPhrase}. ${pricePhrase} ثرموستات أصلي ماركة ${brand} لتنظيم درجة حرارة الموتور. متوفر في زيت أند فلترز. ${partNumber}`;
+      return `ثرموستات و كوعة ${brand} ${fitPhrase}. ${pricePhrase} ثرموستات أصلي ماركة ${brand} لتنظيم درجة حرارة الموتور ومنع الارتفاع المفاجئ. متوفر في زيت أند فلترز. ${partNumber}`;
     if (sub === 'سربنتينة تكييف')
       return `سربنتينة تكييف ${brand} ${fitPhrase}. ${pricePhrase} سربنتينة تكييف أصلية ماركة ${brand} متوفرة في زيت أند فلترز بأفضل سعر في مصر. ${partNumber}`;
     if (sub === 'خراطيم و مواسير تبريد')
       return `خرطوم تبريد ${brand} ${fitPhrase}. ${pricePhrase} خراطيم ومواسير تبريد أصلية ماركة ${brand}. اطلبها من زيت أند فلترز. ${partNumber}`;
+    // [ADDED] زيت تبريد / تيل تبريد
+    if (sub === 'زيت تبريد' || sub === 'تيل تبريد' || sub === 'كولانت')
+      return `كولانت ${brand} ${fitPhrase}. ${pricePhrase} زيت تبريد (كولانت) أصلي ماركة ${brand} يحمي دورة تبريد الموتور من الصدأ والتجمد ويمنع احتراق الموتور. متوفر في زيت أند فلترز بأفضل سعر في مصر. ${partNumber}`;
     return `${sub} ${brand} ${fitPhrase}. ${pricePhrase} قطعة تبريد أصلية ماركة ${brand} من زيت أند فلترز بأفضل سعر. ${partNumber}`;
   }
 
   if (cat === 'دورة البنزين')
-    return `طلمبة بنزين ${brand} ${fitPhrase}. ${pricePhrase} طلمبة بنزين أصلية ماركة ${brand} لضمان تدفق الوقود بشكل سليم وحماية الموتور. احسن طلمبة بنزين بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات. ${partNumber}`;
+    return `طلمبة بنزين ${brand} ${fitPhrase}. ${pricePhrase} طلمبة بنزين أصلية ماركة ${brand} لضمان تدفق الوقود بشكل سليم وحماية الإنجكتورات والموتور. احسن طلمبة بنزين بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات. ${partNumber}`;
 
   if (cat === 'بوجيهات و سلوك بوجيهات و موبينة') {
     if (sub === 'بوجيهات')
-      return `بوجيه ${brand} ${fitPhrase}. ${pricePhrase} بوجيهات أصلية ماركة ${brand} لتحسين أداء الموتور وتوفير الوقود وتقليل الانبعاثات. احسن بوجيهات بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت. ${partNumber}`;
+      return `بوجيه ${brand} ${fitPhrase}. ${pricePhrase} بوجيهات أصلية ماركة ${brand} لتحسين أداء الموتور وتوفير الوقود وتقليل الانبعاثات وتجنب مشكلة اهتزاز الموتور. احسن بوجيهات بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت. ${partNumber}`;
     if (sub === 'موبينة')
-      return `موبينة ${brand} ${fitPhrase}. ${pricePhrase} موبينة أصلية ماركة ${brand} لتوليد شرارة احتراق قوية وثابتة. متوفرة في زيت أند فلترز. ${partNumber}`;
+      return `موبينة ${brand} ${fitPhrase}. ${pricePhrase} موبينة أصلية ماركة ${brand} لتوليد شرارة احتراق قوية وثابتة وتحسين أداء الإشعال. متوفرة في زيت أند فلترز. ${partNumber}`;
     return `${sub} ${brand} ${fitPhrase}. ${pricePhrase} قطعة إشعال أصلية ماركة ${brand} من زيت أند فلترز. ${partNumber}`;
   }
 
-  // *** UPDATED: rich descriptions per sensor type ***
   if (cat === 'حساسات و قطع كهربائية') {
     if (sub === 'حساسات') {
       const { ar: sensorAr, arAlt } = getSensorLabel(product);
@@ -254,11 +264,11 @@ function buildDescription(product: any): string {
   }
 
   if (cat === 'جوانات و أويل سيل')
-    return `جوان وأويل سيل ${brand} ${fitPhrase}. ${pricePhrase} جوانات وأويل سيل أصلية ماركة ${brand} لمنع تسرب الزيت. متوفرة في زيت أند فلترز بأفضل سعر في مصر. ${partNumber}`;
+    return `جوان وأويل سيل ${brand} ${fitPhrase}. ${pricePhrase} جوانات وأويل سيل أصلية ماركة ${brand} لمنع تسرب الزيت وضمان إحكام غلق الموتور. متوفرة في زيت أند فلترز بأفضل سعر في مصر. ${partNumber}`;
 
   if (cat === 'مستلزمات عمرة موتور') {
     if (sub === 'طقم بستم')
-      return `طقم بستم ${brand} ${fitPhrase}. ${pricePhrase} طقم بستم أصلي ماركة ${brand} لعمرة الموتور الكاملة. متوفر في زيت أند فلترز بأفضل سعر في مصر. ${partNumber}`;
+      return `طقم بستم ${brand} ${fitPhrase}. ${pricePhrase} طقم بستم أصلي ماركة ${brand} لعمرة الموتور الكاملة. يشمل جميع القطع اللازمة للعمرة بأفضل مواصفات. متوفر في زيت أند فلترز بأفضل سعر في مصر. ${partNumber}`;
     if (sub === 'عامود كامة')
       return `عامود كامة ${brand} ${fitPhrase}. ${pricePhrase} عامود كامة أصلي ماركة ${brand}. اطلبه من زيت أند فلترز بأفضل سعر في مصر. ${partNumber}`;
     return `${sub} ${brand} ${fitPhrase}. ${pricePhrase} قطعة موتور أصلية ماركة ${brand} من زيت أند فلترز. ${partNumber}`;
@@ -270,8 +280,19 @@ function buildDescription(product: any): string {
   if (cat === 'دبرياج و قطع فتيس')
     return `${sub || 'قطعة دبرياج'} ${brand} ${fitPhrase}. ${pricePhrase} قطعة دبرياج أصلية ماركة ${brand} من زيت أند فلترز بأفضل سعر في مصر. ${partNumber}`;
 
-  if (cat === 'إطارات')
-    return `إطار ${brand} ${sub || ''}. ${pricePhrase} إطارات ${brand} أصلية بأفضل سعر في مصر متوفرة في زيت أند فلترز مع شحن لباب البيت.`;
+  // ============================================================
+  // [ADDED] إطارات — وصف غني بكلمات البحث
+  // ============================================================
+  if (cat === 'إطارات') {
+    const size = sub || '';
+    return (
+      `إطار ${brand} ${size} ${fitPhrase}. ${pricePhrase} ` +
+      `إطارات ${brand} أصلية بأفضل سعر في مصر. ` +
+      `مناسبة لسيارات أوبترا، كروز، كورولا، لانسر، النترا، سبورتاج، قاشقاي وغيرها. ` +
+      `إطار ${brand} ${size} يوفر ثباتاً عالياً وتحكماً ممتازاً في جميع الظروف الجوية. ` +
+      `متوفر في زيت أند فلترز مع شحن لباب البيت في جميع المحافظات بأفضل سعر إطارات في مصر.`
+    );
+  }
 
   if (cat === 'مساحات')
     return `مساحة زجاج ${brand} ${fitPhrase}. ${pricePhrase} مساحات زجاج أصلية ماركة ${brand} بأفضل سعر في مصر من زيت أند فلترز. ${partNumber}`;
@@ -294,6 +315,9 @@ function buildTitle(product: any): string {
   if (product.category === 'زيوت موتور')
     return `زيت موتور ${brand} ${sub} - أفضل سعر في مصر | زيت أند فلترز`;
 
+  if (product.category === 'زيوت فتيس و دبرياج و باور')
+    return `زيت ${sub} ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
+
   if (product.category === 'بوجيهات و سلوك بوجيهات و موبينة' && sub === 'بوجيهات')
     return `بوجيهات ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
 
@@ -315,11 +339,22 @@ function buildTitle(product: any): string {
   if (product.category === 'دورة البنزين')
     return `طلمبة بنزين ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
 
-  // *** UPDATED: sensor-specific titles ***
   if (product.category === 'حساسات و قطع كهربائية' && sub === 'حساسات') {
     const { ar: sensorAr } = getSensorLabel(product);
     return `${sensorAr} ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
   }
+
+  // [ADDED] عنوان إطارات
+  if (product.category === 'إطارات')
+    return `إطار ${brand} ${sub} - أفضل سعر إطارات في مصر | زيت أند فلترز`;
+
+  // [ADDED] عنوان فلتر تكييف
+  if (product.category === 'فلاتر' && (sub === 'فلتر تكييف' || sub === 'فلتر كابينة'))
+    return `فلتر تكييف ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
+
+  // [ADDED] عنوان زيت تبريد
+  if (product.category === 'دورة تبريد و تكييف' && (sub === 'طلمبات مياه'))
+    return `طلمبة مياه ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
 
   if (isUniversal)
     return `${product.name} ${brand} - أفضل سعر في مصر | زيت أند فلترز`;
@@ -359,6 +394,13 @@ function buildKeywords(product: any): string[] {
     `احسن زيت موتور ${sub}`,
     `افضل زيت موتور ${brand}`,
     `احسن زيت موتور ${brand}`,
+    // [ADDED] كلمات بحث تنافسية للزيوت
+    `${sub} synthetic مصر`,
+    `زيت موتور فول سينثتيك ${sub}`,
+    `engine oil ${sub} egypt`,
+    `${brand} oil egypt`,
+    `زيت موتور كيلو`,
+    `سعر زيت الموتور مصر`,
     ...Object.values(CAR_MAKE_AR).filter(Boolean).flatMap(carName => [
       `زيت موتور ${carName}`,
       `افضل زيت موتور ${carName}`,
@@ -371,6 +413,25 @@ function buildKeywords(product: any): string[] {
     ]),
   ] : [];
 
+  // [ADDED] كلمات زيوت الفتيس والباور
+  const gearOilKeywords = product.category === 'زيوت فتيس و دبرياج و باور' ? [
+    `زيت فتيس ${brand}`,
+    `زيت دبرياج ${brand}`,
+    `زيت باور ستيرينج ${brand}`,
+    `زيت ${sub} ${brand}`,
+    `زيت فتيس مصر`,
+    `زيت دبرياج مصر`,
+    `سعر زيت فتيس ${brand}`,
+    `افضل زيت فتيس مصر`,
+    `احسن زيت فتيس مصر`,
+    `gear oil ${brand}`,
+    ...POPULAR_MODELS.flatMap(m => [
+      `زيت فتيس ${m}`,
+      `زيت دبرياج ${m}`,
+      `احسن زيت فتيس ${m}`,
+    ]),
+  ] : [];
+
   const sparkKeywords = (product.category === 'بوجيهات و سلوك بوجيهات و موبينة' && sub === 'بوجيهات') ? [
     `بوجيهات ${brand}`,
     `بوجيهات ${brand} ${carAr} ${model}`.trim(),
@@ -379,10 +440,16 @@ function buildKeywords(product: any): string[] {
     `بوجيهات مصر`,
     `افضل بوجيهات`,
     `احسن بوجيهات`,
+    // [ADDED]
+    `spark plugs ${brand}`,
+    `بوجيهات ارجيتيم`,
+    `بوجيهات إيريديوم`,
+    `بوجيهات بلاتينيوم`,
     carAr ? `بوجيهات ${carAr}` : '',
     carAr ? `احسن بوجيهات ${carAr}` : '',
     model ? `بوجيهات ${model}` : '',
     model ? `احسن بوجيهات ${model}` : '',
+    ...POPULAR_MODELS.flatMap(m => [`بوجيهات ${m}`, `احسن بوجيهات ${m}`]),
   ] : [];
 
   const brakeFluidKeywords = (product.category === 'الفرامل' && ['تيل فرامل', 'تيل امامي', 'تيل خلفي'].includes(sub)) ? [
@@ -394,6 +461,11 @@ function buildKeywords(product: any): string[] {
     `تيل فرامل مصر`,
     `افضل تيل فرامل`,
     `احسن تيل فرامل`,
+    // [ADDED]
+    `brake pad ${brand}`,
+    `تربيتة فرامل ${brand}`,
+    `تربيتة فرامل مصر`,
+    `افضل تربيتة فرامل`,
     ...Object.values(CAR_MAKE_AR).filter(Boolean).map(c => `تيل فرامل ${c}`),
     ...POPULAR_MODELS.flatMap(m => [
       `تيل فرامل ${m}`,
@@ -410,6 +482,7 @@ function buildKeywords(product: any): string[] {
     `سعر طنابير فرامل ${brand}`,
     `طنابير فرامل مصر`,
     `افضل طنابير فرامل`,
+    `brake drum ${brand}`,
     ...Object.values(CAR_MAKE_AR).filter(Boolean).map(c => `طنابير فرامل ${c}`),
     ...POPULAR_MODELS.flatMap(m => [`طنابير ${m}`, `طنابير فرامل ${m}`, `احسن طنابير ${m}`]),
   ] : [];
@@ -422,6 +495,11 @@ function buildKeywords(product: any): string[] {
     `مساعدين مصر`,
     `افضل مساعدين`,
     `احسن مساعدين`,
+    // [ADDED]
+    `shock absorber ${brand}`,
+    `امورتيزور ${brand}`,
+    `مساعدين امامي ${brand}`,
+    `مساعدين خلفي ${brand}`,
     ...Object.values(CAR_MAKE_AR).filter(Boolean).map(c => `مساعدين ${c}`),
     ...POPULAR_MODELS.flatMap(m => [`مساعدين ${m}`, `احسن مساعدين ${m}`, `افضل مساعدين ${m}`]),
   ] : [];
@@ -437,6 +515,10 @@ function buildKeywords(product: any): string[] {
       `سيور مصر`,
       `افضل سيور`,
       `احسن سيور`,
+      // [ADDED]
+      `timing belt ${brand}`,
+      `v-belt ${brand}`,
+      `serpentine belt ${brand}`,
     ];
     const perMake = Object.values(CAR_MAKE_AR).filter(Boolean).flatMap(c => [
       `سير مجموعة ${c}`,
@@ -461,11 +543,13 @@ function buildKeywords(product: any): string[] {
     `طلمبة بنزين مصر`,
     `افضل طلمبة بنزين`,
     `احسن طلمبة بنزين`,
+    // [ADDED]
+    `fuel pump ${brand}`,
+    `طلمبة وقود ${brand}`,
     ...Object.values(CAR_MAKE_AR).filter(Boolean).map(c => `طلمبة بنزين ${c}`),
     ...POPULAR_MODELS.flatMap(m => [`طلمبة بنزين ${m}`, `احسن طلمبة بنزين ${m}`, `افضل طلمبة بنزين ${m}`]),
   ] : [];
 
-  // *** NEW: rich sensor keywords ***
   const sensorKeywords = (product.category === 'حساسات و قطع كهربائية' && sub === 'حساسات') ? (() => {
     const { ar: sensorAr, arAlt } = getSensorLabel(product);
     const carLine = [carAr, model].filter(Boolean).join(' ');
@@ -488,12 +572,72 @@ function buildKeywords(product: any): string[] {
         `${sensorAr} ${m}`,
         `احسن ${sensorAr} ${m}`,
       ]),
-      // English variants help bilingual searchers
       `oxygen sensor ${carEn} ${model}`.trim(),
       `o2 sensor ${carEn}`.trim(),
       `sensor ${carEn} ${model}`.trim(),
     ];
   })() : [];
+
+  // ============================================================
+  // [ADDED] كلمات بحث الإطارات — من أكثر الكلمات بحثاً في مصر
+  // ============================================================
+  const tireKeywords = product.category === 'إطارات' ? [
+    `إطار ${brand}`,
+    `كاوتش ${brand}`,
+    `إطارات ${brand} مصر`,
+    `كاوتشات ${brand} مصر`,
+    `سعر إطار ${brand}`,
+    `سعر كاوتش ${brand}`,
+    `افضل إطارات مصر`,
+    `احسن إطارات مصر`,
+    `افضل كاوتشات مصر`,
+    `احسن كاوتشات مصر`,
+    `إطار ${brand} ${sub}`,
+    `كاوتش ${brand} ${sub}`,
+    `${brand} tires egypt`,
+    `${brand} tyres egypt`,
+    `سعر الكاوتش في مصر`,
+    `إطارات سيارات مصر`,
+    `كاوتشات سيارات مصر`,
+    // مقاسات شائعة
+    ...POPULAR_TIRE_SIZES.flatMap(size => [
+      `إطار ${size}`,
+      `كاوتش ${size}`,
+      `سعر إطار ${size}`,
+      `${brand} ${size}`,
+    ]),
+    // لكل موديل شائع
+    ...POPULAR_MODELS.flatMap(m => [
+      `إطارات ${m}`,
+      `كاوتشات ${m}`,
+      `سعر كاوتش ${m}`,
+      `افضل إطارات ${m}`,
+      `احسن كاوتش ${m}`,
+    ]),
+    // لكل ماركة سيارة
+    ...Object.values(CAR_MAKE_AR).filter(Boolean).flatMap(c => [
+      `إطارات ${c}`,
+      `كاوتشات ${c}`,
+    ]),
+  ] : [];
+
+  // ============================================================
+  // [ADDED] كلمات بحث فلتر التكييف
+  // ============================================================
+  const cabinFilterKeywords = (product.category === 'فلاتر' && (sub === 'فلتر تكييف' || sub === 'فلتر كابينة')) ? [
+    `فلتر تكييف ${brand}`,
+    `فلتر كابينة ${brand}`,
+    `cabin filter ${brand}`,
+    `فلتر تكييف مصر`,
+    `افضل فلتر تكييف`,
+    `احسن فلتر تكييف`,
+    carAr ? `فلتر تكييف ${carAr}` : '',
+    model ? `فلتر تكييف ${model}` : '',
+    ...POPULAR_MODELS.flatMap(m => [
+      `فلتر تكييف ${m}`,
+      `فلتر كابينة ${m}`,
+    ]),
+  ] : [];
 
   return [
     product.name,
@@ -514,9 +658,15 @@ function buildKeywords(product: any): string[] {
     'قطع غيار أصلية',
     'زيت أند فلترز',
     'قطع غيار مصر',
+    // [ADDED] كلمات عامة تنافسية
+    'قطع غيار سيارات مصر',
+    'متجر قطع غيار اونلاين مصر',
+    'شحن قطع غيار لباب البيت',
+    'قطع غيار اصلية مصر',
     product.part_number,
     ...universalKeywords,
     ...oilKeywords,
+    ...gearOilKeywords,
     ...sparkKeywords,
     ...brakeFluidKeywords,
     ...drumKeywords,
@@ -524,6 +674,8 @@ function buildKeywords(product: any): string[] {
     ...beltKeywords,
     ...fuelPumpKeywords,
     ...sensorKeywords,
+    ...tireKeywords,
+    ...cabinFilterKeywords,
   ].filter(Boolean) as string[];
 }
 
@@ -605,6 +757,17 @@ function ProductSchema({ product }: { product: any }) {
     category: product.category,
     sku: product.part_number || product.id,
     mpn: product.part_number || product.id,
+    // ============================================================
+    // [ADDED] AggregateRating — يساعد جوجل يعرض النجوم في النتايج
+    // ملحوظة: احذف الـ aggregateRating لو مش عندك reviews فعلية
+    // ============================================================
+    aggregateRating: product.rating_count && product.rating_avg ? {
+      '@type': 'AggregateRating',
+      ratingValue: product.rating_avg,
+      reviewCount: product.rating_count,
+      bestRating: 5,
+      worstRating: 1,
+    } : undefined,
     offers: {
       '@type': 'Offer',
       url: `https://zaitandfilters.com/products/${canonicalSlug}`,
@@ -627,13 +790,19 @@ function ProductSchema({ product }: { product: any }) {
         { '@type': 'PropertyValue', name: 'Viscosity Grade', value: product.subcategory },
         { '@type': 'PropertyValue', name: 'Oil Type', value: 'Engine Oil - زيت موتور' },
       ] : []),
-      // *** NEW: sensor-specific additionalProperty ***
+      ...(product.category === 'إطارات' ? [
+        { '@type': 'PropertyValue', name: 'Tire Size', value: product.subcategory },
+        { '@type': 'PropertyValue', name: 'نوع المنتج', value: 'إطار - كاوتش' },
+      ] : []),
       ...(product.category === 'حساسات و قطع كهربائية' ? [
         { '@type': 'PropertyValue', name: 'Sensor Type', value: product.name },
         { '@type': 'PropertyValue', name: 'نوع الحساس', value: getSensorLabel(product).ar },
       ] : []),
     ].filter((prop: any) => prop.value),
   };
+
+  // Remove undefined keys (aggregateRating if not present)
+  if (!schema.aggregateRating) delete schema.aggregateRating;
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -683,6 +852,11 @@ function PartFAQSchema({ product }: { product: any }) {
         name: `احسن زيت موتور لسيارة أوبترا؟`,
         text: `زيت موتور ${brand} ${sub} هو من أفضل الخيارات لسيارة أوبترا. يحمي الموتور ويطيل عمره ومتوفر بسعر مناسب من زيت أند فلترز.`,
       },
+      // [ADDED] سؤال عن الزيت الفول سينثتيك
+      {
+        name: `ما الفرق بين زيت ${sub} المعدني والتخليقي؟`,
+        text: `زيت الموتور التخليقي (Synthetic) مثل ${brand} ${sub} أفضل من المعدني لأنه يتحمل درجات الحرارة العالية أكثر، يطيل عمر الموتور، ويقلل الاحتكاك. مناسب بشكل خاص للمناخ الحار في مصر.`,
+      },
     ];
   } else if (cat === 'بوجيهات و سلوك بوجيهات و موبينة' && sub === 'بوجيهات') {
     questions = [
@@ -704,6 +878,11 @@ function PartFAQSchema({ product }: { product: any }) {
         name: `احسن بوجيهات لسيارة أوبترا وكروز؟`,
         text: `بوجيهات ${brand} من أفضل الخيارات لسيارات أوبترا وكروز. تحسن أداء الموتور وتوفر الوقود. متوفرة في زيت أند فلترز بأفضل سعر.`,
       },
+      // [ADDED]
+      {
+        name: `كل كام كيلو بغير البوجيهات؟`,
+        text: `يُنصح بتغيير البوجيهات العادية كل 20,000-30,000 كيلومتر، أما البوجيهات الإيريديوم والبلاتينيوم مثل ${brand} فتدوم حتى 60,000-100,000 كيلومتر. راجع دليل سيارتك لمعرفة الفترة الصحيحة.`,
+      },
     ];
   } else if (cat === 'الفرامل' && (sub === 'تيل فرامل' || sub === 'تيل امامي' || sub === 'تيل خلفي')) {
     const label = sub === 'تيل امامي' ? 'تيل فرامل امامي' : sub === 'تيل خلفي' ? 'تيل فرامل خلفي' : 'تيل فرامل';
@@ -719,6 +898,11 @@ function PartFAQSchema({ product }: { product: any }) {
       {
         name: `ما سعر ${label} ${brand} في مصر؟`,
         text: `${label} ماركة ${brand} متاح بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات.`,
+      },
+      // [ADDED]
+      {
+        name: `ما هي علامات تآكل تيل الفرامل؟`,
+        text: `أبرز علامات تآكل تيل الفرامل: صوت صرير عند الكبح، اهتزاز عجلة القيادة، زيادة مسافة التوقف، أو إضاءة تحذير الفرامل. عند ظهور هذه الأعراض يجب استبدال تيل الفرامل فوراً لضمان أمانك.`,
       },
     ];
   } else if (cat === 'الفرامل' && sub === 'طنابير') {
@@ -750,6 +934,11 @@ function PartFAQSchema({ product }: { product: any }) {
         name: `ما سعر مساعدين ${brand} في مصر؟`,
         text: `مساعدين ${brand} متاحة بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات.`,
       },
+      // [ADDED]
+      {
+        name: `ما علامات تلف المساعدين؟`,
+        text: `أبرز علامات تلف المساعدين: اهتزاز السيارة على الطرق الوعرة، ميل السيارة عند الكبح، تآكل غير منتظم في الإطارات، أو صوت طرق من تحت السيارة. يُنصح بفحص المساعدين كل 50,000 كيلومتر.`,
+      },
     ];
   } else if (cat === 'سيور و بلي') {
     const beltLabel = sub === 'سير مجموعة' ? 'سير مجموعة' : sub === 'سير دينامو' ? 'سير دينامو' : sub === 'سير كاتينة' || sub === 'طقم كاتينة كامل' ? 'سير كاتينة' : 'سير';
@@ -766,6 +955,11 @@ function PartFAQSchema({ product }: { product: any }) {
         name: `ما سعر ${beltLabel} ${brand} في مصر؟`,
         text: `${beltLabel} ماركة ${brand} متاح بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات.`,
       },
+      // [ADDED]
+      {
+        name: `كل كام كيلو بغير السير؟`,
+        text: `يُنصح بتغيير سير التوقيت (سير الكاتينة) كل 60,000-80,000 كيلومتر أو حسب تعليمات المصنع. سير المجموعة يُغير عند ظهور شقوق أو تلف واضح. عدم التغيير في الوقت المناسب قد يتسبب في أضرار جسيمة للموتور.`,
+      },
     ];
   } else if (cat === 'دورة البنزين') {
     questions = [
@@ -781,9 +975,13 @@ function PartFAQSchema({ product }: { product: any }) {
         name: `ما سعر طلمبة بنزين ${brand} في مصر؟`,
         text: `طلمبة بنزين ${brand} متاحة بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات.`,
       },
+      // [ADDED]
+      {
+        name: `ما علامات تلف طلمبة البنزين؟`,
+        text: `أبرز علامات تلف طلمبة البنزين: صعوبة تشغيل الموتور، فقدان القوة عند التسارع، صوت طنين من خزان البنزين، أو توقف الموتور فجأة. عند ظهور هذه الأعراض يجب فحص واستبدال طلمبة البنزين.`,
+      },
     ];
 
-  // *** NEW: sensor FAQ questions ***
   } else if (cat === 'حساسات و قطع كهربائية' && sub === 'حساسات') {
     const { ar: sensorAr } = getSensorLabel(product);
     const carLine = carPhrase || 'سيارتك';
@@ -805,6 +1003,89 @@ function PartFAQSchema({ product }: { product: any }) {
       {
         name: `هل يمكن تركيب ${sensorAr} بدون ميكانيكي؟`,
         text: `تركيب ${sensorAr} يحتاج أدوات بسيطة لكن يُنصح بالتركيب على يد ميكانيكي متخصص لضمان الضبط الصحيح وتجنب أعطال إضافية. بعد التركيب يُفضل مسح كودات الأعطال بجهاز الكمبيوتر.`,
+      },
+    ];
+
+  // ============================================================
+  // [ADDED] FAQ الإطارات
+  // ============================================================
+  } else if (cat === 'إطارات') {
+    const size = sub || '';
+    questions = [
+      {
+        name: `ما هي أفضل إطارات ${brand} في مصر؟`,
+        text: `إطارات ${brand} ${size} من أفضل الخيارات في مصر. توفر ثباتًا عاليًا وتحكمًا ممتازًا وعمرًا طويلًا. مناسبة لمعظم أنواع السيارات الشائعة في مصر مثل أوبترا، كروز، كورولا، النترا وغيرها.`,
+      },
+      {
+        name: size ? `ما هو سعر إطار ${brand} ${size} في مصر؟` : `ما هو سعر إطارات ${brand} في مصر؟`,
+        text: `إطارات ${brand} متاحة بأفضل سعر كاوتشات في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات. تفضل بزيارة صفحة المنتج للاطلاع على السعر الحالي.`,
+      },
+      {
+        name: `كيف أعرف المقاس المناسب من الإطارات لسيارتي؟`,
+        text: `مقاس الإطار المناسب مكتوب على الإطار الحالي لسيارتك أو في دليل السيارة وعلى لوحة داخل باب السيارة. المقاس يكون على شكل 205/55R16 مثلاً. يمكنك التواصل مع زيت أند فلترز وسيساعدونك في اختيار المقاس الصحيح.`,
+      },
+      {
+        name: `كل كام كيلو بغير الإطارات؟`,
+        text: `عمر الإطار عادةً 40,000-60,000 كيلومتر حسب نوع الإطار وأسلوب القيادة والطرق. يُنصح بفحص إطاراتك كل 10,000 كيلومتر والتأكد من عدم وجود تآكل غير منتظم.`,
+      },
+    ];
+
+  // ============================================================
+  // [ADDED] FAQ فلتر التكييف
+  // ============================================================
+  } else if (cat === 'فلاتر' && (sub === 'فلتر تكييف' || sub === 'فلتر كابينة')) {
+    questions = [
+      {
+        name: `ما هي فوائد تغيير فلتر تكييف السيارة؟`,
+        text: `تغيير فلتر تكييف السيارة (فلتر الكابينة) يحسن جودة الهواء داخل السيارة، يقضي على الأتربة والبكتيريا والروائح الكريهة، ويحمي نظام تكييف السيارة من التلف. يُنصح بتغييره كل 15,000 كيلومتر أو مرة كل عام.`,
+      },
+      {
+        name: `ما هو أفضل فلتر تكييف ${brand}؟`,
+        text: `فلتر تكييف ${brand} من أفضل الخيارات في مصر. يوفر تنقية عالية للهواء ويطيل عمر نظام التكييف. مناسب لمعظم أنواع السيارات الشائعة. متوفر في زيت أند فلترز بأفضل سعر في مصر.`,
+      },
+      {
+        name: carPhrase ? `ما هو فلتر التكييف المناسب لسيارة ${carPhrase}؟` : `كيف أختار فلتر التكييف المناسب لسيارتي؟`,
+        text: carPhrase
+          ? `فلتر تكييف ${brand} متوافق مع سيارة ${carPhrase}. تأكد من رقم القطعة قبل الشراء. متوفر في زيت أند فلترز بأفضل سعر في مصر مع شحن لباب البيت.`
+          : `اختر فلتر التكييف المناسب حسب نوع سيارتك وموديلها. فلاتر تكييف ${brand} متوفرة لمعظم أنواع السيارات في زيت أند فلترز.`,
+      },
+    ];
+
+  // ============================================================
+  // [ADDED] FAQ دورة تبريد
+  // ============================================================
+  } else if (cat === 'دورة تبريد و تكييف' && sub === 'طلمبات مياه') {
+    questions = [
+      {
+        name: `ما هي علامات تلف طلمبة المياه؟`,
+        text: `أبرز علامات تلف طلمبة المياه: ارتفاع مقياس حرارة الموتور، تسريب مياه التبريد (الكولانت) من الموتور، صوت طرق من منطقة الموتور الأمامية، أو رائحة حرق من تحت الكابوت. يجب استبدال طلمبة المياه فور ظهور هذه الأعراض لتجنب احتراق الموتور.`,
+      },
+      {
+        name: `ما هو أفضل طلمبة مياه ${brand}؟`,
+        text: `طلمبة مياه ${brand} من أفضل الخيارات في مصر. تضمن تبريد الموتور بكفاءة وتطيل عمره. مناسبة لسيارات أوبترا، كروز، كورولا، لانسر وغيرها. متوفرة في زيت أند فلترز بأفضل سعر.`,
+      },
+      {
+        name: `ما سعر طلمبة مياه ${brand} في مصر؟`,
+        text: `طلمبة مياه ${brand} متاحة بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات.`,
+      },
+    ];
+
+  // ============================================================
+  // [ADDED] FAQ فلتر الزيت وفلتر الهواء
+  // ============================================================
+  } else if (cat === 'فلاتر' && (sub === 'فلتر زيت' || sub === 'فلتر الزيت')) {
+    questions = [
+      {
+        name: `كل كام كيلو بغير فلتر الزيت؟`,
+        text: `يُنصح بتغيير فلتر الزيت مع كل تغيير زيت موتور، عادةً كل 5,000-10,000 كيلومتر حسب نوع الزيت المستخدم ونوع السيارة. الزيت التخليقي يسمح بفترة أطول بين التغييرات.`,
+      },
+      {
+        name: `ما هو أفضل فلتر زيت ${brand}؟`,
+        text: `فلتر زيت ${brand} من أفضل الخيارات في مصر. يحمي الموتور من الشوائب ويضمن نظافة الزيت. مناسب لسيارات أوبترا، كروز، كورولا، لانسر، النترا وغيرها. متوفر في زيت أند فلترز بأفضل سعر.`,
+      },
+      {
+        name: `ما سعر فلتر زيت ${brand} في مصر؟`,
+        text: `فلتر زيت ${brand} متاح بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات.`,
       },
     ];
   }
@@ -829,6 +1110,91 @@ function PartFAQSchema({ product }: { product: any }) {
   );
 }
 
+// ============================================================
+// [ADDED] LocalBusiness Schema — يساعد جوجل يفهم هوية الموقع
+// ضعه في layout.tsx أو في صفحة المنتج لو مش متضمن في مكان تاني
+// ============================================================
+function LocalBusinessSchema() {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': ['AutoPartsStore', 'LocalBusiness'],
+    name: 'زيت أند فلترز - Zait & Filters',
+    alternateName: 'Zait and Filters',
+    description: 'متجر قطع غيار سيارات أونلاين في مصر - زيوت موتور، فلاتر، إطارات، قطع غيار أصلية بأفضل سعر مع شحن لباب البيت في جميع المحافظات',
+    url: 'https://zaitandfilters.com',
+    logo: 'https://zaitandfilters.com/logo.png',
+    image: 'https://zaitandfilters.com/og-image.jpg',
+    telephone: '+20-XXXXXXXXXX', // ← ضع رقم تليفونك هنا
+    email: 'info@zaitandfilters.com', // ← ضع إيميلك هنا
+    address: {
+      '@type': 'PostalAddress',
+      addressCountry: 'EG',
+      addressLocality: 'Cairo',
+      addressRegion: 'Cairo',
+    },
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: 30.0444, // ← عدل على الإحداثيات الصحيحة
+      longitude: 31.2357,
+    },
+    openingHoursSpecification: [
+      {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Saturday', 'Sunday'],
+        opens: '09:00',
+        closes: '22:00',
+      },
+    ],
+    priceRange: '$$',
+    servesCuisine: undefined,
+    sameAs: [
+      'https://www.facebook.com/zaitandfilters', // ← ضع لينكات صفحاتك على السوشيال ميديا
+      'https://www.instagram.com/zaitandfilters',
+    ],
+    hasMap: 'https://maps.google.com/?q=zait+and+filters+egypt',
+    areaServed: {
+      '@type': 'Country',
+      name: 'Egypt',
+    },
+    currenciesAccepted: 'EGP',
+    paymentAccepted: 'Cash, Credit Card, Fawry, Vodafone Cash, Instapay',
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
+// ============================================================
+// [ADDED] SiteLinksSearchBox Schema — يضيف بوكس بحث في جوجل
+// ============================================================
+function SiteLinksSearchBoxSchema() {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'زيت أند فلترز',
+    url: 'https://zaitandfilters.com',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: 'https://zaitandfilters.com/store?search={search_term_string}',
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
@@ -845,6 +1211,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
     return (
       <>
+        <LocalBusinessSchema />
+        <SiteLinksSearchBoxSchema />
         <ProductSchema product={product} />
         <PartFAQSchema product={product} />
         <ProductDetailsClient initialProduct={product} productId={product.id} />
@@ -862,6 +1230,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
+      <LocalBusinessSchema />
+      <SiteLinksSearchBoxSchema />
       <ProductSchema product={initialProduct} />
       <PartFAQSchema product={initialProduct} />
       <ProductDetailsClient initialProduct={initialProduct} productId={initialProduct.id} />
