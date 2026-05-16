@@ -32,28 +32,102 @@ const CAR_MAKE_AR: Record<string, string> = {
 
 // Popular car models — used for engine oil keywords/FAQs
 const POPULAR_OIL_MODELS = [
-  'اوبترا', 'كروز', 'كابتيفا', 'اوبل', 'افيو',   // Chevrolet/Opel
-  'كورولا', 'كامري', 'يارس', 'راف فور',             // Toyota
-  'لانسر', 'باجيرو', 'اكليبس',                       // Mitsubishi
-  'النترا', 'توسان', 'سوناتا', 'اكسنت',              // Hyundai
-  'سيراتو', 'سبورتاج', 'سورينتو', 'بيكانتو',         // KIA
-  'سنترا', 'قاشقاي', 'اكس تريل',                     // Nissan
-  'جولف', 'باسات', 'بولو',                            // VW
+  'اوبترا', 'كروز', 'كابتيفا', 'اوبل', 'افيو',
+  'كورولا', 'كامري', 'يارس', 'راف فور',
+  'لانسر', 'باجيرو', 'اكليبس',
+  'النترا', 'توسان', 'سوناتا', 'اكسنت',
+  'سيراتو', 'سبورتاج', 'سورينتو', 'بيكانتو',
+  'سنترا', 'قاشقاي', 'اكس تريل',
+  'جولف', 'باسات', 'بولو',
 ];
 
 // Popular car models — used for all high-traffic part keywords/FAQs
 const POPULAR_MODELS = [
-  'اوبترا', 'كروز', 'كابتيفا', 'افيو',              // Chevrolet
-  'كورولا', 'كامري', 'يارس', 'راف فور',             // Toyota
-  'لانسر', 'باجيرو', 'اكليبس',                       // Mitsubishi
-  'النترا', 'توسان', 'سوناتا', 'اكسنت',              // Hyundai
-  'سيراتو', 'سبورتاج', 'سورينتو', 'بيكانتو',         // KIA
-  'سنترا', 'قاشقاي', 'اكس تريل',                     // Nissan
-  'جولف', 'باسات', 'بولو',                            // VW
-  'بيجو 301', 'بيجو 206', 'بيجو 307',                // Peugeot
-  'مازدا 3', 'مازدا 6',                               // Mazda
-  'اوكتافيا', 'فابيا',                                // Skoda
+  'اوبترا', 'كروز', 'كابتيفا', 'افيو',
+  'كورولا', 'كامري', 'يارس', 'راف فور',
+  'لانسر', 'باجيرو', 'اكليبس',
+  'النترا', 'توسان', 'سوناتا', 'اكسنت',
+  'سيراتو', 'سبورتاج', 'سورينتو', 'بيكانتو',
+  'سنترا', 'قاشقاي', 'اكس تريل',
+  'جولف', 'باسات', 'بولو',
+  'بيجو 301', 'بيجو 206', 'بيجو 307',
+  'مازدا 3', 'مازدا 6',
+  'اوكتافيا', 'فابيا',
+  'لانوس', 'أفيو',
 ];
+
+// ============================================================
+// Sensor subcategory label helpers
+// ============================================================
+// Maps common sensor name fragments to human-readable labels used in
+// descriptions, titles, FAQs and keywords.
+const SENSOR_LABELS: { match: string[]; ar: string; arAlt?: string }[] = [
+  {
+    match: ['شكمان', 'اوكسجين', 'oxygen', 'o2', 'lambda'],
+    ar: 'حساس شكمان (أوكسجين)',
+    arAlt: 'حساس الشكمان',
+  },
+  {
+    match: ['حرارة', 'temperature', 'coolant', 'ect'],
+    ar: 'حساس حرارة المياه',
+    arAlt: 'حساس الثرموستات الكهربائي',
+  },
+  {
+    match: ['هواء', 'maf', 'map', 'mass air'],
+    ar: 'حساس كتلة الهواء',
+    arAlt: 'حساس MAF',
+  },
+  {
+    match: ['دعسة', 'throttle', 'tps'],
+    ar: 'حساس الدعسة',
+    arAlt: 'حساس وضع الخانق TPS',
+  },
+  {
+    match: ['كامة', 'camshaft', 'cam'],
+    ar: 'حساس الكامة',
+    arAlt: 'حساس وضع عامود الكامة',
+  },
+  {
+    match: ['كرنك', 'crankshaft', 'crank', 'ckp'],
+    ar: 'حساس الكرنك',
+    arAlt: 'حساس موضع عامود المرفق',
+  },
+  {
+    match: ['ضغط زيت', 'oil pressure'],
+    ar: 'حساس ضغط الزيت',
+    arAlt: 'سويتش ضغط الزيت',
+  },
+  {
+    match: ['سرعة', 'speed', 'abs', 'wheel'],
+    ar: 'حساس السرعة',
+    arAlt: 'حساس ABS',
+  },
+  {
+    match: ['بنزين', 'fuel', 'level'],
+    ar: 'حساس مستوى البنزين',
+    arAlt: 'فلوتر البنزين',
+  },
+  {
+    match: ['خبط', 'knock'],
+    ar: 'حساس الخبط',
+    arAlt: 'Knock Sensor',
+  },
+];
+
+function getSensorLabel(product: any): { ar: string; arAlt: string } {
+  const haystack = [product.name, product.subcategory, product.part_number]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  for (const entry of SENSOR_LABELS) {
+    if (entry.match.some((kw) => haystack.includes(kw))) {
+      return { ar: entry.ar, arAlt: entry.arAlt || entry.ar };
+    }
+  }
+  // fallback: use subcategory or generic
+  return { ar: `حساس ${product.subcategory || ''}`.trim(), arAlt: 'حساس كهربائي' };
+}
 
 function buildDescription(product: any): string {
   const brand = product.brand || '';
@@ -86,8 +160,9 @@ function buildDescription(product: any): string {
   if (cat === 'زيوت موتور')
     return `زيت موتور ${brand} مواصفة ${sub} - ${product.name}. ${pricePhrase} زيت موتور ${sub} ماركة ${brand} أصلي تخليقي كامل. يحمي الموتور في درجات الحرارة العالية ويطيل عمره. مناسب لسيارات أوبترا، كروز، كورولا، لانسر، النترا، وجميع أنواع السيارات التي تستخدم مواصفة ${sub}. احسن زيت موتور بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات.`;
 
+  // *** UPDATED: more descriptive for gear/clutch/power steering oils ***
   if (cat === 'زيوت فتيس و دبرياج و باور')
-    return `زيت ${sub} ماركة ${brand} - ${product.name}. ${pricePhrase} زيت ${sub} أصلي ماركة ${brand} لحماية الفتيس والدبرياج. مناسب لجميع أنواع السيارات. اشتري زيت ${brand} ${sub} بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات.`;
+    return `زيت ${sub} ماركة ${brand} - ${product.name}. ${pricePhrase} زيت ${sub} أصلي ماركة ${brand} لحماية الفتيس والدبرياج وتقليل الاحتكاك. مناسب لسيارات أوبترا، كروز، كورولا، لانسر، النترا وجميع السيارات التي تستخدم مواصفة ${sub}. اشتري زيت ${brand} ${sub} بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات.`;
 
   if (cat === 'الفرامل') {
     if (sub === 'تيل فرامل')
@@ -160,9 +235,21 @@ function buildDescription(product: any): string {
     return `${sub} ${brand} ${fitPhrase}. ${pricePhrase} قطعة إشعال أصلية ماركة ${brand} من زيت أند فلترز. ${partNumber}`;
   }
 
+  // *** UPDATED: rich descriptions per sensor type ***
   if (cat === 'حساسات و قطع كهربائية') {
-    if (sub === 'حساسات')
-      return `حساس ${brand} ${fitPhrase}. ${pricePhrase} حساسات أصلية ماركة ${brand} لضمان دقة قراءات السيارة. متوفرة في زيت أند فلترز بأفضل سعر في مصر. ${partNumber}`;
+    if (sub === 'حساسات') {
+      const { ar: sensorAr, arAlt } = getSensorLabel(product);
+      const carLine = carPhrase
+        ? `مصمم خصيصاً لسيارة ${carPhrase}`
+        : 'متوافق مع عدة موديلات';
+      return (
+        `${sensorAr} ماركة ${brand} ${carLine}. ${pricePhrase} ` +
+        `${sensorAr} أصلي (${arAlt}) ماركة ${brand} يضمن دقة قراءة بيانات السيارة وسلامة أداء الموتور. ` +
+        `يُعالج عطل لمبة Check Engine الناتج عن خلل ${sensorAr}، ويُحسّن كفاءة استهلاك الوقود. ` +
+        `منشأ كوري الصنع مع ضمان استبدال. ` +
+        `احصل عليه الآن من زيت أند فلترز بأفضل سعر في مصر مع شحن لباب البيت في جميع المحافظات. ${partNumber}`
+      );
+    }
     return `${sub} ${brand} ${fitPhrase}. ${pricePhrase} قطعة كهربائية أصلية ماركة ${brand} متوفرة في زيت أند فلترز. ${partNumber}`;
   }
 
@@ -227,6 +314,12 @@ function buildTitle(product: any): string {
 
   if (product.category === 'دورة البنزين')
     return `طلمبة بنزين ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
+
+  // *** UPDATED: sensor-specific titles ***
+  if (product.category === 'حساسات و قطع كهربائية' && sub === 'حساسات') {
+    const { ar: sensorAr } = getSensorLabel(product);
+    return `${sensorAr} ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
+  }
 
   if (isUniversal)
     return `${product.name} ${brand} - أفضل سعر في مصر | زيت أند فلترز`;
@@ -372,6 +465,36 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`طلمبة بنزين ${m}`, `احسن طلمبة بنزين ${m}`, `افضل طلمبة بنزين ${m}`]),
   ] : [];
 
+  // *** NEW: rich sensor keywords ***
+  const sensorKeywords = (product.category === 'حساسات و قطع كهربائية' && sub === 'حساسات') ? (() => {
+    const { ar: sensorAr, arAlt } = getSensorLabel(product);
+    const carLine = [carAr, model].filter(Boolean).join(' ');
+    return [
+      sensorAr,
+      arAlt,
+      `${sensorAr} ${brand}`,
+      `${sensorAr} ${carLine}`.trim(),
+      `${sensorAr} ${brand} ${carLine}`.trim(),
+      `سعر ${sensorAr} ${brand}`,
+      `${sensorAr} مصر`,
+      `افضل ${sensorAr}`,
+      `احسن ${sensorAr}`,
+      carAr ? `${sensorAr} ${carAr}` : '',
+      model ? `${sensorAr} ${model}` : '',
+      model ? `احسن ${sensorAr} ${model}` : '',
+      `check engine ${carLine}`.trim(),
+      `لمبة check engine ${carLine}`.trim(),
+      ...POPULAR_MODELS.flatMap(m => [
+        `${sensorAr} ${m}`,
+        `احسن ${sensorAr} ${m}`,
+      ]),
+      // English variants help bilingual searchers
+      `oxygen sensor ${carEn} ${model}`.trim(),
+      `o2 sensor ${carEn}`.trim(),
+      `sensor ${carEn} ${model}`.trim(),
+    ];
+  })() : [];
+
   return [
     product.name,
     `${product.name} ${brand}`,
@@ -400,6 +523,7 @@ function buildKeywords(product: any): string[] {
     ...shockKeywords,
     ...beltKeywords,
     ...fuelPumpKeywords,
+    ...sensorKeywords,
   ].filter(Boolean) as string[];
 }
 
@@ -502,6 +626,11 @@ function ProductSchema({ product }: { product: any }) {
       ...(product.category === 'زيوت موتور' ? [
         { '@type': 'PropertyValue', name: 'Viscosity Grade', value: product.subcategory },
         { '@type': 'PropertyValue', name: 'Oil Type', value: 'Engine Oil - زيت موتور' },
+      ] : []),
+      // *** NEW: sensor-specific additionalProperty ***
+      ...(product.category === 'حساسات و قطع كهربائية' ? [
+        { '@type': 'PropertyValue', name: 'Sensor Type', value: product.name },
+        { '@type': 'PropertyValue', name: 'نوع الحساس', value: getSensorLabel(product).ar },
       ] : []),
     ].filter((prop: any) => prop.value),
   };
@@ -651,6 +780,31 @@ function PartFAQSchema({ product }: { product: any }) {
       {
         name: `ما سعر طلمبة بنزين ${brand} في مصر؟`,
         text: `طلمبة بنزين ${brand} متاحة بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات.`,
+      },
+    ];
+
+  // *** NEW: sensor FAQ questions ***
+  } else if (cat === 'حساسات و قطع كهربائية' && sub === 'حساسات') {
+    const { ar: sensorAr } = getSensorLabel(product);
+    const carLine = carPhrase || 'سيارتك';
+    questions = [
+      {
+        name: `ما هي أعراض عطل ${sensorAr}؟`,
+        text: `أبرز أعراض عطل ${sensorAr} هي: إضاءة لمبة Check Engine على لوحة التحكم، ارتفاع ملحوظ في استهلاك الوقود، اهتزاز الموتور أو ضعف الاستجابة عند تدوير الحارة. في حال ظهور هذه الأعراض يُنصح باستبدال ${sensorAr} فورًا.`,
+      },
+      {
+        name: carPhrase ? `ما هو ${sensorAr} المناسب لسيارة ${carPhrase}؟` : `كيف أختار ${sensorAr} المناسب لسيارتي؟`,
+        text: carPhrase
+          ? `${sensorAr} ماركة ${brand} مصمم خصيصًا لسيارة ${carPhrase}. تأكد من رقم القطعة قبل الشراء. متوفر في زيت أند فلترز بأفضل سعر في مصر مع ضمان استبدال.`
+          : `اختر ${sensorAr} المناسب حسب نوع سيارتك وموديلها. ${sensorAr} ماركة ${brand} متوفر لمعظم أنواع السيارات في زيت أند فلترز.`,
+      },
+      {
+        name: `ما سعر ${sensorAr} ${brand} في مصر؟`,
+        text: `${sensorAr} ماركة ${brand} متاح بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات وضمان استبدال.`,
+      },
+      {
+        name: `هل يمكن تركيب ${sensorAr} بدون ميكانيكي؟`,
+        text: `تركيب ${sensorAr} يحتاج أدوات بسيطة لكن يُنصح بالتركيب على يد ميكانيكي متخصص لضمان الضبط الصحيح وتجنب أعطال إضافية. بعد التركيب يُفضل مسح كودات الأعطال بجهاز الكمبيوتر.`,
       },
     ];
   }
