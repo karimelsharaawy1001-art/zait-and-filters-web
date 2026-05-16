@@ -541,30 +541,57 @@ export default function CheckoutPage() {
     const discount = appliedPromoType === 'free_shipping' ? shipping : discountAmount;
 
     return (
-      <div style={{ direction: 'rtl', padding: '30px 20px', maxWidth: '820px', margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <div style={{ direction: 'rtl', padding: '20px 16px', maxWidth: '820px', margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif', boxSizing: 'border-box', width: '100%' }}>
+        {/* ── Mobile-safe global reset for this subtree ── */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          * { box-sizing: border-box; }
+          #order-invoice-preview { overflow: hidden; }
+          @media (max-width: 640px) {
+            .invoice-header-inner { flex-direction: column !important; gap: 12px !important; }
+            .invoice-meta-grid { grid-template-columns: 1fr !important; }
+            .invoice-meta-cell { border-right: none !important; border-bottom: 1px solid #f0f0f0; }
+            .invoice-meta-cell:last-child { border-bottom: none !important; }
+            .invoice-address-grid { grid-template-columns: 1fr !important; }
+            .invoice-table-header { display: none !important; }
+            .invoice-table-row { grid-template-columns: 1fr !important; padding: 12px 16px !important; }
+            .invoice-table-row > div { text-align: right !important; }
+            .invoice-table-qty { display: inline-flex; margin-top: 4px; }
+            .invoice-table-unit { display: none !important; }
+            .invoice-table-total { font-weight: 900; color: #15803d !important; }
+            .invoice-summary-wrap { justify-content: flex-start !important; }
+            .invoice-summary-inner { width: 100% !important; }
+            .invoice-footer-inner { flex-direction: column !important; gap: 12px !important; align-items: flex-start !important; text-align: right !important; }
+            .invoice-footer-badge { align-self: flex-start; }
+            .success-action-btns { flex-direction: column !important; }
+            .success-action-btns a,
+            .success-action-btns button { min-width: unset !important; width: 100% !important; }
+          }
+        `}} />
+
         <div style={{
           background: 'linear-gradient(135deg, #0f172a, #14532d)',
-          borderRadius: '20px', padding: '30px', textAlign: 'center',
-          marginBottom: '24px', color: '#fff',
+          borderRadius: '20px', padding: '24px 20px', textAlign: 'center',
+          marginBottom: '20px', color: '#fff',
         }}>
-          <div style={{ fontSize: '3.5rem', marginBottom: '10px' }}>🎉</div>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: '900', marginBottom: '6px' }}>تم تسجيل طلبك بنجاح!</h1>
-          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.95rem' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🎉</div>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: '900', marginBottom: '6px' }}>تم تسجيل طلبك بنجاح!</h1>
+          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', margin: 0 }}>
             رقم الطلب: <span style={{ color: '#22c55e', fontWeight: '900' }}>#{orderNum}</span>
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
+        {/* ── Action Buttons — stack on mobile ── */}
+        <div className="success-action-btns" style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
           <button
             onClick={() => handleDownloadInvoice(completedOrderId)}
             disabled={isDownloadingPdf}
             style={{
               flex: 1, minWidth: '200px',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-              padding: '14px 24px',
+              padding: '14px 20px',
               background: isDownloadingPdf ? '#ccc' : 'linear-gradient(135deg, #22c55e, #16a34a)',
               color: '#fff', border: 'none', borderRadius: '14px',
-              fontWeight: '800', fontSize: '0.95rem',
+              fontWeight: '800', fontSize: '0.92rem',
               cursor: isDownloadingPdf ? 'not-allowed' : 'pointer',
               boxShadow: '0 4px 15px rgba(34,197,94,0.3)',
             }}
@@ -579,10 +606,10 @@ export default function CheckoutPage() {
             style={{
               flex: 1, minWidth: '200px',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-              padding: '14px 24px',
+              padding: '14px 20px',
               background: '#0f172a',
               color: '#fff', borderRadius: '14px',
-              fontWeight: '800', fontSize: '0.95rem',
+              fontWeight: '800', fontSize: '0.92rem',
               textDecoration: 'none',
             }}
           >
@@ -595,7 +622,7 @@ export default function CheckoutPage() {
             onClick={() => router.push('/')}
             style={{
               flex: 1, minWidth: '160px',
-              padding: '14px 24px',
+              padding: '14px 20px',
               background: '#fff', color: '#1a1a1a',
               border: '1.5px solid #e5e5e5', borderRadius: '14px',
               fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer',
@@ -605,6 +632,7 @@ export default function CheckoutPage() {
           </button>
         </div>
 
+        {/* ── Invoice Preview ── */}
         <div
           id="order-invoice-preview"
           style={{
@@ -613,110 +641,126 @@ export default function CheckoutPage() {
             overflow: 'hidden',
             boxShadow: '0 10px 40px rgba(0,0,0,0.10)',
             border: '1px solid #f0f0f0',
+            width: '100%',
           }}
         >
+          {/* ── Invoice Header ── */}
           <div style={{
             background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f4c2a 100%)',
-            padding: '36px 44px', position: 'relative', overflow: 'hidden',
+            padding: '28px 20px', position: 'relative', overflow: 'hidden',
           }}>
             <div style={{ position: 'absolute', top: '-60px', left: '-60px', width: '200px', height: '200px', borderRadius: '50%', backgroundColor: 'rgba(34,197,94,0.07)', pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', bottom: '-40px', right: '10%', width: '150px', height: '150px', borderRadius: '50%', backgroundColor: 'rgba(34,197,94,0.05)', pointerEvents: 'none' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
+            {/* Brand + ORDER number row */}
+            <div className="invoice-header-inner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
               <div>
-                <div style={{ fontSize: '1.9rem', fontWeight: '900', fontStyle: 'italic', color: '#fff', letterSpacing: '-1px', marginBottom: '4px' }}>
+                <div style={{ fontSize: '1.6rem', fontWeight: '900', fontStyle: 'italic', color: '#fff', letterSpacing: '-1px', marginBottom: '4px' }}>
                   ZAIT <span style={{ color: '#22c55e' }}>& FILTERS</span>
                 </div>
-                <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.75rem', fontWeight: '600', letterSpacing: '2px' }}>
+                <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.72rem', fontWeight: '600', letterSpacing: '2px' }}>
                   AUTO PARTS · قطع غيار
                 </div>
               </div>
               <div style={{ textAlign: 'left' }}>
-                <div style={{ fontSize: '2.6rem', fontWeight: '900', color: '#22c55e', letterSpacing: '-1px', lineHeight: 1 }}>ORDER</div>
-                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', fontWeight: '700', marginTop: '4px', letterSpacing: '1px' }}>#{orderNum}</div>
+                <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#22c55e', letterSpacing: '-1px', lineHeight: 1 }}>ORDER</div>
+                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.78rem', fontWeight: '700', marginTop: '4px', letterSpacing: '1px' }}>#{orderNum}</div>
               </div>
             </div>
-            <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '10px', position: 'relative', zIndex: 1 }}>
+            {/* Status badge */}
+            <div style={{ marginTop: '16px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px', position: 'relative', zIndex: 1 }}>
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: '6px',
                 backgroundColor: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)',
-                padding: '5px 14px', borderRadius: '20px',
+                padding: '5px 12px', borderRadius: '20px',
               }}>
                 <CheckCircle size={13} color="#22c55e" />
-                <span style={{ color: '#22c55e', fontSize: '0.78rem', fontWeight: '800' }}>تم تأكيد الطلب. يتم تجهيز الطلب في خلال 24 ساعة. و يتم التسليم في خلال 2-5أيام عمل</span>
+                <span style={{ color: '#22c55e', fontSize: '0.75rem', fontWeight: '800' }}>تم تأكيد الطلب. يتم تجهيز الطلب في خلال 24 ساعة. و يتم التسليم في خلال 2-5أيام عمل</span>
               </div>
-              <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.78rem' }}>{orderDate}</span>
+              <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>{orderDate}</span>
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderBottom: '1px solid #f0f0f0' }}>
+          {/* ── Order Meta Row ── */}
+          <div className="invoice-meta-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderBottom: '1px solid #f0f0f0' }}>
             {[
               { label: 'رقم الطلب', value: `#${orderNum}` },
               { label: 'تاريخ الطلب', value: orderDate },
               { label: 'عدد المنتجات', value: `${completedOrderItems.length} منتج` },
             ].map((item, i) => (
-              <div key={i} style={{ padding: '18px 22px', borderRight: i < 2 ? '1px solid #f0f0f0' : 'none' }}>
-                <div style={{ fontSize: '0.68rem', color: '#aaa', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '4px' }}>{item.label}</div>
-                <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#1a1a1a' }}>{item.value}</div>
+              <div key={i} className="invoice-meta-cell" style={{ padding: '16px 18px', borderRight: i < 2 ? '1px solid #f0f0f0' : 'none' }}>
+                <div style={{ fontSize: '0.66rem', color: '#aaa', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '4px' }}>{item.label}</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#1a1a1a' }}>{item.value}</div>
               </div>
             ))}
           </div>
 
-          <div style={{ padding: '30px 44px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '28px' }}>
-              <div style={{ backgroundColor: '#f9fafb', borderRadius: '14px', padding: '20px', border: '1px solid #f0f0f0' }}>
-                <div style={{ fontSize: '0.68rem', fontWeight: '900', color: '#888', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>بيانات العميل</div>
-                <div style={{ fontSize: '0.95rem', fontWeight: '800', color: '#1a1a1a', marginBottom: '8px' }}>{customerInfo.name}</div>
-                <div style={{ fontSize: '0.82rem', color: '#555', fontWeight: '600', direction: 'ltr', marginBottom: '4px' }}>{customerInfo.phone}</div>
-                {customerInfo.email && <div style={{ fontSize: '0.8rem', color: '#888' }}>{customerInfo.email}</div>}
+          {/* ── Body ── */}
+          <div style={{ padding: '24px 20px' }}>
+
+            {/* Customer + Address Grid */}
+            <div className="invoice-address-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '24px' }}>
+              <div style={{ backgroundColor: '#f9fafb', borderRadius: '14px', padding: '18px', border: '1px solid #f0f0f0' }}>
+                <div style={{ fontSize: '0.66rem', fontWeight: '900', color: '#888', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>بيانات العميل</div>
+                <div style={{ fontSize: '0.92rem', fontWeight: '800', color: '#1a1a1a', marginBottom: '6px' }}>{customerInfo.name}</div>
+                <div style={{ fontSize: '0.8rem', color: '#555', fontWeight: '600', direction: 'ltr', marginBottom: '4px' }}>{customerInfo.phone}</div>
+                {customerInfo.email && <div style={{ fontSize: '0.78rem', color: '#888', wordBreak: 'break-all' }}>{customerInfo.email}</div>}
               </div>
-              <div style={{ backgroundColor: '#f9fafb', borderRadius: '14px', padding: '20px', border: '1px solid #f0f0f0' }}>
-                <div style={{ fontSize: '0.68rem', fontWeight: '900', color: '#888', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>عنوان التوصيل</div>
-                <div style={{ fontSize: '0.85rem', color: '#1a1a1a', fontWeight: '700', lineHeight: '1.5', marginBottom: '8px' }}>{customerInfo.address}</div>
-                <div style={{ fontSize: '0.8rem', color: '#22c55e', fontWeight: '700' }}>{selectedCity?.city_name}</div>
-                <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e5e5e5' }}>
+              <div style={{ backgroundColor: '#f9fafb', borderRadius: '14px', padding: '18px', border: '1px solid #f0f0f0' }}>
+                <div style={{ fontSize: '0.66rem', fontWeight: '900', color: '#888', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>عنوان التوصيل</div>
+                <div style={{ fontSize: '0.82rem', color: '#1a1a1a', fontWeight: '700', lineHeight: '1.5', marginBottom: '6px' }}>{customerInfo.address}</div>
+                <div style={{ fontSize: '0.78rem', color: '#22c55e', fontWeight: '700' }}>{selectedCity?.city_name}</div>
+                <div style={{ fontSize: '0.72rem', color: '#888', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e5e5e5' }}>
                   طريقة الدفع: <span style={{ fontWeight: '800', color: '#1a1a1a' }}>
                     {paymentMethod === 'card_installments' ? 'بطاقة / تقسيط' : paymentMethod === 'instapay' ? 'InstaPay' : 'محفظة إلكترونية'}
-                    {expressShipping && <span style={{ marginRight: '6px', color: '#f59e0b', fontSize: '0.7rem' }}>⚡ شحن سريع 48 ساعة</span>}
+                    {expressShipping && <span style={{ marginRight: '6px', color: '#f59e0b', fontSize: '0.68rem' }}>⚡ شحن سريع 48 ساعة</span>}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div style={{ marginBottom: '24px' }}>
-              <div style={{ fontSize: '0.68rem', fontWeight: '900', color: '#888', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>تفاصيل المنتجات</div>
-              <div style={{ backgroundColor: '#0f172a', borderRadius: '10px 10px 0 0', padding: '10px 16px', display: 'grid', gridTemplateColumns: '2.5fr 0.7fr 1fr 1fr' }}>
+            {/* Products Table */}
+            <div style={{ marginBottom: '22px' }}>
+              <div style={{ fontSize: '0.66rem', fontWeight: '900', color: '#888', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>تفاصيل المنتجات</div>
+              {/* Table header — hidden on mobile via CSS class */}
+              <div className="invoice-table-header" style={{ backgroundColor: '#0f172a', borderRadius: '10px 10px 0 0', padding: '10px 16px', display: 'grid', gridTemplateColumns: '2.5fr 0.7fr 1fr 1fr' }}>
                 {['المنتج', 'الكمية', 'سعر الوحدة', 'الإجمالي'].map((h, i) => (
-                  <div key={i} style={{ fontSize: '0.68rem', fontWeight: '800', color: '#94a3b8', textAlign: i === 0 ? 'right' : 'center', textTransform: 'uppercase' }}>{h}</div>
+                  <div key={i} style={{ fontSize: '0.66rem', fontWeight: '800', color: '#94a3b8', textAlign: i === 0 ? 'right' : 'center', textTransform: 'uppercase' }}>{h}</div>
                 ))}
               </div>
               {completedOrderItems.map((item: any, i: number) => (
-                <div key={item.id} style={{
+                <div key={item.id} className="invoice-table-row" style={{
                   display: 'grid', gridTemplateColumns: '2.5fr 0.7fr 1fr 1fr',
                   padding: '12px 16px', backgroundColor: i % 2 === 0 ? '#fff' : '#fafafa',
                   borderBottom: '1px solid #f0f0f0', borderRight: '1px solid #f0f0f0', borderLeft: '1px solid #f0f0f0',
                   alignItems: 'center',
                 }}>
                   <div>
-                    <div style={{ fontSize: '0.87rem', fontWeight: '800', color: '#1a1a1a' }}>{item.name}</div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#1a1a1a' }}>{item.name}</div>
                     {item.brand && <div style={{ fontSize: '0.7rem', color: '#22c55e', fontWeight: '700' }}>{item.brand}</div>}
+                    {/* On mobile: show qty + total inline under name */}
+                    <div style={{ display: 'none' }} className="invoice-table-qty">
+                      <span style={{ backgroundColor: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '800', marginLeft: '8px' }}>×{item.quantity}</span>
+                      <span style={{ fontSize: '0.88rem', fontWeight: '900', color: '#15803d' }}>{(parseFloat(item.price) * item.quantity).toLocaleString('ar-EG')} ج.م</span>
+                    </div>
                   </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <span style={{ backgroundColor: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: '800' }}>×{item.quantity}</span>
+                  <div className="invoice-table-qty" style={{ textAlign: 'center' }}>
+                    <span style={{ backgroundColor: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '800' }}>×{item.quantity}</span>
                   </div>
-                  <div style={{ textAlign: 'center', fontSize: '0.85rem', fontWeight: '700', color: '#444' }}>{parseFloat(item.price).toLocaleString('ar-EG')} ج.م</div>
-                  <div style={{ textAlign: 'center', fontSize: '0.9rem', fontWeight: '900', color: '#1a1a1a' }}>{(parseFloat(item.price) * item.quantity).toLocaleString('ar-EG')} ج.م</div>
+                  <div className="invoice-table-unit" style={{ textAlign: 'center', fontSize: '0.83rem', fontWeight: '700', color: '#444' }}>{parseFloat(item.price).toLocaleString('ar-EG')} ج.م</div>
+                  <div className="invoice-table-total" style={{ textAlign: 'center', fontSize: '0.88rem', fontWeight: '900', color: '#1a1a1a' }}>{(parseFloat(item.price) * item.quantity).toLocaleString('ar-EG')} ج.م</div>
                 </div>
               ))}
               <div style={{ height: '4px', backgroundColor: '#0f172a', borderRadius: '0 0 10px 10px' }} />
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <div style={{ width: '270px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.86rem' }}>
+            {/* Totals Summary */}
+            <div className="invoice-summary-wrap" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <div className="invoice-summary-inner" style={{ width: '270px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.84rem' }}>
                   <span style={{ color: '#666', fontWeight: '700' }}>المجموع الجزئي</span>
                   <span style={{ fontWeight: '800' }}>{completedSubtotal.toFixed(2)} ج.م</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.86rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.84rem' }}>
                   <span style={{ color: '#666', fontWeight: '700' }}>الشحن</span>
                   {appliedPromoType === 'free_shipping'
                     ? <span style={{ color: '#22c55e', fontWeight: '800' }}>مجاني 🚚</span>
@@ -724,43 +768,47 @@ export default function CheckoutPage() {
                   }
                 </div>
                 {discount > 0 && appliedPromoType !== 'free_shipping' && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.86rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.84rem' }}>
                     <span style={{ color: '#666', fontWeight: '700' }}>الخصم</span>
                     <span style={{ color: '#ef4444', fontWeight: '800' }}>- {discount.toFixed(2)} ج.م</span>
                   </div>
                 )}
                 <div style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  marginTop: '12px', padding: '14px 18px',
+                  marginTop: '12px', padding: '14px 16px',
                   background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: '12px',
                 }}>
-                  <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.82rem', fontWeight: '700' }}>الإجمالي الكلي</span>
-                  <span style={{ color: '#22c55e', fontSize: '1.35rem', fontWeight: '900' }}>{completedFinalTotal.toFixed(2)} ج.م</span>
+                  <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.8rem', fontWeight: '700' }}>الإجمالي الكلي</span>
+                  <span style={{ color: '#22c55e', fontSize: '1.25rem', fontWeight: '900' }}>{completedFinalTotal.toFixed(2)} ج.م</span>
                 </div>
               </div>
             </div>
           </div>
 
+          {/* ── Invoice Footer — FIXED for mobile ── */}
           <div style={{
             background: 'linear-gradient(135deg, #0f172a, #1e293b)',
-            padding: '24px 44px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '20px', /* was 24px 44px — caused overflow */
           }}>
-            <div>
-              <div style={{ fontSize: '1rem', fontWeight: '900', fontStyle: 'italic', color: '#fff' }}>
-                ZAIT <span style={{ color: '#22c55e' }}>& FILTERS</span>
+            <div className="invoice-footer-inner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <div style={{ fontSize: '0.95rem', fontWeight: '900', fontStyle: 'italic', color: '#fff' }}>
+                  ZAIT <span style={{ color: '#22c55e' }}>& FILTERS</span>
+                </div>
+                <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.68rem', marginTop: '3px' }}>zaitandfilters.com</div>
               </div>
-              <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.7rem', marginTop: '3px' }}>zaitandfilters.com</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ color: '#22c55e', fontSize: '0.78rem', fontWeight: '800' }}>شكراً لثقتكم بنا</div>
-              <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.68rem', marginTop: '2px' }}>Thank you for your order</div>
-            </div>
-            <div style={{
-              backgroundColor: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)',
-              borderRadius: '8px', padding: '6px 14px',
-              color: '#22c55e', fontSize: '0.72rem', fontWeight: '800', letterSpacing: '1px',
-            }}>
-              ORDER #{orderNum}
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ color: '#22c55e', fontSize: '0.76rem', fontWeight: '800' }}>شكراً لثقتكم بنا</div>
+                <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.66rem', marginTop: '2px' }}>Thank you for your order</div>
+              </div>
+              <div className="invoice-footer-badge" style={{
+                backgroundColor: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)',
+                borderRadius: '8px', padding: '6px 12px',
+                color: '#22c55e', fontSize: '0.7rem', fontWeight: '800', letterSpacing: '1px',
+                whiteSpace: 'nowrap',
+              }}>
+                ORDER #{orderNum}
+              </div>
             </div>
           </div>
         </div>
@@ -772,6 +820,7 @@ export default function CheckoutPage() {
   return (
     <div style={container}>
       <style dangerouslySetInnerHTML={{ __html: `
+        * { box-sizing: border-box; }
         .btn-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(21, 128, 61, 0.4); background: #14532d !important; }
         .action-hover:hover { background: #000 !important; transform: translateY(-1px); }
         .upload-hover:hover { background: #f0fdf4 !important; border-color: #15803d !important; }
@@ -792,10 +841,10 @@ export default function CheckoutPage() {
                 <div key={item.id} style={cartItem}>
                   <div style={{ display: 'flex', gap: '15px' }}>
                     <div style={imageBox}><img src={item.image_url || item.image} alt="" style={imgFluid} /></div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ fontWeight: '900', fontSize: '0.95rem' }}>{item.name}</span>
-                        <span style={{ fontWeight: '900' }}>{(parseFloat(item.price) * item.quantity).toFixed(2)} ج.م</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+                        <span style={{ fontWeight: '900', fontSize: '0.92rem', wordBreak: 'break-word' }}>{item.name}</span>
+                        <span style={{ fontWeight: '900', whiteSpace: 'nowrap' }}>{(parseFloat(item.price) * item.quantity).toFixed(2)} ج.م</span>
                       </div>
                       <div style={detailsGrid}>
                         <div style={detailItem}><Tags size={11} color="#15803d" /> <span>البراند: <b>{item.brand}</b></span></div>
@@ -820,7 +869,7 @@ export default function CheckoutPage() {
                 <label style={{ ...lab, marginBottom: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Wallet size={14} color="#15803d" /> رصيد محفظتك
                 </label>
-                <span style={{ background: '#f0fdf4', color: '#15803d', fontWeight: '900', fontSize: '0.95rem', padding: '4px 12px', borderRadius: '10px', border: '1px solid #dcfce7' }}>
+                <span style={{ background: '#f0fdf4', color: '#15803d', fontWeight: '900', fontSize: '0.92rem', padding: '4px 12px', borderRadius: '10px', border: '1px solid #dcfce7' }}>
                   {walletBalance.toFixed(2)} ج.م
                 </span>
               </div>
@@ -839,7 +888,7 @@ export default function CheckoutPage() {
                 </button>
               ) : (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f0fdf4', padding: '10px 14px', borderRadius: '12px', border: '1px solid #bbf7d0' }}>
-                  <span style={{ color: '#15803d', fontWeight: '800', fontSize: '0.88rem' }}>✅ تم خصم {walletDiscount.toFixed(2)} ج.م من المحفظة</span>
+                  <span style={{ color: '#15803d', fontWeight: '800', fontSize: '0.85rem' }}>✅ تم خصم {walletDiscount.toFixed(2)} ج.م من المحفظة</span>
                   <button type="button" onClick={removeWallet} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '700' }}>إلغاء</button>
                 </div>
               )}
@@ -879,7 +928,7 @@ export default function CheckoutPage() {
             )}
             <div style={finalRow}><span>الإجمالي النهائي:</span><span>{finalTotal.toFixed(2)} ج.م</span></div>
             <div style={{ marginTop: '10px', padding: '8px 12px', background: '#fffbeb', borderRadius: '10px', border: '1px solid #fde68a', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.78rem', color: '#92400e', fontWeight: '700' }}>🎁 كاش باك ستحصل عليه في محفظتك</span>
+              <span style={{ fontSize: '0.76rem', color: '#92400e', fontWeight: '700' }}>🎁 كاش باك ستحصل عليه في محفظتك</span>
               <span style={{ fontSize: '0.88rem', fontWeight: '900', color: '#d97706' }}>+{(finalTotal * cashbackPct / 100).toFixed(2)} ج.م</span>
             </div>
           </div>
@@ -946,12 +995,12 @@ export default function CheckoutPage() {
                     {expressShipping && <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#f59e0b' }} />}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                       <span style={{ fontWeight: '800', fontSize: '0.88rem', color: '#1a1a1a' }}>شحن سريع خلال 48 ساعة</span>
                       <span style={{ background: '#f59e0b', color: '#fff', fontSize: '0.65rem', fontWeight: '900', padding: '2px 7px', borderRadius: '6px' }}>داخل القاهرة والجيزة</span>
                     </div>
                     <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '3px' }}>توصيل سريع خلال 48 ساعة من تأكيد الطلب</div>
-                    <div style={{ marginTop: '6px', padding: '7px 10px', background: '#fef3c7', borderRadius: '8px', border: '1px solid #fde68a', fontSize: '0.73rem', color: '#92400e', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <div style={{ marginTop: '6px', padding: '7px 10px', background: '#fef3c7', borderRadius: '8px', border: '1px solid #fde68a', fontSize: '0.72rem', color: '#92400e', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
                       ⚠️ الشحن السريع يقبل فقط: <strong>InstaPay</strong> و <strong>فودافون كاش</strong>
                     </div>
                   </div>
@@ -1089,22 +1138,23 @@ export default function CheckoutPage() {
   );
 }
 
-const container: any = { padding: '40px 20px', maxWidth: '1200px', margin: '0 auto', direction: 'rtl' };
-const title: any = { marginBottom: '30px', fontWeight: '900', textAlign: 'center', fontSize: '2rem' };
-const layoutGrid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '25px', alignItems: 'start' };
-const sectionTitle: any = { marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '2px solid #eee', paddingBottom: '10px', fontWeight: '800' };
-const formSide: any = { background: '#fff', padding: '25px', borderRadius: '25px', border: '1px solid #eee', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' };
-const summarySide: any = { background: '#fcfcfc', padding: '25px', borderRadius: '25px', border: '1px solid #eee' };
-const inp: any = { width: '100%', height: '50px', padding: '0 15px', borderRadius: '12px', border: '1px solid #ddd', marginBottom: '10px', outline: 'none', fontSize: '0.95rem', display: 'flex', alignItems: 'center' };
+// ── Shared style constants ─────────────────────────────────────────────────
+const container: any = { padding: '24px 16px', maxWidth: '1200px', margin: '0 auto', direction: 'rtl', boxSizing: 'border-box', width: '100%' };
+const title: any = { marginBottom: '28px', fontWeight: '900', textAlign: 'center', fontSize: 'clamp(1.4rem, 5vw, 2rem)' };
+const layoutGrid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', alignItems: 'start' };
+const sectionTitle: any = { marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '2px solid #eee', paddingBottom: '10px', fontWeight: '800' };
+const formSide: any = { background: '#fff', padding: '20px', borderRadius: '25px', border: '1px solid #eee', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' };
+const summarySide: any = { background: '#fcfcfc', padding: '20px', borderRadius: '25px', border: '1px solid #eee' };
+const inp: any = { width: '100%', height: '50px', padding: '0 15px', borderRadius: '12px', border: '1px solid #ddd', marginBottom: '10px', outline: 'none', fontSize: '0.95rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' };
 const lab: any = { display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.85rem', color: '#444' };
 const inputGroup: any = { marginBottom: '10px' };
 const cartItem: any = { padding: '10px 0', borderBottom: '1px solid #eee', marginBottom: '10px' };
-const imageBox: any = { width: '65px', height: '65px', borderRadius: '12px', overflow: 'hidden', background: '#fff', border: '1px solid #eee' };
+const imageBox: any = { width: '65px', height: '65px', borderRadius: '12px', overflow: 'hidden', background: '#fff', border: '1px solid #eee', flexShrink: 0 };
 const imgFluid: any = { width: '100%', height: '100%', objectFit: 'contain' };
 const totalBox: any = { background: '#f0fdf4', padding: '15px', borderRadius: '15px', marginTop: '10px', border: '1px solid #dcfce7' };
-const rowPrice: any = { display: 'flex', justifyContent: 'space-between', marginBottom: '5px', fontSize: '0.9rem' };
-const finalRow: any = { display: 'flex', justifyContent: 'space-between', fontWeight: '1000', fontSize: '1.4rem', color: '#166534', borderTop: '1px solid #dcfce7', paddingTop: '10px', marginTop: '5px' };
-const btnStyle: any = { width: '100%', padding: '18px', background: 'linear-gradient(135deg, #15803d 0%, #166534 100%)', color: '#fff', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: 'pointer', fontSize: '1.1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(21, 128, 61, 0.25)' };
+const rowPrice: any = { display: 'flex', justifyContent: 'space-between', marginBottom: '5px', fontSize: '0.88rem', gap: '8px' };
+const finalRow: any = { display: 'flex', justifyContent: 'space-between', fontWeight: '1000', fontSize: 'clamp(1.1rem, 4vw, 1.4rem)', color: '#166534', borderTop: '1px solid #dcfce7', paddingTop: '10px', marginTop: '5px' };
+const btnStyle: any = { width: '100%', padding: '18px', background: 'linear-gradient(135deg, #15803d 0%, #166534 100%)', color: '#fff', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: 'pointer', fontSize: '1.05rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(21, 128, 61, 0.25)' };
 const loaderStyle: any = { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh', gap: '10px', color: '#15803d', fontWeight: 'bold' };
 const itemsList: any = { maxHeight: '350px', overflowY: 'auto' };
 const detailsGrid = { display: 'flex', flexDirection: 'column' as const, gap: '3px', marginTop: '8px' };
@@ -1126,20 +1176,20 @@ const payCardInner: any = { display: 'flex', flexDirection: 'column', gap: '4px'
 const payHeader: any = { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' };
 const payIconWrapper: any = { width: '40px', height: '40px', borderRadius: '10px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #e8e8e8', flexShrink: 0 };
 const payIconWrapperActive: any = { width: '40px', height: '40px', borderRadius: '10px', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #bbf7d0', flexShrink: 0 };
-const payTextContent: any = { display: 'flex', flexDirection: 'column', gap: '2px' };
+const payTextContent: any = { display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 };
 const payTitle: any = { fontWeight: '800', fontSize: '0.88rem', color: '#1a1a1a' };
 const paySubTitle: any = { fontSize: '0.72rem', color: '#888', fontWeight: '600' };
 const hideRadio: any = { display: 'none' };
 const payDetailsBox: any = { marginTop: '8px', padding: '10px 12px', background: '#fff', borderRadius: '10px', border: '1px dashed #b6e9c8', display: 'flex', flexDirection: 'column', gap: '8px' };
-const actionBtnLink: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#1a1a1a', color: '#fff', padding: '9px 12px', borderRadius: '10px', textDecoration: 'none', fontSize: '0.82rem', fontWeight: 'bold', transition: '0.3s ease' };
-const uploadArea: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '1.5px dashed #15803d', color: '#15803d', padding: '8px 12px', borderRadius: '10px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: '800', transition: '0.3s ease' };
+const actionBtnLink: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#1a1a1a', color: '#fff', padding: '16px 12px', borderRadius: '12px', textDecoration: 'none', fontSize: '0.92rem', fontWeight: 'bold', transition: '0.3s ease', minHeight: '54px' };
+const uploadArea: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '1.5px dashed #15803d', color: '#15803d', padding: '16px 12px', borderRadius: '12px', cursor: 'pointer', fontSize: '0.88rem', fontWeight: '800', transition: '0.3s ease', minHeight: '54px' };
 const promoWrapper: any = { marginTop: '20px', padding: '15px', background: '#fff', borderRadius: '20px', border: '1px dashed #ddd', marginBottom: '15px' };
-const promoBtnStyle: any = { padding: '0 25px', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', transition: '0.3s ease', fontSize: '0.9rem' };
+const promoBtnStyle: any = { padding: '0 20px', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', transition: '0.3s ease', fontSize: '0.88rem', whiteSpace: 'nowrap' };
 const promoSuccessText: any = { fontSize: '0.8rem', color: '#15803d', marginTop: '10px', fontWeight: 'bold' };
 const logosGrid: any = { display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '2px', paddingRight: '52px' };
 const miniLogoImg: any = { height: '26px', width: 'auto', borderRadius: '6px', border: '1px solid #f0f0f0', padding: '2px 4px', background: '#fff' };
 const cardOptionsGrid: any = { display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px', paddingRight: '52px' };
 const cardOptionBadge: any = { display: 'inline-flex', alignItems: 'center', padding: '4px 11px', borderRadius: '7px', fontSize: '0.71rem', fontWeight: '700', border: '1px solid #e2e8f0', whiteSpace: 'nowrap', letterSpacing: '0.2px', background: '#fff', color: '#374151' };
-const payBadgeGreen: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 10px', borderRadius: '6px', background: '#dcfce7', color: '#15803d', whiteSpace: 'nowrap', border: '1px solid #bbf7d0' };
-const payBadgeAmber: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 10px', borderRadius: '6px', background: '#fef3c7', color: '#92400e', whiteSpace: 'nowrap', border: '1px solid #fde68a' };
-const payBadgeGray: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 10px', borderRadius: '6px', background: '#f3f4f6', color: '#6b7280', whiteSpace: 'nowrap', border: '1px solid #e5e7eb' };
+const payBadgeGreen: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 8px', borderRadius: '6px', background: '#dcfce7', color: '#15803d', whiteSpace: 'nowrap', border: '1px solid #bbf7d0' };
+const payBadgeAmber: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 8px', borderRadius: '6px', background: '#fef3c7', color: '#92400e', whiteSpace: 'nowrap', border: '1px solid #fde68a' };
+const payBadgeGray: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 8px', borderRadius: '6px', background: '#f3f4f6', color: '#6b7280', whiteSpace: 'nowrap', border: '1px solid #e5e7eb' };
