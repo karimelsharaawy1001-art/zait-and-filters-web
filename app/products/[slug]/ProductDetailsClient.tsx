@@ -5,121 +5,15 @@ import { useCart } from '@/context/CartContext';
 import {
   ShoppingCart, Car, Calendar, ShieldCheck,
   ArrowRight, Globe, Plus, Minus, CheckCircle2, Layers, Info, Package, Loader2, ChevronRight, ChevronLeft, Timer,
-  Share2, Check, Copy, Facebook, Twitter, Zap, Eye, Star, Send, User
+  Share2, Check, Copy, Facebook, Twitter, Zap, Star, Send, User
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import { useRef } from 'react';
-
-// ─── Purchase Counter (replaces stock counter) ────────────────────────────────
-function getPurchaseCount(productId: string | undefined | null): number {
-  if (!productId) return 47;
-  const seed = productId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-
-  // Wide base: 12–180 — gives very different starting points per product
-  const base = 12 + (seed % 169);
-
-  // Each product "started selling" at a different time: 6 to 29 months ago.
-  const monthsBack = 6 + (seed % 24);
-  const daysAvailable = monthsBack * 30;
-
-  // Daily sales rate varies: 0.2 to 1.2 sales/day per product
-  const dailyRateX10 = 2 + (seed % 11);
-  const historicalGrowth = Math.floor(daysAvailable * dailyRateX10 / 10);
-
-  // Add 1 more per day since Jan 1 2025 so the counter still ticks forward
-  const todayEpoch = new Date('2025-01-01').getTime();
-  const recentDays = Math.max(0, Math.floor((Date.now() - todayEpoch) / (1000 * 60 * 60 * 24)));
-
-  return base + historicalGrowth + recentDays;
-}
-
-function PurchaseCounter({ productId }: { productId: string }) {
-  const [count, setCount] = useState(0);
-  const [visible, setVisible] = useState(false);
-  const [flash, setFlash] = useState(false);
-
-  useEffect(() => {
-    setCount(getPurchaseCount(productId));
-    const t = setTimeout(() => setVisible(true), 600);
-    return () => clearTimeout(t);
-  }, [productId]);
-
-  // Occasionally flash to show "live" feel — but never decrements
-  useEffect(() => {
-    const id = setInterval(() => {
-      if (Math.random() < 0.15) {
-        setFlash(true);
-        setTimeout(() => setFlash(false), 500);
-      }
-    }, 20000);
-    return () => clearInterval(id);
-  }, []);
-
-  if (!visible) return null;
-
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', background: 'rgba(240,253,244,0.95)', border: '1px solid rgba(187,247,208,0.8)', borderRadius: '14px', direction: 'rtl' }}>
-      <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'rgba(22,163,74,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <ShoppingCart size={16} color="#16a34a" />
-      </div>
-      <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: '700', color: '#9ca3af', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '1px' }}>عمليات شراء</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <span style={{ fontSize: '1.2rem', fontWeight: '900', color: '#15803d', lineHeight: 1, transition: 'transform 0.25s', transform: flash ? 'scale(1.2)' : 'scale(1)' }}>{count.toLocaleString()}</span>
-          <span style={{ fontSize: '0.72rem', fontWeight: '600', color: '#374151' }}>عملية شراء</span>
-          <CheckCircle2 size={12} color="#16a34a" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Viewers Counter ─────────────────────────────────────────────────────────
-function ViewersCounter({ productId }: { productId: string }) {
-  const seed = productId ? productId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) : 42;
-  const [viewers, setViewers] = useState(8 + (seed % 18));
-  const [flash, setFlash] = useState(false);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 800);
-    return () => clearTimeout(t);
-  }, []);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setViewers(prev => {
-        const delta = Math.random() < 0.55 ? 1 : -1;
-        const next = Math.min(30, Math.max(5, prev + delta));
-        if (next !== prev) { setFlash(true); setTimeout(() => setFlash(false), 500); }
-        return next;
-      });
-    }, 7000 + Math.random() * 7000);
-    return () => clearInterval(id);
-  }, []);
-
-  if (!visible) return null;
-
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', background: 'rgba(239,246,255,0.95)', border: '1px solid rgba(191,219,254,0.8)', borderRadius: '14px', direction: 'rtl' }}>
-      <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <Eye size={16} color="#2563eb" />
-      </div>
-      <div>
-        <div style={{ fontSize: '0.62rem', fontWeight: '700', color: '#9ca3af', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '1px' }}>مشاهدون الآن</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <span style={{ fontSize: '1.2rem', fontWeight: '900', color: '#1e3a8a', lineHeight: 1, transition: 'transform 0.25s', transform: flash ? 'scale(1.2)' : 'scale(1)' }}>{viewers}</span>
-          <span style={{ fontSize: '0.72rem', fontWeight: '600', color: '#374151' }}>يشاهدون</span>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 0 3px rgba(34,197,94,0.22)', display: 'inline-block', flexShrink: 0 }} />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── Reviews Section ──────────────────────────────────────────────────────────
 interface Review { id: string; customer_name: string; rating: number; comment: string; created_at: string; }
@@ -376,8 +270,21 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
   return (
     <div style={premiumCardStyle}>
       <Link href={productHref} style={{ textDecoration: 'none' }}>
+        {/* FIX: replaced <img> with Next.js <Image> for related card */}
         <div style={{ ...premiumImageArea }} className="related-card-img-wrap">
-          {displayImage ? <img src={displayImage} alt={p.name} style={premiumImgFit} /> : <div style={noImgPlaceholder}><Package size={32} color="#ddd" /></div>}
+          {displayImage ? (
+            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+              <Image
+                src={displayImage}
+                alt={p.name}
+                fill
+                sizes="(max-width: 768px) 50vw, 25vw"
+                style={{ objectFit: 'contain', padding: '10px' }}
+              />
+            </div>
+          ) : (
+            <div style={noImgPlaceholder}><Package size={32} color="#ddd" /></div>
+          )}
           {p.sale_price && Number(p.sale_price) > 0 && <div style={smallSaleBadge}>-{Math.round(((p.regular_price - p.sale_price) / p.regular_price) * 100)}%</div>}
         </div>
       </Link>
@@ -544,12 +451,37 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             }
             return (
               <div className="media-slider-wrap" style={{ position: 'relative' }}>
-                <Swiper modules={[Pagination]} onSwiper={s => { swiperRef.current = s; }} pagination={slides.length > 1 ? { clickable: true } : false} slidesPerView={1} allowTouchMove={false} style={{ height: '100%' }}>
+                <Swiper
+                  modules={[Pagination]}
+                  onSwiper={s => { swiperRef.current = s; }}
+                  pagination={slides.length > 1 ? { clickable: true } : false}
+                  slidesPerView={1}
+                  allowTouchMove={false}
+                  style={{ height: '100%' }}
+                >
                   {slides.map((slide, i) => (
-                    <SwiperSlide key={i}>
-                      {slide.type === 'image'
-                        ? <img src={slide.src} alt={product.name} onError={() => setImgError(true)} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '24px', display: 'block' }} />
-                        : <iframe src={`https://www.youtube.com/embed/${slide.src}?rel=0&modestbranding=1`} title="فيديو المنتج" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ width: '100%', height: '100%', border: 'none', display: 'block' }} />}
+                    // FIX: added position: relative so Next.js Image fill works correctly
+                    <SwiperSlide key={i} style={{ position: 'relative' }}>
+                      {slide.type === 'image' ? (
+                        // FIX: replaced <img> with Next.js <Image priority> for LCP
+                        <Image
+                          src={slide.src}
+                          alt={product.name}
+                          fill
+                          priority
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          style={{ objectFit: 'contain', padding: '24px' }}
+                          onError={() => setImgError(true)}
+                        />
+                      ) : (
+                        <iframe
+                          src={`https://www.youtube.com/embed/${slide.src}?rel=0&modestbranding=1`}
+                          title="فيديو المنتج"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                        />
+                      )}
                     </SwiperSlide>
                   ))}
                 </Swiper>
@@ -595,10 +527,18 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
               </div>
             </div>
 
-            {/* ── Urgency counters: viewers + purchase count ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <ViewersCounter productId={productId} />
-              <PurchaseCounter productId={productId} />
+            {/* FIX: replaced fake ViewersCounter + PurchaseCounter with a real trust badge */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '10px',
+              padding: '12px 14px', background: 'rgba(240,253,244,0.95)',
+              border: '1px solid rgba(187,247,208,0.8)', borderRadius: '14px', direction: 'rtl'
+            }}>
+              <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'rgba(22,163,74,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <ShieldCheck size={16} color="#16a34a" />
+              </div>
+              <span style={{ fontSize: '0.88rem', fontWeight: '700', color: '#15803d' }}>
+                شحن سريع لباب البيت في جميع المحافظات
+              </span>
             </div>
 
             {/* Qty + Cart */}
@@ -634,7 +574,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           <div style={descContent}>{generateAutoDescription()}</div>
         </div>
 
-        {/* ── Reviews Section ── */}
+        {/* Reviews Section */}
         <ReviewsSection productId={productId} />
 
         {/* Related Products */}
@@ -678,10 +618,10 @@ const customNavWrapper: any = { display: 'flex', gap: '10px' };
 const navCircleBtn: any = { width: '38px', height: '38px', borderRadius: '50%', border: '1px solid #eee', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#1a1a1a' };
 const swiperOuterContainer: any = { position: 'relative', width: '100%' };
 const premiumCardStyle: any = { background: '#fff', borderRadius: '16px', border: '1px solid #f0f0f0', overflow: 'hidden', height: '100%', boxShadow: '0 4px 15px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', width: '100%' };
+// FIX: kept position: relative which is required for Next.js Image fill to work
 const premiumImageArea: any = { height: '160px', background: '#f8f9fa', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', flexShrink: 0 };
-const premiumImgFit: any = { width: '100%', height: '100%', objectFit: 'contain', padding: '10px' };
 const noImgPlaceholder: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' };
-const smallSaleBadge: any = { position: 'absolute', top: '8px', right: '8px', background: '#e74c3c', color: '#fff', padding: '2px 7px', borderRadius: '6px', fontSize: '0.6rem', fontWeight: 'bold' };
+const smallSaleBadge: any = { position: 'absolute', top: '8px', right: '8px', background: '#e74c3c', color: '#fff', padding: '2px 7px', borderRadius: '6px', fontSize: '0.6rem', fontWeight: 'bold', zIndex: 1 };
 const premiumDetails: any = { padding: '10px 12px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '5px' };
 const premiumBrand: any = { fontSize: '0.7rem', fontWeight: '800', color: '#27ae60' };
 const countryBadge: any = { display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: '#888', fontWeight: '700', background: '#f5f5f5', padding: '2px 6px', borderRadius: '5px' };
