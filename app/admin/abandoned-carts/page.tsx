@@ -457,20 +457,49 @@ export default function AbandonedCartsAdmin() {
         (ordersData || []).map((o: any) => o.customer_email?.trim().toLowerCase()).filter(Boolean)
       );
 
-      const reconciled = (cartsData || []).map((cart: AbandonedCart) => {
-        if (cart.recovered) return cart;
-        const phoneMatch = cart.customer_phone && completedPhones.has(normalizePhone(cart.customer_phone));
-        const emailMatch = cart.customer_email && completedEmails.has(cart.customer_email.trim().toLowerCase());
-        if (phoneMatch || emailMatch) {
-          supabase
-            .from('abandoned_carts')
-            .update({ recovered: true })
-            .eq('id', cart.id)
-            .then(() => {});
-          return { ...cart, recovered: true };
-        }
-        return cart;
-      });
+      // Build a map of phone -> order dates, and email -> order dates
+const phoneOrderDates = new Map<string, Date[]>();
+const emailOrderDates = new Map<string, Date[]>();
+(ordersData || []).forEach((o: any) => {
+  const phone = normalizePhone(o.customer_phone);
+  if (phone) {
+    if (!phoneOrderDates.has(phone)) phoneOrderDates.set(phone, []);
+    phoneOrderDates.get(phone)!.push(new Date(o.created_at));
+  }
+  const email = o.customer_email?.trim().toLowerCase();
+  if (email) {
+    if (!emailOrderDates.has(email)) emailOrderDates.set(email, []);
+    emailOrderDates.get(email)!.push(new Date(o.created_at));
+  }
+});
+
+const reconciled = (cartsData || []).map((cart: AbandonedCart) => {
+  if (cart.recovered) return cart;
+
+  const cartDate = new Date(cart.created_at);
+
+  // Check if any order was placed AFTER this specific cart was created
+  const phoneKey = normalizePhone(cart.customer_phone);
+  const emailKey = cart.customer_email?.trim().toLowerCase();
+
+  const phoneOrdersAfter = phoneKey
+    ? (phoneOrderDates.get(phoneKey) || []).some(orderDate => orderDate > cartDate)
+    : false;
+
+  const emailOrdersAfter = emailKey
+    ? (emailOrderDates.get(emailKey) || []).some(orderDate => orderDate > cartDate)
+    : false;
+
+  if (phoneOrdersAfter || emailOrdersAfter) {
+    supabase
+      .from('abandoned_carts')
+      .update({ recovered: true })
+      .eq('id', cart.id)
+      .then(() => {});
+    return { ...cart, recovered: true };
+  }
+  return cart;
+});
 
       setCarts(reconciled);
     } catch (err: any) {
