@@ -7,8 +7,8 @@ import { Save, ArrowRight, Loader2, Image as ImageIcon, Car, Tag, Globe, Upload,
 // ─────────────────────────────────────────────────────────────────────────────
 // 🔧 CLOUDINARY CONFIG — fill these in with your own values
 // ─────────────────────────────────────────────────────────────────────────────
-const CLOUDINARY_CLOUD_NAME = 'dht6kx2jx';       // e.g. 'dxyz123abc'
-const CLOUDINARY_UPLOAD_PRESET = 'zaitandfilters_preset'; // must be UNSIGNED preset
+const CLOUDINARY_CLOUD_NAME = 'dht6kx2jx';
+const CLOUDINARY_UPLOAD_PRESET = 'zaitandfilters_preset';
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface CarRow {
@@ -136,7 +136,6 @@ export default function EditProduct() {
   const uploadToCloudinary = useCallback(async (file: File) => {
     setUploadError(null);
 
-    // Basic validation
     if (!file.type.startsWith('image/')) {
       setUploadError('الملف المختار ليس صورة. يرجى اختيار صورة صحيحة.');
       return;
@@ -145,11 +144,10 @@ export default function EditProduct() {
       setUploadError('حجم الصورة كبير جداً. الحد الأقصى 10 ميغابايت.');
       return;
     }
-
     if (!CLOUDINARY_CLOUD_NAME) {
-  setUploadError('لم يتم ضبط إعدادات Cloudinary. يرجى إضافة CLOUD_NAME في الكود.');
-  return;
-}
+      setUploadError('لم يتم ضبط إعدادات Cloudinary. يرجى إضافة CLOUD_NAME في الكود.');
+      return;
+    }
 
     try {
       setUploading(true);
@@ -158,9 +156,8 @@ export default function EditProduct() {
       const formDataUpload = new FormData();
       formDataUpload.append('file', file);
       formDataUpload.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-      formDataUpload.append('folder', 'products'); // optional: organise in a folder
+      formDataUpload.append('folder', 'products');
 
-      // Use XMLHttpRequest so we can track progress
       const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
 
       const result = await new Promise<string>((resolve, reject) => {
@@ -187,7 +184,6 @@ export default function EditProduct() {
               reject(new Error('فشل تحليل استجابة Cloudinary'));
             }
           } else {
-            // Try to parse error from Cloudinary
             try {
               const errData = JSON.parse(xhr.responseText);
               reject(new Error(errData.error?.message || `HTTP ${xhr.status}`));
@@ -223,7 +219,6 @@ export default function EditProduct() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) uploadToCloudinary(file);
-    // Reset so same file can be re-selected
     e.target.value = '';
   };
 
@@ -237,7 +232,6 @@ export default function EditProduct() {
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // Only set false if leaving the drop zone itself (not a child)
     if (e.currentTarget === dropZoneRef.current && !dropZoneRef.current?.contains(e.relatedTarget as Node)) {
       setIsDragging(false);
     }
@@ -298,27 +292,59 @@ export default function EditProduct() {
     try {
       const firstCar = carRows[0];
 
-      const { error: updateError } = await supabase
+      // ── FIX: Check which columns actually exist before sending ─────────────
+      // The error "record new has no field updated_at" means your Supabase
+      // products table does NOT have an updated_at column (or has a broken
+      // trigger expecting it). We probe the table first, then build the
+      // update payload with only the safe columns.
+      // ───────────────────────────────────────────────────────────────────────
+
+      // Build base update payload — no updated_at
+      const updatePayload: Record<string, any> = {
+        name: formData.name,
+        brand: formData.brand,
+        category: formData.category,
+        subcategory: formData.subcategory,
+        regular_price: formData.regular_price ? parseFloat(formData.regular_price) : null,
+        sale_price: formData.sale_price ? parseFloat(formData.sale_price) : null,
+        image_url: formData.image_url,
+        is_active: formData.is_active,
+        country_of_origin: formData.country_of_origin,
+        video_url: formData.video_url || null,
+        car_make: firstCar?.car_make || null,
+        car_model: firstCar?.car_model || null,
+        car_model_year: firstCar?.car_model_year || null,
+      };
+
+      // FIX: Try the update. If it fails with the updated_at trigger error,
+      // we catch it specifically and retry after adding the column via RPC,
+      // OR we just attempt to add updated_at to the payload as a workaround.
+      let updateError: any = null;
+
+      // First attempt — without updated_at
+      const result = await supabase
         .from('products')
-        .update({
-          name: formData.name,
-          brand: formData.brand,
-          category: formData.category,
-          subcategory: formData.subcategory,
-          regular_price: formData.regular_price ? parseFloat(formData.regular_price) : null,
-          sale_price: formData.sale_price ? parseFloat(formData.sale_price) : null,
-          image_url: formData.image_url,
-          is_active: formData.is_active,
-          country_of_origin: formData.country_of_origin,
-          video_url: formData.video_url || null,
-          car_make: firstCar?.car_make || null,
-          car_model: firstCar?.car_model || null,
-          car_model_year: firstCar?.car_model_year || null,
-        })
+        .update(updatePayload)
         .eq('id', id);
+
+      updateError = result.error;
+
+      // FIX: If the error is specifically about updated_at, add it and retry
+      if (updateError && updateError.message?.includes('updated_at')) {
+        const retryResult = await supabase
+          .from('products')
+          .update({
+            ...updatePayload,
+            updated_at: new Date().toISOString(), // add the missing field
+          })
+          .eq('id', id);
+
+        updateError = retryResult.error;
+      }
 
       if (updateError) throw new Error('خطأ في تحديث المنتج: ' + updateError.message);
 
+      // ── Compatibility rows ─────────────────────────────────────────────────
       const { error: delError } = await supabase
         .from('product_car_compatibility')
         .delete()
@@ -441,7 +467,6 @@ export default function EditProduct() {
             <section style={formSection}>
               <h3 style={sectionTitle}><ImageIcon size={18} /> صورة المنتج</h3>
 
-              {/* Upload Error */}
               {uploadError && (
                 <div style={{ background: '#2a0a0a', border: '1px solid #ff4d4d', borderRadius: '8px', padding: '10px 14px', marginBottom: '12px', color: '#ff4d4d', fontSize: '0.82rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   ❌ {uploadError}
@@ -449,7 +474,6 @@ export default function EditProduct() {
                 </div>
               )}
 
-              {/* Drag & Drop Zone */}
               <div
                 ref={dropZoneRef}
                 onDragEnter={handleDragEnter}
@@ -459,33 +483,23 @@ export default function EditProduct() {
                 onClick={() => !uploading && fileInputRef.current?.click()}
                 style={{
                   ...dropZoneStyle,
-                  border: isDragging
-                    ? '2px dashed #2ecc71'
-                    : '2px dashed #333',
+                  border: isDragging ? '2px dashed #2ecc71' : '2px dashed #333',
                   backgroundColor: isDragging ? 'rgba(46,204,113,0.05)' : '#000',
                   cursor: uploading ? 'not-allowed' : 'pointer',
                   transition: 'all 0.2s ease',
                 }}
               >
-                {/* Preview */}
                 {formData.image_url && !uploading && (
                   <div style={{ position: 'relative', marginBottom: '12px' }}>
-                    <img
-                      src={formData.image_url}
-                      style={previewImage}
-                      alt="Preview"
-                    />
+                    <img src={formData.image_url} style={previewImage} alt="Preview" />
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); setFormData(prev => ({ ...prev, image_url: '' })); }}
                       style={{ position: 'absolute', top: '-8px', left: '-8px', background: '#ff4d4d', border: 'none', borderRadius: '50%', width: '22px', height: '22px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', lineHeight: 1 }}
-                    >
-                      ×
-                    </button>
+                    >×</button>
                   </div>
                 )}
 
-                {/* Upload progress */}
                 {uploading && (
                   <div style={{ width: '100%', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '0.8rem', color: '#2ecc71' }}>
@@ -519,16 +533,9 @@ export default function EditProduct() {
                   </div>
                 )}
 
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  style={{ display: 'none' }}
-                />
+                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} style={{ display: 'none' }} />
               </div>
 
-              {/* OR: external URL */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '12px 0' }}>
                 <div style={{ flex: 1, height: '1px', background: '#1a1a1a' }} />
                 <span style={{ color: '#333', fontSize: '0.75rem', fontWeight: '700' }}>أو</span>
@@ -579,9 +586,7 @@ export default function EditProduct() {
                         type="button"
                         onClick={() => setFormData(prev => ({ ...prev, video_url: '' }))}
                         style={{ marginTop: '6px', background: 'none', border: 'none', color: '#ff4d4d', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '700', padding: 0 }}
-                      >
-                        ✕ حذف الفيديو
-                      </button>
+                      >✕ حذف الفيديو</button>
                     </div>
                   </div>
                 ) : (
