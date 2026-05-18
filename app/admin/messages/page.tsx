@@ -69,10 +69,12 @@ export default function AdminMessages() {
 
 
 
-  const openWhatsApp = (phone: string, name: string) => {
+  const openWhatsApp = (phone: string, name: string, message: string) => {
     const cleanPhone = phone.replace(/\D/g, '');
-    const message = encodeURIComponent(`أهلاً يا أستاذ ${name}، بخصوص استفسارك على موقع زيت أند فلترز...`);
-    window.open(`https://wa.me/2${cleanPhone}?text=${message}`, '_blank');
+    const text = encodeURIComponent(
+      `أهلاً يا أستاذ ${name}، بخصوص استفسارك على موقع زيت أند فلترز:\n\n"${message}"\n\n`
+    );
+    window.open(`https://wa.me/2${cleanPhone}?text=${text}`, '_blank');
   };
 
 
@@ -112,7 +114,7 @@ export default function AdminMessages() {
                   <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '4px' }}>{msg.phone}</div>
                   {msg.email && <div style={{ fontSize: '0.75rem', color: '#aaa', marginBottom: '8px' }}>{msg.email}</div>}
                   <button
-                    onClick={() => openWhatsApp(msg.phone, msg.full_name)}
+                    onClick={() => openWhatsApp(msg.phone, msg.full_name, msg.message)}
                     style={whatsappBtnStyle}
                   >
                     تواصل واتساب ✅
