@@ -14,7 +14,6 @@ import Script from 'next/script'
 import { GA_MEASUREMENT_ID } from '@/lib/gtag'
 import { GAProvider } from './ga-provider'
 import { Suspense } from 'react'
-import PWAInstaller from '@/components/PWAInstaller'
 import SplashScreen from '@/components/SplashScreen'
 import ExitConfirmDialog from '@/components/ExitConfirmDialog'
 import ChatWidget from '@/components/ChatWidget'
@@ -121,7 +120,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           chatWidget={<ChatWidget />}
           scrollProgress={<ScrollProgress />}
           abandonedCartTracker={<AbandonedCartTracker />}
-          pwaInstaller={<PWAInstaller />}
           exitConfirm={<ExitConfirmDialog />}
         >
           {children}
