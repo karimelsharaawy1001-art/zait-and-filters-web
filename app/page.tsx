@@ -103,21 +103,49 @@ function ReviewCard({ r }: { r: typeof ALL_REVIEWS[0] }) {
 
 
 // ─── Google Play Announcement Banner ─────────────────────────────────────────
+// Drop-in replacement for the GooglePlayBanner function in your homepage file.
+//
+// Detection strategy (any ONE of these = hide the banner):
+//
+//  1. ?source=app  in the URL  →  your app opens URLs with this param
+//  2. ?source=pwa  in the URL  →  installed PWA opens URLs with this param
+//  3. display-mode: standalone  →  PWA running in standalone / fullscreen
+//  4. display-mode: fullscreen
+//  5. Android WebView UA signals:
+//       • "wv" flag inside parentheses  e.g. (Linux; Android 13; ... wv)
+//       • "Version/X.X" right before "Chrome"  (old Android WebView pattern)
+//  6. Custom header your app can inject into the WebView UA:
+//       • "ZaitApp/1.0"  (add one line in your Android WebView setup)
+//
+// To make detection 100% reliable on Android, add this to your WebView config:
+//   webView.settings.userAgentString += " ZaitApp/1.0"
+// Then option 6 will always fire for your app users.
+
 function GooglePlayBanner() {
   const [visible, setVisible] = useState(true);
-  const [isInApp, setIsInApp] = useState(false);
+  const [isInApp, setIsInApp] = useState(true); // default true = hidden until we confirm it's a browser
 
   useEffect(() => {
     const ua = navigator.userAgent || '';
     const params = new URLSearchParams(window.location.search);
 
     const inApp =
-      // 1. Your app's WebView will contain the package name in the UA
-      ua.includes('com.app.hangmangame') ||
-      // 2. Standalone PWA mode (already "installed")
+      // 1 & 2. Explicit source param (most reliable — add to every link your app opens)
+      params.get('source') === 'app' ||
+      params.get('source') === 'pwa' ||
+
+      // 3 & 4. PWA standalone / fullscreen mode
       window.matchMedia('(display-mode: standalone)').matches ||
-      // 3. Optional: your app can open URLs with ?source=app
-      params.get('source') === 'app';
+      window.matchMedia('(display-mode: fullscreen)').matches ||
+
+      // 5a. Android WebView: UA contains "; wv)" flag
+      /\bwv\b/.test(ua) ||
+
+      // 5b. Android WebView older pattern: "Version/X.X Chrome/..."
+      /Version\/\d+\.\d+.*Chrome\/\d/.test(ua) ||
+
+      // 6. Custom UA string injected by your app's WebView (recommended)
+      ua.includes('ZaitApp/');
 
     setIsInApp(inApp);
   }, []);
@@ -158,7 +186,6 @@ function GooglePlayBanner() {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
         }}>
-          {/* Official Google Play triangle icon */}
           <svg width="26" height="26" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M3.18 23.76c.3.17.64.24.99.19l13.2-11.94L13.94 8.6 3.18 23.76z" fill="#EA4335"/>
             <path d="M20.82 10.42l-3.35-1.92-3.53 3.19 3.53 3.19 3.38-1.94a1.36 1.36 0 0 0 0-2.52z" fill="#FBBC04"/>
@@ -170,7 +197,6 @@ function GooglePlayBanner() {
 
         {/* Text block */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          {/* NEW pill */}
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '5px',
             background: 'rgba(34,197,94,0.18)', border: '1px solid rgba(34,197,94,0.4)',
@@ -223,7 +249,6 @@ function GooglePlayBanner() {
     </motion.div>
   );
 }
-// ─────────────────────────────────────────────────────────────────────────────
 
 
 // Optimized Scroll Reveal Component
