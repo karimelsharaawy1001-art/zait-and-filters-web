@@ -105,8 +105,24 @@ function ReviewCard({ r }: { r: typeof ALL_REVIEWS[0] }) {
 // ─── Google Play Announcement Banner ─────────────────────────────────────────
 function GooglePlayBanner() {
   const [visible, setVisible] = useState(true);
+  const [isInApp, setIsInApp] = useState(false);
 
-  if (!visible) return null;
+  useEffect(() => {
+    const ua = navigator.userAgent || '';
+    const params = new URLSearchParams(window.location.search);
+
+    const inApp =
+      // 1. Your app's WebView will contain the package name in the UA
+      ua.includes('com.app.hangmangame') ||
+      // 2. Standalone PWA mode (already "installed")
+      window.matchMedia('(display-mode: standalone)').matches ||
+      // 3. Optional: your app can open URLs with ?source=app
+      params.get('source') === 'app';
+
+    setIsInApp(inApp);
+  }, []);
+
+  if (!visible || isInApp) return null;
 
   return (
     <motion.div
