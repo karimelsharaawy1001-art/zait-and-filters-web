@@ -93,7 +93,7 @@ const SENSOR_LABELS: { match: string[]; ar: string; arAlt?: string }[] = [
 ];
 
 function getSensorLabel(product: any): { ar: string; arAlt: string } {
-  const haystack = [product.name, product.subcategory, product.part_number]
+  const haystack = [product.name, product.subcategory, product.sku]
     .filter(Boolean)
     .join(' ')
     .toLowerCase();
@@ -111,7 +111,7 @@ function buildDescription(product: any): string {
   const model = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model : '';
   const year = product.car_model_year || '';
   const price = product.sale_price || product.regular_price || '';
-  const partNumber = product.part_number ? `رقم القطعة: ${product.part_number}.` : '';
+  const partNumber = product.sku ? `رقم القطعة: ${product.sku}.` : '';
   const carPhrase = [carAr, model, year].filter(Boolean).join(' ');
   const fitPhrase = carPhrase ? `متوافقة مع سيارة ${carPhrase}` : 'متوافقة مع عدة موديلات';
   const pricePhrase = price ? `السعر: ${price} ج.م.` : '';
@@ -467,7 +467,7 @@ function buildKeywords(product: any): string[] {
     'قطع غيار أصلية', 'زيت أند فلترز', 'قطع غيار مصر',
     'قطع غيار سيارات مصر', 'متجر قطع غيار اونلاين مصر',
     'شحن قطع غيار لباب البيت', 'قطع غيار اصلية مصر',
-    product.part_number,
+    product.sku,
     ...universalKeywords, ...oilKeywords, ...gearOilKeywords, ...sparkKeywords,
     ...brakeFluidKeywords, ...drumKeywords, ...shockKeywords, ...beltKeywords,
     ...fuelPumpKeywords, ...sensorKeywords, ...tireKeywords, ...cabinFilterKeywords,
@@ -495,7 +495,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     ? {
         'product:price:amount': String(price),
         'product:price:currency': 'EGP',
-        'product:availability': product.available ? 'in stock' : 'out of stock',
+        'product:availability': (product.is_active && product.stock_quantity > 0) ? 'in stock' : 'out of stock',
         'product:brand': product.brand || '',
         'product:condition': 'new',
       }
@@ -567,8 +567,8 @@ function ProductSchema({ product }: { product: any }) {
     image: product.image_url,
     brand: { '@type': 'Brand', name: product.brand },
     category: product.category,
-    sku: product.part_number || undefined,
-    mpn: product.part_number || undefined,
+    sku: product.sku || undefined,
+    mpn: product.sku || undefined,
     aggregateRating: product.rating_count && product.rating_avg ? {
       '@type': 'AggregateRating',
       ratingValue: product.rating_avg,
@@ -582,7 +582,7 @@ function ProductSchema({ product }: { product: any }) {
       priceCurrency: 'EGP',
       price: price,
       priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
-      availability: product.available ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      availability: (product.is_active && product.stock_quantity > 0) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       itemCondition: 'https://schema.org/NewCondition',
       seller: { '@type': 'Organization', name: 'Zait and Filters', url: 'https://zaitandfilters.com' },
       hasMerchantReturnPolicy: merchantReturnPolicy,
@@ -593,7 +593,7 @@ function ProductSchema({ product }: { product: any }) {
       { '@type': 'PropertyValue', name: 'Car Model', value: product.car_model },
       { '@type': 'PropertyValue', name: 'Model Year', value: product.car_model_year },
       { '@type': 'PropertyValue', name: 'Country of Origin', value: product.country_of_origin },
-      { '@type': 'PropertyValue', name: 'Part Number', value: product.part_number },
+      { '@type': 'PropertyValue', name: 'Part Number', value: product.sku },
       ...(product.category === 'زيوت موتور' ? [
         { '@type': 'PropertyValue', name: 'Viscosity Grade', value: product.subcategory },
         { '@type': 'PropertyValue', name: 'Oil Type', value: 'Engine Oil - زيت موتور' },
