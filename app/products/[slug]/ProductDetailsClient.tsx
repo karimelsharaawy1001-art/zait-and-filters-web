@@ -449,14 +449,14 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
       <style>{`
         .product-page-wrapper { max-width: 1200px; margin: 0 auto; padding: 20px 16px 60px; direction: rtl; background-color: #fff; min-height: 100vh; }
         .product-main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; margin-bottom: 50px; }
-        .media-slider-wrap { border-radius: 24px; border: 1px solid #f0f0f0; overflow: hidden; background: #f9f9f9; position: relative; }
+        .media-slider-wrap { border-radius: 24px; border: 1px solid #f0f0f0; overflow: hidden; background: #f9f9f9; position: relative; height: 420px; }
         .media-slider-wrap .swiper { height: 420px; }
         .media-slider-wrap .swiper-slide { display: flex; align-items: center; justify-content: center; background: #f9f9f9; position: relative; }
         .media-slider-wrap .swiper-pagination-bullet { background: #27ae60; opacity: 0.4; width: 8px; height: 8px; }
         .media-slider-wrap .swiper-pagination-bullet-active { opacity: 1; transform: scale(1.2); }
         .media-slider-wrap .swiper-button-disabled { opacity: 0 !important; }
-        @media (max-width: 768px) { .media-slider-wrap .swiper { height: 300px; } .media-slider-wrap { border-radius: 18px; } }
-        @media (max-width: 480px) { .media-slider-wrap .swiper { height: 250px; } }
+        @media (max-width: 768px) { .media-slider-wrap { border-radius: 18px; height: 300px; } .media-slider-wrap .swiper { height: 300px; } }
+        @media (max-width: 480px) { .media-slider-wrap { height: 250px; } .media-slider-wrap .swiper { height: 250px; } }
         .product-info-section { display: flex; flex-direction: column; gap: 20px; }
         .action-row-mobile { display: flex; gap: 12px; align-items: center; }
         .add-to-cart-btn { flex: 1; background: #27ae60; color: #fff; border: none; border-radius: 11px; padding: 11px 14px; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 6px; box-shadow: 0 6px 16px rgba(39,174,96,0.25); font-family: inherit; transition: all 0.18s; }
