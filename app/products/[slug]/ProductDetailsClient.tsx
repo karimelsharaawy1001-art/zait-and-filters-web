@@ -15,6 +15,70 @@ import { Navigation, Autoplay, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 
+// ─── Styles ────────────────────────────────────────────────────────────────────
+// IMPORTANT: All style constants MUST be defined before the components that use them.
+// const declarations are not hoisted, so placing them after components causes
+// undefined values at render time, breaking layout and hiding images.
+
+const carouselFullWrapper:   React.CSSProperties = { marginTop: '40px', borderTop: '1px solid #f0f0f0', paddingTop: '30px' };
+const relatedHeader:         React.CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' };
+const relatedTitle:          React.CSSProperties = { fontSize: '1.3rem', fontWeight: '900', color: '#1a1a1a', margin: 0 };
+const customNavWrapper:      React.CSSProperties = { display: 'flex', gap: '10px' };
+const navCircleBtn:          React.CSSProperties = { width: '38px', height: '38px', borderRadius: '50%', border: '1px solid #eee', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#1a1a1a' };
+const swiperOuterContainer:  React.CSSProperties = { position: 'relative', width: '100%' };
+const premiumCardStyle:      React.CSSProperties = { background: '#fff', borderRadius: '16px', border: '1px solid #f0f0f0', overflow: 'hidden', height: '100%', boxShadow: '0 4px 15px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', width: '100%' };
+// position: relative required for Next.js <Image fill>
+const premiumImageArea:      React.CSSProperties = { height: '160px', background: '#f8f9fa', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', flexShrink: 0 };
+const noImgPlaceholder:      React.CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' };
+const smallSaleBadge:        React.CSSProperties = { position: 'absolute', top: '8px', right: '8px', background: '#e74c3c', color: '#fff', padding: '2px 7px', borderRadius: '6px', fontSize: '0.6rem', fontWeight: 'bold', zIndex: 1 };
+const premiumDetails:        React.CSSProperties = { padding: '10px 12px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '5px' };
+const premiumBrand:          React.CSSProperties = { fontSize: '0.7rem', fontWeight: '800', color: '#27ae60' };
+const countryBadge:          React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: '#888', fontWeight: '700', background: '#f5f5f5', padding: '2px 6px', borderRadius: '5px' };
+const premiumName:           React.CSSProperties = { fontSize: '0.85rem', fontWeight: '800', color: '#1a1a1a', lineHeight: '1.3', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', margin: '2px 0' };
+const carInfoBox:            React.CSSProperties = { background: '#f8fdf9', borderRadius: '8px', padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '2px' };
+const carInfoRow:            React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.68rem', color: '#555', fontWeight: '700' };
+const premiumPriceRow:       React.CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', background: '#f9f9f9', padding: '7px 8px', borderRadius: '10px' };
+const premiumPriceCol:       React.CSSProperties = { display: 'flex', flexDirection: 'column' };
+const premiumCurrentPrice:   React.CSSProperties = { fontSize: '0.95rem', fontWeight: '900', color: '#1a1a1a' };
+const premiumOldPrice:       React.CSSProperties = { fontSize: '0.65rem', color: '#bbb', textDecoration: 'line-through' };
+const premiumStepper:        React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '5px' };
+const miniStepBtn:           React.CSSProperties = { width: '22px', height: '22px', borderRadius: '50%', border: 'none', background: '#27ae60', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 };
+const miniQty:               React.CSSProperties = { fontSize: '0.8rem', fontWeight: 'bold', color: '#27ae60', minWidth: '15px', textAlign: 'center' };
+const premiumAddBtn:         React.CSSProperties = { width: '100%', background: '#1a1a1a', color: '#fff', border: 'none', padding: '9px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', marginTop: '6px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', fontFamily: 'inherit' };
+const navPath:               React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', fontSize: '0.88rem', color: '#888', flexWrap: 'wrap' };
+const backLink:              React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#1a1a1a', fontWeight: 'bold' };
+const pathDivider:           React.CSSProperties = { color: '#ccc' };
+const currentPath:           React.CSSProperties = { color: '#27ae60' };
+const brandHeader:           React.CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
+const brandTag:              React.CSSProperties = { background: '#1a1a1a', color: '#fff', padding: '4px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold' };
+const stockStatus:           React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '6px', color: '#27ae60', fontSize: '0.85rem', fontWeight: 'bold' };
+const productTitle:          React.CSSProperties = { fontSize: '2rem', fontWeight: '900', color: '#1a1a1a', lineHeight: '1.3', margin: 0 };
+const priceContainer:        React.CSSProperties = { display: 'flex', alignItems: 'baseline', gap: '15px' };
+const currentPrice:          React.CSSProperties = { fontSize: '2.2rem', fontWeight: '900', color: '#1a1a1a' };
+const specCard:              React.CSSProperties = { background: '#fcfcfc', border: '1px solid #f0f0f0', borderRadius: '20px', padding: '20px' };
+const specHeader:            React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid #f0f0f0', paddingBottom: '10px' };
+const specCardTitle:         React.CSSProperties = { fontSize: '1rem', fontWeight: '800', color: '#1a1a1a', margin: 0 };
+const specGrid:              React.CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' };
+const specItem:              React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px' };
+const specLabel:             React.CSSProperties = { fontSize: '0.75rem', color: '#888', fontWeight: 'bold' };
+const specValue:             React.CSSProperties = { fontSize: '0.9rem', color: '#1a1a1a', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' };
+const stepBtn:               React.CSSProperties = { border: 'none', background: '#fff', width: '34px', height: '34px', borderRadius: '50%', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' };
+const qtyValue:              React.CSSProperties = { fontSize: '1.2rem', fontWeight: 'bold', color: '#27ae60', minWidth: '28px', textAlign: 'center' };
+const loaderWrapper:         React.CSSProperties = { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' };
+const trustBadges:           React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '4px' };
+const badgeItem:             React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#555', fontWeight: '600' };
+const descriptionSection:    React.CSSProperties = { borderTop: '1px solid #eee', paddingTop: '30px', marginBottom: '40px' };
+const descTitle:             React.CSSProperties = { fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '16px' };
+const descContent:           React.CSSProperties = { lineHeight: '1.8', color: '#666', fontSize: '1rem' };
+
+const frmLabel: React.CSSProperties = { display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#374151', marginBottom: '6px' };
+const frmInput: React.CSSProperties = { width: '100%', padding: '10px 12px', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none', color: '#1e293b', background: '#fff', boxSizing: 'border-box' };
+const errMsg: React.CSSProperties = { fontSize: '0.75rem', color: '#dc2626', fontWeight: '600', margin: '4px 0 0' };
+
+// loaderWrapper is kept to avoid unused-variable errors if needed elsewhere
+void loaderWrapper;
+
+
 // ─── Reviews Section ──────────────────────────────────────────────────────────
 interface Review { id: string; customer_name: string; rating: number; comment: string; created_at: string; }
 
@@ -191,10 +255,6 @@ function ReviewsSection({ productId }: { productId: string }) {
     </div>
   );
 }
-
-const frmLabel: React.CSSProperties = { display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#374151', marginBottom: '6px' };
-const frmInput: React.CSSProperties = { width: '100%', padding: '10px 12px', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none', color: '#1e293b', background: '#fff', boxSizing: 'border-box' };
-const errMsg: React.CSSProperties = { fontSize: '0.75rem', color: '#dc2626', fontWeight: '600', margin: '4px 0 0' };
 
 
 // ─── Share Buttons ─────────────────────────────────────────────────────────────
@@ -459,8 +519,6 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                 {slides.map((slide, i) => (
                   <SwiperSlide key={i}>
                     {slide.type === 'image' ? (
-                      // FIX 3: priority on hero image — tells browser to preload
-                      // this as a high-priority resource, directly improving LCP.
                       <Image
                         src={slide.src}
                         alt={product.name}
@@ -625,58 +683,3 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
     </>
   );
 }
-
-// ─── Styles ────────────────────────────────────────────────────────────────────
-const carouselFullWrapper:   React.CSSProperties = { marginTop: '40px', borderTop: '1px solid #f0f0f0', paddingTop: '30px' };
-const relatedHeader:         React.CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' };
-const relatedTitle:          React.CSSProperties = { fontSize: '1.3rem', fontWeight: '900', color: '#1a1a1a', margin: 0 };
-const customNavWrapper:      React.CSSProperties = { display: 'flex', gap: '10px' };
-const navCircleBtn:          React.CSSProperties = { width: '38px', height: '38px', borderRadius: '50%', border: '1px solid #eee', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#1a1a1a' };
-const swiperOuterContainer:  React.CSSProperties = { position: 'relative', width: '100%' };
-const premiumCardStyle:      React.CSSProperties = { background: '#fff', borderRadius: '16px', border: '1px solid #f0f0f0', overflow: 'hidden', height: '100%', boxShadow: '0 4px 15px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', width: '100%' };
-// position: relative required for Next.js <Image fill>
-const premiumImageArea:      React.CSSProperties = { height: '160px', background: '#f8f9fa', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', flexShrink: 0 };
-const noImgPlaceholder:      React.CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' };
-const smallSaleBadge:        React.CSSProperties = { position: 'absolute', top: '8px', right: '8px', background: '#e74c3c', color: '#fff', padding: '2px 7px', borderRadius: '6px', fontSize: '0.6rem', fontWeight: 'bold', zIndex: 1 };
-const premiumDetails:        React.CSSProperties = { padding: '10px 12px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '5px' };
-const premiumBrand:          React.CSSProperties = { fontSize: '0.7rem', fontWeight: '800', color: '#27ae60' };
-const countryBadge:          React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: '#888', fontWeight: '700', background: '#f5f5f5', padding: '2px 6px', borderRadius: '5px' };
-const premiumName:           React.CSSProperties = { fontSize: '0.85rem', fontWeight: '800', color: '#1a1a1a', lineHeight: '1.3', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', margin: '2px 0' };
-const carInfoBox:            React.CSSProperties = { background: '#f8fdf9', borderRadius: '8px', padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '2px' };
-const carInfoRow:            React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.68rem', color: '#555', fontWeight: '700' };
-const premiumPriceRow:       React.CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', background: '#f9f9f9', padding: '7px 8px', borderRadius: '10px' };
-const premiumPriceCol:       React.CSSProperties = { display: 'flex', flexDirection: 'column' };
-const premiumCurrentPrice:   React.CSSProperties = { fontSize: '0.95rem', fontWeight: '900', color: '#1a1a1a' };
-const premiumOldPrice:       React.CSSProperties = { fontSize: '0.65rem', color: '#bbb', textDecoration: 'line-through' };
-const premiumStepper:        React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '5px' };
-const miniStepBtn:           React.CSSProperties = { width: '22px', height: '22px', borderRadius: '50%', border: 'none', background: '#27ae60', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 };
-const miniQty:               React.CSSProperties = { fontSize: '0.8rem', fontWeight: 'bold', color: '#27ae60', minWidth: '15px', textAlign: 'center' };
-const premiumAddBtn:         React.CSSProperties = { width: '100%', background: '#1a1a1a', color: '#fff', border: 'none', padding: '9px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', marginTop: '6px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', fontFamily: 'inherit' };
-const navPath:               React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', fontSize: '0.88rem', color: '#888', flexWrap: 'wrap' };
-const backLink:              React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#1a1a1a', fontWeight: 'bold' };
-const pathDivider:           React.CSSProperties = { color: '#ccc' };
-const currentPath:           React.CSSProperties = { color: '#27ae60' };
-const brandHeader:           React.CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
-const brandTag:              React.CSSProperties = { background: '#1a1a1a', color: '#fff', padding: '4px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold' };
-const stockStatus:           React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '6px', color: '#27ae60', fontSize: '0.85rem', fontWeight: 'bold' };
-const productTitle:          React.CSSProperties = { fontSize: '2rem', fontWeight: '900', color: '#1a1a1a', lineHeight: '1.3', margin: 0 };
-const priceContainer:        React.CSSProperties = { display: 'flex', alignItems: 'baseline', gap: '15px' };
-const currentPrice:          React.CSSProperties = { fontSize: '2.2rem', fontWeight: '900', color: '#1a1a1a' };
-const specCard:              React.CSSProperties = { background: '#fcfcfc', border: '1px solid #f0f0f0', borderRadius: '20px', padding: '20px' };
-const specHeader:            React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid #f0f0f0', paddingBottom: '10px' };
-const specCardTitle:         React.CSSProperties = { fontSize: '1rem', fontWeight: '800', color: '#1a1a1a', margin: 0 };
-const specGrid:              React.CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' };
-const specItem:              React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px' };
-const specLabel:             React.CSSProperties = { fontSize: '0.75rem', color: '#888', fontWeight: 'bold' };
-const specValue:             React.CSSProperties = { fontSize: '0.9rem', color: '#1a1a1a', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' };
-const stepBtn:               React.CSSProperties = { border: 'none', background: '#fff', width: '34px', height: '34px', borderRadius: '50%', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' };
-const qtyValue:              React.CSSProperties = { fontSize: '1.2rem', fontWeight: 'bold', color: '#27ae60', minWidth: '28px', textAlign: 'center' };
-const loaderWrapper:         React.CSSProperties = { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' };
-const trustBadges:           React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '4px' };
-const badgeItem:             React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#555', fontWeight: '600' };
-const descriptionSection:    React.CSSProperties = { borderTop: '1px solid #eee', paddingTop: '30px', marginBottom: '40px' };
-const descTitle:             React.CSSProperties = { fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '16px' };
-const descContent:           React.CSSProperties = { lineHeight: '1.8', color: '#666', fontSize: '1rem' };
-
-// loaderWrapper is kept to avoid unused-variable errors if needed elsewhere
-void loaderWrapper;
