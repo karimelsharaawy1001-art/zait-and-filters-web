@@ -102,6 +102,138 @@ function ReviewCard({ r }: { r: typeof ALL_REVIEWS[0] }) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 
+// ─── Google Play Announcement Banner ─────────────────────────────────────────
+function GooglePlayBanner() {
+  const [visible, setVisible] = useState(true);
+
+  if (!visible) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -16 }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+      style={{
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
+        borderBottom: '1px solid rgba(34,197,94,0.25)',
+        padding: '0',
+        position: 'relative',
+        overflow: 'hidden',
+        direction: 'rtl',
+      }}
+    >
+      {/* Decorative glow */}
+      <div style={{
+        position: 'absolute', top: '-40px', right: '10%',
+        width: '220px', height: '220px',
+        background: 'radial-gradient(circle, rgba(34,197,94,0.18) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', bottom: '-40px', left: '5%',
+        width: '160px', height: '160px',
+        background: 'radial-gradient(circle, rgba(34,197,94,0.10) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
+
+      <div style={{
+        maxWidth: '1200px', margin: '0 auto',
+        padding: '14px 20px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        gap: '16px', flexWrap: 'wrap',
+        position: 'relative', zIndex: 1,
+      }}>
+        {/* Left: text + badge */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: 0 }}>
+          {/* Android icon */}
+          <div style={{
+            width: '48px', height: '48px', borderRadius: '14px', flexShrink: 0,
+            background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 16px rgba(34,197,94,0.4)',
+          }}>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff">
+              <path d="M17.523 15.341a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5V8.659a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v6.682zM6.5 6.5l-1.5-2.5M17.5 6.5l1.5-2.5M8.5 19.5v1.5M15.5 19.5v1.5"/>
+              <path d="M3.523 8.659C3.523 5.55 7.424 3 12 3s8.477 2.55 8.477 5.659v6.682C20.477 18.45 16.576 21 12 21s-8.477-2.55-8.477-5.659V8.659z"/>
+              <circle cx="9" cy="12" r="1" fill="#fff"/>
+              <circle cx="15" cy="12" r="1" fill="#fff"/>
+            </svg>
+          </div>
+
+          <div style={{ minWidth: 0 }}>
+            {/* NEW badge */}
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: '5px',
+              background: 'rgba(34,197,94,0.2)', border: '1px solid rgba(34,197,94,0.4)',
+              borderRadius: '20px', padding: '2px 10px', marginBottom: '5px',
+            }}>
+              <span style={{
+                width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e',
+                display: 'inline-block', animation: 'gplayPulse 1.6s ease-in-out infinite',
+              }} />
+              <span style={{ fontSize: '0.65rem', fontWeight: '900', color: '#22c55e', letterSpacing: '0.08em' }}>
+                🎉 جديد — تطبيقنا الرسمي متاح الآن!
+              </span>
+            </div>
+            <div style={{ color: '#fff', fontWeight: '800', fontSize: '0.95rem', lineHeight: '1.3', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              حمّل تطبيق Zait &amp; Filters من Google Play
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.75rem', fontWeight: '600', marginTop: '2px' }}>
+              تسوق أسرع، عروض حصرية، وإشعارات فورية
+            </div>
+          </div>
+        </div>
+
+        {/* Right: CTA + close */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+          <a
+            href="https://play.google.com/store/apps/details?id=com.app.hangmangame"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+              color: '#fff', padding: '10px 20px', borderRadius: '12px',
+              fontWeight: '900', fontSize: '0.88rem', textDecoration: 'none',
+              boxShadow: '0 4px 14px rgba(34,197,94,0.45)',
+              whiteSpace: 'nowrap',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 6px 20px rgba(34,197,94,0.6)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.transform = ''; (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 4px 14px rgba(34,197,94,0.45)'; }}
+          >
+            {/* Google Play icon */}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff">
+              <path d="M3 20.5v-17c0-.83 1-.92 1.35-.35l13 8.5c.32.21.32.69 0 .9l-13 8.5C4 21.42 3 21.33 3 20.5z"/>
+            </svg>
+            حمّل التطبيق
+          </a>
+
+          <button
+            onClick={() => setVisible(false)}
+            aria-label="إغلاق"
+            style={{
+              background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
+              borderRadius: '8px', width: '32px', height: '32px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', color: 'rgba(255,255,255,0.6)',
+              flexShrink: 0, fontSize: '1rem', lineHeight: 1,
+              transition: 'background 0.2s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.15)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'; }}
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+
 // Optimized Scroll Reveal Component
 function ScrollReveal({ children, delay = 0, direction = 'up' }: { children: React.ReactNode; delay?: number; direction?: 'up' | 'down' | 'left' | 'right' }) {
   const ref = useRef(null);
@@ -268,14 +400,14 @@ function CategoriesGrid({ categories }: { categories: any[] }) {
   line-height: 1.3;
   text-shadow: 0 2px 10px rgba(0,0,0,0.8);
   letter-spacing: -0.2px;
-  display: flex;                /* ← add */
-  flex-direction: column;       /* ← add */
-  align-items: center;          /* ← add */
-  gap: 4px;                     /* ← add */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
 .cat-label-arrow {
-  display: block;               /* ← change from inline-block to block */
+  display: block;
   font-size: 3rem;
   font-weight: 700;
   color: #22c55e;
@@ -558,6 +690,10 @@ export default function HomePage() {
             0%, 100% { box-shadow: 0 0 6px 2px rgba(255,200,0,0.45), 0 2px 8px rgba(0,0,0,0.25); }
             50%       { box-shadow: 0 0 14px 5px rgba(255,200,0,0.75), 0 2px 8px rgba(0,0,0,0.25); }
           }
+          @keyframes gplayPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.5; transform: scale(0.85); }
+          }
 
           /* ── Reviews marquee ── */
           @keyframes reviewsMarquee1 { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
@@ -696,6 +832,10 @@ export default function HomePage() {
 
         {!loading && (
           <div className="page-container">
+
+            {/* ══ GOOGLE PLAY ANNOUNCEMENT BANNER ══════════════════════════════ */}
+            <GooglePlayBanner />
+            {/* ════════════════════════════════════════════════════════════════ */}
 
             <section className="hero-section">
               <div className="hero-bg-layer">
