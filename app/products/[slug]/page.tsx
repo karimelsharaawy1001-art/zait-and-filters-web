@@ -1,7 +1,21 @@
+import { cache, Suspense } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import ProductDetailsClient from './ProductDetailsClient';
 import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
+
+// ============================================================
+// FIX 1: cache() deduplicates the Supabase query so
+// generateMetadata and ProductPage share one DB hit per request.
+// ============================================================
+const getProduct = cache(async (slug: string) => {
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+  const query = isUUID
+    ? supabase.from('products').select('*').eq('id', slug).single()
+    : supabase.from('products').select('*').eq('slug', slug).single();
+  const { data } = await query;
+  return data;
+});
 
 // ============================================================
 // Arabic translations for car makes
@@ -264,18 +278,42 @@ function buildTitle(product: any): string {
 }
 
 // ============================================================
-// ADDED: Shopping-optimized title for openGraph/twitter
+// Shopping-optimized title for openGraph/twitter AND GMC feed
 // No store name, no "أفضل سعر", under 70 chars
 // Google Shopping uses this as the product headline
+// Format: [CategoryKeyword] [Brand] [Subcategory/Spec] [CarMake] [CarModel]
 // ============================================================
 function buildShoppingTitle(product: any): string {
   const brand = product.brand || '';
   const sub = product.subcategory || '';
+  const cat = product.category || '';
   const isUniversal = !product.car_make || product.car_make === 'UNIVERSAL';
   const carAr = isUniversal ? '' : (CAR_MAKE_AR[product.car_make] || '');
   const model = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model || '' : '';
 
-  return [brand, product.name, sub, carAr, model]
+  // Explicit category prefix for high-traffic search terms on GMC
+  const CATEGORY_PREFIX: Record<string, string> = {
+    'زيوت موتور': 'زيت موتور',
+    'زيوت فتيس و دبرياج و باور': 'زيت',
+    'إطارات': 'إطار',
+    'بوجيهات و سلوك بوجيهات و موبينة': 'بوجيهات',
+    'حساسات و قطع كهربائية': 'حساس',
+    'سيور و بلي': 'سير',
+    'دورة البنزين': 'طلمبة بنزين',
+    'دورة تبريد و تكييف': '',
+    'الفرامل': '',
+    'عفشة': '',
+    'فلاتر': '',
+    'مساحات': 'مساحة',
+    'جوانات و أويل سيل': 'جوان',
+    'مستلزمات عمرة موتور': '',
+    'قطع الموتور و ملحقاته': '',
+    'دبرياج و قطع فتيس': '',
+  };
+
+  const prefix = CATEGORY_PREFIX[cat] ?? '';
+
+  return [prefix, brand, sub || product.name, carAr, model]
     .filter(Boolean)
     .join(' ')
     .replace(/\s+/g, ' ')
@@ -439,12 +477,8 @@ function buildKeywords(product: any): string[] {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
 
-  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
-  const query = isUUID
-    ? supabase.from('products').select('*').eq('id', slug).single()
-    : supabase.from('products').select('*').eq('slug', slug).single();
-
-  const { data: product } = await query;
+  // FIX 1: use cached fetcher — no second DB round-trip
+  const product = await getProduct(slug);
   if (!product) return { title: 'المنتج غير موجود' };
 
   const title = buildTitle(product);
@@ -453,14 +487,22 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const imageUrl = product.image_url || 'https://zaitandfilters.com/og-image.jpg';
   const canonicalSlug = product.slug || product.id;
   const canonicalUrl = `https://zaitandfilters.com/products/${canonicalSlug}`;
-
-  // CHANGE: build a separate short title for Shopping/social
-  // Google Shopping reads openGraph title as the product headline.
-  // It must be: [Brand] [Product] [Spec] [Car] — no store name, no "أفضل سعر", under 70 chars.
   const shoppingTitle = buildShoppingTitle(product);
 
+  // FIX 4: price and availability for Google Shopping / og:product signals
+  const price = product.sale_price || product.regular_price;
+  const productOgExtras = price
+    ? {
+        'product:price:amount': String(price),
+        'product:price:currency': 'EGP',
+        'product:availability': product.available ? 'in stock' : 'out of stock',
+        'product:brand': product.brand || '',
+        'product:condition': 'new',
+      }
+    : {};
+
   return {
-    title,           // <— kept as-is for organic SEO (shown in Google search blue link)
+    title,
     description,
     keywords,
     authors: [{ name: 'Zait & Filters' }],
@@ -478,17 +520,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       },
     },
     openGraph: {
-      // CHANGE: shoppingTitle here instead of title
-      // This is what Google Shopping and Facebook/WhatsApp previews show
       title: shoppingTitle,
       description,
       url: canonicalUrl,
       siteName: 'زيت أند فلترز - Zait & Filters',
       images: [{ url: imageUrl, width: 1200, height: 630, alt: product.name }],
       locale: 'ar_EG',
+      // FIX 4: use 'website' but append og:product meta via other
       type: 'website',
+      ...productOgExtras,
     },
-    // CHANGE: shoppingTitle here too so Twitter/X cards show clean product title
     twitter: { card: 'summary_large_image', title: shoppingTitle, description, images: [imageUrl] },
     alternates: { canonical: canonicalUrl },
   };
@@ -526,8 +567,8 @@ function ProductSchema({ product }: { product: any }) {
     image: product.image_url,
     brand: { '@type': 'Brand', name: product.brand },
     category: product.category,
-    sku: product.part_number || product.id,
-    mpn: product.part_number || product.id,
+    sku: product.part_number || undefined,
+    mpn: product.part_number || undefined,
     aggregateRating: product.rating_count && product.rating_avg ? {
       '@type': 'AggregateRating',
       ratingValue: product.rating_avg,
@@ -719,7 +760,7 @@ function LocalBusinessSchema() {
     url: 'https://zaitandfilters.com',
     logo: 'https://zaitandfilters.com/logo.png',
     image: 'https://zaitandfilters.com/og-image.jpg',
-    telephone: '+20-XXXXXXXXXX',
+    telephone: process.env.NEXT_PUBLIC_STORE_PHONE || '+20-XXXXXXXXXX', // Set NEXT_PUBLIC_STORE_PHONE in .env.local
     email: 'info@zaitandfilters.com',
     address: {
       '@type': 'PostalAddress',
@@ -741,7 +782,6 @@ function LocalBusinessSchema() {
       },
     ],
     priceRange: '$$',
-    // CHANGE: removed servesCuisine: undefined — invalid field for AutoPartsStore, caused schema warnings
     sameAs: [
       'https://www.facebook.com/zaitandfilters',
       'https://www.instagram.com/zaitandfilters',
@@ -791,8 +831,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const { slug } = await params;
   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
 
+  // FIX 1: use cached fetcher — shared with generateMetadata, zero extra DB round-trips
+  const product = await getProduct(slug);
+
   if (isUUID) {
-    const { data: product } = await supabase.from('products').select('*').eq('id', slug).single();
     if (!product) notFound();
     if (product.slug) redirect(`/products/${product.slug}`);
     return (
@@ -801,26 +843,24 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <SiteLinksSearchBoxSchema />
         <ProductSchema product={product} />
         <PartFAQSchema product={product} />
-        <ProductDetailsClient initialProduct={product} productId={product.id} />
+        <Suspense fallback={<div style={{ minHeight: '60vh' }} />}>
+          <ProductDetailsClient initialProduct={product} productId={product.id} />
+        </Suspense>
       </>
     );
   }
 
-  const { data: initialProduct } = await supabase
-    .from('products')
-    .select('*')
-    .eq('slug', slug)
-    .single();
-
-  if (!initialProduct) notFound();
+  if (!product) notFound();
 
   return (
     <>
       <LocalBusinessSchema />
       <SiteLinksSearchBoxSchema />
-      <ProductSchema product={initialProduct} />
-      <PartFAQSchema product={initialProduct} />
-      <ProductDetailsClient initialProduct={initialProduct} productId={initialProduct.id} />
+      <ProductSchema product={product} />
+      <PartFAQSchema product={product} />
+      <Suspense fallback={<div style={{ minHeight: '60vh' }} />}>
+        <ProductDetailsClient initialProduct={product} productId={product.id} />
+      </Suspense>
     </>
   );
 }
