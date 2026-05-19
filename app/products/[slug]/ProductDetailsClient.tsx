@@ -20,7 +20,7 @@ import 'swiper/css/pagination';
 // const declarations are not hoisted, so placing them after components causes
 // undefined values at render time, breaking layout and hiding images.
 
-const carouselFullWrapper:   React.CSSProperties = { marginTop: '40px', borderTop: '1px solid #f0f0f0', paddingTop: '30px' };
+const carouselFullWrapper:   React.CSSProperties = { marginTop: '24px', borderTop: '1px solid #f0f0f0', paddingTop: '20px' };
 const relatedHeader:         React.CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' };
 const relatedTitle:          React.CSSProperties = { fontSize: '1.3rem', fontWeight: '900', color: '#1a1a1a', margin: 0 };
 const customNavWrapper:      React.CSSProperties = { display: 'flex', gap: '10px' };
@@ -67,7 +67,7 @@ const qtyValue:              React.CSSProperties = { fontSize: '1.2rem', fontWei
 const loaderWrapper:         React.CSSProperties = { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' };
 const trustBadges:           React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '4px' };
 const badgeItem:             React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#555', fontWeight: '600' };
-const descriptionSection:    React.CSSProperties = { borderTop: '1px solid #eee', paddingTop: '30px', marginBottom: '40px' };
+const descriptionSection:    React.CSSProperties = { borderTop: '1px solid #eee', paddingTop: '20px', marginBottom: '24px' };
 const descTitle:             React.CSSProperties = { fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '16px' };
 const descContent:           React.CSSProperties = { lineHeight: '1.8', color: '#666', fontSize: '1rem' };
 
@@ -472,20 +472,22 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         .related-card-img-wrap:hover img { transform: scale(1.08); }
         @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 768px) {
-          .product-page-wrapper { padding: 12px 12px 80px; }
-          .product-main-grid { grid-template-columns: 1fr; gap: 20px; margin-bottom: 30px; }
-          .product-title-mobile { font-size: 1.6rem !important; line-height: 1.3 !important; }
-          .product-price-mobile { font-size: 1.8rem !important; }
+          .product-page-wrapper { padding: 10px 10px 60px; }
+          .product-main-grid { grid-template-columns: 1fr; gap: 12px; margin-bottom: 16px; }
+          .product-info-section { gap: 12px !important; }
+          .product-title-mobile { font-size: 1.4rem !important; line-height: 1.3 !important; }
+          .product-price-mobile { font-size: 1.6rem !important; }
           .spec-grid-mobile { grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
-          .action-row-mobile { flex-direction: column; gap: 10px; }
-          .add-to-cart-btn { width: 100%; padding: 18px; font-size: 1.1rem; border-radius: 18px; }
+          .action-row-mobile { flex-direction: column; gap: 8px; }
+          .add-to-cart-btn { width: 100%; padding: 14px; font-size: 1rem; border-radius: 14px; }
           .qty-stepper { width: 100%; justify-content: center; }
           .share-row { width: 100%; }
           .share-row > div { width: 100%; }
           .share-row > div > button:first-child { width: 100% !important; justify-content: center; }
-          .related-header-mobile { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+          .related-header-mobile { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
         }
         @media (max-width: 480px) { .spec-grid-mobile { grid-template-columns: 1fr 1fr !important; } }
+        @media (max-width: 768px) { .description-section { padding-top: 16px !important; margin-bottom: 16px !important; } }
       `}</style>
 
       <div className="product-page-wrapper">
