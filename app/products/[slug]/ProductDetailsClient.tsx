@@ -1,11 +1,12 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import { useCart } from '@/context/CartContext';
 import {
   ShoppingCart, Car, Calendar, ShieldCheck,
-  ArrowRight, Globe, Plus, Minus, CheckCircle2, Layers, Info, Package, Loader2, ChevronRight, ChevronLeft, Timer,
-  Share2, Check, Copy, Facebook, Twitter, Zap, Star, Send, User
+  ArrowRight, Globe, Plus, Minus, CheckCircle2, Layers, Info, Package, Loader2,
+  ChevronRight, ChevronLeft, Timer, Share2, Check, Copy, Facebook, Twitter,
+  Zap, Star, Send, User
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -13,7 +14,6 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
-import { useRef } from 'react';
 
 // ─── Reviews Section ──────────────────────────────────────────────────────────
 interface Review { id: string; customer_name: string; rating: number; comment: string; created_at: string; }
@@ -94,7 +94,6 @@ function ReviewsSection({ productId }: { productId: string }) {
 
   return (
     <div style={{ borderTop: '1px solid #eee', paddingTop: '32px', marginBottom: '40px', direction: 'rtl' }}>
-      {/* Section header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: '900', margin: 0, color: '#1a1a1a' }}>تقييمات العملاء</h2>
@@ -119,7 +118,6 @@ function ReviewsSection({ productId }: { productId: string }) {
         )}
       </div>
 
-      {/* Submit form */}
       {showForm && (
         <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '22px', marginBottom: '24px' }}>
           <h3 style={{ fontSize: '1rem', fontWeight: '800', margin: '0 0 16px', color: '#0f172a' }}>أضف تقييمك</h3>
@@ -156,7 +154,6 @@ function ReviewsSection({ productId }: { productId: string }) {
         </div>
       )}
 
-      {/* Reviews list */}
       {loadingReviews ? (
         <div style={{ textAlign: 'center', padding: '30px', color: '#94a3b8' }}>
           <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', display: 'block', margin: '0 auto 8px' }} />
@@ -270,22 +267,23 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
   return (
     <div style={premiumCardStyle}>
       <Link href={productHref} style={{ textDecoration: 'none' }}>
-        {/* FIX: replaced <img> with Next.js <Image> for related card */}
-        <div style={{ ...premiumImageArea }} className="related-card-img-wrap">
+        <div style={premiumImageArea} className="related-card-img-wrap">
           {displayImage ? (
-            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-              <Image
-                src={displayImage}
-                alt={p.name}
-                fill
-                sizes="(max-width: 768px) 50vw, 25vw"
-                style={{ objectFit: 'contain', padding: '10px' }}
-              />
-            </div>
+            <Image
+              src={displayImage}
+              alt={p.name}
+              fill
+              sizes="(max-width: 768px) 50vw, 25vw"
+              style={{ objectFit: 'contain', padding: '10px' }}
+            />
           ) : (
             <div style={noImgPlaceholder}><Package size={32} color="#ddd" /></div>
           )}
-          {p.sale_price && Number(p.sale_price) > 0 && <div style={smallSaleBadge}>-{Math.round(((p.regular_price - p.sale_price) / p.regular_price) * 100)}%</div>}
+          {p.sale_price && Number(p.sale_price) > 0 && (
+            <div style={smallSaleBadge}>
+              -{Math.round(((p.regular_price - p.sale_price) / p.regular_price) * 100)}%
+            </div>
+          )}
         </div>
       </Link>
       <div style={premiumDetails}>
@@ -301,7 +299,10 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
         </div>
         <div style={premiumPriceRow}>
           <div style={premiumPriceCol}>
-            <span style={premiumCurrentPrice}>{p.sale_price && Number(p.sale_price) > 0 ? p.sale_price : p.regular_price}<small style={{ fontSize: '0.65rem', fontWeight: '600', marginRight: '2px' }}> ج.م</small></span>
+            <span style={premiumCurrentPrice}>
+              {p.sale_price && Number(p.sale_price) > 0 ? p.sale_price : p.regular_price}
+              <small style={{ fontSize: '0.65rem', fontWeight: '600', marginRight: '2px' }}> ج.م</small>
+            </span>
             {p.sale_price && Number(p.sale_price) > 0 && <span style={premiumOldPrice}>{p.regular_price} ج.م</span>}
           </div>
           <div style={premiumStepper}>
@@ -310,29 +311,27 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
             <button onClick={() => qty > 1 && setQty(prev => prev - 1)} style={miniStepBtn}><Minus size={12} /></button>
           </div>
         </div>
-        <button onClick={() => addToCart({ ...p, price: p.sale_price || p.regular_price }, qty)} style={premiumAddBtn}><ShoppingCart size={14} /> إضافة</button>
+        <button onClick={() => addToCart({ ...p, price: p.sale_price || p.regular_price }, qty)} style={premiumAddBtn}>
+          <ShoppingCart size={14} /> إضافة
+        </button>
       </div>
     </div>
   );
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function ProductDetailsClient({ initialProduct, productId }: { initialProduct: any, productId: string }) {
-  const [product, setProduct] = useState<any>(initialProduct);
+export default function ProductDetailsClient({ initialProduct, productId }: { initialProduct: any; productId: string }) {
+  const [product] = useState<any>(initialProduct);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [subcategoryImages, setSubcategoryImages] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(!initialProduct);
   const [qty, setQty] = useState(1);
   const [imgError, setImgError] = useState(false);
   const swiperRef = useRef<any>(null);
   const { addToCart } = useCart();
 
-  // Suppress unused state warning — loading is set but used as guard below
-  void setLoading;
-
   useEffect(() => {
+    if (!product) return;
     async function fetchRelated() {
-      if (!product) return;
       const [relatedRes, subcatRes] = await Promise.all([
         supabase.from('products').select('*').eq('car_make', product.car_make).eq('car_model', product.car_model).neq('id', product.id).order('created_at', { ascending: false }).limit(50),
         supabase.from('category_images').select('name, image_url'),
@@ -343,7 +342,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         setSubcategoryImages(map);
       }
       if (relatedRes.data) {
-        const subcatCountMap = new Map();
+        const subcatCountMap = new Map<string, number>();
         const filtered = relatedRes.data.filter(item => {
           const count = subcatCountMap.get(item.subcategory) || 0;
           if (count < 2) { subcatCountMap.set(item.subcategory, count + 1); return true; }
@@ -356,13 +355,13 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
   }, [product]);
 
   const generateAutoDescription = () => {
-    if (!product) return "";
-    const name = product.name || "هذا المنتج";
-    const brand = product.brand || "ماركة أصلية";
-    const make = product.car_make || "";
-    const model = product.car_model || "";
-    const year = product.car_model_year ? `موديل ${product.car_model_year}` : "";
-    const origin = product.country_of_origin || "";
+    if (!product) return '';
+    const name = product.name || 'هذا المنتج';
+    const brand = product.brand || 'ماركة أصلية';
+    const make = product.car_make || '';
+    const model = product.car_model || '';
+    const year = product.car_model_year ? `موديل ${product.car_model_year}` : '';
+    const origin = product.country_of_origin || '';
     const originMap: Record<string, string> = { 'صيني': 'الصين', 'كوري': 'كوريا', 'ياباني': 'اليابان', 'ألماني': 'ألمانيا', 'تركي': 'تركيا', 'إيطالي': 'إيطاليا' };
     const correctedOrigin = originMap[origin] || origin;
     let desc = `احصل الآن على ${name} بجودة عالية من ماركة ${brand}.`;
@@ -371,12 +370,19 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
     return desc;
   };
 
-  if (loading && !product) return <div style={loaderWrapper}><Loader2 className="animate-spin" color="#27ae60" size={50} /></div>;
   if (!product) return <div style={{ textAlign: 'center', padding: '100px' }}>المنتج غير موجود.</div>;
 
+  // ── Image / slide setup ────────────────────────────────────────────────────
   const imageUrl = !imgError && product.image_url ? product.image_url : null;
   const displayPrice = product.sale_price && Number(product.sale_price) > 0 ? product.sale_price : product.regular_price;
   const productSlug = product.slug || productId;
+
+  const slides: { type: 'image' | 'video'; src: string }[] = [];
+  if (product.video_url) {
+    const match = product.video_url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/|v\/))([A-Za-z0-9_-]{11})/);
+    if (match) slides.push({ type: 'video', src: match[1] });
+  }
+  if (imageUrl) slides.push({ type: 'image', src: imageUrl });
 
   return (
     <>
@@ -385,7 +391,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         .product-main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; margin-bottom: 50px; }
         .media-slider-wrap { border-radius: 24px; border: 1px solid #f0f0f0; overflow: hidden; background: #f9f9f9; position: relative; }
         .media-slider-wrap .swiper { height: 420px; }
-        .media-slider-wrap .swiper-slide { display: flex; align-items: center; justify-content: center; background: #f9f9f9; }
+        .media-slider-wrap .swiper-slide { display: flex; align-items: center; justify-content: center; background: #f9f9f9; position: relative; }
         .media-slider-wrap .swiper-pagination-bullet { background: #27ae60; opacity: 0.4; width: 8px; height: 8px; }
         .media-slider-wrap .swiper-pagination-bullet-active { opacity: 1; transform: scale(1.2); }
         .media-slider-wrap .swiper-button-disabled { opacity: 0 !important; }
@@ -432,76 +438,69 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
 
         {/* Main Grid */}
         <div className="product-main-grid">
-          {/* Media Slider */}
-          {(() => {
-            const slides: { type: 'image' | 'video'; src: string }[] = [];
-            if (product.video_url) {
-              const match = product.video_url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/|v\/))([A-Za-z0-9_-]{11})/);
-              if (match) slides.push({ type: 'video', src: match[1] });
-            }
-            if (imageUrl) slides.push({ type: 'image', src: imageUrl });
-            if (slides.length === 0) {
-              return (
-                <div className="media-slider-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '420px' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', color: '#bbb' }}>
-                    <Package size={60} color="#ddd" /><span style={{ fontSize: '0.9rem', fontWeight: '700' }}>لا توجد صورة للمنتج</span>
-                  </div>
-                </div>
-              );
-            }
-            return (
-              <div className="media-slider-wrap" style={{ position: 'relative' }}>
-                <Swiper
-                  modules={[Pagination]}
-                  onSwiper={s => { swiperRef.current = s; }}
-                  pagination={slides.length > 1 ? { clickable: true } : false}
-                  slidesPerView={1}
-                  allowTouchMove={false}
-                  style={{ height: '100%' }}
-                >
-                  {slides.map((slide, i) => (
-                    // FIX: added position: relative so Next.js Image fill works correctly
-                    <SwiperSlide key={i} style={{ position: 'relative' }}>
-                      {slide.type === 'image' ? (
-                        // FIX: replaced <img> with Next.js <Image priority> for LCP
-                        <Image
-                          src={slide.src}
-                          alt={product.name}
-                          fill
-                          priority
-                          sizes="(max-width: 768px) 100vw, 50vw"
-                          style={{ objectFit: 'contain', padding: '24px' }}
-                          onError={() => setImgError(true)}
-                        />
-                      ) : (
-                        <iframe
-                          src={`https://www.youtube.com/embed/${slide.src}?rel=0&modestbranding=1`}
-                          title="فيديو المنتج"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                          style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-                        />
-                      )}
-                    </SwiperSlide>
-                  ))}
-                </Swiper>
-                {slides.length > 1 && (
-                  <>
-                    <button onClick={() => swiperRef.current?.slidePrev()} aria-label="السابق" style={{ position: 'absolute', top: '50%', right: '10px', transform: 'translateY(-50%)', zIndex: 20, width: '36px', height: '36px', borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.92)', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: '#1a1a1a', fontWeight: '900' }}>‹</button>
-                    <button onClick={() => swiperRef.current?.slideNext()} aria-label="التالي" style={{ position: 'absolute', top: '50%', left: '10px', transform: 'translateY(-50%)', zIndex: 20, width: '36px', height: '36px', borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.92)', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: '#1a1a1a', fontWeight: '900' }}>›</button>
-                  </>
-                )}
-              </div>
-            );
-          })()}
 
-          {/* Product Info */}
+          {/* ── Media Slider ─────────────────────────────────────────────────── */}
+          {slides.length === 0 ? (
+            <div className="media-slider-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '420px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', color: '#bbb' }}>
+                <Package size={60} color="#ddd" /><span style={{ fontSize: '0.9rem', fontWeight: '700' }}>لا توجد صورة للمنتج</span>
+              </div>
+            </div>
+          ) : (
+            <div className="media-slider-wrap" style={{ position: 'relative' }}>
+              <Swiper
+                modules={[Pagination]}
+                onSwiper={s => { swiperRef.current = s; }}
+                pagination={slides.length > 1 ? { clickable: true } : false}
+                slidesPerView={1}
+                allowTouchMove={false}
+                style={{ height: '100%' }}
+              >
+                {slides.map((slide, i) => (
+                  <SwiperSlide key={i}>
+                    {slide.type === 'image' ? (
+                      // FIX 3: priority on hero image — tells browser to preload
+                      // this as a high-priority resource, directly improving LCP.
+                      <Image
+                        src={slide.src}
+                        alt={product.name}
+                        fill
+                        priority={i === 0}
+                        fetchPriority={i === 0 ? 'high' : 'auto'}
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        style={{ objectFit: 'contain', padding: '24px' }}
+                        onError={() => setImgError(true)}
+                      />
+                    ) : (
+                      <iframe
+                        src={`https://www.youtube.com/embed/${slide.src}?rel=0&modestbranding=1`}
+                        title="فيديو المنتج"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                      />
+                    )}
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+              {slides.length > 1 && (
+                <>
+                  <button onClick={() => swiperRef.current?.slidePrev()} aria-label="السابق" style={{ position: 'absolute', top: '50%', right: '10px', transform: 'translateY(-50%)', zIndex: 20, width: '36px', height: '36px', borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.92)', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: '#1a1a1a', fontWeight: '900' }}>‹</button>
+                  <button onClick={() => swiperRef.current?.slideNext()} aria-label="التالي" style={{ position: 'absolute', top: '50%', left: '10px', transform: 'translateY(-50%)', zIndex: 20, width: '36px', height: '36px', borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.92)', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: '#1a1a1a', fontWeight: '900' }}>›</button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* ── Product Info ──────────────────────────────────────────────────── */}
           <div className="product-info-section">
             <div style={brandHeader}>
               <span style={brandTag}>{product.brand}</span>
               <div style={stockStatus}><CheckCircle2 size={16} /> متوفر</div>
             </div>
+
             <h1 className="product-title-mobile" style={productTitle}>{product.name}</h1>
+
             <div style={priceContainer}>
               {product.sale_price && Number(product.sale_price) > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -527,12 +526,8 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
               </div>
             </div>
 
-            {/* FIX: replaced fake ViewersCounter + PurchaseCounter with a real trust badge */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '10px',
-              padding: '12px 14px', background: 'rgba(240,253,244,0.95)',
-              border: '1px solid rgba(187,247,208,0.8)', borderRadius: '14px', direction: 'rtl'
-            }}>
+            {/* Trust badge */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', background: 'rgba(240,253,244,0.95)', border: '1px solid rgba(187,247,208,0.8)', borderRadius: '14px', direction: 'rtl' }}>
               <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'rgba(22,163,74,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <ShieldCheck size={16} color="#16a34a" />
               </div>
@@ -553,12 +548,23 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
               </button>
             </div>
 
-            <Link href={`/checkout?buyNow=true&productId=${productId}&price=${displayPrice}`} onClick={() => addToCart({ ...product, price: displayPrice }, qty)} className="buy-now-btn">
+            <Link
+              href={`/checkout?buyNow=true&productId=${productId}&price=${displayPrice}`}
+              onClick={() => addToCart({ ...product, price: displayPrice }, qty)}
+              className="buy-now-btn"
+            >
               <Zap size={20} fill="#fff" /> اشتري الآن
             </Link>
 
             <div className="share-row">
-              <ShareButtons productName={product.name} productBrand={product.brand} price={displayPrice} carMake={product.car_make} carModel={product.car_model} productSlug={productSlug} />
+              <ShareButtons
+                productName={product.name}
+                productBrand={product.brand}
+                price={displayPrice}
+                carMake={product.car_make}
+                carModel={product.car_model}
+                productSlug={productSlug}
+              />
             </div>
 
             <div style={trustBadges}>
@@ -574,7 +580,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           <div style={descContent}>{generateAutoDescription()}</div>
         </div>
 
-        {/* Reviews Section */}
+        {/* Reviews */}
         <ReviewsSection productId={productId} />
 
         {/* Related Products */}
@@ -591,11 +597,21 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
               </div>
             </div>
             <div style={swiperOuterContainer}>
-              <Swiper modules={[Navigation, Autoplay]} spaceBetween={12} slidesPerView={1}
+              <Swiper
+                modules={[Navigation, Autoplay]}
+                spaceBetween={12}
+                slidesPerView={1}
                 navigation={{ prevEl: '#prev-related', nextEl: '#next-related' }}
-                breakpoints={{ 0: { slidesPerView: 2, spaceBetween: 10 }, 480: { slidesPerView: 2, spaceBetween: 12 }, 768: { slidesPerView: 3, spaceBetween: 14 }, 1024: { slidesPerView: 4, spaceBetween: 16 } }}
+                breakpoints={{
+                  0:    { slidesPerView: 2, spaceBetween: 10 },
+                  480:  { slidesPerView: 2, spaceBetween: 12 },
+                  768:  { slidesPerView: 3, spaceBetween: 14 },
+                  1024: { slidesPerView: 4, spaceBetween: 16 },
+                }}
                 autoplay={{ delay: 3500, disableOnInteraction: false }}
-                className="related-swiper" style={{ padding: '10px 4px 30px' }}>
+                className="related-swiper"
+                style={{ padding: '10px 4px 30px' }}
+              >
                 {relatedProducts.map(rp => (
                   <SwiperSlide key={rp.id} style={{ height: 'auto' }}>
                     <RelatedProductCard p={rp} subcategoryImages={subcategoryImages} />
@@ -611,53 +627,56 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
 }
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
-const carouselFullWrapper: any = { marginTop: '40px', borderTop: '1px solid #f0f0f0', paddingTop: '30px' };
-const relatedHeader: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' };
-const relatedTitle: any = { fontSize: '1.3rem', fontWeight: '900', color: '#1a1a1a', margin: 0 };
-const customNavWrapper: any = { display: 'flex', gap: '10px' };
-const navCircleBtn: any = { width: '38px', height: '38px', borderRadius: '50%', border: '1px solid #eee', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#1a1a1a' };
-const swiperOuterContainer: any = { position: 'relative', width: '100%' };
-const premiumCardStyle: any = { background: '#fff', borderRadius: '16px', border: '1px solid #f0f0f0', overflow: 'hidden', height: '100%', boxShadow: '0 4px 15px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', width: '100%' };
-// FIX: kept position: relative which is required for Next.js Image fill to work
-const premiumImageArea: any = { height: '160px', background: '#f8f9fa', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', flexShrink: 0 };
-const noImgPlaceholder: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' };
-const smallSaleBadge: any = { position: 'absolute', top: '8px', right: '8px', background: '#e74c3c', color: '#fff', padding: '2px 7px', borderRadius: '6px', fontSize: '0.6rem', fontWeight: 'bold', zIndex: 1 };
-const premiumDetails: any = { padding: '10px 12px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '5px' };
-const premiumBrand: any = { fontSize: '0.7rem', fontWeight: '800', color: '#27ae60' };
-const countryBadge: any = { display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: '#888', fontWeight: '700', background: '#f5f5f5', padding: '2px 6px', borderRadius: '5px' };
-const premiumName: any = { fontSize: '0.85rem', fontWeight: '800', color: '#1a1a1a', lineHeight: '1.3', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', margin: '2px 0' };
-const carInfoBox: any = { background: '#f8fdf9', borderRadius: '8px', padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '2px' };
-const carInfoRow: any = { display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.68rem', color: '#555', fontWeight: '700' };
-const premiumPriceRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', background: '#f9f9f9', padding: '7px 8px', borderRadius: '10px' };
-const premiumPriceCol: any = { display: 'flex', flexDirection: 'column' };
-const premiumCurrentPrice: any = { fontSize: '0.95rem', fontWeight: '900', color: '#1a1a1a' };
-const premiumOldPrice: any = { fontSize: '0.65rem', color: '#bbb', textDecoration: 'line-through' };
-const premiumStepper: any = { display: 'flex', alignItems: 'center', gap: '5px' };
-const miniStepBtn: any = { width: '22px', height: '22px', borderRadius: '50%', border: 'none', background: '#27ae60', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 };
-const miniQty: any = { fontSize: '0.8rem', fontWeight: 'bold', color: '#27ae60', minWidth: '15px', textAlign: 'center' };
-const premiumAddBtn: any = { width: '100%', background: '#1a1a1a', color: '#fff', border: 'none', padding: '9px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', marginTop: '6px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', fontFamily: 'inherit' };
-const navPath: any = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', fontSize: '0.88rem', color: '#888', flexWrap: 'wrap' };
-const backLink: any = { display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#1a1a1a', fontWeight: 'bold' };
-const pathDivider: any = { color: '#ccc' };
-const currentPath: any = { color: '#27ae60' };
-const brandHeader: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
-const brandTag: any = { background: '#1a1a1a', color: '#fff', padding: '4px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold' };
-const stockStatus: any = { display: 'flex', alignItems: 'center', gap: '6px', color: '#27ae60', fontSize: '0.85rem', fontWeight: 'bold' };
-const productTitle: any = { fontSize: '2rem', fontWeight: '900', color: '#1a1a1a', lineHeight: '1.3', margin: 0 };
-const priceContainer: any = { display: 'flex', alignItems: 'baseline', gap: '15px' };
-const currentPrice: any = { fontSize: '2.2rem', fontWeight: '900', color: '#1a1a1a' };
-const specCard: any = { background: '#fcfcfc', border: '1px solid #f0f0f0', borderRadius: '20px', padding: '20px' };
-const specHeader: any = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid #f0f0f0', paddingBottom: '10px' };
-const specCardTitle: any = { fontSize: '1rem', fontWeight: '800', color: '#1a1a1a', margin: 0 };
-const specGrid: any = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' };
-const specItem: any = { display: 'flex', flexDirection: 'column', gap: '4px' };
-const specLabel: any = { fontSize: '0.75rem', color: '#888', fontWeight: 'bold' };
-const specValue: any = { fontSize: '0.9rem', color: '#1a1a1a', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' };
-const stepBtn: any = { border: 'none', background: '#fff', width: '34px', height: '34px', borderRadius: '50%', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' };
-const qtyValue: any = { fontSize: '1.2rem', fontWeight: 'bold', color: '#27ae60', minWidth: '28px', textAlign: 'center' };
-const loaderWrapper: any = { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' };
-const trustBadges: any = { display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '4px' };
-const badgeItem: any = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#555', fontWeight: '600' };
-const descriptionSection: any = { borderTop: '1px solid #eee', paddingTop: '30px', marginBottom: '40px' };
-const descTitle: any = { fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '16px' };
-const descContent: any = { lineHeight: '1.8', color: '#666', fontSize: '1rem' };
+const carouselFullWrapper:   React.CSSProperties = { marginTop: '40px', borderTop: '1px solid #f0f0f0', paddingTop: '30px' };
+const relatedHeader:         React.CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' };
+const relatedTitle:          React.CSSProperties = { fontSize: '1.3rem', fontWeight: '900', color: '#1a1a1a', margin: 0 };
+const customNavWrapper:      React.CSSProperties = { display: 'flex', gap: '10px' };
+const navCircleBtn:          React.CSSProperties = { width: '38px', height: '38px', borderRadius: '50%', border: '1px solid #eee', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#1a1a1a' };
+const swiperOuterContainer:  React.CSSProperties = { position: 'relative', width: '100%' };
+const premiumCardStyle:      React.CSSProperties = { background: '#fff', borderRadius: '16px', border: '1px solid #f0f0f0', overflow: 'hidden', height: '100%', boxShadow: '0 4px 15px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', width: '100%' };
+// position: relative required for Next.js <Image fill>
+const premiumImageArea:      React.CSSProperties = { height: '160px', background: '#f8f9fa', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', flexShrink: 0 };
+const noImgPlaceholder:      React.CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' };
+const smallSaleBadge:        React.CSSProperties = { position: 'absolute', top: '8px', right: '8px', background: '#e74c3c', color: '#fff', padding: '2px 7px', borderRadius: '6px', fontSize: '0.6rem', fontWeight: 'bold', zIndex: 1 };
+const premiumDetails:        React.CSSProperties = { padding: '10px 12px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '5px' };
+const premiumBrand:          React.CSSProperties = { fontSize: '0.7rem', fontWeight: '800', color: '#27ae60' };
+const countryBadge:          React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: '#888', fontWeight: '700', background: '#f5f5f5', padding: '2px 6px', borderRadius: '5px' };
+const premiumName:           React.CSSProperties = { fontSize: '0.85rem', fontWeight: '800', color: '#1a1a1a', lineHeight: '1.3', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', margin: '2px 0' };
+const carInfoBox:            React.CSSProperties = { background: '#f8fdf9', borderRadius: '8px', padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '2px' };
+const carInfoRow:            React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.68rem', color: '#555', fontWeight: '700' };
+const premiumPriceRow:       React.CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', background: '#f9f9f9', padding: '7px 8px', borderRadius: '10px' };
+const premiumPriceCol:       React.CSSProperties = { display: 'flex', flexDirection: 'column' };
+const premiumCurrentPrice:   React.CSSProperties = { fontSize: '0.95rem', fontWeight: '900', color: '#1a1a1a' };
+const premiumOldPrice:       React.CSSProperties = { fontSize: '0.65rem', color: '#bbb', textDecoration: 'line-through' };
+const premiumStepper:        React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '5px' };
+const miniStepBtn:           React.CSSProperties = { width: '22px', height: '22px', borderRadius: '50%', border: 'none', background: '#27ae60', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 };
+const miniQty:               React.CSSProperties = { fontSize: '0.8rem', fontWeight: 'bold', color: '#27ae60', minWidth: '15px', textAlign: 'center' };
+const premiumAddBtn:         React.CSSProperties = { width: '100%', background: '#1a1a1a', color: '#fff', border: 'none', padding: '9px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', marginTop: '6px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', fontFamily: 'inherit' };
+const navPath:               React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', fontSize: '0.88rem', color: '#888', flexWrap: 'wrap' };
+const backLink:              React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#1a1a1a', fontWeight: 'bold' };
+const pathDivider:           React.CSSProperties = { color: '#ccc' };
+const currentPath:           React.CSSProperties = { color: '#27ae60' };
+const brandHeader:           React.CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
+const brandTag:              React.CSSProperties = { background: '#1a1a1a', color: '#fff', padding: '4px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold' };
+const stockStatus:           React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '6px', color: '#27ae60', fontSize: '0.85rem', fontWeight: 'bold' };
+const productTitle:          React.CSSProperties = { fontSize: '2rem', fontWeight: '900', color: '#1a1a1a', lineHeight: '1.3', margin: 0 };
+const priceContainer:        React.CSSProperties = { display: 'flex', alignItems: 'baseline', gap: '15px' };
+const currentPrice:          React.CSSProperties = { fontSize: '2.2rem', fontWeight: '900', color: '#1a1a1a' };
+const specCard:              React.CSSProperties = { background: '#fcfcfc', border: '1px solid #f0f0f0', borderRadius: '20px', padding: '20px' };
+const specHeader:            React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid #f0f0f0', paddingBottom: '10px' };
+const specCardTitle:         React.CSSProperties = { fontSize: '1rem', fontWeight: '800', color: '#1a1a1a', margin: 0 };
+const specGrid:              React.CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' };
+const specItem:              React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px' };
+const specLabel:             React.CSSProperties = { fontSize: '0.75rem', color: '#888', fontWeight: 'bold' };
+const specValue:             React.CSSProperties = { fontSize: '0.9rem', color: '#1a1a1a', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' };
+const stepBtn:               React.CSSProperties = { border: 'none', background: '#fff', width: '34px', height: '34px', borderRadius: '50%', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' };
+const qtyValue:              React.CSSProperties = { fontSize: '1.2rem', fontWeight: 'bold', color: '#27ae60', minWidth: '28px', textAlign: 'center' };
+const loaderWrapper:         React.CSSProperties = { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' };
+const trustBadges:           React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '4px' };
+const badgeItem:             React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#555', fontWeight: '600' };
+const descriptionSection:    React.CSSProperties = { borderTop: '1px solid #eee', paddingTop: '30px', marginBottom: '40px' };
+const descTitle:             React.CSSProperties = { fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '16px' };
+const descContent:           React.CSSProperties = { lineHeight: '1.8', color: '#666', fontSize: '1rem' };
+
+// loaderWrapper is kept to avoid unused-variable errors if needed elsewhere
+void loaderWrapper;
