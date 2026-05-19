@@ -219,6 +219,7 @@ function GooglePlayBanner() {
           }}
         >✕</button>
 
+      </div>
     </motion.div>
   );
 }
