@@ -582,7 +582,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                 <div style={specItem}><span style={specLabel}>المنشأ</span><span style={specValue}><Globe size={14} /> {product.country_of_origin || 'أصلي'}</span></div>
                 <div style={specItem}><span style={specLabel}>القسم</span><span style={specValue}>{product.category}</span></div>
                 <div style={specItem}><span style={specLabel}>القسم الفرعي</span><span style={specValue}>{product.subcategory || '-'}</span></div>
-                <div style={specItem}><span style={specLabel}>الضمان</span><span style={specValue}><Timer size={14} /> {product.warranty_duration || 'ضمان استبدال'}</span></div>
+                <div style={specItem}><span style={specLabel}>الضمان</span><span style={specValue}><Timer size={14} /> {product.warranty || product.warranty_duration || 'ضمان استبدال'}</span></div>
               </div>
             </div>
 

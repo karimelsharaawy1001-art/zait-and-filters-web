@@ -390,6 +390,21 @@ function buildShoppingTitle(product: any): string {
     .slice(0, 70);
 }
 
+// Expand year range like "2011-2017" into individual years ["2011","2012",...,"2017"]
+function expandYearRange(yearStr: string): string[] {
+  if (!yearStr) return [];
+  const match = yearStr.match(/(\d{4})\s*[-–]\s*(\d{4})/);
+  if (match) {
+    const start = parseInt(match[1]);
+    const end = parseInt(match[2]);
+    const years: string[] = [];
+    for (let y = start; y <= end; y++) years.push(String(y));
+    return years;
+  }
+  // Single year or unrecognized format — return as-is
+  return [yearStr.trim()].filter(Boolean);
+}
+
 function buildKeywords(product: any): string[] {
   const brand = product.brand || '';
   const isUniversal = !product.car_make || product.car_make === 'UNIVERSAL';
@@ -397,6 +412,12 @@ function buildKeywords(product: any): string[] {
   const model = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model : '';
   const carEn = isUniversal ? '' : (product.car_make || '');
   const sub = product.subcategory || '';
+  const years = expandYearRange(product.car_model_year || '');
+  const yearKeywords = years.flatMap(yr => [
+    `${product.name} ${brand} ${carAr} ${model} ${yr}`.trim(),
+    `${product.subcategory || product.name} ${brand} ${carAr} ${yr}`.trim(),
+    `${product.subcategory || product.name} ${carAr} ${model} ${yr}`.trim(),
+  ]);
 
   const universalKeywords = isUniversal ? [
     `${product.name} سعر`,
@@ -855,6 +876,7 @@ function buildKeywords(product: any): string[] {
     'قطع غيار سيارات مصر', 'متجر قطع غيار اونلاين مصر',
     'شحن قطع غيار لباب البيت', 'قطع غيار اصلية مصر',
     product.sku,
+    ...yearKeywords,
     ...universalKeywords, ...oilKeywords, ...gearOilKeywords, ...sparkKeywords,
     ...brakeFluidKeywords, ...drumKeywords, ...shockKeywords, ...beltKeywords,
     ...fuelPumpKeywords, ...sensorKeywords, ...tireKeywords, ...cabinFilterKeywords,
