@@ -248,92 +248,20 @@ function buildDescription(product: any): string {
 function buildTitle(product: any): string {
   const brand = product.brand || '';
   const isUniversal = !product.car_make || product.car_make === 'UNIVERSAL';
-  const sub = product.subcategory || '';
   const carAr = isUniversal ? '' : (CAR_MAKE_AR[product.car_make] || product.car_make || '');
   const model = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model : '';
   const year = product.car_model_year || '';
   const origin = product.country_of_origin || '';
-
-  const carParts = [carAr, model, year].filter(Boolean).join(' ');
-  const carSuffix = carParts ? ` لسيارة ${carParts}` : '';
-  const originSuffix = origin ? ` - ${origin}` : '';
   const siteName = ' | زيت أند فلترز';
 
-  const subLabel: Record<string, Record<string, string>> = {
-    'زيوت موتور': { default: 'زيت موتور' },
-    'زيوت فتيس و دبرياج و باور': { default: 'زيت' },
-    'إطارات': { default: 'إطار' },
-    'مساحات': { default: 'مساحة' },
-    'جوانات و أويل سيل': { default: 'جوانات وأويل سيل' },
-    'فلاتر': {
-      'فلتر زيت': 'فلتر زيت', 'فلتر الزيت': 'فلتر زيت',
-      'فلتر هواء': 'فلتر هواء',
-      'فلتر تكييف': 'فلتر تكييف', 'فلتر كابينة': 'فلتر تكييف',
-      'فلتر بنزين': 'فلتر بنزين', 'فتر بنزين': 'فلتر بنزين',
-      default: sub,
-    },
-    'الفرامل': {
-      'تيل فرامل': 'تيل فرامل', 'تيل امامي': 'تيل فرامل أمامي',
-      'تيل خلفي': 'تيل فرامل خلفي', 'طنابير': 'طنابير فرامل',
-      'ماستر فرامل': 'ماستر فرامل', 'ماستر عجل': 'ماستر عجل',
-      default: sub,
-    },
-    'عفشة': {
-      'مساعدين و صدادات': 'مساعدين', 'بلية عجل': 'بلية عجل',
-      'مقصات كاملة': 'مقصات', 'جلب و بيض مقصات': 'بيض مقصات',
-      'بارات': 'بارات عفشة', 'بطاحات و بلي بطاحات': 'بطاحات',
-      'قواعد و شدادات': 'قاعدة موتور', 'كبالن و كاوتش كوبلن': 'كبالن و كوبلن',
-      'تيش ميزان و مسامير ميزان': 'تيش ميزان',
-      default: sub,
-    },
-    'سيور و بلي': {
-      'سير مجموعة': 'سير مجموعة', 'سير دينامو': 'سير دينامو',
-      'سير تكييف': 'سير تكييف',
-      'سير كاتينة': 'طقم كاتينة', 'طقم كاتينة كامل': 'طقم كاتينة',
-      'بلية كاتينة': 'بلية كاتينة', 'سيور': 'سيور',
-      'بلي و شدادات': 'بلي وشداد سير',
-      default: sub,
-    },
-    'دورة تبريد و تكييف': {
-      'طلمبات مياه': 'طلمبة مياه', 'ردياتير': 'ردياتير',
-      'كوعة و ثرموستات': 'كوعة مياه وثرموستات',
-      'سربنتينة تكييف': 'سربنتينة تكييف',
-      'زيت تبريد': 'كولانت', 'تيل تبريد': 'كولانت', 'كولانت': 'كولانت',
-      'خراطيم و مواسير تبريد': 'خراطيم تبريد',
-      default: sub,
-    },
-    'دورة البنزين': {
-      'طلمبة بنزين': 'طلمبة بنزين', 'قلب طلمبة بنزين': 'قلب طلمبة بنزين',
-      'عوامة بنزين': 'عوامة بنزين',
-      default: 'طلمبة بنزين',
-    },
-    'بوجيهات و سلوك بوجيهات و موبينة': {
-      'بوجيهات': 'بوجيهات', 'موبينة': 'موبينة',
-      default: sub,
-    },
-    'حساسات و قطع كهربائية': { default: sub },
-    'مستلزمات عمرة موتور': {
-      'طقم بستم': 'طقم بستم', 'عامود كامة': 'عامود كامة',
-      default: sub,
-    },
-    'دبرياج و قطع فتيس': {
-      'ديسك': 'ديسك دبرياج', 'اسطوانة': 'اسطوانة دبرياج',
-      'بلية دبرياج': 'بلية دبرياج', 'ماستر علوي': 'ماستر دبرياج علوي',
-      'ماستر سفلي': 'ماستر دبرياج سفلي',
-      default: sub || 'دبرياج',
-    },
-    'قطع الموتور و ملحقاته': { default: sub || product.name },
-  };
+  const carParts = [carAr, model, year].filter(Boolean).join(' ');
+  const originSuffix = origin ? ` - ${origin}` : '';
 
-  const cat = product.category || '';
-
-  if (cat === 'حساسات و قطع كهربائية' && sub === 'حساسات') {
-    const { ar: sensorAr } = getSensorLabel(product);
-    const sensorLabel = product.name && product.name.trim() ? product.name.trim() : sensorAr;
-    return `${sensorLabel} ${brand}${carSuffix}${originSuffix}${siteName}`;
-  }
-
-  return `${product.name} ${brand}${carSuffix}${originSuffix}${siteName}`;
+  return [product.name, brand, carParts, originSuffix]
+    .filter(Boolean)
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim() + siteName;
 }
 
 // ============================================================
@@ -341,40 +269,13 @@ function buildTitle(product: any): string {
 // ============================================================
 function buildShoppingTitle(product: any): string {
   const brand = product.brand || '';
-  const sub = product.subcategory || '';
-  const cat = product.category || '';
   const isUniversal = !product.car_make || product.car_make === 'UNIVERSAL';
-  const carAr = isUniversal ? '' : (CAR_MAKE_AR[product.car_make] || '');
-  const model = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model || '' : '';
-
-  const CATEGORY_PREFIX: Record<string, string> = {
-    'زيوت موتور': 'زيت موتور',
-    'زيوت فتيس و دبرياج و باور': 'زيت',
-    'إطارات': 'إطار',
-    'بوجيهات و سلوك بوجيهات و موبينة': 'بوجيهات',
-    'حساسات و قطع كهربائية': 'حساس',
-    'سيور و بلي': 'سير',
-    'دورة البنزين': 'طلمبة بنزين',
-    'دورة تبريد و تكييف': '',
-    'الفرامل': '',
-    'عفشة': '',
-    'فلاتر': '',
-    'مساحات': 'مساحة',
-    'جوانات و أويل سيل': 'جوان',
-    'مستلزمات عمرة موتور': '',
-    'قطع الموتور و ملحقاته': '',
-    'دبرياج و قطع فتيس': '',
-  };
-
-  const prefix = CATEGORY_PREFIX[cat] ?? '';
+  const carAr = isUniversal ? '' : (CAR_MAKE_AR[product.car_make] || product.car_make || '');
+  const model = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model : '';
   const year = product.car_model_year || '';
   const origin = product.country_of_origin || '';
 
-  const productLabel = (cat === 'حساسات و قطع كهربائية' && sub === 'حساسات' && product.name)
-    ? product.name.trim()
-    : (sub || product.name);
-
-  return [prefix, brand, productLabel, carAr, model, year, origin]
+  return [product.name, brand, carAr, model, year, origin]
     .filter(Boolean)
     .join(' ')
     .replace(/\s+/g, ' ')
@@ -928,80 +829,40 @@ function ProductImagePreload({ imageUrl }: { imageUrl: string }) {
 // ProductDetailsClient will occupy, preventing CLS from the
 // content popping in after hydration.
 // ============================================================
+// Replace ProductPageSkeleton entirely
 function ProductPageSkeleton() {
   return (
-    <div
-      style={{
-        minHeight: '80vh',
-        width: '100%',
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '2rem',
-        padding: '2rem',
-        boxSizing: 'border-box',
-      }}
-      aria-hidden="true"
-    >
-      {/* Image column */}
-      <div
-        style={{
-          aspectRatio: '1 / 1',
-          background: 'var(--skeleton-bg, #e5e7eb)',
-          borderRadius: '0.75rem',
-          animation: 'pulse 1.5s ease-in-out infinite',
-        }}
-      />
-      {/* Info column */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {[80, 60, 40, 40, 30].map((w, i) => (
-          <div
-            key={i}
-            style={{
-              height: i === 0 ? '2rem' : '1rem',
-              width: `${w}%`,
-              background: 'var(--skeleton-bg, #e5e7eb)',
-              borderRadius: '0.5rem',
-              animation: 'pulse 1.5s ease-in-out infinite',
-              animationDelay: `${i * 80}ms`,
-            }}
-          />
-        ))}
-        {/* Price placeholder */}
-        <div
-          style={{
-            height: '2.5rem',
-            width: '40%',
-            background: 'var(--skeleton-bg, #e5e7eb)',
-            borderRadius: '0.5rem',
-            marginTop: '1rem',
-            animation: 'pulse 1.5s ease-in-out infinite',
-          }}
-        />
-        {/* Button placeholder */}
-        <div
-          style={{
-            height: '3rem',
-            width: '60%',
-            background: 'var(--skeleton-bg, #d1d5db)',
-            borderRadius: '0.5rem',
-            marginTop: '0.5rem',
-            animation: 'pulse 1.5s ease-in-out infinite',
-          }}
-        />
-      </div>
+    <>
       <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
+        .skeleton-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 2rem;
+          padding: 20px 16px;
+          max-width: 1200px;
+          margin: 0 auto;
+          box-sizing: border-box;
         }
-        @media (max-width: 640px) {
-          /* Stack skeleton columns on mobile to match real layout */
-          [aria-hidden="true"] {
-            grid-template-columns: 1fr !important;
-          }
+        @media (max-width: 768px) {
+          .skeleton-grid { grid-template-columns: 1fr !important; gap: 12px !important; padding: 10px 10px !important; }
         }
       `}</style>
-    </div>
+      <div className="skeleton-grid" aria-hidden="true">
+        {/* Image */}
+        <div style={{ aspectRatio: '1/1', background: '#e5e7eb', borderRadius: '24px', animation: 'pulse 1.5s ease-in-out infinite' }} />
+        {/* Info */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ height: '28px', width: '30%', background: '#e5e7eb', borderRadius: '8px', animation: 'pulse 1.5s ease-in-out infinite' }} />
+          <div style={{ height: '36px', width: '85%', background: '#e5e7eb', borderRadius: '8px', animation: 'pulse 1.5s ease-in-out infinite', animationDelay: '80ms' }} />
+          <div style={{ height: '36px', width: '60%', background: '#e5e7eb', borderRadius: '8px', animation: 'pulse 1.5s ease-in-out infinite', animationDelay: '100ms' }} />
+          <div style={{ height: '20px', width: '40%', background: '#e5e7eb', borderRadius: '8px', animation: 'pulse 1.5s ease-in-out infinite', animationDelay: '120ms' }} />
+          <div style={{ height: '120px', width: '100%', background: '#f3f4f6', borderRadius: '20px', animation: 'pulse 1.5s ease-in-out infinite', animationDelay: '140ms' }} />
+          <div style={{ height: '48px', width: '100%', background: '#e5e7eb', borderRadius: '12px', marginTop: '8px', animation: 'pulse 1.5s ease-in-out infinite', animationDelay: '160ms' }} />
+          <div style={{ height: '48px', width: '100%', background: '#f59e0b22', borderRadius: '12px', animation: 'pulse 1.5s ease-in-out infinite', animationDelay: '180ms' }} />
+        </div>
+      </div>
+    </>
   );
 }
 
