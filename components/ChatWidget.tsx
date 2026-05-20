@@ -35,7 +35,7 @@ export default function ChatWidget() {
       `}</style>
 
       <a
-        href="https://wa.me/201023862436"
+        href="https://wa.me/201206777292?text=مرحبًا%20،%20أود%20الحصول%20على%20مزيد%20من%20المعلومات%20حول%20خدماتكم."
         target="_blank"
         rel="noopener noreferrer"
         aria-label="تواصل معنا على واتساب"
