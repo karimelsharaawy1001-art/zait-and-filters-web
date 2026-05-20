@@ -518,7 +518,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           {/* ── Media Slider ─────────────────────────────────────────────────── */}
           {slides.length === 0 ? (
             <div className="media-slider-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '420px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', color: '#bbb' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', color: '#f9f9f9' }}>
                 <Package size={60} color="#ddd" /><span style={{ fontSize: '0.9rem', fontWeight: '700' }}>لا توجد صورة للمنتج</span>
               </div>
             </div>
@@ -542,7 +542,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                         priority={i === 0}
                         fetchPriority={i === 0 ? 'high' : 'auto'}
                         sizes="(max-width: 768px) 100vw, 50vw"
-                        style={{ objectFit: 'contain', padding: '24px' }}
+                        style={{ objectFit: 'contain', padding: '8px' }}
                         onError={() => setImgError(true)}
                       />
                     ) : (
