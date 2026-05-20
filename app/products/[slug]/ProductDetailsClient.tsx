@@ -454,7 +454,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
   return (
     <>
       <style>{`
-        .product-page-wrapper { max-width: 1200px; margin: 0 auto; padding: 20px 16px 60px; direction: rtl; background-color: #fff; min-height: 100vh; }
+        .product-page-wrapper { max-width: 1200px; margin: 0 auto; padding: 20px 16px 60px; direction: rtl; background-color: #f9f9f9; min-height: 100vh; }
         .product-main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; margin-bottom: 50px; }
         .media-slider-wrap { border-radius: 24px; border: 1px solid #f0f0f0; overflow: hidden; background: #f9f9f9; position: relative; height: 420px; }
         .media-slider-wrap .swiper { height: 420px; }
