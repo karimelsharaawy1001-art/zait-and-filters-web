@@ -251,109 +251,96 @@ function buildTitle(product: any): string {
   const sub = product.subcategory || '';
   const carAr = isUniversal ? '' : (CAR_MAKE_AR[product.car_make] || product.car_make || '');
   const model = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model : '';
-  const carPhrase = [carAr, model].filter(Boolean).join(' ');
-  const carSuffix = carPhrase ? ` لسيارة ${carPhrase}` : '';
+  const year = product.car_model_year || '';
+  const origin = product.country_of_origin || '';
 
-  if (product.category === 'زيوت موتور') return `زيت موتور ${brand} ${sub} - أفضل سعر في مصر | زيت أند فلترز`;
-  if (product.category === 'زيوت فتيس و دبرياج و باور') return `زيت ${sub} ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-  if (product.category === 'بوجيهات و سلوك بوجيهات و موبينة') {
-    if (sub === 'بوجيهات') return `بوجيهات ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'موبينة') return `موبينة ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    return `${sub} ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-  }
-  if (product.category === 'الفرامل') {
-    if (sub === 'تيل فرامل') return `تيل فرامل ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'طنابير') return `طنابير فرامل ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'ماستر فرامل') return `ماستر فرامل ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'تيل امامي') return `تيل فرامل أمامي ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'تيل خلفي') return `تيل فرامل خلفي ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    return `${sub} ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-  }
-  if (product.category === 'عفشة') {
-    if (sub === 'مساعدين و صدادات') return `مساعدين ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'بلية عجل') return `بلية عجل ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'مقصات كاملة') return `مقصات ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'جلب و بيض مقصات') return `بيض مقصات ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'بارات') return `بارات عفشة ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'بطاحات و بلي بطاحات') return `بطاحات ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'قواعد و شدادات') return `قاعدة موتور ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'كبالن و كاوتش كوبلن') return `كبالن و كوبلن ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'تيش ميزان و مسامير ميزان') return `تيش ميزان ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    return `${sub} ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-  }
-  if (product.category === 'سيور و بلي') {
-    if (sub === 'سير مجموعة') return `سير مجموعة ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'سير دينامو') return `سير دينامو ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'سير كاتينة' || sub === 'طقم كاتينة كامل') return `سير كاتينة ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'سيور') return `سيور ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'بلي و شدادات') return `بلي وشداد سير ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    return `${sub} ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-  }
-  if (product.category === 'دورة البنزين') return `طلمبة بنزين ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-  if (product.category === 'حساسات و قطع كهربائية' && sub === 'حساسات') {
+  // Build the car phrase: make + model + year
+  const carParts = [carAr, model, year].filter(Boolean).join(' ');
+  const carSuffix = carParts ? ` لسيارة ${carParts}` : '';
+  const originSuffix = origin ? ` - ${origin}` : '';
+  const siteName = ' | زيت أند فلترز';
+
+  // Map subcategory to Arabic label per category
+  const subLabel: Record<string, Record<string, string>> = {
+    'زيوت موتور': { default: 'زيت موتور' },
+    'زيوت فتيس و دبرياج و باور': { default: 'زيت' },
+    'إطارات': { default: 'إطار' },
+    'مساحات': { default: 'مساحة' },
+    'جوانات و أويل سيل': { default: 'جوانات وأويل سيل' },
+    'فلاتر': {
+      'فلتر زيت': 'فلتر زيت', 'فلتر الزيت': 'فلتر زيت',
+      'فلتر هواء': 'فلتر هواء',
+      'فلتر تكييف': 'فلتر تكييف', 'فلتر كابينة': 'فلتر تكييف',
+      'فلتر بنزين': 'فلتر بنزين', 'فتر بنزين': 'فلتر بنزين',
+      default: sub,
+    },
+    'الفرامل': {
+      'تيل فرامل': 'تيل فرامل', 'تيل امامي': 'تيل فرامل أمامي',
+      'تيل خلفي': 'تيل فرامل خلفي', 'طنابير': 'طنابير فرامل',
+      'ماستر فرامل': 'ماستر فرامل', 'ماستر عجل': 'ماستر عجل',
+      default: sub,
+    },
+    'عفشة': {
+      'مساعدين و صدادات': 'مساعدين', 'بلية عجل': 'بلية عجل',
+      'مقصات كاملة': 'مقصات', 'جلب و بيض مقصات': 'بيض مقصات',
+      'بارات': 'بارات عفشة', 'بطاحات و بلي بطاحات': 'بطاحات',
+      'قواعد و شدادات': 'قاعدة موتور', 'كبالن و كاوتش كوبلن': 'كبالن و كوبلن',
+      'تيش ميزان و مسامير ميزان': 'تيش ميزان',
+      default: sub,
+    },
+    'سيور و بلي': {
+      'سير مجموعة': 'سير مجموعة', 'سير دينامو': 'سير دينامو',
+      'سير تكييف': 'سير تكييف',
+      'سير كاتينة': 'طقم كاتينة', 'طقم كاتينة كامل': 'طقم كاتينة',
+      'بلية كاتينة': 'بلية كاتينة', 'سيور': 'سيور',
+      'بلي و شدادات': 'بلي وشداد سير',
+      default: sub,
+    },
+    'دورة تبريد و تكييف': {
+      'طلمبات مياه': 'طلمبة مياه', 'ردياتير': 'ردياتير',
+      'كوعة و ثرموستات': 'كوعة مياه وثرموستات',
+      'سربنتينة تكييف': 'سربنتينة تكييف',
+      'زيت تبريد': 'كولانت', 'تيل تبريد': 'كولانت', 'كولانت': 'كولانت',
+      'خراطيم و مواسير تبريد': 'خراطيم تبريد',
+      default: sub,
+    },
+    'دورة البنزين': {
+      'طلمبة بنزين': 'طلمبة بنزين', 'قلب طلمبة بنزين': 'قلب طلمبة بنزين',
+      'عوامة بنزين': 'عوامة بنزين',
+      default: 'طلمبة بنزين',
+    },
+    'بوجيهات و سلوك بوجيهات و موبينة': {
+      'بوجيهات': 'بوجيهات', 'موبينة': 'موبينة',
+      default: sub,
+    },
+    'حساسات و قطع كهربائية': { default: sub },
+    'مستلزمات عمرة موتور': {
+      'طقم بستم': 'طقم بستم', 'عامود كامة': 'عامود كامة',
+      default: sub,
+    },
+    'دبرياج و قطع فتيس': {
+      'ديسك': 'ديسك دبرياج', 'اسطوانة': 'اسطوانة دبرياج',
+      'بلية دبرياج': 'بلية دبرياج', 'ماستر علوي': 'ماستر دبرياج علوي',
+      'ماستر سفلي': 'ماستر دبرياج سفلي',
+      default: sub || 'دبرياج',
+    },
+    'قطع الموتور و ملحقاته': { default: sub || product.name },
+  };
+
+  const cat = product.category || '';
+
+  // Special case: sensors — use sensor label
+  if (cat === 'حساسات و قطع كهربائية' && sub === 'حساسات') {
     const { ar: sensorAr } = getSensorLabel(product);
-    return `${sensorAr} ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
+    return `${sensorAr} ${brand}${carSuffix}${originSuffix}${siteName}`;
   }
-  if (product.category === 'حساسات و قطع كهربائية') return `${sub} ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-  if (product.category === 'إطارات') return `إطار ${brand} ${sub} - أفضل سعر إطارات في مصر | زيت أند فلترز`;
-  if (product.category === 'فلاتر') {
-    if (sub === 'فلتر تكييف' || sub === 'فلتر كابينة') return `فلتر تكييف ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'فلتر زيت' || sub === 'فلتر الزيت') return `فلتر زيت ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'فلتر هواء') return `فلتر هواء ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'فلتر بنزين' || sub === 'فتر بنزين') return `فلتر بنزين ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    return `${sub} ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-  }
-  if (product.category === 'دورة تبريد و تكييف') {
-    if (sub === 'طلمبات مياه') return `طلمبة مياه ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'ردياتير') return `ردياتير ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'كوعة و ثرموستات') return `كوعة مياه وثرموستات ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'سربنتينة تكييف') return `سربنتينة تكييف ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'زيت تبريد' || sub === 'تيل تبريد' || sub === 'كولانت') return `كولانت ${brand} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'خراطيم و مواسير تبريد') return `خراطيم تبريد ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    return `${sub} ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-  }
-  if (product.category === 'الفرامل') {
-    if (sub === 'تيل فرامل') return `تيل فرامل ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'طنابير') return `طنابير فرامل ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'ماستر فرامل') return `ماستر فرامل ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'ماستر عجل') return `ماستر عجل ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'تيل امامي') return `تيل فرامل أمامي ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'تيل خلفي') return `تيل فرامل خلفي ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    return `${sub} ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-  }
-  if (product.category === 'دبرياج و قطع فتيس') {
-    if (sub === 'ديسك') return `ديسك دبرياج ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'اسطوانة') return `اسطوانة دبرياج ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'بلية دبرياج') return `بلية دبرياج ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'ماستر علوي') return `ماستر دبرياج علوي ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'ماستر سفلي') return `ماستر دبرياج سفلي ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    return `${sub || 'دبرياج'} ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-  }
-  if (product.category === 'دورة البنزين') {
-    if (sub === 'طلمبة بنزين') return `طلمبة بنزين ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'قلب طلمبة بنزين') return `قلب طلمبة بنزين ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'عوامة بنزين') return `عوامة بنزين ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    return `${sub} ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-  }
-  if (product.category === 'سيور و بلي') {
-    if (sub === 'سير مجموعة') return `سير مجموعة ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'سير دينامو') return `سير دينامو ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'سير تكييف') return `سير تكييف ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'سير كاتينة' || sub === 'طقم كاتينة كامل') return `طقم كاتينة ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'بلية كاتينة') return `بلية كاتينة ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'سيور') return `سيور ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'بلي و شدادات') return `بلي وشداد سير ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    return `${sub} ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-  }
-  if (product.category === 'جوانات و أويل سيل') return `جوانات وأويل سيل ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-  if (product.category === 'مستلزمات عمرة موتور') {
-    if (sub === 'طقم بستم') return `طقم بستم ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    if (sub === 'عامود كامة') return `عامود كامة ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-    return `${sub} ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-  }
-  if (product.category === 'قطع الموتور و ملحقاته') return `${sub || product.name} ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-  if (product.category === 'مساحات') return `مساحة ${brand}${carSuffix} - أفضل سعر في مصر | زيت أند فلترز`;
-  return `${product.name} ${brand}${carSuffix} | زيت أند فلترز`;
+
+  const catMap = subLabel[cat];
+  const label = catMap
+    ? (catMap[sub] ?? catMap['default'] ?? sub)
+    : (sub || product.name);
+
+  return `${label} ${brand}${carSuffix}${originSuffix}${siteName}`;
 }
 
 // ============================================================
@@ -392,7 +379,10 @@ function buildShoppingTitle(product: any): string {
 
   const prefix = CATEGORY_PREFIX[cat] ?? '';
 
-  return [prefix, brand, sub || product.name, carAr, model]
+  const year = product.car_model_year || '';
+  const origin = product.country_of_origin || '';
+
+  return [prefix, brand, sub || product.name, carAr, model, year, origin]
     .filter(Boolean)
     .join(' ')
     .replace(/\s+/g, ' ')
@@ -967,10 +957,23 @@ function ProductSchema({ product }: { product: any }) {
     },
   };
 
+  const isUniversal = !product.car_make || product.car_make === 'UNIVERSAL';
+  const schemaCarAr = isUniversal ? '' : (CAR_MAKE_AR[product.car_make] || product.car_make || '');
+  const schemaModel = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model : '';
+  const schemaYear = product.car_model_year || '';
+  const schemaOrigin = product.country_of_origin || '';
+  const schemaCarParts = [schemaCarAr, schemaModel, schemaYear].filter(Boolean).join(' ');
+  const schemaFullName = [
+    product.name,
+    product.brand,
+    schemaCarParts || null,
+    schemaOrigin || null,
+  ].filter(Boolean).join(' - ');
+
   const schema: any = {
     '@context': 'https://schema.org',
     '@type': 'Product',
-    name: product.name,
+    name: schemaFullName,
     description: buildDescription(product),
     image: product.image_url,
     brand: { '@type': 'Brand', name: product.brand },
