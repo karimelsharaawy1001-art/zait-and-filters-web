@@ -329,18 +329,15 @@ function buildTitle(product: any): string {
 
   const cat = product.category || '';
 
-  // Special case: sensors — use sensor label
+  // Special case: sensors — use product name directly + sensor label as fallback
   if (cat === 'حساسات و قطع كهربائية' && sub === 'حساسات') {
     const { ar: sensorAr } = getSensorLabel(product);
-    return `${sensorAr} ${brand}${carSuffix}${originSuffix}${siteName}`;
+    // Use actual product name if it's more specific than the generic sensor label
+    const sensorLabel = product.name && product.name.trim() ? product.name.trim() : sensorAr;
+    return `${sensorLabel} ${brand}${carSuffix}${originSuffix}${siteName}`;
   }
 
-  const catMap = subLabel[cat];
-  const label = catMap
-    ? (catMap[sub] ?? catMap['default'] ?? sub)
-    : (sub || product.name);
-
-  return `${label} ${brand}${carSuffix}${originSuffix}${siteName}`;
+  return `${product.name} ${brand}${carSuffix}${originSuffix}${siteName}`;
 }
 
 // ============================================================
@@ -378,11 +375,14 @@ function buildShoppingTitle(product: any): string {
   };
 
   const prefix = CATEGORY_PREFIX[cat] ?? '';
-
   const year = product.car_model_year || '';
   const origin = product.country_of_origin || '';
 
-  return [prefix, brand, sub || product.name, carAr, model, year, origin]
+  const productLabel = (cat === 'حساسات و قطع كهربائية' && sub === 'حساسات' && product.name)
+    ? product.name.trim()
+    : (sub || product.name);
+
+  return [prefix, brand, productLabel, carAr, model, year, origin]
     .filter(Boolean)
     .join(' ')
     .replace(/\s+/g, ' ')
