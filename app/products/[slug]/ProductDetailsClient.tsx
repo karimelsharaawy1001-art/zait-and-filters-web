@@ -11,7 +11,7 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Autoplay, Pagination } from 'swiper/modules';
+import { Navigation, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 
@@ -20,7 +20,13 @@ import 'swiper/css/pagination';
 // const declarations are not hoisted, so placing them after components causes
 // undefined values at render time, breaking layout and hiding images.
 
-const carouselFullWrapper:   React.CSSProperties = { marginTop: '24px', borderTop: '1px solid #f0f0f0', paddingTop: '20px' };
+// Change the carouselFullWrapper style constant:
+const carouselFullWrapper: React.CSSProperties = { 
+  marginTop: '24px', 
+  borderTop: '1px solid #f0f0f0', 
+  paddingTop: '20px',
+  minHeight: '320px'  // ← add this
+};
 const relatedHeader:         React.CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' };
 const relatedTitle:          React.CSSProperties = { fontSize: '1.3rem', fontWeight: '900', color: '#1a1a1a', margin: 0 };
 const customNavWrapper:      React.CSSProperties = { display: 'flex', gap: '10px' };
@@ -157,7 +163,8 @@ function ReviewsSection({ productId }: { productId: string }) {
   const avgRating = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) : 0;
 
   return (
-    <div style={{ borderTop: '1px solid #eee', paddingTop: '32px', marginBottom: '40px', direction: 'rtl' }}>
+    // In ReviewsSection, change the outer wrapper:
+<div style={{ borderTop: '1px solid #eee', paddingTop: '32px', marginBottom: '40px', direction: 'rtl', minHeight: '200px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: '900', margin: 0, color: '#1a1a1a' }}>تقييمات العملاء</h2>
@@ -451,7 +458,14 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         .product-main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; margin-bottom: 50px; }
         .media-slider-wrap { border-radius: 24px; border: 1px solid #f0f0f0; overflow: hidden; background: #f9f9f9; position: relative; height: 420px; }
         .media-slider-wrap .swiper { height: 420px; }
-        .media-slider-wrap .swiper-slide { display: flex; align-items: center; justify-content: center; background: #f9f9f9; position: relative; }
+        ..media-slider-wrap .swiper-slide { 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  background: #f9f9f9; 
+  position: relative;   /* already there — good */
+  height: 420px !important;  /* ← add explicit height so image renders immediately */
+}
         .media-slider-wrap .swiper-pagination-bullet { background: #27ae60; opacity: 0.4; width: 8px; height: 8px; }
         .media-slider-wrap .swiper-pagination-bullet-active { opacity: 1; transform: scale(1.2); }
         .media-slider-wrap .swiper-button-disabled { opacity: 0 !important; }

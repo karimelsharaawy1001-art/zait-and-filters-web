@@ -254,13 +254,11 @@ function buildTitle(product: any): string {
   const year = product.car_model_year || '';
   const origin = product.country_of_origin || '';
 
-  // Build the car phrase: make + model + year
   const carParts = [carAr, model, year].filter(Boolean).join(' ');
   const carSuffix = carParts ? ` لسيارة ${carParts}` : '';
   const originSuffix = origin ? ` - ${origin}` : '';
   const siteName = ' | زيت أند فلترز';
 
-  // Map subcategory to Arabic label per category
   const subLabel: Record<string, Record<string, string>> = {
     'زيوت موتور': { default: 'زيت موتور' },
     'زيوت فتيس و دبرياج و باور': { default: 'زيت' },
@@ -329,10 +327,8 @@ function buildTitle(product: any): string {
 
   const cat = product.category || '';
 
-  // Special case: sensors — use product name directly + sensor label as fallback
   if (cat === 'حساسات و قطع كهربائية' && sub === 'حساسات') {
     const { ar: sensorAr } = getSensorLabel(product);
-    // Use actual product name if it's more specific than the generic sensor label
     const sensorLabel = product.name && product.name.trim() ? product.name.trim() : sensorAr;
     return `${sensorLabel} ${brand}${carSuffix}${originSuffix}${siteName}`;
   }
@@ -342,9 +338,6 @@ function buildTitle(product: any): string {
 
 // ============================================================
 // Shopping-optimized title for openGraph/twitter AND GMC feed
-// No store name, no "أفضل سعر", under 70 chars
-// Google Shopping uses this as the product headline
-// Format: [CategoryKeyword] [Brand] [Subcategory/Spec] [CarMake] [CarModel]
 // ============================================================
 function buildShoppingTitle(product: any): string {
   const brand = product.brand || '';
@@ -354,7 +347,6 @@ function buildShoppingTitle(product: any): string {
   const carAr = isUniversal ? '' : (CAR_MAKE_AR[product.car_make] || '');
   const model = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model || '' : '';
 
-  // Explicit category prefix for high-traffic search terms on GMC
   const CATEGORY_PREFIX: Record<string, string> = {
     'زيوت موتور': 'زيت موتور',
     'زيوت فتيس و دبرياج و باور': 'زيت',
@@ -387,10 +379,9 @@ function buildShoppingTitle(product: any): string {
     .join(' ')
     .replace(/\s+/g, ' ')
     .trim()
-    .slice(0, 70);
+    .slice(0, 150);
 }
 
-// Expand year range like "2011-2017" into individual years ["2011","2012",...,"2017"]
 function expandYearRange(yearStr: string): string[] {
   if (!yearStr) return [];
   const match = yearStr.match(/(\d{4})\s*[-–]\s*(\d{4})/);
@@ -401,7 +392,6 @@ function expandYearRange(yearStr: string): string[] {
     for (let y = start; y <= end; y++) years.push(String(y));
     return years;
   }
-  // Single year or unrecognized format — return as-is
   return [yearStr.trim()].filter(Boolean);
 }
 
@@ -549,7 +539,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`فلتر تكييف ${m}`, `فلتر كابينة ${m}`]),
   ] : [];
 
-  // ── Oil filter ──────────────────────────────────────────────
   const oilFilterKeywords = (product.category === 'فلاتر' && (sub === 'فلتر زيت' || sub === 'فلتر الزيت')) ? [
     `فلتر زيت ${brand}`, `فلتر زيت ${carAr} ${model}`.trim(),
     `سعر فلتر زيت ${brand}`, `فلتر زيت مصر`, `افضل فلتر زيت`, `احسن فلتر زيت`,
@@ -558,7 +547,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`فلتر زيت ${m}`, `احسن فلتر زيت ${m}`]),
   ] : [];
 
-  // ── Air filter ───────────────────────────────────────────────
   const airFilterKeywords = (product.category === 'فلاتر' && sub === 'فلتر هواء') ? [
     `فلتر هواء ${brand}`, `فلتر هواء ${carAr} ${model}`.trim(),
     `سعر فلتر هواء ${brand}`, `فلتر هواء مصر`, `افضل فلتر هواء`, `احسن فلتر هواء`,
@@ -567,7 +555,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`فلتر هواء ${m}`, `احسن فلتر هواء ${m}`]),
   ] : [];
 
-  // ── Fuel filter ──────────────────────────────────────────────
   const fuelFilterKeywords = (product.category === 'فلاتر' && (sub === 'فلتر بنزين' || sub === 'فتر بنزين')) ? [
     `فلتر بنزين ${brand}`, `فلتر وقود ${brand}`, `فلتر بنزين مصر`,
     `سعر فلتر بنزين ${brand}`, `افضل فلتر بنزين`, `احسن فلتر بنزين`,
@@ -576,7 +563,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`فلتر بنزين ${m}`, `احسن فلتر بنزين ${m}`]),
   ] : [];
 
-  // ── Wheel bearing (بلية عجل) ─────────────────────────────────
   const wheelBearingKeywords = (product.category === 'عفشة' && sub === 'بلية عجل') ? [
     `بلية عجل ${brand}`, `بلية عجل ${carAr} ${model}`.trim(),
     `سعر بلية عجل ${brand}`, `بلية عجل مصر`, `افضل بلية عجل`, `احسن بلية عجل`,
@@ -585,7 +571,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`بلية عجل ${m}`, `احسن بلية عجل ${m}`, `بلية عجل امامي ${m}`, `بلية عجل خلفي ${m}`]),
   ] : [];
 
-  // ── Control arm / maqas (مقصات) ──────────────────────────────
   const controlArmKeywords = (product.category === 'عفشة' && (sub === 'مقصات كاملة' || sub === 'جلب و بيض مقصات')) ? [
     `مقص عفشة ${brand}`, `مقصات ${carAr} ${model}`.trim(),
     `سعر مقصات ${brand}`, `مقصات مصر`, `افضل مقصات`, `احسن مقصات`,
@@ -594,7 +579,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`مقصات ${m}`, `احسن مقصات ${m}`, `بيض مقصات ${m}`]),
   ] : [];
 
-  // ── Stabilizer bar links (بارات) ─────────────────────────────
   const stabilizerKeywords = (product.category === 'عفشة' && sub === 'بارات') ? [
     `بارات عفشة ${brand}`, `بار عفشة ${carAr} ${model}`.trim(),
     `سعر بارات ${brand}`, `بارات مصر`, `افضل بارات`, `احسن بارات`,
@@ -603,7 +587,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`بارات ${m}`, `احسن بارات ${m}`]),
   ] : [];
 
-  // ── Engine mounts (قواعد و شدادات) ──────────────────────────
   const engineMountKeywords = (product.category === 'عفشة' && sub === 'قواعد و شدادات') ? [
     `قاعدة موتور ${brand}`, `شداد موتور ${brand}`, `قاعدة موتور ${carAr} ${model}`.trim(),
     `سعر قاعدة موتور ${brand}`, `قواعد موتور مصر`, `احسن قاعدة موتور`,
@@ -612,7 +595,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`قاعدة موتور ${m}`, `شداد موتور ${m}`]),
   ] : [];
 
-  // ── CV axle / coupling (كبالن و كوبلن) ──────────────────────
   const cvKeywords = (product.category === 'عفشة' && sub === 'كبالن و كاوتش كوبلن') ? [
     `كبالن ${brand}`, `كوبلن ${brand}`, `كوبلن ${carAr} ${model}`.trim(),
     `سعر كبالن ${brand}`, `كبالن مصر`, `احسن كبالن`,
@@ -621,7 +603,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`كبالن ${m}`, `كوبلن ${m}`, `احسن كبالن ${m}`]),
   ] : [];
 
-  // ── Lower arm bushings / bata7a (بطاحات) ────────────────────
   const bushingKeywords = (product.category === 'عفشة' && sub === 'بطاحات و بلي بطاحات') ? [
     `بطاحة ${brand}`, `بلي بطاحة ${brand}`, `بطاحة ${carAr} ${model}`.trim(),
     `سعر بطاحات ${brand}`, `بطاحات مصر`, `احسن بطاحات`,
@@ -630,7 +611,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`بطاحة ${m}`, `بطاحات ${m}`, `احسن بطاحات ${m}`]),
   ] : [];
 
-  // ── Tie rod / tish mizan (تيش ميزان) ────────────────────────
   const tieRodKeywords = (product.category === 'عفشة' && sub === 'تيش ميزان و مسامير ميزان') ? [
     `تيش ميزان ${brand}`, `مسمار ميزان ${brand}`, `تيش ميزان ${carAr} ${model}`.trim(),
     `سعر تيش ميزان ${brand}`, `تيش ميزان مصر`, `احسن تيش ميزان`,
@@ -639,7 +619,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`تيش ميزان ${m}`, `احسن تيش ميزان ${m}`]),
   ] : [];
 
-  // ── Radiator (ردياتير) ───────────────────────────────────────
   const radiatorKeywords = (product.category === 'دورة تبريد و تكييف' && sub === 'ردياتير') ? [
     `ردياتير ${brand}`, `ردياتير ${carAr} ${model}`.trim(),
     `سعر ردياتير ${brand}`, `ردياتير مصر`, `افضل ردياتير`, `احسن ردياتير`,
@@ -648,7 +627,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`ردياتير ${m}`, `احسن ردياتير ${m}`]),
   ] : [];
 
-  // ── Thermostat / kou3a (كوعة و ثرموستات) ────────────────────
   const thermostatKeywords = (product.category === 'دورة تبريد و تكييف' && sub === 'كوعة و ثرموستات') ? [
     `ثرموستات ${brand}`, `كوعة ثرموستات ${brand}`, `ثرموستات ${carAr} ${model}`.trim(),
     `سعر ثرموستات ${brand}`, `ثرموستات مصر`, `احسن ثرموستات`,
@@ -657,7 +635,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`ثرموستات ${m}`, `احسن ثرموستات ${m}`]),
   ] : [];
 
-  // ── Coolant (كولانت) ─────────────────────────────────────────
   const coolantKeywords = (product.category === 'دورة تبريد و تكييف' && (sub === 'زيت تبريد' || sub === 'تيل تبريد' || sub === 'كولانت')) ? [
     `كولانت ${brand}`, `زيت تبريد ${brand}`, `سعر كولانت ${brand}`,
     `كولانت مصر`, `افضل كولانت مصر`, `احسن كولانت مصر`,
@@ -666,7 +643,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`كولانت ${m}`, `زيت تبريد ${m}`]),
   ] : [];
 
-  // ── AC compressor / serpentine (سربنتينة تكييف) ─────────────
   const acKeywords = (product.category === 'دورة تبريد و تكييف' && sub === 'سربنتينة تكييف') ? [
     `سربنتينة تكييف ${brand}`, `سربنتينة ${carAr} ${model}`.trim(),
     `سعر سربنتينة تكييف ${brand}`, `سربنتينة تكييف مصر`, `احسن سربنتينة تكييف`,
@@ -675,7 +651,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`سربنتينة تكييف ${m}`, `احسن سربنتينة ${m}`]),
   ] : [];
 
-  // ── Master brake (ماستر فرامل) ───────────────────────────────
   const masterBrakeKeywords = (product.category === 'الفرامل' && sub === 'ماستر فرامل') ? [
     `ماستر فرامل ${brand}`, `ماستر فرامل ${carAr} ${model}`.trim(),
     `سعر ماستر فرامل ${brand}`, `ماستر فرامل مصر`, `احسن ماستر فرامل`,
@@ -684,7 +659,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`ماستر فرامل ${m}`, `احسن ماستر فرامل ${m}`]),
   ] : [];
 
-  // ── Ignition coil / mubina (موبينة) ─────────────────────────
   const ignitionCoilKeywords = (product.category === 'بوجيهات و سلوك بوجيهات و موبينة' && sub === 'موبينة') ? [
     `موبينة ${brand}`, `موبينة ${carAr} ${model}`.trim(),
     `سعر موبينة ${brand}`, `موبينة مصر`, `افضل موبينة`, `احسن موبينة`,
@@ -693,7 +667,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`موبينة ${m}`, `احسن موبينة ${m}`]),
   ] : [];
 
-  // ── Gaskets / oil seal (جوانات و أويل سيل) ──────────────────
   const gasketKeywords = product.category === 'جوانات و أويل سيل' ? [
     `جوان ${brand}`, `اويل سيل ${brand}`, `جوان ${carAr} ${model}`.trim(),
     `سعر جوانات ${brand}`, `جوانات مصر`, `اويل سيل مصر`, `احسن جوانات`,
@@ -702,7 +675,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`جوان ${m}`, `اويل سيل ${m}`, `جوان وش سلندر ${m}`]),
   ] : [];
 
-  // ── Engine overhaul parts (مستلزمات عمرة موتور) ─────────────
   const engineOverhaulKeywords = product.category === 'مستلزمات عمرة موتور' ? [
     `عمرة موتور ${brand}`, `طقم بستم ${brand}`, `عامود كامة ${brand}`,
     `${sub} ${brand}`, `${sub} ${carAr} ${model}`.trim(),
@@ -712,7 +684,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`طقم بستم ${m}`, `عمرة موتور ${m}`]),
   ] : [];
 
-  // ── Engine parts (قطع الموتور و ملحقاته) ────────────────────
   const enginePartsKeywords = product.category === 'قطع الموتور و ملحقاته' ? [
     `${sub || 'قطعة موتور'} ${brand}`, `${sub} ${carAr} ${model}`.trim(),
     `سعر ${sub} ${brand}`, `قطع موتور مصر`, `${sub} مصر`,
@@ -721,7 +692,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`${sub} ${m}`]),
   ] : [];
 
-  // ── Clutch / gearbox parts (دبرياج و قطع فتيس) ──────────────
   const clutchKeywords = product.category === 'دبرياج و قطع فتيس' ? [
     `دبرياج ${brand}`, `طقم دبرياج ${brand}`, `${sub} ${brand}`,
     `${sub} ${carAr} ${model}`.trim(), `سعر دبرياج ${brand}`,
@@ -731,7 +701,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`دبرياج ${m}`, `طقم دبرياج ${m}`, `احسن دبرياج ${m}`]),
   ] : [];
 
-  // ── Windscreen wipers (مساحات) ───────────────────────────────
   const wiperKeywords = product.category === 'مساحات' ? [
     `مساحة زجاج ${brand}`, `مساحات ${brand}`, `مساحة ${carAr} ${model}`.trim(),
     `سعر مساحات ${brand}`, `مساحات مصر`, `افضل مساحات`, `احسن مساحات`,
@@ -740,7 +709,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`مساحة ${m}`, `مساحات ${m}`, `احسن مساحة ${m}`]),
   ] : [];
 
-  // ── Water pump / kou3et mayah (طلمبة مياه / كوعة مياه) ──────
   const waterPumpKeywords = (product.category === 'دورة تبريد و تكييف' && sub === 'طلمبات مياه') ? [
     `طلمبة مياه ${brand}`, `طلمبة مياه ${carAr} ${model}`.trim(),
     `سعر طلمبة مياه ${brand}`, `طلمبة مياه مصر`, `افضل طلمبة مياه`, `احسن طلمبة مياه`,
@@ -757,7 +725,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`كوعة مياه ${m}`, `كوعة ثرموستات ${m}`]),
   ] : [];
 
-  // ── Brake drum / master wheel (طنابير / ماستر عجل) ──────────
   const brakeWheelMasterKeywords = (product.category === 'الفرامل' && sub === 'ماستر عجل') ? [
     `ماستر عجل ${brand}`, `ماستر عجل ${carAr} ${model}`.trim(),
     `سعر ماستر عجل ${brand}`, `ماستر عجل مصر`, `احسن ماستر عجل`,
@@ -766,7 +733,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`ماستر عجل ${m}`, `ماستر عجل امامي ${m}`, `ماستر عجل خلفي ${m}`]),
   ] : [];
 
-  // ── Clutch disc (ديسك) ───────────────────────────────────────
   const clutchDiscKeywords = (product.category === 'دبرياج و قطع فتيس' && sub === 'ديسك') ? [
     `ديسك دبرياج ${brand}`, `ديسك ${carAr} ${model}`.trim(),
     `سعر ديسك دبرياج ${brand}`, `ديسك دبرياج مصر`, `احسن ديسك دبرياج`,
@@ -775,7 +741,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`ديسك دبرياج ${m}`, `ديسك ${m}`]),
   ] : [];
 
-  // ── Pressure plate (اسطوانة) ─────────────────────────────────
   const pressurePlateKeywords = (product.category === 'دبرياج و قطع فتيس' && sub === 'اسطوانة') ? [
     `اسطوانة دبرياج ${brand}`, `اسطوانة ${carAr} ${model}`.trim(),
     `سعر اسطوانة دبرياج ${brand}`, `اسطوانة دبرياج مصر`, `احسن اسطوانة دبرياج`,
@@ -784,7 +749,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`اسطوانة دبرياج ${m}`, `اسطوانة ${m}`]),
   ] : [];
 
-  // ── Clutch release bearing (بلية دبرياج) ────────────────────
   const clutchBearingKeywords = (product.category === 'دبرياج و قطع فتيس' && sub === 'بلية دبرياج') ? [
     `بلية دبرياج ${brand}`, `بلية دبرياج ${carAr} ${model}`.trim(),
     `سعر بلية دبرياج ${brand}`, `بلية دبرياج مصر`, `احسن بلية دبرياج`,
@@ -793,7 +757,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`بلية دبرياج ${m}`]),
   ] : [];
 
-  // ── Clutch master upper (ماستر علوي) ────────────────────────
   const clutchMasterUpperKeywords = (product.category === 'دبرياج و قطع فتيس' && sub === 'ماستر علوي') ? [
     `ماستر دبرياج علوي ${brand}`, `ماستر علوي ${carAr} ${model}`.trim(),
     `سعر ماستر دبرياج علوي ${brand}`, `ماستر دبرياج علوي مصر`, `احسن ماستر دبرياج`,
@@ -802,7 +765,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`ماستر دبرياج علوي ${m}`, `ماستر علوي ${m}`]),
   ] : [];
 
-  // ── Clutch slave cylinder (ماستر سفلي) ──────────────────────
   const clutchMasterLowerKeywords = (product.category === 'دبرياج و قطع فتيس' && sub === 'ماستر سفلي') ? [
     `ماستر دبرياج سفلي ${brand}`, `ماستر سفلي ${carAr} ${model}`.trim(),
     `سعر ماستر دبرياج سفلي ${brand}`, `ماستر دبرياج سفلي مصر`, `احسن ماستر دبرياج`,
@@ -811,7 +773,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`ماستر دبرياج سفلي ${m}`, `ماستر سفلي ${m}`]),
   ] : [];
 
-  // ── Fuel pump (طلمبة بنزين) ──────────────────────────────────
   const fuelPumpSubKeywords = (product.category === 'دورة البنزين' && sub === 'طلمبة بنزين') ? [
     `طلمبة بنزين ${brand}`, `طلمبة بنزين كاملة ${brand}`, `طلمبة بنزين ${carAr} ${model}`.trim(),
     `سعر طلمبة بنزين ${brand}`, `طلمبة بنزين مصر`, `افضل طلمبة بنزين`, `احسن طلمبة بنزين`,
@@ -820,7 +781,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`طلمبة بنزين ${m}`, `احسن طلمبة بنزين ${m}`]),
   ] : [];
 
-  // ── Fuel pump insert (قلب طلمبة بنزين) ──────────────────────
   const fuelPumpInsertKeywords = (product.category === 'دورة البنزين' && sub === 'قلب طلمبة بنزين') ? [
     `قلب طلمبة بنزين ${brand}`, `قلب طلمبة ${carAr} ${model}`.trim(),
     `سعر قلب طلمبة بنزين ${brand}`, `قلب طلمبة بنزين مصر`, `احسن قلب طلمبة بنزين`,
@@ -829,7 +789,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`قلب طلمبة بنزين ${m}`, `قلب طلمبة ${m}`]),
   ] : [];
 
-  // ── Fuel sender / float (عوامة بنزين) ───────────────────────
   const fuelSenderKeywords = (product.category === 'دورة البنزين' && sub === 'عوامة بنزين') ? [
     `عوامة بنزين ${brand}`, `عوامة بنزين ${carAr} ${model}`.trim(),
     `سعر عوامة بنزين ${brand}`, `عوامة بنزين مصر`, `احسن عوامة بنزين`,
@@ -838,7 +797,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`عوامة بنزين ${m}`, `فلوتر بنزين ${m}`]),
   ] : [];
 
-  // ── Serpentine / AC belt (سير تكييف) ────────────────────────
   const acBeltKeywords = (product.category === 'سيور و بلي' && sub === 'سير تكييف') ? [
     `سير تكييف ${brand}`, `سير تكييف ${carAr} ${model}`.trim(),
     `سعر سير تكييف ${brand}`, `سير تكييف مصر`, `احسن سير تكييف`,
@@ -847,7 +805,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`سير تكييف ${m}`, `احسن سير تكييف ${m}`]),
   ] : [];
 
-  // ── Timing chain idler (بلية كاتينة) ────────────────────────
   const timingIdlerKeywords = (product.category === 'سيور و بلي' && sub === 'بلية كاتينة') ? [
     `بلية كاتينة ${brand}`, `بلية كاتينة ${carAr} ${model}`.trim(),
     `سعر بلية كاتينة ${brand}`, `بلية كاتينة مصر`, `احسن بلية كاتينة`,
@@ -856,7 +813,6 @@ function buildKeywords(product: any): string[] {
     ...POPULAR_MODELS.flatMap(m => [`بلية كاتينة ${m}`, `احسن بلية كاتينة ${m}`]),
   ] : [];
 
-  // ── Full timing kit (طقم كاتينة) ────────────────────────────
   const timingKitKeywords = (product.category === 'سيور و بلي' && (sub === 'طقم كاتينة كامل' || sub === 'سير كاتينة')) ? [
     `طقم كاتينة ${brand}`, `سير كاتينة ${brand}`, `طقم كاتينة ${carAr} ${model}`.trim(),
     `سعر طقم كاتينة ${brand}`, `طقم كاتينة مصر`, `احسن طقم كاتينة`,
@@ -864,8 +820,6 @@ function buildKeywords(product: any): string[] {
     ...Object.values(CAR_MAKE_AR).filter(Boolean).map(c => `طقم كاتينة ${c}`),
     ...POPULAR_MODELS.flatMap(m => [`طقم كاتينة ${m}`, `سير كاتينة ${m}`, `احسن طقم كاتينة ${m}`]),
   ] : [];
-
-  // ── Gear oil / power steering (زيوت فتيس و دبرياج و باور) — already exists as gearOilKeywords ──
 
   return [
     product.name, `${product.name} ${brand}`, brand, product.category, sub,
@@ -897,7 +851,6 @@ function buildKeywords(product: any): string[] {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
 
-  // FIX 1: use cached fetcher — no second DB round-trip
   const product = await getProduct(slug);
   if (!product) return { title: 'المنتج غير موجود' };
 
@@ -909,7 +862,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const canonicalUrl = `https://zaitandfilters.com/products/${canonicalSlug}`;
   const shoppingTitle = buildShoppingTitle(product);
 
-  // FIX 4: price and availability for Google Shopping / og:product signals
   const price = product.sale_price || product.regular_price;
   const productOgExtras = price
     ? {
@@ -946,13 +898,111 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       siteName: 'زيت أند فلترز - Zait & Filters',
       images: [{ url: imageUrl, width: 1200, height: 630, alt: product.name }],
       locale: 'ar_EG',
-      // FIX 4: use 'website' but append og:product meta via other
       type: 'website',
       ...productOgExtras,
     },
     twitter: { card: 'summary_large_image', title: shoppingTitle, description, images: [imageUrl] },
     alternates: { canonical: canonicalUrl },
   };
+}
+
+// ============================================================
+// CWV FIX: Product image preload link injected into <head>
+// This tells the browser to fetch the LCP image as early as
+// possible — before the JS bundle is parsed — cutting LCP
+// by hundreds of milliseconds on mobile.
+// ============================================================
+function ProductImagePreload({ imageUrl }: { imageUrl: string }) {
+  if (!imageUrl) return null;
+  return (
+    // eslint-disable-next-line @next/next/no-head-element
+    <>
+      {/* @ts-ignore — Next.js flushes <link> tags in RSC output into <head> */}
+      <link rel="preload" as="image" href={imageUrl} fetchPriority="high" />
+    </>
+  );
+}
+
+// ============================================================
+// CWV FIX: Skeleton placeholder — reserves the exact space the
+// ProductDetailsClient will occupy, preventing CLS from the
+// content popping in after hydration.
+// ============================================================
+function ProductPageSkeleton() {
+  return (
+    <div
+      style={{
+        minHeight: '80vh',
+        width: '100%',
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '2rem',
+        padding: '2rem',
+        boxSizing: 'border-box',
+      }}
+      aria-hidden="true"
+    >
+      {/* Image column */}
+      <div
+        style={{
+          aspectRatio: '1 / 1',
+          background: 'var(--skeleton-bg, #e5e7eb)',
+          borderRadius: '0.75rem',
+          animation: 'pulse 1.5s ease-in-out infinite',
+        }}
+      />
+      {/* Info column */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {[80, 60, 40, 40, 30].map((w, i) => (
+          <div
+            key={i}
+            style={{
+              height: i === 0 ? '2rem' : '1rem',
+              width: `${w}%`,
+              background: 'var(--skeleton-bg, #e5e7eb)',
+              borderRadius: '0.5rem',
+              animation: 'pulse 1.5s ease-in-out infinite',
+              animationDelay: `${i * 80}ms`,
+            }}
+          />
+        ))}
+        {/* Price placeholder */}
+        <div
+          style={{
+            height: '2.5rem',
+            width: '40%',
+            background: 'var(--skeleton-bg, #e5e7eb)',
+            borderRadius: '0.5rem',
+            marginTop: '1rem',
+            animation: 'pulse 1.5s ease-in-out infinite',
+          }}
+        />
+        {/* Button placeholder */}
+        <div
+          style={{
+            height: '3rem',
+            width: '60%',
+            background: 'var(--skeleton-bg, #d1d5db)',
+            borderRadius: '0.5rem',
+            marginTop: '0.5rem',
+            animation: 'pulse 1.5s ease-in-out infinite',
+          }}
+        />
+      </div>
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.4; }
+        }
+        @media (max-width: 640px) {
+          /* Stack skeleton columns on mobile to match real layout */
+          [aria-hidden="true"] {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
+    </div>
+  );
 }
 
 function ProductSchema({ product }: { product: any }) {
@@ -1155,12 +1205,6 @@ function PartFAQSchema({ product }: { product: any }) {
       { name: `ما هو أفضل طلمبة مياه ${brand}؟`, text: `طلمبة مياه ${brand} من أفضل الخيارات في مصر. تضمن تبريد الموتور بكفاءة وتطيل عمره. مناسبة لسيارات أوبترا، كروز، كورولا، لانسر وغيرها. متوفرة في زيت أند فلترز بأفضل سعر.` },
       { name: `ما سعر طلمبة مياه ${brand} في مصر؟`, text: `طلمبة مياه ${brand} متاحة بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات.` },
     ];
-  } else if (cat === 'دورة تبريد و تكييف' && sub === 'طلمبات مياه') {
-    questions = [
-      { name: `ما هي علامات تلف طلمبة المياه؟`, text: `أبرز علامات تلف طلمبة المياه: ارتفاع مقياس حرارة الموتور، تسريب مياه التبريد (الكولانت) من الموتور، صوت طرق من منطقة الموتور الأمامية، أو رائحة حرق من تحت الكابوت. يجب استبدال طلمبة المياه فور ظهور هذه الأعراض لتجنب احتراق الموتور.` },
-      { name: `ما هو أفضل طلمبة مياه ${brand}؟`, text: `طلمبة مياه ${brand} من أفضل الخيارات في مصر. تضمن تبريد الموتور بكفاءة وتطيل عمره. مناسبة لسيارات أوبترا، كروز، كورولا، لانسر وغيرها. متوفرة في زيت أند فلترز بأفضل سعر.` },
-      { name: `ما سعر طلمبة مياه ${brand} في مصر؟`, text: `طلمبة مياه ${brand} متاحة بأفضل سعر في مصر من زيت أند فلترز مع شحن لباب البيت في جميع المحافظات.` },
-    ];
   } else if (cat === 'دورة تبريد و تكييف' && sub === 'كوعة و ثرموستات') {
     questions = [
       { name: `ما هي علامات تلف كوعة المياه أو الثرموستات؟`, text: `أبرز العلامات: ارتفاع حرارة الموتور بسرعة، تسريب مياه تبريد من المنطقة الأمامية للموتور، أو عدم وصول الحرارة للدرجة الصحيحة. استبدال الكوعة والثرموستات يمنع احتراق الموتور ويحافظ على كفاءة التبريد.` },
@@ -1273,7 +1317,7 @@ function LocalBusinessSchema() {
     url: 'https://zaitandfilters.com',
     logo: 'https://zaitandfilters.com/logo.png',
     image: 'https://zaitandfilters.com/og-image.jpg',
-    telephone: process.env.NEXT_PUBLIC_STORE_PHONE || '+20-XXXXXXXXXX', // Set NEXT_PUBLIC_STORE_PHONE in .env.local
+    telephone: process.env.NEXT_PUBLIC_STORE_PHONE || '+20-XXXXXXXXXX',
     email: 'info@zaitandfilters.com',
     address: {
       '@type': 'PostalAddress',
@@ -1344,7 +1388,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const { slug } = await params;
   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
 
-  // FIX 1: use cached fetcher — shared with generateMetadata, zero extra DB round-trips
   const product = await getProduct(slug);
 
   if (isUUID) {
@@ -1352,11 +1395,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     if (product.slug) redirect(`/products/${product.slug}`);
     return (
       <>
+        {/* CWV FIX: Preload the LCP image as early as possible */}
+        <ProductImagePreload imageUrl={product.image_url} />
         <LocalBusinessSchema />
         <SiteLinksSearchBoxSchema />
         <ProductSchema product={product} />
         <PartFAQSchema product={product} />
-        <Suspense fallback={<div style={{ minHeight: '60vh' }} />}>
+        {/*
+          CWV FIX: ProductPageSkeleton is the fallback.
+          It mirrors the two-column layout of ProductDetailsClient so the
+          browser reserves the correct amount of space before hydration,
+          eliminating CLS from content popping in.
+        */}
+        <Suspense fallback={<ProductPageSkeleton />}>
           <ProductDetailsClient initialProduct={product} productId={product.id} />
         </Suspense>
       </>
@@ -1367,11 +1418,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
+      {/* CWV FIX: Preload the LCP image as early as possible */}
+      <ProductImagePreload imageUrl={product.image_url} />
       <LocalBusinessSchema />
       <SiteLinksSearchBoxSchema />
       <ProductSchema product={product} />
       <PartFAQSchema product={product} />
-      <Suspense fallback={<div style={{ minHeight: '60vh' }} />}>
+      {/*
+        CWV FIX: ProductPageSkeleton is the fallback.
+        It mirrors the two-column layout of ProductDetailsClient so the
+        browser reserves the correct amount of space before hydration,
+        eliminating CLS from content popping in.
+      */}
+      <Suspense fallback={<ProductPageSkeleton />}>
         <ProductDetailsClient initialProduct={product} productId={product.id} />
       </Suspense>
     </>
