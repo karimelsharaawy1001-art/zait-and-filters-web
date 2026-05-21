@@ -12,6 +12,99 @@ const CAR_MAKE_AR: Record<string, string> = {
   FORD: 'فورد', JEEP: 'جيب', UNIVERSAL: '',
 };
 
+const CAR_MODEL_AR: Record<string, string> = {
+  // Chevrolet
+  'AVEO': 'افيو',
+  'CAPTIVA': 'كابتيفا',
+  'CRUZE': 'كروز',
+  'LANOS': 'لانوس',
+  'OPTRA': 'أوبترا',
+
+  // Hyundai
+  'ACCENT': 'اكسنت',
+  'ACCENT HCI': 'اكسنت HCI',
+  'ELANTRA': 'النترا',
+  'GRAND I10': 'جراند i10',
+  'I10': 'i10',
+  'MATRIX': 'ماتريكس',
+  'TUCSON': 'توسان',
+  'VERNA': 'فيرنا',
+
+  // Kia
+  'CARENS': 'كارينز',
+  'CERATO LD': 'سيراتو LD',
+  'CERATO TD': 'سيراتو TD',
+  'CERATO K3': 'سيراتو K3',
+  'GRAND CERATO': 'جراند سيراتو',
+  'PICANTO': 'بيكانتو',
+  'RIO': 'ريو',
+  'SOUL': 'سول',
+  'SPORTAGE': 'سبورتاج',
+
+  // MG
+  '3': 'MG3',
+  '5': 'MG5',
+  '6': 'MG6',
+  'HS': 'HS',
+  'RX5': 'RX5',
+  'ZS': 'ZS',
+
+  // Mitsubishi
+  'ECLIPSE': 'اكليبس',
+  'LANCER PUM': 'لانسر بوم',
+  'LANCER SHA': 'لانسر شاسيه',
+
+  // Nissan
+  'QASHQAI': 'قاشقاي',
+  'SENTRA': 'سنترا',
+  'SUNNY N16': 'صني N16',
+  'SUNNY N17': 'صني N17',
+  'TIIDA': 'تيدا',
+
+  // Opel
+  'ASTRA': 'أسترا',
+  'INSIGNIA': 'انسيجنيا',
+
+  // Peugeot
+  '2008': '2008',
+  '3008': '3008',
+  '508': '508',
+  '308': '308',
+  '5008': '5008',
+
+  // Renault
+  'CAPTUR': 'كابتشر',
+  'CLIO': 'كليو',
+  'DUSTER': 'داستر',
+  'FLUENCE': 'فلوانس',
+  'KADJAR': 'كادجار',
+  'LOGAN': 'لوجان',
+  'MEGANE': 'ميغان',
+  'SANDERO': 'سانديرو',
+  'STEPWAY': 'ستيبواي',
+
+  // Seat
+  'IBIZA': 'ابيزا',
+  'LEON': 'ليون',
+  'TOLEDO': 'توليدو',
+
+  // Skoda
+  'OCTAVIA A4': 'اوكتافيا A4',
+  'OCTAVIA A5': 'اوكتافيا A5',
+  'OCTAVIA A7': 'اوكتافيا A7',
+  'OCTAVIA A8': 'اوكتافيا A8',
+
+  // Toyota
+  'COROLLA': 'كورولا',
+  'YARIS': 'يارس',
+
+  // Volkswagen
+  'PASSAT': 'باسات',
+  'GOLF': 'جولف',
+  'JETTA': 'جيتا',
+  'POLO': 'بولو',
+};
+
 function buildFeedTitle(p: any): string {
   const brand = p.brand || '';
   const isUniversal = !p.car_make || p.car_make === 'UNIVERSAL';
