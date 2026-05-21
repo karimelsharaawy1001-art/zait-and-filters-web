@@ -55,11 +55,12 @@ function buildFeedTitle(p: any): string {
   const brand = p.brand || '';
   const isUniversal = !p.car_make || p.car_make === 'UNIVERSAL';
   const carAr = isUniversal ? '' : (CAR_MAKE_AR[p.car_make] || p.car_make || '');
-  const model = p.car_model && p.car_model !== 'UNIVERSAL' ? p.car_model : '';
+  const modelRaw = p.car_model && p.car_model !== 'UNIVERSAL' ? p.car_model : '';
+  const modelAr = modelRaw ? (CAR_MODEL_AR[modelRaw.toUpperCase()] ?? modelRaw) : '';
   const year = p.car_model_year || '';
   const origin = p.country_of_origin || '';
 
-  return [p.name, carAr, model, year, brand]
+  return [p.name, carAr, modelAr, year, brand, origin]
     .filter(Boolean)
     .join(' ')
     .replace(/\s+/g, ' ')
