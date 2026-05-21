@@ -37,7 +37,7 @@ const CAR_MODEL_AR: Record<string, string> = {
   '2008': '2008', '3008': '3008', '508': '508', '308': '308', '5008': '5008',
   // Renault
   'CAPTUR': 'كابتشر', 'CLIO': 'كليو', 'DUSTER': 'داستر', 'FLUENCE': 'فلوانس',
-  'KADJAR': 'كادجار', 'LOGAN': 'لوجان', 'MEGANE': 'ميغان',
+  'KADJAR': 'كادجار', 'LOGAN': 'لوجان', 'MEGANE': 'ميجان',
   'SANDERO': 'سانديرو', 'STEPWAY': 'ستيبواي',
   // Seat
   'IBIZA': 'ابيزا', 'LEON': 'ليون', 'TOLEDO': 'توليدو',
@@ -57,15 +57,29 @@ function buildFeedTitle(p: any): string {
   const carAr = isUniversal ? '' : (CAR_MAKE_AR[p.car_make] || p.car_make || '');
   const modelRaw = p.car_model && p.car_model !== 'UNIVERSAL' ? p.car_model : '';
   const modelAr = modelRaw ? (CAR_MODEL_AR[modelRaw.toUpperCase()] ?? modelRaw) : '';
-  const year = p.car_model_year || '';
+  const years = expandYearRange(p.car_model_year || '');
+  const yearStr = years.join(' ');
   const origin = p.country_of_origin || '';
 
-  return [p.name, carAr, modelAr, year, brand, origin]
+  return [p.name, carAr, modelAr, yearStr, brand, origin]
     .filter(Boolean)
     .join(' ')
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 150);
+}
+
+function expandYearRange(yearStr: string): string[] {
+  if (!yearStr) return [];
+  const match = yearStr.match(/(\d{4})\s*[-–]\s*(\d{4})/);
+  if (match) {
+    const start = parseInt(match[1]);
+    const end = parseInt(match[2]);
+    const years: string[] = [];
+    for (let y = start; y <= end; y++) years.push(String(y));
+    return years;
+  }
+  return [yearStr.trim()].filter(Boolean);
 }
 
 export async function GET() {

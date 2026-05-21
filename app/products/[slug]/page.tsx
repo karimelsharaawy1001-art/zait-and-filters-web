@@ -111,7 +111,7 @@ const CAR_MODEL_AR: Record<string, string> = {
   'FLUENCE': 'فلوانس',
   'KADJAR': 'كادجار',
   'LOGAN': 'لوجان',
-  'MEGANE': 'ميغان',
+  'MEGANE': 'ميجان',
   'SANDERO': 'سانديرو',
   'STEPWAY': 'ستيبواي',
 
