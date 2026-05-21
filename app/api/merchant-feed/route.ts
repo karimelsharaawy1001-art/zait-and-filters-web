@@ -51,8 +51,8 @@ const CAR_MODEL_AR: Record<string, string> = {
 
   // Mitsubishi
   'ECLIPSE': 'اكليبس',
-  'LANCER PUM': 'لانسر بوم',
-  'LANCER SHA': 'لانسر شاسيه',
+  'LANCER PUMA': 'لانسر بوما',
+  'LANCER SHARK': 'لانسر شارك',
 
   // Nissan
   'QASHQAI': 'قاشقاي',
