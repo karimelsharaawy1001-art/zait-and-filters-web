@@ -1609,7 +1609,7 @@ setBrandsOptions(brandsOpts);
                             <h3 style={{ fontSize: '0.95rem', fontWeight: '900', marginBottom: '10px', height: '45px', overflow: 'hidden', lineHeight: '1.4' }}>
                               {product.name}
                             </h3>
-                            <div style={{ background: '#f9f9f9', padding: '10px', borderRadius: '10px', marginBottom: '12px' }}>
+                            <div style={{ background: '#ffffff', padding: '10px', borderRadius: '10px', marginBottom: '12px' }}>
                               <div style={{ fontSize: '0.75rem', color: '#1a1a1a', fontWeight: '800', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 <Settings2 size={12} color="#22c55e" />
                                 {product.car_make} {product.car_model}
