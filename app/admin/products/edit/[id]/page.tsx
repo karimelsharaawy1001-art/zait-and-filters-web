@@ -23,6 +23,7 @@ export default function EditProduct() {
   const { id } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [regeneratingSlug, setRegeneratingSlug] = useState(false);
 
   const returnUrl = searchParams.get('returnUrl') || '/admin/products';
 
@@ -380,11 +381,63 @@ export default function EditProduct() {
     }
   };
 
+  const handleRegenerateSlug = async () => {
+  setRegeneratingSlug(true);
+  try {
+    const firstCar = carRows[0];
+    const newSlug = generateSlug({
+      name: formData.name,
+      brand: formData.brand,
+      car_make: firstCar?.car_make || '',
+      car_model: firstCar?.car_model || '',
+      car_model_year: firstCar?.car_model_year || '',
+    });
+
+    // check for duplicates
+    const { data: existing } = await supabase
+      .from('products')
+      .select('id')
+      .eq('slug', newSlug)
+      .neq('id', id)
+      .single();
+
+    const finalSlug = existing ? `${newSlug}-${(id as string).slice(0, 6)}` : newSlug;
+
+    // save old slug for redirect
+    const { data: currentProduct } = await supabase
+      .from('products')
+      .select('slug')
+      .eq('id', id)
+      .single();
+
+    if (currentProduct?.slug && currentProduct.slug !== finalSlug) {
+      await supabase.from('slug_redirects').upsert({
+        old_slug: currentProduct.slug,
+        new_slug: finalSlug,
+      });
+    }
+
   if (loading) return (
     <div style={fullPageCenter}>
       <Loader2 className="animate-spin" size={40} color="#2ecc71" />
     </div>
   );
+
+
+    const { error } = await supabase
+      .from('products')
+      .update({ slug: finalSlug })
+      .eq('id', id);
+
+    if (error) throw new Error(error.message);
+
+    alert(`✅ تم تحديث الرابط إلى:\n${finalSlug}`);
+  } catch (err: any) {
+    alert('❌ خطأ: ' + err.message);
+  } finally {
+    setRegeneratingSlug(false);
+  }
+};
 
   const youtubeId = getYouTubeId(formData.video_url);
 
@@ -655,6 +708,35 @@ export default function EditProduct() {
             </button>
           </section>
 
+          {/* ── Regenerate Slug Button ── */}
+          <button
+            type="button"
+            onClick={handleRegenerateSlug}
+            disabled={regeneratingSlug}
+            style={{
+              width: '100%',
+              padding: '14px',
+              backgroundColor: '#0a0a1a',
+              color: '#4a9eff',
+              border: '1px solid #4a9eff',
+              borderRadius: '12px',
+              fontWeight: '800',
+              cursor: regeneratingSlug ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '10px',
+              fontSize: '0.95rem',
+              marginBottom: '12px',
+              opacity: regeneratingSlug ? 0.7 : 1,
+            }}
+          >
+            {regeneratingSlug
+              ? <><Loader2 className="animate-spin" size={18} /> جاري إنشاء الرابط...</>
+              : '🔗 إعادة إنشاء رابط المنتج (SEO)'
+            }
+          </button>
+          
           <button type="submit" disabled={saving || uploading} style={{ ...saveBtnStyle, opacity: uploading ? 0.7 : 1, cursor: uploading ? 'not-allowed' : 'pointer' }}>
             {saving ? <Loader2 className="animate-spin" /> : <Save />}
             {saving ? 'جاري الحفظ...' : uploading ? 'انتظر حتى اكتمال الرفع...' : 'حفظ التعديلات النهائية'}
@@ -663,6 +745,60 @@ export default function EditProduct() {
       </div>
     </div>
   );
+}
+
+function generateSlug(product: {
+  name: string; brand: string; car_make: string;
+  car_model: string; car_model_year: string;
+}): string {
+  const CAR_MAKE_AR: Record<string, string> = {
+    CHEVROLET: 'شيفروليه', TOYOTA: 'تويوتا', HYUNDAI: 'هيونداي',
+    KIA: 'كيا', NISSAN: 'نيسان', MITSUBISHI: 'ميتسوبيشي',
+    VOLKSWAGEN: 'فولكس-فاجن', SKODA: 'سكودا', PEUGEOT: 'بيجو',
+    RENAULT: 'رينو', OPEL: 'أوبل', MG: 'إم-جي', MAZDA: 'مازدا',
+    HONDA: 'هوندا', SUZUKI: 'سوزوكي', BMW: 'بي-إم-دبليو',
+    MERCEDES: 'مرسيدس', FORD: 'فورد', JEEP: 'جيب', SEAT: 'سيات',
+  };
+  const CAR_MODEL_AR: Record<string, string> = {
+    'AVEO': 'افيو', 'CAPTIVA': 'كابتيفا', 'CRUZE': 'كروز',
+    'LANOS': 'لانوس', 'OPTRA': 'أوبترا',
+    'ACCENT': 'اكسنت', 'ACCENT HCI': 'اكسنت-HCI', 'ELANTRA': 'النترا',
+    'GRAND I10': 'جراند-i10', 'I10': 'i10', 'MATRIX': 'ماتريكس',
+    'TUCSON': 'توسان', 'VERNA': 'فيرنا',
+    'CARENS': 'كارينز', 'CERATO LD': 'سيراتو-LD', 'CERATO TD': 'سيراتو-TD',
+    'CERATO K3': 'سيراتو-K3', 'GRAND CERATO': 'جراند-سيراتو',
+    'PICANTO': 'بيكانتو', 'RIO': 'ريو', 'SOUL': 'سول', 'SPORTAGE': 'سبورتاج',
+    'HS': 'HS', 'RX5': 'RX5', 'ZS': 'ZS',
+    'ECLIPSE': 'اكليبس', 'LANCER PUM': 'لانسر-بوم', 'LANCER SHA': 'لانسر-شاسيه',
+    'QASHQAI': 'قاشقاي', 'SENTRA': 'سنترا', 'SUNNY N16': 'صني-N16',
+    'SUNNY N17': 'صني-N17', 'TIIDA': 'تيدا',
+    'ASTRA': 'أسترا', 'INSIGNIA': 'انسيجنيا',
+    '2008': '2008', '3008': '3008', '508': '508', '308': '308', '5008': '5008',
+    'CAPTUR': 'كابتشر', 'CLIO': 'كليو', 'DUSTER': 'داستر', 'FLUENCE': 'فلوانس',
+    'KADJAR': 'كادجار', 'LOGAN': 'لوجان', 'MEGANE': 'ميغان',
+    'SANDERO': 'سانديرو', 'STEPWAY': 'ستيبواي',
+    'IBIZA': 'ابيزا', 'LEON': 'ليون', 'TOLEDO': 'توليدو',
+    'OCTAVIA A4': 'اوكتافيا-A4', 'OCTAVIA A5': 'اوكتافيا-A5',
+    'OCTAVIA A7': 'اوكتافيا-A7', 'OCTAVIA A8': 'اوكتافيا-A8',
+    'COROLLA': 'كورولا', 'YARIS': 'يارس',
+    'PASSAT': 'باسات', 'GOLF': 'جولف', 'JETTA': 'جيتا',
+  };
+
+  const isUniversal = !product.car_make || product.car_make === 'UNIVERSAL';
+  const carAr = isUniversal ? '' : (CAR_MAKE_AR[product.car_make] || product.car_make);
+  const modelRaw = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model : '';
+  const modelAr = modelRaw ? (CAR_MODEL_AR[modelRaw.toUpperCase()] ?? modelRaw) : '';
+  const year = product.car_model_year || '';
+  const brand = product.brand || '';
+
+  return [product.name, carAr, modelAr, year, brand]
+    .filter(Boolean)
+    .join('-')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/[^\u0600-\u06FFa-zA-Z0-9-]/g, '')
+    .toLowerCase()
+    .slice(0, 100);
 }
 
 const gridContainer = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '25px', marginBottom: '25px' };

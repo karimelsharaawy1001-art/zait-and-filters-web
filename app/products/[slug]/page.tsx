@@ -10,11 +10,29 @@ import { notFound, redirect } from 'next/navigation';
 // ============================================================
 const getProduct = cache(async (slug: string) => {
   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
-  const query = isUUID
-    ? supabase.from('products').select('*').eq('id', slug).single()
-    : supabase.from('products').select('*').eq('slug', slug).single();
-  const { data } = await query;
-  return data;
+  
+  if (isUUID) {
+    const { data } = await supabase.from('products').select('*').eq('id', slug).single();
+    return data;
+  }
+
+  // try direct slug lookup first
+  const { data } = await supabase.from('products').select('*').eq('slug', slug).single();
+  if (data) return data;
+
+  // check redirects table for old slugs
+  const { data: redirect } = await supabase
+    .from('slug_redirects')
+    .select('new_slug')
+    .eq('old_slug', slug)
+    .single();
+
+  if (redirect) {
+    // return a special object that triggers a redirect
+    return { _redirect: redirect.new_slug };
+  }
+
+  return null;
 });
 
 // ============================================================
@@ -203,7 +221,8 @@ function getSensorLabel(product: any): { ar: string; arAlt: string } {
 function buildDescription(product: any): string {
   const brand = product.brand || '';
   const carAr = CAR_MAKE_AR[product.car_make] || product.car_make || '';
-  const model = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model : '';
+  const modelRaw = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model : '';
+const model = modelRaw ? (CAR_MODEL_AR[modelRaw.toUpperCase()] ?? modelRaw) : '';
   const year = product.car_model_year || '';
   const price = product.sale_price || product.regular_price || '';
   const partNumber = product.sku ? `رقم القطعة: ${product.sku}.` : '';
@@ -993,12 +1012,17 @@ function ProductSchema({ product }: { product: any }) {
   const schemaYear = product.car_model_year || '';
   const schemaOrigin = product.country_of_origin || '';
   const schemaCarParts = [schemaCarAr, schemaModel, schemaYear].filter(Boolean).join(' ');
-  const schemaFullName = [
-    product.name,
-    product.brand,
-    schemaCarParts || null,
-    schemaOrigin || null,
-  ].filter(Boolean).join(' - ');
+  const schemaModelRaw = schemaModel ? schemaModel : '';
+const schemaModelAr = schemaModelRaw ? (CAR_MODEL_AR[schemaModelRaw.toUpperCase()] ?? schemaModelRaw) : '';
+const schemaYears = expandYearRange(schemaYear);
+const schemaYearStr = schemaYears.join(' ');
+const schemaFullName = [
+  product.name,
+  schemaCarAr,
+  schemaModelAr,
+  schemaYearStr,
+  product.brand,
+].filter(Boolean).join(' ');
 
   const schema: any = {
     '@context': 'https://schema.org',
@@ -1076,8 +1100,9 @@ function PartFAQSchema({ product }: { product: any }) {
   const sub = product.subcategory || '';
   const cat = product.category || '';
   const carAr = CAR_MAKE_AR[product.car_make] || '';
-  const model = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model : '';
-  const carPhrase = [carAr, model].filter(Boolean).join(' ');
+const modelRaw = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model : '';
+const modelAr = modelRaw ? (CAR_MODEL_AR[modelRaw.toUpperCase()] ?? modelRaw) : '';
+const carPhrase = [carAr, modelAr].filter(Boolean).join(' ');
 
   type FAQItem = { name: string; text: string };
   let questions: FAQItem[] = [];
