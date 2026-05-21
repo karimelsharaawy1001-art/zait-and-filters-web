@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
+
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -51,6 +53,10 @@ function expandYearRange(yearStr: string): string {
     return years.join('-');
   }
   return yearStr.trim();
+}
+
+export async function GET(req: Request) {
+  return POST(req);
 }
 
 function generateSlug(product: any, existingSlugs: Set<string>): string {
