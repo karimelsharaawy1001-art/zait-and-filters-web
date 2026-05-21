@@ -344,15 +344,14 @@ function buildTitle(product: any): string {
   const brand = product.brand || '';
   const isUniversal = !product.car_make || product.car_make === 'UNIVERSAL';
   const carAr = isUniversal ? '' : (CAR_MAKE_AR[product.car_make] || product.car_make || '');
-  const model = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model : '';
+  const modelRaw = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model : '';
+  const modelAr = modelRaw ? (CAR_MODEL_AR[modelRaw.toUpperCase()] ?? modelRaw) : '';
   const year = product.car_model_year || '';
   const origin = product.country_of_origin || '';
+  const originSuffix = origin ? ` - ${origin}` : '';
   const siteName = ' | زيت أند فلترز';
 
-  const carParts = [carAr, model, year].filter(Boolean).join(' ');
-  const originSuffix = origin ? ` - ${origin}` : '';
-
-  return [product.name, carAr, model, year, brand]
+  return [product.name, carAr, modelAr, year, brand, originSuffix]
     .filter(Boolean)
     .join(' ')
     .replace(/\s+/g, ' ')
@@ -366,11 +365,12 @@ function buildShoppingTitle(product: any): string {
   const brand = product.brand || '';
   const isUniversal = !product.car_make || product.car_make === 'UNIVERSAL';
   const carAr = isUniversal ? '' : (CAR_MAKE_AR[product.car_make] || product.car_make || '');
-  const model = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model : '';
+  const modelRaw = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model : '';
+  const modelAr = modelRaw ? (CAR_MODEL_AR[modelRaw.toUpperCase()] ?? modelRaw) : '';
   const year = product.car_model_year || '';
   const origin = product.country_of_origin || '';
 
-  return [product.name, carAr, model, year, brand]
+  return [product.name, carAr, modelAr, year, brand, origin]
     .filter(Boolean)
     .join(' ')
     .replace(/\s+/g, ' ')
