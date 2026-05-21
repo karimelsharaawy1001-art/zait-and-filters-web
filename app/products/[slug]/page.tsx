@@ -257,7 +257,7 @@ function buildTitle(product: any): string {
   const carParts = [carAr, model, year].filter(Boolean).join(' ');
   const originSuffix = origin ? ` - ${origin}` : '';
 
-  return [product.name, brand, carParts, originSuffix]
+  return [product.name, carAr, model, year, brand]
     .filter(Boolean)
     .join(' ')
     .replace(/\s+/g, ' ')
@@ -275,7 +275,7 @@ function buildShoppingTitle(product: any): string {
   const year = product.car_model_year || '';
   const origin = product.country_of_origin || '';
 
-  return [product.name, brand, carAr, model, year, origin]
+  return [product.name, carAr, model, year, brand]
     .filter(Boolean)
     .join(' ')
     .replace(/\s+/g, ' ')

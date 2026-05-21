@@ -20,7 +20,7 @@ function buildFeedTitle(p: any): string {
   const year = p.car_model_year || '';
   const origin = p.country_of_origin || '';
 
-  return [p.name, brand, carAr, model, year, origin]
+  return [p.name, carAr, model, year, brand]
     .filter(Boolean)
     .join(' ')
     .replace(/\s+/g, ' ')
