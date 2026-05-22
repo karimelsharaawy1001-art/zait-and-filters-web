@@ -79,12 +79,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const productEntries: MetadataRoute.Sitemap = allProducts.map((p) => ({
 url: `${baseUrl}/products/${encodeURIComponent(p.slug ?? p.id)}`,
-    // Prefer updated_at so price/stock changes reflect in crawl freshness
-    lastModified: p.updated_at ? new Date(p.updated_at) : new Date(p.created_at),
-    changeFrequency: 'weekly' as const,
-    priority: highTraffic.includes(p.category) ? 0.85 : 0.7,
-    // Expose product images so Google indexes them for Shopping + image search
-    images: p.image_url ? [p.image_url] : undefined,
+lastModified: p.updated_at ? new Date(p.updated_at) : new Date(p.created_at),
+changeFrequency: 'weekly' as const,
+priority: highTraffic.includes(p.category) ? 0.85 : 0.7,
   }));
 
   return [...STATIC_PAGES, ...categoryEntries, ...productEntries];
