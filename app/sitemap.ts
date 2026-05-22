@@ -78,7 +78,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const productEntries: MetadataRoute.Sitemap = allProducts.map((p) => ({
-    url: `${baseUrl}/products/${p.slug ?? p.id}`,
+url: `${baseUrl}/products/${encodeURIComponent(p.slug ?? p.id)}`,
     // Prefer updated_at so price/stock changes reflect in crawl freshness
     lastModified: p.updated_at ? new Date(p.updated_at) : new Date(p.created_at),
     changeFrequency: 'weekly' as const,
