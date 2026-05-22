@@ -9,21 +9,17 @@ import { notFound, redirect } from 'next/navigation';
 // generateMetadata and ProductPage share one DB hit per request.
 // ============================================================
 const getProduct = cache(async (slug: string) => {
-  console.log('[getProduct] called with slug:', slug);
-  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
-  console.log('[getProduct] isUUID:', isUUID);
+  // always decode — Next.js may pass encoded or decoded depending on how link was built
+  const decodedSlug = decodeURIComponent(slug);
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(decodedSlug);
   
   if (isUUID) {
-    console.log('[getProduct] fetching by UUID...');
-    const { data, error } = await supabase.from('products').select('*').eq('id', slug).single();
-    console.log('[getProduct] UUID result - data:', data, 'error:', error);
+    const { data } = await supabase.from('products').select('*').eq('id', decodedSlug).single();
     return data;
   }
 
   // try direct slug lookup first
-  console.log('[getProduct] fetching by slug...');
-  const { data, error } = await supabase.from('products').select('*').eq('slug', slug).single();
-  console.log('[getProduct] slug result - data:', data, 'error:', error);
+  const { data } = await supabase.from('products').select('*').eq('slug', decodedSlug).single();
   if (data) return data;
 
   // check redirects table for old slugs
