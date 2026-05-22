@@ -36,13 +36,27 @@ const CAR_MODEL_AR: Record<string, string> = {
   'COROLLA': 'كورولا', 'YARIS': 'يارس', 'PASSAT': 'باسات', 'GOLF': 'جولف', 'JETTA': 'جيتا',
 };
 
+function expandYearRange(yearStr: string): string[] {
+  if (!yearStr) return [];
+  const match = yearStr.match(/(\d{4})\s*[-–]\s*(\d{4})/);
+  if (match) {
+    const start = parseInt(match[1]);
+    const end = parseInt(match[2]);
+    const years: string[] = [];
+    for (let y = start; y <= end; y++) years.push(String(y));
+    return years;
+  }
+  return [yearStr.trim()].filter(Boolean);
+}
+
 function generateArabicSlug(product: any): string {
   const namePart = (product.name || '').trim().replace(/\s+/g, '-');
   const isUniversal = !product.car_make || product.car_make === 'UNIVERSAL';
   const makePart = isUniversal ? '' : (CAR_MAKE_AR[product.car_make?.toUpperCase()] ?? product.car_make?.toLowerCase() ?? '');
   const modelRaw = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model : '';
   const modelPart = modelRaw ? (CAR_MODEL_AR[modelRaw.toUpperCase()] ?? modelRaw.toLowerCase()) : '';
-  const yearPart = product.car_model_year ? product.car_model_year.replace(/\s+/g, '-') : '';
+  const years = expandYearRange(product.car_model_year || '');
+  const yearPart = years.join('-');
   const brandPart = (product.brand || '').trim().replace(/\s+/g, '-');
   return [namePart, makePart, modelPart, yearPart, brandPart]
     .filter(Boolean).join('-').replace(/-+/g, '-');
