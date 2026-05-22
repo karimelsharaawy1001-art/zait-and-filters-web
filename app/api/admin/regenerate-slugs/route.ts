@@ -1,8 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
-
-
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -55,10 +53,6 @@ function expandYearRange(yearStr: string): string {
   return yearStr.trim();
 }
 
-export async function GET(req: Request) {
-  return POST(req);
-}
-
 function generateSlug(product: any, existingSlugs: Set<string>): string {
   const isUniversal = !product.car_make || product.car_make === 'UNIVERSAL';
   const carAr = isUniversal ? '' : (CAR_MAKE_AR[product.car_make] || product.car_make || '');
@@ -76,7 +70,6 @@ function generateSlug(product: any, existingSlugs: Set<string>): string {
     .toLowerCase()
     .slice(0, 100);
 
-  // handle duplicates by appending counter
   let slug = base;
   let counter = 1;
   while (existingSlugs.has(slug)) {
@@ -87,59 +80,74 @@ function generateSlug(product: any, existingSlugs: Set<string>): string {
   return slug;
 }
 
-export async function POST(req: Request) {
+export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const secret = searchParams.get('secret');
   if (secret !== process.env.ADMIN_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // fetch all products
+  // get batch params — default page=0, size=200
+  const page = parseInt(searchParams.get('page') || '0');
+  const size = 200;
+  const from = page * size;
+  const to = from + size - 1;
+
+  // fetch only this batch
   const { data: products, error } = await supabase
     .from('products')
-    .select('id, name, brand, car_make, car_model, car_model_year, slug');
+    .select('id, name, brand, car_make, car_model, car_model_year, slug')
+    .order('id', { ascending: true })
+    .range(from, to);
 
-  if (error || !products) {
-    return NextResponse.json({ error: error?.message }, { status: 500 });
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const existingSlugs = new Set<string>();
-  const updates: { id: string; old_slug: string; new_slug: string }[] = [];
+  if (!products || products.length === 0) {
+    return NextResponse.json({ done: true, message: 'All batches complete' });
+  }
 
+  // we need all existing slugs to avoid duplicates
+  // fetch just slugs for collision detection
+  const { data: allSlugs } = await supabase
+    .from('products')
+    .select('slug')
+    .not('slug', 'is', null);
+
+  const existingSlugs = new Set<string>(
+    (allSlugs || []).map((p: any) => p.slug).filter(Boolean)
+  );
+
+  let updated = 0;
   for (const product of products) {
     const newSlug = generateSlug(product, existingSlugs);
-    if (newSlug !== product.slug) {
-      updates.push({
-        id: product.id,
-        old_slug: product.slug || '',
+    if (newSlug === product.slug) continue;
+
+    // save redirect
+    if (product.slug) {
+      await supabase.from('slug_redirects').upsert({
+        old_slug: product.slug,
         new_slug: newSlug,
       });
     }
-  }
 
-  // process in batches of 100
-  let updated = 0;
-  for (let i = 0; i < updates.length; i += 100) {
-    const batch = updates.slice(i, i + 100);
-    for (const u of batch) {
-      // save old->new mapping first for 301 redirects
-      if (u.old_slug) {
-        await supabase
-          .from('slug_redirects')
-          .upsert({ old_slug: u.old_slug, new_slug: u.new_slug });
-      }
-      // then update the product slug
-      await supabase
-        .from('products')
-        .update({ slug: u.new_slug })
-        .eq('id', u.id);
-      updated++;
-    }
+    // update slug
+    await supabase
+      .from('products')
+      .update({ slug: newSlug })
+      .eq('id', product.id);
+
+    updated++;
   }
 
   return NextResponse.json({
-    total: products.length,
+    page,
+    processed: products.length,
     updated,
-    sample: updates.slice(0, 10),
+    hasMore: products.length === size,
+    nextUrl: products.length === size
+      ? `/api/admin/regenerate-slugs?secret=${secret}&page=${page + 1}`
+      : null,
   });
 }

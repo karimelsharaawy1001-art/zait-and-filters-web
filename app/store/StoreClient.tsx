@@ -1212,7 +1212,7 @@ setBrandsOptions(brandsOpts);
           .store-product-card {
             background: #fff;
             border-radius: 16px;
-            border: 1px solid #f0f0f0;
+            border: 1px solid #e0e0e0;
             transition: all 0.3s ease;
             overflow: hidden;
             display: flex;
