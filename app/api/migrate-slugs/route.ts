@@ -123,6 +123,87 @@ export async function GET(request: Request) {
     return NextResponse.json(results);
   }
 
+  // check how many still have english-only slugs
+  if (action === 'preview-english') {
+    const { data: products } = await supabase
+      .from('products')
+      .select('id, name, slug, car_make, car_model, car_model_year, brand')
+      .limit(10)
+      .filter('slug', 'not.like', '%ا%')
+      .filter('slug', 'not.like', '%و%')
+      .filter('slug', 'not.like', '%ي%');
+
+    const preview = products?.map(p => ({
+      current_slug: p.slug,
+      new_slug: generateArabicSlug(p),
+      will_change: p.slug !== generateArabicSlug(p),
+    }));
+
+    return NextResponse.json({ preview });
+  }
+
+  // count english-only slugs
+  if (action === 'count-english') {
+    const { count } = await supabase
+      .from('products')
+      .select('*', { count: 'exact', head: true })
+      .filter('slug', 'not.like', '%ا%')
+      .filter('slug', 'not.like', '%و%')
+      .filter('slug', 'not.like', '%ي%');
+
+    return NextResponse.json({ english_only_slugs: count });
+  }
+
+  // migrate ONLY english slugs
+  if (action === 'run-english') {
+    const BATCH_SIZE = 50;
+    const page = parseInt(searchParams.get('page') || '0');
+    const from = page * BATCH_SIZE;
+    const to = from + BATCH_SIZE - 1;
+
+    const { data: products, error } = await supabase
+      .from('products')
+      .select('id, name, slug, car_make, car_model, car_model_year, brand')
+      .filter('slug', 'not.like', '%ا%')
+      .filter('slug', 'not.like', '%و%')
+      .filter('slug', 'not.like', '%ي%')
+      .range(from, to);
+
+    if (error) return NextResponse.json({ error }, { status: 500 });
+
+    const results = { page, updated: 0, skipped: 0, failed: 0, done: false, log: [] as string[] };
+    results.done = products.length < BATCH_SIZE;
+
+    for (const product of products) {
+      const newSlug = generateArabicSlug(product);
+      if (product.slug === newSlug) { results.skipped++; continue; }
+
+      const { data: existing } = await supabase
+        .from('products').select('id').eq('slug', newSlug).neq('id', product.id).single();
+
+      let finalSlug = newSlug;
+      if (existing) finalSlug = `${newSlug}-${product.id.slice(0, 6)}`;
+
+      if (product.slug) {
+        await supabase.from('slug_redirects')
+          .upsert({ old_slug: product.slug, new_slug: finalSlug });
+      }
+
+      const { error: updateError } = await supabase
+        .from('products').update({ slug: finalSlug }).eq('id', product.id);
+
+      if (updateError) {
+        results.failed++;
+        results.log.push(`FAILED: ${product.id}`);
+      } else {
+        results.updated++;
+        results.log.push(`✓ ${product.slug} → ${finalSlug}`);
+      }
+    }
+
+    return NextResponse.json(results);
+  }
+
   return NextResponse.json({ 
     usage: 'Visit ?action=preview to see sample, ?action=count for total, ?action=run&page=0 to migrate' 
   });
