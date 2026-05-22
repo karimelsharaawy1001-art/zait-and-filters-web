@@ -103,15 +103,18 @@ export async function GET() {
     const image = p.image_url || `${BASE_URL}/og-image.jpg`;
     const title = buildFeedTitle(p);
 
+    const availability = (p.stock_quantity > 0) ? 'in_stock' : 'out_of_stock';
+    const productUrl = `${BASE_URL}/products/${encodeURIComponent(slug)}`;
+
     return `
       <item>
         <g:id>${escapeXml(p.id)}</g:id>
         <g:title>${escapeXml(title)}</g:title>
         <g:description>${escapeXml(p.description || `${p.name} ماركة ${brand} متوفرة في زيت أند فلترز`)}</g:description>
-        <g:link>${escapeXml(`${BASE_URL}/products/${slug}`)}</g:link>
+        <g:link>${escapeXml(productUrl)}</g:link>
         <g:image_link>${escapeXml(image)}</g:image_link>
         <g:condition>new</g:condition>
-        <g:availability>in_stock</g:availability>
+        <g:availability>${availability}</g:availability>
         <g:price>${price.toFixed(2)} EGP</g:price>
         <g:brand>${escapeXml(brand)}</g:brand>
         <g:mpn>${escapeXml(p.sku || p.part_number || p.id)}</g:mpn>
