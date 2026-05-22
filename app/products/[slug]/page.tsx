@@ -21,15 +21,15 @@ const getProduct = cache(async (slug: string) => {
   if (data) return data;
 
   // check redirects table for old slugs
-  const { data: redirect } = await supabase
+  const { data: slugRedirect } = await supabase
     .from('slug_redirects')
     .select('new_slug')
     .eq('old_slug', slug)
     .single();
 
-  if (redirect) {
+  if (slugRedirect) {
     // return a special object that triggers a redirect
-    return { _redirect: redirect.new_slug };
+    return { _redirect: slugRedirect.new_slug };
   }
 
   return null;
@@ -1375,6 +1375,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   if (isUUID) {
     if (!product) notFound();
+    if (product._redirect) redirect(`/products/${product._redirect}`);
     if (product.slug) redirect(`/products/${product.slug}`);
     return (
       <>
@@ -1398,6 +1399,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   }
 
   if (!product) notFound();
+  if (product._redirect) redirect(`/products/${product._redirect}`);
 
   return (
     <>
