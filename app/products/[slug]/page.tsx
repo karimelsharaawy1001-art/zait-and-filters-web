@@ -1381,8 +1381,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   if (isUUID) {
     if (!product) notFound();
-    if (product._redirect) redirect(`/products/${product._redirect}`);
-    if (product.slug) redirect(`/products/${product.slug}`);
+    if (product._redirect) redirect(`/products/${encodeURIComponent(product._redirect)}`);
+    if (product.slug) redirect(`/products/${encodeURIComponent(product.slug)}`);
     return (
       <>
         {/* CWV FIX: Preload the LCP image as early as possible */}
@@ -1405,7 +1405,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   }
 
   if (!product) notFound();
-  if (product._redirect) redirect(`/products/${product._redirect}`);
+  if (product._redirect) redirect(`/products/${encodeURIComponent(product._redirect)}`);
 
   return (
     <>
