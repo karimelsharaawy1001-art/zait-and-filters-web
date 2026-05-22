@@ -48,14 +48,42 @@ function generateArabicSlug(product: any): string {
     .filter(Boolean).join('-').replace(/-+/g, '-');
 }
 
-export async function GET() {
-  const results = { updated: 0, skipped: 0, failed: 0, log: [] as string[] };
+const BATCH_SIZE = 50;
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const page = parseInt(searchParams.get('page') || '0');
+  const from = page * BATCH_SIZE;
+  const to = from + BATCH_SIZE - 1;
+
+  const results = { 
+    page, 
+    from, 
+    to, 
+    updated: 0, 
+    skipped: 0, 
+    failed: 0, 
+    total_in_batch: 0,
+    done: false,
+    next_url: '',
+    log: [] as string[] 
+  };
 
   const { data: products, error } = await supabase
     .from('products')
-    .select('id, name, slug, car_make, car_model, car_model_year, brand');
+    .select('id, name, slug, car_make, car_model, car_model_year, brand')
+    .range(from, to);
 
   if (error) return NextResponse.json({ error }, { status: 500 });
+
+  results.total_in_batch = products.length;
+
+  // if less than BATCH_SIZE returned, we are done
+  if (products.length < BATCH_SIZE) {
+    results.done = true;
+  } else {
+    results.next_url = `/api/migrate-slugs?page=${page + 1}`;
+  }
 
   for (const product of products) {
     const newSlug = generateArabicSlug(product);
@@ -65,7 +93,6 @@ export async function GET() {
       continue;
     }
 
-    // check collision
     const { data: existing } = await supabase
       .from('products').select('id').eq('slug', newSlug).neq('id', product.id).single();
 
@@ -75,13 +102,11 @@ export async function GET() {
       results.log.push(`COLLISION: ${newSlug} → ${finalSlug}`);
     }
 
-    // save redirect
     if (product.slug) {
       await supabase.from('slug_redirects')
         .upsert({ old_slug: product.slug, new_slug: finalSlug });
     }
 
-    // update slug
     const { error: updateError } = await supabase
       .from('products').update({ slug: finalSlug }).eq('id', product.id);
 
