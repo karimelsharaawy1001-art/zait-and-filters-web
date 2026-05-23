@@ -543,7 +543,7 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
 function StoreContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { addToCart } = useCart();
+  const { addToCart, cartItems } = useCart();
 
   const [isMounted, setIsMounted] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
@@ -1632,35 +1632,70 @@ setBrandsOptions(brandsOpts);
                               ) : (
                                 <span style={{ fontSize: '1.2rem', fontWeight: '900' }}>{price} ج.م</span>
                               )}
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  if (!isOutOfStock) { addToCart({ ...product, price }, 1); toast.success('تمت الإضافة'); }
-                                }}
-                                disabled={isOutOfStock}
-                                style={{ width: '100%', padding: '11px', backgroundColor: isOutOfStock ? '#9ca3af' : '#1a1a1a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: isOutOfStock ? 'not-allowed' : 'pointer', fontSize: '0.9rem', transition: '0.2s' }}
-                              >
-                                <ShoppingCart size={16} />
-                                {isOutOfStock ? 'نفذت الكمية' : 'أضف إلى السلة'}
-                              </button>
-                              {isOutOfStock ? (
-                                <div
-                                  style={{ width: '100%', padding: '11px', backgroundColor: '#e5e7eb', color: '#9ca3af', borderRadius: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'not-allowed' }}
-                                >
-                                  <Zap size={16} />
-                                  غير متاح
-                                </div>
-                              ) : (
-                              <Link
-                                href={`/products/${product.slug || product.id}`}
-                                onClick={() => addToCart({ ...product, price }, 1)}
-                                className="buy-now-btn"
-                                style={{ width: '100%', padding: '11px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', textDecoration: 'none', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(34,197,94,0.3)' }}
-                              >
-                                <Zap size={16} fill="#fff" />
-                                اشتري الآن
-                              </Link>
-                              )}
+
+                              {/* ── Cart quantity control ── */}
+                              {(() => {
+                                const cartItem = cartItems.find((i: any) => i.id === product.id);
+                                const qty = cartItem?.quantity ?? 0;
+                                if (isOutOfStock) return (
+                                  <>
+                                    <button disabled style={{ width: '100%', padding: '11px', backgroundColor: '#9ca3af', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'not-allowed', fontSize: '0.9rem' }}>
+                                      <ShoppingCart size={16} /> نفذت الكمية
+                                    </button>
+                                    <div style={{ width: '100%', padding: '11px', backgroundColor: '#e5e7eb', color: '#9ca3af', borderRadius: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'not-allowed' }}>
+                                      <Zap size={16} /> غير متاح
+                                    </div>
+                                  </>
+                                );
+                                if (qty === 0) return (
+                                  <>
+                                    <button
+                                      onClick={(e) => { e.preventDefault(); addToCart({ ...product, price }, 1); toast.success('تمت الإضافة'); }}
+                                      style={{ width: '100%', padding: '11px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', transition: '0.2s' }}
+                                    >
+                                      <ShoppingCart size={16} /> أضف إلى السلة
+                                    </button>
+                                    <Link
+                                      href={`/products/${product.slug || product.id}`}
+                                      onClick={() => addToCart({ ...product, price }, 1)}
+                                      className="buy-now-btn"
+                                      style={{ width: '100%', padding: '11px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', textDecoration: 'none', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(34,197,94,0.3)' }}
+                                    >
+                                      <Zap size={16} fill="#fff" /> اشتري الآن
+                                    </Link>
+                                  </>
+                                );
+                                return (
+                                  <>
+                                    {/* Quantity stepper — shown when item is in cart */}
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f0fdf4', border: '2px solid #22c55e', borderRadius: '12px', padding: '6px 10px' }}>
+                                      <button
+                                        onClick={(e) => { e.preventDefault(); addToCart({ ...product, price }, -1); }}
+                                        style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '1.3rem', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
+                                      >
+                                        −
+                                      </button>
+                                      <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '1.3rem', fontWeight: '900', color: '#16a34a', lineHeight: 1 }}>{qty}</div>
+                                        <div style={{ fontSize: '0.65rem', color: '#16a34a', fontWeight: '700' }}>في السلة</div>
+                                      </div>
+                                      <button
+                                        onClick={(e) => { e.preventDefault(); addToCart({ ...product, price }, 1); }}
+                                        style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '1.3rem', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
+                                      >
+                                        +
+                                      </button>
+                                    </div>
+                                    <Link
+                                      href={`/products/${product.slug || product.id}`}
+                                      className="buy-now-btn"
+                                      style={{ width: '100%', padding: '11px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', textDecoration: 'none', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(34,197,94,0.3)' }}
+                                    >
+                                      <Zap size={16} fill="#fff" /> اشتري الآن
+                                    </Link>
+                                  </>
+                                );
+                              })()}
                             </div>
                           </div>
                         </motion.div>
