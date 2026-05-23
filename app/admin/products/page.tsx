@@ -124,6 +124,7 @@ export default function AdminProducts() {
   const [searchName, setSearchName] = useState(() => searchParams.get('name') || '');
   // ── NEW: search by ID ──
   const [searchId, setSearchId] = useState(() => searchParams.get('id') || '');
+const [searchSku, setSearchSku] = useState(() => searchParams.get('sku') || '');
   const [filterMake, setFilterMake] = useState(() => searchParams.get('make') || '');
   const [filterModel, setFilterModel] = useState(() => searchParams.get('model') || '');
   const [filterCategory, setFilterCategory] = useState(() => searchParams.get('category') || '');
@@ -163,7 +164,8 @@ export default function AdminProducts() {
     const params = new URLSearchParams();
     if (currentPage > 1) params.set('page', String(currentPage));
     if (searchName) params.set('name', searchName);
-    if (searchId) params.set('id', searchId); // ── NEW ──
+    if (searchId) params.set('id', searchId);
+if (searchSku) params.set('sku', searchSku);
     if (filterMake) params.set('make', filterMake);
     if (filterModel) params.set('model', filterModel);
     if (filterCategory) params.set('category', filterCategory);
@@ -180,7 +182,7 @@ export default function AdminProducts() {
 
 
     router.replace(newUrl, { scroll: false });
-  }, [currentPage, searchName, searchId, filterMake, filterModel, filterCategory, filterSubcategory, filterYear, filterBrand, sortBy, sortOrder]);
+  }, [currentPage, searchName, searchId, searchSku, filterMake, filterModel, filterCategory, filterSubcategory, filterYear, filterBrand, sortBy, sortOrder]);
 
 
   useEffect(() => {
@@ -188,6 +190,7 @@ export default function AdminProducts() {
     fetchUniqueValues('category', setAvailableCategories);
     fetchUniqueValues('brand', setAvailableBrands);
   }, []);
+
 
 
   useEffect(() => {
@@ -214,6 +217,9 @@ export default function AdminProducts() {
     fetchProducts();
   }, [
     currentPage,
+    searchName,
+    searchId,
+    searchSku,
     filterMake,
     filterModel,
     filterCategory,
@@ -251,7 +257,8 @@ export default function AdminProducts() {
   const buildFilteredQuery = () => {
     let query = supabase.from('products').select('*', { count: 'exact' });
     if (searchName) query = query.ilike('name', `%${searchName}%`);
-    if (searchId) query = query.ilike('id', `%${searchId}%`); // ── NEW ──
+    if (searchId) query = query.ilike('id', `%${searchId}%`);
+if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
     if (filterMake === '__universal__') {
       query = query.or('car_make.is.null,car_make.eq.');
     } else if (filterMake) {
@@ -657,16 +664,16 @@ export default function AdminProducts() {
         </div>
         {/* ── NEW: Search by ID ── */}
         <div>
-          <label style={labelStyle}>بحث بالـ ID</label>
-          <input
-            type="text"
-            placeholder="أدخل ID..."
-            value={searchId}
-            onChange={(e) => setSearchId(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && fetchProducts()}
-            style={filterInputStyle}
-          />
-        </div>
+  <label style={labelStyle}>بحث بالـ SKU</label>
+  <input
+    type="text"
+    placeholder="1000001"
+    value={searchSku}
+    onChange={(e) => { setSearchSku(e.target.value); setCurrentPage(1); }}
+    onKeyDown={(e) => e.key === 'Enter' && fetchProducts()}
+    style={filterInputStyle}
+  />
+</div>
         <div>
           <label style={labelStyle}>القسم الرئيسي</label>
           <select
@@ -849,6 +856,7 @@ export default function AdminProducts() {
               <th style={thStyle}>الصورة والاسم</th>
               {/* ── NEW: ID column header ── */}
               <th style={thStyle}>ID</th>
+<th style={thStyle}>SKU</th>
               <th style={thStyle}>العلامة التجارية</th>
               <th style={thStyle}>السيارة</th>
               <th style={thStyle}>الموديل</th>
@@ -930,21 +938,19 @@ export default function AdminProducts() {
                     </td>
 
 
-                    {/* ── NEW: ID cell ── */}
                     <td style={tdStyle}>
-                      <span
-                        title={product.id}
-                        style={{
-                          fontFamily: 'monospace',
-                          fontSize: '0.75rem',
-                          color: '#555',
-                          cursor: 'default',
-                          userSelect: 'all',
-                        }}
-                      >
-                        {product.id.slice(0, 8)}…
-                      </span>
-                    </td>
+  <span
+    title={product.id}
+    style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#555', cursor: 'default', userSelect: 'all' }}
+  >
+    {product.id.slice(0, 8)}…
+  </span>
+</td>
+<td style={tdStyle}>
+  <span style={{ fontFamily: 'monospace', fontSize: '0.85rem', color: '#2ecc71', fontWeight: '700' }}>
+    {product.sku || '—'}
+  </span>
+</td>
 
 
                     <td style={tdStyle}>{product.brand}</td>
