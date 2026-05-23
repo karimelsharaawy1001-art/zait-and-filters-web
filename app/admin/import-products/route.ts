@@ -99,6 +99,21 @@ export async function POST(req: Request) {
         productId
       );
 
+      // ── Auto-generate SKU if not provided ──
+      if (!cleanData.sku || String(cleanData.sku).trim() === '') {
+        const { data: maxSkuRow } = await supabaseAdmin
+          .from('products')
+          .select('sku')
+          .not('sku', 'is', null)
+          .order('sku', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        const lastSku = maxSkuRow?.sku && /^\d{7}$/.test(maxSkuRow.sku)
+          ? parseInt(maxSkuRow.sku)
+          : 999999;
+        cleanData.sku = String(lastSku + 1);
+      }
+
       if (id && String(id).trim().length > 10) {
         const { data: existing, error: fetchError } = await supabaseAdmin
           .from('products')
