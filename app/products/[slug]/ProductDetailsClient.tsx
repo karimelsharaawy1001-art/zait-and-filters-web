@@ -601,7 +601,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
   <div style={specItem}>
     <span style={specLabel}>كود المنتج</span>
     <span style={{ ...specValue, fontFamily: 'monospace', fontWeight: '900', letterSpacing: '0.05em' }}>
-      #{product.sku}
+      {product.sku}
     </span>
   </div>
 )}
