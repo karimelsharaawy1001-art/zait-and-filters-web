@@ -469,7 +469,7 @@ function CategoriesGrid({ categories }: { categories: any[] }) {
 
 export default function HomePage() {
   const router = useRouter();
-  const { addToCart } = useCart(); 
+  const { addToCart, cartItems } = useCart(); 
   const scrollRef = useRef<HTMLDivElement>(null);
   const bestSellerRef = useRef<HTMLDivElement>(null); 
 
@@ -1017,12 +1017,35 @@ export default function HomePage() {
                                 <span style={{ display: 'block', color: '#bbb', textDecoration: 'line-through', fontSize: '0.75rem' }}>{p.regular_price} ج.م</span>
                                 <span style={{ fontSize: '1.2rem', fontWeight: '900' }}>{p.sale_price} ج.م</span>
                               </div>
-                              <button style={cartBtnStyleSmall} onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, 1); toast.success('تمت الإضافة'); }}>
-                                <ShoppingCart size={16} /> أضف إلى السلة
-                              </button>
-                              <Link href={`/checkout?buyNow=true&productId=${p.id}&price=${p.sale_price}`} style={buyNowBtnStyle} onClick={() => { addToCart({...p, price: p.sale_price}, 1); }}>
-                                ⚡ اشتري الآن
-                              </Link>
+                              {(() => {
+                                const cartItem = cartItems.find((i: any) => i.id === p.id);
+                                const qty = cartItem?.quantity ?? 0;
+                                if (qty === 0) return (
+                                  <>
+                                    <button style={cartBtnStyleSmall} onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, 1); toast.success('تمت الإضافة'); }}>
+                                      <ShoppingCart size={16} /> أضف إلى السلة
+                                    </button>
+                                    <Link href={`/checkout?buyNow=true&productId=${p.id}&price=${p.sale_price}`} style={buyNowBtnStyle} onClick={() => { addToCart({...p, price: p.sale_price}, 1); }}>
+                                      ⚡ اشتري الآن
+                                    </Link>
+                                  </>
+                                );
+                                return (
+                                  <>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f0fdf4', border: '2px solid #22c55e', borderRadius: '12px', padding: '6px 10px' }}>
+                                      <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, -1); }} style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '1.3rem', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                                      <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '1.3rem', fontWeight: '900', color: '#16a34a', lineHeight: 1 }}>{qty}</div>
+                                        <div style={{ fontSize: '0.65rem', color: '#16a34a', fontWeight: '700' }}>في السلة</div>
+                                      </div>
+                                      <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, 1); }} style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '1.3rem', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                                    </div>
+                                    <Link href={`/checkout?buyNow=true&productId=${p.id}&price=${p.sale_price}`} style={buyNowBtnStyle}>
+                                      ⚡ اشتري الآن
+                                    </Link>
+                                  </>
+                                );
+                              })()}
                             </div>
                           </div>
                         </div>
@@ -1075,12 +1098,36 @@ export default function HomePage() {
                             </div>
                             <div style={{ marginTop: 'auto', display:'flex', flexDirection:'column', gap:'12px' }}>
                               <span style={{ fontSize: '1.2rem', fontWeight: '900' }}>{p.sale_price || p.regular_price} ج.م</span>
-                              <button style={cartBtnStyleSmall} onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price || p.regular_price}, 1); toast.success('تمت الإضافة'); }}>
-                                <ShoppingCart size={16} /> أضف إلى السلة
-                              </button>
-                              <Link href={`/checkout?buyNow=true&productId=${p.id}&price=${p.sale_price || p.regular_price}`} style={buyNowBtnStyle} onClick={() => { addToCart({...p, price: p.sale_price || p.regular_price}, 1); }}>
-                                ⚡ اشتري الآن
-                              </Link>
+                              {(() => {
+                                const cartItem = cartItems.find((i: any) => i.id === p.id);
+                                const qty = cartItem?.quantity ?? 0;
+                                const itemPrice = p.sale_price || p.regular_price;
+                                if (qty === 0) return (
+                                  <>
+                                    <button style={cartBtnStyleSmall} onClick={(e) => { e.preventDefault(); addToCart({...p, price: itemPrice}, 1); toast.success('تمت الإضافة'); }}>
+                                      <ShoppingCart size={16} /> أضف إلى السلة
+                                    </button>
+                                    <Link href={`/checkout?buyNow=true&productId=${p.id}&price=${itemPrice}`} style={buyNowBtnStyle} onClick={() => { addToCart({...p, price: itemPrice}, 1); }}>
+                                      ⚡ اشتري الآن
+                                    </Link>
+                                  </>
+                                );
+                                return (
+                                  <>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f0fdf4', border: '2px solid #22c55e', borderRadius: '12px', padding: '6px 10px' }}>
+                                      <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: itemPrice}, -1); }} style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '1.3rem', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                                      <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '1.3rem', fontWeight: '900', color: '#16a34a', lineHeight: 1 }}>{qty}</div>
+                                        <div style={{ fontSize: '0.65rem', color: '#16a34a', fontWeight: '700' }}>في السلة</div>
+                                      </div>
+                                      <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: itemPrice}, 1); }} style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '1.3rem', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                                    </div>
+                                    <Link href={`/checkout?buyNow=true&productId=${p.id}&price=${itemPrice}`} style={buyNowBtnStyle}>
+                                      ⚡ اشتري الآن
+                                    </Link>
+                                  </>
+                                );
+                              })()}
                             </div>
                           </div>
                         </div>
