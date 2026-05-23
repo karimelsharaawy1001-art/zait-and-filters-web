@@ -597,6 +597,22 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                 <div style={specItem}><span style={specLabel}>القسم</span><span style={specValue}>{product.category}</span></div>
                 <div style={specItem}><span style={specLabel}>القسم الفرعي</span><span style={specValue}>{product.subcategory || '-'}</span></div>
                 <div style={specItem}><span style={specLabel}>الضمان</span><span style={specValue}><Timer size={14} /> {product.warranty || product.warranty_duration || 'ضمان استبدال'}</span></div>
+{product.sku && (
+  <div style={specItem}>
+    <span style={specLabel}>كود المنتج</span>
+    <span style={{ ...specValue, fontFamily: 'monospace', fontWeight: '900', letterSpacing: '0.05em' }}>
+      #{product.sku}
+    </span>
+  </div>
+)}
+{product.sku && (
+  <div style={specItem}>
+    <span style={specLabel}>كود المنتج</span>
+    <span style={{ ...specValue, fontFamily: 'monospace', fontWeight: '900', letterSpacing: '0.05em' }}>
+      #{product.sku}
+    </span>
+  </div>
+)}
               </div>
             </div>
 
