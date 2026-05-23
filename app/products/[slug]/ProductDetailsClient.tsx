@@ -605,14 +605,6 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
     </span>
   </div>
 )}
-{product.sku && (
-  <div style={specItem}>
-    <span style={specLabel}>كود المنتج</span>
-    <span style={{ ...specValue, fontFamily: 'monospace', fontWeight: '900', letterSpacing: '0.05em' }}>
-      #{product.sku}
-    </span>
-  </div>
-)}
               </div>
             </div>
 
