@@ -469,13 +469,11 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
     if (!file) return;
     e.target.value = '';
 
-
     const reader = new FileReader();
     reader.onload = async (event: any) => {
       const text = event.target.result;
       const lines = text.split('\n').slice(1);
       const imported: any[] = [];
-
 
       for (const line of lines) {
         if (!line.trim()) continue;
@@ -494,14 +492,12 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
           }
         }
         cols.push(current.trim());
-        if (cols.length < 6 || !cols[1]) continue;
-
+        if (cols.length < 6 || !cols[2]) continue;
 
         let warrantyVal = cols[11];
         if (warrantyVal && !isNaN(Number(warrantyVal))) {
           warrantyVal = `${warrantyVal} شهور`;
         }
-
 
         imported.push({
           id: cols[0],
@@ -521,17 +517,15 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
           image_url: cols[14],
           delete: cols[15],
         });
-
+      } // ← closes the for loop
 
       if (imported.length === 0) {
         toast.error('لم يتم العثور على منتجات صالحة في الملف');
         return;
       }
 
-
       setImporting(true);
       const importToast = toast.loading(`جاري استيراد ${imported.length} منتج...`);
-
 
       try {
         const res = await fetch('/api/admin/import-products', {
@@ -540,13 +534,10 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
           body: JSON.stringify({ products: imported }),
         });
 
-
         const result = await res.json();
-
 
         toast.dismiss(importToast);
         setImporting(false);
-
 
         if (result.error) {
           toast.error('خطأ: ' + result.error);
@@ -564,8 +555,7 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
         setImporting(false);
         toast.error('خطأ في الاتصال: ' + err.message);
       }
-    };
-
+    }; // ← closes reader.onload
 
     reader.readAsText(file);
   };
