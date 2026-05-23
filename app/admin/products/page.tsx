@@ -392,7 +392,17 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
   // ── EXPORT ───────────────────────────────────────────────────────────────
   const exportToCSV = async () => {
     setLoading(true);
-    const { data } = await buildFilteredQuery();
+    let exportQuery = supabase.from('products').select('id,sku,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url');
+    if (searchName) exportQuery = exportQuery.ilike('name', `%${searchName}%`);
+    if (searchSku) exportQuery = exportQuery.ilike('sku', `%${searchSku}%`);
+    if (filterMake === '__universal__') { exportQuery = exportQuery.or('car_make.is.null,car_make.eq.'); }
+    else if (filterMake) { exportQuery = exportQuery.eq('car_make', filterMake); }
+    if (filterModel) exportQuery = exportQuery.eq('car_model', filterModel);
+    if (filterCategory) exportQuery = exportQuery.eq('category', filterCategory);
+    if (filterSubcategory) exportQuery = exportQuery.eq('subcategory', filterSubcategory);
+    if (filterYear) exportQuery = exportQuery.ilike('car_model_year', `%${filterYear}%`);
+    if (filterBrand) exportQuery = exportQuery.eq('brand', filterBrand);
+    const { data } = await exportQuery;
     if (!data || data.length === 0) {
       toast.error('لا توجد منتجات مطابقة للفلاتر الحالية لتصديرها');
       setLoading(false);
@@ -401,11 +411,12 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
     const safe = (val: any) =>
       val === null || val === undefined ? '' : String(val);
     const headers =
-      'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url,delete\n';
+      'ID,sku,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url,delete\n';
     const rows = data
       .map((p: any) =>
         [
           `"${safe(p.id)}"`,
+          `"${safe(p.sku)}"`,
           `"${safe(p.name)}"`,
           `"${safe(p.brand)}"`,
           `"${safe(p.category)}"`,
@@ -438,9 +449,9 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
 
   const downloadTemplate = () => {
     const headers =
-      'ID,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url,delete\n';
+      'ID,sku,name,brand,category,subcategory,car_make,car_model,car_model_year,regular_price,sale_price,warranty,is_active,country_of_origin,image_url,delete\n';
     const example =
-      ',تيل فرامل صني,Hi-Q,فرامل,تيل,نيسان,صني,2015-2024,1200,1100,6,1,كوري,https://res.cloudinary.com/example.jpg,0';
+      ',,تيل فرامل صني,Hi-Q,فرامل,تيل,نيسان,صني,2015-2024,1200,1100,6,1,كوري,https://res.cloudinary.com/example.jpg,0';
     const csvContent = '\uFEFF' + headers + example;
     const blob = new Blob([csvContent], {
       type: 'text/csv;charset=utf-8;',
@@ -486,7 +497,7 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
         if (cols.length < 6 || !cols[1]) continue;
 
 
-        let warrantyVal = cols[10];
+        let warrantyVal = cols[11];
         if (warrantyVal && !isNaN(Number(warrantyVal))) {
           warrantyVal = `${warrantyVal} شهور`;
         }
@@ -494,22 +505,22 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
 
         imported.push({
           id: cols[0],
-          name: cols[1],
-          brand: cols[2],
-          category: cols[3],
-          subcategory: cols[4],
-          car_make: cols[5],
-          car_model: cols[6],
-          car_model_year: cols[7],
-          regular_price: parseFloat(cols[8]),
-          sale_price: cols[9] ? parseFloat(cols[9]) : null,
+          sku: cols[1] || null,
+          name: cols[2],
+          brand: cols[3],
+          category: cols[4],
+          subcategory: cols[5],
+          car_make: cols[6],
+          car_model: cols[7],
+          car_model_year: cols[8],
+          regular_price: parseFloat(cols[9]),
+          sale_price: cols[10] ? parseFloat(cols[10]) : null,
           warranty: warrantyVal,
-          is_active: cols[11] === '1' || cols[11]?.toLowerCase() === 'true',
-          country_of_origin: cols[12],
-          image_url: cols[13],
-          delete: cols[14],
+          is_active: cols[12] === '1' || cols[12]?.toLowerCase() === 'true',
+          country_of_origin: cols[13],
+          image_url: cols[14],
+          delete: cols[15],
         });
-      }
 
 
       if (imported.length === 0) {
