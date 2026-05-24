@@ -614,10 +614,46 @@ export default function HomePage() {
     } catch (err) { console.error('Error fetching models:', err); }
   }
 
+  const HOME_CAR_MAKE_AR: Record<string, string> = {
+    TOYOTA: 'تويوتا', HYUNDAI: 'هيونداي', KIA: 'كيا', NISSAN: 'نيسان',
+    CHEVROLET: 'شيفروليه', MITSUBISHI: 'ميتسوبيشي', VOLKSWAGEN: 'فولكس-فاجن',
+    SKODA: 'سكودا', PEUGEOT: 'بيجو', RENAULT: 'رينو', OPEL: 'اوبل',
+    MG: 'ام-جي', MAZDA: 'مازدا', SEAT: 'سيات', HONDA: 'هوندا',
+    SUZUKI: 'سوزوكي', BMW: 'بي-ام-دبليو', MERCEDES: 'مرسيدس',
+    FORD: 'فورد', JEEP: 'جيب',
+  };
+
+  const HOME_CAR_MODEL_AR: Record<string, string> = {
+    AVEO: 'افيو', CAPTIVA: 'كابتيفا', CRUZE: 'كروز', LANOS: 'لانوس', OPTRA: 'اوبترا',
+    ACCENT: 'اكسنت', ELANTRA: 'النترا', 'GRAND I10': 'جراند-i10', I10: 'i10',
+    MATRIX: 'ماتريكس', TUCSON: 'توسان', VERNA: 'فيرنا',
+    CARENS: 'كارينز', 'CERATO LD': 'سيراتو-ld', 'CERATO TD': 'سيراتو-td',
+    'CERATO K3': 'سيراتو-k3', 'GRAND CERATO': 'جراند-سيراتو',
+    PICANTO: 'بيكانتو', RIO: 'ريو', SOUL: 'سول', SPORTAGE: 'سبورتاج',
+    QASHQAI: 'قاشقاي', SENTRA: 'سنترا', 'SUNNY N16': 'صني-n16', 'SUNNY N17': 'صني-n17', TIIDA: 'تيدا',
+    ASTRA: 'استرا', INSIGNIA: 'انسيجنيا',
+    ECLIPSE: 'اكليبس', 'LANCER PUMA': 'لانسر-بوما', 'LANCER SHARK': 'لانسر-شارك',
+    CAPTUR: 'كابتشر', CLIO: 'كليو', DUSTER: 'داستر', FLUENCE: 'فلوانس',
+    KADJAR: 'كادجار', LOGAN: 'لوجان', MEGANE: 'ميجان', SANDERO: 'سانديرو',
+    IBIZA: 'ابيزا', LEON: 'ليون', TOLEDO: 'توليدو',
+    'OCTAVIA A4': 'اوكتافيا-a4', 'OCTAVIA A5': 'اوكتافيا-a5',
+    'OCTAVIA A7': 'اوكتافيا-a7', 'OCTAVIA A8': 'اوكتافيا-a8',
+    COROLLA: 'كورولا', YARIS: 'يارس',
+    PASSAT: 'باسات', GOLF: 'جولف', JETTA: 'جيتا',
+    '2008': '2008', '3008': '3008', '508': '508', '308': '308', '5008': '5008',
+    HS: 'hs', RX5: 'rx5', ZS: 'zs',
+  };
+
   const handleSearch = () => {
     const query = new URLSearchParams();
-    if (selectedMake) query.set('make', selectedMake.value.trim().toUpperCase());
-    if (selectedModel) query.set('model', selectedModel.value.trim().toUpperCase());
+    if (selectedMake) {
+      const makeVal = selectedMake.value.trim().toUpperCase();
+      query.set('make', HOME_CAR_MAKE_AR[makeVal] || makeVal.toLowerCase());
+    }
+    if (selectedModel) {
+      const modelVal = selectedModel.value.trim().toUpperCase();
+      query.set('model', HOME_CAR_MODEL_AR[modelVal] || modelVal.toLowerCase().replace(/\s+/g, '-'));
+    }
     if (selectedYear) query.set('year', selectedYear.trim());
     router.push(`/store?${query.toString()}`);
   };
