@@ -58,7 +58,7 @@ export async function generateMetadata({
   const makeAr  = CAR_MAKE_AR[make]  || make;
   const modelAr = CAR_MODEL_AR[model] || model;
 
-  let title       = 'زيت أند فلترز | قطع غيار السيارات الأصلية بأفضل سعر في مصر';
+  let title       = 'زيت أند فلترز | قطع غيار السيارات الأصلية';
   let description = 'تسوق أفضل قطع غيار السيارات الأصلية في مصر بأفضل الأسعار. فلاتر، زيوت، عفشة، فرامل، بوجيهات وأكثر. شحن لباب البيت في جميع المحافظات.';
   let keywords: string[] = [
     'قطع غيار سيارات', 'قطع غيار أصلية', 'قطع غيار مصر',
@@ -72,7 +72,7 @@ export async function generateMetadata({
     const carPhrase = modelAr ? `${makeAr} ${modelAr}` : makeAr;
     const carPhraseEn = model ? `${make} ${model}` : make;
 
-    title = `قطع غيار ${carPhrase} الأصلية | أفضل سعر في مصر - زيت أند فلترز`;
+    title = `قطع غيار ${carPhrase} الأصلية | زيت أند فلترز`;
     description = `تسوق قطع غيار ${carPhrase} الأصلية بأفضل الأسعار في مصر. ` +
       `فلاتر زيت، زيت موتور، عفشة، فرامل، بوجيهات، سيور وجميع قطع ${carPhrase}. ` +
       `شحن سريع لجميع المحافظات مع ضمان الجودة من زيت أند فلترز.`;
@@ -110,7 +110,7 @@ export async function generateMetadata({
       'متجر قطع غيار اونلاين مصر',
     ];
   } else if (category) {
-    title = `${category} أصلية بأفضل سعر في مصر | زيت أند فلترز`;
+    title = `${category} أصلية | زيت أند فلترز`;
     description = `تسوق أفضل منتجات ${category} الأصلية بأسعار تنافسية في مصر. ` +
       `جميع ماركات ${category} متوفرة مع شحن لباب البيت في جميع المحافظات وضمان الجودة.`;
     keywords = [
@@ -126,7 +126,7 @@ export async function generateMetadata({
       'زيت أند فلترز',
     ];
   } else if (brand) {
-    title = `منتجات ${brand} الأصلية | أفضل سعر في مصر - زيت أند فلترز`;
+    title = `منتجات ${brand} الأصلية | زيت أند فلترز`;
     description = `تسوق جميع منتجات ${brand} الأصلية بأفضل الأسعار في مصر. ` +
       `فلاتر، زيوت، قطع غيار ${brand} الأصلية متوفرة مع شحن لباب البيت وضمان الجودة.`;
     keywords = [
@@ -208,8 +208,11 @@ export async function generateMetadata({
     // keep default
   }
 
+  const makeSlug = make ? (CAR_MAKE_AR[make] || make.toLowerCase()) : '';
+  const modelSlug = model ? (CAR_MODEL_AR[model] || model.toLowerCase().replace(/\s+/g, '-')) : '';
+
   const canonicalUrl = `https://zaitandfilters.com/store${
-    make     ? `?make=${encodeURIComponent(make)}${model ? `&model=${encodeURIComponent(model)}` : ''}` :
+    makeSlug ? `?make=${encodeURIComponent(makeSlug)}${modelSlug ? `&model=${encodeURIComponent(modelSlug)}` : ''}` :
     category ? `?category=${encodeURIComponent(category)}` :
     brand    ? `?brand=${encodeURIComponent(brand)}`       :
     query    ? `?q=${encodeURIComponent(query)}`           : ''
