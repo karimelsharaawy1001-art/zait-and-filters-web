@@ -541,6 +541,36 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
 // ─────────────────────────────────────────────────────────────────────────────
 
 function StoreContent() {
+  const CAR_MAKE_AR: Record<string, string> = {
+    TOYOTA: 'تويوتا', HYUNDAI: 'هيونداي', KIA: 'كيا', NISSAN: 'نيسان',
+    CHEVROLET: 'شيفروليه', MITSUBISHI: 'ميتسوبيشي', VOLKSWAGEN: 'فولكس-فاجن',
+    SKODA: 'سكودا', PEUGEOT: 'بيجو', RENAULT: 'رينو', OPEL: 'اوبل',
+    MG: 'ام-جي', MAZDA: 'مازدا', SEAT: 'سيات', HONDA: 'هوندا',
+    SUZUKI: 'سوزوكي', BMW: 'بي-ام-دبليو', MERCEDES: 'مرسيدس',
+    FORD: 'فورد', JEEP: 'جيب',
+  };
+
+  const CAR_MODEL_AR: Record<string, string> = {
+    AVEO: 'افيو', CAPTIVA: 'كابتيفا', CRUZE: 'كروز', LANOS: 'لانوس', OPTRA: 'اوبترا',
+    ACCENT: 'اكسنت', ELANTRA: 'النترا', 'GRAND I10': 'جراند-i10', I10: 'i10',
+    MATRIX: 'ماتريكس', TUCSON: 'توسان', VERNA: 'فيرنا',
+    CARENS: 'كارينز', 'CERATO LD': 'سيراتو-ld', 'CERATO TD': 'سيراتو-td',
+    'CERATO K3': 'سيراتو-k3', 'GRAND CERATO': 'جراند-سيراتو',
+    PICANTO: 'بيكانتو', RIO: 'ريو', SOUL: 'سول', SPORTAGE: 'سبورتاج',
+    QASHQAI: 'قاشقاي', SENTRA: 'سنترا', 'SUNNY N16': 'صني-n16', 'SUNNY N17': 'صني-n17', TIIDA: 'تيدا',
+    ASTRA: 'استرا', INSIGNIA: 'انسيجنيا',
+    ECLIPSE: 'اكليبس', 'LANCER PUMA': 'لانسر-بوما', 'LANCER SHARK': 'لانسر-شارك',
+    CAPTUR: 'كابتشر', CLIO: 'كليو', DUSTER: 'داستر', FLUENCE: 'فلوانس',
+    KADJAR: 'كادجار', LOGAN: 'لوجان', MEGANE: 'ميجان', SANDERO: 'سانديرو',
+    IBIZA: 'ابيزا', LEON: 'ليون', TOLEDO: 'توليدو',
+    'OCTAVIA A4': 'اوكتافيا-a4', 'OCTAVIA A5': 'اوكتافيا-a5',
+    'OCTAVIA A7': 'اوكتافيا-a7', 'OCTAVIA A8': 'اوكتافيا-a8',
+    COROLLA: 'كورولا', YARIS: 'يارس',
+    PASSAT: 'باسات', GOLF: 'جولف', JETTA: 'جيتا',
+    '2008': '2008', '3008': '3008', '508': '508', '308': '308', '5008': '5008',
+    HS: 'hs', RX5: 'rx5', ZS: 'zs',
+  };
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addToCart, cartItems } = useCart();
@@ -747,7 +777,10 @@ setBrandsOptions(brandsOpts);
       const garageMakeLower = resolvedUserCar.make.trim().toLowerCase();
       if (urlMakeLower && urlMakeLower !== garageMakeLower) {
         if (urlMake && makes.length > 0) {
-          const makeOption = makes.find((opt) => opt.value.toUpperCase() === urlMake.toUpperCase());
+          const makeOption = makes.find((opt) =>
+            opt.value.toUpperCase() === urlMake.toUpperCase() ||
+            CAR_MAKE_AR[opt.value.toUpperCase()] === urlMake
+          );
           if (makeOption) {
             setSelectedMake(makeOption);
             const { data } = await supabase.from('products').select('car_model').eq('is_active', true).ilike('car_make', makeOption.value.trim());
@@ -756,7 +789,10 @@ setBrandsOptions(brandsOpts);
               const modelOptions = uniqueModels.sort().map((model) => ({ value: model, label: model }));
               setModelsOptions(modelOptions);
               if (urlModel) {
-                const modelOption = modelOptions.find((opt) => opt.value.toUpperCase() === urlModel.toUpperCase());
+                const modelOption = modelOptions.find((opt) =>
+                  opt.value.toUpperCase() === urlModel.toUpperCase() ||
+                  CAR_MODEL_AR[opt.value.toUpperCase()] === urlModel
+                );
                 if (modelOption) setSelectedModel(modelOption);
               }
             }
@@ -796,7 +832,10 @@ setBrandsOptions(brandsOpts);
     if (urlSearch) setSearchQuery(urlSearch);
 
     if (urlMake && makes.length > 0) {
-      const makeOption = makes.find((opt) => opt.value.toUpperCase() === urlMake.toUpperCase());
+      const makeOption = makes.find((opt) =>
+        opt.value.toUpperCase() === urlMake.toUpperCase() ||
+        CAR_MAKE_AR[opt.value.toUpperCase()] === urlMake
+      );
       if (makeOption) {
         setSelectedMake(makeOption);
         const { data } = await supabase.from('products').select('car_model').eq('is_active', true).ilike('car_make', makeOption.value.trim());
@@ -805,7 +844,10 @@ setBrandsOptions(brandsOpts);
           const modelOptions = uniqueModels.sort().map((model) => ({ value: model, label: model }));
           setModelsOptions(modelOptions);
           if (urlModel) {
-            const modelOption = modelOptions.find((opt) => opt.value.toUpperCase() === urlModel.toUpperCase());
+            const modelOption = modelOptions.find((opt) =>
+              opt.value.toUpperCase() === urlModel.toUpperCase() ||
+              CAR_MODEL_AR[opt.value.toUpperCase()] === urlModel
+            );
             if (modelOption) setSelectedModel(modelOption);
           }
         }
@@ -815,9 +857,32 @@ setBrandsOptions(brandsOpts);
     const hasMinimumURLFilters = (urlMake && urlModel) || urlCategory;
 
     if (hasMinimumURLFilters) {
+      // Reverse-lookup: convert Arabic slug back to English for Supabase query
+      const resolvedMake = urlMake
+        ? (makes.find((opt) =>
+            opt.value.toUpperCase() === urlMake.toUpperCase() ||
+            CAR_MAKE_AR[opt.value.toUpperCase()] === urlMake
+          )?.value ?? urlMake)
+        : undefined;
+
+      const resolvedModel = urlModel && resolvedMake
+        ? (() => {
+            // We need model options — find from makes
+            const makeOpt = makes.find((opt) =>
+              opt.value.toUpperCase() === urlMake!.toUpperCase() ||
+              CAR_MAKE_AR[opt.value.toUpperCase()] === urlMake
+            );
+            // modelsOptions may not be set yet, use reverse map
+            const modelEnglish = Object.entries(CAR_MODEL_AR).find(
+              ([, arVal]) => arVal === urlModel
+            )?.[0] ?? urlModel;
+            return modelEnglish;
+          })()
+        : urlModel;
+
       await fetchProducts({
-        make: urlMake,
-        model: urlModel,
+        make: resolvedMake,
+        model: resolvedModel,
         year: urlYear,
         category: urlCategory,
         subcategories: urlSubcategory ? urlSubcategory.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
@@ -1047,9 +1112,15 @@ setBrandsOptions(brandsOpts);
     const yearToApply = yearInput.trim() || (garageMode && userCar?.year ? String(userCar.year) : '');
     setAppliedYear(yearToApply);
 
+    const makeVal = selectedMake?.value.trim().toUpperCase() ?? (garageMode ? String(userCar?.make).toUpperCase() : '');
+    const modelVal = selectedModel?.value.trim().toUpperCase() ?? (garageMode && !selectedMake ? String(userCar?.model).toUpperCase() : '');
+
+    const makeSlug = makeVal ? (CAR_MAKE_AR[makeVal] || makeVal.toLowerCase()) : '';
+    const modelSlug = modelVal ? (CAR_MODEL_AR[modelVal] || modelVal.toLowerCase().replace(/\s+/g, '-')) : '';
+
     const params = new URLSearchParams();
-    if (selectedMake) params.set('make', selectedMake.value.trim().toUpperCase());
-    if (selectedModel) params.set('model', selectedModel.value.trim().toUpperCase());
+    if (makeSlug) params.set('make', makeSlug);
+    if (modelSlug) params.set('model', modelSlug);
     if (yearToApply) params.set('year', yearToApply);
     if (selectedCategory) params.set('category', selectedCategory.value.trim());
     if (selectedSubcategories && selectedSubcategories.length > 0) {
@@ -1057,10 +1128,6 @@ setBrandsOptions(brandsOpts);
     }
     if (selectedBrand) params.set('brand', selectedBrand.value.trim());
     if (searchQuery) params.set('q', searchQuery.trim());
-    if (garageMode && userCar) {
-      if (!selectedMake) params.set('make', String(userCar.make).toUpperCase());
-      if (!selectedModel) params.set('model', String(userCar.model).toUpperCase());
-    }
 
     router.push(`/store?${params.toString()}`);
 
