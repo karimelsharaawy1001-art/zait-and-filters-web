@@ -56,9 +56,10 @@ export default async function AdminUsersPage() {
   roles?.forEach((r) => roleMap.set(r.user_id, r.role));
 
   return (
-    <div className="p-4">
+    <div className="p-4" dir="rtl">
       <h1 className="text-xl font-bold mb-4">إدارة الصلاحيات (Admins)</h1>
-      <table className="w-full border text-sm">
+      <div className="overflow-x-auto rounded-lg border border-gray-200">
+      <table className="w-full border text-sm" style={{ minWidth: '400px' }}>
         <thead>
           <tr className="bg-gray-100">
             <th className="p-2 text-right">البريد</th>
@@ -101,6 +102,7 @@ export default async function AdminUsersPage() {
           })}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

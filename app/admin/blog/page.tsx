@@ -89,15 +89,15 @@ export default function AdminBlog() {
 
 
   return (
-    <div style={{ padding: '30px', direction: 'rtl', maxWidth: '1100px', margin: '0 auto', background: '#f8f9fa', minHeight: '100vh' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: '900', margin: 0 }}>📝 إدارة المدونة</h1>
+    <div style={{ padding: 'clamp(14px, 4vw, 30px)', direction: 'rtl', maxWidth: '1100px', margin: '0 auto', background: '#f8f9fa', minHeight: '100vh' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+        <h1 style={{ fontSize: 'clamp(1.2rem, 5vw, 2rem)', fontWeight: '900', margin: 0 }}>📝 إدارة المدونة</h1>
         <button onClick={openNew} style={greenBtn}><Plus size={18} /> مقال جديد</button>
       </div>
 
       {/* Posts Table */}
-      <div style={{ background: '#fff', borderRadius: '20px', border: '1px solid #eee', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right' }}>
+      <div style={{ background: '#fff', borderRadius: '20px', border: '1px solid #eee', overflowX: 'auto', WebkitOverflowScrolling: 'touch' as any }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', minWidth: '500px' }}>
           <thead>
             <tr style={{ background: '#fcfcfc', borderBottom: '1px solid #eee' }}>
               <th style={th}>العنوان</th>

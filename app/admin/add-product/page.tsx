@@ -205,8 +205,18 @@ export default function AddProduct() {
   };
 
   return (
-    <main style={{ backgroundColor: '#000', color: '#fff', minHeight: '100vh', padding: '40px', direction: 'rtl', fontFamily: 'sans-serif' }}>
-      <h1 style={{ color: '#2ecc71', marginBottom: '30px', fontWeight: '900', fontStyle: 'italic' }}>
+    <main style={{ backgroundColor: '#000', color: '#fff', minHeight: '100vh', padding: 'clamp(12px, 4vw, 40px)', direction: 'rtl', fontFamily: 'sans-serif' }}>
+      <style>{`
+        .ap-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .ap-span2 { grid-column: span 2; }
+        .ap-car-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+        @media (max-width: 640px) {
+          .ap-form { grid-template-columns: 1fr !important; }
+          .ap-span2 { grid-column: span 1 !important; }
+          .ap-car-grid { grid-template-columns: 1fr 1fr !important; }
+        }
+      `}</style>
+      <h1 style={{ color: '#2ecc71', marginBottom: '20px', fontWeight: '900', fontStyle: 'italic', fontSize: 'clamp(1.1rem, 5vw, 1.5rem)' }}>
         إضافة صنف جديد - ZAIT &amp; FILTERS
       </h1>
 
@@ -225,10 +235,10 @@ export default function AddProduct() {
 
       {loadingOptions && <p style={{ color: '#888', marginBottom: '16px', fontSize: '0.9rem' }}>⏳ جاري تحميل بيانات المنتجات...</p>}
 
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', backgroundColor: '#0a0a0a', padding: '30px', borderRadius: '15px', border: '1px solid #222', maxWidth: '1000px', margin: '0 auto' }}>
+      <form onSubmit={handleSubmit} className="ap-form" style={{ backgroundColor: '#0a0a0a', padding: 'clamp(16px, 4vw, 30px)', borderRadius: '15px', border: '1px solid #222', maxWidth: '1000px', margin: '0 auto' }}>
 
         {/* ── Image Upload — fixed drag/drop ── */}
-        <div style={{ gridColumn: 'span 2' }}>
+        <div className="ap-span2" style={{}}>
           {formData.image_url ? (
             <div style={{ textAlign: 'center', padding: '20px', border: '2px solid #2ecc71', borderRadius: '15px', backgroundColor: '#0f2d1a' }}>
               <img src={formData.image_url} alt="Preview" style={{ height: '150px', borderRadius: '10px' }} />
@@ -268,7 +278,7 @@ export default function AddProduct() {
         </div>
 
         {/* ── Product Name ── */}
-        <div style={{ gridColumn: 'span 2' }}>
+        <div className="ap-span2" style={{}}>
           <label style={labelStyle}>اسم القطعة *</label>
           <input required type="text" placeholder="مثال: طقم تيل فرامل" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} style={inputStyle} />
         </div>
@@ -345,12 +355,12 @@ export default function AddProduct() {
           <input type="number" value={formData.sale_price} onChange={(e) => setFormData({ ...formData, sale_price: e.target.value })} style={inputStyle} />
         </div>
 
-        <div style={{ gridColumn: 'span 2' }}>
+        <div className="ap-span2" style={{}}>
           <label style={labelStyle}>الضمان</label>
           <input type="text" placeholder="مثال: سنة، 6 أشهر" value={formData.warranty} onChange={(e) => setFormData({ ...formData, warranty: e.target.value })} style={inputStyle} />
         </div>
 
-        <div style={{ gridColumn: 'span 2' }}>
+        <div className="ap-span2" style={{}}>
           <label style={labelStyle}>رابط فيديو يوتيوب (اختياري)</label>
           <input type="url" placeholder="مثال: https://www.youtube.com/watch?v=..." value={formData.video_url} onChange={(e) => setFormData({ ...formData, video_url: e.target.value })} style={inputStyle} dir="ltr" />
           {formData.video_url && (() => {
@@ -368,7 +378,7 @@ export default function AddProduct() {
         </div>
 
         {/* ── Cars ── */}
-        <div style={{ gridColumn: 'span 2' }}>
+        <div className="ap-span2" style={{}}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <label style={{ ...labelStyle, fontSize: '1.1rem', color: '#2ecc71', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Car size={18} color="#2ecc71" /> السيارات المتوافقة *
@@ -389,7 +399,7 @@ export default function AddProduct() {
                     </button>
                   )}
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px' }}>
+                <div className="ap-car-grid" style={{ gap: '12px' }}>
                   <div>
                     <label style={labelStyle}>ماركة السيارة *</label>
                     <select value={car.car_make} onChange={(e) => loadModelsForCar(index, e.target.value)} style={inputStyle}>
@@ -424,7 +434,7 @@ export default function AddProduct() {
         </div>
 
         {/* ── Buttons ── */}
-        <div style={{ gridColumn: 'span 2', display: 'flex', gap: '12px', marginTop: '20px' }}>
+        <div className="ap-span2" style={{ display: 'flex', gap: '12px', marginTop: '20px', flexWrap: 'wrap' }}>
           <button type="button" onClick={handleAddAnother} disabled={loading || uploading}
             style={{ flex: 1, padding: '18px', backgroundColor: '#0f2d1a', color: loading || uploading ? '#555' : '#2ecc71', fontWeight: '900', borderRadius: '10px', cursor: loading || uploading ? 'not-allowed' : 'pointer', fontSize: '1rem', border: `2px solid ${loading || uploading ? '#555' : '#2ecc71'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s' }}>
             <RotateCcw size={18} />

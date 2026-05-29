@@ -255,30 +255,30 @@ export default function AdminDashboard() {
             {new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <Link href="/admin/orders" style={{ background: '#f0fdf4', color: '#16a34a', padding: '8px 16px', borderRadius: '9px', textDecoration: 'none', fontSize: '0.8rem', fontWeight: '700', border: '1px solid #bbf7d0' }}>
-            الطلبات الجديدة {stats.pendingOrders > 0 && `(${stats.pendingOrders})`}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <Link href="/admin/orders" style={{ background: '#f0fdf4', color: '#16a34a', padding: '7px 13px', borderRadius: '9px', textDecoration: 'none', fontSize: '0.78rem', fontWeight: '700', border: '1px solid #bbf7d0', whiteSpace: 'nowrap' }}>
+            الطلبات {stats.pendingOrders > 0 && `(${stats.pendingOrders})`}
           </Link>
-          <Link href="/admin/messages" style={{ background: '#f0f9ff', color: '#0284c7', padding: '8px 16px', borderRadius: '9px', textDecoration: 'none', fontSize: '0.8rem', fontWeight: '700', border: '1px solid #bae6fd' }}>
+          <Link href="/admin/messages" style={{ background: '#f0f9ff', color: '#0284c7', padding: '7px 13px', borderRadius: '9px', textDecoration: 'none', fontSize: '0.78rem', fontWeight: '700', border: '1px solid #bae6fd', whiteSpace: 'nowrap' }}>
             الرسائل {stats.messages > 0 && `(${stats.messages})`}
           </Link>
         </div>
       </div>
 
       {/* ── KPI row 1: Revenue & Orders ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))', gap: '12px' }}>
 
         {/* Total Revenue */}
         <div className="stat-card" style={{ animationDelay: '0ms', borderTop: '3px solid #16a34a' }}>
           <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#94a3b8', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>إجمالي الإيرادات</div>
-          <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#0f172a', lineHeight: 1 }}>{formatCurrency(stats.ordersRevenue)}</div>
+          <div style={{ fontSize: 'clamp(1.1rem, 4vw, 1.6rem)', fontWeight: '900', color: '#0f172a', lineHeight: 1 }}>{formatCurrency(stats.ordersRevenue)}</div>
           <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>من {stats.orders} طلب</div>
         </div>
 
         {/* Today Revenue */}
         <div className="stat-card" style={{ animationDelay: '60ms', borderTop: '3px solid #0ea5e9' }}>
           <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#94a3b8', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>إيرادات اليوم</div>
-          <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#0f172a', lineHeight: 1 }}>{formatCurrency(stats.todayRevenue)}</div>
+          <div style={{ fontSize: 'clamp(1.1rem, 4vw, 1.6rem)', fontWeight: '900', color: '#0f172a', lineHeight: 1 }}>{formatCurrency(stats.todayRevenue)}</div>
           <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>{stats.todayOrders} طلب اليوم</div>
         </div>
 
@@ -299,7 +299,7 @@ export default function AdminDashboard() {
         {/* Products */}
         <div className="stat-card" style={{ animationDelay: '240ms', borderTop: '3px solid #8b5cf6' }}>
           <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#94a3b8', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>المنتجات</div>
-          <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#0f172a', lineHeight: 1 }}>{stats.products}</div>
+          <div style={{ fontSize: 'clamp(1.1rem, 4vw, 1.6rem)', fontWeight: '900', color: '#0f172a', lineHeight: 1 }}>{stats.products}</div>
           <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>{stats.activeProducts} منتج نشط</div>
         </div>
 
@@ -313,7 +313,7 @@ export default function AdminDashboard() {
         {/* Users */}
         <div className="stat-card" style={{ animationDelay: '360ms', borderTop: '3px solid #64748b' }}>
           <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#94a3b8', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>العملاء المسجلين</div>
-          <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#0f172a', lineHeight: 1 }}>{stats.users}</div>
+          <div style={{ fontSize: 'clamp(1.1rem, 4vw, 1.6rem)', fontWeight: '900', color: '#0f172a', lineHeight: 1 }}>{stats.users}</div>
           <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>حساب مسجل</div>
         </div>
 

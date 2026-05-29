@@ -121,10 +121,10 @@ export default function AdminHomeBanner() {
   }
 
   return (
-    <div style={{ padding: '30px', direction: 'rtl', maxWidth: '900px', margin: '0 auto' }}>
+    <div style={{ padding: 'clamp(14px, 4vw, 30px)', direction: 'rtl', maxWidth: '900px', margin: '0 auto' }}>
       {/* Header */}
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: '900', margin: 0, color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontSize: 'clamp(1.2rem, 5vw, 2rem)', fontWeight: '900', margin: 0, color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '12px' }}>
           🖼️ بانر الصفحة الرئيسية
         </h1>
         <p style={{ color: '#666', marginTop: '6px', fontSize: '0.95rem' }}>

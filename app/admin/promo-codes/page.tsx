@@ -234,12 +234,12 @@ export default function PromoCodesAdmin() {
 
 
 // --- التنسيقات ---
-const container: any = { padding: '40px', direction: 'rtl', minHeight: '100vh', background: '#f8fafc' };
-const header: any = { marginBottom: '30px' };
-const title: any = { fontSize: '2rem', fontWeight: '900', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '12px' };
-const subtitle: any = { color: '#64748b', fontSize: '1rem', marginTop: '5px' };
-const layoutGrid: any = { display: 'flex', gap: '25px', flexWrap: 'wrap', alignItems: 'flex-start' };
-const card: any = { background: '#fff', padding: '25px', borderRadius: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', flex: 1, minWidth: '350px', border: '1px solid #e2e8f0' };
+const container: any = { padding: 'clamp(14px, 4vw, 40px)', direction: 'rtl', minHeight: '100vh', background: '#f8fafc' };
+const header: any = { marginBottom: '20px' };
+const title: any = { fontSize: 'clamp(1.1rem, 5vw, 2rem)', fontWeight: '900', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '12px' };
+const subtitle: any = { color: '#64748b', fontSize: '0.9rem', marginTop: '5px' };
+const layoutGrid: any = { display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'flex-start' };
+const card: any = { background: '#fff', padding: 'clamp(16px, 3vw, 25px)', borderRadius: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', flex: 1, minWidth: 'min(100%, 280px)', border: '1px solid #e2e8f0' };
 const cardTitle: any = { fontSize: '1.2rem', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' };
 const form: any = { display: 'flex', flexDirection: 'column', gap: '15px' };
 const inputGroup: any = { display: 'flex', flexDirection: 'column', gap: '8px' };

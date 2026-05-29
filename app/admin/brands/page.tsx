@@ -136,8 +136,8 @@ export default function AdminBrands() {
 
 
 // Styles (Dark Mode)
-const container: any = { padding: '40px', direction: 'rtl', maxWidth: '1200px', margin: '0 auto' };
-const header: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' };
+const container: any = { padding: 'clamp(14px, 4vw, 40px)', direction: 'rtl', maxWidth: '1200px', margin: '0 auto' };
+const header: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '10px' };
 const title: any = { fontWeight: '900', color: '#fff', margin: 0 };
 const syncBtn: any = { background: '#111', color: '#2ecc71', border: '1px solid #222', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' };
 const grid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '20px' };

@@ -428,11 +428,11 @@ export default function AdminMarketers() {
 
 
 // --- التنسيقات ---
-const container: any = { padding: '30px', direction: 'rtl', maxWidth: '1600px', margin: '0 auto', background: '#f8f9fa', minHeight: '100vh' };
-const header: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', flexWrap: 'wrap', gap: '20px' };
-const title: any = { fontSize: '2rem', fontWeight: '900', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '15px', margin: 0 };
-const countBadge: any = { background: '#27ae60', color: '#fff', padding: '4px 14px', borderRadius: '12px', fontSize: '1rem' };
-const searchBox: any = { display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', padding: '12px 20px', borderRadius: '15px', border: '1px solid #e2e8f0', minWidth: '350px' };
+const container: any = { padding: 'clamp(14px, 4vw, 30px)', direction: 'rtl', maxWidth: '1600px', margin: '0 auto', background: '#f8f9fa', minHeight: '100vh' };
+const header: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' };
+const title: any = { fontSize: 'clamp(1.1rem, 5vw, 2rem)', fontWeight: '900', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '12px', margin: 0, flexWrap: 'wrap' };
+const countBadge: any = { background: '#27ae60', color: '#fff', padding: '4px 12px', borderRadius: '12px', fontSize: '0.9rem' };
+const searchBox: any = { display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', padding: '10px 16px', borderRadius: '15px', border: '1px solid #e2e8f0', flex: 1, minWidth: '0', maxWidth: '400px' };
 const searchInp: any = { border: 'none', outline: 'none', width: '100%', fontSize: '0.95rem' };
 const tableCard: any = { background: '#fff', borderRadius: '24px', border: '1px solid #e2e8f0', padding: '10px', overflowX: 'auto', boxShadow: '0 10px 30px rgba(0,0,0,0.03)' };
 const table: any = { width: '100%', borderCollapse: 'collapse', textAlign: 'right' };
@@ -449,11 +449,11 @@ const viewBtn: any = { background: '#f8fafc', color: '#64748b', border: '1px sol
 const loaderStyle: any = { textAlign: 'center', padding: '100px', color: '#27ae60', fontWeight: 'bold', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' };
 const emptyState: any = { textAlign: 'center', padding: '100px 20px', color: '#64748b' };
 const modalOverlay: any = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' };
-const modalContent: any = { background: '#fff', padding: '40px', borderRadius: '30px', maxWidth: '700px', width: '90%', maxHeight: '90vh', overflowY: 'auto' };
-const modalHeader: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' };
+const modalContent: any = { background: '#fff', padding: 'clamp(18px, 4vw, 40px)', borderRadius: 'clamp(16px, 4vw, 30px)', maxWidth: '700px', width: '92%', maxHeight: '90vh', overflowY: 'auto' };
+const modalHeader: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' };
 const modalTitle: any = { margin: 0, display: 'flex', alignItems: 'center', gap: '12px', color: '#1e293b' };
 const closeBtn: any = { background: '#f8fafc', border: 'none', color: '#64748b', cursor: 'pointer', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' };
-const detailsGrid: any = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px', fontSize: '0.95rem' };
+const detailsGrid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px', fontSize: '0.95rem' };
 const detailItem: any = { display: 'flex', flexDirection: 'column', gap: '6px' };
 const inlineCode: any = { background: '#f8fafc', padding: '4px 8px', borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.9rem' };
 const closeModalBtn: any = { width: '100%', padding: '15px', background: '#27ae60', color: '#fff', border: 'none', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', fontSize: '1rem', transition: '0.2s' };

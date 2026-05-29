@@ -279,15 +279,30 @@ export default function AdminLayoutClient({ children }: Props) {
         /* ── Responsive ── */
         @media (max-width: 768px) {
           .admin-sidebar        { display: none !important; }
-          .admin-main           { margin-right: 0 !important; padding: 8px 10px 72px !important; }
+          .admin-main           { margin-right: 0 !important; padding: 8px 8px 76px !important; }
           .admin-bottom-bar     { display: block !important; }
           .admin-mobile-header  { display: flex !important; }
           .admin-content-card   {
-            margin-top: 60px !important;
-            padding: 14px !important;
+            margin-top: 58px !important;
+            padding: 12px !important;
             border-radius: 12px !important;
             min-height: calc(100vh - 140px) !important;
           }
+          /* ── Make every table in admin pages scroll horizontally ── */
+          .admin-content-card .table-scroll-wrap {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+          }
+          /* ── Reduce large headings on mobile ── */
+          .admin-content-card h1 { font-size: clamp(1.1rem, 5vw, 1.5rem) !important; }
+          /* ── Tighten modals on small screens ── */
+          .admin-content-card [style*="padding: 40px"] { padding: 20px !important; }
+          /* ── Two-col grids collapse to one col ── */
+          .mobile-1col { grid-template-columns: 1fr !important; }
+          /* ── Card min-width override ── */
+          .mobile-min-w-auto { min-width: 0 !important; }
+          /* ── Ensure images don't overflow ── */
+          .admin-content-card img { max-width: 100%; }
         }
         @media (min-width: 769px) {
           .mobile-overlay { display: none !important; }

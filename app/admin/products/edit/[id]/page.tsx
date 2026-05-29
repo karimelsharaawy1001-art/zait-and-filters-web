@@ -442,10 +442,19 @@ export default function EditProduct() {
   const youtubeId = getYouTubeId(formData.video_url);
 
   return (
-    <div style={{ direction: 'rtl', color: '#fff', fontFamily: 'sans-serif', padding: '40px 20px', backgroundColor: '#050505', minHeight: '100vh' }}>
+    <div style={{ direction: 'rtl', color: '#fff', fontFamily: 'sans-serif', padding: 'clamp(12px, 4vw, 40px) clamp(12px, 4vw, 20px)', backgroundColor: '#050505', minHeight: '100vh' }}>
+      <style>{`
+        .ep-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .ep-car-row { display: grid; grid-template-columns: 1fr 1fr 1fr 36px; gap: 8px; align-items: center; }
+        @media (max-width: 480px) {
+          .ep-2col { grid-template-columns: 1fr !important; }
+          .ep-car-row { grid-template-columns: 1fr 1fr; gap: 6px; }
+          .ep-car-row > *:last-child { grid-column: 1 / -1; justify-self: start; }
+        }
+      `}</style>
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '40px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
           <button onClick={() => router.push(returnUrl)} style={backBtnStyle}>
             <ArrowRight size={20} />
           </button>
@@ -472,7 +481,7 @@ export default function EditProduct() {
                 <label style={labelStyle}>الماركة المصنعة (Brand)</label>
                 <input type="text" value={formData.brand} onChange={(e) => setFormData(prev => ({ ...prev, brand: e.target.value }))} style={inputStyle} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div className="ep-2col">
                 <div style={inputGroup}>
                   <label style={labelStyle}>القسم الرئيسي</label>
                   <select value={formData.category} onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))} style={inputStyle}>
@@ -493,7 +502,7 @@ export default function EditProduct() {
             {/* ── التسعير والمنشأ ── */}
             <section style={formSection}>
               <h3 style={sectionTitle}><Globe size={18} /> التسعير والمنشأ</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div className="ep-2col">
                 <div style={inputGroup}>
                   <label style={labelStyle}>السعر الأساسي</label>
                   <input type="number" value={formData.regular_price} onChange={(e) => setFormData(prev => ({ ...prev, regular_price: e.target.value }))} style={inputStyle} />
@@ -665,7 +674,7 @@ export default function EditProduct() {
               يمكنك إضافة أكثر من سيارة لنفس المنتج. السيارة الأولى ستُستخدم كقيمة رئيسية.
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 36px', gap: '8px', marginBottom: '6px', padding: '0 4px' }}>
+            <div className="ep-car-row" style={{ marginBottom: '6px', padding: '0 4px' }}>
               {['ماركة السيارة', 'الموديل', 'السنة', ''].map((h, i) => (
                 <div key={i} style={{ fontSize: '0.72rem', fontWeight: '700', color: '#555' }}>{h}</div>
               ))}
@@ -679,7 +688,7 @@ export default function EditProduct() {
                   : [row.car_model, ...availableModels];
 
                 return (
-                  <div key={index} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 36px', gap: '8px', alignItems: 'center' }}>
+                  <div key={index} className="ep-car-row">
                     <select value={row.car_make} onChange={(e) => updateCarRow(index, 'car_make', e.target.value)} style={inputStyle}>
                       <option value="">اختر الماركة</option>
                       {options.makes.map(m => <option key={m} value={m}>{m}</option>)}
@@ -801,8 +810,8 @@ function generateSlug(product: {
     .slice(0, 100);
 }
 
-const gridContainer = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '25px', marginBottom: '25px' };
-const formSection: any = { backgroundColor: '#0a0a0a', padding: '25px', borderRadius: '16px', border: '1px solid #1a1a1a' };
+const gridContainer = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', gap: '20px', marginBottom: '20px' };
+const formSection: any = { backgroundColor: '#0a0a0a', padding: 'clamp(14px, 3vw, 25px)', borderRadius: '16px', border: '1px solid #1a1a1a' };
 const sectionTitle: any = { fontSize: '1rem', fontWeight: 'bold', marginBottom: '20px', color: '#2ecc71', display: 'flex', alignItems: 'center', gap: '10px' };
 const inputGroup = { marginBottom: '18px' };
 const labelStyle: any = { display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '8px' };

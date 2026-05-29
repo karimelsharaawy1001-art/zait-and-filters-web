@@ -820,10 +820,11 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
           backgroundColor: '#0a0a0a',
           borderRadius: '15px',
           border: '1px solid #111',
-          overflow: 'hidden',
+          overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch' as any,
         }}
       >
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', minWidth: '800px' }}>
           <thead>
             <tr style={{ backgroundColor: '#111', color: '#2ecc71' }}>
               <th style={{ ...thStyle, width: '40px', textAlign: 'center' }}>

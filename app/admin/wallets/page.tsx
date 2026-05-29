@@ -80,7 +80,7 @@ function StatementModal({ wallet, onClose }: { wallet: WalletRow; onClose: () =>
           </div>
 
           {/* Summary cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginTop: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '10px', marginTop: '16px' }}>
             {[
               { label: 'الرصيد الحالي', value: `${wallet.balance.toFixed(2)} ج.م`, color: '#0f172a', bg: '#f8fafc', border: '#e2e8f0' },
               { label: 'إجمالي الإضافات', value: `+${total_credit.toFixed(2)} ج.م`, color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
@@ -447,7 +447,9 @@ export default function AdminWalletsPage() {
         </div>
       ) : (
         <>
-          <div className="wlt-table-wrap" style={{ background: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', overflow: 'hidden', boxShadow: '0 1px 8px rgba(0,0,0,0.04)' }}>
+          <div className="wlt-table-wrap" style={{ background: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 1px 8px rgba(0,0,0,0.04)', overflowX: 'auto', WebkitOverflowScrolling: 'touch' as any }}>
+            {/* Inner wrapper forces min-width so the grid scrolls on mobile */}
+            <div style={{ minWidth: '520px' }}>
             {/* Table header */}
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.4fr 1.2fr 1fr 1.4fr', padding: '10px 18px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
               {['العميل', 'الموبايل', 'الإيميل', 'الرصيد', 'إجراءات'].map((h, i) => (
@@ -500,6 +502,7 @@ export default function AdminWalletsPage() {
                 </div>
               </div>
             ))}
+            </div>{/* end minWidth wrapper */}
           </div>
 
           {/* Pagination */}

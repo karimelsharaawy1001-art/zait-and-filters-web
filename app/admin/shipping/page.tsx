@@ -146,24 +146,24 @@ export default function ShippingAdmin() {
 
 
 // التنسيقات (مضبوطة تماماً مع الـ Sidebar الأسود)
-const container: any = { padding: '20px', direction: 'rtl' };
-const headerRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' };
-const refreshBtn: any = { background: '#111', color: '#888', border: '1px solid #222', padding: '8px 15px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' };
-const title: any = { display: 'flex', alignItems: 'center', gap: '12px', color: '#fff', fontSize: '1.5rem', margin: 0 };
-const headerGrid: any = { display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', marginBottom: '20px' };
+const container: any = { padding: 'clamp(12px, 3vw, 20px)', direction: 'rtl' };
+const headerRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' };
+const refreshBtn: any = { background: '#111', color: '#888', border: '1px solid #222', padding: '8px 15px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 };
+const title: any = { display: 'flex', alignItems: 'center', gap: '12px', color: '#1e293b', fontSize: 'clamp(1.1rem, 4vw, 1.5rem)', margin: 0 };
+const headerGrid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' };
 const card: any = { background: '#0a0a0a', padding: '15px', borderRadius: '15px', border: '1px solid #111' };
 const label: any = { fontSize: '0.75rem', color: '#444', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '5px' };
-const row: any = { display: 'flex', gap: '10px' };
-const inp: any = { flex: 2, background: '#000', border: '1px solid #1a1a1a', padding: '10px', color: '#fff', borderRadius: '8px' };
-const priceInp: any = { flex: 1, background: '#000', border: '1px solid #1a1a1a', padding: '10px', color: '#fff', borderRadius: '8px' };
+const row: any = { display: 'flex', gap: '10px', flexWrap: 'wrap' };
+const inp: any = { flex: '2 1 100px', minWidth: '80px', background: '#000', border: '1px solid #1a1a1a', padding: '10px', color: '#fff', borderRadius: '8px' };
+const priceInp: any = { flex: '1 1 70px', minWidth: '60px', background: '#000', border: '1px solid #1a1a1a', padding: '10px', color: '#fff', borderRadius: '8px' };
 const searchInp: any = { width: '100%', background: '#000', border: '1px solid #1a1a1a', padding: '10px', color: '#fff', borderRadius: '8px' };
-const addBtn: any = { background: '#2ecc71', border: 'none', padding: '0 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' };
-const tableWrap: any = { background: '#080808', borderRadius: '15px', border: '1px solid #111', overflow: 'hidden' };
-const table: any = { width: '100%', borderCollapse: 'collapse', textAlign: 'right' };
+const addBtn: any = { background: '#2ecc71', border: 'none', padding: '0 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', flexShrink: 0 };
+const tableWrap: any = { background: '#080808', borderRadius: '15px', border: '1px solid #111', overflowX: 'auto', WebkitOverflowScrolling: 'touch' };
+const table: any = { width: '100%', borderCollapse: 'collapse', textAlign: 'right', minWidth: '320px' };
 const thRow: any = { background: '#0a0a0a' };
-const th: any = { padding: '15px', fontSize: '0.8rem', color: '#444', borderBottom: '1px solid #111' };
+const th: any = { padding: '12px 14px', fontSize: '0.8rem', color: '#444', borderBottom: '1px solid #111', whiteSpace: 'nowrap' };
 const tr: any = { borderBottom: '1px solid #0a0a0a' };
-const td: any = { padding: '12px 15px', color: '#ccc' };
+const td: any = { padding: '10px 14px', color: '#ccc' };
 const editInp: any = { width: '70px', background: '#000', border: '1px solid #2ecc71', color: '#fff', padding: '4px', borderRadius: '5px' };
 const actBtn: any = { background: '#111', color: '#2ecc71', border: '1px solid #1a1a1a', padding: '6px', borderRadius: '6px', cursor: 'pointer' };
 const delBtn: any = { background: '#111', color: '#ff4d4d', border: '1px solid #1a1a1a', padding: '6px', borderRadius: '6px', cursor: 'pointer' };

@@ -133,7 +133,7 @@ export default function AdminHero() {
 
 
   if (loading) return (
-    <div style={{ color: '#fff', padding: '100px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
+    <div style={{ color: '#fff', padding: 'clamp(40px, 10vw, 100px)', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
       <Loader2 size={30} color="#2ecc71" className="animate-spin" />
       جاري تحميل السلايدات...
     </div>
@@ -141,7 +141,7 @@ export default function AdminHero() {
 
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto', color: '#fff', paddingBottom: '50px' }}>
+    <div style={{ maxWidth: '1000px', margin: '0 auto', color: '#fff', padding: 'clamp(12px, 3vw, 20px)', paddingBottom: '50px' }}>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '30px', borderBottom: '1px solid #111', paddingBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
@@ -196,7 +196,7 @@ export default function AdminHero() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
                 <div style={inputGroup}>
                   <label style={labelStyle}>نص الزر</label>
                   <input
@@ -286,7 +286,7 @@ export default function AdminHero() {
 
 const slideCardStyle = {
   backgroundColor: '#050505',
-  padding: '30px',
+  padding: 'clamp(16px, 4vw, 30px)',
   borderRadius: '25px',
   border: '1px solid #111',
   position: 'relative' as const

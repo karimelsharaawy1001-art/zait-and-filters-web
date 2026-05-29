@@ -194,8 +194,8 @@ export default function CarImagesAdmin() {
   const withoutImage = Object.entries(grouped).filter(([, entries]) => entries.every((e) => !e.image_url));
 
   return (
-    <div style={{ direction: 'rtl', padding: '100px 20px 40px', maxWidth: '1200px', margin: '0 auto' }}>
-      <h1 style={{ fontSize: '2.5rem', fontWeight: '900', marginBottom: '40px' }}>إدارة صور السيارات</h1>
+    <div style={{ direction: 'rtl', padding: 'clamp(14px, 4vw, 30px)', maxWidth: '1200px', margin: '0 auto' }}>
+      <h1 style={{ fontSize: 'clamp(1.3rem, 5vw, 2.5rem)', fontWeight: '900', marginBottom: '24px' }}>إدارة صور السيارات</h1>
 
       {/* ── Form ── */}
       <div style={{ backgroundColor: '#fff', padding: '30px', borderRadius: '20px', marginBottom: '40px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
