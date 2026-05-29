@@ -41,7 +41,7 @@ export default function StorefrontShell({
       {navbar}
       {cartDrawer}
       <PageTransition>
-        <main>{children}</main>
+        <main className="storefront-main">{children}</main>
       </PageTransition>
       {footer}
       {exitConfirm}

@@ -3,7 +3,7 @@
 :root {
   /* إجبار المتصفح على عرض ألوان الـ Light Mode فقط */
   color-scheme: light;
-  
+
   /* ألوان الـ Light Mode الاحترافية */
   --background: #ffffff;
   --foreground: #1a1a1a;
@@ -15,14 +15,35 @@
   --color-foreground: var(--foreground);
 }
 
+/* ── Full-width mobile foundation ────────────────────────────────────────── */
+html {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
 /* إلغاء تفعيل الـ Dark Mode القسري لضمان مظهر الـ Premium Light */
 body {
-  color: var(--foreground) !important; /* استخدام important لضمان عدم التداخل */
+  color: var(--foreground) !important;
   background-color: var(--background) !important;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   margin: 0;
   padding: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* ── Storefront main: pad bottom for fixed mobile nav ────────────────────── */
+.storefront-main {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .storefront-main {
+    padding-bottom: calc(75px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* منع أي عناصر من التحول للون الأسود بناءً على نظام التشغيل */

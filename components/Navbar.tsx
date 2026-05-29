@@ -600,11 +600,13 @@ const mobileBottomNav: any = {
   right: 0,
   backgroundColor: '#fff',
   borderTop: '1px solid #eee',
-  padding: '10px 5px',
+  padding: '8px 5px',
+  paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
   justifyContent: 'space-around',
   alignItems: 'center',
   zIndex: 1001,
   direction: 'rtl',
+  boxShadow: '0 -2px 12px rgba(0,0,0,0.06)',
 };
 const bottomNavItem: any = {
   display: 'flex',

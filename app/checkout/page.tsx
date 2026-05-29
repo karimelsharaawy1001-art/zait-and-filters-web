@@ -212,6 +212,7 @@ export default function CheckoutPage() {
         setAffiliateMarketerId(affiliatePromo.marketer_id);
         await supabase.from('promo_codes').update({ usage_count: (affiliatePromo.usage_count || 0) + 1 }).eq('id', affiliatePromo.id);
         toast.success(`تم تطبيق كود المسوق "${marketerData?.full_name || 'المسوق'}" - خصم ${discountPercentage}%! 🎉`);
+        toast(`⚠️ الطلبات التي تستخدم كود خصم لا تحصل على كاش باك`, { duration: 5000, icon: '💡' });
         trackAbandonedCart();
         return;
       }
@@ -242,12 +243,13 @@ export default function CheckoutPage() {
         setDiscountAmount(0);
         toast.success(`مبروك! تم تطبيق الشحن المجاني 🚚`);
       } else {
-        let calculatedDiscount = data.discount_type === 'percentage' 
-          ? (subtotal * data.discount_value) / 100 
+        let calculatedDiscount = data.discount_type === 'percentage'
+          ? (subtotal * data.discount_value) / 100
           : data.discount_value;
         setDiscountAmount(calculatedDiscount);
         toast.success(`تم تطبيق خصم بقيمة ${calculatedDiscount.toFixed(2)} ج.م ✅`);
       }
+      toast(`⚠️ الطلبات التي تستخدم كود خصم لا تحصل على كاش باك`, { duration: 5000, icon: '💡' });
       trackAbandonedCart();
     } catch (err) {
       toast.error('حدث خطأ أثناء التحقق من الكود');
@@ -496,17 +498,6 @@ export default function CheckoutPage() {
             p_amount: walletDiscount,
             p_order_id: newOrder.id,
           });
-        }
-
-        if (user?.id) {
-          const cashbackAmount = parseFloat((finalTotal * cashbackPct / 100).toFixed(2));
-          if (cashbackAmount > 0) {
-            await supabase.rpc('credit_cashback', {
-              p_user_id: user.id,
-              p_order_id: newOrder.id,
-              p_amount: cashbackAmount,
-            });
-          }
         }
 
         if (customerInfo.email) {
@@ -903,7 +894,27 @@ export default function CheckoutPage() {
                 {promoLoading ? <Loader2 size={16} className="animate-spin" /> : appliedPromo ? 'تم التطبيق' : 'تطبيق'}
               </button>
             </div>
-            {appliedPromo && <p style={promoSuccessText}>✅ تم تطبيق الكود "{appliedPromo}" بنجاح! {appliedPromoType === 'free_shipping' ? 'تم تصفير مصاريف الشحن 🚚' : appliedPromoType === 'affiliate_percentage' ? `خصم ${discountAmount.toFixed(2)} ج.م` : `تم خصم ${discountAmount.toFixed(2)} ج.م`}</p>}
+            {appliedPromo && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '6px' }}>
+                <p style={{ ...promoSuccessText, margin: 0, flex: 1 }}>
+                  ✅ تم تطبيق "{appliedPromo}"
+                  {appliedPromoType === 'free_shipping' ? ' — شحن مجاني 🚚' : ` — خصم ${discountAmount.toFixed(2)} ج.م`}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAppliedPromo(null);
+                    setAppliedPromoType(null);
+                    setDiscountAmount(0);
+                    setAffiliateMarketerId(null);
+                    setPromoCode('');
+                  }}
+                  style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.78rem', fontWeight: '700', flexShrink: 0, padding: '2px 6px' }}
+                >
+                  إلغاء
+                </button>
+              </div>
+            )}
           </div>
           <div style={totalBox}>
             <div style={rowPrice}><span>إجمالي المنتجات:</span><span>{subtotal.toFixed(2)} ج.م</span></div>
@@ -916,7 +927,7 @@ export default function CheckoutPage() {
             {appliedPromoType === 'free_shipping' && <div style={{ ...rowPrice, color: '#27ae60', fontWeight: 'bold' }}><span>خصم الشحن المجاني:</span><span>-{(selectedCity?.price || 0).toFixed(2)} ج.م</span></div>}
             {discountAmount > 0 && (
               <div style={{ ...rowPrice, color: '#e74c3c', fontWeight: 'bold' }}>
-                <span>{appliedPromoType === 'affiliate_percentage' ? 'خصم كود المسوق:' : 'خصم البرومو كود:'}</span>
+                <span>{appliedPromoType === 'affiliate_percentage' ? 'خصم كود المسوق:' : 'خصم كود الخصم:'}</span>
                 <span>-{discountAmount.toFixed(2)} ج.م</span>
               </div>
             )}
@@ -927,10 +938,20 @@ export default function CheckoutPage() {
               </div>
             )}
             <div style={finalRow}><span>الإجمالي النهائي:</span><span>{finalTotal.toFixed(2)} ج.م</span></div>
-            <div style={{ marginTop: '10px', padding: '8px 12px', background: '#fffbeb', borderRadius: '10px', border: '1px solid #fde68a', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.76rem', color: '#92400e', fontWeight: '700' }}>🎁 كاش باك ستحصل عليه في محفظتك</span>
-              <span style={{ fontSize: '0.88rem', fontWeight: '900', color: '#d97706' }}>+{(finalTotal * cashbackPct / 100).toFixed(2)} ج.م</span>
-            </div>
+
+            {/* Cashback notice — hidden when a promo code is active */}
+            {appliedPromo ? (
+              <div style={{ marginTop: '10px', padding: '8px 12px', background: '#fef2f2', borderRadius: '10px', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.76rem', color: '#dc2626', fontWeight: '700' }}>
+                  ❌ لن تحصل على كاش باك لأنك استخدمت كود خصم
+                </span>
+              </div>
+            ) : (
+              <div style={{ marginTop: '10px', padding: '8px 12px', background: '#fffbeb', borderRadius: '10px', border: '1px solid #fde68a', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.76rem', color: '#92400e', fontWeight: '700' }}>🎁 كاش باك ستحصل عليه بعد تسليم الطلب</span>
+                <span style={{ fontSize: '0.88rem', fontWeight: '900', color: '#d97706' }}>+{(finalTotal * cashbackPct / 100).toFixed(2)} ج.م</span>
+              </div>
+            )}
           </div>
         </div>
 
