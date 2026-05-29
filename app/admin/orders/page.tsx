@@ -717,6 +717,14 @@ export default function AdminOrders() {
       const { error, count } = await supabase.from('orders').delete({ count: 'exact' }).eq('id', orderId);
       if (error) throw error;
       if (count === 0) { toast.error('لم يتم الحذف — تحقق من صلاحيات RLS في Supabase'); return; }
+
+      // Revert any abandoned cart that was recovered by this order
+      await supabase
+        .from('abandoned_carts')
+        .update({ recovered: false, recovered_at: null })
+        .eq('recovery_order_id', orderId)
+        .eq('recovered', true);
+
       setOrders(prev => prev.filter(o => o.id !== orderId));
       if (selectedOrder?.id === orderId) setSelectedOrder(null);
       if (expandedOrderId === orderId) setExpandedOrderId(null);
@@ -766,6 +774,14 @@ export default function AdminOrders() {
       const idsArray = Array.from(selectedIds);
       const { error } = await supabase.from('orders').delete().in('id', idsArray);
       if (error) throw error;
+
+      // Revert any abandoned carts that were recovered by the deleted orders
+      await supabase
+        .from('abandoned_carts')
+        .update({ recovered: false, recovered_at: null })
+        .in('recovery_order_id', idsArray)
+        .eq('recovered', true);
+
       setOrders(prev => prev.filter(o => !selectedIds.has(o.id)));
       setSelectedIds(new Set());
       toast.success(`تم حذف ${idsArray.length} طلب بنجاح ✅`);

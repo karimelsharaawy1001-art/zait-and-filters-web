@@ -30,6 +30,7 @@ interface AbandonedCart {
   recovery_sms_sent: boolean;
   recovered: boolean;
   recovered_at: string | null;
+  recovery_order_id?: string | null;
   created_at: string;
   reminder_sent?: boolean;
   reminder_sent_at?: string | null;
@@ -116,7 +117,6 @@ function generatePromoCode(cartId: string): string {
   return `BACK-${suffix}`;
 }
 
-// ── FIX 1: propagate recovered=true if ANY entry in the group is recovered ────
 function deduplicateCarts(carts: AbandonedCart[]): AbandonedCart[] {
   const groups = new Map<string, AbandonedCart[]>();
   for (const cart of carts) {
@@ -133,11 +133,8 @@ function deduplicateCarts(carts: AbandonedCart[]): AbandonedCart[] {
     const latest = { ...group[0] };
     latest._returnCount = group.length;
     latest._isDuplicate = group.length > 1;
-    // If ANY entry in the group is recovered, mark the deduplicated entry recovered too
-    if (!latest.recovered && group.some(c => c.recovered)) {
-      latest.recovered = true;
-      latest.recovered_at = group.find(c => c.recovered)?.recovered_at ?? null;
-    }
+    // Each cart has its own recovery status — never inherit it from older carts.
+    // An old recovered cart + a new unrecovered cart = the new one is still abandoned.
     result.push(latest);
   }
   result.sort((a, b) =>
@@ -430,14 +427,20 @@ export default function AbandonedCartsAdmin() {
         .order('last_activity_at', { ascending: false });
       if (error) throw error;
 
-      // Match against ANY order status — a customer who placed an order in any
-      // state (new, processing, shipped, completed…) has recovered their cart.
+      // Fetch ALL orders including cancelled — we need cancelled ones to detect
+      // carts wrongly marked recovered whose order was later cancelled/deleted.
       const { data: ordersData } = await supabase
         .from('orders')
-        .select('customer_phone, customer_email, created_at')
-        .not('status', 'eq', 'cancelled');
+        .select('id, customer_phone, customer_email, created_at, status');
 
-      // Normalize phone numbers the same way toWhatsAppNumber does, for reliable matching
+      // Set of order IDs that are still active (not cancelled)
+      const activeOrderIds = new Set(
+        (ordersData || [])
+          .filter((o: any) => o.status !== 'cancelled')
+          .map((o: any) => o.id)
+      );
+
+      // Normalize phone numbers for reliable matching
       const normalizePhone = (p: string | null | undefined) => {
         if (!p) return '';
         let d = p.replace(/\D/g, '');
@@ -450,56 +453,65 @@ export default function AbandonedCartsAdmin() {
         return '20' + d;
       };
 
-      const completedPhones = new Set(
-        (ordersData || []).map((o: any) => normalizePhone(o.customer_phone)).filter(Boolean)
-      );
-      const completedEmails = new Set(
-        (ordersData || []).map((o: any) => o.customer_email?.trim().toLowerCase()).filter(Boolean)
-      );
+      // Build phone/email → active order dates (excluding cancelled orders)
+      const phoneOrderDates = new Map<string, Date[]>();
+      const emailOrderDates = new Map<string, Date[]>();
+      (ordersData || [])
+        .filter((o: any) => o.status !== 'cancelled')
+        .forEach((o: any) => {
+          const phone = normalizePhone(o.customer_phone);
+          if (phone) {
+            if (!phoneOrderDates.has(phone)) phoneOrderDates.set(phone, []);
+            phoneOrderDates.get(phone)!.push(new Date(o.created_at));
+          }
+          const email = o.customer_email?.trim().toLowerCase();
+          if (email) {
+            if (!emailOrderDates.has(email)) emailOrderDates.set(email, []);
+            emailOrderDates.get(email)!.push(new Date(o.created_at));
+          }
+        });
 
-      // Build a map of phone -> order dates, and email -> order dates
-const phoneOrderDates = new Map<string, Date[]>();
-const emailOrderDates = new Map<string, Date[]>();
-(ordersData || []).forEach((o: any) => {
-  const phone = normalizePhone(o.customer_phone);
-  if (phone) {
-    if (!phoneOrderDates.has(phone)) phoneOrderDates.set(phone, []);
-    phoneOrderDates.get(phone)!.push(new Date(o.created_at));
-  }
-  const email = o.customer_email?.trim().toLowerCase();
-  if (email) {
-    if (!emailOrderDates.has(email)) emailOrderDates.set(email, []);
-    emailOrderDates.get(email)!.push(new Date(o.created_at));
-  }
-});
+      const reconciled = (cartsData || []).map((cart: AbandonedCart) => {
 
-const reconciled = (cartsData || []).map((cart: AbandonedCart) => {
-  if (cart.recovered) return cart;
+        // ── Already marked recovered: verify the linked order still exists & isn't cancelled ──
+        if (cart.recovered) {
+          const linkedOrderId = cart.recovery_order_id;
+          if (linkedOrderId && !activeOrderIds.has(linkedOrderId)) {
+            // The recovery order was deleted or cancelled — revert this cart to abandoned
+            supabase
+              .from('abandoned_carts')
+              .update({ recovered: false, recovered_at: null })
+              .eq('id', cart.id)
+              .then(() => {});
+            return { ...cart, recovered: false, recovered_at: null };
+          }
+          // Recovered with no linked order id (manually marked) or valid linked order → keep
+          return cart;
+        }
 
-  const cartDate = new Date(cart.created_at);
+        // ── Not yet recovered: check if a valid order was placed AFTER this cart was created ──
+        const cartDate = new Date(cart.created_at);
+        const phoneKey = normalizePhone(cart.customer_phone);
+        const emailKey = cart.customer_email?.trim().toLowerCase();
 
-  // Check if any order was placed AFTER this specific cart was created
-  const phoneKey = normalizePhone(cart.customer_phone);
-  const emailKey = cart.customer_email?.trim().toLowerCase();
+        const phoneOrdersAfter = phoneKey
+          ? (phoneOrderDates.get(phoneKey) || []).some(d => d > cartDate)
+          : false;
+        const emailOrdersAfter = emailKey
+          ? (emailOrderDates.get(emailKey) || []).some(d => d > cartDate)
+          : false;
 
-  const phoneOrdersAfter = phoneKey
-    ? (phoneOrderDates.get(phoneKey) || []).some(orderDate => orderDate > cartDate)
-    : false;
+        if (phoneOrdersAfter || emailOrdersAfter) {
+          supabase
+            .from('abandoned_carts')
+            .update({ recovered: true })
+            .eq('id', cart.id)
+            .then(() => {});
+          return { ...cart, recovered: true };
+        }
 
-  const emailOrdersAfter = emailKey
-    ? (emailOrderDates.get(emailKey) || []).some(orderDate => orderDate > cartDate)
-    : false;
-
-  if (phoneOrdersAfter || emailOrdersAfter) {
-    supabase
-      .from('abandoned_carts')
-      .update({ recovered: true })
-      .eq('id', cart.id)
-      .then(() => {});
-    return { ...cart, recovered: true };
-  }
-  return cart;
-});
+        return cart;
+      });
 
       setCarts(reconciled);
     } catch (err: any) {

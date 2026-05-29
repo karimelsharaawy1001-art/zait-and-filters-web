@@ -40,6 +40,15 @@ export async function POST(req: Request) {
       await awardCashbackOnDelivery(orderId);
     }
 
+    // When an order is cancelled, revert any abandoned cart that was recovered by it
+    if (newStatus === 'cancelled') {
+      await db
+        .from('abandoned_carts')
+        .update({ recovered: false, recovered_at: null })
+        .eq('recovery_order_id', orderId)
+        .eq('recovered', true);
+    }
+
     return NextResponse.json({ success: true });
   } catch (e: any) {
     console.error('update-order-status error:', e);

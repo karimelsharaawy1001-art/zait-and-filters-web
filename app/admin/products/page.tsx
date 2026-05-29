@@ -588,6 +588,26 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
 
   return (
     <div style={{ direction: 'rtl', color: '#fff', fontFamily: 'sans-serif' }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .prod-desktop-table { display: none !important; }
+          .prod-mobile-cards  { display: flex !important; }
+          .prod-filters-grid  { grid-template-columns: 1fr 1fr !important; gap: 10px !important; padding: 14px !important; }
+          .prod-header-btns   { flex-direction: column !important; width: 100%; }
+          .prod-header-btns > * { width: 100%; justify-content: center; }
+          .prod-pagination    { gap: 10px !important; }
+        }
+        @media (min-width: 641px) {
+          .prod-mobile-cards { display: none !important; }
+        }
+        .prod-card { background: #0d0d0d; border: 1px solid #1e1e1e; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+        .prod-card-selected { border-color: #ff4d4d55 !important; background: rgba(255,77,77,0.06) !important; }
+        .prod-card-row { display: flex; align-items: center; gap: 10px; }
+        .prod-card-actions { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid #1e1e1e; padding-top: 10px; gap: 6px; }
+        .prod-action-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.65rem; color: #888; background: #111; border: 1px solid #222; border-radius: 8px; padding: 8px 4px; cursor: pointer; text-decoration: none; transition: background 0.15s; }
+        .prod-action-btn:active { background: #1a1a1a; }
+      `}</style>
+
       {/* ── Confirmation Modal ── */}
       {modal && (
         <ConfirmModal
@@ -604,13 +624,13 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '20px',
+          marginBottom: '16px',
           flexWrap: 'wrap',
           gap: '10px',
         }}
       >
-        <h1 style={{ color: '#2ecc71', fontWeight: '900' }}>إدارة المخزن ({totalCount})</h1>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <h1 style={{ color: '#2ecc71', fontWeight: '900', fontSize: 'clamp(1rem, 5vw, 1.5rem)', margin: 0 }}>إدارة المخزن ({totalCount})</h1>
+        <div className="prod-header-btns" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button onClick={downloadTemplate} style={secondaryBtnStyle}>
             <ClipboardList size={16} /> القالب
           </button>
@@ -642,11 +662,12 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
 
       {/* Filters */}
       <div
+        className="prod-filters-grid"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
           gap: '15px',
-          marginBottom: '25px',
+          marginBottom: '20px',
           backgroundColor: '#0a0a0a',
           padding: '20px',
           borderRadius: '12px',
@@ -814,8 +835,9 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
       )}
 
 
-      {/* Table */}
+      {/* ── Desktop Table ── */}
       <div
+        className="prod-desktop-table"
         style={{
           backgroundColor: '#0a0a0a',
           borderRadius: '15px',
@@ -1056,16 +1078,130 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
         </table>
       </div>
 
+      {/* ── Mobile Cards ── */}
+      <div className="prod-mobile-cards" style={{ display: 'none', flexDirection: 'column', gap: '10px' }}>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>جاري التحميل...</div>
+        ) : products.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>لا توجد منتجات</div>
+        ) : products.map((product) => {
+          const isSelected = selectedIds.has(product.id);
+          const isEditingPrice = editingId === product.id;
+          return (
+            <div key={product.id} className={`prod-card${isSelected ? ' prod-card-selected' : ''}`}>
+              {/* Top row: checkbox + image + name */}
+              <div className="prod-card-row">
+                <button
+                  onClick={() => toggleSelectOne(product.id)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, padding: 0 }}
+                >
+                  {isSelected
+                    ? <CheckSquare size={20} color="#ff4d4d" />
+                    : <Square size={20} color="#444" />}
+                </button>
+                <div style={{ width: '50px', height: '50px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#1a1a1a', border: '1px solid #222', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {product.image_url
+                    ? <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    : <span style={{ fontSize: '1.2rem' }}>📦</span>}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: '700', fontSize: '0.88rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.name}</div>
+                  <div style={{ fontSize: '0.72rem', color: '#555', marginTop: '2px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                    {product.brand && <span style={{ color: '#2ecc71' }}>{product.brand}</span>}
+                    {product.car_make && <span>• {product.car_make} {product.car_model}</span>}
+                    {product.car_model_year && <span style={{ color: '#888' }}>{product.car_model_year}</span>}
+                  </div>
+                  {product.sku && (
+                    <div style={{ fontSize: '0.68rem', color: '#2ecc71', fontFamily: 'monospace', marginTop: '2px' }}>SKU: {product.sku}</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Middle row: status + price */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #1a1a1a', paddingTop: '8px' }}>
+                <button
+                  onClick={() => toggleStatus(product.id, product.is_active)}
+                  style={{
+                    padding: '5px 12px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 'bold',
+                    border: 'none', cursor: 'pointer',
+                    backgroundColor: product.is_active ? '#2ecc7133' : '#333',
+                    color: product.is_active ? '#2ecc71' : '#888',
+                  }}
+                >
+                  {product.is_active ? '● نشط' : '○ معطل'}
+                </button>
+
+                {isEditingPrice ? (
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <input
+                      type="number" placeholder="الأساسي" value={editData.regular_price}
+                      onChange={(e) => setEditData({ ...editData, regular_price: e.target.value })}
+                      style={{ ...miniInputStyle, width: '70px' }} autoFocus
+                    />
+                    <input
+                      type="number" placeholder="خصم" value={editData.sale_price}
+                      onChange={(e) => setEditData({ ...editData, sale_price: e.target.value })}
+                      style={{ ...miniInputStyle, width: '70px', borderColor: '#2ecc71' }}
+                    />
+                    <button onClick={() => handleUpdatePrice(product.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                      <Check size={16} color="#2ecc71" />
+                    </button>
+                    <button onClick={() => setEditingId(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                      <X size={16} color="#ff4d4d" />
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ lineHeight: '1.2', textAlign: 'left' }}>
+                    {product.sale_price ? (
+                      <>
+                        <div style={{ fontSize: '0.72rem', color: '#888', textDecoration: 'line-through' }}>{product.regular_price} ج.م</div>
+                        <div style={{ fontSize: '0.88rem', fontWeight: '800', color: '#2ecc71' }}>{product.sale_price} ج.م</div>
+                      </>
+                    ) : (
+                      <div style={{ fontSize: '0.9rem', fontWeight: '700', color: '#fff' }}>{product.regular_price} ج.م</div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Action buttons */}
+              <div className="prod-card-actions">
+                <Link href={`/products/${product.slug || product.id}`} target="_blank" className="prod-action-btn">
+                  <Eye size={16} color="#2ecc71" />
+                  <span>عرض</span>
+                </Link>
+                <Link href={buildEditUrl(product.id)} className="prod-action-btn">
+                  <Edit3 size={16} color="#f1c40f" />
+                  <span>تعديل</span>
+                </Link>
+                <button
+                  onClick={() => { setEditingId(product.id); setEditData({ regular_price: product.regular_price.toString(), sale_price: product.sale_price ? product.sale_price.toString() : '' }); }}
+                  className="prod-action-btn"
+                >
+                  <DollarSign size={16} color="#3b82f6" />
+                  <span>السعر</span>
+                </button>
+                <button onClick={() => deleteProduct(product.id)} className="prod-action-btn" style={{ borderColor: '#ff4d4d33' }}>
+                  <Trash2 size={16} color="#ff4d4d" />
+                  <span style={{ color: '#ff4d4d' }}>حذف</span>
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       {/* Pagination */}
       <div
+        className="prod-pagination"
         style={{
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          gap: '20px',
-          marginTop: '30px',
-          paddingBottom: '30px',
+          gap: '16px',
+          marginTop: '24px',
+          paddingBottom: '20px',
+          flexWrap: 'wrap',
         }}
       >
         <button
@@ -1073,15 +1209,15 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
           onClick={() => setCurrentPage((p) => p - 1)}
           style={pageBtnStyle}
         >
-          السابق
+          ← السابق
         </button>
-        <span style={{ color: '#666' }}>صفحة {currentPage}</span>
+        <span style={{ color: '#666', fontSize: '0.85rem' }}>صفحة {currentPage} · {totalCount} منتج</span>
         <button
           disabled={currentPage * ITEMS_PER_PAGE >= totalCount}
           onClick={() => setCurrentPage((p) => p + 1)}
           style={pageBtnStyle}
         >
-          التالي
+          التالي →
         </button>
       </div>
     </div>
@@ -1096,4 +1232,4 @@ const thStyle: any = { padding: '18px 15px', fontSize: '0.9rem' };
 const tdStyle: any = { padding: '15px', color: '#bbb', fontSize: '0.85rem' };
 const miniInputStyle: any = { width: '80px', padding: '8px', backgroundColor: '#000', color: '#fff', border: '1px solid #333', borderRadius: '6px', fontSize: '0.8rem', outline: 'none' };
 const pageBtnStyle: any = { padding: '10px 25px', backgroundColor: '#111', color: '#fff', border: '1px solid #222', borderRadius: '10px', cursor: 'pointer' };
-const bulkBarStyle: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1a0a0a', border: '1px solid #ff4d4d44', borderRadius: '12px', padding: '14px 20px', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' };
+const bulkBarStyle: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1a0a0a', border: '1px solid #ff4d4d44', borderRadius: '12px', padding: '12px 16px', marginBottom: '14px', gap: '10px', flexWrap: 'wrap' };
