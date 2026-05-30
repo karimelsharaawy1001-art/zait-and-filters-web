@@ -925,7 +925,7 @@ export default function HomePage() {
             {/* Brand Logos */}
             {brandLogos.length > 0 && (
               <ScrollReveal direction="up" delay={0.05}>
-                <section style={{ padding: '12px 0', background: '#fff', borderBottom: '1px solid #f5f5f5', position: 'relative', zIndex: 1 }}>
+                <section style={{ padding: '12px 0', background: '#fff', borderBottom: '1px solid #f5f5f5' }}>
                   <div style={{ overflow: 'hidden', direction: 'ltr' }}>
                     <div className="marquee-inner">
                       {[...brandLogos, ...brandLogos].map((brand, index) => (

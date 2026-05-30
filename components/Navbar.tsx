@@ -571,6 +571,9 @@ const mobileBottomNav: any = {
   justifyContent: 'space-around',
   alignItems: 'center',
   zIndex: 1500,
+  /* Force nav into GPU compositor so CSS-animation composited layers
+     (marquees, ScrollReveal) respect z-index ordering against the nav. */
+  transform: 'translateZ(0)',
   direction: 'rtl',
   boxShadow: '0 -2px 12px rgba(0,0,0,0.06)',
 };
