@@ -32,7 +32,10 @@ body {
   padding: 0;
   width: 100%;
   max-width: 100vw;
-  overflow-x: hidden;
+  /* DO NOT add overflow-x: hidden here — on iOS Safari / some Android browsers
+     it makes <body> the containing block for position:fixed elements, causing
+     the mobile bottom nav to be positioned relative to the body scroll offset
+     instead of the viewport. overflow-x: hidden on <html> is sufficient. */
 }
 
 /* ── Storefront main: pad bottom for fixed mobile nav ────────────────────── */
