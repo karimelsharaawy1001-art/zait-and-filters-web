@@ -1696,7 +1696,14 @@ setBrandsOptions(brandsOpts);
                             <div style={{ background: '#ffffff', padding: '10px', borderRadius: '10px', marginBottom: '12px' }}>
                               <div style={{ fontSize: '0.75rem', color: '#1a1a1a', fontWeight: '800', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 <Settings2 size={12} color="#22c55e" />
-                                {product.car_make} {product.car_model}
+                                {(() => {
+                                  const univ = ['universal','عام','all','الكل',''];
+                                  const make = (product.car_make || '').trim();
+                                  const model = (product.car_model || '').trim();
+                                  if (univ.includes(make.toLowerCase())) return 'جميع السيارات';
+                                  const cleanModel = univ.includes(model.toLowerCase()) ? '' : model;
+                                  return `${make}${cleanModel ? ' ' + cleanModel : ''}`;
+                                })()}
                               </div>
                               <div style={{ fontSize: '0.75rem', color: '#666', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                                 <Calendar size={12} color="#22c55e" />

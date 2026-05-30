@@ -1040,9 +1040,11 @@ export default function HomePage() {
                           {isAsli && <div className="badge-asli">✦ أصلي</div>}
                           <Link href={`/products/${p.id}`} className="img-container">
                             <img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" width="300" height="200" decoding="async" />
-                            <div style={{ position: 'absolute', bottom: 6, left: 6, background: 'rgba(255,255,255,0.9)', padding: '2px 6px', borderRadius: '5px', fontSize: '0.65rem', fontWeight: '800' }}>
-                              <Car size={9} /> {p.car_make}
-                            </div>
+                            {p.car_make && !['universal','عام','all','الكل'].includes(p.car_make.toLowerCase()) && (
+                              <div style={{ position: 'absolute', bottom: 6, left: 6, background: 'rgba(255,255,255,0.9)', padding: '2px 6px', borderRadius: '5px', fontSize: '0.65rem', fontWeight: '800' }}>
+                                <Car size={9} /> {p.car_make}
+                              </div>
+                            )}
                           </Link>
                           <div style={{ padding: '15px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -1051,7 +1053,7 @@ export default function HomePage() {
                             </div>
                             <h3 style={{ fontSize: '1rem', fontWeight: '900', marginBottom: '4px', height: '45px', overflow: 'hidden' }}>{p.name}</h3>
                             <div className="md-hidden" style={{ background: '#f9f9f9', padding: '10px', borderRadius: '10px', marginBottom: '10px' }}>
-                              <div style={{fontSize:'0.8rem',color:'#1a1a1a',fontWeight:'800',marginBottom:'3px',display:'flex',alignItems:'center',gap:'6px'}}><Settings2 size={14} color="#22c55e"/> {p.car_make} {p.car_model}</div>
+                              <div style={{fontSize:'0.8rem',color:'#1a1a1a',fontWeight:'800',marginBottom:'3px',display:'flex',alignItems:'center',gap:'6px'}}><Settings2 size={14} color="#22c55e"/> {(() => { const univ=['universal','عام','all','الكل','']; const mk=(p.car_make||'').trim(); const mo=(p.car_model||'').trim(); if(univ.includes(mk.toLowerCase())) return 'جميع السيارات'; const cm=univ.includes(mo.toLowerCase())?'':mo; return `${mk}${cm?' '+cm:''}`; })()}</div>
                               <div style={{fontSize:'0.8rem',color:'#666',fontWeight:'700',display:'flex',alignItems:'center',gap:'6px',marginBottom:'3px'}}><Calendar size={14} color="#22c55e"/> {p.car_model_year || 'الكل'}</div>
                               <div style={{fontSize:'0.8rem',color:'#22c55e',fontWeight:'800',display:'flex',alignItems:'center',gap:'6px',marginBottom:'3px'}}><LayoutGrid size={14}/> {p.category}</div>
                               <div style={{fontSize:'0.8rem',color:'#888',fontWeight:'700',display:'flex',alignItems:'center',gap:'6px'}}><Tags size={14}/> {p.subcategory || 'عام'}</div>
@@ -1135,7 +1137,7 @@ export default function HomePage() {
                             </div>
                             <h3 style={{ fontSize: '1rem', fontWeight: '900', marginBottom: '4px', height: '45px', overflow: 'hidden' }}>{p.name}</h3>
                             <div className="md-hidden" style={{ background: '#f9f9f9', padding: '8px', borderRadius: '10px', marginBottom: '10px' }}>
-                              <div style={{fontSize:'0.8rem',color:'#1a1a1a',fontWeight:'800',marginBottom:'3px',display:'flex',alignItems:'center',gap:'6px'}}><Settings2 size={14} color="#22c55e"/> {p.car_make} {p.car_model}</div>
+                              <div style={{fontSize:'0.8rem',color:'#1a1a1a',fontWeight:'800',marginBottom:'3px',display:'flex',alignItems:'center',gap:'6px'}}><Settings2 size={14} color="#22c55e"/> {(() => { const univ=['universal','عام','all','الكل','']; const mk=(p.car_make||'').trim(); const mo=(p.car_model||'').trim(); if(univ.includes(mk.toLowerCase())) return 'جميع السيارات'; const cm=univ.includes(mo.toLowerCase())?'':mo; return `${mk}${cm?' '+cm:''}`; })()}</div>
                               <div style={{fontSize:'0.8rem',color:'#666',fontWeight:'700',display:'flex',alignItems:'center',gap:'6px',marginBottom:'3px'}}><Calendar size={14} color="#22c55e"/> {p.car_model_year || 'الكل'}</div>
                               <div style={{fontSize:'0.8rem',color:'#22c55e',fontWeight:'800',display:'flex',alignItems:'center',gap:'6px',marginBottom:'3px'}}><LayoutGrid size={14}/> {p.category}</div>
                               <div style={{fontSize:'0.8rem',color:'#888',fontWeight:'700',display:'flex',alignItems:'center',gap:'6px'}}><Tags size={14}/> {p.subcategory || 'عام'}</div>
