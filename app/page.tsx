@@ -815,13 +815,36 @@ export default function HomePage() {
           .no-scrollbar::-webkit-scrollbar { display: none; }
           .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-          .product-grid-carousel { display: flex !important; flex-wrap: nowrap !important; gap: 15px; overflow-x: auto !important; scroll-snap-type: x mandatory; padding: 10px 20px; -webkit-overflow-scrolling: touch; }
-          .product-card-mdrn { flex: 0 0 320px !important; min-width: 320px !important; max-width: 320px !important; background: #fff; border-radius: 18px; border: 1px solid #f2f2f2; transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; overflow: hidden; scroll-snap-align: start; }
-          .product-card-mdrn:hover { transform: translateY(-6px); border-color: #22c55e; box-shadow: 0 10px 30px rgba(34,197,94,0.15); }
-          .img-container { background: #f9f9f9; height: 200px; width: 100%; position: relative; cursor: pointer; overflow: hidden; }
-          /* .img-fill-100 height/width now in globals.css — only add transition here */
-          .img-fill-100  { transition: transform 0.3s ease; }
-          .img-container:hover .img-fill-100 { transform: scale(1.02); }
+          .product-grid-carousel { display: flex !important; flex-wrap: nowrap !important; gap: 18px; overflow-x: auto !important; scroll-snap-type: x mandatory; padding: 12px 20px 20px; -webkit-overflow-scrolling: touch; }
+          .product-card-mdrn {
+            flex: 0 0 270px !important; min-width: 270px !important; max-width: 270px !important;
+            background: #fff;
+            border-radius: 22px;
+            border: 1px solid rgba(0,0,0,0.07);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+            transition: transform 0.28s cubic-bezier(.4,0,.2,1), box-shadow 0.28s cubic-bezier(.4,0,.2,1), border-color 0.2s;
+            position: relative; display: flex; flex-direction: column; overflow: hidden;
+            scroll-snap-align: start;
+          }
+          .product-card-mdrn:hover { transform: translateY(-8px); box-shadow: 0 24px 60px rgba(34,197,94,0.18); border-color: rgba(34,197,94,0.4); }
+          .img-container { background: linear-gradient(145deg,#f8fafc 0%,#f1f5f9 100%); height: 210px; width: 100%; position: relative; cursor: pointer; overflow: hidden; display: block; }
+          .img-fill-100 { transition: transform 0.38s cubic-bezier(.4,0,.2,1); }
+          .img-container:hover .img-fill-100 { transform: scale(1.07); }
+          .img-container::after { content:''; position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.04) 0%, transparent 50%); pointer-events:none; }
+          .card-brand-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+          .card-brand { color:#22c55e; font-weight:800; font-size:0.75rem; letter-spacing:0.5px; text-transform:uppercase; }
+          .card-origin { font-size:0.7rem; color:#888; font-weight:700; display:flex; align-items:center; gap:3px; }
+          .card-name { font-size:0.95rem; font-weight:900; color:#0f172a; line-height:1.4; height:54px; overflow:hidden; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+          .card-compat { display:inline-flex; align-items:center; gap:5px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:20px; padding:4px 10px; font-size:0.72rem; font-weight:800; color:#15803d; margin-bottom:8px; }
+          .card-cat { display:inline-flex; align-items:center; gap:4px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:20px; padding:3px 9px; font-size:0.7rem; font-weight:700; color:#475569; }
+          .card-price-row { display:flex; align-items:baseline; gap:8px; margin:10px 0 4px; }
+          .card-price-main { font-size:1.35rem; font-weight:900; color:#0f172a; }
+          .card-price-old { font-size:0.78rem; color:#aaa; text-decoration:line-through; font-weight:600; }
+          .card-save { font-size:0.68rem; font-weight:800; color:#fff; background:#ef4444; border-radius:6px; padding:2px 6px; }
+          .card-btn-buy { width:100%; padding:13px; background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%); color:#fff; border:none; border-radius:12px; font-weight:900; font-size:0.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; text-decoration:none; transition:all 0.2s; box-shadow:0 6px 20px rgba(34,197,94,0.35); letter-spacing:0.2px; }
+          .card-btn-buy:hover { background:linear-gradient(135deg,#16a34a 0%,#15803d 100%); box-shadow:0 10px 28px rgba(34,197,94,0.5); transform:translateY(-1px); }
+          .card-btn-cart { width:100%; padding:11px; background:#0f172a; color:#fff; border:none; border-radius:12px; font-weight:700; font-size:0.88rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; text-decoration:none; transition:background 0.2s; }
+          .card-btn-cart:hover { background:#1e293b; }
 
           @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
           .marquee-inner   { display: flex; width: max-content; animation: marquee 35s linear infinite; }
@@ -882,11 +905,11 @@ export default function HomePage() {
 
           @media (max-width: 768px) {
             .img-fill-100 { height: 140px !important; }
-            .product-grid-carousel { display: grid !important; grid-template-columns: repeat(2,1fr) !important; gap: 10px !important; padding: 10px !important; overflow-x: visible !important; }
-            .product-card-mdrn { flex: 0 0 100% !important; min-width: 0 !important; max-width: 100% !important; width: 100% !important; border-radius: 12px !important; }
-            .product-card-mdrn h3     { font-size: 0.85rem !important; height: 38px !important; }
-            .product-card-mdrn span   { font-size: 0.9rem !important; }
-            .product-card-mdrn button { font-size: 0.8rem !important; padding: 8px !important; }
+            .product-grid-carousel { display: grid !important; grid-template-columns: repeat(2,1fr) !important; gap: 12px !important; padding: 10px !important; overflow-x: visible !important; }
+            .product-card-mdrn { flex: 0 0 100% !important; min-width: 0 !important; max-width: 100% !important; width: 100% !important; border-radius: 16px !important; }
+            .card-name { font-size: 0.82rem !important; height: 46px !important; }
+            .card-btn-buy { padding: 11px !important; font-size: 0.82rem !important; }
+            .card-btn-cart { padding: 9px !important; font-size: 0.78rem !important; }
           }
         `}} />
 
@@ -1030,68 +1053,56 @@ export default function HomePage() {
                   </div>
                   <div ref={scrollRef} className="no-scrollbar product-grid-carousel">
                     {filteredSaleProducts.map((p) => {
-                      const country = p.country_origin || p.country_of_origin || p.origin || 'أصلي';
-                      const isAsli = (p.country_origin || p.country_of_origin || p.origin)?.trim() === 'اصلي';
+                      const isAsli = ['اصلي','أصلي','original'].includes((p.country_origin || p.country_of_origin || p.origin || '').trim().toLowerCase());
+                      const discPct = Math.round(((p.regular_price - p.sale_price) / p.regular_price) * 100);
+                      const univ = ['universal','عام','all','الكل',''];
+                      const mk = (p.car_make||'').trim(); const mo = (p.car_model||'').trim();
+                      const compatText = univ.includes(mk.toLowerCase()) ? 'جميع السيارات' : `${mk}${univ.includes(mo.toLowerCase())?'':' '+mo}`;
                       return (
                         <div key={p.id} className="product-card-mdrn">
-                          <div style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#ff4d4d', color: '#fff', padding: '2px 6px', borderRadius: '5px', fontSize: '0.6rem', fontWeight: '900', zIndex: 10 }}>
-                            -{Math.round(((p.regular_price - p.sale_price) / p.regular_price) * 100)}%
+                          {/* Discount badge */}
+                          <div style={{ position:'absolute', top:'12px', right:'12px', background:'linear-gradient(135deg,#ef4444,#dc2626)', color:'#fff', padding:'4px 10px', borderRadius:'20px', fontSize:'0.72rem', fontWeight:'900', zIndex:10, boxShadow:'0 4px 12px rgba(239,68,68,0.4)', letterSpacing:'0.3px' }}>
+                            خصم {discPct}%
                           </div>
                           {isAsli && <div className="badge-asli">✦ أصلي</div>}
                           <Link href={`/products/${p.id}`} className="img-container">
                             <img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" width="300" height="200" decoding="async" />
-                            {p.car_make && !['universal','عام','all','الكل'].includes(p.car_make.toLowerCase()) && (
-                              <div style={{ position: 'absolute', bottom: 6, left: 6, background: 'rgba(255,255,255,0.9)', padding: '2px 6px', borderRadius: '5px', fontSize: '0.65rem', fontWeight: '800' }}>
-                                <Car size={9} /> {p.car_make}
-                              </div>
-                            )}
                           </Link>
-                          <div style={{ padding: '15px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                              <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.8rem' }}>{p.brand}</span>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#666', fontWeight: '700' }}><Globe size={14} color="#22c55e" /><span>{country}</span></div>
+                          <div style={{ padding:'16px', flex:1, display:'flex', flexDirection:'column' }}>
+                            <div className="card-brand-row">
+                              <span className="card-brand">{p.brand}</span>
+                              {isAsli && <span style={{fontSize:'0.68rem',color:'#b45309',fontWeight:'800',background:'#fef3c7',padding:'2px 7px',borderRadius:'10px'}}>✦ أصلي</span>}
                             </div>
-                            <h3 style={{ fontSize: '1rem', fontWeight: '900', marginBottom: '4px', height: '45px', overflow: 'hidden' }}>{p.name}</h3>
-                            <div className="md-hidden" style={{ background: '#f9f9f9', padding: '10px', borderRadius: '10px', marginBottom: '10px' }}>
-                              <div style={{fontSize:'0.8rem',color:'#1a1a1a',fontWeight:'800',marginBottom:'3px',display:'flex',alignItems:'center',gap:'6px'}}><Settings2 size={14} color="#22c55e"/> {(() => { const univ=['universal','عام','all','الكل','']; const mk=(p.car_make||'').trim(); const mo=(p.car_model||'').trim(); if(univ.includes(mk.toLowerCase())) return 'جميع السيارات'; const cm=univ.includes(mo.toLowerCase())?'':mo; return `${mk}${cm?' '+cm:''}`; })()}</div>
-                              <div style={{fontSize:'0.8rem',color:'#666',fontWeight:'700',display:'flex',alignItems:'center',gap:'6px',marginBottom:'3px'}}><Calendar size={14} color="#22c55e"/> {p.car_model_year || 'الكل'}</div>
-                              <div style={{fontSize:'0.8rem',color:'#22c55e',fontWeight:'800',display:'flex',alignItems:'center',gap:'6px',marginBottom:'3px'}}><LayoutGrid size={14}/> {p.category}</div>
-                              <div style={{fontSize:'0.8rem',color:'#888',fontWeight:'700',display:'flex',alignItems:'center',gap:'6px'}}><Tags size={14}/> {p.subcategory || 'عام'}</div>
+                            <h3 className="card-name">{p.name}</h3>
+                            <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'10px'}}>
+                              <span className="card-compat"><Car size={11}/>{compatText}</span>
+                              {p.category && <span className="card-cat"><LayoutGrid size={10}/>{p.category}</span>}
                             </div>
-                            <div style={{ marginTop: 'auto', display:'flex', flexDirection:'column', gap:'12px' }}>
-                              <div>
-                                <span style={{ display: 'block', color: '#bbb', textDecoration: 'line-through', fontSize: '0.75rem' }}>{p.regular_price} ج.م</span>
-                                <span style={{ fontSize: '1.2rem', fontWeight: '900' }}>{p.sale_price} ج.م</span>
-                              </div>
+                            <div className="card-price-row">
+                              <span className="card-price-main">{p.sale_price} <span style={{fontSize:'0.75rem',fontWeight:'700'}}>ج.م</span></span>
+                              <span className="card-price-old">{p.regular_price} ج.م</span>
+                              <span className="card-save">وفّرت {(p.regular_price - p.sale_price).toFixed(0)} ج.م</span>
+                            </div>
+                            <div style={{ marginTop:'auto', display:'flex', flexDirection:'column', gap:'8px', paddingTop:'10px' }}>
                               {(() => {
                                 const cartItem = cartItems.find((i: any) => i.id === p.id);
                                 const qty = cartItem?.quantity ?? 0;
-                                if (qty === 0) return (
-                                  <>
-                                    <button style={cartBtnStyleSmall} onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, 1); toast.success('تمت الإضافة'); }}>
-                                      <ShoppingCart size={16} /> أضف إلى السلة
-                                    </button>
-                                    <Link href={`/checkout?buyNow=true&productId=${p.id}&price=${p.sale_price}`} style={buyNowBtnStyle} onClick={() => { addToCart({...p, price: p.sale_price}, 1); }}>
-                                      ⚡ اشتري الآن
-                                    </Link>
-                                  </>
+                                if (qty > 0) return (
+                                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:'#f0fdf4', border:'2px solid #22c55e', borderRadius:'12px', padding:'6px 10px', marginBottom:'2px' }}>
+                                    <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, -1); }} style={{ width:'32px', height:'32px', borderRadius:'8px', border:'none', background:'#22c55e', color:'#fff', fontSize:'1.2rem', fontWeight:'900', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>−</button>
+                                    <span style={{ fontSize:'1.1rem', fontWeight:'900', color:'#16a34a' }}>{qty} <span style={{fontSize:'0.65rem',fontWeight:'700'}}>في السلة</span></span>
+                                    <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, 1); }} style={{ width:'32px', height:'32px', borderRadius:'8px', border:'none', background:'#22c55e', color:'#fff', fontSize:'1.2rem', fontWeight:'900', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>+</button>
+                                  </div>
                                 );
                                 return (
-                                  <>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f0fdf4', border: '2px solid #22c55e', borderRadius: '12px', padding: '6px 10px' }}>
-                                      <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, -1); }} style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '1.3rem', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-                                      <div style={{ textAlign: 'center' }}>
-                                        <div style={{ fontSize: '1.3rem', fontWeight: '900', color: '#16a34a', lineHeight: 1 }}>{qty}</div>
-                                        <div style={{ fontSize: '0.65rem', color: '#16a34a', fontWeight: '700' }}>في السلة</div>
-                                      </div>
-                                      <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, 1); }} style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '1.3rem', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
-                                    </div>
-                                    <Link href={`/checkout?buyNow=true&productId=${p.id}&price=${p.sale_price}`} style={buyNowBtnStyle}>
-                                      ⚡ اشتري الآن
-                                    </Link>
-                                  </>
+                                  <button className="card-btn-cart" onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, 1); toast.success('تمت الإضافة للسلة ✓'); }}>
+                                    <ShoppingCart size={15}/> أضف إلى السلة
+                                  </button>
                                 );
                               })()}
+                              <Link href={`/checkout?buyNow=true&productId=${p.id}&price=${p.sale_price}`} className="card-btn-buy" onClick={() => { addToCart({...p, price: p.sale_price}, 1); }}>
+                                ⚡ اشتري الآن
+                              </Link>
                             </div>
                           </div>
                         </div>
@@ -1121,59 +1132,57 @@ export default function HomePage() {
                   </div>
                   <div ref={bestSellerRef} className="no-scrollbar product-grid-carousel">
                     {filteredBestSellers.map((p) => {
-                      const country = p.country_origin || p.country_of_origin || p.origin || 'أصلي';
-                      const isAsli = p.brand?.trim() === 'اصلي';
+                      const isAsli = ['اصلي','أصلي','original'].includes((p.country_origin || p.country_of_origin || p.origin || '').trim().toLowerCase());
+                      const itemPrice = p.sale_price || p.regular_price;
+                      const hasSale = p.sale_price > 0 && p.regular_price > p.sale_price;
+                      const univ = ['universal','عام','all','الكل',''];
+                      const mk = (p.car_make||'').trim(); const mo = (p.car_model||'').trim();
+                      const compatText = univ.includes(mk.toLowerCase()) ? 'جميع السيارات' : `${mk}${univ.includes(mo.toLowerCase())?'':' '+mo}`;
                       return (
                         <div key={p.id} className="product-card-mdrn">
-                          <div style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#22c55e', color: '#fff', padding: '2px 6px', borderRadius: '5px', fontSize: '0.6rem', fontWeight: '900', zIndex: 10 }}>تريند ✨</div>
+                          {/* Trending badge */}
+                          <div style={{ position:'absolute', top:'12px', right:'12px', background:'linear-gradient(135deg,#22c55e,#16a34a)', color:'#fff', padding:'4px 10px', borderRadius:'20px', fontSize:'0.7rem', fontWeight:'900', zIndex:10, boxShadow:'0 4px 12px rgba(34,197,94,0.4)' }}>
+                            🔥 تريند
+                          </div>
                           {isAsli && <div className="badge-asli">✦ أصلي</div>}
                           <Link href={`/products/${p.id}`} className="img-container">
                             <img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" width="300" height="200" decoding="async" />
                           </Link>
-                          <div style={{ padding: '15px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                              <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.8rem' }}>{p.brand}</span>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#666', fontWeight: '700' }}><Globe size={14} color="#22c55e" /><span>{country}</span></div>
+                          <div style={{ padding:'16px', flex:1, display:'flex', flexDirection:'column' }}>
+                            <div className="card-brand-row">
+                              <span className="card-brand">{p.brand}</span>
+                              {isAsli && <span style={{fontSize:'0.68rem',color:'#b45309',fontWeight:'800',background:'#fef3c7',padding:'2px 7px',borderRadius:'10px'}}>✦ أصلي</span>}
                             </div>
-                            <h3 style={{ fontSize: '1rem', fontWeight: '900', marginBottom: '4px', height: '45px', overflow: 'hidden' }}>{p.name}</h3>
-                            <div className="md-hidden" style={{ background: '#f9f9f9', padding: '8px', borderRadius: '10px', marginBottom: '10px' }}>
-                              <div style={{fontSize:'0.8rem',color:'#1a1a1a',fontWeight:'800',marginBottom:'3px',display:'flex',alignItems:'center',gap:'6px'}}><Settings2 size={14} color="#22c55e"/> {(() => { const univ=['universal','عام','all','الكل','']; const mk=(p.car_make||'').trim(); const mo=(p.car_model||'').trim(); if(univ.includes(mk.toLowerCase())) return 'جميع السيارات'; const cm=univ.includes(mo.toLowerCase())?'':mo; return `${mk}${cm?' '+cm:''}`; })()}</div>
-                              <div style={{fontSize:'0.8rem',color:'#666',fontWeight:'700',display:'flex',alignItems:'center',gap:'6px',marginBottom:'3px'}}><Calendar size={14} color="#22c55e"/> {p.car_model_year || 'الكل'}</div>
-                              <div style={{fontSize:'0.8rem',color:'#22c55e',fontWeight:'800',display:'flex',alignItems:'center',gap:'6px',marginBottom:'3px'}}><LayoutGrid size={14}/> {p.category}</div>
-                              <div style={{fontSize:'0.8rem',color:'#888',fontWeight:'700',display:'flex',alignItems:'center',gap:'6px'}}><Tags size={14}/> {p.subcategory || 'عام'}</div>
+                            <h3 className="card-name">{p.name}</h3>
+                            <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'10px'}}>
+                              <span className="card-compat"><Car size={11}/>{compatText}</span>
+                              {p.category && <span className="card-cat"><LayoutGrid size={10}/>{p.category}</span>}
                             </div>
-                            <div style={{ marginTop: 'auto', display:'flex', flexDirection:'column', gap:'12px' }}>
-                              <span style={{ fontSize: '1.2rem', fontWeight: '900' }}>{p.sale_price || p.regular_price} ج.م</span>
+                            <div className="card-price-row">
+                              <span className="card-price-main">{itemPrice} <span style={{fontSize:'0.75rem',fontWeight:'700'}}>ج.م</span></span>
+                              {hasSale && <span className="card-price-old">{p.regular_price} ج.م</span>}
+                              {hasSale && <span className="card-save">وفّرت {(p.regular_price - p.sale_price).toFixed(0)} ج.م</span>}
+                            </div>
+                            <div style={{ marginTop:'auto', display:'flex', flexDirection:'column', gap:'8px', paddingTop:'10px' }}>
                               {(() => {
                                 const cartItem = cartItems.find((i: any) => i.id === p.id);
                                 const qty = cartItem?.quantity ?? 0;
-                                const itemPrice = p.sale_price || p.regular_price;
-                                if (qty === 0) return (
-                                  <>
-                                    <button style={cartBtnStyleSmall} onClick={(e) => { e.preventDefault(); addToCart({...p, price: itemPrice}, 1); toast.success('تمت الإضافة'); }}>
-                                      <ShoppingCart size={16} /> أضف إلى السلة
-                                    </button>
-                                    <Link href={`/checkout?buyNow=true&productId=${p.id}&price=${itemPrice}`} style={buyNowBtnStyle} onClick={() => { addToCart({...p, price: itemPrice}, 1); }}>
-                                      ⚡ اشتري الآن
-                                    </Link>
-                                  </>
+                                if (qty > 0) return (
+                                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:'#f0fdf4', border:'2px solid #22c55e', borderRadius:'12px', padding:'6px 10px', marginBottom:'2px' }}>
+                                    <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: itemPrice}, -1); }} style={{ width:'32px', height:'32px', borderRadius:'8px', border:'none', background:'#22c55e', color:'#fff', fontSize:'1.2rem', fontWeight:'900', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>−</button>
+                                    <span style={{ fontSize:'1.1rem', fontWeight:'900', color:'#16a34a' }}>{qty} <span style={{fontSize:'0.65rem',fontWeight:'700'}}>في السلة</span></span>
+                                    <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: itemPrice}, 1); }} style={{ width:'32px', height:'32px', borderRadius:'8px', border:'none', background:'#22c55e', color:'#fff', fontSize:'1.2rem', fontWeight:'900', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>+</button>
+                                  </div>
                                 );
                                 return (
-                                  <>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f0fdf4', border: '2px solid #22c55e', borderRadius: '12px', padding: '6px 10px' }}>
-                                      <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: itemPrice}, -1); }} style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '1.3rem', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-                                      <div style={{ textAlign: 'center' }}>
-                                        <div style={{ fontSize: '1.3rem', fontWeight: '900', color: '#16a34a', lineHeight: 1 }}>{qty}</div>
-                                        <div style={{ fontSize: '0.65rem', color: '#16a34a', fontWeight: '700' }}>في السلة</div>
-                                      </div>
-                                      <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: itemPrice}, 1); }} style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '1.3rem', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
-                                    </div>
-                                    <Link href={`/checkout?buyNow=true&productId=${p.id}&price=${itemPrice}`} style={buyNowBtnStyle}>
-                                      ⚡ اشتري الآن
-                                    </Link>
-                                  </>
+                                  <button className="card-btn-cart" onClick={(e) => { e.preventDefault(); addToCart({...p, price: itemPrice}, 1); toast.success('تمت الإضافة للسلة ✓'); }}>
+                                    <ShoppingCart size={15}/> أضف إلى السلة
+                                  </button>
                                 );
                               })()}
+                              <Link href={`/checkout?buyNow=true&productId=${p.id}&price=${itemPrice}`} className="card-btn-buy" onClick={() => { addToCart({...p, price: itemPrice}, 1); }}>
+                                ⚡ اشتري الآن
+                              </Link>
                             </div>
                           </div>
                         </div>
@@ -1282,7 +1291,7 @@ const messageText: any = { fontSize: '1.1rem', fontWeight: '700', color: '#fff' 
 const featurePills: any = { display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' };
 const pill: any = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', backgroundColor: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '25px', fontSize: '0.82rem', fontWeight: '700', color: '#22c55e', backdropFilter: 'blur(10px)' };
 const arrowBtnSmall = { width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#fff', border: '1px solid #eee', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' };
-const cartBtnStyleSmall: any = { width: '100%', padding: '12px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '1rem' };
+const cartBtnStyleSmall: any = { width: '100%', padding: '12px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '1rem' }; // legacy — kept for maintenance bundle page
 const stickyNotificationStyle: any = { position: 'fixed', bottom: '85px', left: '50%', transform: 'translateX(-50%)', backgroundColor: 'rgba(39,174,96,0.95)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', color: '#fff', padding: '12px 20px', borderRadius: '20px', zIndex: 1000, boxShadow: '0 10px 30px rgba(0,0,0,0.2)', width: 'max-content', maxWidth: '90%', border: '1px solid rgba(255,255,255,0.2)', direction: 'rtl' };
 const garageIconWrapMini: any = { width: '32px', height: '32px', borderRadius: '10px', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' };
 const buyNowBtnStyle: any = { width: '100%', padding: '12px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '1rem', textDecoration: 'none' };
