@@ -1111,7 +1111,7 @@ export default function CheckoutPage() {
                       <CreditCard size={18} color={paymentMethod === 'card_installments' ? '#15803d' : '#888'} />
                     </div>
                     <div style={{ ...payTextContent, flex: 1 }}>
-                      <span style={payTitle}>بطاقات بنكية وتقسيط</span>
+                      <span style={payTitle}>بطاقات بنكية و شركات التقسيط</span>
                       <span style={paySubTitle}>جميع أنواع البطاقات البنكية و شركات التقسيط</span>
                     </div>
                     <span style={paymentMethod === 'card_installments' ? payBadgeAmber : payBadgeGray}>التقسيط متاح</span>
