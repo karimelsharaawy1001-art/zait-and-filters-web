@@ -345,7 +345,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
   const [qty, setQty] = useState(1);
   const [imgError, setImgError] = useState(false);
   const swiperRef = useRef<any>(null);
-  const { addToCart } = useCart();
+  const { addToCart, cartItems } = useCart();
 
   useEffect(() => {
     if (!product) return;
@@ -572,16 +572,36 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             </motion.div>
 
             {/* Qty + Cart */}
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'stretch' }}>
-              <div className="pdp-stepper">
-                <button className="pdp-step-btn" onClick={() => setQty(q => q + 1)}><Plus size={18} /></button>
-                <span className="pdp-qty" style={{ fontSize: '1.1rem', fontWeight: '900', color: '#0f172a', minWidth: '36px', textAlign: 'center' as const }}>{qty}</span>
-                <button className="pdp-step-btn" onClick={() => qty > 1 && setQty(q => q - 1)}><Minus size={18} /></button>
-              </div>
-              <button onClick={() => addToCart(product, qty)} className="pdp-btn-secondary" style={{ flex: 1 }}>
-                <ShoppingCart size={20} /> إضافة للسلة
-              </button>
-            </div>
+            {(() => {
+              const cartQty = cartItems.find((i: any) => i.id === product.id)?.quantity ?? 0;
+              if (cartQty > 0) return (
+                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '10px' }}>
+                  {/* Already in cart — show stepper with clear label */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f0fdf4', border: '2px solid #22c55e', borderRadius: '16px', padding: '10px 16px' }}>
+                    <button onClick={() => addToCart({ ...product, price: displayPrice }, -1)}
+                      style={{ width: '36px', height: '36px', borderRadius: '10px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '1.4rem', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                    <div style={{ textAlign: 'center' as const }}>
+                      <div style={{ fontSize: '1.4rem', fontWeight: '900', color: '#16a34a', lineHeight: 1 }}>{cartQty}</div>
+                      <div style={{ fontSize: '0.7rem', color: '#16a34a', fontWeight: '800', marginTop: '2px' }}>✓ في السلة</div>
+                    </div>
+                    <button onClick={() => addToCart({ ...product, price: displayPrice }, 1)}
+                      style={{ width: '36px', height: '36px', borderRadius: '10px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '1.4rem', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                  </div>
+                </div>
+              );
+              return (
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'stretch' }}>
+                  <div className="pdp-stepper">
+                    <button className="pdp-step-btn" onClick={() => setQty(q => q + 1)}><Plus size={18} /></button>
+                    <span className="pdp-qty" style={{ fontSize: '1.1rem', fontWeight: '900', color: '#0f172a', minWidth: '36px', textAlign: 'center' as const }}>{qty}</span>
+                    <button className="pdp-step-btn" onClick={() => qty > 1 && setQty(q => q - 1)}><Minus size={18} /></button>
+                  </div>
+                  <button onClick={() => addToCart({ ...product, price: displayPrice }, qty)} className="pdp-btn-secondary" style={{ flex: 1 }}>
+                    <ShoppingCart size={20} /> إضافة للسلة
+                  </button>
+                </div>
+              );
+            })()}
 
             <Link href={`/checkout?buyNow=true&productId=${productId}&price=${displayPrice}`}
               onClick={() => addToCart({ ...product, price: displayPrice }, qty)}

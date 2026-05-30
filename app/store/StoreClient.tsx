@@ -1649,6 +1649,15 @@ setBrandsOptions(brandsOpts);
                               نفذت الكمية
                             </div>
                           )}
+                          {/* In-cart badge */}
+                          {(() => {
+                            const inCartQty = cartItems.find((i: any) => i.id === product.id)?.quantity ?? 0;
+                            return inCartQty > 0 ? (
+                              <div style={{ position: 'absolute', top: '10px', left: '10px', background: '#22c55e', color: '#fff', borderRadius: '20px', padding: '3px 10px', fontSize: '0.7rem', fontWeight: '900', zIndex: 11, display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 2px 8px rgba(34,197,94,0.4)' }}>
+                                ✓ في السلة ({inCartQty})
+                              </div>
+                            ) : null;
+                          })()}
                           {/* Sale badge */}
                           {product.sale_price > 0 && product.regular_price > product.sale_price && (
                             <div style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: '#ff4d4d', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '900', zIndex: 10 }}>
