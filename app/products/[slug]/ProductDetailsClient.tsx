@@ -1,12 +1,13 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/app/lib/supabase';
 import { useCart } from '@/context/CartContext';
 import {
   ShoppingCart, Car, Calendar, ShieldCheck,
   ArrowRight, Globe, Plus, Minus, CheckCircle2, Layers, Info, Package, Loader2,
   ChevronRight, ChevronLeft, Timer, Share2, Check, Copy, Facebook, Twitter,
-  Zap, Star, Send, User
+  Zap, Star, Send, User, LayoutGrid, Tag
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -15,79 +16,13 @@ import { Navigation, Autoplay, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 
-// ─── Styles ────────────────────────────────────────────────────────────────────
-// IMPORTANT: All style constants MUST be defined before the components that use them.
-// const declarations are not hoisted, so placing them after components causes
-// undefined values at render time, breaking layout and hiding images.
+// ─── Animation variants ───────────────────────────────────────────────────────
+const fadeUp:    any = { hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } } };
+const stagger:   any = { hidden: {}, show: { transition: { staggerChildren: 0.08 } } };
+const slideLeft: any = { hidden: { opacity: 0, x: 30 }, show: { opacity: 1, x: 0, transition: { duration: 0.5, ease: 'easeOut' } } };
+const slideRight:any = { hidden: { opacity: 0, x: -30 }, show: { opacity: 1, x: 0, transition: { duration: 0.5, ease: 'easeOut' } } };
 
-// Change the carouselFullWrapper style constant:
-const carouselFullWrapper: React.CSSProperties = { 
-  marginTop: '24px', 
-  borderTop: '1px solid #f0f0f0', 
-  paddingTop: '20px',
-  minHeight: '320px'  // ← add this
-};
-const relatedHeader:         React.CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' };
-const relatedTitle:          React.CSSProperties = { fontSize: '1.3rem', fontWeight: '900', color: '#1a1a1a', margin: 0 };
-const customNavWrapper:      React.CSSProperties = { display: 'flex', gap: '10px' };
-const navCircleBtn:          React.CSSProperties = { width: '38px', height: '38px', borderRadius: '50%', border: '1px solid #eee', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#1a1a1a' };
-const swiperOuterContainer:  React.CSSProperties = { position: 'relative', width: '100%' };
-const premiumCardStyle:      React.CSSProperties = { background: '#fff', borderRadius: '16px', border: '1px solid #f0f0f0', overflow: 'hidden', height: '100%', boxShadow: '0 4px 15px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', width: '100%' };
-// position: relative required for Next.js <Image fill>
-const premiumImageArea:      React.CSSProperties = { height: '160px', background: '#f8f9fa', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', flexShrink: 0 };
-const noImgPlaceholder:      React.CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' };
-const smallSaleBadge:        React.CSSProperties = { position: 'absolute', top: '8px', right: '8px', background: '#e74c3c', color: '#fff', padding: '2px 7px', borderRadius: '6px', fontSize: '0.6rem', fontWeight: 'bold', zIndex: 1 };
-const premiumDetails:        React.CSSProperties = { padding: '10px 12px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '5px' };
-const premiumBrand:          React.CSSProperties = { fontSize: '0.7rem', fontWeight: '800', color: '#27ae60' };
-const countryBadge:          React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: '#888', fontWeight: '700', background: '#f5f5f5', padding: '2px 6px', borderRadius: '5px' };
-const premiumName:           React.CSSProperties = { fontSize: '0.85rem', fontWeight: '800', color: '#1a1a1a', lineHeight: '1.3', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', margin: '2px 0' };
-const carInfoBox:            React.CSSProperties = { background: '#f8fdf9', borderRadius: '8px', padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '2px' };
-const carInfoRow:            React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.68rem', color: '#555', fontWeight: '700' };
-const premiumPriceRow:       React.CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', background: '#f9f9f9', padding: '7px 8px', borderRadius: '10px' };
-const premiumPriceCol:       React.CSSProperties = { display: 'flex', flexDirection: 'column' };
-const premiumCurrentPrice:   React.CSSProperties = { fontSize: '0.95rem', fontWeight: '900', color: '#1a1a1a' };
-const premiumOldPrice:       React.CSSProperties = { fontSize: '0.65rem', color: '#bbb', textDecoration: 'line-through' };
-const premiumStepper:        React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '5px' };
-const miniStepBtn:           React.CSSProperties = { width: '22px', height: '22px', borderRadius: '50%', border: 'none', background: '#27ae60', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 };
-const miniQty:               React.CSSProperties = { fontSize: '0.8rem', fontWeight: 'bold', color: '#27ae60', minWidth: '15px', textAlign: 'center' };
-const premiumAddBtn:         React.CSSProperties = { width: '100%', background: '#1a1a1a', color: '#fff', border: 'none', padding: '9px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', marginTop: '6px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', fontFamily: 'inherit' };
-const navPath:               React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', fontSize: '0.88rem', color: '#888', flexWrap: 'wrap' };
-const backLink:              React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#1a1a1a', fontWeight: 'bold' };
-const pathDivider:           React.CSSProperties = { color: '#ccc' };
-const currentPath:           React.CSSProperties = { color: '#27ae60' };
-const brandHeader:           React.CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
-const brandTag:              React.CSSProperties = { background: '#1a1a1a', color: '#fff', padding: '4px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold' };
-const stockStatus:           React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '6px', color: '#27ae60', fontSize: '0.85rem', fontWeight: 'bold' };
-const productTitle:          React.CSSProperties = { fontSize: '2rem', fontWeight: '900', color: '#1a1a1a', lineHeight: '1.3', margin: 0 };
-const priceContainer:        React.CSSProperties = { display: 'flex', alignItems: 'baseline', gap: '15px' };
-const currentPrice:          React.CSSProperties = { fontSize: '2.2rem', fontWeight: '900', color: '#1a1a1a' };
-const specCard:              React.CSSProperties = { background: '#ffffff', border: '1px solid #f0f0f0', borderRadius: '20px', padding: '20px' };
-const specHeader:            React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid #f0f0f0', paddingBottom: '10px' };
-const specCardTitle:         React.CSSProperties = { fontSize: '1rem', fontWeight: '800', color: '#1a1a1a', margin: 0 };
-const specGrid:              React.CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' };
-const specItem:              React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px' };
-const specLabel:             React.CSSProperties = { fontSize: '0.75rem', color: '#888', fontWeight: 'bold' };
-const specValue:             React.CSSProperties = { fontSize: '0.9rem', color: '#1a1a1a', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' };
-const stepBtn:               React.CSSProperties = { border: 'none', background: '#fff', width: '34px', height: '34px', borderRadius: '50%', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' };
-const qtyValue:              React.CSSProperties = { fontSize: '1.2rem', fontWeight: 'bold', color: '#27ae60', minWidth: '28px', textAlign: 'center' };
-const loaderWrapper:         React.CSSProperties = { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' };
-const trustBadges:           React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '4px' };
-const badgeItem:             React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#555', fontWeight: '600' };
-const descriptionSection:    React.CSSProperties = { borderTop: '1px solid #eee', paddingTop: '20px', marginBottom: '24px' };
-const descTitle:             React.CSSProperties = { fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '16px' };
-const descContent:           React.CSSProperties = { lineHeight: '1.8', color: '#666', fontSize: '1rem' };
-
-const frmLabel: React.CSSProperties = { display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#374151', marginBottom: '6px' };
-const frmInput: React.CSSProperties = { width: '100%', padding: '10px 12px', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none', color: '#1e293b', background: '#fff', boxSizing: 'border-box' };
-const errMsg: React.CSSProperties = { fontSize: '0.75rem', color: '#dc2626', fontWeight: '600', margin: '4px 0 0' };
-
-// loaderWrapper is kept to avoid unused-variable errors if needed elsewhere
-void loaderWrapper;
-
-
-// ─── Reviews Section ──────────────────────────────────────────────────────────
-interface Review { id: string; customer_name: string; rating: number; comment: string; created_at: string; }
-
+// ─── Stars ────────────────────────────────────────────────────────────────────
 function StarSelector({ value, onChange }: { value: number; onChange: (n: number) => void }) {
   const [hover, setHover] = useState(0);
   return (
@@ -104,15 +39,18 @@ function StarSelector({ value, onChange }: { value: number; onChange: (n: number
   );
 }
 
-function StarDisplay({ rating }: { rating: number }) {
+function StarDisplay({ rating, size = 13 }: { rating: number; size?: number }) {
   return (
     <div style={{ display: 'flex', gap: '2px' }}>
       {[1, 2, 3, 4, 5].map(i => (
-        <Star key={i} size={13} fill={i <= rating ? '#f59e0b' : 'none'} color={i <= rating ? '#f59e0b' : '#d1d5db'} />
+        <Star key={i} size={size} fill={i <= rating ? '#f59e0b' : 'none'} color={i <= rating ? '#f59e0b' : '#d1d5db'} />
       ))}
     </div>
   );
 }
+
+// ─── Reviews ──────────────────────────────────────────────────────────────────
+interface Review { id: string; customer_name: string; rating: number; comment: string; created_at: string; }
 
 function ReviewsSection({ productId }: { productId: string }) {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -149,38 +87,33 @@ function ReviewsSection({ productId }: { productId: string }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setSubmitted(true);
-      setShowForm(false);
+      setSubmitted(true); setShowForm(false);
       setForm({ name: '', email: '', rating: 0, comment: '' });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'حدث خطأ';
-      setErrors({ submit: message });
-    } finally {
-      setSubmitting(false);
-    }
+      setErrors({ submit: err instanceof Error ? err.message : 'حدث خطأ' });
+    } finally { setSubmitting(false); }
   };
 
-  const avgRating = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) : 0;
+  const avgRating = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
 
   return (
-    // In ReviewsSection, change the outer wrapper:
-<div style={{ borderTop: '1px solid #eee', paddingTop: '32px', marginBottom: '40px', direction: 'rtl', minHeight: '200px' }}>
+    <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.1 }} variants={fadeUp}
+      style={{ background: '#fff', borderRadius: '24px', padding: '28px', marginBottom: '32px', border: '1px solid #f1f5f9', direction: 'rtl' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: '900', margin: 0, color: '#1a1a1a' }}>تقييمات العملاء</h2>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: '900', margin: 0, color: '#0f172a' }}>تقييمات العملاء</h2>
           {reviews.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '20px', padding: '4px 12px' }}>
               <StarDisplay rating={Math.round(avgRating)} />
-              <span style={{ fontSize: '0.9rem', fontWeight: '800', color: '#1a1a1a' }}>{avgRating.toFixed(1)}</span>
-              <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>({reviews.length} تقييم)</span>
+              <span style={{ fontSize: '0.88rem', fontWeight: '800', color: '#92400e' }}>{avgRating.toFixed(1)}</span>
+              <span style={{ fontSize: '0.78rem', color: '#b45309' }}>({reviews.length})</span>
             </div>
           )}
         </div>
         {!submitted ? (
           <button onClick={() => setShowForm(f => !f)}
-            style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 18px', background: showForm ? '#f1f5f9' : '#1a1a1a', color: showForm ? '#64748b' : '#fff', border: 'none', borderRadius: '11px', cursor: 'pointer', fontWeight: '700', fontSize: '0.88rem', fontFamily: 'inherit', transition: 'all 0.15s' }}>
-            <Star size={15} fill={showForm ? 'none' : '#fff'} />
-            {showForm ? 'إلغاء' : 'اكتب تقييماً'}
+            style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 18px', background: showForm ? '#f1f5f9' : '#0f172a', color: showForm ? '#64748b' : '#fff', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.88rem', fontFamily: 'inherit', transition: 'all 0.15s' }}>
+            <Star size={15} fill={showForm ? 'none' : '#fff'} /> {showForm ? 'إلغاء' : 'اكتب تقييماً'}
           </button>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', color: '#15803d', fontWeight: '700', fontSize: '0.85rem' }}>
@@ -189,59 +122,59 @@ function ReviewsSection({ productId }: { productId: string }) {
         )}
       </div>
 
-      {showForm && (
-        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '22px', marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: '800', margin: '0 0 16px', color: '#0f172a' }}>أضف تقييمك</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
-            <div>
-              <label style={frmLabel}>الاسم *</label>
-              <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="اسمك" style={{ ...frmInput, borderColor: errors.name ? '#fca5a5' : '#e2e8f0' }} />
-              {errors.name && <p style={errMsg}>{errors.name}</p>}
+      <AnimatePresence>
+        {showForm && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+            style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '22px', marginBottom: '24px', overflow: 'hidden' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: '800', margin: '0 0 16px', color: '#0f172a' }}>أضف تقييمك</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#374151', marginBottom: '6px' }}>الاسم *</label>
+                <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="اسمك" style={{ width: '100%', padding: '10px 12px', border: `1.5px solid ${errors.name ? '#fca5a5' : '#e2e8f0'}`, borderRadius: '10px', fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' as const }} />
+                {errors.name && <p style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: '600', margin: '4px 0 0' }}>{errors.name}</p>}
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#374151', marginBottom: '6px' }}>الإيميل (اختياري)</label>
+                <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="email@example.com" style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' as const }} dir="ltr" />
+              </div>
             </div>
-            <div>
-              <label style={frmLabel}>الإيميل (اختياري)</label>
-              <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="email@example.com" style={frmInput} dir="ltr" />
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#374151', marginBottom: '6px' }}>التقييم *</label>
+              <StarSelector value={form.rating} onChange={r => setForm(f => ({ ...f, rating: r }))} />
+              {errors.rating && <p style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: '600', margin: '4px 0 0' }}>{errors.rating}</p>}
             </div>
-          </div>
-          <div style={{ marginBottom: '14px' }}>
-            <label style={frmLabel}>التقييم *</label>
-            <StarSelector value={form.rating} onChange={r => setForm(f => ({ ...f, rating: r }))} />
-            {errors.rating && <p style={errMsg}>{errors.rating}</p>}
-          </div>
-          <div style={{ marginBottom: '16px' }}>
-            <label style={frmLabel}>تعليقك *</label>
-            <textarea value={form.comment} onChange={e => setForm(f => ({ ...f, comment: e.target.value }))} placeholder="شاركنا رأيك في المنتج..." rows={4} style={{ ...frmInput, resize: 'vertical', minHeight: '90px', borderColor: errors.comment ? '#fca5a5' : '#e2e8f0' }} />
-            {errors.comment && <p style={errMsg}>{errors.comment}</p>}
-          </div>
-          {errors.submit && <p style={{ ...errMsg, marginBottom: '12px' }}>{errors.submit}</p>}
-          <button onClick={handleSubmit} disabled={submitting}
-            style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '12px 24px', background: '#27ae60', color: '#fff', border: 'none', borderRadius: '11px', cursor: submitting ? 'not-allowed' : 'pointer', fontWeight: '800', fontSize: '0.9rem', fontFamily: 'inherit', opacity: submitting ? 0.7 : 1, transition: 'all 0.15s' }}>
-            {submitting ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={15} />}
-            {submitting ? 'جاري الإرسال...' : 'إرسال التقييم'}
-          </button>
-          <p style={{ fontSize: '0.73rem', color: '#94a3b8', marginTop: '10px', fontWeight: '600' }}>
-            * سيتم مراجعة تقييمك قبل نشره
-          </p>
-        </div>
-      )}
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#374151', marginBottom: '6px' }}>تعليقك *</label>
+              <textarea value={form.comment} onChange={e => setForm(f => ({ ...f, comment: e.target.value }))} placeholder="شاركنا رأيك في المنتج..." rows={4} style={{ width: '100%', padding: '10px 12px', border: `1.5px solid ${errors.comment ? '#fca5a5' : '#e2e8f0'}`, borderRadius: '10px', fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none', resize: 'vertical' as const, minHeight: '90px', boxSizing: 'border-box' as const }} />
+              {errors.comment && <p style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: '600', margin: '4px 0 0' }}>{errors.comment}</p>}
+            </div>
+            {errors.submit && <p style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: '600', marginBottom: '12px' }}>{errors.submit}</p>}
+            <button onClick={handleSubmit} disabled={submitting}
+              style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '12px 24px', background: '#22c55e', color: '#fff', border: 'none', borderRadius: '11px', cursor: submitting ? 'not-allowed' : 'pointer', fontWeight: '800', fontSize: '0.9rem', fontFamily: 'inherit', opacity: submitting ? 0.7 : 1 }}>
+              {submitting ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={15} />}
+              {submitting ? 'جاري الإرسال...' : 'إرسال التقييم'}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {loadingReviews ? (
         <div style={{ textAlign: 'center', padding: '30px', color: '#94a3b8' }}>
           <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', display: 'block', margin: '0 auto 8px' }} />
         </div>
       ) : reviews.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#cbd5e1', background: '#f8fafc', borderRadius: '14px', border: '1px solid #f1f5f9' }}>
+        <div style={{ textAlign: 'center', padding: '40px', color: '#cbd5e1', background: '#f8fafc', borderRadius: '14px' }}>
           <Star size={36} strokeWidth={1} style={{ display: 'block', margin: '0 auto 10px' }} />
           <p style={{ fontWeight: '700', fontSize: '0.95rem' }}>لا توجد تقييمات بعد — كن أول من يقيّم!</p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <motion.div initial="hidden" animate="show" variants={stagger} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {reviews.map(r => (
-            <div key={r.id} style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '14px', padding: '16px 18px' }}>
+            <motion.div key={r.id} variants={fadeUp} style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '16px 18px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <User size={16} color="#94a3b8" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'linear-gradient(135deg,#22c55e,#16a34a)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <User size={18} color="#fff" />
                   </div>
                   <div>
                     <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#0f172a' }}>{r.customer_name}</div>
@@ -253,16 +186,14 @@ function ReviewsSection({ productId }: { productId: string }) {
                 </span>
               </div>
               <p style={{ fontSize: '0.9rem', color: '#334155', lineHeight: '1.65', margin: 0 }}>{r.comment}</p>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
-
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-    </div>
+    </motion.div>
   );
 }
-
 
 // ─── Share Buttons ─────────────────────────────────────────────────────────────
 function ShareButtons({ productName, productBrand, price, carMake, carModel, productSlug }: {
@@ -287,106 +218,109 @@ function ShareButtons({ productName, productBrand, price, carMake, carModel, pro
       try { await navigator.share({ title: `${productName} - ${productBrand}`, text: `${productName} - ${productBrand}\n💰 ${price} ج.م`, url }); } catch { /* cancelled */ }
     } else { setOpen(prev => !prev); }
   };
+  const btnStyle = (bg: string): React.CSSProperties => ({ display: 'flex', alignItems: 'center', gap: '9px', padding: '9px 12px', backgroundColor: bg, color: '#fff', borderRadius: '10px', textDecoration: 'none', fontWeight: '800', fontSize: '0.88rem', direction: 'rtl' as const });
   return (
-    <div style={{ position: 'relative', display: 'inline-block', flexShrink: 0 }}>
-      <button onClick={handleShare} title="مشاركة المنتج" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '14px 18px', backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '15px', cursor: 'pointer', fontWeight: '800', fontSize: '0.95rem', color: '#1a1a1a', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
-        <Share2 size={18} /> مشاركة
+    <div style={{ position: 'relative', display: 'inline-block' }}>
+      <button onClick={handleShare} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 18px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.9rem', color: '#334155', fontFamily: 'inherit' }}>
+        <Share2 size={17} /> مشاركة
       </button>
-      {open && (
-        <>
-          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 999 }} />
-          <div style={{ position: 'absolute', bottom: 'calc(100% + 10px)', right: 0, backgroundColor: '#fff', borderRadius: '16px', boxShadow: '0 8px 30px rgba(0,0,0,0.15)', border: '1px solid #f0f0f0', padding: '10px', zIndex: 1000, minWidth: '195px', display: 'flex', flexDirection: 'column', gap: '6px', direction: 'rtl' }}>
-            <p style={{ fontSize: '0.72rem', color: '#aaa', fontWeight: '700', margin: '0 4px 4px', textAlign: 'right' }}>شارك المنتج عبر</p>
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} style={shareBtnStyle('#25D366')}>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-              واتساب
-            </a>
-            <a href={facebookUrl} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} style={shareBtnStyle('#1877F2')}><Facebook size={17} fill="white" color="white" /> فيسبوك</a>
-            <a href={twitterUrl} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} style={shareBtnStyle('#000')}><Twitter size={17} fill="white" color="white" /> تويتر / X</a>
-            <div style={{ height: '1px', backgroundColor: '#f0f0f0', margin: '2px 0' }} />
-            <button onClick={() => { copyLink(); setOpen(false); }} style={{ ...shareBtnStyle('#6b7280'), border: 'none', cursor: 'pointer', width: '100%', fontFamily: 'inherit' } as React.CSSProperties}>
-              {copied ? <Check size={17} /> : <Copy size={17} />}{copied ? 'تم النسخ!' : 'نسخ الرابط'}
-            </button>
-          </div>
-        </>
-      )}
+      <AnimatePresence>
+        {open && (
+          <>
+            <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 999 }} />
+            <motion.div initial={{ opacity: 0, scale: 0.92, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92, y: 8 }}
+              style={{ position: 'absolute', bottom: 'calc(100% + 10px)', right: 0, backgroundColor: '#fff', borderRadius: '18px', boxShadow: '0 12px 40px rgba(0,0,0,0.14)', border: '1px solid #f1f5f9', padding: '12px', zIndex: 1000, minWidth: '200px', display: 'flex', flexDirection: 'column', gap: '6px', direction: 'rtl' }}>
+              <p style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '700', margin: '0 4px 4px' }}>شارك عبر</p>
+              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} style={btnStyle('#25D366')}>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                واتساب
+              </a>
+              <a href={facebookUrl} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} style={btnStyle('#1877F2')}><Facebook size={17} fill="white" color="white" /> فيسبوك</a>
+              <a href={twitterUrl} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} style={btnStyle('#000')}><Twitter size={17} fill="white" color="white" /> تويتر</a>
+              <div style={{ height: '1px', background: '#f1f5f9', margin: '2px 0' }} />
+              <button onClick={() => { copyLink(); setOpen(false); }} style={{ ...btnStyle('#475569'), border: 'none', cursor: 'pointer', width: '100%', fontFamily: 'inherit' }}>
+                {copied ? <Check size={17} /> : <Copy size={17} />}{copied ? 'تم النسخ!' : 'نسخ الرابط'}
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
       {copied && !open && (
-        <div style={{ position: 'absolute', bottom: 'calc(100% + 8px)', right: 0, backgroundColor: '#1a1a1a', color: '#fff', padding: '6px 14px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: '700', whiteSpace: 'nowrap', zIndex: 1000, display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ position: 'absolute', bottom: 'calc(100% + 8px)', right: 0, backgroundColor: '#0f172a', color: '#fff', padding: '6px 14px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: '700', whiteSpace: 'nowrap', zIndex: 1000, display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Check size={13} color="#22c55e" /> تم نسخ الرابط!
         </div>
       )}
     </div>
   );
 }
-function shareBtnStyle(bg: string): React.CSSProperties {
-  return { display: 'flex', alignItems: 'center', gap: '9px', padding: '9px 12px', backgroundColor: bg, color: '#fff', borderRadius: '10px', textDecoration: 'none', fontWeight: '800', fontSize: '0.88rem', direction: 'rtl' };
-}
 
 // ─── Related Product Card ─────────────────────────────────────────────────────
 function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImages: Record<string, string> }) {
   const [qty, setQty] = useState(1);
   const { addToCart } = useCart();
-  const subcatKey = p.subcategory?.trim().toUpperCase();
-  const fallbackImage = subcategoryImages[subcatKey] || null;
-  const displayImage = p.image_url || fallbackImage || null;
-  const country = p.country_of_origin || p.country_origin || p.origin || null;
-  const productHref = `/products/${p.slug || p.id}`;
+  const displayImage = p.image_url || subcategoryImages[p.subcategory?.trim().toUpperCase()] || null;
+  const price = p.sale_price && Number(p.sale_price) > 0 ? p.sale_price : p.regular_price;
+  const hasSale = p.sale_price && Number(p.sale_price) > 0;
   return (
-    <div style={premiumCardStyle}>
-      <Link href={productHref} style={{ textDecoration: 'none' }}>
-        <div style={premiumImageArea} className="related-card-img-wrap">
-          {displayImage ? (
-            <Image
-              src={displayImage}
-              alt={p.name}
-              fill
-              sizes="(max-width: 768px) 50vw, 25vw"
-              style={{ objectFit: 'contain', padding: '10px' }}
-            />
-          ) : (
-            <div style={noImgPlaceholder}><Package size={32} color="#ddd" /></div>
-          )}
-          {p.sale_price && Number(p.sale_price) > 0 && (
-            <div style={smallSaleBadge}>
-              -{Math.round(((p.regular_price - p.sale_price) / p.regular_price) * 100)}%
-            </div>
-          )}
-        </div>
+    <motion.div whileHover={{ y: -6, boxShadow: '0 20px 50px rgba(34,197,94,0.14)' }} transition={{ duration: 0.25 }}
+      style={{ background: '#fff', borderRadius: '20px', border: '1px solid #f1f5f9', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
+      <Link href={`/products/${p.slug || p.id}`} style={{ textDecoration: 'none', display: 'block', position: 'relative', height: '160px', background: '#f8fafc', overflow: 'hidden' }}>
+        {displayImage ? (
+          <Image src={displayImage} alt={p.name} fill sizes="(max-width:768px) 50vw, 25vw" style={{ objectFit: 'cover' }} />
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}><Package size={36} color="#e2e8f0" /></div>
+        )}
+        {hasSale && (
+          <div style={{ position: 'absolute', top: '8px', right: '8px', background: 'linear-gradient(135deg,#ef4444,#dc2626)', color: '#fff', padding: '3px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: '900' }}>
+            -{Math.round(((p.regular_price - p.sale_price) / p.regular_price) * 100)}%
+          </div>
+        )}
       </Link>
-      <div style={premiumDetails}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={premiumBrand}>{p.brand}</span>
-          {country && <span style={countryBadge}><Globe size={10} /> {country}</span>}
-        </div>
-        <Link href={productHref} style={{ textDecoration: 'none' }}><h3 style={premiumName}>{p.name}</h3></Link>
-        <div style={carInfoBox}>
-          {p.car_make && <div style={carInfoRow}><Car size={11} color="#27ae60" /><span>{p.car_make}{p.car_model ? ` · ${p.car_model}` : ''}</span></div>}
-          {p.car_model_year && <div style={carInfoRow}><Calendar size={11} color="#27ae60" /><span>{p.car_model_year}</span></div>}
-          {p.subcategory && <div style={carInfoRow}><Layers size={11} color="#27ae60" /><span>{p.subcategory}</span></div>}
-        </div>
-        <div style={premiumPriceRow}>
-          <div style={premiumPriceCol}>
-            <span style={premiumCurrentPrice}>
-              {p.sale_price && Number(p.sale_price) > 0 ? p.sale_price : p.regular_price}
-              <small style={{ fontSize: '0.65rem', fontWeight: '600', marginRight: '2px' }}> ج.م</small>
-            </span>
-            {p.sale_price && Number(p.sale_price) > 0 && <span style={premiumOldPrice}>{p.regular_price} ج.م</span>}
+      <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.72rem', textTransform: 'uppercase' as const, letterSpacing: '0.4px' }}>{p.brand}</span>
+        <Link href={`/products/${p.slug || p.id}`} style={{ textDecoration: 'none' }}>
+          <h3 style={{ fontSize: '0.85rem', fontWeight: '800', color: '#0f172a', lineHeight: '1.35', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden', margin: 0 }}>{p.name}</h3>
+        </Link>
+        {p.car_make && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', color: '#15803d', fontWeight: '700', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '2px 8px', alignSelf: 'flex-start' as const }}>
+            <Car size={10} />{p.car_make}{p.car_model ? ` ${p.car_model}` : ''}
+          </span>
+        )}
+        <div style={{ marginTop: 'auto', paddingTop: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '8px' }}>
+            <span style={{ fontSize: '1.1rem', fontWeight: '900', color: '#0f172a' }}>{price}</span>
+            <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#0f172a' }}>ج.م</span>
+            {hasSale && <span style={{ fontSize: '0.72rem', color: '#aaa', textDecoration: 'line-through' }}>{p.regular_price} ج.م</span>}
           </div>
-          <div style={premiumStepper}>
-            <button onClick={() => setQty(prev => prev + 1)} style={miniStepBtn}><Plus size={12} /></button>
-            <span style={miniQty}>{qty}</span>
-            <button onClick={() => qty > 1 && setQty(prev => prev - 1)} style={miniStepBtn}><Minus size={12} /></button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#f8fafc', borderRadius: '10px', padding: '4px 8px', border: '1px solid #e2e8f0' }}>
+              <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{ background: 'none', border: 'none', cursor: 'pointer', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}><Minus size={11} /></button>
+              <span style={{ fontSize: '0.85rem', fontWeight: '900', color: '#22c55e', minWidth: '16px', textAlign: 'center' }}>{qty}</span>
+              <button onClick={() => setQty(q => q + 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}><Plus size={11} /></button>
+            </div>
+            <button onClick={() => addToCart({ ...p, price }, qty)} style={{ flex: 1, background: '#0f172a', color: '#fff', border: 'none', padding: '9px', borderRadius: '10px', fontSize: '0.78rem', fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+              <ShoppingCart size={13} /> أضف
+            </button>
           </div>
         </div>
-        <button onClick={() => addToCart({ ...p, price: p.sale_price || p.regular_price }, qty)} style={premiumAddBtn}>
-          <ShoppingCart size={14} /> إضافة
-        </button>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ─── Spec Item ────────────────────────────────────────────────────────────────
+function SpecItem({ label, value, icon }: { label: string; value: string; icon?: React.ReactNode }) {
+  return (
+    <motion.div variants={fadeUp} style={{ background: '#f8fafc', borderRadius: '14px', padding: '12px 14px', border: '1px solid #f1f5f9' }}>
+      <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '700', marginBottom: '4px', textTransform: 'uppercase' as const, letterSpacing: '0.4px' }}>{label}</div>
+      <div style={{ fontSize: '0.88rem', fontWeight: '800', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        {icon}<span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{value}</span>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 export default function ProductDetailsClient({ initialProduct, productId }: { initialProduct: any; productId: string }) {
   const [product] = useState<any>(initialProduct);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
@@ -405,303 +339,289 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
       ]);
       if (subcatRes.data) {
         const map: Record<string, string> = {};
-        subcatRes.data.forEach(img => { if (img.name && img.image_url) map[img.name.trim().toUpperCase()] = img.image_url; });
+        subcatRes.data.forEach((img: any) => { if (img.name && img.image_url) map[img.name.trim().toUpperCase()] = img.image_url; });
         setSubcategoryImages(map);
       }
       if (relatedRes.data) {
-        const subcatCountMap = new Map<string, number>();
-        const filtered = relatedRes.data.filter(item => {
-          const count = subcatCountMap.get(item.subcategory) || 0;
-          if (count < 2) { subcatCountMap.set(item.subcategory, count + 1); return true; }
+        const subcatMap = new Map<string, number>();
+        setRelatedProducts(relatedRes.data.filter(item => {
+          const count = subcatMap.get(item.subcategory) || 0;
+          if (count < 2) { subcatMap.set(item.subcategory, count + 1); return true; }
           return false;
-        });
-        setRelatedProducts(filtered);
+        }));
       }
     }
     fetchRelated();
   }, [product]);
 
-  const generateAutoDescription = () => {
+  const generateDesc = () => {
     if (!product) return '';
-    const name = product.name || 'هذا المنتج';
-    const brand = product.brand || 'ماركة أصلية';
-    const make = product.car_make || '';
-    const model = product.car_model || '';
-    const year = product.car_model_year ? `موديل ${product.car_model_year}` : '';
-    const origin = product.country_of_origin || '';
     const originMap: Record<string, string> = { 'صيني': 'الصين', 'كوري': 'كوريا', 'ياباني': 'اليابان', 'ألماني': 'ألمانيا', 'تركي': 'تركيا', 'إيطالي': 'إيطاليا' };
-    const correctedOrigin = originMap[origin] || origin;
-    let desc = `احصل الآن على ${name} بجودة عالية من ماركة ${brand}.`;
-    if (make || model) desc += ` تم تصميم هذه القطعة خصيصاً لتناسب سيارات ${make} ${model} ${year}.`;
-    if (correctedOrigin) desc += ` تتميز هذه القطعة بأنها مصنعة في ${correctedOrigin}، مما يضمن لك أداءً مثالياً وعمراً افتراضياً طويلاً على الطريق.`;
-    return desc;
+    const origin = originMap[product.country_of_origin] || product.country_of_origin || '';
+    let d = `احصل الآن على ${product.name || 'هذا المنتج'} بجودة عالية من ماركة ${product.brand || 'أصلية'}.`;
+    if (product.car_make || product.car_model) d += ` تم تصميم هذه القطعة خصيصاً لسيارات ${product.car_make || ''} ${product.car_model || ''} ${product.car_model_year ? `موديل ${product.car_model_year}` : ''}.`;
+    if (origin) d += ` مصنّعة في ${origin} مما يضمن أداءً مثالياً وعمراً افتراضياً طويلاً.`;
+    return d;
   };
 
-  if (!product) return <div style={{ textAlign: 'center', padding: '100px' }}>المنتج غير موجود.</div>;
+  if (!product) return (
+    <div style={{ textAlign: 'center', padding: '100px 20px', color: '#94a3b8' }}>
+      <Package size={48} style={{ margin: '0 auto 16px', display: 'block' }} />
+      <p style={{ fontWeight: '700' }}>المنتج غير موجود.</p>
+    </div>
+  );
 
-  // ── Image / slide setup ────────────────────────────────────────────────────
   const imageUrl = !imgError && product.image_url ? product.image_url : null;
   const displayPrice = product.sale_price && Number(product.sale_price) > 0 ? product.sale_price : product.regular_price;
+  const hasSale = product.sale_price && Number(product.sale_price) > 0;
+  const savingsAmt = hasSale ? (product.regular_price - product.sale_price) : 0;
+  const discPct = hasSale ? Math.round((savingsAmt / product.regular_price) * 100) : 0;
   const productSlug = product.slug || productId;
 
   const slides: { type: 'image' | 'video'; src: string }[] = [];
   if (product.video_url) {
-    const match = product.video_url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/|v\/))([A-Za-z0-9_-]{11})/);
-    if (match) slides.push({ type: 'video', src: match[1] });
+    const m = product.video_url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/|v\/))([A-Za-z0-9_-]{11})/);
+    if (m) slides.push({ type: 'video', src: m[1] });
   }
   if (imageUrl) slides.push({ type: 'image', src: imageUrl });
+
+  const univ = ['universal', 'عام', 'all', 'الكل', ''];
+  const make = (product.car_make || '').trim();
+  const model = (product.car_model || '').trim();
+  const compatText = univ.includes(make.toLowerCase()) ? 'جميع السيارات' : `${make}${univ.includes(model.toLowerCase()) ? '' : ' ' + model}`;
 
   return (
     <>
       <style>{`
-        .product-page-wrapper { max-width: 1200px; margin: 0 auto; padding: 20px 16px 60px; direction: rtl; background-color: #f9f9f9; min-height: 100vh; }
-        .product-main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; margin-bottom: 50px; }
-        .media-slider-wrap { border-radius: 24px; border: 1px solid #f0f0f0; overflow: hidden; background: #f9f9f9; position: relative; height: 420px; }
-        .media-slider-wrap .swiper { height: 420px; }
-        ..media-slider-wrap .swiper-slide { 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  background: #f9f9f9; 
-  position: relative;   /* already there — good */
-  height: 420px !important;  /* ← add explicit height so image renders immediately */
-}
-        .media-slider-wrap .swiper-pagination-bullet { background: #27ae60; opacity: 0.4; width: 8px; height: 8px; }
-        .media-slider-wrap .swiper-pagination-bullet-active { opacity: 1; transform: scale(1.2); }
-        .media-slider-wrap .swiper-button-disabled { opacity: 0 !important; }
-        @media (max-width: 768px) { .media-slider-wrap { border-radius: 18px; height: 300px; } .media-slider-wrap .swiper { height: 300px; } }
-        @media (max-width: 480px) { .media-slider-wrap { height: 250px; } .media-slider-wrap .swiper { height: 250px; } }
-        .product-info-section { display: flex; flex-direction: column; gap: 20px; }
-        .action-row-mobile { display: flex; gap: 12px; align-items: center; }
-        .add-to-cart-btn { flex: 1; background: #27ae60; color: #fff; border: none; border-radius: 11px; padding: 11px 14px; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 6px; box-shadow: 0 6px 16px rgba(39,174,96,0.25); font-family: inherit; transition: all 0.18s; }
-        .add-to-cart-btn:hover { background: #219a55; transform: translateY(-1px); }
-        .buy-now-btn { width: 100%; background: linear-gradient(135deg, #f97316, #ea580c); color: #fff; border: none; border-radius: 11px; padding: 11px 14px; font-weight: 900; font-size: 0.88rem; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 6px; box-shadow: 0 6px 16px rgba(249,115,22,0.26); font-family: inherit; text-decoration: none; transition: all 0.18s; }
-        .buy-now-btn:hover { background: linear-gradient(135deg, #ea580c, #c2410c); transform: translateY(-1px); }
-        @media (max-width: 768px) { .buy-now-btn, .add-to-cart-btn { padding: 12px 14px; font-size: 0.92rem; border-radius: 12px; } }
-        .qty-stepper { display: flex; align-items: center; gap: 12px; background: #f5f5f5; padding: 8px 14px; border-radius: 15px; flex-shrink: 0; }
-        .share-row { display: flex; align-items: center; gap: 12px; }
-        .related-swiper .swiper-slide { height: auto !important; }
-        .related-card-img-wrap { overflow: hidden; }
-        .related-card-img-wrap img { transition: transform 0.35s ease; }
-        .related-card-img-wrap:hover img { transform: scale(1.08); }
+        .pdp-wrapper { max-width: 1200px; margin: 0 auto; padding: 24px 16px 80px; direction: rtl; min-height: 100vh; }
+        .pdp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-bottom: 48px; align-items: start; }
+        .pdp-media { position: sticky; top: 100px; }
+        .pdp-slider { border-radius: 28px; overflow: hidden; background: #f8fafc; border: 1px solid #f1f5f9; box-shadow: 0 4px 32px rgba(0,0,0,0.06); height: 460px; position: relative; }
+        .pdp-slider .swiper { height: 460px; }
+        .pdp-slider .swiper-slide { display: flex; align-items: center; justify-content: center; height: 460px !important; position: relative; background: #f8fafc; }
+        .pdp-slider .swiper-pagination-bullet { background: #22c55e; opacity: 0.4; }
+        .pdp-slider .swiper-pagination-bullet-active { opacity: 1; transform: scale(1.3); }
+        .pdp-info { display: flex; flex-direction: column; gap: 22px; }
+        .pdp-btn-primary { width: 100%; padding: 16px; background: linear-gradient(135deg,#22c55e 0%,#16a34a 100%); color: #fff; border: none; border-radius: 16px; font-weight: 900; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 24px rgba(34,197,94,0.35); font-family: inherit; transition: all 0.2s; letter-spacing: 0.3px; text-decoration: none; }
+        .pdp-btn-primary:hover { box-shadow: 0 12px 32px rgba(34,197,94,0.5); transform: translateY(-2px); }
+        .pdp-btn-secondary { width: 100%; padding: 15px; background: #0f172a; color: #fff; border: none; border-radius: 16px; font-weight: 800; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; transition: all 0.2s; }
+        .pdp-btn-secondary:hover { background: #1e293b; transform: translateY(-1px); }
+        .pdp-stepper { display: flex; align-items: center; gap: 0; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 14px; overflow: hidden; }
+        .pdp-step-btn { width: 44px; height: 48px; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #64748b; transition: background 0.15s; }
+        .pdp-step-btn:hover { background: #f1f5f9; color: #0f172a; }
+        .pdp-qty { font-size: 1.1rem; font-weight: 900; color: '#0f172a'; min-width: 36px; text-align: center; }
+        .pdp-trust-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 12px; font-size: 0.85rem; color: #475569; font-weight: '700'; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        @media (max-width: 768px) {
-          .product-page-wrapper { padding: 10px 10px 60px; }
-          .product-main-grid { grid-template-columns: 1fr; gap: 12px; margin-bottom: 16px; }
-          .product-info-section { gap: 12px !important; }
-          .product-title-mobile { font-size: 1.4rem !important; line-height: 1.3 !important; }
-          .product-price-mobile { font-size: 1.6rem !important; }
-          .spec-grid-mobile { grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
-          .action-row-mobile { flex-direction: column; gap: 8px; }
-          .add-to-cart-btn { width: 100%; padding: 14px; font-size: 1rem; border-radius: 14px; }
-          .qty-stepper { width: 100%; justify-content: center; }
-          .share-row { width: 100%; }
-          .share-row > div { width: 100%; }
-          .share-row > div > button:first-child { width: 100% !important; justify-content: center; }
-          .related-header-mobile { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
+        @keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+        @media (max-width: 900px) {
+          .pdp-grid { grid-template-columns: 1fr; gap: 24px; }
+          .pdp-media { position: static; }
+          .pdp-slider { height: 320px; border-radius: 20px; }
+          .pdp-slider .swiper { height: 320px; }
+          .pdp-slider .swiper-slide { height: 320px !important; }
         }
-        @media (max-width: 480px) { .spec-grid-mobile { grid-template-columns: 1fr 1fr !important; } }
-        @media (max-width: 768px) { .description-section { padding-top: 16px !important; margin-bottom: 16px !important; } }
+        @media (max-width: 480px) {
+          .pdp-wrapper { padding: 12px 12px 60px; }
+          .pdp-slider { height: 260px; }
+          .pdp-slider .swiper { height: 260px; }
+          .pdp-slider .swiper-slide { height: 260px !important; }
+          .pdp-info { gap: 16px; }
+        }
+        .related-swiper .swiper-slide { height: auto !important; }
       `}</style>
 
-      <div className="product-page-wrapper">
+      <div className="pdp-wrapper">
+
         {/* Breadcrumb */}
-        <div style={navPath}>
-          <Link href="/store" style={backLink}><ArrowRight size={18} /> المتجر</Link>
-          <span style={pathDivider}>/</span>
-          <span style={currentPath}>{product.category}</span>
-        </div>
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', fontSize: '0.85rem', color: '#94a3b8', flexWrap: 'wrap' as const }}>
+          <Link href="/store" style={{ display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#475569', fontWeight: '700' }}>
+            <ArrowRight size={16} /> المتجر
+          </Link>
+          <ChevronLeft size={14} color="#cbd5e1" />
+          {product.category && <><span style={{ color: '#94a3b8' }}>{product.category}</span><ChevronLeft size={14} color="#cbd5e1" /></>}
+          <span style={{ color: '#22c55e', fontWeight: '700', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{product.name}</span>
+        </motion.div>
 
-        {/* Main Grid */}
-        <div className="product-main-grid">
+        <div className="pdp-grid">
 
-          {/* ── Media Slider ─────────────────────────────────────────────────── */}
-          {slides.length === 0 ? (
-            <div className="media-slider-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '420px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', color: '#f9f9f9' }}>
-                <Package size={60} color="#ddd" /><span style={{ fontSize: '0.9rem', fontWeight: '700' }}>لا توجد صورة للمنتج</span>
-              </div>
-            </div>
-          ) : (
-            <div className="media-slider-wrap" style={{ position: 'relative' }}>
-              <Swiper
-                modules={[Pagination]}
-                onSwiper={s => { swiperRef.current = s; }}
-                pagination={slides.length > 1 ? { clickable: true } : false}
-                slidesPerView={1}
-                allowTouchMove={false}
-                style={{ height: '100%' }}
-              >
-                {slides.map((slide, i) => (
-                  <SwiperSlide key={i}>
-                    {slide.type === 'image' ? (
-                      <Image
-                        src={slide.src}
-                        alt={product.name}
-                        fill
-                        priority={i === 0}
-                        fetchPriority={i === 0 ? 'high' : 'auto'}
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                        style={{ objectFit: 'contain', padding: '8px' }}
-                        onError={() => setImgError(true)}
-                      />
-                    ) : (
-                      <iframe
-                        src={`https://www.youtube.com/embed/${slide.src}?rel=0&modestbranding=1`}
-                        title="فيديو المنتج"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-                      />
-                    )}
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-              {slides.length > 1 && (
-                <>
-                  <button onClick={() => swiperRef.current?.slidePrev()} aria-label="السابق" style={{ position: 'absolute', top: '50%', right: '10px', transform: 'translateY(-50%)', zIndex: 20, width: '36px', height: '36px', borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.92)', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: '#1a1a1a', fontWeight: '900' }}>‹</button>
-                  <button onClick={() => swiperRef.current?.slideNext()} aria-label="التالي" style={{ position: 'absolute', top: '50%', left: '10px', transform: 'translateY(-50%)', zIndex: 20, width: '36px', height: '36px', borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.92)', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: '#1a1a1a', fontWeight: '900' }}>›</button>
-                </>
-              )}
-            </div>
-          )}
-
-          {/* ── Product Info ──────────────────────────────────────────────────── */}
-          <div className="product-info-section">
-            <div style={brandHeader}>
-              <span style={brandTag}>{product.brand}</span>
-              <div style={stockStatus}><CheckCircle2 size={16} /> متوفر</div>
-            </div>
-
-            <h1 className="product-title-mobile" style={productTitle}>{product.name}</h1>
-
-            <div style={priceContainer}>
-              {product.sale_price && Number(product.sale_price) > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <span className="product-price-mobile" style={currentPrice}>{product.sale_price} <small>ج.م</small></span>
-                  <span style={{ color: '#bbb', textDecoration: 'line-through', fontSize: '1rem' }}>{product.regular_price} ج.م</span>
+          {/* ── Media ── */}
+          <div className="pdp-media">
+            <motion.div variants={slideLeft} initial="hidden" animate="show">
+              {slides.length === 0 ? (
+                <div className="pdp-slider" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ textAlign: 'center', color: '#cbd5e1' }}><Package size={64} /><p style={{ fontWeight: '700', marginTop: '12px' }}>لا توجد صورة</p></div>
                 </div>
               ) : (
-                <span className="product-price-mobile" style={currentPrice}>{product.regular_price} <small>ج.م</small></span>
+                <div className="pdp-slider">
+                  <Swiper modules={[Pagination]} onSwiper={s => { swiperRef.current = s; }}
+                    pagination={slides.length > 1 ? { clickable: true } : false} slidesPerView={1} style={{ height: '100%' }}>
+                    {slides.map((slide, i) => (
+                      <SwiperSlide key={i}>
+                        {slide.type === 'image' ? (
+                          <Image src={slide.src} alt={product.name} fill priority={i === 0} sizes="(max-width:900px) 100vw, 50vw"
+                            style={{ objectFit: 'contain', padding: '16px' }} onError={() => setImgError(true)} />
+                        ) : (
+                          <iframe src={`https://www.youtube.com/embed/${slide.src}?rel=0&modestbranding=1`} title="فيديو" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ width: '100%', height: '100%', border: 'none', display: 'block' }} />
+                        )}
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
+                  {slides.length > 1 && (
+                    <>
+                      <button onClick={() => swiperRef.current?.slidePrev()} style={{ position: 'absolute', top: '50%', right: '14px', transform: 'translateY(-50%)', zIndex: 20, width: '40px', height: '40px', borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.95)', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronRight size={20} /></button>
+                      <button onClick={() => swiperRef.current?.slideNext()} style={{ position: 'absolute', top: '50%', left: '14px', transform: 'translateY(-50%)', zIndex: 20, width: '40px', height: '40px', borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.95)', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronLeft size={20} /></button>
+                    </>
+                  )}
+                </div>
+              )}
+            </motion.div>
+          </div>
+
+          {/* ── Info ── */}
+          <motion.div className="pdp-info" variants={slideRight} initial="hidden" animate="show">
+
+            {/* Brand + Stock */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ background: '#0f172a', color: '#fff', padding: '6px 16px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '800', letterSpacing: '0.5px', textTransform: 'uppercase' as const }}>{product.brand}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontSize: '0.85rem', fontWeight: '700' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', display: 'inline-block', animation: 'pulseDot 2s ease-in-out infinite' }} />
+                متوفر في المخزون
+              </div>
+            </div>
+
+            {/* Title */}
+            <h1 style={{ fontSize: '1.9rem', fontWeight: '900', color: '#0f172a', lineHeight: '1.25', margin: 0, letterSpacing: '-0.5px' }}>{product.name}</h1>
+
+            {/* Price block */}
+            <div style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '20px', padding: '18px 20px' }}>
+              {hasSale ? (
+                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+                    <span style={{ fontSize: '2.4rem', fontWeight: '900', color: '#0f172a', lineHeight: 1 }}>{product.sale_price}</span>
+                    <span style={{ fontSize: '1rem', fontWeight: '700', color: '#0f172a' }}>ج.م</span>
+                    <span style={{ fontSize: '1rem', color: '#aaa', textDecoration: 'line-through', fontWeight: '600' }}>{product.regular_price} ج.م</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ background: 'linear-gradient(135deg,#ef4444,#dc2626)', color: '#fff', padding: '4px 12px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: '900' }}>خصم {discPct}%</span>
+                    <span style={{ fontSize: '0.82rem', color: '#16a34a', fontWeight: '800' }}>وفّرت {savingsAmt.toFixed(0)} ج.م</span>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                  <span style={{ fontSize: '2.4rem', fontWeight: '900', color: '#0f172a', lineHeight: 1 }}>{product.regular_price}</span>
+                  <span style={{ fontSize: '1rem', fontWeight: '700', color: '#0f172a' }}>ج.م</span>
+                </div>
               )}
             </div>
 
-            {/* Specs */}
-            <div style={specCard}>
-              <div style={specHeader}><Info size={18} color="#27ae60" /><h3 style={specCardTitle}>المواصفات الفنية</h3></div>
-              <div className="spec-grid-mobile" style={specGrid}>
-                <div style={specItem}><span style={specLabel}>الماركة</span><span style={specValue}><Car size={14} /> {product.car_make}</span></div>
-                <div style={specItem}><span style={specLabel}>الموديل</span><span style={specValue}><Layers size={14} /> {product.car_model}</span></div>
-                <div style={specItem}><span style={specLabel}>السنة</span><span style={specValue}><Calendar size={14} /> {product.car_model_year || 'الكل'}</span></div>
-                <div style={specItem}><span style={specLabel}>المنشأ</span><span style={specValue}><Globe size={14} /> {product.country_of_origin || 'أصلي'}</span></div>
-                <div style={specItem}><span style={specLabel}>القسم</span><span style={specValue}>{product.category}</span></div>
-                <div style={specItem}><span style={specLabel}>القسم الفرعي</span><span style={specValue}>{product.subcategory || '-'}</span></div>
-                <div style={specItem}><span style={specLabel}>الضمان</span><span style={specValue}><Timer size={14} /> {product.warranty || product.warranty_duration || 'ضمان استبدال'}</span></div>
-{product.sku && (
-  <div style={specItem}>
-    <span style={specLabel}>كود المنتج</span>
-    <span style={{ ...specValue, fontFamily: 'monospace', fontWeight: '900', letterSpacing: '0.05em' }}>
-      {product.sku}
-    </span>
-  </div>
-)}
-              </div>
+            {/* Compatibility + Category pills */}
+            <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '8px' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '20px', padding: '6px 14px', fontSize: '0.82rem', fontWeight: '800', color: '#15803d' }}>
+                <Car size={14} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, maxWidth: '180px' }}>{compatText}</span>
+              </span>
+              {product.car_model_year && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '20px', padding: '6px 14px', fontSize: '0.82rem', fontWeight: '800', color: '#1d4ed8' }}>
+                  <Calendar size={14} />{product.car_model_year}
+                </span>
+              )}
+              {product.category && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '6px 14px', fontSize: '0.82rem', fontWeight: '700', color: '#475569' }}>
+                  <LayoutGrid size={13} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, maxWidth: '160px' }}>{product.category}</span>
+                </span>
+              )}
+              {product.subcategory && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '6px 14px', fontSize: '0.82rem', fontWeight: '700', color: '#475569' }}>
+                  <Tag size={13} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, maxWidth: '160px' }}>{product.subcategory}</span>
+                </span>
+              )}
             </div>
 
-            {/* Trust badge */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', background: 'rgba(240,253,244,0.95)', border: '1px solid rgba(187,247,208,0.8)', borderRadius: '14px', direction: 'rtl' }}>
-              <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'rgba(22,163,74,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <ShieldCheck size={16} color="#16a34a" />
-              </div>
-              <span style={{ fontSize: '0.88rem', fontWeight: '700', color: '#15803d' }}>
-                شحن سريع لباب البيت في جميع المحافظات
-              </span>
-            </div>
+            {/* Specs grid */}
+            <motion.div initial="hidden" animate="show" variants={stagger}
+              style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              {product.country_of_origin && <SpecItem label="المنشأ" value={product.country_of_origin} icon={<Globe size={14} color="#22c55e" />} />}
+              <SpecItem label="الضمان" value={product.warranty || product.warranty_duration || 'ضمان استبدال'} icon={<Timer size={14} color="#22c55e" />} />
+              {product.sku && <SpecItem label="كود المنتج" value={product.sku} icon={<Info size={14} color="#22c55e" />} />}
+            </motion.div>
 
             {/* Qty + Cart */}
-            <div className="action-row-mobile">
-              <div className="qty-stepper">
-                <button onClick={() => setQty(prev => prev + 1)} style={stepBtn}><Plus size={18} /></button>
-                <span style={qtyValue}>{qty}</span>
-                <button onClick={() => qty > 1 && setQty(prev => prev - 1)} style={stepBtn}><Minus size={18} /></button>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'stretch' }}>
+              <div className="pdp-stepper">
+                <button className="pdp-step-btn" onClick={() => setQty(q => q + 1)}><Plus size={18} /></button>
+                <span className="pdp-qty" style={{ fontSize: '1.1rem', fontWeight: '900', color: '#0f172a', minWidth: '36px', textAlign: 'center' as const }}>{qty}</span>
+                <button className="pdp-step-btn" onClick={() => qty > 1 && setQty(q => q - 1)}><Minus size={18} /></button>
               </div>
-              <button onClick={() => addToCart(product, qty)} className="add-to-cart-btn">
+              <button onClick={() => addToCart(product, qty)} className="pdp-btn-secondary" style={{ flex: 1 }}>
                 <ShoppingCart size={20} /> إضافة للسلة
               </button>
             </div>
 
-            <Link
-              href={`/checkout?buyNow=true&productId=${productId}&price=${displayPrice}`}
+            <Link href={`/checkout?buyNow=true&productId=${productId}&price=${displayPrice}`}
               onClick={() => addToCart({ ...product, price: displayPrice }, qty)}
-              className="buy-now-btn"
-            >
-              <Zap size={20} fill="#fff" /> اشتري الآن
+              className="pdp-btn-primary">
+              <Zap size={20} fill="#fff" /> اشتري الآن — {displayPrice} ج.م
             </Link>
 
-            <div className="share-row">
-              <ShareButtons
-                productName={product.name}
-                productBrand={product.brand}
-                price={displayPrice}
-                carMake={product.car_make}
-                carModel={product.car_model}
-                productSlug={productSlug}
-              />
+            {/* Share */}
+            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+              <ShareButtons productName={product.name} productBrand={product.brand} price={displayPrice} carMake={product.car_make} carModel={product.car_model} productSlug={productSlug} />
             </div>
 
-            <div style={trustBadges}>
-              <div style={badgeItem}><ShieldCheck size={16} color="#27ae60" /> قطع غيار أصلية ومختبرة</div>
-              <div style={badgeItem}><ShieldCheck size={16} color="#27ae60" /> مطابقة 100% لمواصفات سيارتك</div>
+            {/* Trust badges */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              {[
+                { icon: <ShieldCheck size={16} color="#22c55e" />, text: 'قطع غيار أصلية 100%' },
+                { icon: <ShieldCheck size={16} color="#22c55e" />, text: 'شحن لباب البيت' },
+                { icon: <ShieldCheck size={16} color="#22c55e" />, text: 'ضمان استبدال' },
+                { icon: <ShieldCheck size={16} color="#22c55e" />, text: 'مطابق لسيارتك' },
+              ].map((b, i) => (
+                <div key={i} className="pdp-trust-item">
+                  {b.icon}<span style={{ fontSize: '0.82rem', fontWeight: '700', color: '#475569' }}>{b.text}</span>
+                </div>
+              ))}
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Description */}
-        <div style={descriptionSection}>
-          <h2 style={descTitle}>وصف المنتج</h2>
-          <div style={descContent}>{generateAutoDescription()}</div>
-        </div>
+        <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.2 }} variants={fadeUp}
+          style={{ background: '#fff', borderRadius: '24px', padding: '28px', marginBottom: '32px', border: '1px solid #f1f5f9' }}>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: '900', marginBottom: '14px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Info size={20} color="#22c55e" /> وصف المنتج
+          </h2>
+          <p style={{ lineHeight: '1.85', color: '#64748b', fontSize: '0.95rem', margin: 0 }}>{generateDesc()}</p>
+        </motion.div>
 
         {/* Reviews */}
         <ReviewsSection productId={productId} />
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
-          <section style={carouselFullWrapper}>
-            <div className="related-header-mobile" style={relatedHeader}>
+          <motion.section initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.1 }} variants={fadeUp}
+            style={{ borderTop: '1px solid #f1f5f9', paddingTop: '32px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' as const, gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Package size={24} color="#27ae60" />
-                <h2 style={relatedTitle}>قطع غيار لسيارة {product.car_make} {product.car_model}</h2>
+                <Package size={22} color="#22c55e" />
+                <h2 style={{ fontSize: '1.25rem', fontWeight: '900', margin: 0, color: '#0f172a' }}>قطع غيار لسيارة {product.car_make} {product.car_model}</h2>
               </div>
-              <div style={customNavWrapper}>
-                <button id="prev-related" style={navCircleBtn}><ChevronRight size={22} /></button>
-                <button id="next-related" style={navCircleBtn}><ChevronLeft size={22} /></button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button id="prev-related" style={{ width: '38px', height: '38px', borderRadius: '50%', border: '1px solid #e2e8f0', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><ChevronRight size={20} /></button>
+                <button id="next-related" style={{ width: '38px', height: '38px', borderRadius: '50%', border: '1px solid #e2e8f0', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><ChevronLeft size={20} /></button>
               </div>
             </div>
-            <div style={swiperOuterContainer}>
-              <Swiper
-                modules={[Navigation, Autoplay]}
-                spaceBetween={12}
-                slidesPerView={1}
-                navigation={{ prevEl: '#prev-related', nextEl: '#next-related' }}
-                breakpoints={{
-                  0:    { slidesPerView: 2, spaceBetween: 10 },
-                  480:  { slidesPerView: 2, spaceBetween: 12 },
-                  768:  { slidesPerView: 3, spaceBetween: 14 },
-                  1024: { slidesPerView: 4, spaceBetween: 16 },
-                }}
-                autoplay={{ delay: 3500, disableOnInteraction: false }}
-                className="related-swiper"
-                style={{ padding: '10px 4px 30px' }}
-              >
-                {relatedProducts.map(rp => (
-                  <SwiperSlide key={rp.id} style={{ height: 'auto' }}>
-                    <RelatedProductCard p={rp} subcategoryImages={subcategoryImages} />
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-            </div>
-          </section>
+            <Swiper modules={[Navigation, Autoplay]} spaceBetween={14} slidesPerView={1}
+              navigation={{ prevEl: '#prev-related', nextEl: '#next-related' }}
+              breakpoints={{ 0: { slidesPerView: 2 }, 480: { slidesPerView: 2 }, 768: { slidesPerView: 3 }, 1024: { slidesPerView: 4 } }}
+              autoplay={{ delay: 3500, disableOnInteraction: false }} className="related-swiper"
+              style={{ padding: '8px 4px 28px' }}>
+              {relatedProducts.map(rp => (
+                <SwiperSlide key={rp.id} style={{ height: 'auto' }}>
+                  <RelatedProductCard p={rp} subcategoryImages={subcategoryImages} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </motion.section>
         )}
       </div>
     </>

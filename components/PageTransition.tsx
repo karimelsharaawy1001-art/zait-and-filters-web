@@ -1,10 +1,15 @@
 'use client';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
 
 export default function PageTransition({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [pathname]);
 
   return (
     <motion.div
