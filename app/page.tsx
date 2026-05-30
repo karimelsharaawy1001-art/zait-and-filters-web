@@ -308,7 +308,11 @@ function SearchCard({
         <>
           <div style={{ marginBottom: '12px' }}>
             <label style={{ fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block' }}>الماركة</label>
-            <Select instanceId="make-select" options={makesOptions} styles={customSelectStyles} placeholder="اختر الماركة"
+            <Select instanceId="make-select" options={makesOptions}
+              styles={{ ...customSelectStyles, menuPortal: (base: any) => ({ ...base, zIndex: 10000 }) }}
+              menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+              menuPosition="fixed"
+              placeholder="اختر الماركة"
               isRtl={true} isSearchable={false} value={selectedMake} onChange={(opt: any) => setSelectedMake(opt)}
               formatOptionLabel={(brand: any) => (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -320,7 +324,11 @@ function SearchCard({
           </div>
           <div style={{ marginBottom: '12px' }}>
             <label style={{ fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block' }}>الموديل</label>
-            <Select instanceId="model-select" options={modelsOptions} styles={customSelectStyles} placeholder="اختر الموديل"
+            <Select instanceId="model-select" options={modelsOptions}
+              styles={{ ...customSelectStyles, menuPortal: (base: any) => ({ ...base, zIndex: 10000 }) }}
+              menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+              menuPosition="fixed"
+              placeholder="اختر الموديل"
               isRtl={true} isSearchable={false} value={selectedModel} isDisabled={!selectedMake}
               onChange={(opt: any) => setSelectedModel(opt)} />
           </div>

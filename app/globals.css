@@ -61,20 +61,13 @@ body {
   position: relative;
   width: 100%;
   background: #000;
-  /* Mobile: overflow visible so Select dropdown menus aren't clipped.
-     bg-layer uses inset:0 so it never bleeds outside the hero anyway. */
-  overflow: visible;
+  overflow: hidden;
+  /* Mobile: no fixed height — in-flow content-layer drives height naturally */
   min-height: 620px;
 }
 @media (min-width: 769px) {
-  /* Desktop: content-layer is position:absolute so overflow:hidden is needed
-     to clip the bg slides; hero fills viewport minus navbar height. */
-  .hero-section {
-    overflow: hidden;
-    height: calc(100svh - 80px);
-    min-height: 540px;
-    max-height: 750px;
-  }
+  /* Desktop: hero fills viewport minus navbar height */
+  .hero-section { height: calc(100svh - 80px); min-height: 540px; max-height: 750px; }
 }
 
 /* ── Product card images: fixed height reserved before CSS-in-JS loads ─── */

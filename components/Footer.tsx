@@ -25,6 +25,9 @@ export default function ProfessionalFooter() {
         .footer-social-icon:hover { background-color: #27ae60 !important; color: #fff !important; transform: scale(1.1); }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .footer-column { animation: fadeInUp 0.6s ease-out; }
+        @media (max-width: 768px) {
+          footer { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important; }
+        }
       `}} />
 
       <div style={footerContent}>
