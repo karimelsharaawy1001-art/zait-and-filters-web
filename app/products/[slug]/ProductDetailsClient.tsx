@@ -329,9 +329,9 @@ function SpecItem({ label, value, icon }: { label: string; value: string; icon?:
   return (
     <motion.div variants={fadeUp} style={{ background: '#f8fafc', borderRadius: '14px', padding: '12px 14px', border: '1px solid #f1f5f9' }}>
       <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '700', marginBottom: '4px', textTransform: 'uppercase' as const, letterSpacing: '0.4px' }}>{label}</div>
-      <div style={{ fontSize: '0.88rem', fontWeight: '800', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
-        {icon && <span style={{ flexShrink: 0 }}>{icon}</span>}
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, minWidth: 0, flex: 1 }}>{value}</span>
+      <div style={{ fontSize: '0.88rem', fontWeight: '800', color: '#0f172a', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+        {icon && <span style={{ flexShrink: 0, marginTop: '1px' }}>{icon}</span>}
+        <span style={{ wordBreak: 'break-word' as const, minWidth: 0, flex: 1 }}>{value}</span>
       </div>
     </motion.div>
   );
