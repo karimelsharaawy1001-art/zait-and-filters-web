@@ -1111,23 +1111,10 @@ export default function CheckoutPage() {
                       <CreditCard size={18} color={paymentMethod === 'card_installments' ? '#15803d' : '#888'} />
                     </div>
                     <div style={{ ...payTextContent, flex: 1 }}>
-                      <span style={payTitle}>بطاقة بنكية أو تقسيط</span>
-                      <span style={paySubTitle}>فيزا · ماستر كارد · ميزة · Apple Pay والمزيد</span>
+                      <span style={payTitle}>بطاقات ائتمانية وتقسيط</span>
+                      <span style={paySubTitle}>جميع أنواع البطاقات البنكية والتقسيط</span>
                     </div>
                     <span style={paymentMethod === 'card_installments' ? payBadgeAmber : payBadgeGray}>تقسيط متاح</span>
-                  </div>
-                  {/* ── Professional card options grid ── */}
-                  <div style={cardOptionsGrid}>
-                    {[
-                      'فيزا', 'ماستر كارد', 'ميزة', 'Apple Pay', 'فاليو',
-                      'أمان', 'سهولة', 'فرصة', 'كونتاكت', 'ترو',
-                      'كليفر', 'كارت فوري', 'كارت حالا', 'كارت لاكي',
-                      'تقسيط الأهلي', 'كارت تكة',
-                    ].map((label) => (
-                      <div key={label} style={cardOptionBadge}>
-                        {label}
-                      </div>
-                    ))}
                   </div>
                 </div>
               </label>
