@@ -281,11 +281,26 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
         <Link href={`/products/${p.slug || p.id}`} style={{ textDecoration: 'none' }}>
           <h3 style={{ fontSize: '0.85rem', fontWeight: '800', color: '#0f172a', lineHeight: '1.35', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden', margin: 0 }}>{p.name}</h3>
         </Link>
-        {p.car_make && (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', color: '#15803d', fontWeight: '700', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '2px 8px', alignSelf: 'flex-start' as const }}>
-            <Car size={10} />{p.car_make}{p.car_model ? ` ${p.car_model}` : ''}
-          </span>
-        )}
+        {(() => {
+          const univ = ['universal','عام','all','الكل',''];
+          const mk = (p.car_make||'').trim();
+          const mo = (p.car_model||'').trim();
+          if (!mk || univ.includes(mk.toLowerCase())) return null;
+          const cleanMo = univ.includes(mo.toLowerCase()) ? '' : mo;
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '4px' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', color: '#15803d', fontWeight: '700', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '3px 8px', alignSelf: 'flex-start' as const, maxWidth: '100%', overflow: 'hidden' }}>
+                <Car size={10} style={{ flexShrink: 0 }} />
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{mk}{cleanMo ? ' ' + cleanMo : ''}</span>
+              </span>
+              {p.car_model_year && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.65rem', color: '#1d4ed8', fontWeight: '700', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '12px', padding: '2px 8px', alignSelf: 'flex-start' as const }}>
+                  <Calendar size={9} />{p.car_model_year}
+                </span>
+              )}
+            </div>
+          );
+        })()}
         <div style={{ marginTop: 'auto', paddingTop: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '8px' }}>
             <span style={{ fontSize: '1.1rem', fontWeight: '900', color: '#0f172a' }}>{price}</span>
@@ -393,7 +408,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
   return (
     <>
       <style>{`
-        .pdp-wrapper { max-width: 1200px; margin: 0 auto; padding: 24px 16px 80px; direction: rtl; min-height: 100vh; }
+        .pdp-wrapper { max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; direction: rtl; }
         .pdp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-bottom: 48px; align-items: start; }
         .pdp-media { position: sticky; top: 100px; }
         .pdp-slider { border-radius: 28px; overflow: hidden; background: #f8fafc; border: 1px solid #f1f5f9; box-shadow: 0 4px 32px rgba(0,0,0,0.06); height: 460px; position: relative; }
@@ -603,7 +618,13 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' as const, gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <Package size={22} color="#22c55e" />
-                <h2 style={{ fontSize: '1.25rem', fontWeight: '900', margin: 0, color: '#0f172a' }}>قطع غيار لسيارة {product.car_make} {product.car_model}</h2>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: '900', margin: 0, color: '#0f172a' }}>
+                {(() => {
+                  const univ = ['universal','عام','all','الكل',''];
+                  const isUniv = univ.includes((product.car_make||'').toLowerCase());
+                  return isUniv ? 'منتجات مشابهة' : `منتجات مشابهة لسيارة ${product.car_make}${product.car_model && !univ.includes(product.car_model.toLowerCase()) ? ' ' + product.car_model : ''}`;
+                })()}
+              </h2>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button id="prev-related" style={{ width: '38px', height: '38px', borderRadius: '50%', border: '1px solid #e2e8f0', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><ChevronRight size={20} /></button>
