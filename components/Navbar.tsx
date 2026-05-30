@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import {
   Search, ShoppingCart, User, Home, Store,
   Menu as MenuIcon, X, Info, PhoneCall, Settings, LogIn, LogOut,
@@ -57,8 +56,13 @@ export default function ProfessionalNavbar() {
       });
     }
 
+    // MobileBottomNav dispatches this event to open the sidebar
+    const openSidebar = () => setIsSidebarOpen(true);
+    window.addEventListener('openSidebar', openSidebar);
+
     return () => {
       authListener.subscription.unsubscribe();
+      window.removeEventListener('openSidebar', openSidebar);
     };
   }, [cartItems.length, controls]);
 
@@ -149,7 +153,6 @@ export default function ProfessionalNavbar() {
       <style dangerouslySetInnerHTML={{ __html: `
         @media (max-width: 768px) {
           .desktop-links  { display: none !important; }
-          .mobile-bottom-nav { display: flex !important; }
           .nav-content    { justify-content: space-between !important; padding: 0 10px !important; }
           .search-wrapper { display: none !important; }
           .logo-text      { font-size: 1.5rem !important; }
@@ -371,33 +374,6 @@ export default function ProfessionalNavbar() {
         </div>
       </nav>
 
-      {/* --- Mobile Bottom Nav (portaled to body end so it always paints last) --- */}
-      {typeof document !== 'undefined' && createPortal(
-        <div style={mobileBottomNav} className="mobile-bottom-nav">
-          <Link href="/" style={bottomNavItem}><Home size={22} /><span>الرئيسية</span></Link>
-          <Link href="/store" style={bottomNavItem}><Store size={22} /><span>المتجر</span></Link>
-
-          <button onClick={toggleGarage} style={bottomNavItemBtn}>
-            <Car size={22} color={garageMode ? '#27ae60' : '#555'} />
-            <span style={{ color: garageMode ? '#27ae60' : '#555' }}>جراجي</span>
-          </button>
-
-          <Link href="/blog" style={bottomNavItem}><BookOpen size={22} /><span>المدونة</span></Link>
-
-          <Link href="/cart" style={{ ...bottomNavItem, position: 'relative' }}>
-            <motion.div animate={controls}><ShoppingCart size={22} /></motion.div>
-            {cartItems.length > 0 && <span style={cartBadgeMobile}>{cartItems.length}</span>}
-            <span>السلة</span>
-          </Link>
-          <Link href={user ? '/profile' : '/login'} style={bottomNavItem}>
-            <User size={22} /><span>حسابي</span>
-          </Link>
-          <button onClick={() => setIsSidebarOpen(true)} style={bottomNavItemBtn}>
-            <MenuIcon size={22} /><span>المزيد</span>
-          </button>
-        </div>,
-        document.body
-      )}
     </>
   );
 }
@@ -557,50 +533,6 @@ const closeBtn: any = {
   border: 'none',
   color: '#1a1a1a',
   cursor: 'pointer',
-};
-const mobileBottomNav: any = {
-  display: 'none',
-  position: 'fixed',
-  bottom: 0,
-  left: 0,
-  right: 0,
-  backgroundColor: '#fff',
-  borderTop: '1px solid #eee',
-  padding: '8px 5px',
-  paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
-  justifyContent: 'space-around',
-  alignItems: 'center',
-  /* z-index:500 in root context — above storefront-main stacking context (0),
-     below cart overlay (999), sidebar (2001), search modal (3001). */
-  zIndex: 500,
-  transform: 'translateZ(0)',
-  direction: 'rtl',
-  boxShadow: '0 -2px 12px rgba(0,0,0,0.06)',
-};
-const bottomNavItem: any = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: '4px',
-  textDecoration: 'none',
-  color: '#666',
-  fontSize: '0.7rem',
-  fontWeight: 'bold',
-};
-const bottomNavItemBtn: any = { ...bottomNavItem, background: 'none', border: 'none' };
-const cartBadgeMobile: any = {
-  position: 'absolute',
-  top: '-5px',
-  right: '5px',
-  backgroundColor: '#27ae60',
-  color: '#fff',
-  fontSize: '9px',
-  borderRadius: '50%',
-  width: '15px',
-  height: '15px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
 };
 const garageToggleBtn: any = {
   display: 'flex',

@@ -38,20 +38,33 @@ body {
      instead of the viewport. overflow-x: hidden on <html> is sufficient. */
 }
 
-/* ── Storefront main: pad bottom for fixed mobile nav ────────────────────── */
+/* ── App shell: flex column fills the screen; nav is in normal flow ───────── */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ── Storefront main ─────────────────────────────────────────────────────── */
 .storefront-main {
   width: 100%;
 }
 
 @media (max-width: 768px) {
+  /* Inner-scroll layout on mobile: shell fills the exact viewport height,
+     main scrolls inside it, bottom nav is a normal-flow element below.
+     No position:fixed on the nav → zero z-index / GPU compositing battles. */
+  .app-shell {
+    height: 100dvh;     /* stable height — doesn't jump when address bar shows */
+    height: -webkit-fill-available; /* Safari fallback */
+    overflow: hidden;
+  }
   .storefront-main {
-    padding-bottom: calc(75px + env(safe-area-inset-bottom, 0px));
-    /* Creates a stacking context that traps ALL GPU compositing layers
-       (CSS keyframe animations, framer-motion transforms) inside z-index:0.
-       The nav portal at z-index:500 in the root context is then guaranteed
-       to paint above all page content regardless of compositor ordering. */
-    position: relative;
-    z-index: 0;
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    /* no padding-bottom needed — nav is below main in normal flow */
+    padding-bottom: 0;
   }
 }
 

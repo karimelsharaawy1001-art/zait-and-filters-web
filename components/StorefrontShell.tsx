@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { CartProvider } from '@/context/CartContext';
 import PageTransition from '@/components/PageTransition';
+import MobileBottomNav from '@/components/MobileBottomNav';
 
 interface Props {
   children: React.ReactNode;
@@ -27,25 +28,36 @@ export default function StorefrontShell({
 }: Props) {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith('/admin') || pathname.startsWith('/admin-login');
-
-  // ── Admin: render ONLY the page. No navbar, footer, cart, chat, nothing. ──
   if (isAdmin) {
     return <>{children}</>;
   }
 
-  // ── Storefront: full shell ──
   return (
     <CartProvider>
       {scrollProgress}
       {abandonedCartTracker}
-      {navbar}
       {cartDrawer}
-      <PageTransition>
-        <main className="storefront-main">{children}</main>
-      </PageTransition>
-      {footer}
       {exitConfirm}
       {chatWidget}
+
+      {/*
+        Inner-scroll layout (mobile): the entire viewport is a flex column.
+        - navbar  : always at the top
+        - main    : fills remaining space, scrolls independently
+        - MobileBottomNav: always at the bottom, NO position:fixed needed
+
+        Desktop: normal page scroll (flex column with min-height fills naturally).
+      */}
+      <div className="app-shell">
+        {navbar}
+        <PageTransition>
+          <main id="scroll-main" className="storefront-main">
+            {children}
+          </main>
+        </PageTransition>
+        {footer}
+        <MobileBottomNav onOpenSidebar={() => window.dispatchEvent(new Event('openSidebar'))} />
+      </div>
     </CartProvider>
   );
 }
