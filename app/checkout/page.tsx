@@ -812,19 +812,36 @@ export default function CheckoutPage() {
     <div style={container}>
       <style dangerouslySetInnerHTML={{ __html: `
         * { box-sizing: border-box; }
-        .btn-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(21, 128, 61, 0.4); background: #14532d !important; }
+        .btn-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(21,128,61,0.45) !important; }
         .action-hover:hover { background: #000 !important; transform: translateY(-1px); }
         .upload-hover:hover { background: #f0fdf4 !important; border-color: #15803d !important; }
-        .promo-btn:hover { background: #1a1a1a !important; color: #fff !important; transform: scale(1.02); }
-        input:focus, select:focus, textarea:focus { border-color: #15803d !important; box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1); }
-        .pay-card-label:hover { border-color: #15803d !important; box-shadow: 0 4px 16px rgba(21,128,61,0.10) !important; }
+        .promo-btn:hover:not(:disabled) { background: #0f172a !important; color: #fff !important; }
+        .co-input:focus { border-color: #22c55e !important; box-shadow: 0 0 0 3px rgba(34,197,94,0.12) !important; outline: none; }
+        .pay-card-label:hover { border-color: #22c55e !important; box-shadow: 0 4px 20px rgba(34,197,94,0.12) !important; }
+        .co-section { background:#fff; border-radius:20px; border:1px solid #f1f5f9; padding:24px; margin-bottom:16px; box-shadow:0 2px 12px rgba(0,0,0,0.04); }
+        @media(max-width:768px){
+          .co-section { padding:18px 16px; border-radius:16px; margin-bottom:12px; }
+          .co-layout { grid-template-columns: 1fr !important; }
+          .co-summary { order: 2; }
+          .co-form    { order: 1; }
+        }
       `}} />
 
-      <h1 style={title}>🏁 إتمام عملية الشراء</h1>
-      <div style={layoutGrid}>
+      {/* ── Header ── */}
+      <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '20px', padding: '6px 16px', marginBottom: '12px' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', display: 'inline-block', animation: 'pulseDot 2s ease-in-out infinite' }} />
+          <span style={{ fontSize: '0.8rem', fontWeight: '800', color: '#15803d' }}>آمن ومشفر 100%</span>
+        </div>
+        <h1 style={{ fontSize: 'clamp(1.5rem,5vw,2.2rem)', fontWeight: '900', color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>إتمام الطلب</h1>
+        <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '6px', fontWeight: '600' }}>خطوة واحدة وطلبك في طريقه إليك</p>
+        <style>{`@keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }`}</style>
+      </div>
 
-        <div style={summarySide}>
-          <h3 style={sectionTitle}><ShoppingCart size={18} /> تفاصيل ORDER</h3>
+      <div className="co-layout" style={layoutGrid}>
+
+        <div className="co-summary" style={summarySide}>
+          <h3 style={sectionTitle}><ShoppingCart size={18} /> ملخص طلبك</h3>
           <div style={itemsList}>
             {cart.map((item: any) => {
                const country = item.country_origin || item.country_of_origin || 'أصلي';
@@ -955,27 +972,27 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} style={formSide}>
+        <form onSubmit={handleSubmit} className="co-form" style={formSide}>
           <h3 style={sectionTitle}><User size={18} /> بيانات المستلم</h3>
           <div style={inputGroup}>
             <label style={lab}>الاسم بالكامل</label>
-            <input value={customerInfo.name} onChange={(e) => { setCustomerInfo({...customerInfo, name: e.target.value}); localStorage.setItem('checkout_name', e.target.value); }} onBlur={trackAbandonedCart} required style={inp} />
+            <input value={customerInfo.name} onChange={(e) => { setCustomerInfo({...customerInfo, name: e.target.value}); localStorage.setItem('checkout_name', e.target.value); }} onBlur={trackAbandonedCart} required className="co-input" style={inp} />
           </div>
           <div style={inputGroup}>
             <label style={lab}>رقم الموبايل</label>
-            <input value={customerInfo.phone} onChange={(e) => { setCustomerInfo({...customerInfo, phone: e.target.value}); localStorage.setItem('checkout_phone', e.target.value); }} onBlur={trackAbandonedCart} required style={inp} />
+            <input value={customerInfo.phone} onChange={(e) => { setCustomerInfo({...customerInfo, phone: e.target.value}); localStorage.setItem('checkout_phone', e.target.value); }} onBlur={trackAbandonedCart} required className="co-input" style={inp} />
           </div>
           <div style={inputGroup}>
             <label style={lab}><Mail size={14} /> البريد الإلكتروني</label>
-            <input type="email" placeholder="example@mail.com" value={customerInfo.email} onChange={(e) => { setCustomerInfo({...customerInfo, email: e.target.value}); localStorage.setItem('checkout_email', e.target.value); }} onBlur={trackAbandonedCart} required style={inp} />
+            <input type="email" placeholder="example@mail.com" value={customerInfo.email} onChange={(e) => { setCustomerInfo({...customerInfo, email: e.target.value}); localStorage.setItem('checkout_email', e.target.value); }} onBlur={trackAbandonedCart} required className="co-input" style={inp} />
           </div>
           <div style={inputGroup}>
             <label style={lab}><Gauge size={14} /> قراءة العداد (اختياري)</label>
-            <input type="number" value={carMileage} onChange={(e) => setCarMileage(e.target.value)} style={inp} />
+            <input type="number" value={carMileage} onChange={(e) => setCarMileage(e.target.value)} className="co-input" style={inp} />
           </div>
           <div style={inputGroup}>
             <label style={lab}>المحافظة</label>
-            <select style={inp} value={selectedCity?.city_name} onChange={(e) => setSelectedCity(shippingRates.find(c => c.city_name === e.target.value))}>
+            <select className="co-input" style={inp} value={selectedCity?.city_name} onChange={(e) => setSelectedCity(shippingRates.find(c => c.city_name === e.target.value))}>
               {shippingRates.map(city => <option key={city.id} value={city.city_name}>{city.city_name}</option>)}
             </select>
           </div>
@@ -1151,8 +1168,21 @@ export default function CheckoutPage() {
           </div>
 
           <button disabled={loading} type="submit" className="btn-hover" style={btnStyle}>
-            {loading ? <Loader2 className="animate-spin" size={20} /> : <><CheckCircle size={20} /> {paymentMethod === 'card_installments' ? 'الانتقال للدفع والتقسيط' : 'تأكيد وإتمام الطلب'}</>}
+            {loading ? <Loader2 className="animate-spin" size={20} /> : <><CheckCircle size={20} /> {paymentMethod === 'card_installments' ? 'الانتقال للدفع والتقسيط' : `تأكيد الطلب — ${finalTotal.toFixed(0)} ج.م`}</>}
           </button>
+
+          {/* Trust row */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '14px', flexWrap: 'wrap' as const }}>
+            {[
+              { icon: '🔒', text: 'دفع آمن ومشفر' },
+              { icon: '🚚', text: 'توصيل سريع' },
+              { icon: '✅', text: 'قطع أصلية مضمونة' },
+            ].map((b, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.75rem', color: '#94a3b8', fontWeight: '700' }}>
+                <span>{b.icon}</span>{b.text}
+              </div>
+            ))}
+          </div>
         </form>
       </div>
     </div>
@@ -1160,57 +1190,56 @@ export default function CheckoutPage() {
 }
 
 // ── Shared style constants ─────────────────────────────────────────────────
-const container: any = { padding: '24px 16px', maxWidth: '1200px', margin: '0 auto', direction: 'rtl', boxSizing: 'border-box', width: '100%' };
-const title: any = { marginBottom: '28px', fontWeight: '900', textAlign: 'center', fontSize: 'clamp(1.4rem, 5vw, 2rem)' };
-const layoutGrid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', alignItems: 'start' };
-const sectionTitle: any = { marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '2px solid #eee', paddingBottom: '10px', fontWeight: '800' };
-const formSide: any = { background: '#fff', padding: '20px', borderRadius: '25px', border: '1px solid #eee', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' };
-const summarySide: any = { background: '#fcfcfc', padding: '20px', borderRadius: '25px', border: '1px solid #eee' };
-const inp: any = { width: '100%', height: '50px', padding: '0 15px', borderRadius: '12px', border: '1px solid #ddd', marginBottom: '10px', outline: 'none', fontSize: '0.95rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' };
-const lab: any = { display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.85rem', color: '#444' };
-const inputGroup: any = { marginBottom: '10px' };
-const cartItem: any = { padding: '10px 0', borderBottom: '1px solid #eee', marginBottom: '10px' };
-const imageBox: any = { width: '65px', height: '65px', borderRadius: '12px', overflow: 'hidden', background: '#fff', border: '1px solid #eee', flexShrink: 0 };
-const imgFluid: any = { width: '100%', height: '100%', objectFit: 'contain' };
-const totalBox: any = { background: '#f0fdf4', padding: '15px', borderRadius: '15px', marginTop: '10px', border: '1px solid #dcfce7' };
-const rowPrice: any = { display: 'flex', justifyContent: 'space-between', marginBottom: '5px', fontSize: '0.88rem', gap: '8px' };
-const finalRow: any = { display: 'flex', justifyContent: 'space-between', fontWeight: '1000', fontSize: 'clamp(1.1rem, 4vw, 1.4rem)', color: '#166534', borderTop: '1px solid #dcfce7', paddingTop: '10px', marginTop: '5px' };
-const btnStyle: any = { width: '100%', padding: '18px', background: 'linear-gradient(135deg, #15803d 0%, #166534 100%)', color: '#fff', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: 'pointer', fontSize: '1.05rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(21, 128, 61, 0.25)' };
+const container: any = { padding: '20px 16px 48px', maxWidth: '1100px', margin: '0 auto', direction: 'rtl', boxSizing: 'border-box', width: '100%' };
+const title: any = { marginBottom: '28px', fontWeight: '900', textAlign: 'center', fontSize: 'clamp(1.4rem,5vw,2rem)' };
+const layoutGrid: any = { display: 'grid', gridTemplateColumns: '1fr 420px', gap: '24px', alignItems: 'start' };
+const sectionTitle: any = { marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1rem', fontWeight: '900', color: '#0f172a', paddingBottom: '14px', borderBottom: '1.5px solid #f1f5f9' };
+const formSide: any = { background: '#fff', borderRadius: '24px', border: '1px solid #f1f5f9', boxShadow: '0 4px 24px rgba(0,0,0,0.05)', padding: '28px' };
+const summarySide: any = { background: '#fff', borderRadius: '24px', border: '1px solid #f1f5f9', boxShadow: '0 4px 24px rgba(0,0,0,0.05)', padding: '24px', position: 'sticky' as const, top: '90px' };
+const inp: any = { width: '100%', height: '52px', padding: '0 16px', borderRadius: '14px', border: '1.5px solid #e2e8f0', marginBottom: '0', outline: 'none', fontSize: '0.95rem', boxSizing: 'border-box', fontFamily: 'inherit', background: '#f8fafc', color: '#0f172a', transition: 'border-color 0.15s, box-shadow 0.15s' };
+const lab: any = { display: 'block', marginBottom: '7px', fontWeight: '700', fontSize: '0.85rem', color: '#475569' };
+const inputGroup: any = { marginBottom: '16px' };
+const cartItem: any = { padding: '12px 0', borderBottom: '1px solid #f1f5f9', marginBottom: '0' };
+const imageBox: any = { width: '60px', height: '60px', borderRadius: '12px', overflow: 'hidden', background: '#f8fafc', border: '1px solid #f1f5f9', flexShrink: 0 };
+const imgFluid: any = { width: '100%', height: '100%', objectFit: 'cover' };
+const totalBox: any = { background: '#f8fafc', padding: '16px', borderRadius: '16px', marginTop: '12px', border: '1px solid #f1f5f9' };
+const rowPrice: any = { display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.88rem', gap: '8px', color: '#64748b' };
+const finalRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: '900', fontSize: 'clamp(1.1rem,4vw,1.3rem)', color: '#0f172a', borderTop: '1.5px solid #e2e8f0', paddingTop: '12px', marginTop: '8px' };
+const btnStyle: any = { width: '100%', padding: '18px', background: 'linear-gradient(135deg,#22c55e 0%,#16a34a 100%)', color: '#fff', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: 'pointer', fontSize: '1.05rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', transition: 'all 0.2s', boxShadow: '0 8px 24px rgba(34,197,94,0.35)', letterSpacing: '0.3px' };
 const loaderStyle: any = { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh', gap: '10px', color: '#15803d', fontWeight: 'bold' };
-const itemsList: any = { maxHeight: '350px', overflowY: 'auto' };
-const detailsGrid = { display: 'flex', flexDirection: 'column' as const, gap: '3px', marginTop: '8px' };
-const detailItem = { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#666' };
-const qtyBadge = { backgroundColor: '#f0fdf4', color: '#15803d', padding: '4px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800' };
+const itemsList: any = { maxHeight: '360px', overflowY: 'auto' };
+const detailsGrid = { display: 'flex', flexDirection: 'column' as const, gap: '2px', marginTop: '6px' };
+const detailItem = { display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#94a3b8' };
+const qtyBadge = { backgroundColor: '#f0fdf4', color: '#15803d', padding: '3px 9px', borderRadius: '8px', fontSize: '0.72rem', fontWeight: '800', display: 'inline-block' };
 const paymentContainer: any = { display: 'flex', flexDirection: 'column', gap: '10px' };
 const paymentCard = (isActive: boolean): any => ({
   display: 'block',
-  borderRadius: '14px',
-  border: isActive ? '2px solid #15803d' : '1.5px solid #e0e0e0',
-  borderRight: isActive ? '4px solid #15803d' : '1.5px solid #e0e0e0',
-  background: isActive ? '#f7fff9' : '#fafafa',
+  borderRadius: '16px',
+  border: isActive ? '2px solid #22c55e' : '1.5px solid #e2e8f0',
+  background: isActive ? '#f0fdf4' : '#fafafa',
   cursor: 'pointer',
-  transition: 'all 0.2s ease',
-  boxShadow: isActive ? '0 4px 16px rgba(21, 128, 61, 0.10)' : 'none',
+  transition: 'all 0.18s',
+  boxShadow: isActive ? '0 4px 20px rgba(34,197,94,0.15)' : 'none',
   overflow: 'hidden',
 });
-const payCardInner: any = { display: 'flex', flexDirection: 'column', gap: '4px', padding: '14px 16px' };
+const payCardInner: any = { display: 'flex', flexDirection: 'column', gap: '4px', padding: '16px' };
 const payHeader: any = { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' };
-const payIconWrapper: any = { width: '40px', height: '40px', borderRadius: '10px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #e8e8e8', flexShrink: 0 };
-const payIconWrapperActive: any = { width: '40px', height: '40px', borderRadius: '10px', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #bbf7d0', flexShrink: 0 };
-const payTextContent: any = { display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 };
-const payTitle: any = { fontWeight: '800', fontSize: '0.88rem', color: '#1a1a1a' };
-const paySubTitle: any = { fontSize: '0.72rem', color: '#888', fontWeight: '600' };
+const payIconWrapper: any = { width: '42px', height: '42px', borderRadius: '12px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0', flexShrink: 0 };
+const payIconWrapperActive: any = { width: '42px', height: '42px', borderRadius: '12px', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #bbf7d0', flexShrink: 0 };
+const payTextContent: any = { display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0, flex: 1 };
+const payTitle: any = { fontWeight: '800', fontSize: '0.9rem', color: '#0f172a' };
+const paySubTitle: any = { fontSize: '0.72rem', color: '#94a3b8', fontWeight: '600' };
 const hideRadio: any = { display: 'none' };
-const payDetailsBox: any = { marginTop: '8px', padding: '10px 12px', background: '#fff', borderRadius: '10px', border: '1px dashed #b6e9c8', display: 'flex', flexDirection: 'column', gap: '8px' };
-const actionBtnLink: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#1a1a1a', color: '#fff', padding: '16px 12px', borderRadius: '12px', textDecoration: 'none', fontSize: '0.92rem', fontWeight: 'bold', transition: '0.3s ease', minHeight: '54px' };
-const uploadArea: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '1.5px dashed #15803d', color: '#15803d', padding: '16px 12px', borderRadius: '12px', cursor: 'pointer', fontSize: '0.88rem', fontWeight: '800', transition: '0.3s ease', minHeight: '54px' };
-const promoWrapper: any = { marginTop: '20px', padding: '15px', background: '#fff', borderRadius: '20px', border: '1px dashed #ddd', marginBottom: '15px' };
-const promoBtnStyle: any = { padding: '0 20px', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', transition: '0.3s ease', fontSize: '0.88rem', whiteSpace: 'nowrap' };
-const promoSuccessText: any = { fontSize: '0.8rem', color: '#15803d', marginTop: '10px', fontWeight: 'bold' };
-const logosGrid: any = { display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '2px', paddingRight: '52px' };
-const miniLogoImg: any = { height: '26px', width: 'auto', borderRadius: '6px', border: '1px solid #f0f0f0', padding: '2px 4px', background: '#fff' };
-const cardOptionsGrid: any = { display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px', paddingRight: '52px' };
-const cardOptionBadge: any = { display: 'inline-flex', alignItems: 'center', padding: '4px 11px', borderRadius: '7px', fontSize: '0.71rem', fontWeight: '700', border: '1px solid #e2e8f0', whiteSpace: 'nowrap', letterSpacing: '0.2px', background: '#fff', color: '#374151' };
-const payBadgeGreen: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 8px', borderRadius: '6px', background: '#dcfce7', color: '#15803d', whiteSpace: 'nowrap', border: '1px solid #bbf7d0' };
-const payBadgeAmber: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 8px', borderRadius: '6px', background: '#fef3c7', color: '#92400e', whiteSpace: 'nowrap', border: '1px solid #fde68a' };
-const payBadgeGray: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 8px', borderRadius: '6px', background: '#f3f4f6', color: '#6b7280', whiteSpace: 'nowrap', border: '1px solid #e5e7eb' };
+const payDetailsBox: any = { marginTop: '10px', padding: '12px', background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '10px' };
+const actionBtnLink: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#0f172a', color: '#fff', padding: '14px 16px', borderRadius: '12px', textDecoration: 'none', fontSize: '0.92rem', fontWeight: '800', transition: '0.2s', minHeight: '52px' };
+const uploadArea: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '1.5px dashed #22c55e', color: '#15803d', padding: '14px 16px', borderRadius: '12px', cursor: 'pointer', fontSize: '0.88rem', fontWeight: '800', transition: '0.2s', minHeight: '52px', background: '#f8fafc' };
+const promoWrapper: any = { marginTop: '16px', padding: '16px', background: '#f8fafc', borderRadius: '16px', border: '1px solid #f1f5f9', marginBottom: '16px' };
+const promoBtnStyle: any = { padding: '0 18px', height: '52px', background: '#0f172a', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '800', transition: '0.2s', fontSize: '0.88rem', color: '#fff', whiteSpace: 'nowrap', fontFamily: 'inherit' };
+const promoSuccessText: any = { fontSize: '0.8rem', color: '#15803d', marginTop: '10px', fontWeight: '800' };
+const logosGrid: any = { display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px', paddingRight: '54px' };
+const miniLogoImg: any = { height: '28px', width: 'auto', borderRadius: '8px', border: '1px solid #f0f0f0', padding: '2px 4px', background: '#fff' };
+const cardOptionsGrid: any = { display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px', paddingRight: '54px' };
+const cardOptionBadge: any = { display: 'inline-flex', alignItems: 'center', padding: '4px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '700', border: '1px solid #e2e8f0', whiteSpace: 'nowrap', background: '#fff', color: '#475569' };
+const payBadgeGreen: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 9px', borderRadius: '20px', background: '#dcfce7', color: '#15803d', whiteSpace: 'nowrap', border: '1px solid #bbf7d0' };
+const payBadgeAmber: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 9px', borderRadius: '20px', background: '#fef3c7', color: '#92400e', whiteSpace: 'nowrap', border: '1px solid #fde68a' };
+const payBadgeGray: any = { fontSize: '0.65rem', fontWeight: '700', padding: '3px 9px', borderRadius: '20px', background: '#f1f5f9', color: '#64748b', whiteSpace: 'nowrap', border: '1px solid #e2e8f0' };
