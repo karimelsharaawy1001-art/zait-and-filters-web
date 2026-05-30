@@ -27,10 +27,11 @@ export default function ProfessionalFooter() {
         .footer-column { animation: fadeInUp 0.6s ease-out; }
         @media (max-width: 768px) {
           footer { padding: 28px 16px 24px !important; }
+          .footer-grid { gap: 24px !important; margin-bottom: 24px !important; }
         }
       `}} />
 
-      <div style={footerContent}>
+      <div className="footer-grid" style={footerContent}>
         
         {/* العمود الأول: عن البراند */}
         <div className="footer-column" style={footerColumn}>
@@ -160,7 +161,7 @@ export default function ProfessionalFooter() {
 
 // --- التنسيقات ---
 const footerContainer: any = { backgroundColor: '#050505', borderTop: '1px solid #111', padding: '60px 20px 20px', direction: 'rtl' };
-const footerContent: any = { maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '40px', marginBottom: '40px' };
+const footerContent: any = { maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '40px', marginBottom: '40px', width: '100%', boxSizing: 'border-box' as const };
 const footerColumn: any = { display: 'flex', flexDirection: 'column', gap: '15px' };
 const logoStyle: any = { fontSize: '1.8rem', fontWeight: '900', fontStyle: 'italic', color: '#fff', textDecoration: 'none', letterSpacing: '-1px' };
 const brandDesc: any = { color: '#999', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 };
