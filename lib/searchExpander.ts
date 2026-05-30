@@ -19,52 +19,54 @@ export interface SearchIntent {
 // ── Car model nicknames → {make, model} ──────────────────────────────────────
 // Order matters: longer/more-specific phrases must come first
 const MODEL_ALIASES: Array<{ aliases: string[]; make: string; model: string }> = [
-  // Mitsubishi
-  { aliases: ['لانسر بوما', 'بوما', 'boma', 'lancer puma'], make: 'MITSUBISHI', model: 'LANCER PUMA' },
-  { aliases: ['لانسر شارك', 'شارك', 'shark', 'lancer shark'], make: 'MITSUBISHI', model: 'LANCER SHARK' },
-  { aliases: ['لانسر', 'lancer'], make: 'MITSUBISHI', model: 'LANCER PUMA' }, // default lancer → puma (most common in Egypt)
-  { aliases: ['باجيرو', 'pajero'], make: 'MITSUBISHI', model: 'PAJERO' },
-  { aliases: ['اكليبس', 'eclipse', 'ايكليبس'], make: 'MITSUBISHI', model: 'ECLIPSE' },
+  // Mitsubishi — many Egyptian typo variants for Lancer
+  { aliases: ['لانسر بوما', 'لانسير بوما', 'لنسر بوما', 'boma puma', 'lancer puma'], make: 'MITSUBISHI', model: 'LANCER PUMA' },
+  { aliases: ['بوما', 'بومه', 'boma'], make: 'MITSUBISHI', model: 'LANCER PUMA' },
+  { aliases: ['لانسر شارك', 'لانسير شارك', 'شارك', 'shark', 'lancer shark'], make: 'MITSUBISHI', model: 'LANCER SHARK' },
+  // "لانسر" without variant → default Puma (most common in Egypt)
+  { aliases: ['لانسر', 'لانسير', 'لنسر', 'لنسير', 'lancer', 'lanser'], make: 'MITSUBISHI', model: 'LANCER PUMA' },
+  { aliases: ['باجيرو', 'بجيرو', 'باجيره', 'pajero'], make: 'MITSUBISHI', model: 'PAJERO' },
+  { aliases: ['اكليبس', 'ايكليبس', 'اكلبس', 'eclipse'], make: 'MITSUBISHI', model: 'ECLIPSE' },
 
   // Chevrolet
-  { aliases: ['اوبترا', 'optra', 'اوبتيرا'], make: 'CHEVROLET', model: 'OPTRA' },
-  { aliases: ['كروز', 'cruze', 'كروزي'], make: 'CHEVROLET', model: 'CRUZE' },
-  { aliases: ['كابتيفا', 'captiva'], make: 'CHEVROLET', model: 'CAPTIVA' },
-  { aliases: ['افيو', 'aveo', 'أفيو'], make: 'CHEVROLET', model: 'AVEO' },
-  { aliases: ['لانوس', 'lanos'], make: 'CHEVROLET', model: 'LANOS' },
-  { aliases: ['اونيكس', 'onix', 'أونيكس'], make: 'CHEVROLET', model: 'ONIX' },
+  { aliases: ['اوبترا', 'اوبتيرا', 'اوبرتا', 'اوبطرا', 'optra'], make: 'CHEVROLET', model: 'OPTRA' },
+  { aliases: ['كروز', 'كروزي', 'كروس', 'cruze', 'cruz'], make: 'CHEVROLET', model: 'CRUZE' },
+  { aliases: ['كابتيفا', 'كابتفا', 'captiva'], make: 'CHEVROLET', model: 'CAPTIVA' },
+  { aliases: ['افيو', 'افيو', 'أفيو', 'aveo'], make: 'CHEVROLET', model: 'AVEO' },
+  { aliases: ['لانوس', 'لانس', 'lanos'], make: 'CHEVROLET', model: 'LANOS' },
+  { aliases: ['اونيكس', 'أونيكس', 'اونكس', 'onix'], make: 'CHEVROLET', model: 'ONIX' },
 
   // Hyundai
-  { aliases: ['النترا', 'elantra', 'انترا', 'إلانترا'], make: 'HYUNDAI', model: 'ELANTRA' },
-  { aliases: ['توسان', 'tucson', 'توسن'], make: 'HYUNDAI', model: 'TUCSON' },
-  { aliases: ['سوناتا', 'sonata'], make: 'HYUNDAI', model: 'SONATA' },
-  { aliases: ['اكسنت', 'accent', 'أكسنت'], make: 'HYUNDAI', model: 'ACCENT' },
+  { aliases: ['النترا', 'انترا', 'الانترا', 'إلانترا', 'النتره', 'elantra'], make: 'HYUNDAI', model: 'ELANTRA' },
+  { aliases: ['توسان', 'توسن', 'طوسان', 'tucson'], make: 'HYUNDAI', model: 'TUCSON' },
+  { aliases: ['سوناتا', 'سونته', 'sonata'], make: 'HYUNDAI', model: 'SONATA' },
+  { aliases: ['اكسنت', 'أكسنت', 'اكسنت', 'accent'], make: 'HYUNDAI', model: 'ACCENT' },
   { aliases: ['جراند i10', 'grand i10', 'جراند اي 10'], make: 'HYUNDAI', model: 'GRAND I10' },
-  { aliases: ['i10', 'اي 10', 'آي 10'], make: 'HYUNDAI', model: 'I10' },
-  { aliases: ['ماتريكس', 'matrix'], make: 'HYUNDAI', model: 'MATRIX' },
-  { aliases: ['فيرنا', 'verna'], make: 'HYUNDAI', model: 'VERNA' },
+  { aliases: ['i10', 'اي 10', 'آي 10', 'هيونداي i10'], make: 'HYUNDAI', model: 'I10' },
+  { aliases: ['ماتريكس', 'ماتركس', 'matrix'], make: 'HYUNDAI', model: 'MATRIX' },
+  { aliases: ['فيرنا', 'فرنا', 'فيرنه', 'verna'], make: 'HYUNDAI', model: 'VERNA' },
 
   // Kia
-  { aliases: ['سيراتو k3', 'cerato k3', 'k3'], make: 'KIA', model: 'CERATO K3' },
+  { aliases: ['سيراتو k3', 'سيراتو k 3', 'cerato k3', 'k3'], make: 'KIA', model: 'CERATO K3' },
   { aliases: ['سيراتو ld', 'cerato ld', 'سيراتو ال دي'], make: 'KIA', model: 'CERATO LD' },
   { aliases: ['سيراتو td', 'cerato td', 'سيراتو تي دي'], make: 'KIA', model: 'CERATO TD' },
   { aliases: ['جراند سيراتو', 'grand cerato', 'grand k3'], make: 'KIA', model: 'GRAND CERATO' },
-  { aliases: ['سيراتو', 'cerato'], make: 'KIA', model: 'CERATO K3' }, // default → most common
-  { aliases: ['سبورتاج', 'sportage', 'سبورتج'], make: 'KIA', model: 'SPORTAGE' },
-  { aliases: ['سورينتو', 'sorento', 'sorento'], make: 'KIA', model: 'SORENTO' },
-  { aliases: ['بيكانتو', 'picanto', 'بيكنتو'], make: 'KIA', model: 'PICANTO' },
-  { aliases: ['ريو', 'rio'], make: 'KIA', model: 'RIO' },
-  { aliases: ['كارينز', 'carens'], make: 'KIA', model: 'CARENS' },
-  { aliases: ['سول', 'soul'], make: 'KIA', model: 'SOUL' },
+  { aliases: ['سيراتو', 'سيراتوه', 'سراتو', 'cerato'], make: 'KIA', model: 'CERATO K3' },
+  { aliases: ['سبورتاج', 'سبورتج', 'سبرتاج', 'sportage'], make: 'KIA', model: 'SPORTAGE' },
+  { aliases: ['سورينتو', 'سورنتو', 'sorento', 'sorento'], make: 'KIA', model: 'SORENTO' },
+  { aliases: ['بيكانتو', 'بيكنتو', 'بيكانته', 'picanto'], make: 'KIA', model: 'PICANTO' },
+  { aliases: ['ريو', 'كيا ريو', 'rio'], make: 'KIA', model: 'RIO' },
+  { aliases: ['كارينز', 'كارنز', 'carens'], make: 'KIA', model: 'CARENS' },
+  { aliases: ['سول', 'سول كيا', 'soul'], make: 'KIA', model: 'SOUL' },
 
   // Nissan
-  { aliases: ['صني n16', 'sunny n16', 'n16', 'سنى n16'], make: 'NISSAN', model: 'SUNNY N16' },
-  { aliases: ['صني n17', 'sunny n17', 'n17', 'سنى n17'], make: 'NISSAN', model: 'SUNNY N17' },
-  { aliases: ['صني', 'sunny', 'سني', 'شمس'], make: 'NISSAN', model: 'SUNNY N17' }, // default → newest
-  { aliases: ['سنترا', 'sentra', 'سنتيرا'], make: 'NISSAN', model: 'SENTRA' },
-  { aliases: ['قاشقاي', 'qashqai', 'قشقاي'], make: 'NISSAN', model: 'QASHQAI' },
-  { aliases: ['اكس تريل', 'x-trail', 'xtrail', 'x trail'], make: 'NISSAN', model: 'X-TRAIL' },
-  { aliases: ['تيدا', 'tiida'], make: 'NISSAN', model: 'TIIDA' },
+  { aliases: ['صني n16', 'سني n16', 'sunny n16', 'n16'], make: 'NISSAN', model: 'SUNNY N16' },
+  { aliases: ['صني n17', 'سني n17', 'sunny n17', 'n17'], make: 'NISSAN', model: 'SUNNY N17' },
+  { aliases: ['صني', 'سني', 'شمس', 'صنى', 'sunny'], make: 'NISSAN', model: 'SUNNY N17' },
+  { aliases: ['سنترا', 'سنتيرا', 'سنتره', 'sentra'], make: 'NISSAN', model: 'SENTRA' },
+  { aliases: ['قاشقاي', 'قشقاي', 'قاشقاى', 'qashqai'], make: 'NISSAN', model: 'QASHQAI' },
+  { aliases: ['اكس تريل', 'x-trail', 'xtrail', 'x trail', 'اكستريل'], make: 'NISSAN', model: 'X-TRAIL' },
+  { aliases: ['تيدا', 'تيده', 'tiida'], make: 'NISSAN', model: 'TIIDA' },
 
   // Toyota
   { aliases: ['كورولا', 'corolla', 'كورلا'], make: 'TOYOTA', model: 'COROLLA' },
@@ -165,7 +167,7 @@ const PART_ALIASES: Array<{
   { aliases: ['طنابير فرامل', 'طنابير', 'طنبور'], category: 'الفرامل', subcategories: ['طنابير'] },
   { aliases: ['ماستر فرامل', 'ماستر'], category: 'الفرامل', subcategories: ['ماستر فرامل'] },
   { aliases: ['ماستر عجل'], category: 'الفرامل', subcategories: ['ماستر عجل'] },
-  { aliases: ['تيل فرامل', 'فرامل', 'تيل', 'brake pads', 'برامل'], category: 'الفرامل', subcategories: ['تيل امامي', 'تيل خلفي', 'تيل فرامل'] },
+  { aliases: ['تيل فرامل', 'تيل فرامل', 'تيل فرامل', 'فرامل', 'تيل', 'تيال فرامل', 'brake pads', 'brake pad', 'تيل برامل', 'برامل'], category: 'الفرامل', subcategories: ['تيل امامي', 'تيل خلفي', 'تيل فرامل'] },
 
   // Engine oils
   { aliases: ['زيت موتور', 'engine oil', 'motor oil', 'زيت الموتور', 'زيوت موتور'], category: 'زيوت موتور' },
@@ -199,7 +201,7 @@ const PART_ALIASES: Array<{
   { aliases: ['سير توقيت', 'timing belt', 'timing chain'], category: 'سيور و بلي', subcategories: ['سيور'] },
   { aliases: ['سير مجموعة', 'serpentine belt', 'v-belt'], category: 'سيور و بلي', subcategories: ['سير مجموعة'] },
   { aliases: ['سير دينامو', 'alternator belt'], category: 'سيور و بلي', subcategories: ['سير دينامو'] },
-  { aliases: ['كاتينة', 'طقم كاتينة', 'timing kit', 'timing chain kit'], category: 'سيور و بلي', subcategories: ['سير كاتينة', 'طقم كاتينة كامل'] },
+  { aliases: ['كاتينة', 'كاتنة', 'كاتيني', 'كاتنه', 'كاتينه', 'طقم كاتينة', 'timing kit', 'timing chain kit'], category: 'سيور و بلي', subcategories: ['سير كاتينة', 'طقم كاتينة كامل'] },
   { aliases: ['سيور', 'سير', 'belts'], category: 'سيور و بلي' },
 
   // Cooling
@@ -245,12 +247,31 @@ const PART_ALIASES: Array<{
 ];
 
 // ── Normalise helper ─────────────────────────────────────────────────────────
+// Rules (Egyptian Arabic typing habits):
+//   أ/إ/آ → ا       (very common on mobile - alef with hamza typed as bare alef)
+//   ة     → ه       (ta-marbuta at end of words often typed as ha)
+//   ى     → ي       (alef-maqsura vs ya - often confused)
+//   NOT: ت → ه      (ta ≠ ha — completely different letter, caused false matches)
 function normalize(text: string): string {
   return text
     .toLowerCase()
-    .replace(/[أإآا]/g, 'ا')
-    .replace(/[ةت]/g, 'ه') // rough: ة → ه for matching
-    .replace(/ي$/g, 'ى')
+    .replace(/[أإآ]/g, 'ا')          // alef variants → bare alef
+    .replace(/ة/g, 'ه')              // ta-marbuta → ha (end-of-word confusion)
+    .replace(/ى/g, 'ي')              // alef-maqsura → ya
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// ── Remove a matched alias from the remaining text ────────────────────────────
+// Works on NORMALIZED remaining so ة/ه mismatches are handled correctly.
+function removeAlias(remaining: string, alias: string): string {
+  const normAlias = normalize(alias);
+  const normRemaining = normalize(remaining);
+  const idx = normRemaining.indexOf(normAlias);
+  if (idx === -1) return remaining;
+  // Map the normalized index back to the original string
+  // (character positions are the same since we only replace single chars)
+  return (remaining.slice(0, idx) + remaining.slice(idx + normAlias.length))
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -260,31 +281,27 @@ export function expandSearchQuery(rawQuery: string): SearchIntent {
   let remaining = rawQuery.trim();
   const intent: SearchIntent = {};
 
-  const q = normalize(remaining);
-
   // ── 1. Match car model aliases (includes make) ─────────────────────────────
   for (const entry of MODEL_ALIASES) {
     for (const alias of entry.aliases) {
       const normalAlias = normalize(alias);
-      if (q.includes(normalAlias)) {
+      if (normalize(remaining).includes(normalAlias)) {
         if (!intent.make) intent.make = entry.make;
         if (!intent.model) intent.model = entry.model;
-        // Remove the matched alias from remaining text
-        remaining = remaining.replace(new RegExp(alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '').trim();
+        remaining = removeAlias(remaining, alias);
         break;
       }
     }
     if (intent.make) break;
   }
 
-  // ── 2. Match car make (if no make yet from model alias) ───────────────────
+  // ── 2. Match car make (if no make from model alias) ──────────────────────
   if (!intent.make) {
-    const qNow = normalize(remaining);
     for (const entry of MAKE_ALIASES) {
       for (const alias of entry.aliases) {
-        if (qNow.includes(normalize(alias))) {
+        if (normalize(remaining).includes(normalize(alias))) {
           intent.make = entry.make;
-          remaining = remaining.replace(new RegExp(alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '').trim();
+          remaining = removeAlias(remaining, alias);
           break;
         }
       }
@@ -292,23 +309,22 @@ export function expandSearchQuery(rawQuery: string): SearchIntent {
     }
   }
 
-  // ── 3. Match part/category aliases ────────────────────────────────────────
-  const qAfterCar = normalize(remaining);
+  // ── 3. Match part/category aliases ───────────────────────────────────────
   for (const entry of PART_ALIASES) {
     for (const alias of entry.aliases) {
-      if (qAfterCar.includes(normalize(alias))) {
+      if (normalize(remaining).includes(normalize(alias))) {
         if (!intent.category) {
           intent.category = entry.category;
           if (entry.subcategories?.length) intent.subcategories = entry.subcategories;
         }
-        remaining = remaining.replace(new RegExp(alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '').trim();
+        remaining = removeAlias(remaining, alias);
         break;
       }
     }
     if (intent.category) break;
   }
 
-  // ── 4. Whatever's left is free-text for name search ───────────────────────
+  // ── 4. Remaining text → free-text product name search ────────────────────
   const leftover = remaining.replace(/\s+/g, ' ').trim();
   if (leftover) intent.textSearch = leftover;
 

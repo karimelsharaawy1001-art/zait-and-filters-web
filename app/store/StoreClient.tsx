@@ -855,45 +855,9 @@ setBrandsOptions(brandsOpts);
       }
     }
 
-    const hasMinimumURLFilters = (urlMake && urlModel) || urlCategory;
-
-    if (hasMinimumURLFilters) {
-      // Reverse-lookup: convert Arabic slug back to English for Supabase query
-      const resolvedMake = urlMake
-        ? (makes.find((opt) =>
-            opt.value.toUpperCase() === urlMake.toUpperCase() ||
-            CAR_MAKE_AR[opt.value.toUpperCase()] === urlMake
-          )?.value ?? urlMake)
-        : undefined;
-
-      const resolvedModel = urlModel && resolvedMake
-        ? (() => {
-            // We need model options — find from makes
-            const makeOpt = makes.find((opt) =>
-              opt.value.toUpperCase() === urlMake!.toUpperCase() ||
-              CAR_MAKE_AR[opt.value.toUpperCase()] === urlMake
-            );
-            // modelsOptions may not be set yet, use reverse map
-            const modelEnglish = Object.entries(CAR_MODEL_AR).find(
-              ([, arVal]) => arVal === urlModel
-            )?.[0] ?? urlModel;
-            return modelEnglish;
-          })()
-        : urlModel;
-
-      await fetchProducts({
-        make: resolvedMake,
-        model: resolvedModel,
-        year: urlYear,
-        category: urlCategory,
-        subcategories: urlSubcategory ? urlSubcategory.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
-        brand: urlBrand,
-        search: urlSearch,
-        _garageMode: resolvedGarageMode,
-        _userCar: resolvedUserCar,
-      });
-    } else if (urlSearch) {
-      // ── Smart search: expand free-text query into structured filters ────────
+    // ── A new free-text search (?q=) always takes full priority. ──────────────
+    // Old make/model params from a previous page visit must NOT contaminate it.
+    if (urlSearch) {
       const intent = expandSearchQuery(urlSearch);
       await fetchProducts({
         make: intent.make,
@@ -901,13 +865,45 @@ setBrandsOptions(brandsOpts);
         category: intent.category,
         subcategories: intent.subcategories ?? [],
         brand: intent.brand,
-        // Only pass textSearch if we couldn't extract a full structured intent,
-        // so "تيل فرامل بوما" doesn't also try to text-search the leftovers
         search: intent.textSearch,
         _garageMode: resolvedGarageMode,
         _userCar: resolvedUserCar,
       });
-    } else if (resolvedGarageMode && resolvedUserCar) {
+    } else {
+      // ── Structured URL filters (from filter dropdowns / smart suggestion URLs) ─
+      const hasMinimumURLFilters = (urlMake && urlModel) || urlCategory;
+      if (hasMinimumURLFilters) {
+        // Reverse-lookup: convert Arabic slug back to English for Supabase query
+        const resolvedMake = urlMake
+          ? (makes.find((opt) =>
+              opt.value.toUpperCase() === urlMake.toUpperCase() ||
+              CAR_MAKE_AR[opt.value.toUpperCase()] === urlMake
+            )?.value ?? urlMake)
+          : undefined;
+
+        const resolvedModel = urlModel && resolvedMake
+          ? (() => {
+              const modelEnglish = Object.entries(CAR_MODEL_AR).find(
+                ([, arVal]) => arVal === urlModel
+              )?.[0] ?? urlModel;
+              return modelEnglish;
+            })()
+          : urlModel;
+
+        await fetchProducts({
+          make: resolvedMake,
+          model: resolvedModel,
+          year: urlYear,
+          category: urlCategory,
+          subcategories: urlSubcategory ? urlSubcategory.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
+          brand: urlBrand,
+          _garageMode: resolvedGarageMode,
+          _userCar: resolvedUserCar,
+        });
+      }
+    }
+
+    if (!urlSearch && !((urlMake && urlModel) || urlCategory) && resolvedGarageMode && resolvedUserCar) {
       await fetchProducts({
         make: resolvedUserCar.make,
         model: resolvedUserCar.model,
