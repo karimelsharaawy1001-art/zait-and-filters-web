@@ -571,10 +571,7 @@ const mobileBottomNav: any = {
   paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
   justifyContent: 'space-around',
   alignItems: 'center',
-  /* Own compositing layer so GPU-promoted page content layers never paint
-     on top of the nav. z-index stays below sidebar (2000) / search (3000). */
   zIndex: 1500,
-  transform: 'translateZ(0)',
   direction: 'rtl',
   boxShadow: '0 -2px 12px rgba(0,0,0,0.06)',
 };
