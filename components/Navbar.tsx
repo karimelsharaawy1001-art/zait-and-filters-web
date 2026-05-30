@@ -570,9 +570,9 @@ const mobileBottomNav: any = {
   paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
   justifyContent: 'space-around',
   alignItems: 'center',
-  zIndex: 1500,
-  /* Force nav into GPU compositor so CSS-animation composited layers
-     (marquees, ScrollReveal) respect z-index ordering against the nav. */
+  /* z-index:500 in root context — above storefront-main stacking context (0),
+     below cart overlay (999), sidebar (2001), search modal (3001). */
+  zIndex: 500,
   transform: 'translateZ(0)',
   direction: 'rtl',
   boxShadow: '0 -2px 12px rgba(0,0,0,0.06)',
