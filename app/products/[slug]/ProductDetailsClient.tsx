@@ -98,7 +98,8 @@ function ReviewsSection({ productId }: { productId: string }) {
 
   return (
     <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.1 }} variants={fadeUp}
-      style={{ background: '#fff', borderRadius: '24px', padding: '28px', marginBottom: '32px', border: '1px solid #f1f5f9', direction: 'rtl' }}>
+      className="pdp-section"
+      style={{ background: '#fff', borderRadius: '24px', padding: '24px', marginBottom: '20px', border: '1px solid #f1f5f9', direction: 'rtl' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: '900', margin: 0, color: '#0f172a' }}>تقييمات العملاء</h2>
@@ -429,18 +430,27 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
         @media (max-width: 900px) {
-          .pdp-grid { grid-template-columns: 1fr; gap: 24px; }
+          .pdp-grid { grid-template-columns: 1fr; gap: 16px; margin-bottom: 20px; }
           .pdp-media { position: static; }
-          .pdp-slider { height: 320px; border-radius: 20px; }
-          .pdp-slider .swiper { height: 320px; }
-          .pdp-slider .swiper-slide { height: 320px !important; }
+          .pdp-slider { height: 300px; border-radius: 18px; }
+          .pdp-slider .swiper { height: 300px; }
+          .pdp-slider .swiper-slide { height: 300px !important; }
+        }
+        @media (max-width: 768px) {
+          .pdp-wrapper { padding: 12px 12px 24px; }
+          .pdp-info { gap: 12px; }
+          .pdp-section { padding: 16px !important; border-radius: 16px !important; margin-bottom: 14px !important; }
+          .pdp-btn-primary { padding: 14px !important; font-size: 0.95rem !important; border-radius: 14px !important; }
+          .pdp-btn-secondary { padding: 13px !important; font-size: 0.95rem !important; border-radius: 14px !important; }
+          .pdp-step-btn { width: 40px !important; height: 44px !important; }
+          .pdp-trust-item { padding: 8px 10px !important; font-size: 0.78rem !important; }
         }
         @media (max-width: 480px) {
-          .pdp-wrapper { padding: 12px 12px 60px; }
-          .pdp-slider { height: 260px; }
-          .pdp-slider .swiper { height: 260px; }
-          .pdp-slider .swiper-slide { height: 260px !important; }
-          .pdp-info { gap: 16px; }
+          .pdp-slider { height: 240px; border-radius: 16px; }
+          .pdp-slider .swiper { height: 240px; }
+          .pdp-slider .swiper-slide { height: 240px !important; }
+          .pdp-info { gap: 10px; }
+          .pdp-section { padding: 14px !important; }
         }
         .related-swiper .swiper-slide { height: auto !important; }
       `}</style>
@@ -449,7 +459,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
 
         {/* Breadcrumb */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', fontSize: '0.85rem', color: '#94a3b8', flexWrap: 'wrap' as const }}>
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.85rem', color: '#94a3b8', flexWrap: 'wrap' as const }}>
           <Link href="/store" style={{ display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#475569', fontWeight: '700' }}>
             <ArrowRight size={16} /> المتجر
           </Link>
@@ -601,7 +611,8 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
 
         {/* Description */}
         <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.2 }} variants={fadeUp}
-          style={{ background: '#fff', borderRadius: '24px', padding: '28px', marginBottom: '32px', border: '1px solid #f1f5f9' }}>
+          className="pdp-section"
+          style={{ background: '#fff', borderRadius: '24px', padding: '24px', marginBottom: '20px', border: '1px solid #f1f5f9' }}>
           <h2 style={{ fontSize: '1.2rem', fontWeight: '900', marginBottom: '14px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Info size={20} color="#22c55e" /> وصف المنتج
           </h2>
@@ -614,7 +625,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <motion.section initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.1 }} variants={fadeUp}
-            style={{ borderTop: '1px solid #f1f5f9', paddingTop: '32px' }}>
+            style={{ borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' as const, gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <Package size={22} color="#22c55e" />
