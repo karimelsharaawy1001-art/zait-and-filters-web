@@ -610,22 +610,20 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         </div>
 
         {/* Description */}
-        <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.2 }} variants={fadeUp}
-          className="pdp-section"
-          style={{ background: '#fff', borderRadius: '24px', padding: '24px', marginBottom: '20px', border: '1px solid #f1f5f9' }}>
+        <div className="pdp-section"
+          style={{ background: '#fff', borderRadius: '24px', padding: '24px', marginBottom: '14px', border: '1px solid #f1f5f9' }}>
           <h2 style={{ fontSize: '1.2rem', fontWeight: '900', marginBottom: '14px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Info size={20} color="#22c55e" /> وصف المنتج
           </h2>
           <p style={{ lineHeight: '1.85', color: '#64748b', fontSize: '0.95rem', margin: 0 }}>{generateDesc()}</p>
-        </motion.div>
+        </div>
 
         {/* Reviews */}
         <ReviewsSection productId={productId} />
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
-          <motion.section initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.1 }} variants={fadeUp}
-            style={{ borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
+          <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' as const, gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <Package size={22} color="#22c55e" />
@@ -647,7 +645,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                 </SwiperSlide>
               ))}
             </Swiper>
-          </motion.section>
+          </div>
         )}
       </div>
     </>
