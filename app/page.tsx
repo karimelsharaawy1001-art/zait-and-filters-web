@@ -773,7 +773,7 @@ export default function HomePage() {
           .page-container { animation: pageLoad 0.4s ease-out; }
 
           /* hero-section height is now in globals.css — no override needed here */
-          .hero-bg-layer { position: absolute; inset: 0; z-index: 0; pointer-events: none; transform: translateZ(0); }
+          .hero-bg-layer { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
           .hero-bg-slide { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 0.8s ease-in-out; will-change: opacity; }
           .hero-bg-slide.active { opacity: 1; }
 
@@ -1269,7 +1269,7 @@ export default function HomePage() {
 }
 
 // Styles
-const fullPageLoaderStyle: any = { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(135deg,#0a0a0a 0%,#1a1a1a 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '0 16px', boxSizing: 'border-box' };
+const fullPageLoaderStyle: any = { position: 'fixed', inset: 0, background: 'linear-gradient(135deg,#0a0a0a 0%,#1a1a1a 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '0 16px', boxSizing: 'border-box' };
 const brandNameText: any = { fontSize: 'clamp(2.2rem,8vw,4rem)', fontWeight: '900', fontStyle: 'italic', letterSpacing: '-2px', marginBottom: '20px', lineHeight: '1', textTransform: 'uppercase', filter: 'drop-shadow(0 10px 30px rgba(34,197,94,0.4))' };
 const mainHeadline: any = { color: '#fff', fontWeight: '900', fontSize: 'clamp(1.6rem,6vw,3.5rem)', marginBottom: '16px', letterSpacing: '-1px', lineHeight: '1.2', textShadow: '0 4px 20px rgba(34,197,94,0.3)' };
 const tagline: any = { color: '#a0a0a0', fontSize: 'clamp(0.9rem,3vw,1.5rem)', fontWeight: '600', marginBottom: '36px', lineHeight: '1.7' };

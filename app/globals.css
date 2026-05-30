@@ -59,6 +59,10 @@ body {
 /* ── Hero section: explicit height prevents 0→height shift on load ─────── */
 .hero-section {
   position: relative;
+  /* z-index: 0 creates a proper stacking context so GPU-composited children
+     (hero-bg-layer uses hardware acceleration) stay below position:fixed
+     elements like the mobile bottom nav (z-index:1001). */
+  z-index: 0;
   width: 100%;
   background: #000;
   overflow: hidden;
