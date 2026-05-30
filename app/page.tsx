@@ -834,13 +834,18 @@ export default function HomePage() {
           .card-brand-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
           .card-brand { color:#22c55e; font-weight:800; font-size:0.75rem; letter-spacing:0.5px; text-transform:uppercase; }
           .card-origin { font-size:0.7rem; color:#888; font-weight:700; display:flex; align-items:center; gap:3px; }
-          .card-name { font-size:0.95rem; font-weight:900; color:#0f172a; line-height:1.4; height:54px; overflow:hidden; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
-          .card-compat { display:inline-flex; align-items:center; gap:5px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:20px; padding:4px 10px; font-size:0.72rem; font-weight:800; color:#15803d; margin-bottom:8px; }
-          .card-cat { display:inline-flex; align-items:center; gap:4px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:20px; padding:3px 9px; font-size:0.7rem; font-weight:700; color:#475569; }
-          .card-price-row { display:flex; align-items:baseline; gap:8px; margin:10px 0 4px; }
-          .card-price-main { font-size:1.35rem; font-weight:900; color:#0f172a; }
-          .card-price-old { font-size:0.78rem; color:#aaa; text-decoration:line-through; font-weight:600; }
-          .card-save { font-size:0.68rem; font-weight:800; color:#fff; background:#ef4444; border-radius:6px; padding:2px 6px; }
+          /* Allow up to 3 lines — no fixed height so long names show fully */
+          .card-name { font-size:0.92rem; font-weight:900; color:#0f172a; line-height:1.45; overflow:hidden; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
+          .card-compat { display:inline-flex; align-items:center; gap:5px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:20px; padding:4px 10px; font-size:0.72rem; font-weight:800; color:#15803d; margin-bottom:8px; white-space:nowrap; }
+          .card-cat { display:inline-flex; align-items:center; gap:4px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:20px; padding:3px 9px; font-size:0.7rem; font-weight:700; color:#475569; white-space:nowrap; }
+          /* Price: main amount + ج.م on same line, old price + save badge below */
+          .card-price-block { margin:10px 0 4px; }
+          .card-price-row { display:flex; align-items:baseline; gap:6px; flex-wrap:nowrap; }
+          .card-price-main { font-size:1.35rem; font-weight:900; color:#0f172a; white-space:nowrap; }
+          .card-price-currency { font-size:0.85rem; font-weight:800; color:#0f172a; white-space:nowrap; }
+          .card-price-meta { display:flex; align-items:center; gap:6px; margin-top:4px; flex-wrap:wrap; }
+          .card-price-old { font-size:0.78rem; color:#aaa; text-decoration:line-through; font-weight:600; white-space:nowrap; }
+          .card-save { font-size:0.68rem; font-weight:800; color:#fff; background:#ef4444; border-radius:6px; padding:2px 7px; white-space:nowrap; }
           .card-btn-buy { width:100%; padding:13px; background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%); color:#fff; border:none; border-radius:12px; font-weight:900; font-size:0.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; text-decoration:none; transition:all 0.2s; box-shadow:0 6px 20px rgba(34,197,94,0.35); letter-spacing:0.2px; }
           .card-btn-buy:hover { background:linear-gradient(135deg,#16a34a 0%,#15803d 100%); box-shadow:0 10px 28px rgba(34,197,94,0.5); transform:translateY(-1px); }
           .card-btn-cart { width:100%; padding:11px; background:#0f172a; color:#fff; border:none; border-radius:12px; font-weight:700; font-size:0.88rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; text-decoration:none; transition:background 0.2s; }
@@ -1078,10 +1083,15 @@ export default function HomePage() {
                               <span className="card-compat"><Car size={11}/>{compatText}</span>
                               {p.category && <span className="card-cat"><LayoutGrid size={10}/>{p.category}</span>}
                             </div>
-                            <div className="card-price-row">
-                              <span className="card-price-main">{p.sale_price} <span style={{fontSize:'0.75rem',fontWeight:'700'}}>ج.م</span></span>
-                              <span className="card-price-old">{p.regular_price} ج.م</span>
-                              <span className="card-save">وفّرت {(p.regular_price - p.sale_price).toFixed(0)} ج.م</span>
+                            <div className="card-price-block">
+                              <div className="card-price-row">
+                                <span className="card-price-main">{p.sale_price}</span>
+                                <span className="card-price-currency">ج.م</span>
+                              </div>
+                              <div className="card-price-meta">
+                                <span className="card-price-old">{p.regular_price} ج.م</span>
+                                <span className="card-save">وفّرت {(p.regular_price - p.sale_price).toFixed(0)} ج.م</span>
+                              </div>
                             </div>
                             <div style={{ marginTop:'auto', display:'flex', flexDirection:'column', gap:'8px', paddingTop:'10px' }}>
                               {(() => {
@@ -1158,10 +1168,17 @@ export default function HomePage() {
                               <span className="card-compat"><Car size={11}/>{compatText}</span>
                               {p.category && <span className="card-cat"><LayoutGrid size={10}/>{p.category}</span>}
                             </div>
-                            <div className="card-price-row">
-                              <span className="card-price-main">{itemPrice} <span style={{fontSize:'0.75rem',fontWeight:'700'}}>ج.م</span></span>
-                              {hasSale && <span className="card-price-old">{p.regular_price} ج.م</span>}
-                              {hasSale && <span className="card-save">وفّرت {(p.regular_price - p.sale_price).toFixed(0)} ج.م</span>}
+                            <div className="card-price-block">
+                              <div className="card-price-row">
+                                <span className="card-price-main">{itemPrice}</span>
+                                <span className="card-price-currency">ج.م</span>
+                              </div>
+                              {hasSale && (
+                                <div className="card-price-meta">
+                                  <span className="card-price-old">{p.regular_price} ج.م</span>
+                                  <span className="card-save">وفّرت {(p.regular_price - p.sale_price).toFixed(0)} ج.م</span>
+                                </div>
+                              )}
                             </div>
                             <div style={{ marginTop:'auto', display:'flex', flexDirection:'column', gap:'8px', paddingTop:'10px' }}>
                               {(() => {
