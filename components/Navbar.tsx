@@ -314,7 +314,7 @@ export default function ProfessionalNavbar() {
             aria-label="السلة"
           >
             <motion.div animate={controls}><ShoppingCart size={22} /></motion.div>
-            {cartItems.length > 0 && <span style={cartBadge}>{cartItems.length}</span>}
+            {cartItems.length > 0 && <span style={cartBadge}>{cartItems.reduce((sum: number, i: any) => sum + (parseInt(i.quantity) || 1), 0)}</span>}
           </Link>
 
           <div style={navLinks} className="desktop-links">
@@ -366,7 +366,7 @@ export default function ProfessionalNavbar() {
                 style={{ ...iconBtn, position: 'relative', textDecoration: 'none', marginRight: '10px' }}
               >
                 <motion.div animate={controls}><ShoppingCart size={22} /></motion.div>
-                {cartItems.length > 0 && <span style={cartBadge}>{cartItems.length}</span>}
+                {cartItems.length > 0 && <span style={cartBadge}>{cartItems.reduce((sum: number, i: any) => sum + (parseInt(i.quantity) || 1), 0)}</span>}
               </Link>
             </div>
           </div>
