@@ -1348,14 +1348,12 @@ setBrandsOptions(brandsOpts);
             display: block;
             overflow: hidden;
             position: relative;
-            background-color: #f9f9f9;
+            background-color: #f1f5f9;
           }
           .product-card-img {
             width: 100%;
             height: 200px;
-            object-fit: contain;
-            padding: 0;
-            background: #f9f9f9;
+            object-fit: cover;
             display: block;
             transition: transform 0.35s ease;
           }

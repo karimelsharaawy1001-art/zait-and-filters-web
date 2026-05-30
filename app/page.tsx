@@ -827,7 +827,7 @@ export default function HomePage() {
             scroll-snap-align: start;
           }
           .product-card-mdrn:hover { transform: translateY(-8px); box-shadow: 0 24px 60px rgba(34,197,94,0.18); border-color: rgba(34,197,94,0.4); }
-          .img-container { background: linear-gradient(145deg,#f8fafc 0%,#f1f5f9 100%); height: 210px; width: 100%; position: relative; cursor: pointer; overflow: hidden; display: block; }
+          .img-container { background: #f1f5f9; height: 210px; width: 100%; position: relative; cursor: pointer; overflow: hidden; display: block; }
           .img-fill-100 { transition: transform 0.38s cubic-bezier(.4,0,.2,1); }
           .img-container:hover .img-fill-100 { transform: scale(1.07); }
           .img-container::after { content:''; position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.04) 0%, transparent 50%); pointer-events:none; }
