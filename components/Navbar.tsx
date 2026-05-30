@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Search, ShoppingCart, User, Home, Store,
   Menu as MenuIcon, X, Info, PhoneCall, Settings, LogIn, LogOut,
@@ -370,35 +371,33 @@ export default function ProfessionalNavbar() {
         </div>
       </nav>
 
-      {/* --- Mobile Bottom Nav --- */}
-      <div style={mobileBottomNav} className="mobile-bottom-nav">
-        <Link href="/" style={bottomNavItem}><Home size={22} /><span>الرئيسية</span></Link>
-        <Link href="/store" style={bottomNavItem}><Store size={22} /><span>المتجر</span></Link>
+      {/* --- Mobile Bottom Nav (portaled to body end so it always paints last) --- */}
+      {typeof document !== 'undefined' && createPortal(
+        <div style={mobileBottomNav} className="mobile-bottom-nav">
+          <Link href="/" style={bottomNavItem}><Home size={22} /><span>الرئيسية</span></Link>
+          <Link href="/store" style={bottomNavItem}><Store size={22} /><span>المتجر</span></Link>
 
-        {/* Garage icon in mobile bottom nav */}
-        <button
-          onClick={toggleGarage}
-          style={bottomNavItemBtn}
-        >
-          <Car size={22} color={garageMode ? '#27ae60' : '#555'} />
-          <span style={{ color: garageMode ? '#27ae60' : '#555' }}>جراجي</span>
-        </button>
+          <button onClick={toggleGarage} style={bottomNavItemBtn}>
+            <Car size={22} color={garageMode ? '#27ae60' : '#555'} />
+            <span style={{ color: garageMode ? '#27ae60' : '#555' }}>جراجي</span>
+          </button>
 
-        {/* Blog link in mobile bottom nav */}
-        <Link href="/blog" style={bottomNavItem}><BookOpen size={22} /><span>المدونة</span></Link>
+          <Link href="/blog" style={bottomNavItem}><BookOpen size={22} /><span>المدونة</span></Link>
 
-        <Link href="/cart" style={{ ...bottomNavItem, position: 'relative' }}>
-          <motion.div animate={controls}><ShoppingCart size={22} /></motion.div>
-          {cartItems.length > 0 && <span style={cartBadgeMobile}>{cartItems.length}</span>}
-          <span>السلة</span>
-        </Link>
-        <Link href={user ? '/profile' : '/login'} style={bottomNavItem}>
-          <User size={22} /><span>حسابي</span>
-        </Link>
-        <button onClick={() => setIsSidebarOpen(true)} style={bottomNavItemBtn}>
-          <MenuIcon size={22} /><span>المزيد</span>
-        </button>
-      </div>
+          <Link href="/cart" style={{ ...bottomNavItem, position: 'relative' }}>
+            <motion.div animate={controls}><ShoppingCart size={22} /></motion.div>
+            {cartItems.length > 0 && <span style={cartBadgeMobile}>{cartItems.length}</span>}
+            <span>السلة</span>
+          </Link>
+          <Link href={user ? '/profile' : '/login'} style={bottomNavItem}>
+            <User size={22} /><span>حسابي</span>
+          </Link>
+          <button onClick={() => setIsSidebarOpen(true)} style={bottomNavItemBtn}>
+            <MenuIcon size={22} /><span>المزيد</span>
+          </button>
+        </div>,
+        document.body
+      )}
     </>
   );
 }
