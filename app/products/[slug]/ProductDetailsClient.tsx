@@ -409,8 +409,8 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
   return (
     <>
       <style>{`
-        .pdp-wrapper { max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; direction: rtl; }
-        .pdp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-bottom: 48px; align-items: start; }
+        .pdp-wrapper { max-width: 1200px; margin: 0 auto; padding: 20px 16px 24px; direction: rtl; }
+        .pdp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 32px; align-items: start; }
         .pdp-media { position: sticky; top: 100px; }
         .pdp-slider { border-radius: 28px; overflow: hidden; background: #f8fafc; border: 1px solid #f1f5f9; box-shadow: 0 4px 32px rgba(0,0,0,0.06); height: 460px; position: relative; }
         .pdp-slider .swiper { height: 460px; }
@@ -437,7 +437,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           .pdp-slider .swiper-slide { height: 300px !important; }
         }
         @media (max-width: 768px) {
-          .pdp-wrapper { padding: 12px 12px 24px; }
+          .pdp-wrapper { padding: 12px 12px 8px; }
           .pdp-info { gap: 12px; }
           .pdp-section { padding: 16px !important; border-radius: 16px !important; margin-bottom: 14px !important; }
           .pdp-btn-primary { padding: 14px !important; font-size: 0.95rem !important; border-radius: 14px !important; }
