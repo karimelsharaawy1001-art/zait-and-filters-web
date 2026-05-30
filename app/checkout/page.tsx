@@ -949,7 +949,7 @@ export default function CheckoutPage() {
             ) : (
               <div style={{ marginTop: '10px', padding: '8px 12px', background: '#fffbeb', borderRadius: '10px', border: '1px solid #fde68a', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '0.76rem', color: '#92400e', fontWeight: '700' }}>🎁 كاش باك ستحصل عليه بعد تسليم الطلب</span>
-                <span style={{ fontSize: '0.88rem', fontWeight: '900', color: '#d97706' }}>+{(finalTotal * cashbackPct / 100).toFixed(2)} ج.م</span>
+                <span style={{ fontSize: '0.88rem', fontWeight: '900', color: '#d97706' }}>+{(subtotal * cashbackPct / 100).toFixed(2)} ج.م</span>
               </div>
             )}
           </div>
