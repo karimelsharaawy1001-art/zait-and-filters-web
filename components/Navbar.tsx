@@ -1,22 +1,22 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { 
-  Search, ShoppingCart, User, Home, Store, Package, 
-  Menu as MenuIcon, X, Info, PhoneCall, ShieldCheck, Settings, LogIn, LogOut,
+import {
+  Search, ShoppingCart, User, Home, Store,
+  Menu as MenuIcon, X, Info, PhoneCall, Settings, LogIn, LogOut,
   Handshake, Car, BookOpen
 } from 'lucide-react';
 import Link from 'next/link';
-import { useCart } from '@/context/CartContext'; 
+import { useCart } from '@/context/CartContext';
 import { supabase } from '@/app/lib/supabase';
 import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import SmartSearchBar from '@/components/SmartSearchBar';
 
 export default function ProfessionalNavbar() {
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [user, setUser] = useState<any>(null); 
-  const [searchQuery, setSearchQuery] = useState('');
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const { cartItems } = useCart();
   const controls = useAnimation();
   const router = useRouter();
@@ -70,19 +70,6 @@ export default function ProfessionalNavbar() {
     if (data) setUserCar(data);
   };
 
-  // ── Search handler ────────────────────────────────────────────────────────
-  const handleSearch = () => {
-    const trimmed = searchQuery.trim();
-    if (!trimmed) return;
-    router.push(`/store?q=${encodeURIComponent(trimmed)}`);
-    setSearchQuery('');
-    setIsSearchFocused(false);
-  };
-
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') handleSearch();
-  };
-  // ─────────────────────────────────────────────────────────────────────────
 
   const toggleGarage = () => {
     if (!user) {
@@ -160,30 +147,12 @@ export default function ProfessionalNavbar() {
     <>
       <style dangerouslySetInnerHTML={{ __html: `
         @media (max-width: 768px) {
-          .desktop-links { display: none !important; }
+          .desktop-links  { display: none !important; }
           .mobile-bottom-nav { display: flex !important; }
-          .nav-content { justify-content: space-between !important; padding: 0 10px !important; }
+          .nav-content    { justify-content: space-between !important; padding: 0 10px !important; }
           .search-wrapper { display: none !important; }
-          .logo-text { font-size: 1.5rem !important; } 
+          .logo-text      { font-size: 1.5rem !important; }
           .mobile-menu-btn { display: flex !important; }
-        }
-        .search-go-btn {
-          background: none;
-          border: none;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          padding: 0 4px;
-          color: #999;
-          transition: color 0.2s;
-          border-radius: 6px;
-        }
-        .search-go-btn:hover {
-          color: #27ae60;
-        }
-        .search-input-field:focus + .search-go-btn,
-        .search-go-btn:focus {
-          color: #27ae60;
         }
       `}} />
 
@@ -278,6 +247,35 @@ export default function ProfessionalNavbar() {
         )}
       </AnimatePresence>
 
+      {/* ── Mobile Full-Screen Search Modal ──────────────────────────────────── */}
+      <AnimatePresence>
+        {mobileSearchOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setMobileSearchOpen(false)}
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 3000, backdropFilter: 'blur(3px)' }}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 3001, background: '#fff', padding: '14px 16px', borderRadius: '0 0 20px 20px', boxShadow: '0 8px 30px rgba(0,0,0,0.15)', direction: 'rtl' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                <span style={{ fontWeight: '900', fontSize: '0.95rem', color: '#1a1a1a' }}>البحث الذكي</span>
+                <button onClick={() => setMobileSearchOpen(false)} style={{ marginRight: 'auto', background: '#f5f5f5', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <X size={16} color="#555" />
+                </button>
+              </div>
+              <SmartSearchBar autoFocus onClose={() => setMobileSearchOpen(false)} compact={false} placeholder="مثال: تيل فرامل بوما — فلتر زيت كروز" />
+              <p style={{ marginTop: '10px', fontSize: '0.72rem', color: '#9ca3af', textAlign: 'center' }}>
+                يفهم أسماء السيارات وأنواع القطع — جرّب: مساعدين النترا
+              </p>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* --- Top Navbar --- */}
       <nav style={navContainer}>
         <div style={navContent} className="nav-content">
@@ -293,30 +291,20 @@ export default function ProfessionalNavbar() {
             ZAIT <span style={{ color: '#27ae60' }}>& FILTERS</span>
           </Link>
 
-          {/* ── Search bar with working handler ── */}
-          <div
-            style={{ ...searchWrapper, borderColor: isSearchFocused ? '#27ae60' : '#eee' }}
-            className="search-wrapper"
-          >
-            <input 
-              type="text" 
-              placeholder="ابحث عن قطعة غيار..." 
-              style={searchInput}
-              className="search-input-field"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleSearchKeyDown}
-              onFocus={() => setIsSearchFocused(true)}
-              onBlur={() => setIsSearchFocused(false)}
-            />
-            <button
-              className="search-go-btn"
-              onClick={handleSearch}
-              title="بحث"
-            >
-              <Search size={18} color={isSearchFocused ? '#27ae60' : '#999'} />
-            </button>
+          {/* ── Smart Search bar (desktop) ── */}
+          <div className="search-wrapper" style={{ flex: 1, maxWidth: '420px' }}>
+            <SmartSearchBar compact />
           </div>
+
+          {/* ── Mobile search button (shows next to logo on small screens) ── */}
+          <button
+            className="mobile-menu-btn"
+            style={{ ...iconBtn, display: 'none' }}
+            onClick={() => setMobileSearchOpen(true)}
+            aria-label="بحث"
+          >
+            <Search size={22} />
+          </button>
 
           <div style={navLinks} className="desktop-links">
             <Link href="/store" style={linkItem}>المتجر</Link>
@@ -445,27 +433,6 @@ const logoStyle: any = {
   letterSpacing: '-1.5px',
   flexShrink: 0,
   textTransform: 'uppercase',
-};
-const searchWrapper: any = {
-  flex: 1,
-  maxWidth: '400px',
-  display: 'flex',
-  alignItems: 'center',
-  backgroundColor: '#f5f5f5',
-  padding: '8px 16px',
-  borderRadius: '12px',
-  border: '1px solid transparent',
-  transition: 'all 0.3s ease',
-  gap: '10px',
-};
-const searchInput: any = {
-  width: '100%',
-  border: 'none',
-  backgroundColor: 'transparent',
-  outline: 'none',
-  fontSize: '0.9rem',
-  textAlign: 'right',
-  direction: 'rtl',
 };
 const navLinks: any = { display: 'flex', alignItems: 'center', gap: '25px' };
 const linkItem: any = {

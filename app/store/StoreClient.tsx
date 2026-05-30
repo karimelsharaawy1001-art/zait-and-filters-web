@@ -2,6 +2,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { expandSearchQuery } from '@/lib/searchExpander';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import {
@@ -891,6 +892,21 @@ setBrandsOptions(brandsOpts);
         _garageMode: resolvedGarageMode,
         _userCar: resolvedUserCar,
       });
+    } else if (urlSearch) {
+      // ── Smart search: expand free-text query into structured filters ────────
+      const intent = expandSearchQuery(urlSearch);
+      await fetchProducts({
+        make: intent.make,
+        model: intent.model,
+        category: intent.category,
+        subcategories: intent.subcategories ?? [],
+        brand: intent.brand,
+        // Only pass textSearch if we couldn't extract a full structured intent,
+        // so "تيل فرامل بوما" doesn't also try to text-search the leftovers
+        search: intent.textSearch,
+        _garageMode: resolvedGarageMode,
+        _userCar: resolvedUserCar,
+      });
     } else if (resolvedGarageMode && resolvedUserCar) {
       await fetchProducts({
         make: resolvedUserCar.make,
@@ -1023,6 +1039,11 @@ setBrandsOptions(brandsOpts);
       }
 
       if (filters.brand) query = query.ilike('brand', filters.brand.trim());
+
+      // Apply text search at DB level when no structured filter absorbed it
+      if (filters.search && !filters.make && !filters.category) {
+        query = query.ilike('name', `%${filters.search.trim()}%`);
+      }
 
       const { data, error } = await query;
       if (error) throw error;

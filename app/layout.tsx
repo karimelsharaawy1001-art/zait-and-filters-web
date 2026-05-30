@@ -28,11 +28,23 @@ const almarai = Almarai({
 export const metadata: Metadata = {
   metadataBase: new URL('https://zaitandfilters.com'),
   title: {
-    default: "زيت اند فلترز | اكبر موقع لقطع غيار السيارات في مصر",
-    template: "%s | زيت اند فلترز"
+    default: "زيت أند فلترز | قطع غيار سيارات أصلية بأفضل سعر في مصر — شحن لباب البيت",
+    template: "%s | زيت أند فلترز"
   },
-  description: "المتجر الأول لبيع قطع غيار السيارات الأصلية في مصر. نوفر زيوت، فلاتر، تيل فرامل، سيور، وبوجيهات لأشهر الماركات (تويوتا، نيسان، كيا، هيونداي). جودة مضمونة وشحن سريع.",
-  keywords: ["قطع غيار سيارات أصلية","قطع غيار سيارات مصر","زيوت سيارات","فلاتر سيارات","تيل فرامل أصلي","بوجيهات","سيور سيارات","زيت اند فلترز","أرخص قطع غيار في مصر","قطع غيار تويوتا","قطع غيار هيونداي","فلاتر زيت","فلاتر هواء","فلاتر بنزين","car spare parts Egypt","MANN filters","BOSCH filters"],
+  description: "زيت أند فلترز — المتجر الأول لقطع غيار السيارات الأصلية في مصر بأفضل الأسعار. زيوت موتور، فلاتر، تيل فرامل، مساعدين، بوجيهات وجميع قطع الغيار لكل السيارات. شحن سريع لباب البيت في جميع محافظات مصر مع ضمان الجودة.",
+  keywords: [
+    "قطع غيار سيارات مصر", "قطع غيار اصلية مصر", "زيوت موتور مصر", "فلاتر سيارات مصر",
+    "تيل فرامل مصر", "مساعدين سيارات", "بوجيهات سيارات", "سيور سيارات مصر",
+    "قطع غيار اوبترا", "قطع غيار كروز", "قطع غيار النترا", "قطع غيار لانسر",
+    "قطع غيار كورولا", "قطع غيار يارس", "قطع غيار سيراتو", "قطع غيار سبورتاج",
+    "قطع غيار قاشقاي", "قطع غيار سنترا", "قطع غيار صني", "قطع غيار بيجو 301",
+    "قطع غيار ميجان", "قطع غيار اوكتافيا", "قطع غيار MG5",
+    "احسن قطع غيار مصر", "افضل قطع غيار مصر", "بأقل سعر قطع غيار",
+    "زيت اند فلترز", "متجر قطع غيار اونلاين مصر", "شراء قطع غيار اونلاين",
+    "شحن قطع غيار لباب البيت", "قطع غيار بضمان مصر", "قطع غيار بالتقسيط",
+    "car spare parts Egypt", "auto parts egypt online", "MANN filters egypt",
+    "BOSCH parts egypt", "سعر زيت موتور مصر", "سعر فلتر زيت مصر",
+  ],
   authors: [{ name: "Zait & Filters" }],
   creator: "Zait & Filters",
   publisher: "Zait & Filters",
@@ -76,6 +88,61 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-title" content="زيت اند فلترز" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        {/* ── LocalBusiness + WebSite JSON-LD — boosts local Egyptian search ── */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@graph': [
+              {
+                '@type': 'Organization',
+                '@id': 'https://zaitandfilters.com/#organization',
+                name: 'زيت أند فلترز',
+                alternateName: 'Zait & Filters',
+                url: 'https://zaitandfilters.com',
+                logo: {
+                  '@type': 'ImageObject',
+                  url: 'https://zaitandfilters.com/icons/icon-512.png',
+                  width: 512,
+                  height: 512,
+                },
+                description: 'المتجر الأول لقطع غيار السيارات الأصلية في مصر — زيوت موتور، فلاتر، تيل فرامل، مساعدين وجميع قطع الغيار بأفضل الأسعار مع شحن لباب البيت في جميع المحافظات.',
+                sameAs: [
+                  'https://www.facebook.com/zaitandfilters',
+                  'https://www.instagram.com/zaitandfilters',
+                ],
+                contactPoint: {
+                  '@type': 'ContactPoint',
+                  contactType: 'customer service',
+                  availableLanguage: 'Arabic',
+                  areaServed: 'EG',
+                },
+                areaServed: {
+                  '@type': 'Country',
+                  name: 'Egypt',
+                },
+              },
+              {
+                '@type': 'WebSite',
+                '@id': 'https://zaitandfilters.com/#website',
+                url: 'https://zaitandfilters.com',
+                name: 'زيت أند فلترز',
+                description: 'متجر قطع غيار السيارات الأصلية في مصر',
+                publisher: { '@id': 'https://zaitandfilters.com/#organization' },
+                inLanguage: 'ar-EG',
+                potentialAction: {
+                  '@type': 'SearchAction',
+                  target: {
+                    '@type': 'EntryPoint',
+                    urlTemplate: 'https://zaitandfilters.com/store?q={search_term_string}',
+                  },
+                  'query-input': 'required name=search_term_string',
+                },
+              },
+            ],
+          }) }}
+        />
+
         {GA_MEASUREMENT_ID && (
           <>
             <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} strategy="afterInteractive" />

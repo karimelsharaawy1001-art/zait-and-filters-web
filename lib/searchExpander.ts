@@ -1,0 +1,326 @@
+/**
+ * Smart Search Expander
+ *
+ * Converts a free-text Arabic/English query into structured DB filters.
+ * Example: "تيل فرامل بوما"
+ *   → { make: "MITSUBISHI", model: "LANCER PUMA",
+ *        category: "الفرامل", subcategories: ["تيل امامي","تيل خلفي","تيل فرامل"] }
+ */
+
+export interface SearchIntent {
+  make?: string;           // e.g. "MITSUBISHI"
+  model?: string;          // e.g. "LANCER PUMA"
+  category?: string;       // e.g. "الفرامل"
+  subcategories?: string[];// e.g. ["تيل امامي","تيل خلفي"]
+  brand?: string;          // e.g. "NGK"
+  textSearch?: string;     // remaining free-text for product name search
+}
+
+// ── Car model nicknames → {make, model} ──────────────────────────────────────
+// Order matters: longer/more-specific phrases must come first
+const MODEL_ALIASES: Array<{ aliases: string[]; make: string; model: string }> = [
+  // Mitsubishi
+  { aliases: ['لانسر بوما', 'بوما', 'boma', 'lancer puma'], make: 'MITSUBISHI', model: 'LANCER PUMA' },
+  { aliases: ['لانسر شارك', 'شارك', 'shark', 'lancer shark'], make: 'MITSUBISHI', model: 'LANCER SHARK' },
+  { aliases: ['لانسر', 'lancer'], make: 'MITSUBISHI', model: 'LANCER PUMA' }, // default lancer → puma (most common in Egypt)
+  { aliases: ['باجيرو', 'pajero'], make: 'MITSUBISHI', model: 'PAJERO' },
+  { aliases: ['اكليبس', 'eclipse', 'ايكليبس'], make: 'MITSUBISHI', model: 'ECLIPSE' },
+
+  // Chevrolet
+  { aliases: ['اوبترا', 'optra', 'اوبتيرا'], make: 'CHEVROLET', model: 'OPTRA' },
+  { aliases: ['كروز', 'cruze', 'كروزي'], make: 'CHEVROLET', model: 'CRUZE' },
+  { aliases: ['كابتيفا', 'captiva'], make: 'CHEVROLET', model: 'CAPTIVA' },
+  { aliases: ['افيو', 'aveo', 'أفيو'], make: 'CHEVROLET', model: 'AVEO' },
+  { aliases: ['لانوس', 'lanos'], make: 'CHEVROLET', model: 'LANOS' },
+  { aliases: ['اونيكس', 'onix', 'أونيكس'], make: 'CHEVROLET', model: 'ONIX' },
+
+  // Hyundai
+  { aliases: ['النترا', 'elantra', 'انترا', 'إلانترا'], make: 'HYUNDAI', model: 'ELANTRA' },
+  { aliases: ['توسان', 'tucson', 'توسن'], make: 'HYUNDAI', model: 'TUCSON' },
+  { aliases: ['سوناتا', 'sonata'], make: 'HYUNDAI', model: 'SONATA' },
+  { aliases: ['اكسنت', 'accent', 'أكسنت'], make: 'HYUNDAI', model: 'ACCENT' },
+  { aliases: ['جراند i10', 'grand i10', 'جراند اي 10'], make: 'HYUNDAI', model: 'GRAND I10' },
+  { aliases: ['i10', 'اي 10', 'آي 10'], make: 'HYUNDAI', model: 'I10' },
+  { aliases: ['ماتريكس', 'matrix'], make: 'HYUNDAI', model: 'MATRIX' },
+  { aliases: ['فيرنا', 'verna'], make: 'HYUNDAI', model: 'VERNA' },
+
+  // Kia
+  { aliases: ['سيراتو k3', 'cerato k3', 'k3'], make: 'KIA', model: 'CERATO K3' },
+  { aliases: ['سيراتو ld', 'cerato ld', 'سيراتو ال دي'], make: 'KIA', model: 'CERATO LD' },
+  { aliases: ['سيراتو td', 'cerato td', 'سيراتو تي دي'], make: 'KIA', model: 'CERATO TD' },
+  { aliases: ['جراند سيراتو', 'grand cerato', 'grand k3'], make: 'KIA', model: 'GRAND CERATO' },
+  { aliases: ['سيراتو', 'cerato'], make: 'KIA', model: 'CERATO K3' }, // default → most common
+  { aliases: ['سبورتاج', 'sportage', 'سبورتج'], make: 'KIA', model: 'SPORTAGE' },
+  { aliases: ['سورينتو', 'sorento', 'sorento'], make: 'KIA', model: 'SORENTO' },
+  { aliases: ['بيكانتو', 'picanto', 'بيكنتو'], make: 'KIA', model: 'PICANTO' },
+  { aliases: ['ريو', 'rio'], make: 'KIA', model: 'RIO' },
+  { aliases: ['كارينز', 'carens'], make: 'KIA', model: 'CARENS' },
+  { aliases: ['سول', 'soul'], make: 'KIA', model: 'SOUL' },
+
+  // Nissan
+  { aliases: ['صني n16', 'sunny n16', 'n16', 'سنى n16'], make: 'NISSAN', model: 'SUNNY N16' },
+  { aliases: ['صني n17', 'sunny n17', 'n17', 'سنى n17'], make: 'NISSAN', model: 'SUNNY N17' },
+  { aliases: ['صني', 'sunny', 'سني', 'شمس'], make: 'NISSAN', model: 'SUNNY N17' }, // default → newest
+  { aliases: ['سنترا', 'sentra', 'سنتيرا'], make: 'NISSAN', model: 'SENTRA' },
+  { aliases: ['قاشقاي', 'qashqai', 'قشقاي'], make: 'NISSAN', model: 'QASHQAI' },
+  { aliases: ['اكس تريل', 'x-trail', 'xtrail', 'x trail'], make: 'NISSAN', model: 'X-TRAIL' },
+  { aliases: ['تيدا', 'tiida'], make: 'NISSAN', model: 'TIIDA' },
+
+  // Toyota
+  { aliases: ['كورولا', 'corolla', 'كورلا'], make: 'TOYOTA', model: 'COROLLA' },
+  { aliases: ['كامري', 'camry'], make: 'TOYOTA', model: 'CAMRY' },
+  { aliases: ['يارس', 'yaris', 'ياريس'], make: 'TOYOTA', model: 'YARIS' },
+  { aliases: ['راف فور', 'rav4', 'rav 4', 'راف 4'], make: 'TOYOTA', model: 'RAV4' },
+
+  // Peugeot
+  { aliases: ['بيجو 301', 'peugeot 301', '301'], make: 'PEUGEOT', model: '301' },
+  { aliases: ['بيجو 206', 'peugeot 206', '206'], make: 'PEUGEOT', model: '206' },
+  { aliases: ['بيجو 307', 'peugeot 307', '307'], make: 'PEUGEOT', model: '307' },
+  { aliases: ['بيجو 308', 'peugeot 308', '308'], make: 'PEUGEOT', model: '308' },
+  { aliases: ['بيجو 508', 'peugeot 508', '508'], make: 'PEUGEOT', model: '508' },
+  { aliases: ['بيجو 3008', 'peugeot 3008', '3008'], make: 'PEUGEOT', model: '3008' },
+  { aliases: ['بيجو 5008', 'peugeot 5008', '5008'], make: 'PEUGEOT', model: '5008' },
+  { aliases: ['بيجو 2008', 'peugeot 2008', '2008'], make: 'PEUGEOT', model: '2008' },
+
+  // Renault
+  { aliases: ['داستر', 'duster', 'دستر'], make: 'RENAULT', model: 'DUSTER' },
+  { aliases: ['ميجان', 'megane', 'ميجين'], make: 'RENAULT', model: 'MEGANE' },
+  { aliases: ['لوجان', 'logan'], make: 'RENAULT', model: 'LOGAN' },
+  { aliases: ['كليو', 'clio'], make: 'RENAULT', model: 'CLIO' },
+  { aliases: ['سانديرو', 'sandero', 'ستيبواي', 'stepway'], make: 'RENAULT', model: 'SANDERO' },
+  { aliases: ['كادجار', 'kadjar'], make: 'RENAULT', model: 'KADJAR' },
+  { aliases: ['فلوانس', 'fluence'], make: 'RENAULT', model: 'FLUENCE' },
+  { aliases: ['كابتشر', 'captur', 'كابتشير'], make: 'RENAULT', model: 'CAPTUR' },
+
+  // Volkswagen
+  { aliases: ['جولف', 'golf'], make: 'VOLKSWAGEN', model: 'GOLF' },
+  { aliases: ['باسات', 'passat'], make: 'VOLKSWAGEN', model: 'PASSAT' },
+  { aliases: ['جيتا', 'jetta'], make: 'VOLKSWAGEN', model: 'JETTA' },
+  { aliases: ['بولو', 'polo'], make: 'VOLKSWAGEN', model: 'POLO' },
+
+  // Skoda
+  { aliases: ['اوكتافيا a7', 'octavia a7'], make: 'SKODA', model: 'OCTAVIA A7' },
+  { aliases: ['اوكتافيا a8', 'octavia a8'], make: 'SKODA', model: 'OCTAVIA A8' },
+  { aliases: ['اوكتافيا a5', 'octavia a5'], make: 'SKODA', model: 'OCTAVIA A5' },
+  { aliases: ['اوكتافيا a4', 'octavia a4'], make: 'SKODA', model: 'OCTAVIA A4' },
+  { aliases: ['اوكتافيا', 'octavia'], make: 'SKODA', model: 'OCTAVIA A7' }, // default → newest
+  { aliases: ['فابيا', 'fabia'], make: 'SKODA', model: 'FABIA' },
+
+  // Seat
+  { aliases: ['ليون', 'leon'], make: 'SEAT', model: 'LEON' },
+  { aliases: ['ايبيزا', 'ibiza', 'ابيزا'], make: 'SEAT', model: 'IBIZA' },
+  { aliases: ['توليدو', 'toledo'], make: 'SEAT', model: 'TOLEDO' },
+
+  // MG
+  { aliases: ['mg6', 'ام جي 6', 'ام جى 6'], make: 'MG', model: '6' },
+  { aliases: ['mg5', 'ام جي 5', 'ام جى 5'], make: 'MG', model: '5' },
+  { aliases: ['mg3', 'ام جي 3', 'ام جى 3'], make: 'MG', model: '3' },
+  { aliases: ['mg hs', 'ام جي hs', 'hs'], make: 'MG', model: 'HS' },
+  { aliases: ['mg zs', 'ام جي zs', 'zs'], make: 'MG', model: 'ZS' },
+  { aliases: ['mg rx5', 'ام جي rx5', 'rx5'], make: 'MG', model: 'RX5' },
+
+  // Opel
+  { aliases: ['استرا', 'astra'], make: 'OPEL', model: 'ASTRA' },
+  { aliases: ['انسيجنيا', 'insignia'], make: 'OPEL', model: 'INSIGNIA' },
+
+  // Mazda
+  { aliases: ['مازدا 6', 'mazda 6'], make: 'MAZDA', model: '6' },
+  { aliases: ['مازدا 3', 'mazda 3'], make: 'MAZDA', model: '3' },
+];
+
+// ── Car make aliases → DB make ────────────────────────────────────────────────
+const MAKE_ALIASES: Array<{ aliases: string[]; make: string }> = [
+  { aliases: ['شيفروليه', 'شيفروله', 'شيفرولية', 'chevrolet', 'gm'], make: 'CHEVROLET' },
+  { aliases: ['هيونداي', 'هيونده', 'hyundai'], make: 'HYUNDAI' },
+  { aliases: ['كيا', 'kia'], make: 'KIA' },
+  { aliases: ['نيسان', 'nissan'], make: 'NISSAN' },
+  { aliases: ['تويوتا', 'toyota'], make: 'TOYOTA' },
+  { aliases: ['ميتسوبيشي', 'mitsubishi', 'ميتسوبيش'], make: 'MITSUBISHI' },
+  { aliases: ['فولكس فاجن', 'فولكس', 'volkswagen', 'vw'], make: 'VOLKSWAGEN' },
+  { aliases: ['سكودا', 'skoda', 'سكوده'], make: 'SKODA' },
+  { aliases: ['بيجو', 'peugeot', 'بيجيو'], make: 'PEUGEOT' },
+  { aliases: ['رينو', 'renault', 'رينول'], make: 'RENAULT' },
+  { aliases: ['اوبل', 'opel', 'أوبل'], make: 'OPEL' },
+  { aliases: ['ام جي', 'mg'], make: 'MG' },
+  { aliases: ['مازدا', 'mazda'], make: 'MAZDA' },
+  { aliases: ['هوندا', 'honda'], make: 'HONDA' },
+  { aliases: ['سوزوكي', 'suzuki'], make: 'SUZUKI' },
+  { aliases: ['بي ام دبليو', 'بي إم دبليو', 'bmw'], make: 'BMW' },
+  { aliases: ['مرسيدس', 'mercedes', 'مرسيدس بنز'], make: 'MERCEDES' },
+  { aliases: ['فورد', 'ford'], make: 'FORD' },
+  { aliases: ['جيب', 'jeep'], make: 'JEEP' },
+  { aliases: ['سيات', 'seat'], make: 'SEAT' },
+];
+
+// ── Part/category synonyms → {category, subcategories?} ──────────────────────
+// Longer phrases must come before shorter ones
+const PART_ALIASES: Array<{
+  aliases: string[];
+  category: string;
+  subcategories?: string[];
+}> = [
+  // Brakes
+  { aliases: ['تيل فرامل امامي', 'تيل امامي'], category: 'الفرامل', subcategories: ['تيل امامي'] },
+  { aliases: ['تيل فرامل خلفي', 'تيل خلفي'], category: 'الفرامل', subcategories: ['تيل خلفي'] },
+  { aliases: ['طنابير فرامل', 'طنابير', 'طنبور'], category: 'الفرامل', subcategories: ['طنابير'] },
+  { aliases: ['ماستر فرامل', 'ماستر'], category: 'الفرامل', subcategories: ['ماستر فرامل'] },
+  { aliases: ['ماستر عجل'], category: 'الفرامل', subcategories: ['ماستر عجل'] },
+  { aliases: ['تيل فرامل', 'فرامل', 'تيل', 'brake pads', 'برامل'], category: 'الفرامل', subcategories: ['تيل امامي', 'تيل خلفي', 'تيل فرامل'] },
+
+  // Engine oils
+  { aliases: ['زيت موتور', 'engine oil', 'motor oil', 'زيت الموتور', 'زيوت موتور'], category: 'زيوت موتور' },
+  // Gear/transmission oils
+  { aliases: ['زيت فتيس', 'زيت الفتيس', 'زيت دبرياج', 'زيت باور', 'gear oil', 'atf', 'زيوت فتيس'], category: 'زيوت فتيس و دبرياج و باور' },
+
+  // Filters (specific first)
+  { aliases: ['فلتر زيت', 'فلاتر زيت', 'فلتر الزيت', 'oil filter'], category: 'فلاتر', subcategories: ['فلتر زيت', 'فلتر الزيت'] },
+  { aliases: ['فلتر هواء', 'فلاتر هواء', 'air filter'], category: 'فلاتر', subcategories: ['فلتر هواء'] },
+  { aliases: ['فلتر تكييف', 'فلتر كابينة', 'cabin filter', 'فلاتر تكييف'], category: 'فلاتر', subcategories: ['فلتر تكييف', 'فلتر كابينة'] },
+  { aliases: ['فلتر بنزين', 'فلاتر بنزين', 'fuel filter'], category: 'فلاتر', subcategories: ['فلتر بنزين'] },
+  { aliases: ['فلاتر', 'فلتر', 'filters'], category: 'فلاتر' },
+
+  // Suspension
+  { aliases: ['مساعدين', 'مساعد', 'امورتيزور', 'امورتيزر', 'شاكن', 'shock absorber'], category: 'عفشة', subcategories: ['مساعدين و صدادات'] },
+  { aliases: ['بلية عجل', 'بلية العجل', 'wheel bearing', 'جمل', 'بلية'], category: 'عفشة', subcategories: ['بلية عجل'] },
+  { aliases: ['مقصات', 'مقص عفشة', 'مقص', 'control arm'], category: 'عفشة', subcategories: ['مقصات كاملة', 'جلب و بيض مقصات'] },
+  { aliases: ['بارات', 'بار عفشة', 'sway bar', 'stabilizer link'], category: 'عفشة', subcategories: ['بارات'] },
+  { aliases: ['كبالن', 'كوبلن', 'cv axle', 'cv joint'], category: 'عفشة', subcategories: ['كبالن و كاوتش كوبلن'] },
+  { aliases: ['بطاحة', 'بطاحات', 'bushing'], category: 'عفشة', subcategories: ['بطاحات و بلي بطاحات'] },
+  { aliases: ['تيش ميزان', 'مسمار ميزان', 'tie rod'], category: 'عفشة', subcategories: ['تيش ميزان و مسامير ميزان'] },
+  { aliases: ['قاعدة موتور', 'شداد موتور', 'engine mount', 'motor mount'], category: 'عفشة', subcategories: ['قواعد و شدادات'] },
+  { aliases: ['عفشة', 'تعليق', 'suspension'], category: 'عفشة' },
+
+  // Spark plugs & ignition
+  { aliases: ['بوجيهات', 'بواجي', 'شمعة', 'شمعات', 'spark plugs', 'spark plug', 'بوجيه'], category: 'بوجيهات و سلوك بوجيهات و موبينة', subcategories: ['بوجيهات'] },
+  { aliases: ['موبينة', 'كويل', 'ignition coil', 'coil pack', 'كويلات'], category: 'بوجيهات و سلوك بوجيهات و موبينة', subcategories: ['موبينة'] },
+  { aliases: ['سلوك بوجيهات', 'سلوك'], category: 'بوجيهات و سلوك بوجيهات و موبينة', subcategories: ['سلوك بوجيهات'] },
+
+  // Belts & pulleys
+  { aliases: ['سير توقيت', 'timing belt', 'timing chain'], category: 'سيور و بلي', subcategories: ['سيور'] },
+  { aliases: ['سير مجموعة', 'serpentine belt', 'v-belt'], category: 'سيور و بلي', subcategories: ['سير مجموعة'] },
+  { aliases: ['سير دينامو', 'alternator belt'], category: 'سيور و بلي', subcategories: ['سير دينامو'] },
+  { aliases: ['كاتينة', 'طقم كاتينة', 'timing kit', 'timing chain kit'], category: 'سيور و بلي', subcategories: ['سير كاتينة', 'طقم كاتينة كامل'] },
+  { aliases: ['سيور', 'سير', 'belts'], category: 'سيور و بلي' },
+
+  // Cooling
+  { aliases: ['ردياتير', 'رادياتير', 'radiator'], category: 'دورة تبريد و تكييف', subcategories: ['ردياتير'] },
+  { aliases: ['طلمبة مياه', 'water pump'], category: 'دورة تبريد و تكييف', subcategories: ['طلمبات مياه'] },
+  { aliases: ['ثرموستات', 'ترموستات', 'thermostat'], category: 'دورة تبريد و تكييف', subcategories: ['كوعة و ثرموستات'] },
+  { aliases: ['كولانت', 'ماء جهاز', 'coolant', 'antifreeze', 'مياه جهاز'], category: 'دورة تبريد و تكييف', subcategories: ['كولانت', 'تيل تبريد', 'زيت تبريد'] },
+  { aliases: ['سربنتينة تكييف', 'سربنتينة', 'ac compressor'], category: 'دورة تبريد و تكييف', subcategories: ['سربنتينة تكييف'] },
+  { aliases: ['تبريد', 'دورة تبريد', 'cooling'], category: 'دورة تبريد و تكييف' },
+
+  // Fuel system
+  { aliases: ['طلمبة بنزين', 'طلمبة وقود', 'fuel pump'], category: 'دورة البنزين', subcategories: ['طلمبة بنزين'] },
+  { aliases: ['عوامة بنزين', 'فلوتر', 'fuel sender'], category: 'دورة البنزين', subcategories: ['عوامة بنزين'] },
+  { aliases: ['انجكتور', 'injector', 'انجيكتور'], category: 'دورة البنزين', subcategories: ['انجكتور'] },
+  { aliases: ['دورة البنزين', 'fuel system'], category: 'دورة البنزين' },
+
+  // Sensors & electrical
+  { aliases: ['حساس شكمان', 'شكمان', 'oxygen sensor', 'o2 sensor', 'lambda'], category: 'حساسات و قطع كهربائية', subcategories: ['حساسات'] },
+  { aliases: ['حساس دعسة', 'throttle sensor', 'tps'], category: 'حساسات و قطع كهربائية', subcategories: ['حساسات'] },
+  { aliases: ['حساس حرارة', 'temperature sensor', 'coolant sensor'], category: 'حساسات و قطع كهربائية', subcategories: ['حساسات'] },
+  { aliases: ['حساس كامة', 'camshaft sensor', 'cam sensor'], category: 'حساسات و قطع كهربائية', subcategories: ['حساسات'] },
+  { aliases: ['حساس كرنك', 'crankshaft sensor', 'crank sensor'], category: 'حساسات و قطع كهربائية', subcategories: ['حساسات'] },
+  { aliases: ['حساس abs', 'abs sensor', 'حساس سرعة', 'speed sensor'], category: 'حساسات و قطع كهربائية', subcategories: ['حساسات'] },
+  { aliases: ['حساس', 'سنسور', 'sensor', 'check engine'], category: 'حساسات و قطع كهربائية', subcategories: ['حساسات'] },
+
+  // Gaskets & seals
+  { aliases: ['جوانات', 'جوان', 'اويل سيل', 'oil seal', 'gasket'], category: 'جوانات و أويل سيل' },
+
+  // Engine overhaul
+  { aliases: ['طقم بستم', 'بستم', 'عمرة موتور', 'piston kit', 'engine rebuild'], category: 'مستلزمات عمرة موتور' },
+
+  // Engine parts
+  { aliases: ['قطع موتور', 'engine parts'], category: 'قطع الموتور و ملحقاته' },
+
+  // Clutch/Transmission
+  { aliases: ['طقم دبرياج', 'دبرياج', 'كلتش', 'clutch kit', 'clutch'], category: 'دبرياج و قطع فتيس' },
+
+  // Tires
+  { aliases: ['اطارات', 'إطارات', 'كاوتش', 'كاوتشات', 'tires', 'tyres'], category: 'إطارات' },
+
+  // Wipers
+  { aliases: ['مساحة زجاج', 'مساحات', 'مساحة', 'wiper', 'wipers'], category: 'مساحات' },
+];
+
+// ── Normalise helper ─────────────────────────────────────────────────────────
+function normalize(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[أإآا]/g, 'ا')
+    .replace(/[ةت]/g, 'ه') // rough: ة → ه for matching
+    .replace(/ي$/g, 'ى')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// ── Main expander ─────────────────────────────────────────────────────────────
+export function expandSearchQuery(rawQuery: string): SearchIntent {
+  let remaining = rawQuery.trim();
+  const intent: SearchIntent = {};
+
+  const q = normalize(remaining);
+
+  // ── 1. Match car model aliases (includes make) ─────────────────────────────
+  for (const entry of MODEL_ALIASES) {
+    for (const alias of entry.aliases) {
+      const normalAlias = normalize(alias);
+      if (q.includes(normalAlias)) {
+        if (!intent.make) intent.make = entry.make;
+        if (!intent.model) intent.model = entry.model;
+        // Remove the matched alias from remaining text
+        remaining = remaining.replace(new RegExp(alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '').trim();
+        break;
+      }
+    }
+    if (intent.make) break;
+  }
+
+  // ── 2. Match car make (if no make yet from model alias) ───────────────────
+  if (!intent.make) {
+    const qNow = normalize(remaining);
+    for (const entry of MAKE_ALIASES) {
+      for (const alias of entry.aliases) {
+        if (qNow.includes(normalize(alias))) {
+          intent.make = entry.make;
+          remaining = remaining.replace(new RegExp(alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '').trim();
+          break;
+        }
+      }
+      if (intent.make) break;
+    }
+  }
+
+  // ── 3. Match part/category aliases ────────────────────────────────────────
+  const qAfterCar = normalize(remaining);
+  for (const entry of PART_ALIASES) {
+    for (const alias of entry.aliases) {
+      if (qAfterCar.includes(normalize(alias))) {
+        if (!intent.category) {
+          intent.category = entry.category;
+          if (entry.subcategories?.length) intent.subcategories = entry.subcategories;
+        }
+        remaining = remaining.replace(new RegExp(alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '').trim();
+        break;
+      }
+    }
+    if (intent.category) break;
+  }
+
+  // ── 4. Whatever's left is free-text for name search ───────────────────────
+  const leftover = remaining.replace(/\s+/g, ' ').trim();
+  if (leftover) intent.textSearch = leftover;
+
+  return intent;
+}
+
+// ── Suggestion label builders ─────────────────────────────────────────────────
+export function buildSuggestionLabel(intent: SearchIntent): string {
+  const parts: string[] = [];
+  if (intent.category) parts.push(intent.category);
+  if (intent.subcategories?.length) parts.push(intent.subcategories.join(' / '));
+  if (intent.make) parts.push(intent.make);
+  if (intent.model) parts.push(intent.model);
+  return parts.join(' ← ');
+}

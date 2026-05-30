@@ -11,8 +11,11 @@ const baseUrl = 'https://zaitandfilters.com';
 const STATIC_PAGES: MetadataRoute.Sitemap = [
   { url: baseUrl, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
   { url: `${baseUrl}/store`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
-  { url: `${baseUrl}/about`, lastModified: new Date('2025-01-01'), changeFrequency: 'monthly', priority: 0.5 },
-  { url: `${baseUrl}/contact`, lastModified: new Date('2025-01-01'), changeFrequency: 'monthly', priority: 0.5 },
+  { url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+  { url: `${baseUrl}/maintenance-bundle`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+  { url: `${baseUrl}/about`, lastModified: new Date('2025-01-01'), changeFrequency: 'monthly', priority: 0.6 },
+  { url: `${baseUrl}/contact`, lastModified: new Date('2025-01-01'), changeFrequency: 'monthly', priority: 0.6 },
+  { url: `${baseUrl}/shipping`, lastModified: new Date('2025-01-01'), changeFrequency: 'monthly', priority: 0.4 },
   { url: `${baseUrl}/terms`, lastModified: new Date('2025-01-01'), changeFrequency: 'monthly', priority: 0.3 },
   { url: `${baseUrl}/privacy`, lastModified: new Date('2025-01-01'), changeFrequency: 'monthly', priority: 0.3 },
 ];
@@ -35,11 +38,24 @@ const highTraffic = [
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Use env vars instead of hardcoded credentials
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
+
+  // ── Blog posts ──────────────────────────────────────────────────────────────
+  const { data: blogPosts } = await supabase
+    .from('blog_posts')
+    .select('slug, created_at, updated_at')
+    .order('created_at', { ascending: false })
+    .limit(200);
+
+  const blogEntries: MetadataRoute.Sitemap = (blogPosts || []).map(post => ({
+    url: `${baseUrl}/blog/${encodeURIComponent(post.slug)}`,
+    lastModified: post.updated_at ? new Date(post.updated_at) : new Date(post.created_at),
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }));
 
   const allProducts: {
     slug: string;
@@ -84,5 +100,5 @@ changeFrequency: 'weekly' as const,
 priority: highTraffic.includes(p.category) ? 0.85 : 0.7,
   }));
 
-  return [...STATIC_PAGES, ...categoryEntries, ...productEntries];
+  return [...STATIC_PAGES, ...categoryEntries, ...blogEntries, ...productEntries];
 }

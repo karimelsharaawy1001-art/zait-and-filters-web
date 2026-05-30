@@ -1,164 +1,181 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { supabase } from '@/app/lib/supabase';
-import { useParams } from 'next/navigation';
-import Link from 'next/link';
-import { ChevronRight, LayoutGrid, Loader2 } from 'lucide-react';
+import type { Metadata } from 'next';
+import CategoryClient from './CategoryClient';
 
-export default function SubCategoriesPage() {
-  const { name } = useParams();
-  const categoryName = decodeURIComponent(name as string);
-  const [subCategories, setSubCategories] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+// ── Per-category SEO targeting Egyptian search patterns ──────────────────────
+const CATEGORY_SEO: Record<string, { description: string; keywords: string[] }> = {
+  'فلاتر': {
+    description: 'اشتري فلاتر سيارات أصلية بأفضل سعر في مصر — فلتر زيت، فلتر هواء، فلتر تكييف، فلتر بنزين لجميع موديلات السيارات. شحن سريع لباب البيت في جميع المحافظات مع ضمان الجودة.',
+    keywords: [
+      'فلاتر سيارات', 'فلتر زيت', 'فلتر هواء', 'فلتر تكييف', 'فلتر بنزين', 'فلتر كابينة',
+      'سعر فلتر زيت', 'فلاتر اصلية', 'فلاتر سيارات مصر', 'احسن فلتر زيت', 'افضل فلتر زيت',
+      'فلتر زيت اوبترا', 'فلتر زيت كروز', 'فلتر زيت النترا', 'فلتر زيت لانسر', 'فلتر زيت كورولا',
+      'فلتر زيت سيراتو', 'فلتر هواء اوبترا', 'فلتر هواء كروز', 'فلتر هواء النترا',
+      'mann filter مصر', 'bosch filter مصر', 'حامض فلتر', 'فلاتر بالجملة مصر',
+    ],
+  },
+  'زيوت موتور': {
+    description: 'اشتري زيت موتور أصلي بأفضل سعر في مصر — موبيل، شل، كاسترول، توتال، تيدكس. زيوت تخليقية كاملة ونصف تخليقية لجميع السيارات. شحن سريع لباب البيت.',
+    keywords: [
+      'زيت موتور', 'زيت موتور مصر', 'احسن زيت موتور', 'افضل زيت موتور', 'سعر زيت موتور',
+      'زيت موتور اوبترا', 'زيت موتور كروز', 'زيت موتور النترا', 'زيت موتور لانسر', 'زيت موتور كورولا',
+      'زيت موتور يارس', 'زيت موتور سيراتو', 'زيت موتور سبورتاج', 'زيت موتور قاشقاي', 'زيت موتور صني',
+      'موبيل 1', 'كاسترول', 'شل هيليكس', 'توتال', 'تيدكس', 'زيت فول سينثتيك', 'زيت تخليقي كامل',
+      '5W-30 مصر', '5W-40 مصر', '0W-20 مصر', 'زيت موتور رخيص مصر', 'زيت موتور بأقل سعر',
+    ],
+  },
+  'زيوت فتيس و دبرياج و باور': {
+    description: 'زيت فتيس وزيت دبرياج وزيت باور ستيرينج أصلية بأفضل سعر في مصر. جميع الماركات والمواصفات لجميع أنواع السيارات مع شحن سريع لباب البيت.',
+    keywords: [
+      'زيت فتيس', 'زيت دبرياج', 'زيت باور', 'زيت باور ستيرينج', 'gear oil مصر',
+      'سعر زيت فتيس', 'احسن زيت فتيس', 'زيت فتيس مصر', 'زيت دبرياج مصر',
+      'زيت فتيس اوتوماتيك', 'ATF oil مصر', 'زيت فتيس اوبترا', 'زيت دبرياج كروز',
+    ],
+  },
+  'الفرامل': {
+    description: 'قطع فرامل سيارات أصلية بأفضل سعر في مصر — تيل فرامل، طنابير، ماستر فرامل لجميع موديلات السيارات. قطع أصلية مضمونة مع شحن سريع.',
+    keywords: [
+      'تيل فرامل', 'طنابير فرامل', 'ماستر فرامل', 'فرامل سيارات مصر', 'brake pads egypt',
+      'سعر تيل فرامل', 'تيل فرامل امامي', 'تيل فرامل خلفي', 'احسن تيل فرامل', 'افضل تيل فرامل',
+      'تيل فرامل اوبترا', 'تيل فرامل كروز', 'تيل فرامل النترا', 'تيل فرامل لانسر', 'تيل فرامل كورولا',
+      'طنابير اوبترا', 'طنابير كروز', 'طنابير النترا', 'تربيتة فرامل مصر',
+    ],
+  },
+  'عفشة': {
+    description: 'قطع عفشة سيارات أصلية بأفضل سعر في مصر — مساعدين، بلية عجل، مقصات، قواعد وشدادات لجميع موديلات السيارات. شحن سريع لباب البيت مع ضمان.',
+    keywords: [
+      'مساعدين', 'بلية عجل', 'مقصات عفشة', 'قطع عفشة', 'سعر مساعدين', 'احسن مساعدين',
+      'مساعدين اوبترا', 'مساعدين كروز', 'مساعدين النترا', 'مساعدين لانسر', 'مساعدين كورولا',
+      'بلية عجل اوبترا', 'بلية عجل كروز', 'بلية عجل النترا', 'مقصات اوبترا', 'مقصات كروز',
+      'shock absorber مصر', 'wheel bearing مصر', 'عفشة سيارات مصر', 'قطع عفشة بأقل سعر',
+    ],
+  },
+  'سيور و بلي': {
+    description: 'سيور وبلي سيارات أصلية بأفضل سعر في مصر — سير توقيت، سير مجموعة، سير دينامو، سير كاتينة، بلي وشدادات. شحن لباب البيت مع ضمان الجودة.',
+    keywords: [
+      'سير توقيت', 'سير مجموعة', 'سير دينامو', 'سير كاتينة', 'بلي سير', 'سيور سيارات مصر',
+      'سعر سير توقيت', 'طقم كاتينة', 'احسن سير توقيت', 'timing belt مصر',
+      'سير اوبترا', 'سير كروز', 'سير النترا', 'سير لانسر', 'سير كورولا', 'سير يارس',
+    ],
+  },
+  'دورة تبريد و تكييف': {
+    description: 'قطع دورة تبريد وتكييف سيارات أصلية — طلمبة مياه، ردياتير، ثرموستات، سربنتينة، خراطيم تبريد، كولانت. أسعار مناسبة وشحن سريع في مصر.',
+    keywords: [
+      'طلمبة مياه', 'ردياتير', 'ثرموستات', 'كولانت', 'سربنتينة تكييف', 'دورة تبريد',
+      'سعر طلمبة مياه', 'سعر ردياتير', 'طلمبة مياه اوبترا', 'طلمبة مياه كروز', 'طلمبة مياه النترا',
+      'ثرموستات اوبترا', 'كولانت سيارة', 'خرطوم تبريد', 'water pump مصر', 'radiator مصر',
+    ],
+  },
+  'دورة البنزين': {
+    description: 'قطع دورة البنزين والوقود أصلية بأفضل سعر في مصر — طلمبة بنزين، إنجكتورات، منظمات ضغط وقود. لجميع أنواع السيارات مع شحن لباب البيت.',
+    keywords: [
+      'طلمبة بنزين', 'انجكتور', 'منظم ضغط بنزين', 'دورة البنزين', 'fuel pump مصر',
+      'سعر طلمبة بنزين', 'طلمبة بنزين اوبترا', 'طلمبة بنزين كروز', 'طلمبة بنزين النترا',
+      'احسن طلمبة بنزين', 'injector مصر', 'انجكتور اوبترا',
+    ],
+  },
+  'بوجيهات و سلوك بوجيهات و موبينة': {
+    description: 'بوجيهات وموبينة وسلوك بوجيهات أصلية بأفضل سعر في مصر — NGK، Bosch، Denso، Champion لجميع موديلات السيارات. شحن سريع مع ضمان.',
+    keywords: [
+      'بوجيهات', 'موبينة', 'سلوك بوجيهات', 'بوجيهات سيارات مصر', 'NGK مصر', 'بوش بوجيهات',
+      'سعر بوجيهات', 'احسن بوجيهات', 'افضل بوجيهات', 'بوجيهات ارجيتيم', 'بوجيهات ايريديوم',
+      'بوجيهات اوبترا', 'بوجيهات كروز', 'بوجيهات النترا', 'بوجيهات لانسر', 'بوجيهات كورولا',
+      'spark plugs egypt', 'بوجيهات بلاتينيوم', 'موبينة اوبترا', 'موبينة لانسر',
+    ],
+  },
+  'حساسات و قطع كهربائية': {
+    description: 'حساسات وقطع كهربائية سيارات أصلية بأفضل سعر في مصر — حساس شكمان، حساس حرارة، حساس دعسة، حساس ABS. لجميع موديلات السيارات مع شحن سريع.',
+    keywords: [
+      'حساس شكمان', 'حساس حرارة', 'حساس دعسة', 'حساس ABS', 'حساس كامة', 'حساس كرنك',
+      'حساسات سيارات مصر', 'قطع كهربائية سيارات', 'سعر حساس شكمان', 'check engine',
+      'حساس اوبترا', 'حساس كروز', 'حساس النترا', 'oxygen sensor مصر', 'sensor مصر',
+    ],
+  },
+  'جوانات و أويل سيل': {
+    description: 'جوانات وأويل سيل سيارات أصلية بأفضل سعر في مصر. لمنع تسرب الزيت وإحكام غلق المحرك لجميع موديلات السيارات. شحن سريع لباب البيت.',
+    keywords: [
+      'جوانات موتور', 'اويل سيل', 'جوان موتور', 'oil seal مصر', 'تسرب زيت سيارة',
+      'جوانات اوبترا', 'جوانات كروز', 'جوانات النترا', 'سعر اويل سيل',
+    ],
+  },
+  'مستلزمات عمرة موتور': {
+    description: 'مستلزمات عمرة موتور أصلية بأفضل سعر في مصر — طقم بستم، عامود كامة، رسمات. قطع أصلية مضمونة لجميع أنواع الموتورات مع شحن سريع.',
+    keywords: [
+      'طقم بستم', 'عمرة موتور', 'عامود كامة', 'رسمات موتور', 'قطع عمرة موتور مصر',
+      'بستم اوبترا', 'بستم كروز', 'بستم النترا', 'engine overhaul egypt',
+    ],
+  },
+  'قطع الموتور و ملحقاته': {
+    description: 'قطع موتور سيارات أصلية بأفضل سعر في مصر. عامود كرنك، سلندرات، مكابس وجميع قطع الموتور لكل موديلات السيارات. شحن سريع لباب البيت.',
+    keywords: [
+      'قطع موتور', 'عامود كرنك', 'مكابس', 'سلندر', 'قطع موتور مصر', 'engine parts egypt',
+      'سعر قطع موتور', 'موتور اوبترا', 'موتور كروز', 'موتور النترا',
+    ],
+  },
+  'دبرياج و قطع فتيس': {
+    description: 'قطع دبرياج وفتيس سيارات أصلية بأفضل سعر في مصر. طقم دبرياج، قرص دبرياج، صينية دبرياج لجميع موديلات السيارات. شحن لباب البيت مع ضمان.',
+    keywords: [
+      'قطع دبرياج', 'طقم دبرياج', 'قرص دبرياج', 'صينية دبرياج', 'دبرياج سيارة مصر',
+      'دبرياج اوبترا', 'دبرياج كروز', 'دبرياج النترا', 'clutch مصر', 'سعر دبرياج',
+    ],
+  },
+  'إطارات': {
+    description: 'اشتري إطارات سيارات أصلية بأفضل سعر في مصر. إطارات لجميع أحجام ومواصفات السيارات من أشهر الماركات العالمية. شحن سريع لباب البيت.',
+    keywords: [
+      'اطارات سيارات مصر', 'سعر اطارات', 'احسن اطارات', 'افضل اطارات مصر', 'tires egypt',
+      '185/65R15', '195/65R15', '205/55R16', '215/60R16', 'اطارات اوبترا', 'اطارات كروز',
+    ],
+  },
+  'مساحات': {
+    description: 'مساحات زجاج سيارات أصلية بأفضل سعر في مصر. مساحات بأفضل جودة لجميع موديلات السيارات. شحن سريع لباب البيت مع ضمان الجودة.',
+    keywords: [
+      'مساحات زجاج', 'مساحات سيارات', 'wiper blade مصر', 'سعر مساحات', 'مساحات بوش',
+      'مساحات اوبترا', 'مساحات كروز', 'مساحات النترا', 'احسن مساحات زجاج',
+    ],
+  },
+};
 
-  useEffect(() => {
-    async function fetchSubCategories() {
-      try {
-        setLoading(true);
-        
-        const { data: productsData } = await supabase
-          .from('products')
-          .select('subcategory, image_url')
-          .eq('category', categoryName)
-          .neq('subcategory', null);
+const BASE_URL = 'https://zaitandfilters.com';
 
-        const { data: customImages } = await supabase
-          .from('category_images')
-          .select('name, image_url');
+export async function generateMetadata(
+  { params }: { params: Promise<{ name: string }> }
+): Promise<Metadata> {
+  const { name } = await params;
+  const categoryName = decodeURIComponent(name);
+  const seo = CATEGORY_SEO[categoryName];
+  const canonicalUrl = `${BASE_URL}/categories/${encodeURIComponent(categoryName)}`;
 
-        if (productsData) {
-          const uniqueMap = new Map();
+  const title = `${categoryName} أصلية بأفضل سعر في مصر | زيت أند فلترز`;
+  const description = seo?.description ??
+    `تسوق ${categoryName} أصلية بأفضل الأسعار في مصر من زيت أند فلترز. قطع غيار مضمونة لجميع موديلات السيارات مع شحن سريع لباب البيت في جميع المحافظات.`;
+  const keywords = [
+    categoryName,
+    `${categoryName} مصر`,
+    `${categoryName} بأفضل سعر`,
+    `${categoryName} أصلية`,
+    `سعر ${categoryName}`,
+    `احسن ${categoryName}`,
+    `افضل ${categoryName} مصر`,
+    `شراء ${categoryName} اونلاين مصر`,
+    ...(seo?.keywords ?? []),
+  ];
 
-          productsData.forEach(p => {
-            if (p.subcategory) {
-              const cleanName = p.subcategory.trim();
-              
-              if (!uniqueMap.has(cleanName)) {
-                const customImg = customImages?.find(img => img.name.trim() === cleanName);
-                
-                uniqueMap.set(cleanName, {
-                  name: cleanName,
-                  image: customImg?.image_url || p.image_url || "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?q=80&w=500"
-                });
-              }
-            }
-          });
+  return {
+    title,
+    description,
+    keywords,
+    alternates: { canonical: canonicalUrl },
+    openGraph: {
+      title,
+      description,
+      url: canonicalUrl,
+      siteName: 'زيت أند فلترز',
+      locale: 'ar_EG',
+      type: 'website',
+    },
+    twitter: { card: 'summary_large_image', title, description },
+  };
+}
 
-          const sortedList = Array.from(uniqueMap.values()).sort((a, b) => 
-            a.name.localeCompare(b.name, 'ar')
-          );
-          
-          setSubCategories(sortedList);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchSubCategories();
-  }, [categoryName]);
-
-  return (
-    <div style={{ direction: 'rtl', padding: '40px 20px', maxWidth: '1200px', margin: '0 auto', minHeight: '80vh', backgroundColor: '#fdfdfd' }}>
-      
-      {/* Breadcrumbs */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '30px', color: '#666', fontSize: '0.9rem' }}>
-        <Link href="/" style={{ color: '#22c55e', textDecoration: 'none', fontWeight: 'bold' }}>الرئيسية</Link>
-        <ChevronRight size={16} />
-        <span style={{ fontWeight: '800' }}>{categoryName}</span>
-      </div>
-
-      <div style={{ marginBottom: '40px' }}>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: '900', marginBottom: '10px' }}>{categoryName}</h1>
-        <div style={{ width: '60px', height: '5px', background: '#22c55e', borderRadius: '5px' }}></div>
-      </div>
-
-      {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '100px' }}>
-          <Loader2 size={40} className="animate-spin" color="#22c55e" />
-        </div>
-      ) : (
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(175px, 1fr))', 
-          gap: '15px' 
-        }}>
-          {subCategories.map((sub, index) => (
-            // ✅ FIX: changed ?cat= to ?category= and ?sub= to ?subcategory=
-            // to match what the store page reads with searchParams.get('category') / searchParams.get('subcategory')
-            <Link
-              href={`/store?category=${encodeURIComponent(categoryName)}&subcategory=${encodeURIComponent(sub.name)}`}
-              key={index}
-              style={{ textDecoration: 'none' }}
-            >
-              <div className="sub-cat-card" style={{
-                position: 'relative',
-                height: '140px', 
-                borderRadius: '20px',
-                overflow: 'hidden',
-                backgroundColor: '#000',
-                transition: '0.3s ease',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
-              }}>
-                <img 
-                  src={sub.image} 
-                  alt={sub.name} 
-                  style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    objectFit: 'cover', 
-                    opacity: 0.65,
-                    filter: 'brightness(0.75)'
-                  }}
-                />
-                <div style={{
-                  position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.15) 100%)',
-                  padding: '10px'
-                }}>
-                  <span style={{ 
-                    color: '#fff', 
-                    fontSize: '1.6rem', 
-                    fontWeight: '900', 
-                    textAlign: 'center', 
-                    textShadow: '3px 3px 15px rgba(0,0,0,1)',
-                    lineHeight: '1.1'
-                  }}>
-                    {sub.name}
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
-
-      {!loading && subCategories.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '100px 20px', background: '#fff', borderRadius: '20px', border: '1px solid #eee' }}>
-          <LayoutGrid size={60} color="#eee" style={{ marginBottom: '20px' }} />
-          <h3 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '10px' }}>لا توجد فئات فرعية</h3>
-          <p style={{ color: '#888', marginBottom: '20px' }}>يمكنك تصفح جميع المنتجات في قسم {categoryName} مباشرة</p>
-          {/* ✅ FIX: same fix applied to the fallback "view all" link */}
-          <Link
-            href={`/store?category=${encodeURIComponent(categoryName)}`}
-            style={{ backgroundColor: '#22c55e', color: '#fff', padding: '12px 30px', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold' }}
-          >
-            عرض المنتجات
-          </Link>
-        </div>
-      )}
-
-      <style dangerouslySetInnerHTML={{ __html: `
-        .sub-cat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
-        .sub-cat-card:hover img { opacity: 0.6; transform: scale(1.05); }
-        img { transition: 0.6s ease; }
-        @media (max-width: 768px) {
-          .sub-cat-card { height: 120px !important; border-radius: 15px !important; }
-          .sub-cat-card span { font-size: 1.3rem !important; }
-        }
-      `}} />
-    </div>
-  );
+export default function CategoryPage() {
+  return <CategoryClient />;
 }

@@ -1,86 +1,71 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { supabase } from '@/app/lib/supabase';
-import { useParams } from 'next/navigation';
-import Link from 'next/link';
-import { ArrowRight, Clock, Tag } from 'lucide-react';
+import type { Metadata } from 'next';
+import { createClient } from '@supabase/supabase-js';
+import BlogPostClient from './BlogPostClient';
 
-export default function BlogPostPage() {
-  const { slug } = useParams();
-  const [post, setPost] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+const BASE_URL = 'https://zaitandfilters.com';
 
-  useEffect(() => {
-    async function fetchPost() {
-      // Decode the slug to handle Arabic characters in URLs
-      const decodedSlug = decodeURIComponent(slug as string);
+export async function generateMetadata(
+  { params }: { params: Promise<{ slug: string }> }
+): Promise<Metadata> {
+  const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
 
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('slug', decodedSlug)
-        // Removed .eq('published', true) — make sure your rows have published=true or add it back after fixing data
-        .single();
-
-      if (error) console.error('Supabase error:', error.message);
-      if (data) setPost(data);
-      setLoading(false);
-    }
-    fetchPost();
-  }, [slug]);
-
-  if (loading) return <div style={loaderStyle}>جاري التحميل...</div>;
-  if (!post) return <div style={loaderStyle}>المقال مش موجود 😕</div>;
-
-  return (
-    <div style={{ direction: 'rtl', background: '#f8f9fa', minHeight: '100vh', padding: '40px 20px' }}>
-      <div style={{ maxWidth: '780px', margin: '0 auto' }}>
-
-        {/* Back */}
-        <Link href="/blog" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#15803d', fontWeight: '700', textDecoration: 'none', marginBottom: '30px', fontSize: '0.9rem' }}>
-          <ArrowRight size={16} /> العودة للمدونة
-        </Link>
-
-        {/* Cover */}
-        {post.cover_image && (
-          <div style={{ borderRadius: '24px', overflow: 'hidden', marginBottom: '35px', maxHeight: '400px' }}>
-            <img src={post.cover_image} alt={post.title} style={{ width: '100%', objectFit: 'cover' }} />
-          </div>
-        )}
-
-        {/* Meta */}
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '20px' }}>
-          <span style={{ fontSize: '0.82rem', color: '#aaa', display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <Clock size={14} /> {new Date(post.created_at).toLocaleDateString('ar-EG')}
-          </span>
-          {post.tags?.map((tag: string, i: number) => (
-            <span key={i} style={tagStyle}><Tag size={11} /> {tag}</span>
-          ))}
-        </div>
-
-        {/* Title */}
-        <h1 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: '900', color: '#1a1a1a', lineHeight: 1.4, margin: '0 0 30px' }}>{post.title}</h1>
-
-        {/* Content */}
-        <div style={{ background: '#fff', borderRadius: '24px', padding: '40px', border: '1px solid #eee', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
-          <div style={{ color: '#444', lineHeight: 2, fontSize: '1.05rem', whiteSpace: 'pre-wrap' }}>
-            {post.content}
-          </div>
-        </div>
-
-        {/* Author */}
-        <div style={{ marginTop: '30px', background: '#f0fdf4', borderRadius: '16px', padding: '20px 24px', display: 'flex', alignItems: 'center', gap: '14px', border: '1px solid #dcfce7' }}>
-          <div style={{ width: '46px', height: '46px', borderRadius: '50%', background: '#15803d', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '900', fontSize: '1.2rem' }}>ز</div>
-          <div>
-            <div style={{ fontWeight: '800', color: '#1a1a1a', fontSize: '0.95rem' }}>{post.author}</div>
-            <div style={{ color: '#15803d', fontSize: '0.8rem', fontWeight: '600' }}>فريق زيت أند فلترز</div>
-          </div>
-        </div>
-
-      </div>
-    </div>
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
+
+  const { data: post } = await supabase
+    .from('blog_posts')
+    .select('title, excerpt, content, cover_image, tags, author, created_at')
+    .eq('slug', decodedSlug)
+    .single();
+
+  if (!post) {
+    return {
+      title: 'مقال | زيت أند فلترز',
+      description: 'مدونة زيت أند فلترز لنصائح صيانة السيارات في مصر.',
+    };
+  }
+
+  const canonicalUrl = `${BASE_URL}/blog/${slug}`;
+  const description = post.excerpt ||
+    (post.content ? post.content.slice(0, 160).replace(/\n/g, ' ') : '') ||
+    'نصائح صيانة السيارات وقطع الغيار الأصلية في مصر من زيت أند فلترز.';
+
+  const keywords = [
+    ...(post.tags || []),
+    'صيانة سيارات مصر', 'نصائح قطع غيار', 'زيت أند فلترز مدونة',
+    'car maintenance egypt', post.title,
+  ].filter(Boolean);
+
+  return {
+    title: `${post.title} | زيت أند فلترز`,
+    description,
+    keywords,
+    authors: [{ name: post.author || 'زيت أند فلترز' }],
+    alternates: { canonical: canonicalUrl },
+    openGraph: {
+      title: post.title,
+      description,
+      url: canonicalUrl,
+      siteName: 'زيت أند فلترز',
+      locale: 'ar_EG',
+      type: 'article',
+      publishedTime: post.created_at,
+      images: post.cover_image
+        ? [{ url: post.cover_image, width: 1200, height: 630, alt: post.title }]
+        : [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description,
+      images: post.cover_image ? [post.cover_image] : [`${BASE_URL}/og-image.jpg`],
+    },
+  };
 }
 
-const loaderStyle: any = { textAlign: 'center', padding: '100px', color: '#15803d', fontWeight: '900', fontSize: '1.3rem', direction: 'rtl' };
-const tagStyle: any = { display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f0fdf4', color: '#15803d', padding: '3px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '700', border: '1px solid #dcfce7' };
+export default function BlogPostPage() {
+  return <BlogPostClient />;
+}
