@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 export default function CheckoutPage() {
-  const { cart, clearCart, addToCart, isInitialized } = useCart();
+  const { cart, clearCart, addToCart, removeFromCart, isInitialized } = useCart();
   const router = useRouter();
   const { markAsRecovered } = useAbandonedCart();
   const [loading, setLoading] = useState(false);
@@ -860,8 +860,21 @@ export default function CheckoutPage() {
                         {item.car_model_year && <div style={detailItem}><Calendar size={11} color="#15803d" /> <span>سنة الموديل: <b>{item.car_model_year}</b></span></div>}
                         <div style={detailItem}><Globe size={11} color="#15803d" /> <span>بلد المنشأ: <b>{country}</b></span></div>
                       </div>
-                      <div style={{ marginTop: '5px' }}>
-                        <span style={qtyBadge}>الكمية: {item.quantity}</span>
+                      {/* Qty stepper + remove */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
+                          <button type="button" onClick={() => addToCart(item, 1)}
+                            style={{ width: '30px', height: '30px', border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontSize: '1rem', fontWeight: '900' }}>+</button>
+                          <span style={{ width: '32px', textAlign: 'center', fontWeight: '900', fontSize: '0.9rem', color: '#0f172a' }}>{item.quantity}</span>
+                          <button type="button" onClick={() => item.quantity > 1 && removeFromCart(item.id, true)}
+                            style={{ width: '30px', height: '30px', border: 'none', background: 'none', cursor: item.quantity > 1 ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.quantity > 1 ? '#475569' : '#cbd5e1', fontSize: '1rem', fontWeight: '900' }}>−</button>
+                        </div>
+                        <button type="button" onClick={() => removeFromCart(item.id)}
+                          style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '0.72rem', fontWeight: '700', padding: '4px 6px', borderRadius: '6px', transition: 'all 0.15s' }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#ef4444'; (e.currentTarget as HTMLButtonElement).style.background = '#fef2f2'; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#94a3b8'; (e.currentTarget as HTMLButtonElement).style.background = 'none'; }}>
+                          حذف
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -1197,7 +1210,6 @@ const loaderStyle: any = { display: 'flex', justifyContent: 'center', alignItems
 const itemsList: any = { maxHeight: '360px', overflowY: 'auto' };
 const detailsGrid = { display: 'flex', flexDirection: 'column' as const, gap: '2px', marginTop: '6px' };
 const detailItem = { display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#94a3b8' };
-const qtyBadge = { backgroundColor: '#f0fdf4', color: '#15803d', padding: '3px 9px', borderRadius: '8px', fontSize: '0.72rem', fontWeight: '800', display: 'inline-block' };
 const paymentContainer: any = { display: 'flex', flexDirection: 'column', gap: '10px' };
 const paymentCard = (isActive: boolean): any => ({
   display: 'block',
