@@ -784,9 +784,9 @@ export default function HomePage() {
           }
 
           @media (max-width: 768px) {
-            /* .hero-section height set in globals.css (640px) */
-            .hero-content-layer { position: absolute; inset: 0; z-index: 10; display: flex; align-items: flex-start; padding-top: 100px; }
-            .hero-inner { width: 100%; padding: 0 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 36px; direction: rtl; }
+            /* position: relative so hero-section height grows with content */
+            .hero-content-layer { position: relative; z-index: 10; display: flex; align-items: flex-start; padding-top: 80px; padding-bottom: 40px; }
+            .hero-inner { width: 100%; padding: 0 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 28px; direction: rtl; }
             .hero-text { direction: rtl; text-align: right; display: flex; flex-direction: column; align-items: flex-end; width: 100%; }
             .hero-text-title { width: 100%; }
             .hero-text h1 { font-size: 2.8rem !important; font-weight: 900 !important; line-height: 1.3 !important; margin: 0 0 18px 0 !important; color: #22c55e !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 4px 20px rgba(0,0,0,0.98), 0 0 40px rgba(0,0,0,0.8) !important; letter-spacing: -0.5px !important; width: 100% !important; display: block !important; }
@@ -797,9 +797,8 @@ export default function HomePage() {
           }
 
           @media (max-width: 380px) {
-            /* .hero-section height set in globals.css */
-            .hero-content-layer { padding-top: 80px; }
-            .hero-inner { gap: 28px; }
+            .hero-content-layer { padding-top: 70px; gap: 24px; }
+            .hero-inner { gap: 24px; }
             .hero-text h1 { font-size: 2.3rem !important; }
             .hero-text p { font-size: 1.05rem !important; }
             .hero-cta-btn { font-size: 1.1rem !important; padding: 17px 20px !important; }

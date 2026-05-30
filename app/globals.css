@@ -62,15 +62,12 @@ body {
   width: 100%;
   background: #000;
   overflow: hidden;
-  /* Mobile first — avoids the 0→980px shift that causes CLS > 0.25 */
-  min-height: 400px;
-  height: 400px;
-}
-@media (min-width: 481px) and (max-width: 768px) {
-  .hero-section { height: 560px; min-height: 560px; }
+  /* Mobile: content-layer is in-flow so hero grows with content.
+     min-height reserves space before JS loads to reduce CLS. */
+  min-height: 620px;
 }
 @media (min-width: 769px) {
-  /* calc(100svh - navbar) ensures the full hero is visible without scrolling */
+  /* Desktop: calc(100svh - navbar) ensures full hero fits without scrolling */
   .hero-section { height: calc(100svh - 80px); min-height: 540px; max-height: 750px; }
 }
 
