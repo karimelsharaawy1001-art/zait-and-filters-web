@@ -97,10 +97,10 @@ export default function BestSellers() {
         {bestSellers.map((p) => (
           <SwiperSlide key={p.id}>
             <motion.div whileHover={{ y: -5 }} style={productCard}>
-              <div style={imageArea}>
+              <div className="zf-bs-image-area" style={{ position: 'relative' }}>
                 <div style={bestLabel}>الأكثر طلباً</div>
                 {p.image_url ? (
-                  <img src={p.image_url} alt={p.name} style={imgStyle} />
+                  <img src={p.image_url} alt={p.name} width="153" height="153" loading="lazy" decoding="async" style={imgStyle} />
                 ) : (
                   <Car size={40} color="#eee" />
                 )}
@@ -129,7 +129,6 @@ const subTitle: any = { color: '#777', fontSize: '0.9rem', marginTop: '5px' };
 const fireIconBox: any = { background: '#fff1f1', padding: '8px', borderRadius: '12px' };
 
 const productCard: any = { background: '#fff', borderRadius: '20px', border: '1px solid #f0f0f0', overflow: 'hidden', height: '100%', boxShadow: '0 5px 15px rgba(0,0,0,0.02)' };
-const imageArea: any = { height: '180px', background: '#f9f9f9', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' };
 const imgStyle: any = { maxWidth: '85%', maxHeight: '85%', objectFit: 'contain' };
 const bestLabel: any = { position: 'absolute', top: '12px', right: '12px', background: '#ff4d4d', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: 'bold', zIndex: 5 };
 

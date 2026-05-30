@@ -109,10 +109,10 @@ export default function ProfessionalFooter() {
           <div style={paymentSection}>
             <h5 style={paymentCategory}>البطاقات البنكية:</h5>
             <div style={paymentLogos}>
-              <img src="https://i.postimg.cc/Njw3g5JW/visa-logo-png-seeklogo-149697.png" alt="Visa" style={payImg} />
-              <img src="https://i.postimg.cc/sgRkVv64/1280px-Master-Card-Logo-svg.png" alt="Mastercard" style={payImg} />
-              <img src="https://i.postimg.cc/7ZyFxfsB/MEEZA.jpg" alt="Meeza" style={payImg} />
-              <img src="https://i.postimg.cc/zG1sJVt2/apple-pay.png" alt="Apple Pay" style={payImg} />
+              <img src="https://i.postimg.cc/Njw3g5JW/visa-logo-png-seeklogo-149697.png" alt="Visa" style={payImg} width="40" height="24" loading="lazy" decoding="async" />
+              <img src="https://i.postimg.cc/sgRkVv64/1280px-Master-Card-Logo-svg.png" alt="Mastercard" style={payImg} width="40" height="24" loading="lazy" decoding="async" />
+              <img src="https://i.postimg.cc/7ZyFxfsB/MEEZA.jpg" alt="Meeza" style={payImg} width="40" height="24" loading="lazy" decoding="async" />
+              <img src="https://i.postimg.cc/zG1sJVt2/apple-pay.png" alt="Apple Pay" style={payImg} width="40" height="24" loading="lazy" decoding="async" />
             </div>
           </div>
 
@@ -120,18 +120,18 @@ export default function ProfessionalFooter() {
           <div style={paymentSection}>
             <h5 style={paymentCategory}>التقسيط والدفع:</h5>
             <div style={paymentLogos}>
-              <img src="https://i.postimg.cc/wjdC67fn/VALU.jpg" alt="Valu" style={payImg} />
-              <img src="https://i.postimg.cc/pLtw2pGk/FAWRY.jpg" alt="Fawry" style={payImg} />
-              <img src="https://i.postimg.cc/vZdJQcqN/SOHOOLA.jpg" alt="Sohoola" style={payImg} />
-              <img src="https://i.postimg.cc/52Mhx67g/CONTACT.jpg" alt="Contact" style={payImg} />
-              <img src="https://i.postimg.cc/FHQM97WT/HALAN.jpg" alt="Halan" style={payImg} />
-              <img src="https://i.postimg.cc/dVKbqLHB/AMAN.jpg" alt="Aman" style={payImg} />
-              <img src="https://i.postimg.cc/kgd0nB1f/EL-AHLY.jpg" alt="El Ahly" style={payImg} />
-              <img src="https://i.postimg.cc/VkcxYdGp/TAKKA.jpg" alt="Takka" style={payImg} />
-              <img src="https://i.postimg.cc/wjdC67ff/lucky.jpg" alt="Lucky" style={payImg} />
-              <img src="https://i.postimg.cc/qvdPkzbY/TRU.jpg" alt="Tru" style={payImg} />
-              <img src="https://i.postimg.cc/RZzkMNsb/mogo.jpg" alt="Mogo" style={payImg} />
-              <img src="https://i.postimg.cc/3r19c1zy/Pv1p8v-KJq4Z-LLOj-Qj-BZp-K8DNJg4Zb5.png" alt="Payment" style={payImg} />
+              <img src="https://i.postimg.cc/wjdC67fn/VALU.jpg" alt="Valu" style={payImg} width="40" height="24" loading="lazy" decoding="async" />
+              <img src="https://i.postimg.cc/pLtw2pGk/FAWRY.jpg" alt="Fawry" style={payImg} width="40" height="24" loading="lazy" decoding="async" />
+              <img src="https://i.postimg.cc/vZdJQcqN/SOHOOLA.jpg" alt="Sohoola" style={payImg} width="40" height="24" loading="lazy" decoding="async" />
+              <img src="https://i.postimg.cc/52Mhx67g/CONTACT.jpg" alt="Contact" style={payImg} width="40" height="24" loading="lazy" decoding="async" />
+              <img src="https://i.postimg.cc/FHQM97WT/HALAN.jpg" alt="Halan" style={payImg} width="40" height="24" loading="lazy" decoding="async" />
+              <img src="https://i.postimg.cc/dVKbqLHB/AMAN.jpg" alt="Aman" style={payImg} width="40" height="24" loading="lazy" decoding="async" />
+              <img src="https://i.postimg.cc/kgd0nB1f/EL-AHLY.jpg" alt="El Ahly" style={payImg} width="40" height="24" loading="lazy" decoding="async" />
+              <img src="https://i.postimg.cc/VkcxYdGp/TAKKA.jpg" alt="Takka" style={payImg} width="40" height="24" loading="lazy" decoding="async" />
+              <img src="https://i.postimg.cc/wjdC67ff/lucky.jpg" alt="Lucky" style={payImg} width="40" height="24" loading="lazy" decoding="async" />
+              <img src="https://i.postimg.cc/qvdPkzbY/TRU.jpg" alt="Tru" style={payImg} width="40" height="24" loading="lazy" decoding="async" />
+              <img src="https://i.postimg.cc/RZzkMNsb/mogo.jpg" alt="Mogo" style={payImg} width="40" height="24" loading="lazy" decoding="async" />
+              <img src="https://i.postimg.cc/3r19c1zy/Pv1p8v-KJq4Z-LLOj-Qj-BZp-K8DNJg4Zb5.png" alt="Payment" style={payImg} width="40" height="24" loading="lazy" decoding="async" />
             </div>
           </div>
 
@@ -139,9 +139,9 @@ export default function ProfessionalFooter() {
           <div style={paymentSection}>
             <h5 style={paymentCategory}>محافظ المحمول:</h5>
             <div style={paymentLogos}>
-              <img src="https://i.postimg.cc/ryjgPj7K/VODAFONE.jpg" alt="Vodafone Cash" style={payImg} />
-              <img src="https://i.postimg.cc/Y2R8sRTj/ORANGE.jpg" alt="Orange Money" style={payImg} />
-              <img src="https://i.postimg.cc/59gpRgDy/ETTISALAT.jpg" alt="Etisalat Cash" style={payImg} />
+              <img src="https://i.postimg.cc/ryjgPj7K/VODAFONE.jpg" alt="Vodafone Cash" style={payImg} width="40" height="24" loading="lazy" decoding="async" />
+              <img src="https://i.postimg.cc/Y2R8sRTj/ORANGE.jpg" alt="Orange Money" style={payImg} width="40" height="24" loading="lazy" decoding="async" />
+              <img src="https://i.postimg.cc/59gpRgDy/ETTISALAT.jpg" alt="Etisalat Cash" style={payImg} width="40" height="24" loading="lazy" decoding="async" />
             </div>
           </div>
         </div>
@@ -176,5 +176,5 @@ const paymentText: any = { fontSize: '0.9rem', color: '#aaa', margin: '15px 0 10
 const paymentSection: any = { marginBottom: '15px' };
 const paymentCategory: any = { fontSize: '0.75rem', color: '#666', marginBottom: '8px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' };
 const paymentLogos: any = { display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' };
-const payImg: any = { height: '24px', width: 'auto', maxWidth: '50px', borderRadius: '4px', objectFit: 'contain', filter: 'brightness(0.9)', transition: '0.3s', cursor: 'pointer', ':hover': { filter: 'brightness(1.1)' } };
+const payImg: any = { height: '24px', width: '40px', borderRadius: '4px', objectFit: 'contain', filter: 'brightness(0.9)', transition: 'filter 0.3s', cursor: 'pointer' };
 const bottomBar: any = { borderTop: '1px solid #111', paddingTop: '20px', textAlign: 'center', color: '#666', fontSize: '0.85rem' };

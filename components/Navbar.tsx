@@ -277,7 +277,7 @@ export default function ProfessionalNavbar() {
       </AnimatePresence>
 
       {/* --- Top Navbar --- */}
-      <nav style={navContainer}>
+      <nav style={navContainer} className="zf-navbar">
         <div style={navContent} className="nav-content">
           <button
             className="mobile-menu-btn"

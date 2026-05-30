@@ -19,10 +19,12 @@ import ExitConfirmDialog from '@/components/ExitConfirmDialog'
 import ChatWidget from '@/components/ChatWidget'
 import StorefrontShell from '@/components/StorefrontShell'
 
-const almarai = Almarai({ 
-  subsets: ['arabic'], 
+const almarai = Almarai({
+  subsets: ['arabic'],
   weight: ['300', '400', '700', '800'],
-  display: 'swap',
+  // 'optional' = use font if cached/fast; otherwise keep fallback — eliminates font-swap CLS
+  display: 'optional',
+  preload: true,
 });
 
 export const metadata: Metadata = {

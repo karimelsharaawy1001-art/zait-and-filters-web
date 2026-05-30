@@ -453,7 +453,7 @@ function CategoriesGrid({ categories }: { categories: any[] }) {
             href={`/categories/${encodeURIComponent(cat.name)}`}
             className="cat-card"
           >
-            <img src={cat.image} alt={cat.name} loading="lazy" />
+            <img src={cat.image} alt={cat.name} loading="lazy" width="200" height="267" decoding="async" />
             <div className="cat-overlay" />
             <div className="cat-label">
               {cat.name}
@@ -764,13 +764,13 @@ export default function HomePage() {
 
           .page-container { animation: pageLoad 0.4s ease-out; }
 
-          .hero-section { position: relative; width: 100%; background: #000; overflow: hidden; }
+          /* hero-section height is now in globals.css — no override needed here */
           .hero-bg-layer { position: absolute; inset: 0; z-index: 0; pointer-events: none; transform: translateZ(0); }
           .hero-bg-slide { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 0.8s ease-in-out; will-change: opacity; }
           .hero-bg-slide.active { opacity: 1; }
 
           @media (min-width: 769px) {
-            .hero-section { height: 650px; }
+            /* height already set in globals.css */
             .hero-content-layer { position: absolute; inset: 0; z-index: 10; display: flex; align-items: center; }
             .hero-inner { width: 100%; max-width: 1300px; margin: 0 auto; padding: 40px 50px; display: flex; flex-direction: row; gap: 60px; align-items: center; justify-content: space-between; direction: rtl; }
             .hero-text { flex: 1; direction: rtl; text-align: right; display: flex; flex-direction: column; align-items: flex-end; animation: slideIn 0.6s ease-out 0.15s both; }
@@ -784,7 +784,7 @@ export default function HomePage() {
           }
 
           @media (max-width: 768px) {
-            .hero-section { height: 980px; }
+            /* .hero-section height set in globals.css (640px) */
             .hero-content-layer { position: absolute; inset: 0; z-index: 10; display: flex; align-items: flex-start; padding-top: 100px; }
             .hero-inner { width: 100%; padding: 0 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 36px; direction: rtl; }
             .hero-text { direction: rtl; text-align: right; display: flex; flex-direction: column; align-items: flex-end; width: 100%; }
@@ -797,7 +797,7 @@ export default function HomePage() {
           }
 
           @media (max-width: 380px) {
-            .hero-section { height: 1020px; }
+            /* .hero-section height set in globals.css */
             .hero-content-layer { padding-top: 80px; }
             .hero-inner { gap: 28px; }
             .hero-text h1 { font-size: 2.3rem !important; }
@@ -812,7 +812,8 @@ export default function HomePage() {
           .product-card-mdrn { flex: 0 0 320px !important; min-width: 320px !important; max-width: 320px !important; background: #fff; border-radius: 18px; border: 1px solid #f2f2f2; transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; overflow: hidden; scroll-snap-align: start; }
           .product-card-mdrn:hover { transform: translateY(-6px); border-color: #22c55e; box-shadow: 0 10px 30px rgba(34,197,94,0.15); }
           .img-container { background: #f9f9f9; height: 200px; width: 100%; position: relative; cursor: pointer; overflow: hidden; }
-          .img-fill-100  { width: 100%; height: 200px; object-fit: contain; padding: 0; display: block; transition: transform 0.3s ease; }
+          /* .img-fill-100 height/width now in globals.css — only add transition here */
+          .img-fill-100  { transition: transform 0.3s ease; }
           .img-container:hover .img-fill-100 { transform: scale(1.02); }
 
           @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
@@ -974,7 +975,7 @@ export default function HomePage() {
                   {homeBanner.link_url ? (
                     <Link href={homeBanner.link_url} style={{ textDecoration: 'none' }}>
                       <div className="home-banner-inner">
-                        {homeBanner.image_url && <img src={homeBanner.image_url} alt={homeBanner.title || 'banner'} className="home-banner-bg" loading="lazy" />}
+                        {homeBanner.image_url && <img src={homeBanner.image_url} alt={homeBanner.title || 'banner'} className="home-banner-bg" loading="eager" fetchPriority="high" width="1200" height="260" />}
                         <div className="home-banner-overlay" />
                         <div className="home-banner-content">
                           <div className="home-banner-text-block">
@@ -987,7 +988,7 @@ export default function HomePage() {
                     </Link>
                   ) : (
                     <div className="home-banner-inner">
-                      {homeBanner.image_url && <img src={homeBanner.image_url} alt={homeBanner.title || 'banner'} className="home-banner-bg" loading="lazy" />}
+                      {homeBanner.image_url && <img src={homeBanner.image_url} alt={homeBanner.title || 'banner'} className="home-banner-bg" loading="eager" fetchPriority="high" width="1200" height="260" />}
                       <div className="home-banner-overlay" />
                       <div className="home-banner-content">
                         <div className="home-banner-text-block">
@@ -1031,7 +1032,7 @@ export default function HomePage() {
                           </div>
                           {isAsli && <div className="badge-asli">✦ أصلي</div>}
                           <Link href={`/products/${p.id}`} className="img-container">
-                            <img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" />
+                            <img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" width="300" height="200" decoding="async" />
                             <div style={{ position: 'absolute', bottom: 6, left: 6, background: 'rgba(255,255,255,0.9)', padding: '2px 6px', borderRadius: '5px', fontSize: '0.65rem', fontWeight: '800' }}>
                               <Car size={9} /> {p.car_make}
                             </div>
@@ -1118,7 +1119,7 @@ export default function HomePage() {
                           <div style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#22c55e', color: '#fff', padding: '2px 6px', borderRadius: '5px', fontSize: '0.6rem', fontWeight: '900', zIndex: 10 }}>تريند ✨</div>
                           {isAsli && <div className="badge-asli">✦ أصلي</div>}
                           <Link href={`/products/${p.id}`} className="img-container">
-                            <img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" />
+                            <img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" width="300" height="200" decoding="async" />
                           </Link>
                           <div style={{ padding: '15px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
