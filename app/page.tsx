@@ -828,16 +828,17 @@ export default function HomePage() {
           }
           .product-card-mdrn:hover { transform: translateY(-8px); box-shadow: 0 24px 60px rgba(34,197,94,0.18); border-color: rgba(34,197,94,0.4); }
           .img-container { background: #f1f5f9; height: 210px; width: 100%; position: relative; cursor: pointer; overflow: hidden; display: block; }
-          .img-fill-100 { transition: transform 0.38s cubic-bezier(.4,0,.2,1); }
+          /* Override globals.css height so image fills the container with no gap */
+          .img-container .img-fill-100 { height: 100% !important; transition: transform 0.38s cubic-bezier(.4,0,.2,1); }
           .img-container:hover .img-fill-100 { transform: scale(1.07); }
-          .img-container::after { content:''; position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.04) 0%, transparent 50%); pointer-events:none; }
           .card-brand-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
           .card-brand { color:#22c55e; font-weight:800; font-size:0.75rem; letter-spacing:0.5px; text-transform:uppercase; }
           .card-origin { font-size:0.7rem; color:#888; font-weight:700; display:flex; align-items:center; gap:3px; }
           /* Allow up to 3 lines — no fixed height so long names show fully */
           .card-name { font-size:0.92rem; font-weight:900; color:#0f172a; line-height:1.45; overflow:hidden; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
-          .card-compat { display:inline-flex; align-items:center; gap:5px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:20px; padding:4px 10px; font-size:0.72rem; font-weight:800; color:#15803d; margin-bottom:8px; white-space:nowrap; }
-          .card-cat { display:inline-flex; align-items:center; gap:4px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:20px; padding:3px 9px; font-size:0.7rem; font-weight:700; color:#475569; white-space:nowrap; }
+          .card-compat { display:inline-flex; align-items:center; gap:5px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:20px; padding:4px 10px; font-size:0.72rem; font-weight:800; color:#15803d; margin-bottom:8px; max-width:100%; overflow:hidden; }
+          .card-compat span, .card-cat span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+          .card-cat { display:inline-flex; align-items:center; gap:4px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:20px; padding:3px 9px; font-size:0.7rem; font-weight:700; color:#475569; max-width:100%; overflow:hidden; }
           /* Price: main amount + ج.م on same line, old price + save badge below */
           .card-price-block { margin:10px 0 4px; }
           .card-price-row { display:flex; align-items:baseline; gap:6px; flex-wrap:nowrap; }
@@ -1080,8 +1081,8 @@ export default function HomePage() {
                             </div>
                             <h3 className="card-name">{p.name}</h3>
                             <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'10px'}}>
-                              <span className="card-compat"><Car size={11}/>{compatText}</span>
-                              {p.category && <span className="card-cat"><LayoutGrid size={10}/>{p.category}</span>}
+                              <span className="card-compat"><Car size={11}/><span>{compatText}</span></span>
+                              {p.category && <span className="card-cat"><LayoutGrid size={10}/><span>{p.category}</span></span>}
                             </div>
                             <div className="card-price-block">
                               <div className="card-price-row">
@@ -1165,8 +1166,8 @@ export default function HomePage() {
                             </div>
                             <h3 className="card-name">{p.name}</h3>
                             <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'10px'}}>
-                              <span className="card-compat"><Car size={11}/>{compatText}</span>
-                              {p.category && <span className="card-cat"><LayoutGrid size={10}/>{p.category}</span>}
+                              <span className="card-compat"><Car size={11}/><span>{compatText}</span></span>
+                              {p.category && <span className="card-cat"><LayoutGrid size={10}/><span>{p.category}</span></span>}
                             </div>
                             <div className="card-price-block">
                               <div className="card-price-row">

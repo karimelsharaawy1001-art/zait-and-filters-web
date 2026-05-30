@@ -1349,11 +1349,16 @@ setBrandsOptions(brandsOpts);
             overflow: hidden;
             position: relative;
             background-color: #f1f5f9;
+            height: 200px;
+          }
+          @media (max-width: 640px) {
+            .product-img-link { height: 160px; }
           }
           .product-card-img {
             width: 100%;
-            height: 200px;
+            height: 100%;
             object-fit: cover;
+            object-position: center;
             display: block;
             transition: transform 0.35s ease;
           }
@@ -1692,24 +1697,26 @@ setBrandsOptions(brandsOpts);
                               {product.name}
                             </h3>
                             <div style={{ background: '#ffffff', padding: '10px', borderRadius: '10px', marginBottom: '12px' }}>
-                              <div style={{ fontSize: '0.75rem', color: '#1a1a1a', fontWeight: '800', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <Settings2 size={12} color="#22c55e" />
-                                {(() => {
-                                  const univ = ['universal','عام','all','الكل',''];
-                                  const make = (product.car_make || '').trim();
-                                  const model = (product.car_model || '').trim();
-                                  if (univ.includes(make.toLowerCase())) return 'جميع السيارات';
-                                  const cleanModel = univ.includes(model.toLowerCase()) ? '' : model;
-                                  return `${make}${cleanModel ? ' ' + cleanModel : ''}`;
-                                })()}
+                              <div style={{ fontSize: '0.75rem', color: '#1a1a1a', fontWeight: '800', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
+                                <Settings2 size={12} color="#22c55e" style={{ flexShrink: 0 }} />
+                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {(() => {
+                                    const univ = ['universal','عام','all','الكل',''];
+                                    const make = (product.car_make || '').trim();
+                                    const model = (product.car_model || '').trim();
+                                    if (univ.includes(make.toLowerCase())) return 'جميع السيارات';
+                                    const cleanModel = univ.includes(model.toLowerCase()) ? '' : model;
+                                    return `${make}${cleanModel ? ' ' + cleanModel : ''}`;
+                                  })()}
+                                </span>
                               </div>
                               <div style={{ fontSize: '0.75rem', color: '#666', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                                <Calendar size={12} color="#22c55e" />
-                                {product.car_model_year || 'الكل'}
+                                <Calendar size={12} color="#22c55e" style={{ flexShrink: 0 }} />
+                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.car_model_year || 'الكل'}</span>
                               </div>
                               <div style={{ fontSize: '0.75rem', color: '#22c55e', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <LayoutGrid size={12} />
-                                {product.category}
+                                <LayoutGrid size={12} style={{ flexShrink: 0 }} />
+                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.category}</span>
                               </div>
                             </div>
                             <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
