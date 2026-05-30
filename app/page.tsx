@@ -793,21 +793,21 @@ export default function HomePage() {
 
           @media (max-width: 768px) {
             /* position: relative so hero-section height grows with content */
-            .hero-content-layer { position: relative; z-index: 10; display: flex; align-items: flex-start; padding-top: 80px; padding-bottom: 40px; }
-            .hero-inner { width: 100%; padding: 0 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 28px; direction: rtl; }
+            .hero-content-layer { position: relative; z-index: 10; display: flex; align-items: flex-start; padding-top: 20px; padding-bottom: 32px; }
+            .hero-inner { width: 100%; padding: 0 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; direction: rtl; }
             .hero-text { direction: rtl; text-align: right; display: flex; flex-direction: column; align-items: flex-end; width: 100%; }
             .hero-text-title { width: 100%; }
-            .hero-text h1 { font-size: 2.8rem !important; font-weight: 900 !important; line-height: 1.3 !important; margin: 0 0 18px 0 !important; color: #22c55e !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 4px 20px rgba(0,0,0,0.98), 0 0 40px rgba(0,0,0,0.8) !important; letter-spacing: -0.5px !important; width: 100% !important; display: block !important; }
-            .hero-text p { font-size: 1.2rem !important; font-weight: 700 !important; line-height: 1.7 !important; color: #fff !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 14px rgba(0,0,0,0.98) !important; margin: 0 0 28px 0 !important; width: 100% !important; display: block !important; }
-            .hero-cta-btn { display: flex !important; align-items: center !important; justify-content: center !important; gap: 10px !important; width: 100% !important; padding: 20px 24px !important; background-color: #22c55e !important; color: #fff !important; border-radius: 16px !important; text-decoration: none !important; font-weight: 900 !important; font-size: 1.25rem !important; box-shadow: 0 8px 28px rgba(34,197,94,0.45) !important; }
+            .hero-text h1 { font-size: 2.2rem !important; font-weight: 900 !important; line-height: 1.25 !important; margin: 0 0 10px 0 !important; color: #22c55e !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 4px 20px rgba(0,0,0,0.98), 0 0 40px rgba(0,0,0,0.8) !important; letter-spacing: -0.5px !important; width: 100% !important; display: block !important; }
+            .hero-text p { font-size: 1rem !important; font-weight: 700 !important; line-height: 1.55 !important; color: #fff !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 14px rgba(0,0,0,0.98) !important; margin: 0 0 16px 0 !important; width: 100% !important; display: block !important; }
+            .hero-cta-btn { display: flex !important; align-items: center !important; justify-content: center !important; gap: 10px !important; width: 100% !important; padding: 16px 24px !important; background-color: #22c55e !important; color: #fff !important; border-radius: 16px !important; text-decoration: none !important; font-weight: 900 !important; font-size: 1.1rem !important; box-shadow: 0 8px 28px rgba(34,197,94,0.45) !important; }
             .hero-card-desktop { display: none; }
-            .hero-card-mobile { width: 100%; box-sizing: border-box; background: #fff; padding: 18px 16px 20px; border-radius: 22px; box-shadow: 0 12px 36px rgba(0,0,0,0.3); }
+            .hero-card-mobile { width: 100%; box-sizing: border-box; background: #fff; padding: 16px 16px 18px; border-radius: 22px; box-shadow: 0 12px 36px rgba(0,0,0,0.3); }
           }
 
           @media (max-width: 380px) {
-            .hero-content-layer { padding-top: 70px; gap: 24px; }
-            .hero-inner { gap: 24px; }
-            .hero-text h1 { font-size: 2.3rem !important; }
+            .hero-content-layer { padding-top: 14px; gap: 18px; }
+            .hero-inner { gap: 18px; }
+            .hero-text h1 { font-size: 1.9rem !important; }
             .hero-text p { font-size: 1.05rem !important; }
             .hero-cta-btn { font-size: 1.1rem !important; padding: 17px 20px !important; }
           }

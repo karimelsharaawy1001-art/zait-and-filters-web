@@ -70,7 +70,7 @@ body {
   background: #000;
   overflow: hidden;
   /* Mobile: no fixed height — in-flow content-layer drives height naturally */
-  min-height: 620px;
+  min-height: 480px;
 }
 @media (min-width: 769px) {
   /* Desktop: hero fills viewport minus navbar height */
