@@ -67,10 +67,11 @@ body {
   height: 400px;
 }
 @media (min-width: 481px) and (max-width: 768px) {
-  .hero-section { height: 640px; min-height: 640px; }
+  .hero-section { height: 560px; min-height: 560px; }
 }
 @media (min-width: 769px) {
-  .hero-section { height: 650px; min-height: 650px; }
+  /* calc(100svh - navbar) ensures the full hero is visible without scrolling */
+  .hero-section { height: calc(100svh - 80px); min-height: 540px; max-height: 750px; }
 }
 
 /* ── Product card images: fixed height reserved before CSS-in-JS loads ─── */

@@ -1284,7 +1284,7 @@ setBrandsOptions(brandsOpts);
   };
 
   return (
-    <div style={{ direction: 'rtl', backgroundColor: '#f9f9f9', minHeight: '100vh', paddingTop: '80px' }}>
+    <div style={{ direction: 'rtl', backgroundColor: '#f9f9f9', minHeight: '100vh', paddingTop: '90px' }}>
       <style
         dangerouslySetInnerHTML={{
           __html: `
