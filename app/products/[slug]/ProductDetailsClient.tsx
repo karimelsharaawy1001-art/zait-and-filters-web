@@ -618,13 +618,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' as const, gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <Package size={22} color="#22c55e" />
-                <h2 style={{ fontSize: '1.25rem', fontWeight: '900', margin: 0, color: '#0f172a' }}>
-                {(() => {
-                  const univ = ['universal','عام','all','الكل',''];
-                  const isUniv = univ.includes((product.car_make||'').toLowerCase());
-                  return isUniv ? 'منتجات مشابهة' : `منتجات مشابهة لسيارة ${product.car_make}${product.car_model && !univ.includes(product.car_model.toLowerCase()) ? ' ' + product.car_model : ''}`;
-                })()}
-              </h2>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: '900', margin: 0, color: '#0f172a' }}>منتجات مشابهة</h2>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button id="prev-related" style={{ width: '38px', height: '38px', borderRadius: '50%', border: '1px solid #e2e8f0', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><ChevronRight size={20} /></button>
