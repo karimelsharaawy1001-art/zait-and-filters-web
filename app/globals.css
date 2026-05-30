@@ -38,34 +38,9 @@ body {
      instead of the viewport. overflow-x: hidden on <html> is sufficient. */
 }
 
-/* ── App shell: flex column fills the screen; nav is in normal flow ───────── */
-.app-shell {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
 /* ── Storefront main ─────────────────────────────────────────────────────── */
 .storefront-main {
   width: 100%;
-}
-
-@media (max-width: 768px) {
-  /* Inner-scroll layout on mobile: shell fills the exact viewport height,
-     main scrolls inside it, bottom nav is a normal-flow element below.
-     No position:fixed on the nav → zero z-index / GPU compositing battles. */
-  .app-shell {
-    height: 100dvh;     /* stable height — doesn't jump when address bar shows */
-    height: -webkit-fill-available; /* Safari fallback */
-    overflow: hidden;
-  }
-  .storefront-main {
-    flex: 1;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    /* no padding-bottom needed — nav is below main in normal flow */
-    padding-bottom: 0;
-  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

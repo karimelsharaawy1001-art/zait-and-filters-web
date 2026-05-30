@@ -56,13 +56,8 @@ export default function ProfessionalNavbar() {
       });
     }
 
-    // MobileBottomNav dispatches this event to open the sidebar
-    const openSidebar = () => setIsSidebarOpen(true);
-    window.addEventListener('openSidebar', openSidebar);
-
     return () => {
       authListener.subscription.unsubscribe();
-      window.removeEventListener('openSidebar', openSidebar);
     };
   }, [cartItems.length, controls]);
 
@@ -152,11 +147,12 @@ export default function ProfessionalNavbar() {
     <>
       <style dangerouslySetInnerHTML={{ __html: `
         @media (max-width: 768px) {
-          .desktop-links  { display: none !important; }
-          .nav-content    { justify-content: space-between !important; padding: 0 10px !important; }
-          .search-wrapper { display: none !important; }
-          .logo-text      { font-size: 1.5rem !important; }
+          .desktop-links   { display: none !important; }
+          .nav-content     { justify-content: space-between !important; padding: 0 10px !important; }
+          .search-wrapper  { display: none !important; }
+          .logo-text       { font-size: 1.5rem !important; }
           .mobile-menu-btn { display: flex !important; }
+          .mobile-cart-btn { display: flex !important; }
         }
       `}} />
 
@@ -300,7 +296,7 @@ export default function ProfessionalNavbar() {
             <SmartSearchBar compact />
           </div>
 
-          {/* ── Mobile search button (shows next to logo on small screens) ── */}
+          {/* ── Mobile search button ── */}
           <button
             className="mobile-menu-btn"
             style={{ ...iconBtn, display: 'none' }}
@@ -309,6 +305,17 @@ export default function ProfessionalNavbar() {
           >
             <Search size={22} />
           </button>
+
+          {/* ── Mobile cart button ── */}
+          <Link
+            href="/cart"
+            className="mobile-cart-btn"
+            style={{ ...iconBtn, display: 'none', position: 'relative', textDecoration: 'none' }}
+            aria-label="السلة"
+          >
+            <motion.div animate={controls}><ShoppingCart size={22} /></motion.div>
+            {cartItems.length > 0 && <span style={cartBadge}>{cartItems.length}</span>}
+          </Link>
 
           <div style={navLinks} className="desktop-links">
             <Link href="/store" style={linkItem}>المتجر</Link>

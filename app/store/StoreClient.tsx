@@ -623,7 +623,7 @@ function StoreContent() {
   const urlSale = searchParams.get('sale') === 'true' || searchParams.get('filter') === 'sales';
 
   useEffect(() => {
-    (document.getElementById('scroll-main') ?? window).scrollTo({ top: 0, behavior: 'instant' });
+    window.scrollTo({ top: 0, behavior: 'instant' });
     setIsMounted(true);
     setSelectLoaded(true);
 
@@ -1194,7 +1194,7 @@ setBrandsOptions(brandsOpts);
 
   function handlePageChange(page: number) {
     setCurrentPage(page);
-    (document.getElementById('scroll-main') ?? window).scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   const customSelectStyles = {
