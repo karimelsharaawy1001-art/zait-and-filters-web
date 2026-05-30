@@ -29,22 +29,28 @@ const MODEL_ALIASES: Array<{ aliases: string[]; make: string; model: string }> =
   { aliases: ['اكليبس', 'ايكليبس', 'اكلبس', 'eclipse'], make: 'MITSUBISHI', model: 'ECLIPSE' },
 
   // Chevrolet
-  { aliases: ['اوبترا', 'اوبتيرا', 'اوبرتا', 'اوبطرا', 'optra'], make: 'CHEVROLET', model: 'OPTRA' },
-  { aliases: ['كروز', 'كروزي', 'كروس', 'cruze', 'cruz'], make: 'CHEVROLET', model: 'CRUZE' },
-  { aliases: ['كابتيفا', 'كابتفا', 'captiva'], make: 'CHEVROLET', model: 'CAPTIVA' },
-  { aliases: ['افيو', 'افيو', 'أفيو', 'aveo'], make: 'CHEVROLET', model: 'AVEO' },
-  { aliases: ['لانوس', 'لانس', 'lanos'], make: 'CHEVROLET', model: 'LANOS' },
-  { aliases: ['اونيكس', 'أونيكس', 'اونكس', 'onix'], make: 'CHEVROLET', model: 'ONIX' },
+  { aliases: ['جراند اوبترا', 'grand optra', 'اوبترا جراند'], make: 'CHEVROLET', model: 'OPTRA' },
+  { aliases: ['اوبترا', 'اوبتيرا', 'اوبرتا', 'اوبطرا', 'اوبترة', 'optra'], make: 'CHEVROLET', model: 'OPTRA' },
+  { aliases: ['كروز', 'كروزي', 'كروس', 'كروزه', 'cruze', 'cruz'], make: 'CHEVROLET', model: 'CRUZE' },
+  { aliases: ['كابتيفا', 'كابتفا', 'كابتيفه', 'captiva'], make: 'CHEVROLET', model: 'CAPTIVA' },
+  { aliases: ['افيو', 'أفيو', 'افيوه', 'اڤيو', 'aveo'], make: 'CHEVROLET', model: 'AVEO' },
+  { aliases: ['لانوس', 'لانس', 'لانوز', 'لانوسه', 'lanos'], make: 'CHEVROLET', model: 'LANOS' },
+  { aliases: ['اونيكس', 'أونيكس', 'اونكس', 'اونيكسي', 'onix'], make: 'CHEVROLET', model: 'ONIX' },
+  { aliases: ['ترافيرس', 'traverse'], make: 'CHEVROLET', model: 'TRAVERSE' },
+  { aliases: ['ماليبو', 'malibu'], make: 'CHEVROLET', model: 'MALIBU' },
+  { aliases: ['سبارك', 'spark', 'شيفروليه سبارك'], make: 'CHEVROLET', model: 'SPARK' },
 
   // Hyundai
-  { aliases: ['النترا', 'انترا', 'الانترا', 'إلانترا', 'النتره', 'elantra'], make: 'HYUNDAI', model: 'ELANTRA' },
-  { aliases: ['توسان', 'توسن', 'طوسان', 'tucson'], make: 'HYUNDAI', model: 'TUCSON' },
-  { aliases: ['سوناتا', 'سونته', 'sonata'], make: 'HYUNDAI', model: 'SONATA' },
-  { aliases: ['اكسنت', 'أكسنت', 'اكسنت', 'accent'], make: 'HYUNDAI', model: 'ACCENT' },
-  { aliases: ['جراند i10', 'grand i10', 'جراند اي 10'], make: 'HYUNDAI', model: 'GRAND I10' },
-  { aliases: ['i10', 'اي 10', 'آي 10', 'هيونداي i10'], make: 'HYUNDAI', model: 'I10' },
-  { aliases: ['ماتريكس', 'ماتركس', 'matrix'], make: 'HYUNDAI', model: 'MATRIX' },
-  { aliases: ['فيرنا', 'فرنا', 'فيرنه', 'verna'], make: 'HYUNDAI', model: 'VERNA' },
+  { aliases: ['النترا', 'انترا', 'الانترا', 'إلانترا', 'النتره', 'الانتره', 'النترة', 'elantra'], make: 'HYUNDAI', model: 'ELANTRA' },
+  { aliases: ['توسان', 'توسن', 'طوسان', 'توسانة', 'tucson'], make: 'HYUNDAI', model: 'TUCSON' },
+  { aliases: ['سوناتا', 'سونته', 'سوناته', 'sonata'], make: 'HYUNDAI', model: 'SONATA' },
+  { aliases: ['اكسنت', 'أكسنت', 'اكسنت', 'اكسنته', 'accent'], make: 'HYUNDAI', model: 'ACCENT' },
+  { aliases: ['جراند i10', 'grand i10', 'جراند اي 10', 'جراند ١٠'], make: 'HYUNDAI', model: 'GRAND I10' },
+  { aliases: ['i10', 'اي 10', 'آي 10', 'هيونداي i10', 'اى عشرة'], make: 'HYUNDAI', model: 'I10' },
+  { aliases: ['ماتريكس', 'ماتركس', 'ماتريكسي', 'matrix'], make: 'HYUNDAI', model: 'MATRIX' },
+  { aliases: ['فيرنا', 'فرنا', 'فيرنه', 'فيرنة', 'verna'], make: 'HYUNDAI', model: 'VERNA' },
+  { aliases: ['كريتا', 'creta'], make: 'HYUNDAI', model: 'CRETA' },
+  { aliases: ['هيونداي ستنتا', 'staria', 'ستاريا'], make: 'HYUNDAI', model: 'STARIA' },
 
   // Kia
   { aliases: ['سيراتو k3', 'سيراتو k 3', 'cerato k3', 'k3'], make: 'KIA', model: 'CERATO K3' },
@@ -62,17 +68,23 @@ const MODEL_ALIASES: Array<{ aliases: string[]; make: string; model: string }> =
   // Nissan
   { aliases: ['صني n16', 'سني n16', 'sunny n16', 'n16'], make: 'NISSAN', model: 'SUNNY N16' },
   { aliases: ['صني n17', 'سني n17', 'sunny n17', 'n17'], make: 'NISSAN', model: 'SUNNY N17' },
-  { aliases: ['صني', 'سني', 'شمس', 'صنى', 'sunny'], make: 'NISSAN', model: 'SUNNY N17' },
-  { aliases: ['سنترا', 'سنتيرا', 'سنتره', 'sentra'], make: 'NISSAN', model: 'SENTRA' },
-  { aliases: ['قاشقاي', 'قشقاي', 'قاشقاى', 'qashqai'], make: 'NISSAN', model: 'QASHQAI' },
-  { aliases: ['اكس تريل', 'x-trail', 'xtrail', 'x trail', 'اكستريل'], make: 'NISSAN', model: 'X-TRAIL' },
-  { aliases: ['تيدا', 'تيده', 'tiida'], make: 'NISSAN', model: 'TIIDA' },
+  { aliases: ['صني', 'سني', 'شمس', 'صنى', 'صنيه', 'sunny'], make: 'NISSAN', model: 'SUNNY N17' },
+  { aliases: ['سنترا', 'سنتيرا', 'سنتره', 'سنتره نيسان', 'sentra'], make: 'NISSAN', model: 'SENTRA' },
+  { aliases: ['قاشقاي', 'قشقاي', 'قاشقاى', 'قاشقائي', 'qashqai'], make: 'NISSAN', model: 'QASHQAI' },
+  { aliases: ['اكس تريل', 'x-trail', 'xtrail', 'x trail', 'اكستريل', 'اكس تريل نيسان'], make: 'NISSAN', model: 'X-TRAIL' },
+  { aliases: ['تيدا', 'تيده', 'تيدة', 'tiida'], make: 'NISSAN', model: 'TIIDA' },
+  { aliases: ['باترول', 'patrol', 'باترول نيسان'], make: 'NISSAN', model: 'PATROL' },
+  { aliases: ['نافارا', 'navara'], make: 'NISSAN', model: 'NAVARA' },
 
   // Toyota
-  { aliases: ['كورولا', 'corolla', 'كورلا'], make: 'TOYOTA', model: 'COROLLA' },
-  { aliases: ['كامري', 'camry'], make: 'TOYOTA', model: 'CAMRY' },
-  { aliases: ['يارس', 'yaris', 'ياريس'], make: 'TOYOTA', model: 'YARIS' },
+  { aliases: ['كورولا', 'corolla', 'كورلا', 'كوروله'], make: 'TOYOTA', model: 'COROLLA' },
+  { aliases: ['كامري', 'camry', 'كامريه'], make: 'TOYOTA', model: 'CAMRY' },
+  { aliases: ['يارس', 'yaris', 'ياريس', 'يارسي'], make: 'TOYOTA', model: 'YARIS' },
   { aliases: ['راف فور', 'rav4', 'rav 4', 'راف 4'], make: 'TOYOTA', model: 'RAV4' },
+  { aliases: ['هايلوكس', 'هايلكس', 'hilux', 'هايلوكسي'], make: 'TOYOTA', model: 'HILUX' },
+  { aliases: ['لاند كروزر', 'land cruiser', 'لاندكروزر', 'لاند كروزير'], make: 'TOYOTA', model: 'LAND CRUISER' },
+  { aliases: ['فورتشنر', 'fortuner', 'فورتشنير'], make: 'TOYOTA', model: 'FORTUNER' },
+  { aliases: ['اوريس', 'auris'], make: 'TOYOTA', model: 'AURIS' },
 
   // Peugeot
   { aliases: ['بيجو 301', 'peugeot 301', '301'], make: 'PEUGEOT', model: '301' },
@@ -122,12 +134,54 @@ const MODEL_ALIASES: Array<{ aliases: string[]; make: string; model: string }> =
   { aliases: ['mg rx5', 'ام جي rx5', 'rx5'], make: 'MG', model: 'RX5' },
 
   // Opel
-  { aliases: ['استرا', 'astra'], make: 'OPEL', model: 'ASTRA' },
+  { aliases: ['استرا', 'استره', 'اسرا', 'astra'], make: 'OPEL', model: 'ASTRA' },
   { aliases: ['انسيجنيا', 'insignia'], make: 'OPEL', model: 'INSIGNIA' },
+  { aliases: ['موكا', 'mokka', 'موكه'], make: 'OPEL', model: 'MOKKA' },
 
   // Mazda
-  { aliases: ['مازدا 6', 'mazda 6'], make: 'MAZDA', model: '6' },
-  { aliases: ['مازدا 3', 'mazda 3'], make: 'MAZDA', model: '3' },
+  { aliases: ['مازدا 6', 'mazda 6', 'مازدا ستة'], make: 'MAZDA', model: '6' },
+  { aliases: ['مازدا 3', 'mazda 3', 'مازدا تلاتة', 'مازدا تلاته'], make: 'MAZDA', model: '3' },
+  { aliases: ['مازدا cx5', 'mazda cx-5', 'cx5'], make: 'MAZDA', model: 'CX-5' },
+
+  // Honda
+  { aliases: ['سيفيك', 'civic', 'سيفك', 'سيفيكي'], make: 'HONDA', model: 'CIVIC' },
+  { aliases: ['هوندا سيتي', 'city', 'سيتي', 'هوندا سيتى'], make: 'HONDA', model: 'CITY' },
+  { aliases: ['اكورد', 'accord', 'اكورده'], make: 'HONDA', model: 'ACCORD' },
+  { aliases: ['hr-v', 'hrv', 'هوندا hr-v', 'hrv هوندا'], make: 'HONDA', model: 'HR-V' },
+  { aliases: ['cr-v', 'crv', 'هوندا cr-v'], make: 'HONDA', model: 'CR-V' },
+
+  // Suzuki
+  { aliases: ['سويفت', 'swift', 'سويفتي', 'سويفته'], make: 'SUZUKI', model: 'SWIFT' },
+  { aliases: ['بالينو', 'baleno', 'بالينوه'], make: 'SUZUKI', model: 'BALENO' },
+  { aliases: ['فيتارا', 'vitara', 'جراند فيتارا', 'grand vitara'], make: 'SUZUKI', model: 'VITARA' },
+  { aliases: ['سياز', 'ciaz'], make: 'SUZUKI', model: 'CIAZ' },
+
+  // Ford
+  { aliases: ['فيستا', 'fiesta', 'فيستة'], make: 'FORD', model: 'FIESTA' },
+  { aliases: ['فوكس', 'focus', 'فوكاس', 'focus ford'], make: 'FORD', model: 'FOCUS' },
+  { aliases: ['اسكيب', 'escape', 'فورد اسكيب'], make: 'FORD', model: 'ESCAPE' },
+  { aliases: ['رانجر', 'ranger', 'فورد رانجر'], make: 'FORD', model: 'RANGER' },
+
+  // BMW
+  { aliases: ['bmw 316', 'بي ام 316', 'بي إم 316'], make: 'BMW', model: '316' },
+  { aliases: ['bmw 318', 'بي ام 318', 'بي إم 318'], make: 'BMW', model: '318' },
+  { aliases: ['bmw 320', 'بي ام 320', 'بي إم 320'], make: 'BMW', model: '320' },
+  { aliases: ['bmw 520', 'بي ام 520'], make: 'BMW', model: '520' },
+  { aliases: ['bmw x1', 'x1 bmw'], make: 'BMW', model: 'X1' },
+  { aliases: ['bmw x3', 'x3 bmw'], make: 'BMW', model: 'X3' },
+  { aliases: ['bmw x5', 'x5 bmw'], make: 'BMW', model: 'X5' },
+
+  // Mercedes
+  { aliases: ['مرسيدس c200', 'c200', 'c 200'], make: 'MERCEDES', model: 'C200' },
+  { aliases: ['مرسيدس e200', 'e200', 'e 200'], make: 'MERCEDES', model: 'E200' },
+  { aliases: ['مرسيدس e250', 'e250'], make: 'MERCEDES', model: 'E250' },
+  { aliases: ['مرسيدس cla', 'cla'], make: 'MERCEDES', model: 'CLA' },
+  { aliases: ['glc', 'مرسيدس glc'], make: 'MERCEDES', model: 'GLC' },
+
+  // Jeep
+  { aliases: ['جراند شيروكي', 'grand cherokee', 'شيروكي'], make: 'JEEP', model: 'GRAND CHEROKEE' },
+  { aliases: ['رينيجيد', 'renegade', 'رينيجيده'], make: 'JEEP', model: 'RENEGADE' },
+  { aliases: ['كومباس', 'compass', 'جيب كومباس'], make: 'JEEP', model: 'COMPASS' },
 ];
 
 // ── Car make aliases → DB make ────────────────────────────────────────────────
@@ -197,12 +251,13 @@ const PART_ALIASES: Array<{
   { aliases: ['موبينة', 'كويل', 'ignition coil', 'coil pack', 'كويلات'], category: 'بوجيهات و سلوك بوجيهات و موبينة', subcategories: ['موبينة'] },
   { aliases: ['سلوك بوجيهات', 'سلوك'], category: 'بوجيهات و سلوك بوجيهات و موبينة', subcategories: ['سلوك بوجيهات'] },
 
-  // Belts & pulleys
-  { aliases: ['سير توقيت', 'timing belt', 'timing chain'], category: 'سيور و بلي', subcategories: ['سيور'] },
-  { aliases: ['سير مجموعة', 'serpentine belt', 'v-belt'], category: 'سيور و بلي', subcategories: ['سير مجموعة'] },
-  { aliases: ['سير دينامو', 'alternator belt'], category: 'سيور و بلي', subcategories: ['سير دينامو'] },
-  { aliases: ['كاتينة', 'كاتنة', 'كاتيني', 'كاتنه', 'كاتينه', 'طقم كاتينة', 'timing kit', 'timing chain kit'], category: 'سيور و بلي', subcategories: ['سير كاتينة', 'طقم كاتينة كامل'] },
-  { aliases: ['سيور', 'سير', 'belts'], category: 'سيور و بلي' },
+  // Belts & pulleys — more specific phrases FIRST
+  { aliases: ['سير توقيت', 'سير التوقيت', 'timing belt', 'timing chain', 'حزام توقيت'], category: 'سيور و بلي', subcategories: ['سيور'] },
+  { aliases: ['سير مجموعة', 'حزام مجموعة', 'serpentine belt', 'v-belt'], category: 'سيور و بلي', subcategories: ['سير مجموعة'] },
+  { aliases: ['سير دينامو', 'حزام دينامو', 'alternator belt'], category: 'سيور و بلي', subcategories: ['سير دينامو'] },
+  { aliases: ['كاتينة', 'كاتنة', 'كاتيني', 'كاتنه', 'كاتينه', 'كاتينيه', 'طقم كاتينة', 'طقم كاتينه', 'timing kit', 'timing chain kit', 'بلي كاتينة', 'بلية كاتينة', 'بلي كاتنة'], category: 'سيور و بلي', subcategories: ['سير كاتينة', 'طقم كاتينة كامل', 'بلي كاتينة'] },
+  { aliases: ['بلي سيور', 'تنشين سير', 'idler pulley', 'tensioner pulley', 'تنشين', 'تنشن سير'], category: 'سيور و بلي', subcategories: ['بلي'] },
+  { aliases: ['سيور', 'سير', 'حزام', 'belts', 'belt'], category: 'سيور و بلي' },
 
   // Cooling
   { aliases: ['ردياتير', 'رادياتير', 'radiator'], category: 'دورة تبريد و تكييف', subcategories: ['ردياتير'] },
@@ -240,10 +295,22 @@ const PART_ALIASES: Array<{
   { aliases: ['طقم دبرياج', 'دبرياج', 'كلتش', 'clutch kit', 'clutch'], category: 'دبرياج و قطع فتيس' },
 
   // Tires
-  { aliases: ['اطارات', 'إطارات', 'كاوتش', 'كاوتشات', 'tires', 'tyres'], category: 'إطارات' },
+  { aliases: ['اطارات', 'إطارات', 'كاوتش', 'كاوتشات', 'كوتش', 'tires', 'tyres', 'rubber tires'], category: 'إطارات' },
 
   // Wipers
-  { aliases: ['مساحة زجاج', 'مساحات', 'مساحة', 'wiper', 'wipers'], category: 'مساحات' },
+  { aliases: ['مساحة زجاج', 'مساحات', 'مساحة', 'مساحه', 'wiper', 'wipers'], category: 'مساحات' },
+
+  // Engine parts
+  { aliases: ['تيمنج', 'تيمينج', 'طقم تيمنج', 'timing'], category: 'سيور و بلي', subcategories: ['سير كاتينة', 'طقم كاتينة كامل'] },
+  { aliases: ['جلب مقصات', 'جلب', 'ball joint', 'ball joints'], category: 'عفشة', subcategories: ['جلب و بيض مقصات'] },
+  { aliases: ['بوش مقصات', 'بوش', 'bushing kit'], category: 'عفشة', subcategories: ['بطاحات و بلي بطاحات'] },
+  { aliases: ['دوره بنزين', 'مضخة وقود', 'pump fuel'], category: 'دورة البنزين', subcategories: ['طلمبة بنزين'] },
+  { aliases: ['دلتا', 'اسبرنج', 'spring coil', 'زمبرك'], category: 'عفشة', subcategories: ['سبرينج و حاملات سبرينج'] },
+  { aliases: ['تيل زيت', 'تيل الزيت', 'dipstick'], category: 'زيوت موتور' },
+  { aliases: ['بلية امامي', 'بلية عجل امامي', 'front bearing'], category: 'عفشة', subcategories: ['بلية عجل'] },
+  { aliases: ['بلية خلفي', 'بلية عجل خلفي', 'rear bearing'], category: 'عفشة', subcategories: ['بلية عجل'] },
+  { aliases: ['اشرطه', 'اشرطة', 'حزام امان', 'seat belt'], category: 'قطع الهيكل و الكرسي' },
+  { aliases: ['اضاءه', 'اضاءة', 'لمبة', 'ليمب', 'مصباح', 'light bulb', 'headlight'], category: 'حساسات و قطع كهربائية' },
 ];
 
 // ── Normalise helper ─────────────────────────────────────────────────────────

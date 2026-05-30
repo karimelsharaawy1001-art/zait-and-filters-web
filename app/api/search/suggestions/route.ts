@@ -26,7 +26,8 @@ export async function GET(req: NextRequest) {
         .eq('is_active', true)
         .limit(6);
 
-      if (intent.make) query = query.ilike('car_make', intent.make);
+      if (intent.make)  query = query.ilike('car_make', intent.make);
+      if (intent.model) query = query.ilike('car_model', `%${intent.model}%`);
       if (intent.category) query = query.ilike('category', intent.category);
       if (intent.subcategories?.length === 1) {
         query = query.ilike('subcategory', intent.subcategories[0]);
@@ -36,9 +37,24 @@ export async function GET(req: NextRequest) {
       }
       if (intent.textSearch) query = query.ilike('name', `%${intent.textSearch}%`);
 
-      const { data } = await query;
+      let { data } = await query;
+
+      // If model filter yields 0 results, fall back to make+category only
+      // (e.g. the user's car has no products in that category yet)
+      if (!data?.length && intent.model && intent.make) {
+        let fallback = supabase
+          .from('products')
+          .select('id, name, slug, image_url, regular_price, sale_price, car_make, car_model, category, subcategory, brand')
+          .eq('is_active', true)
+          .ilike('car_make', intent.make)
+          .limit(6);
+        if (intent.category) fallback = fallback.ilike('category', intent.category);
+        const { data: fb } = await fallback;
+        data = fb;
+      }
+
       if (data?.length) {
-        suggestions.push(...data.map(p => ({
+        suggestions.push(...data.map((p: any) => ({
           type: 'product',
           id: p.id,
           label: p.name,
