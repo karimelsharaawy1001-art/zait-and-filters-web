@@ -1111,10 +1111,10 @@ export default function CheckoutPage() {
                       <CreditCard size={18} color={paymentMethod === 'card_installments' ? '#15803d' : '#888'} />
                     </div>
                     <div style={{ ...payTextContent, flex: 1 }}>
-                      <span style={payTitle}>بطاقات ائتمانية وتقسيط</span>
-                      <span style={paySubTitle}>جميع أنواع البطاقات البنكية والتقسيط</span>
+                      <span style={payTitle}>بطاقات بنكية وتقسيط</span>
+                      <span style={paySubTitle}>جميع أنواع البطاقات البنكية و شركات التقسيط</span>
                     </div>
-                    <span style={paymentMethod === 'card_installments' ? payBadgeAmber : payBadgeGray}>تقسيط متاح</span>
+                    <span style={paymentMethod === 'card_installments' ? payBadgeAmber : payBadgeGray}>التقسيط متاح</span>
                   </div>
                 </div>
               </label>
@@ -1129,8 +1129,8 @@ export default function CheckoutPage() {
                       <Wallet size={18} color={paymentMethod === 'wallets' ? '#15803d' : '#888'} />
                     </div>
                     <div style={{ ...payTextContent, flex: 1 }}>
-                      <span style={payTitle}>محافظ إلكترونية (كاش)</span>
-                      <span style={paySubTitle}>فودافون كاش · أورنج موني · إتصالات كاش</span>
+                      <span style={payTitle}>محافظ إلكترونية </span>
+                      <span style={paySubTitle}>فودافون كاش · أورنج كاش · إتصالات كاش</span>
                     </div>
                   </div>
                   <div style={logosGrid}>
