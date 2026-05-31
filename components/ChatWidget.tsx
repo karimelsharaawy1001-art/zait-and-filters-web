@@ -46,51 +46,35 @@ export default function ChatWidget() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [msgs, typing]);
 
-  function findAnswer(q: string): string | null {
-    const normalized = q.trim().toLowerCase();
-    for (const faq of FAQS) {
-      const keys = faq.q.toLowerCase();
-      if (normalized.includes('ضمان') || keys.includes('ضمان') && normalized.includes('ضمان')) {
-        if (normalized.includes('ضمان')) return faq.a;
-      }
+  async function askGroq(text: string, allMsgs: Msg[]) {
+    setTyping(true);
+    try {
+      const res = await fetch('/api/chat', {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({ message: text, history: allMsgs.slice(-8) }),
+      });
+      const data = await res.json();
+      setTyping(false);
+      setMsgs(m => [...m, { from: 'bot', text: data.reply || 'مش قادر أرد دلوقتي، تواصل معانا على الواتساب.' }]);
+    } catch {
+      setTyping(false);
+      setMsgs(m => [...m, { from: 'bot', text: 'حصل خطأ في الاتصال. تواصل معانا على الواتساب.' }]);
     }
-    // Keyword matching
-    if (/مكان|عنوان|فين|where|location|تجمع/.test(normalized)) return FAQS[0].a;
-    if (/ضمان|guarantee|warranty/.test(normalized)) return FAQS[1].a;
-    if (/توصيل|شحن|بياخد|delivery|shipping|يوم|ساعة/.test(normalized)) return FAQS[2].a;
-    if (/أصلي|كوبي|original|fake|جودة/.test(normalized)) return FAQS[3].a;
-    if (/استلم|أجي|أجيب|pickup|فرع|منفذ/.test(normalized)) return FAQS[4].a;
-    if (/تتبع|أتابع|tracking|رقم|اوردر/.test(normalized)) return FAQS[5].a;
-    if (/رجع|استرجاع|استبدال|return|refund/.test(normalized)) return FAQS[6].a;
-    return null;
   }
 
   function sendMsg(text: string) {
     if (!text.trim()) return;
-    setMsgs(m => [...m, { from: 'user', text }]);
+    const updated = [...msgs, { from: 'user' as const, text }];
+    setMsgs(updated);
     setInput('');
-    setTyping(true);
-    setTimeout(() => {
-      const answer = findAnswer(text);
-      setTyping(false);
-      if (answer) {
-        setMsgs(m => [...m, { from: 'bot', text: answer }]);
-      } else {
-        setMsgs(m => [...m, {
-          from: 'bot',
-          text: 'مش لاقي إجابة على سؤالك 😅\nتواصل معانا على واتساب وهنرد عليك في أقرب وقت!',
-        }]);
-      }
-    }, 800);
+    askGroq(text, updated);
   }
 
   function selectFaq(faq: typeof FAQS[0]) {
-    setMsgs(m => [...m, { from: 'user', text: faq.q }]);
-    setTyping(true);
-    setTimeout(() => {
-      setTyping(false);
-      setMsgs(m => [...m, { from: 'bot', text: faq.a }]);
-    }, 600);
+    const updated = [...msgs, { from: 'user' as const, text: faq.q }];
+    setMsgs(updated);
+    askGroq(faq.q, updated);
   }
 
   const WA_SVG = (
