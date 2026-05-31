@@ -36,45 +36,47 @@ export default function ChatWidget() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (open) {
-      setUnread(0);
-      setTimeout(() => inputRef.current?.focus(), 300);
-    }
+    if (open) { setUnread(0); setTimeout(() => inputRef.current?.focus(), 300); }
   }, [open]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [msgs, typing]);
 
-  async function askGroq(text: string, allMsgs: Msg[]) {
-    setTyping(true);
-    try {
-      const res = await fetch('/api/chat', {
-        method : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ message: text, history: allMsgs.slice(-8) }),
-      });
-      const data = await res.json();
-      setTyping(false);
-      setMsgs(m => [...m, { from: 'bot', text: data.reply || 'مش قادر أرد دلوقتي، تواصل معانا على الواتساب.' }]);
-    } catch {
-      setTyping(false);
-      setMsgs(m => [...m, { from: 'bot', text: 'حصل خطأ في الاتصال. تواصل معانا على الواتساب.' }]);
-    }
+  function findAnswer(q: string): string | null {
+    const n = q.trim().toLowerCase();
+    if (/مكان|عنوان|فين|تجمع/.test(n))             return FAQS[0].a;
+    if (/ضمان|guarantee|warranty/.test(n))          return FAQS[1].a;
+    if (/توصيل|شحن|بياخد|delivery|يوم|ساعة/.test(n)) return FAQS[2].a;
+    if (/أصلي|كوبي|original|جودة/.test(n))          return FAQS[3].a;
+    if (/استلم|أجي|pickup|فرع|منفذ/.test(n))         return FAQS[4].a;
+    if (/تتبع|أتابع|tracking|اوردر|رقم/.test(n))     return FAQS[5].a;
+    if (/رجع|استرجاع|استبدال|return|refund/.test(n)) return FAQS[6].a;
+    return null;
   }
 
   function sendMsg(text: string) {
     if (!text.trim()) return;
-    const updated = [...msgs, { from: 'user' as const, text }];
-    setMsgs(updated);
+    setMsgs(m => [...m, { from: 'user', text }]);
     setInput('');
-    askGroq(text, updated);
+    setTyping(true);
+    setTimeout(() => {
+      setTyping(false);
+      const answer = findAnswer(text);
+      setMsgs(m => [...m, {
+        from: 'bot',
+        text: answer ?? 'مش لاقي إجابة على سؤالك 😅\nتواصل معانا على واتساب وهنرد عليك في أقرب وقت!',
+      }]);
+    }, 700);
   }
 
   function selectFaq(faq: typeof FAQS[0]) {
-    const updated = [...msgs, { from: 'user' as const, text: faq.q }];
-    setMsgs(updated);
-    askGroq(faq.q, updated);
+    setMsgs(m => [...m, { from: 'user', text: faq.q }]);
+    setTyping(true);
+    setTimeout(() => {
+      setTyping(false);
+      setMsgs(m => [...m, { from: 'bot', text: faq.a }]);
+    }, 600);
   }
 
   const WA_SVG = (
@@ -91,50 +93,24 @@ export default function ChatWidget() {
         @keyframes shawkat-blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
         .shawkat-fab { position:fixed; bottom:calc(env(safe-area-inset-bottom,0px) + 20px); right:20px; z-index:9998; }
         @media(min-width:640px){ .shawkat-fab { bottom:24px; right:24px; } }
-        .shawkat-open-btn {
-          width:60px; height:60px; border-radius:50%;
-          background:linear-gradient(135deg,#22c55e,#16a34a);
-          border:none; cursor:pointer;
-          display:flex; align-items:center; justify-content:center;
-          box-shadow:0 6px 24px rgba(34,197,94,0.45);
-          animation: shawkat-bounce 3s ease-in-out infinite;
-          transition: transform 0.2s, box-shadow 0.2s;
-          position:relative;
-        }
+        .shawkat-open-btn { width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg,#22c55e,#16a34a); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 24px rgba(34,197,94,0.45); animation:shawkat-bounce 3s ease-in-out infinite; transition:transform 0.2s,box-shadow 0.2s; position:relative; }
         .shawkat-open-btn:hover { transform:scale(1.08); box-shadow:0 8px 32px rgba(34,197,94,0.6); animation:none; }
-        .shawkat-badge {
-          position:absolute; top:-4px; right:-4px;
-          background:#ef4444; color:#fff;
-          width:20px; height:20px; border-radius:50%;
-          font-size:0.72rem; font-weight:900;
-          display:flex; align-items:center; justify-content:center;
-          border:2px solid #fff;
-        }
-        .shawkat-window {
-          position:fixed; bottom:calc(env(safe-area-inset-bottom,0px) + 88px); right:20px;
-          width:360px; max-width:calc(100vw - 24px);
-          height:520px; max-height:calc(100dvh - 120px);
-          background:#fff; border-radius:24px;
-          box-shadow:0 12px 48px rgba(0,0,0,0.18);
-          display:flex; flex-direction:column; overflow:hidden;
-          z-index:9998;
-          animation: shawkat-pop 0.2s cubic-bezier(0.34,1.56,0.64,1);
-        }
+        .shawkat-badge { position:absolute; top:-4px; right:-4px; background:#ef4444; color:#fff; width:20px; height:20px; border-radius:50%; font-size:0.72rem; font-weight:900; display:flex; align-items:center; justify-content:center; border:2px solid #fff; }
+        .shawkat-window { position:fixed; bottom:calc(env(safe-area-inset-bottom,0px) + 88px); right:20px; width:360px; max-width:calc(100vw - 24px); height:520px; max-height:calc(100dvh - 120px); background:#fff; border-radius:24px; box-shadow:0 12px 48px rgba(0,0,0,0.18); display:flex; flex-direction:column; overflow:hidden; z-index:9998; animation:shawkat-pop 0.2s cubic-bezier(0.34,1.56,0.64,1); }
         @media(min-width:640px){ .shawkat-window { right:24px; bottom:96px; } }
         .shawkat-msgs { flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px; }
         .shawkat-msgs::-webkit-scrollbar { width:4px; }
         .shawkat-msgs::-webkit-scrollbar-thumb { background:#e2e8f0; border-radius:4px; }
         .shawkat-bubble-bot { background:#f1f5f9; color:#0f172a; border-radius:18px 18px 18px 4px; padding:10px 14px; font-size:0.88rem; line-height:1.6; max-width:85%; white-space:pre-line; word-break:break-word; }
-        .shawkat-bubble-user { background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff; border-radius:18px 18px 4px 18px; padding:10px 14px; font-size:0.88rem; line-height:1.6; max-width:85%; margin-right:auto; word-break:break-word; align-self:flex-end; }
+        .shawkat-bubble-user { background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff; border-radius:18px 18px 4px 18px; padding:10px 14px; font-size:0.88rem; line-height:1.6; max-width:85%; word-break:break-word; align-self:flex-end; }
         .shawkat-typing span { display:inline-block; width:7px; height:7px; border-radius:50%; background:#94a3b8; margin:0 2px; animation:shawkat-blink 1.4s infinite; }
-        .shawkat-typing span:nth-child(2) { animation-delay:0.2s; }
-        .shawkat-typing span:nth-child(3) { animation-delay:0.4s; }
+        .shawkat-typing span:nth-child(2){animation-delay:0.2s} .shawkat-typing span:nth-child(3){animation-delay:0.4s}
         .shawkat-faq-btn { background:#fff; border:1.5px solid #e2e8f0; border-radius:20px; padding:7px 14px; font-size:0.8rem; font-weight:700; color:#0f172a; cursor:pointer; text-align:right; transition:all 0.15s; white-space:nowrap; font-family:inherit; flex-shrink:0; }
         .shawkat-faq-btn:hover { border-color:#22c55e; color:#15803d; background:#f0fdf4; }
+        .shawkat-wa-pill { display:inline-flex; align-items:center; gap:5px; background:#25D366; color:#fff; border-radius:20px; padding:7px 14px; font-size:0.8rem; font-weight:800; text-decoration:none; flex-shrink:0; white-space:nowrap; }
       `}</style>
 
       <div className="shawkat-fab">
-        {/* Chat window */}
         {open && (
           <div className="shawkat-window" dir="rtl">
             {/* Header */}
@@ -156,10 +132,9 @@ export default function ChatWidget() {
                   {m.from === 'bot' && <BotAvatar />}
                   <div className={m.from === 'bot' ? 'shawkat-bubble-bot' : 'shawkat-bubble-user'}>
                     {m.text}
-                    {/* WhatsApp button inside bot messages that mention contact */}
                     {m.from === 'bot' && (m.text.includes('واتساب') || m.text.includes('خدمة العملاء')) && (
                       <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '8px', background: '#25D366', color: '#fff', padding: '7px 14px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: '800', textDecoration: 'none', width: 'fit-content' }}>
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '8px', background: '#25D366', color: '#fff', padding: '7px 14px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: '800', textDecoration: 'none' }}>
                         {WA_SVG} تواصل عبر واتساب
                       </a>
                     )}
@@ -169,50 +144,41 @@ export default function ChatWidget() {
               {typing && (
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
                   <BotAvatar />
-                  <div className="shawkat-bubble-bot shawkat-typing">
-                    <span /><span /><span />
-                  </div>
+                  <div className="shawkat-bubble-bot shawkat-typing"><span /><span /><span /></div>
                 </div>
               )}
               <div ref={bottomRef} />
             </div>
 
-            {/* FAQ quick buttons */}
+            {/* FAQ strip */}
             <div style={{ padding: '0 12px 8px', flexShrink: 0 }}>
-              <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '700', marginBottom: '6px', paddingRight: '2px' }}>أسئلة شائعة</div>
+              <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '700', marginBottom: '6px' }}>أسئلة شائعة</div>
               <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
                 {FAQS.map((faq, i) => (
                   <button key={i} className="shawkat-faq-btn" onClick={() => selectFaq(faq)}>{faq.q}</button>
                 ))}
-                {/* Customer service button — always visible */}
-                <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#25D366', color: '#fff', border: 'none', borderRadius: '20px', padding: '7px 14px', fontSize: '0.8rem', fontWeight: '800', cursor: 'pointer', textDecoration: 'none', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="shawkat-wa-pill">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                   تواصل مع خدمة العملاء
                 </a>
               </div>
             </div>
 
-            {/* Input + WhatsApp */}
+            {/* Input */}
             <div style={{ padding: '10px 12px 12px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '8px', flexShrink: 0 }}>
               <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
-                title="تواصل عبر واتساب"
                 style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#25D366', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, textDecoration: 'none', color: '#fff', boxShadow: '0 2px 8px rgba(37,211,102,0.4)' }}>
                 {WA_SVG}
               </a>
               <form onSubmit={e => { e.preventDefault(); sendMsg(input); }} style={{ flex: 1, display: 'flex', gap: '6px' }}>
-                <input
-                  ref={inputRef}
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  placeholder="اكتب سؤالك هنا..."
-                  dir="rtl"
+                <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
+                  placeholder="اكتب سؤالك هنا..." dir="rtl"
                   style={{ flex: 1, border: '1.5px solid #e2e8f0', borderRadius: '12px', padding: '0 12px', fontSize: '0.85rem', outline: 'none', fontFamily: 'inherit', background: '#f8fafc', color: '#0f172a', height: '40px' }}
                   onFocus={e => { e.target.style.borderColor = '#22c55e'; }}
                   onBlur={e => { e.target.style.borderColor = '#e2e8f0'; }}
                 />
                 <button type="submit" disabled={!input.trim()}
-                  style={{ width: '40px', height: '40px', borderRadius: '50%', background: input.trim() ? 'linear-gradient(135deg,#22c55e,#16a34a)' : '#e2e8f0', border: 'none', cursor: input.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', color: input.trim() ? '#fff' : '#94a3b8', transition: 'all 0.15s', flexShrink: 0 }}>
+                  style={{ width: '40px', height: '40px', borderRadius: '50%', background: input.trim() ? 'linear-gradient(135deg,#22c55e,#16a34a)' : '#e2e8f0', border: 'none', cursor: input.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', color: input.trim() ? '#fff' : '#94a3b8', flexShrink: 0 }}>
                   <Send size={16} />
                 </button>
               </form>
@@ -220,7 +186,6 @@ export default function ChatWidget() {
           </div>
         )}
 
-        {/* FAB button */}
         <button className="shawkat-open-btn" onClick={() => setOpen(o => !o)} aria-label="شوكت مساعدك الذكي">
           {open ? <X size={24} color="#fff" /> : <MessageCircle size={26} color="#fff" fill="#fff" />}
           {!open && unread > 0 && <span className="shawkat-badge">{unread}</span>}
