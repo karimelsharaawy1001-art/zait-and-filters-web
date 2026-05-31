@@ -525,31 +525,51 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
       }
 
       setImporting(true);
-      const importToast = toast.loading(`جاري استيراد ${imported.length} منتج...`);
+      const IMPORT_BATCH = 500;
+      const totalBatches = Math.ceil(imported.length / IMPORT_BATCH);
+      const importToast = toast.loading(`جاري استيراد ${imported.length} منتج (${totalBatches} دفعة)...`);
+
+      let totalUpdated = 0;
+      let totalInserted = 0;
+      let totalErrors = 0;
 
       try {
-        const res = await fetch('/api/admin/import-products', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ products: imported }),
-        });
+        for (let i = 0; i < imported.length; i += IMPORT_BATCH) {
+          const batch = imported.slice(i, i + IMPORT_BATCH);
+          const batchNum = Math.floor(i / IMPORT_BATCH) + 1;
+          toast.loading(`دفعة ${batchNum} من ${totalBatches} (${batch.length} منتج)...`, { id: importToast });
 
-        const result = await res.json();
+          const res = await fetch('/api/admin/import-products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ products: batch }),
+          });
+
+          // Guard against non-JSON (413, 500 HTML pages, etc.)
+          const contentType = res.headers.get('content-type') || '';
+          if (!contentType.includes('application/json')) {
+            totalErrors++;
+            toast.error(`خطأ في الدفعة ${batchNum}: الـ server رجّع ${res.status} (${res.statusText})`, { duration: 4000 });
+            continue;
+          }
+
+          const result = await res.json();
+          if (result.error) {
+            totalErrors++;
+            toast.error(`خطأ في الدفعة ${batchNum}: ${result.error}`, { duration: 4000 });
+          } else {
+            totalUpdated  += result.updateCount  || 0;
+            totalInserted += result.insertCount  || 0;
+            totalErrors   += result.errorCount   || 0;
+          }
+        }
 
         toast.dismiss(importToast);
         setImporting(false);
 
-        if (result.error) {
-          toast.error('خطأ: ' + result.error);
-        } else {
-          toast.success(`✅ تحديث ${result.updateCount} | إضافة ${result.insertCount}`, {
-            duration: 5000,
-          });
-          if (result.errorCount > 0) {
-            toast.error(`⚠️ ${result.errorCount} أخطاء في الاستيراد`, { duration: 5000 });
-          }
-          fetchProducts();
-        }
+        toast.success(`✅ تحديث ${totalUpdated} | إضافة ${totalInserted}${totalErrors > 0 ? ` | ⚠️ ${totalErrors} أخطاء` : ''}`, { duration: 6000 });
+        fetchProducts();
+
       } catch (err: any) {
         toast.dismiss(importToast);
         setImporting(false);
