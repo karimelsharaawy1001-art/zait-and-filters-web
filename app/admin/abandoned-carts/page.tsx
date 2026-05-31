@@ -8,7 +8,7 @@ import {
   User, Smartphone, Trash2, ChevronLeft, ChevronRight,
   TrendingUp, AlertCircle, Monitor, ChevronsLeft, ChevronsRight,
   MoreHorizontal, Bell, Tag, Zap, MessageCircle, RotateCcw,
-  ArrowRightLeft,
+  ArrowRightLeft, ExternalLink,
 } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 12;
@@ -999,8 +999,19 @@ export default function AbandonedCartsAdmin() {
                         {cart.cart_items?.map((item: any, i: number) => (
                           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', background: '#fff', borderRadius: '11px', border: '1px solid #f1f5f9' }}>
                             {(item.image_url || item.image) && <img src={item.image_url || item.image} alt="" style={{ width: '44px', height: '44px', borderRadius: '8px', objectFit: 'contain', border: '1px solid #f1f5f9', background: '#fafafa' }} />}
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: '0.93rem', fontWeight: '800', color: '#0f172a' }}>{item.name}</div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{ fontSize: '0.93rem', fontWeight: '800', color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</span>
+                                {(item.id || item.product_id) && (
+                                  <a href={`/products/${item.slug || item.id || item.product_id}`} target="_blank" rel="noopener noreferrer"
+                                    title="عرض المنتج"
+                                    style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px', borderRadius: '6px', background: '#eff6ff', color: '#3b82f6', border: '1px solid #bfdbfe', textDecoration: 'none', transition: 'all 0.15s' }}
+                                    onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = '#3b82f6'; (e.currentTarget as HTMLAnchorElement).style.color = '#fff'; }}
+                                    onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = '#eff6ff'; (e.currentTarget as HTMLAnchorElement).style.color = '#3b82f6'; }}>
+                                    <ExternalLink size={12} />
+                                  </a>
+                                )}
+                              </div>
                               <div style={{ display: 'flex', gap: '6px', marginTop: '3px' }}>
                                 {item.brand && <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#15803d', background: '#f0fdf4', padding: '1px 7px', borderRadius: '4px' }}>{item.brand}</span>}
                                 {item.car_make && <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '600' }}>{item.car_make} {item.car_model}</span>}

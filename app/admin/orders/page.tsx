@@ -513,8 +513,19 @@ function ExpandedOrderRow({
                 onMouseLeave={e => { e.currentTarget.style.background = prepared ? '#f0fdf4' : '#fff'; }}>
                 <div style={{ flexShrink: 0 }}>{prepared ? <CheckSquare size={22} color="#22c55e" /> : <Square size={22} color="#d1d5db" />}</div>
                 <img src={item.image_url || item.image || 'https://via.placeholder.com/50'} alt="" style={{ width: '52px', height: '52px', objectFit: 'contain', borderRadius: '10px', border: '1px solid #eee', background: '#f9f9f9', flexShrink: 0, opacity: prepared ? 0.6 : 1, transition: 'opacity 0.2s' }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: '800', fontSize: '0.88rem', color: prepared ? '#888' : '#1a1a1a', textDecoration: prepared ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', transition: 'all 0.2s' }}>{item.name}</div>
+                <div style={{ flex: 1, minWidth: 0 }} onClick={e => e.stopPropagation()}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontWeight: '800', fontSize: '0.88rem', color: prepared ? '#888' : '#1a1a1a', textDecoration: prepared ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', transition: 'all 0.2s', flex: 1 }}>{item.name}</span>
+                    {item.id && (
+                      <a href={`/products/${item.slug || item.id}`} target="_blank" rel="noopener noreferrer"
+                        title="عرض المنتج"
+                        style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px', borderRadius: '6px', background: '#eff6ff', color: '#3b82f6', border: '1px solid #bfdbfe', textDecoration: 'none', transition: 'all 0.15s' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#3b82f6'; e.currentTarget.style.color = '#fff'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#eff6ff'; e.currentTarget.style.color = '#3b82f6'; }}>
+                        <ExternalLink size={12} />
+                      </a>
+                    )}
+                  </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
                     {item.brand && <span style={{ fontSize: '0.72rem', color: '#22c55e', fontWeight: '700', background: '#f0fdf4', padding: '2px 8px', borderRadius: '6px' }}>{item.brand}</span>}
                     {(item.car_make || item.car_model) && <span style={{ fontSize: '0.72rem', color: '#666', background: '#f5f5f5', padding: '2px 8px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '3px' }}>🚗 {[item.car_make, item.car_model, item.car_model_year].filter(Boolean).join(' ')}</span>}
@@ -1010,7 +1021,18 @@ export default function AdminOrders() {
             {items.map((item: any, i: number) => (
               <div key={i} style={{ display: 'grid', gridTemplateColumns: '2.5fr 0.7fr 1fr 1fr', padding: '12px 16px', backgroundColor: i % 2 === 0 ? '#fff' : '#fafafa', borderBottom: '1px solid #f0f0f0', borderRight: '1px solid #f0f0f0', borderLeft: '1px solid #f0f0f0', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontSize: '0.87rem', fontWeight: '800', color: '#1a1a1a' }}>{item.name}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '0.87rem', fontWeight: '800', color: '#1a1a1a' }}>{item.name}</span>
+                    {item.id && (
+                      <a href={`/products/${item.slug || item.id}`} target="_blank" rel="noopener noreferrer"
+                        title="عرض المنتج"
+                        style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '5px', background: '#eff6ff', color: '#3b82f6', border: '1px solid #bfdbfe', textDecoration: 'none', transition: 'all 0.15s' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#3b82f6'; e.currentTarget.style.color = '#fff'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#eff6ff'; e.currentTarget.style.color = '#3b82f6'; }}>
+                        <ExternalLink size={11} />
+                      </a>
+                    )}
+                  </div>
                   {item.brand && <div style={{ fontSize: '0.7rem', color: '#22c55e', fontWeight: '700', marginTop: '2px' }}>{item.brand}</div>}
                   {(item.car_make || item.car_model) && <div style={{ fontSize: '0.68rem', color: '#888', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>🚗 {[item.car_make, item.car_model, item.car_model_year].filter(Boolean).join(' ')}</div>}
                 </div>
