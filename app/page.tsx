@@ -774,7 +774,7 @@ export default function HomePage() {
 
           /* hero-section height is now in globals.css — no override needed here */
           .hero-bg-layer { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-          .hero-bg-slide { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 0.8s ease-in-out; will-change: opacity; }
+          .hero-bg-slide { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 0.8s ease-in-out; }
           .hero-bg-slide.active { opacity: 1; }
 
           @media (min-width: 769px) {
@@ -930,8 +930,24 @@ export default function HomePage() {
             <section className="hero-section">
               <div className="hero-bg-layer">
                 {slides.map((slide, index) => (
-                  <div key={index} className={`hero-bg-slide ${index === currentSlide ? 'active' : ''}`}
-                    style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6),rgba(0,0,0,0.6)),url("${slide.bg_image_url}")` }} />
+                  <div key={index} className={`hero-bg-slide ${index === currentSlide ? 'active' : ''}`}>
+                    {/* Real <img> on index 0 so browser discovers & preloads the LCP image immediately */}
+                    {index === 0 && slide.bg_image_url ? (
+                      <>
+                        <img
+                          src={slide.bg_image_url}
+                          alt=""
+                          fetchPriority="high"
+                          loading="eager"
+                          decoding="async"
+                          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+                        />
+                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)' }} />
+                      </>
+                    ) : (
+                      <div style={{ position: 'absolute', inset: 0, backgroundImage: `linear-gradient(rgba(0,0,0,0.6),rgba(0,0,0,0.6)),url("${slide.bg_image_url}")`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+                    )}
+                  </div>
                 ))}
               </div>
               <div className="hero-content-layer">

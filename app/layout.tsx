@@ -77,8 +77,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl" style={{ scrollBehavior: 'smooth' }}>
+    <html lang="ar" dir="rtl">
       <head>
+        {/* ── Critical resource hints — must be first for LCP/FCP ── */}
+        <link rel="preconnect" href="https://dcaecjsmitzugqlyl.supabase.co" />
+        <link rel="dns-prefetch" href="https://dcaecjsmitzugqlyl.supabase.co" />
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://i.postimg.cc" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
         <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />

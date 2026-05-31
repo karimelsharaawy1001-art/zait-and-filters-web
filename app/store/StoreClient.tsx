@@ -1689,6 +1689,7 @@ setBrandsOptions(brandsOpts);
                               alt={product.name}
                               className="product-card-img"
                               loading="lazy"
+                              decoding="async"
                             />
                           </Link>
 
