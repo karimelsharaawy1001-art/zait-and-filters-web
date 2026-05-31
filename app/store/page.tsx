@@ -58,8 +58,8 @@ export async function generateMetadata({
   const makeAr  = CAR_MAKE_AR[make]  || make;
   const modelAr = CAR_MODEL_AR[model] || model;
 
-  let title       = 'قطع غيار سيارات أصلية بأفضل سعر في مصر | زيت أند فلترز';
-  let description = 'اشتري قطع غيار سيارات أصلية بأفضل سعر في مصر — زيوت موتور، فلاتر، تيل فرامل، مساعدين، بوجيهات، عفشة وأكثر لجميع موديلات السيارات. شحن سريع لباب البيت في جميع المحافظات مع ضمان الجودة.';
+  let title       = 'قطع غيار سيارات أصلية | زيت أند فلترز';
+  let description = 'اشتري قطع غيار سيارات أصلية — زيوت موتور، فلاتر، تيل فرامل، مساعدين، بوجيهات، عفشة وأكثر لجميع موديلات السيارات. شحن سريع لباب البيت في جميع المحافظات مع ضمان الجودة.';
   let keywords: string[] = [
     'قطع غيار سيارات مصر', 'قطع غيار اصلية مصر', 'متجر قطع غيار اونلاين',
     'زيوت موتور مصر', 'فلاتر سيارات', 'تيل فرامل مصر', 'مساعدين سيارات',
@@ -76,8 +76,8 @@ export async function generateMetadata({
     const carPhrase = modelAr ? `${makeAr} ${modelAr}` : makeAr;
     const carPhraseEn = model ? `${make} ${model}` : make;
 
-    title = `قطع غيار ${carPhrase} الأصلية بأفضل سعر في مصر | زيت أند فلترز`;
-    description = `اشتري قطع غيار ${carPhrase} الأصلية بأفضل سعر في مصر. ` +
+    title = `قطع غيار ${carPhrase} الأصلية | زيت أند فلترز`;
+    description = `اشتري قطع غيار ${carPhrase} الأصلية. ` +
       `فلتر زيت، زيت موتور، تيل فرامل، مساعدين، بوجيهات، سيور، بلية عجل وجميع قطع ${carPhrase}. ` +
       `قطع اصلية مضمونة بأقل سعر مع شحن سريع لباب البيت في جميع المحافظات.`;
     keywords = [
@@ -105,7 +105,7 @@ export async function generateMetadata({
       `أفضل ${category}`,
       `احسن ${category}`,
       `سعر ${category}`,
-      `${category} بأفضل سعر`,
+      `${category}`,
       `شراء ${category} اونلاين`,
       'قطع غيار أصلية مصر',
       'زيت أند فلترز',
