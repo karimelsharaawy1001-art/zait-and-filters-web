@@ -7,192 +7,226 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
 
-// ── All product-related keywords (broad) ─────────────────────────────────────
-const PRODUCT_KEYWORDS = /قطعة|قطع|منتج|سعر|بكام|كتالوج|عندكم|هل في|هل عندكم|ايه|إيه|فين|بدور على|محتاج|عايز|فلتر|زيت|زيوت|فرامل|تيل|تيال|بريك|طنابير|ماستر|ماستر فرامل|ماستر عجل|عفشة|مساعدين|مساعد|شداد|بلية|بلي|مقصات|كبالن|بطاحة|كاوتش|بوجيه|بواجي|شمع|موبينة|سلوك|سير|كاتينة|بلي سيور|تنشين|تبريد|ردياتير|طلمبة مياه|ثرموستات|كولانت|تكييف|سربنتينة|دورة بنزين|طلمبة بنزين|انجكتور|حساس|سنسور|دبرياج|كلتش|جوانات|اويل سيل|بستم|عمرة موتور|اطار|كاوتش|مساحة|زجاج/;
+// ── Arabic → English car model names (DB stores English) ────────────────────
+const CAR_MODEL_MAP: Record<string, string> = {
+  'بوما': 'LANCER PUMA', 'شارك': 'LANCER SHARK',
+  'لانسر': 'LANCER', 'لانسير': 'LANCER', 'لنسر': 'LANCER',
+  'كورولا': 'COROLLA', 'كورلا': 'COROLLA',
+  'اوبترا': 'OPTRA', 'اوبتيرا': 'OPTRA',
+  'كروز': 'CRUZE', 'كروزي': 'CRUZE',
+  'النترا': 'ELANTRA', 'إلانترا': 'ELANTRA', 'انترا': 'ELANTRA',
+  'سبورتاج': 'SPORTAGE', 'سبورتج': 'SPORTAGE',
+  'صني': 'SUNNY', 'سني': 'SUNNY',
+  'سنترا': 'SENTRA', 'سنتيرا': 'SENTRA',
+  'فيرنا': 'VERNA', 'فرنا': 'VERNA',
+  'بيكانتو': 'PICANTO', 'بيكنتو': 'PICANTO',
+  'ريو': 'RIO',
+  'اكسنت': 'ACCENT', 'أكسنت': 'ACCENT',
+  'توسان': 'TUCSON', 'توسن': 'TUCSON', 'طوسان': 'TUCSON',
+  'افيو': 'AVEO', 'أفيو': 'AVEO',
+  'لانوس': 'LANOS', 'لانس': 'LANOS',
+  'سيراتو': 'CERATO', 'سراتو': 'CERATO',
+  'قاشقاي': 'QASHQAI', 'قشقاي': 'QASHQAI',
+  'تيدا': 'TIIDA',
+  'ياريس': 'YARIS', 'يارس': 'YARIS',
+  'كامري': 'CAMRY',
+  'كابتيفا': 'CAPTIVA', 'كابتفا': 'CAPTIVA',
+  'داستر': 'DUSTER', 'دستر': 'DUSTER',
+  'ميجان': 'MEGANE', 'ميجين': 'MEGANE',
+  'لوجان': 'LOGAN',
+  'كليو': 'CLIO',
+  'سانديرو': 'SANDERO',
+  'اوكتافيا': 'OCTAVIA',
+  'جولف': 'GOLF',
+  'باسات': 'PASSAT',
+  'جيتا': 'JETTA',
+  'استرا': 'ASTRA',
+  'mg5': 'MG5', 'ام جي 5': 'MG5',
+  'mg6': 'MG6', 'ام جي 6': 'MG6',
+  'كابتشر': 'CAPTUR', 'كادجار': 'KADJAR',
+  'فلوانس': 'FLUENCE',
+};
 
-const CAR_KEYWORDS = /سيارة|عربية|كورولا|اوبترا|كروز|لانسر|بوما|شارك|نيسان|هيونداي|كيا|تويوتا|شيفروليه|ميتسوبيشي|رينو|بيجو|سكودا|فولكس|فيرنا|سنترا|صني|النترا|سبورتاج|افيو|لانوس|سيراتو|اكسنت|توسان|قاشقاي|تيدا|ياريس|كامري|داستر|ميجان|لوجان|كليو|ليون|ايبيزا|اوكتافيا|جولف|باسات|جيتا/;
+// ── Arabic → English car make ─────────────────────────────────────────────────
+const CAR_MAKE_MAP: Record<string, string> = {
+  'تويوتا': 'TOYOTA', 'تويوتة': 'TOYOTA',
+  'هيونداي': 'HYUNDAI', 'هيونده': 'HYUNDAI',
+  'كيا': 'KIA',
+  'نيسان': 'NISSAN',
+  'شيفروليه': 'CHEVROLET', 'شيفروله': 'CHEVROLET',
+  'ميتسوبيشي': 'MITSUBISHI', 'ميتسوبيش': 'MITSUBISHI',
+  'بيجو': 'PEUGEOT', 'بيجيو': 'PEUGEOT',
+  'رينو': 'RENAULT', 'رينول': 'RENAULT',
+  'سكودا': 'SKODA', 'سكوده': 'SKODA',
+  'فولكس': 'VOLKSWAGEN', 'فولكس فاجن': 'VOLKSWAGEN',
+  'اوبل': 'OPEL', 'أوبل': 'OPEL',
+  'ام جي': 'MG', 'mg': 'MG',
+  'مازدا': 'MAZDA',
+  'هوندا': 'HONDA',
+  'سوزوكي': 'SUZUKI',
+  'فورد': 'FORD',
+};
 
-// ── Category + subcategory keyword map ──────────────────────────────────────
-// Maps Arabic keywords to partial category names for ilike search
-const CAT_KEYWORDS: Array<[RegExp, string]> = [
-  [/فلتر زيت|فلتر الزيت/,          'فلاتر'],
-  [/فلتر هواء/,                      'فلاتر'],
-  [/فلتر تكييف|فلتر كابينة/,         'فلاتر'],
-  [/فلتر بنزين/,                     'فلاتر'],
-  [/فلتر|فلاتر/,                     'فلاتر'],
-  [/زيت موتور|زيوت موتور/,           'زيوت موتور'],
-  [/زيت فتيس|زيت دبرياج|زيت باور/,  'زيوت فتيس'],
-  [/زيت/,                            'زيوت'],
-  [/تيل فرامل|تيل امامي|تيل خلفي|تيال|فرامل|برامل|بريك/,  'الفرامل'],
-  [/طنابير/,                         'الفرامل'],
-  [/ماستر فرامل|ماستر عجل|ماستر/,   'الفرامل'],
-  [/مساعدين|مساعد|شداد/,             'عفشة'],
-  [/بلية عجل|بلية/,                  'عفشة'],
-  [/مقصات|مقص/,                      'عفشة'],
-  [/كبالن|كوبلن/,                    'عفشة'],
-  [/بطاحة|بوش/,                      'عفشة'],
-  [/عفشة|تعليق/,                     'عفشة'],
-  [/بوجيه|بواجي|شمع/,                'بوجيهات'],
-  [/موبينة|كويل/,                    'بوجيهات'],
-  [/سلوك بوجيهات/,                   'بوجيهات'],
-  [/سير توقيت|سير مجموعة|سير دينامو/,'سيور'],
-  [/كاتينة|كاتنة/,                   'سيور'],
-  [/سيور|سير|بلي سيور/,              'سيور'],
-  [/ردياتير/,                        'دورة تبريد'],
-  [/طلمبة مياه|طلمبة الماء/,         'دورة تبريد'],
-  [/ثرموستات/,                       'دورة تبريد'],
-  [/كولانت|مياه جهاز/,               'دورة تبريد'],
-  [/تكييف|سربنتينة/,                 'دورة تبريد'],
-  [/تبريد/,                          'دورة تبريد'],
-  [/طلمبة بنزين|طلمبة وقود/,         'دورة البنزين'],
-  [/انجكتور/,                        'دورة البنزين'],
-  [/حساس|سنسور/,                     'حساسات'],
-  [/دبرياج|كلتش/,                    'دبرياج'],
-  [/جوانات|اويل سيل/,                'جوانات'],
-  [/بستم|عمرة موتور/,                'مستلزمات عمرة'],
-  [/اطار|كاوتش/,                     'إطارات'],
-  [/مساحة/,                          'مساحات'],
+// ── Product keyword detection ─────────────────────────────────────────────────
+const PRODUCT_RE = /قطعة|قطع|منتج|سعر|بكام|كتالوج|عندكم|هل في|هل عندكم|ايه|إيه|فين|بدور|محتاج|عايز|فلتر|زيت|زيوت|فرامل|تيل|تيال|بريك|طنابير|ماستر|عفشة|مساعدين|مساعد|شداد|بلية|بلي|مقصات|كبالن|بطاحة|كاوتش|بوجيه|بواجي|شمع|موبينة|سلوك|سير|كاتينة|تنشين|تبريد|ردياتير|طلمبة|ثرموستات|كولانت|تكييف|سربنتينة|دورة بنزين|انجكتور|حساس|سنسور|دبرياج|كلتش|جوانات|اويل سيل|بستم|عمرة|اطار|مساحة/;
+
+const CAT_MAP: Array<[RegExp, string]> = [
+  [/فلتر زيت/,           'فلاتر'],
+  [/فلتر هواء/,          'فلاتر'],
+  [/فلتر تكييف|فلتر كابينة/, 'فلاتر'],
+  [/فلتر بنزين/,         'فلاتر'],
+  [/فلتر|فلاتر/,         'فلاتر'],
+  [/زيت موتور|زيوت موتور/, 'زيوت موتور'],
+  [/زيت فتيس|زيت دبرياج|زيت باور/, 'زيوت فتيس'],
+  [/زيت/,                'زيوت'],
+  [/تيل|تيال|فرامل|برامل|بريك|طنابير|ماستر/, 'الفرامل'],
+  [/مساعدين|مساعد|شداد/, 'عفشة'],
+  [/بلية عجل|بلية/,      'عفشة'],
+  [/مقصات/,              'عفشة'],
+  [/كبالن/,              'عفشة'],
+  [/بطاحة/,              'عفشة'],
+  [/عفشة|تعليق/,         'عفشة'],
+  [/بوجيه|بواجي|شمع/,    'بوجيهات'],
+  [/موبينة|كويل/,        'بوجيهات'],
+  [/سلوك بوجيهات/,       'بوجيهات'],
+  [/سير توقيت|سير مجموعة|سير دينامو/, 'سيور'],
+  [/كاتينة|كاتنة/,       'سيور'],
+  [/بلي سيور|تنشين/,     'سيور'],
+  [/سيور|سير/,           'سيور'],
+  [/ردياتير/,            'دورة تبريد'],
+  [/طلمبة مياه|طلمبة الماء/, 'دورة تبريد'],
+  [/ثرموستات/,           'دورة تبريد'],
+  [/كولانت/,             'دورة تبريد'],
+  [/تكييف|سربنتينة/,     'دورة تبريد'],
+  [/تبريد/,              'دورة تبريد'],
+  [/طلمبة بنزين/,        'دورة البنزين'],
+  [/انجكتور/,            'دورة البنزين'],
+  [/حساس|سنسور/,         'حساسات'],
+  [/دبرياج|كلتش/,        'دبرياج'],
+  [/جوانات|اويل سيل/,    'جوانات'],
+  [/بستم|عمرة موتور/,    'مستلزمات عمرة'],
+  [/اطار|كاوتش سيارة/,   'إطارات'],
+  [/مساحة/,              'مساحات'],
 ];
 
-// ── Extract multiple search terms from the message ───────────────────────────
-function extractSearchTerms(msg: string): string[] {
-  // Remove common filler words, keep meaningful terms
-  const stopWords = /^(في|على|من|عن|هل|في|ده|دي|كده|بقى|انا|احنا|عايز|محتاج|ممكن|لو|و|او|مع|بس|كمان|هنا|جداً|جدا|اوي)$/;
-  return msg.trim()
-    .split(/\s+/)
-    .map(w => w.replace(/[،,؟?!.]/g, ''))
-    .filter(w => w.length >= 3 && !stopWords.test(w))
-    .slice(0, 5);
+// ── Translate Arabic car name to English ─────────────────────────────────────
+function translateCar(msg: string): { model: string | null; make: string | null } {
+  const m = msg.toLowerCase();
+  let model: string | null = null;
+  let make: string | null = null;
+
+  for (const [ar, en] of Object.entries(CAR_MODEL_MAP)) {
+    if (m.includes(ar)) { model = en; break; }
+  }
+  for (const [ar, en] of Object.entries(CAR_MAKE_MAP)) {
+    if (m.includes(ar)) { make = en; break; }
+  }
+  return { model, make };
 }
 
-// ── Fetch relevant products ───────────────────────────────────────────────────
+// ── Fetch relevant products from Supabase ─────────────────────────────────────
 async function fetchContext(msg: string): Promise<string> {
   const m = msg.toLowerCase();
-  const results: string[] = [];
 
-  // Determine if this is a product query
-  const isProductQuery = PRODUCT_KEYWORDS.test(m) || CAR_KEYWORDS.test(m);
-  if (!isProductQuery) return '';
+  const isProductQ = PRODUCT_RE.test(m) || Object.keys(CAR_MODEL_MAP).some(k => m.includes(k)) || Object.keys(CAR_MAKE_MAP).some(k => m.includes(k));
+  if (!isProductQ) return '';
 
-  // Detect car model
-  const carMatch = m.match(/(كورولا|اوبترا|كروز|لانسر|بوما|شارك|النترا|سبورتاج|صني|سنترا|فيرنا|بيكانتو|ريو|اكسنت|توسان|افيو|لانوس|سيراتو|قاشقاي|تيدا|ياريس|كامري|داستر|ميجان|لوجان|كليو|اوكتافيا|جولف|باسات)/);
-  const carModel = carMatch?.[1] ?? null;
-
-  // Detect category
+  const { model: carModelEN, make: carMakeEN } = translateCar(m);
   let catFilter: string | null = null;
-  for (const [pattern, cat] of CAT_KEYWORDS) {
-    if (pattern.test(m)) { catFilter = cat; break; }
-  }
+  for (const [re, cat] of CAT_MAP) { if (re.test(m)) { catFilter = cat; break; } }
 
-  // ── Strategy 1: category + car model ──────────────────────────────────────
-  if (catFilter || carModel) {
+  const found = new Map<string, any>();
+
+  const runQuery = async (filters: { model?: string; make?: string; cat?: string; nameTerm?: string }) => {
     let q = supabase
       .from('products')
-      .select('name, regular_price, sale_price, car_make, car_model, car_model_year, category, subcategory, brand')
+      .select('id, name, regular_price, sale_price, car_make, car_model, car_model_year, category, subcategory, brand')
       .eq('is_active', true)
-      .limit(10);
+      .limit(8);
 
-    if (carModel) q = q.ilike('car_model', `%${carModel}%`);
-    if (catFilter) q = q.ilike('category', `%${catFilter}%`);
+    if (filters.model) q = q.ilike('car_model', `%${filters.model}%`);
+    if (filters.make)  q = q.ilike('car_make',  `%${filters.make}%`);
+    if (filters.cat)   q = q.ilike('category',  `%${filters.cat}%`);
+    if (filters.nameTerm) q = q.ilike('name',   `%${filters.nameTerm}%`);
 
     const { data } = await q;
-    if (data?.length) {
-      results.push(...data.map(formatProduct));
+    data?.forEach(p => found.set(p.id, p));
+  };
+
+  // Strategy 1: English car model + category
+  if (carModelEN && catFilter)  await runQuery({ model: carModelEN, cat: catFilter });
+  if (carModelEN && !catFilter) await runQuery({ model: carModelEN });
+  if (!carModelEN && catFilter) await runQuery({ cat: catFilter });
+  if (carMakeEN && catFilter)   await runQuery({ make: carMakeEN, cat: catFilter });
+
+  // Strategy 2: name keyword search (Arabic terms from message)
+  if (found.size < 3) {
+    const stop = /^(في|على|من|عن|هل|ده|دي|كده|بقى|انا|عايز|محتاج|ممكن|لو|و|او|مع|بس|كمان|هنا|اوي|بسأل|بسئل|بدور|عايزين)$/;
+    const terms = m.trim().split(/\s+/)
+      .map(w => w.replace(/[،,؟?!.ل]/g, ''))
+      .filter(w => w.length >= 3 && !stop.test(w));
+
+    for (const term of terms.slice(0, 4)) {
+      if (found.size >= 10) break;
+      await runQuery({ nameTerm: term });
+      // Also try with model filter
+      if (carModelEN) await runQuery({ nameTerm: term, model: carModelEN });
     }
   }
 
-  // ── Strategy 2: keyword search on product name if results < 3 ─────────────
-  if (results.length < 3) {
-    const terms = extractSearchTerms(msg);
-    for (const term of terms.slice(0, 3)) {
-      const { data } = await supabase
-        .from('products')
-        .select('name, regular_price, sale_price, car_make, car_model, car_model_year, category, subcategory, brand')
-        .eq('is_active', true)
-        .ilike('name', `%${term}%`)
-        .limit(6);
-      if (data?.length) {
-        data.forEach(p => {
-          const line = formatProduct(p);
-          if (!results.includes(line)) results.push(line);
-        });
-      }
-      if (results.length >= 8) break;
-    }
-  }
+  if (!found.size) return '';
 
-  // ── Strategy 3: subcategory search ────────────────────────────────────────
-  if (results.length < 2 && catFilter) {
-    const { data } = await supabase
-      .from('products')
-      .select('name, regular_price, sale_price, car_make, car_model, car_model_year, category, subcategory, brand')
-      .eq('is_active', true)
-      .ilike('subcategory', `%${catFilter}%`)
-      .limit(6);
-    if (data?.length) {
-      data.forEach(p => {
-        const line = formatProduct(p);
-        if (!results.includes(line)) results.push(line);
-      });
-    }
-  }
+  const lines = [...found.values()].slice(0, 10).map(p => {
+    const price = Number(p.sale_price) > 0
+      ? `${p.sale_price} ج.م (خصم من ${p.regular_price} ج.م)`
+      : `${p.regular_price} ج.م`;
+    const car = [p.car_make, p.car_model, p.car_model_year].filter(Boolean).join(' ') || 'جميع السيارات';
+    return `• ${p.name} | ${p.brand} | ${p.category}${p.subcategory ? ' / ' + p.subcategory : ''} | السيارة: ${car} | السعر: ${price}`;
+  });
 
-  if (!results.length) return '';
-  return `منتجات متاحة في المتجر (${results.length} نتيجة):\n${results.slice(0, 10).join('\n')}`;
+  return `منتجات موجودة في المتجر (${lines.length} نتيجة):\n${lines.join('\n')}`;
 }
 
-function formatProduct(p: any): string {
-  const price = Number(p.sale_price) > 0
-    ? `${p.sale_price} ج.م (خصم من ${p.regular_price} ج.م)`
-    : `${p.regular_price} ج.م`;
-  const car = [p.car_make, p.car_model, p.car_model_year].filter(Boolean).join(' ') || 'جميع السيارات';
-  const sub = p.subcategory ? ` | ${p.subcategory}` : '';
-  return `• ${p.name} | ماركة: ${p.brand} | ${p.category}${sub} | للسيارة: ${car} | السعر: ${price}`;
-}
-
-// ── System prompt ─────────────────────────────────────────────────────────────
-function buildSystemPrompt(dbContext: string): string {
+// ── System prompt ──────────────────────────────────────────────────────────────
+function buildSystem(ctx: string) {
   return `أنت شوكت، المساعد الذكي لمتجر "زيت أند فلترز" لقطع غيار السيارات في مصر.
 
 معلومات المتجر:
 - المقر والمخازن: التجمع الخامس، القاهرة
-- التوصيل: 2-5 أيام عمل في جميع المحافظات | إكسبريس 48 ساعة داخل القاهرة والجيزة (150 ج.م)
+- التوصيل: 2-5 أيام عمل | إكسبريس 48 ساعة داخل القاهرة والجيزة بـ 150 ج.م
 - الدفع: InstaPay / محافظ إلكترونية / بطاقات ائتمانية وتقسيط
-- الضمان: ضمان استبدال على جميع القطع، مدة الضمان في تفاصيل كل قطعة
-- الاسترجاع: 14 يوم من تاريخ الاستلام — القطعة تكون في حالتها الأصلية مع تغليفها
-- جميع القطع أصلية من الوكيل الرسمي — لا يوجد كوبي أو هاي كوبي
+- الضمان: ضمان استبدال، المدة مكتوبة في تفاصيل كل قطعة
+- الاسترجاع: 14 يوم بشرط أن تكون القطعة في حالتها الأصلية
+- كل القطع أصلية من الوكيل الرسمي — لا يوجد كوبي أو هاي كوبي
 - لا يوجد استلام شخصي — الطلب من الموقع أو التطبيق فقط
-- التتبع: من حسابك على الموقع في صفحة الطلبات
 - خدمة العملاء: واتساب على 01206777292
 
-${dbContext
-  ? `بيانات من قاعدة بيانات المتجر:\n${dbContext}`
-  : 'ملاحظة: لم يتم جلب منتجات محددة لهذا السؤال — رد بناءً على معلومات المتجر العامة.'}
+${ctx ? `بيانات من قاعدة بيانات المتجر:\n${ctx}` : ''}
 
 تعليمات:
-1. رد بالعربية المصرية البسيطة والمختصرة (2-4 جمل)
-2. لو في منتجات في البيانات، اذكر الاسم والسعر بدقة
-3. لو المنتج مش في البيانات المرفقة، قول "مش لاقيه في قاعدة بياناتي دلوقتي" واقترح الواتساب
-4. لا تقول "مش موجود" لو مش عندك بيانات — الفرق إن مش جاتك بيانات مش إن المنتج مش موجود
-5. لا تتكلم عن مواقع أو متاجر منافسة`;
+1. رد بالعربية المصرية البسيطة (2-3 جمل)
+2. لو في بيانات منتجات، اذكر الاسم والسعر بدقة
+3. لو ما جاتكش بيانات (مش موجود في السياق أعلاه)، قول إن البيانات مش متاحة دلوقتي واقترح واتساب
+4. لا تقول "مش موجود في المتجر" لو مجرد ما جاتكش بيانات — الفرق مهم
+5. لا تتكلم عن منافسين`;
 }
 
-// ── Route ─────────────────────────────────────────────────────────────────────
+// ── Route ──────────────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
     const { message, history = [] } = await req.json();
     if (!message?.trim()) return NextResponse.json({ error: 'empty' }, { status: 400 });
 
-    const groqKey = process.env.GROQ_API_KEY;
-    if (!groqKey || groqKey === 'your_groq_api_key_here') {
-      return NextResponse.json({ reply: 'الـ Groq API key مش محطوط. حطه في .env.local كـ GROQ_API_KEY' });
+    const key = process.env.GROQ_API_KEY;
+    if (!key || key === 'your_groq_api_key_here') {
+      return NextResponse.json({ reply: 'الـ Groq API key مش محطوط في بيئة الإنتاج.' });
     }
 
-    const dbCtx  = await fetchContext(message);
-    const system = buildSystemPrompt(dbCtx);
+    const ctx    = await fetchContext(message);
+    const system = buildSystem(ctx);
 
-    const groq = new Groq({ apiKey: groqKey });
-    const completion = await groq.chat.completions.create({
+    const groq = new Groq({ apiKey: key });
+    const res  = await groq.chat.completions.create({
       model   : 'llama-3.3-70b-versatile',
       messages: [
         { role: 'system', content: system },
@@ -206,7 +240,7 @@ export async function POST(req: NextRequest) {
       max_tokens : 500,
     });
 
-    const reply = completion.choices[0]?.message?.content?.trim()
+    const reply = res.choices[0]?.message?.content?.trim()
       || 'معنديش إجابة دلوقتي، تواصل معانا على الواتساب.';
     return NextResponse.json({ reply });
 
