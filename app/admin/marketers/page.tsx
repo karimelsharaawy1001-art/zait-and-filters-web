@@ -212,6 +212,7 @@ export default function AdminMarketers() {
                 <th style={th}>إجمالي الأرباح</th>
                 <th style={th}>الرصيد المتاح</th>
                 <th style={th}>الرصيد المعلق</th>
+                <th style={th}>بيانات الدفع</th>
                 <th style={th}>الإجراء</th>
               </tr>
             </thead>
@@ -331,7 +332,25 @@ export default function AdminMarketers() {
                         </span>
                       </div>
                     </td>
-                    
+
+                    <td style={td}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.78rem' }}>
+                        {(m.instapay_phone || m.withdrawal_phone) && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#f0fdf4', borderRadius: '8px', padding: '3px 8px', color: '#15803d', fontWeight: '700', direction: 'ltr' }}>
+                            📱 {m.instapay_phone || m.withdrawal_phone}
+                          </div>
+                        )}
+                        {m.wallet_phone && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#eff6ff', borderRadius: '8px', padding: '3px 8px', color: '#1d4ed8', fontWeight: '700', direction: 'ltr' }}>
+                            💳 {m.wallet_phone}
+                          </div>
+                        )}
+                        {!m.instapay_phone && !m.withdrawal_phone && !m.wallet_phone && (
+                          <span style={{ color: '#94a3b8', fontSize: '0.72rem' }}>لم يُضف بعد</span>
+                        )}
+                      </div>
+                    </td>
+
                     <td style={td}>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
                         <button 
@@ -436,19 +455,22 @@ export default function AdminMarketers() {
                   {(selectedMarketer.pending_balance || 0).toFixed(2)} ج.م
                 </span>
               </div>
-              <div style={detailItem}>
-                <strong>طريقة السحب:</strong>
-                <span>
-                  {selectedMarketer.withdrawal_method === 'instapay' 
-                    ? '💳 إنستاباي' 
-                    : selectedMarketer.withdrawal_method === 'e-wallet' 
-                    ? '📱 محفظة إلكترونية' 
-                    : 'غير محدد'}
-                </span>
-              </div>
-              <div style={detailItem}>
-                <strong>رقم السحب:</strong>
-                <span>{selectedMarketer.withdrawal_phone || 'غير محدد'}</span>
+              <div style={{ ...detailItem, gridColumn: '1 / -1', flexDirection: 'column' as const, gap: '10px' }}>
+                <strong style={{ fontSize: '0.9rem', color: '#0f172a' }}>💸 بيانات الاستلام</strong>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '12px 14px' }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#15803d', marginBottom: '4px' }}>📱 انستاباي</div>
+                    <div style={{ fontWeight: '900', fontSize: '0.95rem', color: '#0f172a', direction: 'ltr' }}>
+                      {selectedMarketer.instapay_phone || selectedMarketer.withdrawal_phone || <span style={{ color: '#94a3b8', fontWeight: '600' }}>غير محدد</span>}
+                    </div>
+                  </div>
+                  <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '12px', padding: '12px 14px' }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#1d4ed8', marginBottom: '4px' }}>💳 محفظة إلكترونية</div>
+                    <div style={{ fontWeight: '900', fontSize: '0.95rem', color: '#0f172a', direction: 'ltr' }}>
+                      {selectedMarketer.wallet_phone || <span style={{ color: '#94a3b8', fontWeight: '600' }}>غير محدد</span>}
+                    </div>
+                  </div>
+                </div>
               </div>
               <div style={detailItem}>
                 <strong>الحالة:</strong>

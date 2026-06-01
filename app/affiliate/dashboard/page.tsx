@@ -33,6 +33,9 @@ export default function ProfessionalAffiliateDashboard() {
   const [loading, setLoading] = useState(true);
   const [withdrawalSettings, setWithdrawalSettings] = useState({
     method: 'instapay',
+    instapay_phone: '',
+    wallet_phone: '',
+    // legacy single-phone field kept for backward compat
     phone: ''
   });
   const [savingSettings, setSavingSettings] = useState(false);
@@ -127,10 +130,12 @@ export default function ProfessionalAffiliateDashboard() {
 
         setData(marketer);
 
-        if (marketer.withdrawal_method) {
+        if (marketer.withdrawal_method || marketer.instapay_phone || marketer.wallet_phone) {
           setWithdrawalSettings({
-            method: marketer.withdrawal_method,
-            phone: marketer.withdrawal_phone || ''
+            method: marketer.withdrawal_method || 'instapay',
+            instapay_phone: marketer.instapay_phone || marketer.withdrawal_phone || '',
+            wallet_phone: marketer.wallet_phone || '',
+            phone: marketer.withdrawal_phone || '',
           });
         }
 
@@ -178,27 +183,30 @@ export default function ProfessionalAffiliateDashboard() {
 
 
   const saveWithdrawalSettings = async () => {
-    if (!withdrawalSettings.phone || withdrawalSettings.phone.length < 11) {
-      toast.error('يرجى إدخال رقم هاتف صحيح');
+    const ip = withdrawalSettings.instapay_phone.trim();
+    const wp = withdrawalSettings.wallet_phone.trim();
+    if (!ip && !wp) {
+      toast.error('يرجى إدخال رقم انستاباي أو رقم المحفظة الإلكترونية');
       return;
     }
+    if (ip && ip.length < 11) { toast.error('رقم انستاباي يجب أن يكون 11 رقم'); return; }
+    if (wp && wp.length < 11) { toast.error('رقم المحفظة يجب أن يكون 11 رقم'); return; }
 
     setSavingSettings(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-
-      // ── FIX 4: update by user_id, not id ──
       const { error } = await supabase
         .from('marketers')
         .update({
           withdrawal_method: withdrawalSettings.method,
-          withdrawal_phone: withdrawalSettings.phone
+          withdrawal_phone: ip || wp,   // keep legacy field as primary
+          instapay_phone: ip || null,
+          wallet_phone: wp || null,
         })
         .eq('user_id', user?.id);
 
       if (error) throw error;
-
-      toast.success('تم حفظ إعدادات السحب بنجاح! ✅');
+      toast.success('تم حفظ بيانات السحب بنجاح! ✅');
     } catch (error) {
       toast.error('حدث خطأ في حفظ الإعدادات');
     } finally {
@@ -355,28 +363,53 @@ export default function ProfessionalAffiliateDashboard() {
       </div>
 
       <div style={withdrawalSection} className="slide-in">
-        <h3 style={sectionTitle}>💳 إعدادات السحب</h3>
+        <h3 style={sectionTitle}>💳 بيانات الاستلام</h3>
         <div style={withdrawalCard}>
-          <div style={inputGroup}>
-            <label style={label}>طريقة السحب</label>
-            <div style={radioGroup}>
-              <label style={radioLabel}>
-                <input type="radio" value="instapay" checked={withdrawalSettings.method === 'instapay'} onChange={(e) => setWithdrawalSettings({...withdrawalSettings, method: e.target.value})} style={radioInput} />
-                <Smartphone size={18} /><span>InstaPay</span>
-              </label>
-              <label style={radioLabel}>
-                <input type="radio" value="e-wallet" checked={withdrawalSettings.method === 'e-wallet'} onChange={(e) => setWithdrawalSettings({...withdrawalSettings, method: e.target.value})} style={radioInput} />
-                <CreditCardIcon size={18} /><span>محفظة إلكترونية</span>
-              </label>
-            </div>
+          <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '18px', fontWeight: '600' }}>
+            أدخل أرقام حساباتك لاستلام العمولات. يمكنك إدخال واحد أو الاثنين معاً.
+          </p>
+
+          {/* InstaPay */}
+          <div style={{ ...inputGroup, background: '#f0fdf4', border: '1.5px solid #bbf7d0', borderRadius: '14px', padding: '16px', marginBottom: '14px' }}>
+            <label style={{ ...label, display: 'flex', alignItems: 'center', gap: '8px', color: '#15803d', marginBottom: '10px' }}>
+              <Smartphone size={18} color="#15803d" /> رقم انستاباي (InstaPay)
+            </label>
+            <input
+              type="tel"
+              placeholder="01xxxxxxxxx"
+              value={withdrawalSettings.instapay_phone}
+              onChange={(e) => setWithdrawalSettings({ ...withdrawalSettings, instapay_phone: e.target.value })}
+              style={{ ...input, borderColor: withdrawalSettings.instapay_phone ? '#22c55e' : '#e2e8f0' }}
+              maxLength={11}
+              dir="ltr"
+            />
+            {withdrawalSettings.instapay_phone && withdrawalSettings.instapay_phone.length === 11 && (
+              <p style={{ fontSize: '0.75rem', color: '#15803d', fontWeight: '700', marginTop: '5px' }}>✓ رقم صحيح</p>
+            )}
           </div>
-          <div style={inputGroup}>
-            <label style={label}>رقم الهاتف للسحب</label>
-            <input type="tel" placeholder="01xxxxxxxxx" value={withdrawalSettings.phone} onChange={(e) => setWithdrawalSettings({...withdrawalSettings, phone: e.target.value})} style={input} maxLength={11} />
+
+          {/* E-Wallet */}
+          <div style={{ ...inputGroup, background: '#eff6ff', border: '1.5px solid #bfdbfe', borderRadius: '14px', padding: '16px', marginBottom: '20px' }}>
+            <label style={{ ...label, display: 'flex', alignItems: 'center', gap: '8px', color: '#1d4ed8', marginBottom: '10px' }}>
+              <CreditCardIcon size={18} color="#1d4ed8" /> رقم المحفظة الإلكترونية (فودافون كاش / أورنج / إتصالات)
+            </label>
+            <input
+              type="tel"
+              placeholder="01xxxxxxxxx"
+              value={withdrawalSettings.wallet_phone}
+              onChange={(e) => setWithdrawalSettings({ ...withdrawalSettings, wallet_phone: e.target.value })}
+              style={{ ...input, borderColor: withdrawalSettings.wallet_phone ? '#3b82f6' : '#e2e8f0' }}
+              maxLength={11}
+              dir="ltr"
+            />
+            {withdrawalSettings.wallet_phone && withdrawalSettings.wallet_phone.length === 11 && (
+              <p style={{ fontSize: '0.75rem', color: '#1d4ed8', fontWeight: '700', marginTop: '5px' }}>✓ رقم صحيح</p>
+            )}
           </div>
+
           <button onClick={saveWithdrawalSettings} disabled={savingSettings} style={saveButton} className="save-btn">
             {savingSettings ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-            <span>{savingSettings ? 'جاري الحفظ...' : 'حفظ الإعدادات'}</span>
+            <span>{savingSettings ? 'جاري الحفظ...' : 'حفظ بيانات الاستلام'}</span>
           </button>
         </div>
       </div>
@@ -482,9 +515,6 @@ const withdrawalSection: any = { maxWidth: '1400px', margin: '0 auto 40px', back
 const withdrawalCard: any = { background: '#f8fafc', padding: '25px', borderRadius: '16px', border: '1px solid #e2e8f0' };
 const inputGroup: any = { marginBottom: '20px' };
 const label: any = { display: 'block', marginBottom: '10px', fontWeight: 'bold', color: '#1e293b', fontSize: '0.95rem' };
-const radioGroup: any = { display: 'flex', gap: '15px', flexWrap: 'wrap' };
-const radioLabel: any = { display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 20px', background: '#fff', border: '2px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', transition: '0.3s', fontSize: '0.95rem', fontWeight: 'bold' };
-const radioInput: any = { cursor: 'pointer' };
 const input: any = { width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '1rem', outline: 'none', background: '#fff' };
 const saveButton: any = { display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 30px', background: '#27ae60', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', transition: '0.3s', fontSize: '1rem', boxShadow: '0 4px 10px rgba(39, 174, 96, 0.3)' };
 const commissionsSection: any = { maxWidth: '1400px', margin: '0 auto', background: '#fff', borderRadius: '20px', padding: '35px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' };
