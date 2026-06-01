@@ -1208,7 +1208,7 @@ export default function AdminOrders() {
 
       {/* ── Orders Table ── */}
       {(() => {
-        const filtered = activeTab === 'all' ? orders : orders.filter(o => o.status === activeTab);
+        const filtered = getFilteredOrders();
         const totalPages = Math.max(1, Math.ceil(filtered.length / ORDERS_PER_PAGE));
         const paginated = filtered.slice((currentPage - 1) * ORDERS_PER_PAGE, currentPage * ORDERS_PER_PAGE);
         const allPageSelected = paginated.length > 0 && paginated.every(o => selectedIds.has(o.id));
