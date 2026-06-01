@@ -3,9 +3,9 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { 
-  Wallet, Link as LinkIcon, Ticket, Loader2, Copy, TrendingUp, 
-  ShoppingBag, Eye, DollarSign, BarChart3, Award, Clock,
-  CheckCircle, XCircle, LogOut, RefreshCw, Trophy, Star,
+  Wallet, Link as LinkIcon, Ticket, Loader2, Copy,
+  ShoppingBag, Eye, DollarSign, BarChart3, Clock,
+  CheckCircle, LogOut, RefreshCw, Trophy,
   Smartphone, CreditCard as CreditCardIcon, AlertCircle, Save
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -393,23 +393,34 @@ export default function ProfessionalAffiliateDashboard() {
               </thead>
               <tbody>
                 {stats.recent_commissions.map((comm: any) => {
-                  const releaseDate = comm.delivery_date 
-                    ? new Date(new Date(comm.delivery_date).getTime() + 14 * 24 * 60 * 60 * 1000)
-                    : null;
+                  const now = new Date();
+                  const releaseDate = comm.release_date ? new Date(comm.release_date) : null;
+                  const daysLeft = releaseDate ? Math.ceil((releaseDate.getTime() - now.getTime()) / 86400000) : null;
+                  const statusConfig: Record<string, { bg: string; color: string; icon: any; label: string }> = {
+                    pending:   { bg: '#e0f2fe', color: '#0369a1', icon: <Clock size={13}/>,       label: 'انتظار التسليم' },
+                    in_review: { bg: '#fef3c7', color: '#92400e', icon: <Clock size={13}/>,       label: daysLeft && daysLeft > 0 ? `${daysLeft} يوم متبقي` : 'جاهزة قريباً' },
+                    available: { bg: '#d1fae5', color: '#059669', icon: <CheckCircle size={13}/>, label: 'جاهزة للصرف' },
+                    paid:      { bg: '#f3f4f6', color: '#6b7280', icon: <CheckCircle size={13}/>, label: 'تم الدفع' },
+                  };
+                  const s = statusConfig[comm.status] || statusConfig['pending'];
                   return (
                     <tr key={comm.id} style={tableRow}>
                       <td style={td}>{new Date(comm.created_at).toLocaleDateString('ar-EG')}</td>
                       <td style={td}>#{comm.order_id?.slice(0, 8)}</td>
-                      <td style={td}>{comm.order_total.toFixed(2)} ج.م</td>
-                      <td style={{...td, color: '#27ae60', fontWeight: 'bold'}}>+{comm.commission_amount.toFixed(2)} ج.م</td>
+                      <td style={td}>{parseFloat(comm.order_total).toFixed(2)} ج.م</td>
+                      <td style={{...td, color: '#27ae60', fontWeight: 'bold'}}>+{parseFloat(comm.commission_amount).toFixed(2)} ج.م</td>
                       <td style={td}>
-                        {comm.is_released ? (
-                          <div style={{...statusBadgeInTable, background: '#d1fae5', color: '#059669'}}><CheckCircle size={14} /> متاح</div>
-                        ) : (
-                          <div style={{...statusBadgeInTable, background: '#fef3c7', color: '#d97706'}}><Clock size={14} /> معلق</div>
-                        )}
+                        <div style={{...statusBadgeInTable, background: s.bg, color: s.color}}>
+                          {s.icon} {s.label}
+                        </div>
                       </td>
-                      <td style={td}>{releaseDate ? releaseDate.toLocaleDateString('ar-EG') : 'قيد الانتظار'}</td>
+                      <td style={td}>
+                        {releaseDate ? (
+                          <span style={{ color: daysLeft && daysLeft > 0 ? '#d97706' : '#059669', fontWeight: '700', fontSize: '0.82rem' }}>
+                            {releaseDate.toLocaleDateString('ar-EG')}
+                          </span>
+                        ) : '—'}
+                      </td>
                     </tr>
                   );
                 })}

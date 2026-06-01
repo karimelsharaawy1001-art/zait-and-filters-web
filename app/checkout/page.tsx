@@ -357,16 +357,15 @@ export default function CheckoutPage() {
         order_id: orderId,
         commission_amount: commissionAmount,
         order_total: subtotal,
-        status: 'pending',
+        status: 'pending',       // → 'in_review' on delivery → 'available' after 14d
         is_released: false,
         delivery_date: null,
         release_date: null
       }]);
 
+      // Only increment conversions at order time — earnings/balance updated on delivery
       await supabase.from('marketers').update({
-        total_earnings: (marketer?.total_earnings || 0) + commissionAmount,
         total_conversions: (marketer?.total_conversions || 0) + 1,
-        pending_balance: (marketer?.pending_balance || 0) + commissionAmount
       }).eq('id', marketerId);
     } catch (error) {
       console.error('Error tracking commission:', error);

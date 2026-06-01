@@ -32,11 +32,22 @@ export async function POST(req: Request) {
       const releaseDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
 
       if (!forceCashback) {
-        // Update affiliate commission dates only on real status change
-        await db
+        // 1. Move commission to "in_review" and set the 14-day release date
+        const { data: commRows } = await db
           .from('affiliate_commissions')
-          .update({ delivery_date: deliveryDate, release_date: releaseDate })
-          .eq('order_id', orderId);
+          .update({ delivery_date: deliveryDate, release_date: releaseDate, status: 'in_review' })
+          .eq('order_id', orderId)
+          .select('marketer_id, commission_amount');
+
+        // 2. Add commission to marketer's pending_balance now that order is delivered
+        if (commRows && commRows.length > 0) {
+          for (const comm of commRows) {
+            const { data: mkt } = await db
+              .from('marketers').select('pending_balance').eq('id', comm.marketer_id).single();
+            const newPending = parseFloat(String(mkt?.pending_balance || 0)) + parseFloat(String(comm.commission_amount));
+            await db.from('marketers').update({ pending_balance: newPending }).eq('id', comm.marketer_id);
+          }
+        }
       }
 
       // Award cashback — pass forceOverride=true to re-award even if already awarded

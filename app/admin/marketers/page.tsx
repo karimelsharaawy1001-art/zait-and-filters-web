@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import { 
-  Users, DollarSign, Wallet, ArrowDownCircle, Loader2, Search, 
-  Award, TrendingUp, Eye, Copy, Link as LinkIcon, Ticket, X 
+  Users, ArrowDownCircle, Loader2, Search,
+  Award, TrendingUp, Eye, Copy, Link as LinkIcon, Ticket, X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -23,6 +23,9 @@ export default function AdminMarketers() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedMarketer, setSelectedMarketer] = useState<any>(null);
+  const [commissions, setCommissions] = useState<any[]>([]);
+  const [loadingComm, setLoadingComm] = useState(false);
+  const [commMarketer, setCommMarketer] = useState<any>(null);
 
 
 
@@ -62,27 +65,57 @@ export default function AdminMarketers() {
 
 
   const handlePayout = async (id: string, amount: number) => {
-    if (amount <= 0) {
-      toast.error('لا يوجد رصيد متاح للصرف');
-      return;
-    }
-    
+    if (amount <= 0) { toast.error('لا يوجد رصيد متاح للصرف'); return; }
     if (!confirm(`هل أنت متأكد من تسجيل دفع ${amount.toFixed(2)} ج.م وتصفير رصيد هذا المسوق؟`)) return;
-    
     try {
-      const { error } = await supabase
-        .from('marketers')
-        .update({ balance: 0 })
-        .eq('id', id);
-      
+      const { error } = await supabase.from('marketers').update({ balance: 0 }).eq('id', id);
       if (error) throw error;
-      
       toast.success('تم تصفير الرصيد بنجاح ✅');
       fetchMarketers();
     } catch (err: any) {
-      console.error('Payout error:', err);
       toast.error('فشل العملية: ' + err.message);
     }
+  };
+
+  const openCommissions = async (marketer: any) => {
+    setCommMarketer(marketer);
+    setLoadingComm(true);
+    const { data } = await supabase
+      .from('affiliate_commissions')
+      .select('*')
+      .eq('marketer_id', marketer.id)
+      .order('created_at', { ascending: false });
+    setCommissions(data || []);
+    setLoadingComm(false);
+  };
+
+  const markAsPaid = async (commId: string, amount: number, marketerId: string) => {
+    if (!confirm(`تأكيد دفع ${amount.toFixed(2)} ج.م لهذه العمولة؟`)) return;
+    try {
+      await supabase.from('affiliate_commissions')
+        .update({ is_released: true, status: 'paid' }).eq('id', commId);
+      const { data: mkt } = await supabase.from('marketers')
+        .select('pending_balance, total_earnings').eq('id', marketerId).single();
+      await supabase.from('marketers').update({
+        pending_balance: Math.max(0, parseFloat(String(mkt?.pending_balance || 0)) - amount),
+        total_earnings: parseFloat(String(mkt?.total_earnings || 0)) + amount,
+      }).eq('id', marketerId);
+      toast.success('✅ تم تسجيل الدفع');
+      openCommissions(commMarketer);
+      fetchMarketers();
+    } catch (err: any) { toast.error('فشل: ' + err.message); }
+  };
+
+  const releaseAvailable = async (marketerId: string) => {
+    const now = new Date().toISOString();
+    const { data } = await supabase.from('affiliate_commissions')
+      .select('id').eq('marketer_id', marketerId).eq('status', 'in_review')
+      .lte('release_date', now);
+    if (!data?.length) { toast('لا توجد عمولات جاهزة للإفراج بعد'); return; }
+    await supabase.from('affiliate_commissions')
+      .update({ status: 'available' }).in('id', data.map(d => d.id));
+    toast.success(`✅ تم تحديث ${data.length} عمولة إلى "جاهزة للدفع"`);
+    openCommissions(commMarketer);
   };
 
 
@@ -415,9 +448,115 @@ export default function AdminMarketers() {
               </div>
             </div>
             
-            <button onClick={() => setSelectedMarketer(null)} style={closeModalBtn}>
-              إغلاق
-            </button>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+              <button onClick={() => { setSelectedMarketer(null); openCommissions(selectedMarketer); }}
+                style={{ flex: 1, padding: '12px', background: '#f0fdf4', border: '1.5px solid #22c55e', borderRadius: '12px', color: '#15803d', fontWeight: '800', cursor: 'pointer', fontSize: '0.92rem', fontFamily: 'inherit' }}>
+                💰 عرض العمولات وتفاصيل الدفع
+              </button>
+              <button onClick={() => setSelectedMarketer(null)} style={{ ...closeModalBtn, flex: 1 }}>إغلاق</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Commissions modal ── */}
+      {commMarketer && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 3000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}
+          onClick={() => setCommMarketer(null)}>
+          <div style={{ background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '860px', padding: '28px', direction: 'rtl', marginTop: '20px' }}
+            onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '900', color: '#0f172a' }}>💰 عمولات {commMarketer.full_name}</h2>
+                <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#64748b' }}>كود: {commMarketer.promo_code} — رصيد معلق: <b style={{ color: '#f59e0b' }}>{(commMarketer.pending_balance || 0).toFixed(2)} ج.م</b></p>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={() => releaseAvailable(commMarketer.id)}
+                  style={{ padding: '8px 16px', background: '#fffbeb', border: '1.5px solid #fde68a', borderRadius: '10px', color: '#92400e', fontWeight: '800', cursor: 'pointer', fontSize: '0.82rem', fontFamily: 'inherit' }}>
+                  🔓 إفراج العمولات الجاهزة
+                </button>
+                <button onClick={() => setCommMarketer(null)}
+                  style={{ padding: '8px 14px', background: '#f1f5f9', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontFamily: 'inherit' }}>
+                  ✕ إغلاق
+                </button>
+              </div>
+            </div>
+
+            {/* Legend */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' as const }}>
+              {[['pending','#e0f2fe','#0369a1','⏳ قيد الانتظار (لم يُسلَّم بعد)'],
+                ['in_review','#fef3c7','#92400e','🔄 تحت المراجعة (14 يوم من التسليم)'],
+                ['available','#d1fae5','#065f46','✅ جاهزة للدفع'],
+                ['paid','#f3f4f6','#6b7280','💸 تم الدفع']
+              ].map(([s,bg,col,lbl])=>(
+                <span key={s} style={{ fontSize:'0.72rem', fontWeight:'700', padding:'3px 10px', borderRadius:'12px', background: bg as string, color: col as string }}>{lbl as string}</span>
+              ))}
+            </div>
+
+            {loadingComm ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}><Loader2 size={28} style={{ animation: 'spin 0.8s linear infinite', display: 'block', margin: '0 auto' }} /></div>
+            ) : commissions.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8', fontWeight: '700' }}>لا توجد عمولات بعد</div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                  <thead>
+                    <tr style={{ background: '#f8fafc' }}>
+                      {['رقم الطلب','تاريخ الطلب','قيمة الطلب','العمولة','تاريخ التسليم','تاريخ الإفراج','الحالة','إجراء'].map(h=>(
+                        <th key={h} style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '800', color: '#475569', borderBottom: '1.5px solid #f1f5f9', whiteSpace: 'nowrap' as const }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {commissions.map((c: any) => {
+                      const now = new Date();
+                      const releaseDate = c.release_date ? new Date(c.release_date) : null;
+                      const daysLeft = releaseDate ? Math.ceil((releaseDate.getTime() - now.getTime()) / 86400000) : null;
+                      const statusColors: Record<string,string[]> = {
+                        pending:   ['#e0f2fe','#0369a1'],
+                        in_review: ['#fef3c7','#92400e'],
+                        available: ['#d1fae5','#065f46'],
+                        paid:      ['#f3f4f6','#6b7280'],
+                      };
+                      const [bg, col] = statusColors[c.status] || ['#f3f4f6','#6b7280'];
+                      const statusLabel: Record<string,string> = { pending:'⏳ انتظار', in_review:'🔄 مراجعة', available:'✅ جاهزة', paid:'💸 مدفوعة' };
+                      return (
+                        <tr key={c.id} style={{ borderBottom: '1px solid #f8fafc' }}>
+                          <td style={{ padding: '10px 12px', fontWeight: '700', color: '#0f172a' }}>#{c.order_id?.slice(0,8)}</td>
+                          <td style={{ padding: '10px 12px', color: '#64748b' }}>{new Date(c.created_at).toLocaleDateString('ar-EG')}</td>
+                          <td style={{ padding: '10px 12px', fontWeight: '700' }}>{parseFloat(c.order_total).toFixed(2)} ج.م</td>
+                          <td style={{ padding: '10px 12px', color: '#15803d', fontWeight: '900' }}>+{parseFloat(c.commission_amount).toFixed(2)} ج.م</td>
+                          <td style={{ padding: '10px 12px', color: '#64748b' }}>{c.delivery_date ? new Date(c.delivery_date).toLocaleDateString('ar-EG') : '—'}</td>
+                          <td style={{ padding: '10px 12px' }}>
+                            {releaseDate ? (
+                              <span style={{ color: daysLeft && daysLeft > 0 ? '#f59e0b' : '#15803d', fontWeight: '700', fontSize: '0.8rem' }}>
+                                {releaseDate.toLocaleDateString('ar-EG')}
+                                {daysLeft && daysLeft > 0 ? ` (${daysLeft} يوم)` : ' ✓'}
+                              </span>
+                            ) : '—'}
+                          </td>
+                          <td style={{ padding: '10px 12px' }}>
+                            <span style={{ background: bg, color: col, padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '800' }}>{statusLabel[c.status] || c.status}</span>
+                          </td>
+                          <td style={{ padding: '10px 12px' }}>
+                            {(c.status === 'available' || c.status === 'in_review') && !c.is_released ? (
+                              <button onClick={() => markAsPaid(c.id, parseFloat(c.commission_amount), commMarketer.id)}
+                                style={{ padding: '5px 12px', background: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '800', cursor: 'pointer', fontSize: '0.78rem', fontFamily: 'inherit' }}>
+                                💸 دفع
+                              </button>
+                            ) : c.is_released ? (
+                              <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>✓ مدفوع</span>
+                            ) : '—'}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
         </div>
       )}
