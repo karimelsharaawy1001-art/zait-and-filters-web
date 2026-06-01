@@ -160,14 +160,31 @@ export default function AdminMarketers() {
           <Users size={32} color="#27ae60" /> شبكة المسوقين (Affiliates)
           <span style={countBadge}>{marketers.length}</span>
         </h1>
-        <div style={searchBox}>
-          <Search size={18} color="#94a3b8" />
-          <input 
-            placeholder="ابحث باسم المسوق، الكود، أو البريد..." 
-            style={searchInp} 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)} 
-          />
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' as const }}>
+          <div style={searchBox}>
+            <Search size={18} color="#94a3b8" />
+            <input
+              placeholder="ابحث باسم المسوق، الكود، أو البريد..."
+              style={searchInp}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <button
+            onClick={async () => {
+              if (!confirm('سيقوم هذا بمسح جميع الطلبات القديمة وإنشاء العمولات المفقودة. هل تريد المتابعة؟')) return;
+              const t = toast.loading('جاري إصلاح العمولات المفقودة...');
+              try {
+                const res = await fetch('/api/affiliate/fix-commissions', { method: 'POST' });
+                const data = await res.json();
+                toast.dismiss(t);
+                if (data.error) toast.error('فشل: ' + data.error);
+                else { toast.success(data.message, { duration: 6000 }); fetchMarketers(); }
+              } catch (e: any) { toast.dismiss(t); toast.error(e.message); }
+            }}
+            style={{ padding: '10px 16px', background: '#f59e0b', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' as const }}>
+            🔧 إصلاح العمولات المفقودة
+          </button>
         </div>
       </div>
 
