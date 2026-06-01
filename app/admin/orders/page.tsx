@@ -601,6 +601,7 @@ export default function AdminOrders() {
   const [activeTab, setActiveTab] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const ORDERS_PER_PAGE = 20;
+  const [orderSearch, setOrderSearch] = useState('');
 
   const paymentLabels: any = {
     'card_installments': 'بطاقة / تقسيط',
@@ -753,8 +754,21 @@ export default function AdminOrders() {
     });
   };
 
+  const getFilteredOrders = () => {
+    let list = activeTab === 'all' ? orders : orders.filter(o => o.status === activeTab);
+    const q = orderSearch.trim().replace(/\s/g, '');
+    if (q) {
+      list = list.filter(o =>
+        o.customer_phone?.replace(/\s/g, '').includes(q) ||
+        o.id?.toLowerCase().includes(q.toLowerCase()) ||
+        o.id?.slice(0, 8).toUpperCase().includes(q.toUpperCase())
+      );
+    }
+    return list;
+  };
+
   const getPagedOrders = () => {
-    const filtered = activeTab === 'all' ? orders : orders.filter(o => o.status === activeTab);
+    const filtered = getFilteredOrders();
     return filtered.slice((currentPage - 1) * ORDERS_PER_PAGE, currentPage * ORDERS_PER_PAGE);
   };
 
@@ -1109,7 +1123,7 @@ export default function AdminOrders() {
       <div style={headerSection}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
           <div style={{ minWidth: 0 }}>
-            <h1 className="header-text" style={{ ...mainTitle, fontSize: 'clamp(1.2rem, 4vw, 2.2rem)' }}>📦 إدارة الطلبات <span style={badgeCount}>{orders.length}</span></h1>
+            <h1 className="header-text" style={{ ...mainTitle, fontSize: 'clamp(1.2rem, 4vw, 2.2rem)' }}>📦 إدارة الطلبات <span style={badgeCount}>{orderSearch ? getFilteredOrders().length : orders.length}</span></h1>
             <p style={{ color: '#666', fontSize: 'clamp(0.8rem, 2vw, 0.95rem)', marginTop: '5px', marginBottom: 0 }}>متابعة عمليات البيع وحالة الشحن لـ &quot;زيت أند فلترز&quot;</p>
           </div>
           <button className="new-order-btn" onClick={() => setShowNewOrderModal(true)}
@@ -1118,6 +1132,29 @@ export default function AdminOrders() {
           </button>
         </div>
       </div>
+
+      {/* ── Search bar ── */}
+      <div style={{ marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', border: `1.5px solid ${orderSearch ? '#22c55e' : '#e2e8f0'}`, borderRadius: '14px', padding: '10px 16px', boxShadow: orderSearch ? '0 0 0 3px rgba(34,197,94,0.1)' : 'none', transition: 'all 0.15s', maxWidth: '480px' }}>
+        <Search size={18} color={orderSearch ? '#22c55e' : '#94a3b8'} style={{ flexShrink: 0 }} />
+        <input
+          value={orderSearch}
+          onChange={e => { setOrderSearch(e.target.value); setCurrentPage(1); }}
+          placeholder="ابحث برقم الموبايل أو رقم الطلب..."
+          dir="rtl"
+          style={{ flex: 1, border: 'none', outline: 'none', fontSize: '0.92rem', fontFamily: 'inherit', background: 'transparent', color: '#0f172a' }}
+        />
+        {orderSearch && (
+          <button onClick={() => { setOrderSearch(''); setCurrentPage(1); }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: 0, display: 'flex', flexShrink: 0 }}>
+            <X size={16} />
+          </button>
+        )}
+      </div>
+      {orderSearch && (
+        <p style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: '700', marginBottom: '12px', marginTop: '-8px' }}>
+          {getFilteredOrders().length} نتيجة لـ "{orderSearch}"
+        </p>
+      )}
 
       {/* ── Status Tabs ── */}
       {(() => {
