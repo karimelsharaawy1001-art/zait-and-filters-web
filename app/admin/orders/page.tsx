@@ -1279,6 +1279,11 @@ export default function AdminOrders() {
                             <div style={{ fontWeight: '800', color: '#1a1a1a' }}>{order.customer_name}</div>
                             <div style={{ fontSize: '0.8rem', color: '#777', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={12} /> {order.customer_phone}</div>
                             <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#22c55e', fontFamily: 'monospace', marginTop: '3px', letterSpacing: '0.5px' }}>#{order.id.slice(0, 8).toUpperCase()}</div>
+                            {order.promo_code && (
+                              <div style={{ marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#fefce8', border: '1px solid #fde047', borderRadius: '6px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: '900', color: '#854d0e', fontFamily: 'monospace', letterSpacing: '0.5px' }}>
+                                🏷️ {order.promo_code}
+                              </div>
+                            )}
                           </td>
                           <td style={td} onClick={e => e.stopPropagation()}>
                             <div style={cityBadge}><MapPin size={14} color="#15803d" /> {order.city || 'غير محدد'}</div>
@@ -1407,6 +1412,11 @@ export default function AdminOrders() {
                             <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#1a1a1a', marginBottom: '3px' }}>{order.customer_name}</div>
                             <div style={{ fontSize: '0.78rem', color: '#777', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={11} /> {order.customer_phone}</div>
                             <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#22c55e', fontFamily: 'monospace', marginTop: '2px', letterSpacing: '0.5px' }}>#{order.id.slice(0, 8).toUpperCase()}</div>
+                            {order.promo_code && (
+                              <div style={{ marginTop: '3px', display: 'inline-flex', alignItems: 'center', gap: '3px', background: '#fefce8', border: '1px solid #fde047', borderRadius: '6px', padding: '2px 7px', fontSize: '0.68rem', fontWeight: '900', color: '#854d0e', fontFamily: 'monospace' }}>
+                                🏷️ {order.promo_code}
+                              </div>
+                            )}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                             <span style={{ fontWeight: '900', fontSize: '1rem', color: '#15803d' }}>{order.total_price} ج.م</span>
