@@ -341,36 +341,23 @@ export default function CheckoutPage() {
     }
   };
 
-  const trackAffiliateCommission = async (orderId: string, marketerId: string) => {
+  // Commission tracking via server-side API (uses service role key to bypass RLS)
+  const trackAffiliateCommission = async (orderId: string, _marketerId: string) => {
+    if (!appliedPromo) return;
     try {
-      const { data: marketer } = await supabase
-        .from('marketers')
-        .select('tier_percentage, total_conversions, total_earnings, pending_balance')
-        .eq('id', marketerId)
-        .single();
-
-      const commissionRate = marketer?.tier_percentage || 5;
-      const commissionAmount = subtotal * (commissionRate / 100);
-
-      const { error: commErr } = await supabase.from('affiliate_commissions').insert([{
-        marketer_id: marketerId,
-        order_id: orderId,
-        commission_amount: commissionAmount,
-        order_total: subtotal,
-        status: 'pending',
-        is_released: false,
-        delivery_date: null,
-        release_date: null
-      }]);
-      if (commErr) console.error('[affiliate] Commission insert failed:', commErr.message);
-
-      // Increment conversions + show pending amount immediately in portal
-      await supabase.from('marketers').update({
-        total_conversions: (marketer?.total_conversions || 0) + 1,
-        pending_balance: parseFloat(((marketer?.pending_balance || 0) + commissionAmount).toFixed(2)),
-      }).eq('id', marketerId);
+      const res = await fetch('/api/affiliate/track-commission', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, promoCode: appliedPromo, subtotal }),
+      });
+      const result = await res.json();
+      if (!res.ok || result.error) {
+        console.error('[affiliate] Commission tracking failed:', result.error);
+      } else if (!result.skipped) {
+        console.log(`[affiliate] Commission tracked: ${result.commissionAmount} EGP`);
+      }
     } catch (error) {
-      console.error('Error tracking commission:', error);
+      console.error('[affiliate] Commission tracking error:', error);
     }
   };
 
