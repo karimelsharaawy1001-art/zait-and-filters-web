@@ -314,6 +314,14 @@ export default function ProfessionalAffiliateDashboard() {
             <p style={statGrowth}>جاهز للسحب الآن</p>
           </div>
         </div>
+        <div style={{ ...statCard, borderTop: '4px solid #f59e0b' }} className="stat-card">
+          <div style={{ ...statIconContainer, background: '#fef3c7' }}><DollarSign size={28} color="#f59e0b" /></div>
+          <div style={statContent}>
+            <p style={statLabel}>عمولات قيد الانتظار</p>
+            <h2 style={{ ...statValue, color: '#d97706' }}>{(data?.pending_balance || 0).toFixed(2)} ج.م</h2>
+            <p style={statGrowth}>تُصرف بعد 14 يوم من التسليم</p>
+          </div>
+        </div>
       </div>
 
       {stats.pending_commissions > 0 && (

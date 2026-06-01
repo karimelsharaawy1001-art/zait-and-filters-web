@@ -352,20 +352,22 @@ export default function CheckoutPage() {
       const commissionRate = marketer?.tier_percentage || 5;
       const commissionAmount = subtotal * (commissionRate / 100);
 
-      await supabase.from('affiliate_commissions').insert([{
+      const { error: commErr } = await supabase.from('affiliate_commissions').insert([{
         marketer_id: marketerId,
         order_id: orderId,
         commission_amount: commissionAmount,
         order_total: subtotal,
-        status: 'pending',       // → 'in_review' on delivery → 'available' after 14d
+        status: 'pending',
         is_released: false,
         delivery_date: null,
         release_date: null
       }]);
+      if (commErr) console.error('[affiliate] Commission insert failed:', commErr.message);
 
-      // Only increment conversions at order time — earnings/balance updated on delivery
+      // Increment conversions + show pending amount immediately in portal
       await supabase.from('marketers').update({
         total_conversions: (marketer?.total_conversions || 0) + 1,
+        pending_balance: parseFloat(((marketer?.pending_balance || 0) + commissionAmount).toFixed(2)),
       }).eq('id', marketerId);
     } catch (error) {
       console.error('Error tracking commission:', error);
