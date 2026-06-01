@@ -756,12 +756,14 @@ export default function AdminOrders() {
 
   const getFilteredOrders = () => {
     let list = activeTab === 'all' ? orders : orders.filter(o => o.status === activeTab);
-    const q = orderSearch.trim().replace(/\s/g, '');
+    const q = orderSearch.trim();
     if (q) {
+      const qClean = q.replace(/\s/g, '').toLowerCase();
       list = list.filter(o =>
-        o.customer_phone?.replace(/\s/g, '').includes(q) ||
-        o.id?.toLowerCase().includes(q.toLowerCase()) ||
-        o.id?.slice(0, 8).toUpperCase().includes(q.toUpperCase())
+        o.customer_phone?.replace(/\s/g, '').includes(qClean) ||
+        o.id?.toLowerCase().includes(qClean) ||
+        o.id?.slice(0, 8).toUpperCase().includes(q.toUpperCase()) ||
+        o.customer_name?.toLowerCase().includes(q.toLowerCase())
       );
     }
     return list;
@@ -1139,7 +1141,7 @@ export default function AdminOrders() {
         <input
           value={orderSearch}
           onChange={e => { setOrderSearch(e.target.value); setCurrentPage(1); }}
-          placeholder="ابحث برقم الموبايل أو رقم الطلب..."
+          placeholder="ابحث بالاسم أو رقم الموبايل أو رقم الطلب..."
           dir="rtl"
           style={{ flex: 1, border: 'none', outline: 'none', fontSize: '0.92rem', fontFamily: 'inherit', background: 'transparent', color: '#0f172a' }}
         />
