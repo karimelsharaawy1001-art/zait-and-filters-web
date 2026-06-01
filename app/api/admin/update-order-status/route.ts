@@ -59,10 +59,10 @@ export async function POST(req: Request) {
 async function awardCashbackOnDelivery(orderId: string) {
   const db = makeAdmin();
   try {
-    // Fetch the order
+    // Fetch the order — include items to calculate subtotal (excl. shipping)
     const { data: order, error: orderErr } = await db
       .from('orders')
-      .select('user_id, total_price, promo_code')
+      .select('user_id, total_price, shipping_cost, discount_applied, wallet_discount, promo_code, items')
       .eq('id', orderId)
       .single();
 
@@ -71,9 +71,12 @@ async function awardCashbackOnDelivery(orderId: string) {
       return;
     }
 
-    const { user_id, total_price, promo_code } = order as {
+    const { user_id, total_price, shipping_cost, discount_applied, wallet_discount, promo_code } = order as {
       user_id: string | null;
       total_price: number;
+      shipping_cost: number | null;
+      discount_applied: number | null;
+      wallet_discount: number | null;
       promo_code: string | null;
     };
 
@@ -114,8 +117,15 @@ async function awardCashbackOnDelivery(orderId: string) {
     }
 
     const pct: number = (settings as any)?.cashback_percentage ?? 5;
-    const totalPaid: number = parseFloat(String(total_price)) || 0;
-    const cashbackAmount = parseFloat((totalPaid * pct / 100).toFixed(2));
+
+    // Calculate subtotal = total_price - shipping - discounts (cashback on products only)
+    const finalTotal    = parseFloat(String(total_price))     || 0;
+    const shipping      = parseFloat(String(shipping_cost))   || 0;
+    const discApplied   = parseFloat(String(discount_applied))|| 0;
+    const walletUsed    = parseFloat(String(wallet_discount)) || 0;
+    const subtotal      = parseFloat((finalTotal - shipping + discApplied + walletUsed).toFixed(2));
+    const baseForCashback = subtotal > 0 ? subtotal : finalTotal;
+    const cashbackAmount  = parseFloat((baseForCashback * pct / 100).toFixed(2));
     if (cashbackAmount <= 0) return;
 
     // Get or create wallet
@@ -128,7 +138,7 @@ async function awardCashbackOnDelivery(orderId: string) {
     const currentBalance: number = (wallet as any)?.balance ?? 0;
     const newBalance = parseFloat((currentBalance + cashbackAmount).toFixed(2));
 
-    // Upsert wallet
+    // Upsert wallet balance
     const { error: walletErr } = await db
       .from('wallets')
       .upsert({ user_id, balance: newBalance }, { onConflict: 'user_id' });
@@ -138,7 +148,7 @@ async function awardCashbackOnDelivery(orderId: string) {
       return;
     }
 
-    // Record transaction
+    // Record wallet transaction
     const { error: txErr } = await db
       .from('wallet_transactions')
       .insert({
@@ -153,6 +163,12 @@ async function awardCashbackOnDelivery(orderId: string) {
       console.error('[cashback] Transaction insert failed:', txErr.message);
       return;
     }
+
+    // ✅ Save cashback_amount back to the order so admin panel & customer profile show it
+    await db
+      .from('orders')
+      .update({ cashback_amount: cashbackAmount })
+      .eq('id', orderId);
 
     console.log(`[cashback] ✅ Awarded ${cashbackAmount} EGP to user ${user_id} (order ${orderId})`);
   } catch (err: any) {
