@@ -355,7 +355,7 @@ function FilterSection({
         }}
       >
         <Search size={18} />
-        تطبيق الفلاتر
+        تطبيق التصنيفات
       </button>
 
       {hasAnyFilter && (
@@ -378,7 +378,7 @@ function FilterSection({
           }}
         >
           <X size={16} />
-          مسح الفلاتر
+          مسح التصنيفات
         </button>
       )}
     </div>
@@ -1527,7 +1527,7 @@ setBrandsOptions(brandsOpts);
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Filter size={20} color="#22c55e" />
-                <span>الفلاتر</span>
+                <span>التصنيفات</span>
                 {hasMin && <span style={{ backgroundColor: '#22c55e', color: '#fff', padding: '2px 8px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '900' }}>نشط</span>}
                 {saleMode && <span style={{ backgroundColor: '#ff4d4d', color: '#fff', padding: '2px 8px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '900' }}>عروض</span>}
               </div>
@@ -1549,7 +1549,7 @@ setBrandsOptions(brandsOpts);
               <div style={{ backgroundColor: '#fff', padding: '25px', borderRadius: '15px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
                 <h2 style={{ fontSize: '1.3rem', fontWeight: '900', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <Filter size={22} color="#22c55e" />
-                  الفلاتر
+                  التصنيفات
                 </h2>
                 {saleMode && (
                   <div style={{ backgroundColor: '#fff1f0', border: '1px solid #ff4d4d', borderRadius: '10px', padding: '12px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1604,7 +1604,7 @@ setBrandsOptions(brandsOpts);
                         onClick={clearFilters}
                         style={{ padding: '12px 24px', backgroundColor: '#fff', color: '#9a3412', border: '1px solid #f97316', borderRadius: '10px', fontWeight: '700', fontSize: '0.95rem', cursor: 'pointer' }}
                       >
-                        مسح الفلاتر والبقاء في وضع الجراج
+                        مسح التصنيفات والبقاء في وضع الجراج
                       </button>
                     </div>
                   </motion.div>
@@ -1614,7 +1614,7 @@ setBrandsOptions(brandsOpts);
               {showEmptyState ? (
                 <div style={{ textAlign: 'center', padding: '100px 20px', backgroundColor: '#fff', borderRadius: '20px' }}>
                   <Filter size={80} color="#22c55e" style={{ margin: '0 auto 20px', opacity: 0.5 }} />
-                  <h3 style={{ fontSize: '1.8rem', fontWeight: '900', marginBottom: '15px', color: '#1a1a1a' }}>ابدأ بتحديد الفلاتر</h3>
+                  <h3 style={{ fontSize: '1.8rem', fontWeight: '900', marginBottom: '15px', color: '#1a1a1a' }}>ابدأ بتحديد التصنيفات</h3>
                   <p style={{ color: '#666', fontSize: '1.1rem', marginBottom: '10px' }}>اختر الماركة والموديل أو الفئة للبحث عن المنتجات</p>
                   <div style={{ backgroundColor: '#f0f9ff', padding: '15px', borderRadius: '12px', maxWidth: '500px', margin: '20px auto', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}>
                     <AlertCircle size={20} color="#0369a1" />
@@ -1625,7 +1625,7 @@ setBrandsOptions(brandsOpts);
                 <div style={{ textAlign: 'center', padding: '80px 20px', backgroundColor: '#fff', borderRadius: '20px' }}>
                   <Car size={70} color="#ccc" style={{ margin: '0 auto 15px' }} />
                   <h3 style={{ fontSize: '1.6rem', fontWeight: '900', marginBottom: '8px' }}>لا توجد منتجات</h3>
-                  <p style={{ color: '#666', fontSize: '1rem' }}>جرب تغيير الفلاتر للعثور على المنتجات</p>
+                  <p style={{ color: '#666', fontSize: '1rem' }}>جرب تغيير التصنيفات للعثور على المنتجات</p>
                 </div>
               ) : paginatedProducts.length > 0 ? (
                 <>
