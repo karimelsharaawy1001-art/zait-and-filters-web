@@ -1617,7 +1617,7 @@ export default function AdminOrders() {
                         )}
                       </div>
                     )}
-                    {(parseFloat(selectedOrder.cashback_amount || 0) > 0) && (
+                    {(parseFloat(selectedOrder.cashback_amount || 0) > 0) ? (
                       <div style={{ gridColumn: '1 / -1', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '12px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div style={{ width: '32px', height: '32px', background: '#22c55e', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                           <span style={{ fontSize: '1rem' }}>🎁</span>
@@ -1627,7 +1627,29 @@ export default function AdminOrders() {
                           <div style={{ fontWeight: '900', fontSize: '1rem', color: '#15803d' }}>+ {parseFloat(selectedOrder.cashback_amount).toFixed(2)} ج.م</div>
                         </div>
                       </div>
-                    )}
+                    ) : selectedOrder.status === 'delivered' && selectedOrder.user_id && !selectedOrder.promo_code ? (
+                      /* Manual cashback button for delivered orders that didn't get it automatically */
+                      <div style={{ gridColumn: '1 / -1', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' as const }}>
+                        <div style={{ fontSize: '0.82rem', color: '#92400e', fontWeight: '700' }}>⚠️ لم يُطبَّق الكاش باك على هذا الطلب بعد</div>
+                        <button
+                          onClick={async () => {
+                            toast.loading('جاري تطبيق الكاش باك...', { id: 'cb' });
+                            try {
+                              const r = await fetch('/api/admin/update-order-status', {
+                                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ orderId: selectedOrder.id, newStatus: 'delivered', forceCashback: true }),
+                              });
+                              const data = await r.json();
+                              toast.dismiss('cb');
+                              if (data.error) { toast.error('فشل: ' + data.error); }
+                              else { toast.success('✅ تم تطبيق الكاش باك'); setSelectedOrder((p: any) => ({ ...p, cashback_amount: data.cashbackAmount })); }
+                            } catch (e: any) { toast.dismiss('cb'); toast.error(e.message); }
+                          }}
+                          style={{ padding: '8px 18px', background: '#22c55e', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'inherit' }}>
+                          🎁 تطبيق الكاش باك
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
