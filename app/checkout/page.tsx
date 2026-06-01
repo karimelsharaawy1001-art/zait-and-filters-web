@@ -455,8 +455,6 @@ export default function CheckoutPage() {
         payment_screenshot_url: uploadedImageUrl,
         car_mileage: carMileage,
         marketer_id: finalMarketerId,
-        // Save expected cashback so admin & customer can see it (0 if promo used)
-        cashback_amount: appliedPromo ? 0 : parseFloat((subtotal * cashbackPct / 100).toFixed(2)),
         status: 'pending',
         created_at: new Date().toISOString()
       };
