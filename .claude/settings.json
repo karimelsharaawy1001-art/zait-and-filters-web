@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit -m 'Add view-product button in orders and abandoned carts admin pages *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git commit -m 'Add '\\\\''تواصل مع خدمة العملاء'\\\\'' WhatsApp button to chatbot FAQ strip *)"
+    ]
+  }
+}

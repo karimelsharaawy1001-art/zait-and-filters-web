@@ -689,7 +689,7 @@ export default function AdminOrders() {
       });
       const result = await res.json();
       if (!res.ok || result.error) { toast.error('فشل التحديث: ' + (result.error || 'خطأ غير معروف')); return; }
-      toast.success(newStatus === 'delivered' ? 'تم تحديث حالة الطلب — سيتم إصدار العمولة بعد 14 يوم! ✅' : 'تم تحديث حالة الطلب ✅');
+      toast.success(newStatus === 'delivered' ? 'تم تحديث حالة الطلب — Commission will be released after 14 days! ✅' : 'تم تحديث حالة الطلب ✅');
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
       if (selectedOrder?.id === orderId) setSelectedOrder((prev: any) => ({ ...prev, status: newStatus }));
     } catch (err: any) { toast.error('فشل التحديث: ' + err.message); }

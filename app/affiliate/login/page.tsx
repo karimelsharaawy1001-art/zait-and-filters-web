@@ -43,7 +43,7 @@ export default function AffiliateLoginPage() {
       if (marketerError || !marketer) {
         // valid auth user but not a marketer — sign them out and block access
         await supabase.auth.signOut();
-        toast.error('هذا الحساب غير مسجل كمسوق');
+        toast.error('هذا الحساب not registered as a Promoter');
         setLoading(false);
         return;
       }
@@ -79,7 +79,7 @@ export default function AffiliateLoginPage() {
           <LogIn size={40} color="#22c55e" />
         </div>
 
-        <h1 style={title}>تسجيل دخول المسوقين</h1>
+        <h1 style={title}>Promoters Login</h1>
         <p style={subtitle}>سجل دخولك لإدارة حسابك وتتبع أرباحك</p>
 
         <form onSubmit={handleLogin} style={form}>

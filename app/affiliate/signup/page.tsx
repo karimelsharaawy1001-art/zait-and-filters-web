@@ -53,7 +53,7 @@ export default function AffiliateSignup() {
         .maybeSingle();
 
       if (existingPhone) {
-        toast.error('رقم الموبايل مسجل بالفعل كمسوق');
+        toast.error('رقم الموبايل already registered as a Promoter');
         setLoading(false);
         return;
       }
@@ -66,7 +66,7 @@ export default function AffiliateSignup() {
         .maybeSingle();
 
       if (existingEmail) {
-        toast.error('هذا البريد الإلكتروني مسجل بالفعل كمسوق');
+        toast.error('هذا البريد الإلكتروني already registered as a Promoter');
         setLoading(false);
         return;
       }

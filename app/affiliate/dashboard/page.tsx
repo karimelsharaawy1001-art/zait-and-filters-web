@@ -257,8 +257,8 @@ export default function ProfessionalAffiliateDashboard() {
 
       <header style={header} className="slide-in">
         <div>
-          <h1 style={mainTitle}>مرحباً، {data?.full_name || 'مسوق'} 👋</h1>
-          <p style={subtitle}>لوحة التحكم الاحترافية للمسوقين</p>
+          <h1 style={mainTitle}>مرحباً، {data?.full_name || 'Promoter'} 👋</h1>
+          <p style={subtitle}>Professional Promoters Dashboard</p>
         </div>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={tierBadge} className="tier-badge">
@@ -295,7 +295,7 @@ export default function ProfessionalAffiliateDashboard() {
           <div style={statContent}>
             <p style={statLabel}>إجمالي الأرباح</p>
             <h2 style={statValue}>{data?.total_earnings?.toFixed(2) || '0.00'} ج.م</h2>
-            <p style={statGrowth}>+{data?.tier_percentage || 5}% عمولة حالية</p>
+            <p style={statGrowth}>+{data?.tier_percentage || 5}% Commission rate</p>
           </div>
         </div>
         <div style={{ ...statCard, borderTop: '4px solid #3b82f6' }} className="stat-card">
@@ -325,7 +325,7 @@ export default function ProfessionalAffiliateDashboard() {
         <div style={{ ...statCard, borderTop: '4px solid #f59e0b' }} className="stat-card">
           <div style={{ ...statIconContainer, background: '#fef3c7' }}><DollarSign size={28} color="#f59e0b" /></div>
           <div style={statContent}>
-            <p style={statLabel}>عمولات قيد الانتظار</p>
+            <p style={statLabel}>Pending Commissions</p>
             <h2 style={{ ...statValue, color: '#d97706' }}>{(data?.pending_balance || 0).toFixed(2)} ج.م</h2>
             <p style={statGrowth}>تُصرف بعد 14 يوم من التسليم</p>
           </div>
@@ -336,7 +336,7 @@ export default function ProfessionalAffiliateDashboard() {
         <div style={pendingNotice} className="slide-in">
           <AlertCircle size={20} color="#f59e0b" />
           <div>
-            <p style={{ fontWeight: 'bold', marginBottom: '5px' }}>لديك {stats.pending_commissions.toFixed(2)} ج.م عمولات معلقة</p>
+            <p style={{ fontWeight: 'bold', marginBottom: '5px' }}>لديك {stats.pending_commissions.toFixed(2)} ج.م pending Commissions</p>
             <p style={{ fontSize: '0.85rem', color: '#666' }}>سيتم إضافتها للرصيد المتاح بعد 14 يوم من تاريخ التوصيل للتأكد من اكتمال البيع</p>
           </div>
         </div>
@@ -350,7 +350,7 @@ export default function ProfessionalAffiliateDashboard() {
             <code style={codeText}>{referralLink}</code>
             <button onClick={() => copyToClipboard(referralLink, 'تم نسخ الرابط!')} style={copyBtn} className="copy-btn"><Copy size={16} /></button>
           </div>
-          <p style={toolHint}>شارك هذا الرابط مع عملائك لتحصل على عمولة {currentTierConfig.percentage}% من كل عملية شراء</p>
+          <p style={toolHint}>شارك هذا الرابط مع عملائك لتحصل على Commission {currentTierConfig.percentage}% من كل عملية شراء</p>
         </div>
         <div style={toolCard}>
           <div style={toolHeader}><Ticket size={20} color="#27ae60" /><span>كود الخصم الحصري (خصم 5%)</span></div>
@@ -358,7 +358,7 @@ export default function ProfessionalAffiliateDashboard() {
             <div style={promoCodeBadge}>{data?.promo_code || 'LOADING...'}</div>
             <button onClick={() => copyToClipboard(data?.promo_code, 'تم نسخ الكود!')} style={copyBtn} className="copy-btn"><Copy size={16} /></button>
           </div>
-          <p style={toolHint}>أعطِ هذا الكود لعملائك للحصول على خصم 5% وتحصل أنت على عمولة {currentTierConfig.percentage}%</p>
+          <p style={toolHint}>أعطِ هذا الكود لعملائك للحصول على خصم 5% وتحصل أنت على Commission {currentTierConfig.percentage}%</p>
         </div>
       </div>
 
@@ -416,7 +416,7 @@ export default function ProfessionalAffiliateDashboard() {
 
       <div style={commissionsSection} className="slide-in">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
-          <h3 style={sectionTitle}>💰 آخر العمولات</h3>
+          <h3 style={sectionTitle}>💰 Recent Commissions</h3>
           <button style={refreshBtn} onClick={() => window.location.reload()}><RefreshCw size={16} /><span>تحديث</span></button>
         </div>
         {stats.recent_commissions.length > 0 ? (
@@ -427,7 +427,7 @@ export default function ProfessionalAffiliateDashboard() {
                   <th style={th}>التاريخ</th>
                   <th style={th}>رقم الطلب</th>
                   <th style={th}>قيمة الطلب</th>
-                  <th style={th}>العمولة</th>
+                  <th style={th}>Commission</th>
                   <th style={th}>الحالة</th>
                   <th style={th}>تاريخ الإفراج</th>
                 </tr>
@@ -471,8 +471,8 @@ export default function ProfessionalAffiliateDashboard() {
         ) : (
           <div style={emptyState}>
             <BarChart3 size={50} color="#cbd5e1" />
-            <p style={emptyText}>لا توجد عمولات بعد</p>
-            <p style={emptyHint}>ابدأ بمشاركة رابطك لتحصل على أول عمولة!</p>
+            <p style={emptyText}>No Commissions yet</p>
+            <p style={emptyHint}>ابدأ بمشاركة رابطك لتحصل على first Commission!</p>
           </div>
         )}
       </div>

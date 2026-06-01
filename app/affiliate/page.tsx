@@ -46,7 +46,7 @@ export default function AffiliateLanding() {
           className="float-anim" 
           style={badge}
         >
-          <Star size={14} fill="#27ae60" /> برنامج النخبة للمسوقين 2026
+          <Star size={14} fill="#27ae60" /> برنامج النخبة for Promoters 2026
         </motion.div>
         
         <motion.h1 
@@ -87,7 +87,7 @@ export default function AffiliateLanding() {
 
         <div style={statsBanner} className="glass-panel">
           {/* تم تعديل عدد المسوقين هنا ليكون +500 */}
-          <div style={statItem}><Users size={22} color="#27ae60"/> <span>+500 مسوق نشط</span></div>
+          <div style={statItem}><Users size={22} color="#27ae60"/> <span>+500 active Promoter</span></div>
           <div style={{...dividerV, display: 'block'}} />
           <div style={statItem}><BarChart3 size={22} color="#27ae60"/> <span>نظام تتبع لحظي</span></div>
           <div style={{...dividerV, display: 'block'}} />
@@ -100,7 +100,7 @@ export default function AffiliateLanding() {
       <section style={sectionPadding}>
         <div style={{textAlign: 'center', marginBottom: '60px'}}>
           <h2 style={sectionTitle}>كيف تبدأ بجني المال؟</h2>
-          <p style={{color: '#666'}}>ثلاث خطوات تفصلك عن أول عمولة في حسابك</p>
+          <p style={{color: '#666'}}>ثلاث خطوات تفصلك عن first Commission في حسابك</p>
         </div>
         
         <div style={stepsGrid}>
@@ -159,7 +159,7 @@ export default function AffiliateLanding() {
           <Zap size={50} color="#fff" className="float-anim" />
           <h2 style={{ fontSize: '2.5rem', fontWeight: '900', margin: '20px 0' }}>مستعد لتغيير دخلك الشهري؟</h2>
           <p style={{ marginBottom: '40px', fontSize: '1.1rem', opacity: 0.9, maxWidth: '600px', margin: '0 auto 40px' }}>
-            لا تنتظر طويلاً، انضم الآن لشبكة مسوقي زيت أند فلترز واحصُل على أول عمولة لك اليوم.
+            لا تنتظر طويلاً، انضم الآن لشبكة مسوقي زيت أند فلترز واحصُل على first Commission لك اليوم.
           </p>
           <Link href="/affiliate/signup" style={ctaBtn} className="btn-glow">
             أنشئ حسابك المجاني الآن
@@ -173,7 +173,7 @@ export default function AffiliateLanding() {
 
 // --- البيانات ---
 const features = [
-  { title: "عمولات تصاعدية", desc: "ابدأ بـ 5% وتدرج حتى تصل إلى 10% بناءً على نشاطك الشهري مبيعاتك.", icon: <Percent size={24} color="#27ae60" /> },
+  { title: "Escalating Commissions", desc: "ابدأ بـ 5% وتدرج حتى تصل إلى 10% بناءً على نشاطك الشهري مبيعاتك.", icon: <Percent size={24} color="#27ae60" /> },
   { title: "لوحة تحكم احترافية", desc: "تتبع النقرات، التحويلات، والأرباح بالتفصيل الممل في شاشة واحدة ذكية.", icon: <BarChart3 size={24} color="#27ae60" /> },
   { title: "أكواد خصم خاصة", desc: "امنح عملاءك خصم 5% بكود يحمل اسمك لزيادة مبيعاتك وبناء براندك الشخصي.", icon: <Ticket size={24} color="#27ae60" /> },
   { title: "أدوات تسويقية جاهزة", desc: "نوفر لك صوراً وفيديوهات احترافية للمنتجات لتنشرها فوراً على حساباتك.", icon: <Rocket size={24} color="#27ae60" /> },

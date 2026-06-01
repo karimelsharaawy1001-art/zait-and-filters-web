@@ -75,7 +75,7 @@ export default function AdminLayoutClient({ children }: Props) {
         { name: 'إعدادات الهيرو',     href: '/admin/hero',          icon: '🖼️', badge: 0 },
         { name: 'بانر الرئيسية',      href: '/admin/home-banner',   icon: '🏷️', badge: 0 },
         { name: 'أكواد الخصم',        href: '/admin/promo-codes',   icon: '🎫', badge: 0 },
-        { name: 'إدارة المسوقين',     href: '/admin/marketers',     icon: '👥', badge: 0 },
+        { name: 'Promoters',     href: '/admin/marketers',     icon: '👥', badge: 0 },
         { name: 'ترتيب منتجات العروض',href: '/admin/sale-order',    icon: '🔥', badge: 0 },
       ]
     },

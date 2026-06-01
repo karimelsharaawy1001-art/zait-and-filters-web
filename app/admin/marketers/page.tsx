@@ -52,11 +52,11 @@ export default function AdminMarketers() {
       setMarketers(data || []);
       
       if (!data || data.length === 0) {
-        toast('لا يوجد مسوقين مسجلين بعد', { icon: 'ℹ️' });
+        toast('No Promoters registered yet', { icon: 'ℹ️' });
       }
     } catch (err: any) {
       console.error('❌ Error fetching marketers:', err);
-      toast.error('خطأ في جلب المسوقين: ' + err.message);
+      toast.error('Error fetching Promoters: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -66,7 +66,7 @@ export default function AdminMarketers() {
 
   const handlePayout = async (id: string, amount: number) => {
     if (amount <= 0) { toast.error('لا يوجد رصيد متاح للصرف'); return; }
-    if (!confirm(`هل أنت متأكد من تسجيل دفع ${amount.toFixed(2)} ج.م وتصفير رصيد هذا المسوق؟`)) return;
+    if (!confirm(`هل أنت متأكد من تسجيل دفع؟ (سيتم تصفير رصيد هذا Promoter)`)) return;
     try {
       const { error } = await supabase.from('marketers').update({ balance: 0 }).eq('id', id);
       if (error) throw error;
@@ -90,7 +90,7 @@ export default function AdminMarketers() {
   };
 
   const markAsPaid = async (commId: string, amount: number, marketerId: string) => {
-    if (!confirm(`تأكيد دفع ${amount.toFixed(2)} ج.م لهذه العمولة؟`)) return;
+    if (!confirm(`Confirm payment for this Commission?`)) return;
     try {
       await supabase.from('affiliate_commissions')
         .update({ is_released: true, status: 'paid' }).eq('id', commId);
@@ -111,10 +111,10 @@ export default function AdminMarketers() {
     const { data } = await supabase.from('affiliate_commissions')
       .select('id').eq('marketer_id', marketerId).eq('status', 'in_review')
       .lte('release_date', now);
-    if (!data?.length) { toast('لا توجد عمولات جاهزة للإفراج بعد'); return; }
+    if (!data?.length) { toast('No Commissions ready for release yet'); return; }
     await supabase.from('affiliate_commissions')
       .update({ status: 'available' }).in('id', data.map(d => d.id));
-    toast.success(`✅ تم تحديث ${data.length} عمولة إلى "جاهزة للدفع"`);
+    toast.success(`✅ ✅ Commissions updated to "ready for payment"`);
     openCommissions(commMarketer);
   };
 
@@ -146,7 +146,7 @@ export default function AdminMarketers() {
     return (
       <div style={loaderStyle}>
         <Loader2 className="animate-spin" size={40} color="#27ae60" />
-        <p>جاري تحميل قائمة المسوقين...</p>
+        <p>Loading Promoters......</p>
       </div>
     );
   }
@@ -157,14 +157,14 @@ export default function AdminMarketers() {
     <div style={container}>
       <div style={header}>
         <h1 style={title}>
-          <Users size={32} color="#27ae60" /> شبكة المسوقين (Affiliates)
+          <Users size={32} color="#27ae60" /> Promoters Network
           <span style={countBadge}>{marketers.length}</span>
         </h1>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' as const }}>
           <div style={searchBox}>
             <Search size={18} color="#94a3b8" />
             <input
-              placeholder="ابحث باسم المسوق، الكود، أو البريد..."
+              placeholder="Search by Promoter name, code, or email..."
               style={searchInp}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -172,8 +172,8 @@ export default function AdminMarketers() {
           </div>
           <button
             onClick={async () => {
-              if (!confirm('سيقوم هذا بمسح جميع الطلبات القديمة وإنشاء العمولات المفقودة. هل تريد المتابعة؟')) return;
-              const t = toast.loading('جاري إصلاح العمولات المفقودة...');
+              if (!confirm('This will scan all past orders and create missing Commissions. Continue?')) return;
+              const t = toast.loading('Fixing missing Commissions......');
               try {
                 const res = await fetch('/api/affiliate/fix-commissions', { method: 'POST' });
                 const data = await res.json();
@@ -183,7 +183,7 @@ export default function AdminMarketers() {
               } catch (e: any) { toast.dismiss(t); toast.error(e.message); }
             }}
             style={{ padding: '10px 16px', background: '#f59e0b', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' as const }}>
-            🔧 إصلاح العمولات المفقودة
+            🔧 Fix Missing Commissions
           </button>
         </div>
       </div>
@@ -194,7 +194,7 @@ export default function AdminMarketers() {
         <div style={emptyState}>
           <Users size={64} color="#ccc" />
           <h3 style={{ color: '#64748b', marginTop: '20px' }}>
-            {search ? 'لا يوجد مسوقين مطابقين للبحث' : 'لا يوجد مسوقين مسجلين بعد'}
+            {search ? 'No Promoters match your search' : 'No Promoters registered yet'}
           </h3>
           <p style={{ color: '#94a3b8', marginTop: '10px' }}>
             {search ? 'حاول البحث بكلمات أخرى' : 'سيظهرون هنا بمجرد التسجيل في نظام الأفلييت'}
@@ -205,14 +205,14 @@ export default function AdminMarketers() {
           <table style={table}>
             <thead>
               <tr style={thRow}>
-                <th style={th}>المسوق</th>
+                <th style={th}>Promoter</th>
                 <th style={th}>المستوى</th>
                 <th style={th}>الأكواد</th>
                 <th style={th}>الأداء</th>
-                <th style={th}>إجمالي الأرباح</th>
-                <th style={th}>الرصيد المتاح</th>
-                <th style={th}>الرصيد المعلق</th>
-                <th style={th}>بيانات الدفع</th>
+                <th style={th}>Total Earnings</th>
+                <th style={th}>Available Balance</th>
+                <th style={th}>Pending Balance</th>
+                <th style={th}>Payment Info</th>
                 <th style={th}>الإجراء</th>
               </tr>
             </thead>
@@ -260,7 +260,7 @@ export default function AdminMarketers() {
                             color: tierInfo.color,
                             opacity: 0.8
                           }}>
-                            {tierInfo.percentage}% عمولة
+                            {tierInfo.percentage}% Commission
                           </div>
                         </div>
                       </div>
@@ -357,7 +357,7 @@ export default function AdminMarketers() {
                           disabled={!m.balance || m.balance <= 0} 
                           onClick={() => handlePayout(m.id, m.balance)}
                           style={m.balance > 0 ? payBtn : disabledBtn}
-                          title={m.balance > 0 ? 'صرف العمولة' : 'لا يوجد رصيد'}
+                          title={m.balance > 0 ? 'Pay Commission' : 'لا يوجد رصيد'}
                         >
                           <ArrowDownCircle size={16} /> صرف
                         </button>
@@ -387,7 +387,7 @@ export default function AdminMarketers() {
             <div style={modalHeader}>
               <h2 style={modalTitle}>
                 <Award size={28} color="#27ae60" />
-                تفاصيل المسوق: {selectedMarketer.full_name}
+                Promoter Details: {selectedMarketer.full_name}
               </h2>
               <button onClick={() => setSelectedMarketer(null)} style={closeBtn}>
                 <X size={24} />
@@ -408,7 +408,7 @@ export default function AdminMarketers() {
                 <span>{getTierInfo(selectedMarketer.current_tier).icon} {getTierInfo(selectedMarketer.current_tier).name}</span>
               </div>
               <div style={detailItem}>
-                <strong>نسبة العمولة:</strong>
+                <strong>Commission Rate:</strong>
                 <span style={{ color: '#27ae60', fontWeight: '900' }}>
                   {selectedMarketer.tier_percentage || 5}%
                 </span>
@@ -438,19 +438,19 @@ export default function AdminMarketers() {
                 </span>
               </div>
               <div style={detailItem}>
-                <strong>إجمالي الأرباح:</strong>
+                <strong>Total Earnings:</strong>
                 <span style={{ color: '#64748b', fontWeight: '900' }}>
                   {(selectedMarketer.total_earnings || 0).toFixed(2)} ج.م
                 </span>
               </div>
               <div style={detailItem}>
-                <strong>الرصيد المتاح للصرف:</strong>
+                <strong>Available Balance للصرف:</strong>
                 <span style={{ color: '#27ae60', fontWeight: '900' }}>
                   {(selectedMarketer.balance || 0).toFixed(2)} ج.م
                 </span>
               </div>
               <div style={detailItem}>
-                <strong>الرصيد المعلق (14 يوم):</strong>
+                <strong>Pending Balance (14 يوم):</strong>
                 <span style={{ color: '#f59e0b', fontWeight: '900' }}>
                   {(selectedMarketer.pending_balance || 0).toFixed(2)} ج.م
                 </span>
@@ -490,7 +490,7 @@ export default function AdminMarketers() {
             <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
               <button onClick={() => { setSelectedMarketer(null); openCommissions(selectedMarketer); }}
                 style={{ flex: 1, padding: '12px', background: '#f0fdf4', border: '1.5px solid #22c55e', borderRadius: '12px', color: '#15803d', fontWeight: '800', cursor: 'pointer', fontSize: '0.92rem', fontFamily: 'inherit' }}>
-                💰 عرض العمولات وتفاصيل الدفع
+                💰 View Commissions & Payment Details
               </button>
               <button onClick={() => setSelectedMarketer(null)} style={{ ...closeModalBtn, flex: 1 }}>إغلاق</button>
             </div>
@@ -507,13 +507,13 @@ export default function AdminMarketers() {
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
               <div>
-                <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '900', color: '#0f172a' }}>💰 عمولات {commMarketer.full_name}</h2>
+                <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '900', color: '#0f172a' }}>💰 Commissions: {commMarketer.full_name}</h2>
                 <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#64748b' }}>كود: {commMarketer.promo_code} — رصيد معلق: <b style={{ color: '#f59e0b' }}>{(commMarketer.pending_balance || 0).toFixed(2)} ج.م</b></p>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button onClick={() => releaseAvailable(commMarketer.id)}
                   style={{ padding: '8px 16px', background: '#fffbeb', border: '1.5px solid #fde68a', borderRadius: '10px', color: '#92400e', fontWeight: '800', cursor: 'pointer', fontSize: '0.82rem', fontFamily: 'inherit' }}>
-                  🔓 إفراج العمولات الجاهزة
+                  🔓 Release Ready Commissions
                 </button>
                 <button onClick={() => setCommMarketer(null)}
                   style={{ padding: '8px 14px', background: '#f1f5f9', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontFamily: 'inherit' }}>
@@ -536,13 +536,13 @@ export default function AdminMarketers() {
             {loadingComm ? (
               <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}><Loader2 size={28} style={{ animation: 'spin 0.8s linear infinite', display: 'block', margin: '0 auto' }} /></div>
             ) : commissions.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8', fontWeight: '700' }}>لا توجد عمولات بعد</div>
+              <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8', fontWeight: '700' }}>No Commissions yet</div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                   <thead>
                     <tr style={{ background: '#f8fafc' }}>
-                      {['رقم الطلب','تاريخ الطلب','قيمة الطلب','العمولة','تاريخ التسليم','تاريخ الإفراج','الحالة','إجراء'].map(h=>(
+                      {['رقم الطلب','تاريخ الطلب','قيمة الطلب','Commission','تاريخ التسليم','تاريخ الإفراج','الحالة','إجراء'].map(h=>(
                         <th key={h} style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '800', color: '#475569', borderBottom: '1.5px solid #f1f5f9', whiteSpace: 'nowrap' as const }}>{h}</th>
                       ))}
                     </tr>

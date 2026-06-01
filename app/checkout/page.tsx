@@ -211,7 +211,7 @@ export default function CheckoutPage() {
         setAppliedPromoType('affiliate_percentage');
         setAffiliateMarketerId(affiliatePromo.marketer_id);
         await supabase.from('promo_codes').update({ usage_count: (affiliatePromo.usage_count || 0) + 1 }).eq('id', affiliatePromo.id);
-        toast.success(`تم تطبيق كود المسوق "${marketerData?.full_name || 'المسوق'}" - خصم ${discountPercentage}%! 🎉`);
+        toast.success(`تم تطبيق Promoter Code "${marketerData?.full_name || 'المسوق'}" - خصم ${discountPercentage}%! 🎉`);
         toast(`⚠️ الطلبات التي تستخدم كود خصم لا تحصل على كاش باك`, { duration: 5000, icon: '💡' });
         trackAbandonedCart();
         return;
@@ -907,7 +907,7 @@ export default function CheckoutPage() {
           )}
 
           <div style={promoWrapper}>
-            <label style={lab}><Ticket size={14} color="#15803d" /> هل لديك كود خصم أو كود مسوق؟</label>
+            <label style={lab}><Ticket size={14} color="#15803d" /> هل لديك كود خصم أو Promoter Code؟</label>
             <div style={{ display: 'flex', gap: '8px', marginTop: '5px' }}>
               <input placeholder="ادخل الكود هنا" value={promoCode} onChange={(e) => setPromoCode(e.target.value)} style={{ ...inp, marginBottom: 0, flex: 1 }} disabled={!!appliedPromo} />
               <button type="button" onClick={applyPromoCode} disabled={promoLoading || !!appliedPromo || !promoCode} className="promo-btn" style={promoBtnStyle}>
@@ -947,7 +947,7 @@ export default function CheckoutPage() {
             {appliedPromoType === 'free_shipping' && <div style={{ ...rowPrice, color: '#27ae60', fontWeight: 'bold' }}><span>خصم الشحن المجاني:</span><span>-{(selectedCity?.price || 0).toFixed(2)} ج.م</span></div>}
             {discountAmount > 0 && (
               <div style={{ ...rowPrice, color: '#e74c3c', fontWeight: 'bold' }}>
-                <span>{appliedPromoType === 'affiliate_percentage' ? 'خصم كود المسوق:' : 'خصم كود الخصم:'}</span>
+                <span>{appliedPromoType === 'affiliate_percentage' ? 'خصم Promoter Code:' : 'خصم كود الخصم:'}</span>
                 <span>-{discountAmount.toFixed(2)} ج.م</span>
               </div>
             )}

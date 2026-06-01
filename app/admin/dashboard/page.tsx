@@ -371,7 +371,7 @@ export default function AdminDashboard() {
             { href: '/admin/products',    label: '📦 المنتجات',   color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
             { href: '/admin/orders',      label: '🛍️ الطلبات',   color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
             { href: '/admin/promo-codes', label: '🎫 أكواد الخصم', color: '#0891b2', bg: '#f0f9ff', border: '#bae6fd' },
-            { href: '/admin/marketers',   label: '👥 المسوقين',   color: '#475569', bg: '#f8fafc', border: '#e2e8f0' },
+            { href: '/admin/marketers',   label: '👥 Promoters',   color: '#475569', bg: '#f8fafc', border: '#e2e8f0' },
           ].map(link => (
             <Link key={link.href} href={link.href} style={{
               padding: '9px 18px', borderRadius: '9px', background: link.bg,
