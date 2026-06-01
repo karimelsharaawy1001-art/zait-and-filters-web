@@ -1627,7 +1627,7 @@ export default function AdminOrders() {
                           <div style={{ fontWeight: '900', fontSize: '1rem', color: '#15803d' }}>+ {parseFloat(selectedOrder.cashback_amount).toFixed(2)} ج.م</div>
                         </div>
                       </div>
-                    ) : selectedOrder.status === 'delivered' && selectedOrder.user_id && !selectedOrder.promo_code ? (
+                    ) : selectedOrder.status === 'delivered' && selectedOrder.user_id ? (
                       /* Manual cashback button for delivered orders that didn't get it automatically */
                       <div style={{ gridColumn: '1 / -1', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' as const }}>
                         <div style={{ fontSize: '0.82rem', color: '#92400e', fontWeight: '700' }}>⚠️ لم يُطبَّق الكاش باك على هذا الطلب بعد</div>

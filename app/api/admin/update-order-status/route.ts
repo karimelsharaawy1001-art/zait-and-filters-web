@@ -83,8 +83,9 @@ async function awardCashbackOnDelivery(orderId: string, forceOverride = false): 
     };
 
     if (!user_id) return 0;
+    // Skip promo-code orders automatically, but allow admin to force-override
     if (promo_code && !forceOverride) {
-      console.log(`[cashback] Skipped — promo "${promo_code}"`);
+      console.log(`[cashback] Auto-skipped — promo "${promo_code}"`);
       return 0;
     }
 
