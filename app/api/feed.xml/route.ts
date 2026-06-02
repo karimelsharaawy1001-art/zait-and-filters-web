@@ -20,7 +20,7 @@ export async function GET() {
       <g:availability>in_stock</g:availability>
       <g:condition>new</g:condition>
       <g:brand>${escapeXml(p.brand || '')}</g:brand>
-      <g:google_product_category>899</g:google_product_category>
+      <g:google_product_category>8236</g:google_product_category>
       <g:mpn>${escapeXml(p.part_number || p.id)}</g:mpn>
     </item>`;
   }).join('');

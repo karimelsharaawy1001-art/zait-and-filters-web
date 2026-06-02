@@ -119,7 +119,7 @@ export async function GET() {
         <g:brand>${escapeXml(brand)}</g:brand>
         <g:mpn>${escapeXml(p.sku || p.part_number || p.id)}</g:mpn>
         <g:product_type>${escapeXml(p.category)} &gt; ${escapeXml(p.subcategory || '')}</g:product_type>
-        <g:google_product_category>923</g:google_product_category>
+        <g:google_product_category>8236</g:google_product_category>
         <g:shipping>
           <g:country>EG</g:country>
           <g:service>Standard</g:service>
