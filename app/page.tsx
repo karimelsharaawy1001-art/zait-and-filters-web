@@ -1107,7 +1107,7 @@ export default function HomePage() {
                         <div style={{ width: '100%' }}>
                           <div className="bn-pill bn-pill-gold">🔧 باقات الصيانة الدورية</div>
                           <p className="home-banner-title bn-title" style={{ fontSize: 'clamp(1.2rem,3vw,2rem)', marginBottom: '8px' }}>
-                            صيّن عربيتك وفر فلوسك
+                            صيّن عربيتك و وفر فلوسك
                           </p>
                           <p className="home-banner-subtitle" style={{ fontSize: 'clamp(0.78rem,1.5vw,1rem)', marginBottom: '16px', color: 'rgba(255,255,255,0.85)' }}>
                             باقات زيوت + فلاتر + قطع غيار أصلية بسعر مجمّع
