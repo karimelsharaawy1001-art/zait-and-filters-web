@@ -1030,55 +1030,86 @@ export default function HomePage() {
               <div className="home-banner-section">
                 <div className="dual-banner-grid">
 
-                  {/* ── Maintenance Bundle Banner (from DB) ── */}
-                  {homeBanner && (
-                    homeBanner.link_url ? (
-                      <Link href={homeBanner.link_url} style={{ textDecoration: 'none', display: 'block' }}>
-                        <div className="home-banner-inner">
-                          {homeBanner.image_url && <img src={homeBanner.image_url} alt={homeBanner.title || 'banner'} className="home-banner-bg" loading="eager" fetchPriority="high" width="600" height="260" />}
-                          <div className="home-banner-overlay" />
-                          <div className="home-banner-content">
-                            <div className="home-banner-text-block">
-                              {homeBanner.title && <p className="home-banner-title">{homeBanner.title}</p>}
-                              {homeBanner.subtitle && <p className="home-banner-subtitle">{homeBanner.subtitle}</p>}
-                              <span className="home-banner-cta">{homeBanner.cta_text || 'اكتشف الآن'} ←</span>
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    ) : (
-                      <div className="home-banner-inner">
-                        {homeBanner.image_url && <img src={homeBanner.image_url} alt={homeBanner.title || 'banner'} className="home-banner-bg" loading="eager" fetchPriority="high" width="600" height="260" />}
-                        <div className="home-banner-overlay" />
-                        <div className="home-banner-content">
-                          <div className="home-banner-text-block">
-                            {homeBanner.title && <p className="home-banner-title">{homeBanner.title}</p>}
-                            {homeBanner.subtitle && <p className="home-banner-subtitle">{homeBanner.subtitle}</p>}
-                            {homeBanner.cta_text && <span className="home-banner-cta">{homeBanner.cta_text} ←</span>}
-                          </div>
-                        </div>
+                  {/* ── Maintenance Bundle Banner ── */}
+                  <Link href="/maintenance-bundle" style={{ textDecoration: 'none', display: 'block' }}>
+                    <div className="home-banner-inner maintenance-banner">
+                      {/* Rich dark background */}
+                      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #0a2a0a 0%, #14532d 45%, #166534 100%)' }} />
+                      {/* Decorative blobs */}
+                      <div style={{ position: 'absolute', top: '-30px', left: '-30px', width: '200px', height: '200px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(34,197,94,0.2) 0%, transparent 70%)', pointerEvents: 'none' }} />
+                      <div style={{ position: 'absolute', bottom: '-40px', right: '15%', width: '240px', height: '240px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(250,204,21,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
+                      {/* Gear SVG graphic */}
+                      <div style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', opacity: 0.12, pointerEvents: 'none' }}>
+                        <svg width="160" height="160" viewBox="0 0 100 100" fill="white">
+                          <path d="M50 30a20 20 0 1 0 0 40 20 20 0 0 0 0-40zm0 32a12 12 0 1 1 0-24 12 12 0 0 1 0 24z"/>
+                          <path d="M88 42h-5.4a33.5 33.5 0 0 0-3.5-8.4l3.8-3.8a4 4 0 0 0 0-5.7L77.9 20a4 4 0 0 0-5.7 0l-3.8 3.8A33.5 33.5 0 0 0 60 20.4V15a4 4 0 0 0-4-4h-12a4 4 0 0 0-4 4v5.4a33.5 33.5 0 0 0-8.4 3.5l-3.8-3.8a4 4 0 0 0-5.7 0l-4 4a4 4 0 0 0 0 5.7l3.8 3.8A33.5 33.5 0 0 0 18.4 42H13a4 4 0 0 0-4 4v12a4 4 0 0 0 4 4h5.4a33.5 33.5 0 0 0 3.5 8.4l-3.8 3.8a4 4 0 0 0 0 5.7l4 4a4 4 0 0 0 5.7 0l3.8-3.8a33.5 33.5 0 0 0 8.4 3.5V89a4 4 0 0 0 4 4h12a4 4 0 0 0 4-4v-5.4a33.5 33.5 0 0 0 8.4-3.5l3.8 3.8a4 4 0 0 0 5.7 0l4-4a4 4 0 0 0 0-5.7l-3.8-3.8a33.5 33.5 0 0 0 3.5-8.4H88a4 4 0 0 0 4-4V46a4 4 0 0 0-4-4z"/>
+                        </svg>
                       </div>
-                    )
-                  )}
-
-                  {/* ── Promoters Program Banner (static) ── */}
-                  <Link href="/affiliate" style={{ textDecoration: 'none', display: 'block' }}>
-                    <div className="home-banner-inner promoter-banner">
-                      {/* Decorative background blobs */}
-                      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 40%, #0f3460 100%)' }} />
-                      <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '220px', height: '220px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(34,197,94,0.25) 0%, transparent 70%)', pointerEvents: 'none' }} />
-                      <div style={{ position: 'absolute', bottom: '-30px', left: '10%', width: '180px', height: '180px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%)', pointerEvents: 'none' }} />
+                      {/* Oil drop icon */}
+                      <div style={{ position: 'absolute', right: '18px', bottom: '14px', opacity: 0.15, pointerEvents: 'none' }}>
+                        <svg width="70" height="70" viewBox="0 0 64 64" fill="white">
+                          <path d="M32 4C32 4 10 28 10 40a22 22 0 0 0 44 0C54 28 32 4 32 4zm0 54a16 16 0 0 1-16-16c0-8.5 10-24 16-32 6 8 16 23.5 16 32a16 16 0 0 1-16 16z"/>
+                          <ellipse cx="24" cy="42" rx="4" ry="6" opacity="0.5"/>
+                        </svg>
+                      </div>
                       {/* Content */}
                       <div className="home-banner-content" style={{ direction: 'rtl', padding: '0 36px' }}>
                         <div style={{ width: '100%' }}>
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.35)', borderRadius: '20px', padding: '5px 14px', marginBottom: '14px' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', background: 'rgba(250,204,21,0.15)', border: '1px solid rgba(250,204,21,0.4)', borderRadius: '20px', padding: '5px 14px', marginBottom: '12px' }}>
+                            <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#fde047', letterSpacing: '0.5px' }}>🔧 باقات الصيانة الدورية</span>
+                          </div>
+                          <p className="home-banner-title" style={{ fontSize: 'clamp(1.3rem,3vw,2.1rem)', marginBottom: '8px', color: '#fff' }}>
+                            صيّن عربيتك وفر فلوسك
+                          </p>
+                          <p className="home-banner-subtitle" style={{ fontSize: 'clamp(0.82rem,1.5vw,1.05rem)', marginBottom: '18px', color: 'rgba(255,255,255,0.88)' }}>
+                            باقات زيوت + فلاتر + قطع غيار أصلية بسعر مجمّع
+                          </p>
+                          <span className="home-banner-cta" style={{ background: 'linear-gradient(135deg,#fbbf24,#f59e0b)', color: '#0f172a', fontWeight: '900', fontSize: 'clamp(0.82rem,1.5vw,1rem)' }}>
+                            اختار باقتك الآن ←
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+
+                  {/* ── Promoters Program Banner ── */}
+                  <Link href="/affiliate" style={{ textDecoration: 'none', display: 'block' }}>
+                    <div className="home-banner-inner promoter-banner">
+                      {/* Background */}
+                      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)' }} />
+                      {/* Glows */}
+                      <div style={{ position: 'absolute', top: '-30px', right: '-30px', width: '200px', height: '200px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(34,197,94,0.22) 0%, transparent 70%)', pointerEvents: 'none' }} />
+                      <div style={{ position: 'absolute', bottom: '-20px', left: '20%', width: '160px', height: '160px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
+                      {/* Money/chart SVG graphic */}
+                      <div style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', opacity: 0.12, pointerEvents: 'none' }}>
+                        <svg width="150" height="150" viewBox="0 0 100 100" fill="white">
+                          <rect x="8" y="60" width="14" height="32" rx="3"/>
+                          <rect x="28" y="44" width="14" height="48" rx="3"/>
+                          <rect x="48" y="28" width="14" height="64" rx="3"/>
+                          <rect x="68" y="14" width="14" height="78" rx="3"/>
+                          <polyline points="15,55 35,40 55,24 75,10" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+                          <circle cx="75" cy="10" r="4" fill="white"/>
+                        </svg>
+                      </div>
+                      {/* Coin icon */}
+                      <div style={{ position: 'absolute', right: '16px', bottom: '12px', opacity: 0.13, pointerEvents: 'none' }}>
+                        <svg width="80" height="80" viewBox="0 0 64 64" fill="white">
+                          <circle cx="32" cy="32" r="28" stroke="white" strokeWidth="4" fill="none"/>
+                          <circle cx="32" cy="32" r="20" stroke="white" strokeWidth="2" fill="none" opacity="0.5"/>
+                          <text x="32" y="40" textAnchor="middle" fontSize="22" fontWeight="bold" fill="white">$</text>
+                        </svg>
+                      </div>
+                      {/* Content */}
+                      <div className="home-banner-content" style={{ direction: 'rtl', padding: '0 36px' }}>
+                        <div style={{ width: '100%' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '20px', padding: '5px 14px', marginBottom: '12px' }}>
                             <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#4ade80', letterSpacing: '0.5px' }}>💸 Promoters Program</span>
                           </div>
-                          <p className="home-banner-title" style={{ fontSize: 'clamp(1.3rem,3vw,2.2rem)', marginBottom: '10px' }}>
+                          <p className="home-banner-title" style={{ fontSize: 'clamp(1.3rem,3vw,2.1rem)', marginBottom: '8px', color: '#fff' }}>
                             اكسب مع كل بيعة!
                           </p>
-                          <p className="home-banner-subtitle" style={{ fontSize: 'clamp(0.82rem,1.5vw,1.1rem)', marginBottom: '20px', opacity: 0.9 }}>
-                            Commission تبدأ من 5% على كل طلب يجيلك منه
+                          <p className="home-banner-subtitle" style={{ fontSize: 'clamp(0.82rem,1.5vw,1.05rem)', marginBottom: '18px', color: 'rgba(255,255,255,0.88)' }}>
+                            Commission تبدأ من 5% على كل طلب بكودك
                           </p>
                           <span className="home-banner-cta" style={{ background: 'linear-gradient(135deg,#22c55e,#16a34a)', fontSize: 'clamp(0.82rem,1.5vw,1rem)' }}>
                             سجل كـ Promoter الآن ←
