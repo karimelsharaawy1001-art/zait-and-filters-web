@@ -388,6 +388,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
     </div>
   );
 
+  const isOutOfStock = product.is_active === false || (product.stock_quantity != null && Number(product.stock_quantity) === 0);
   const imageUrl = !imgError && product.image_url ? product.image_url : null;
   const displayPrice = product.sale_price && Number(product.sale_price) > 0 ? product.sale_price : product.regular_price;
   const hasSale = product.sale_price && Number(product.sale_price) > 0;
@@ -510,10 +511,17 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             {/* Brand + Stock */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ background: '#0f172a', color: '#fff', padding: '6px 16px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '800', letterSpacing: '0.5px', textTransform: 'uppercase' as const }}>{product.brand}</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontSize: '0.85rem', fontWeight: '700' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', display: 'inline-block', animation: 'pulseDot 2s ease-in-out infinite' }} />
-                متوفر في المخزون
-              </div>
+              {isOutOfStock ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#dc2626', fontSize: '0.85rem', fontWeight: '800', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '20px', padding: '5px 12px' }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#dc2626', display: 'inline-block' }} />
+                  نفذت الكمية
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontSize: '0.85rem', fontWeight: '700' }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', display: 'inline-block', animation: 'pulseDot 2s ease-in-out infinite' }} />
+                  متوفر في المخزون
+                </div>
+              )}
             </div>
 
             {/* Title */}
@@ -572,7 +580,12 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             </motion.div>
 
             {/* Qty + Cart */}
-            {(() => {
+            {isOutOfStock ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: '#f9fafb', border: '2px solid #e5e7eb', borderRadius: '16px', padding: '16px', color: '#9ca3af', fontWeight: '800', fontSize: '1rem' }}>
+                <ShoppingCart size={20} color="#d1d5db" />
+                نفذت الكمية — غير متوفر حالياً
+              </div>
+            ) : (() => {
               const cartQty = cartItems.find((i: any) => i.id === product.id)?.quantity ?? 0;
               if (cartQty > 0) return (
                 <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '10px' }}>
@@ -603,11 +616,17 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
               );
             })()}
 
-            <Link href={`/checkout?buyNow=true&productId=${productId}&price=${displayPrice}`}
-              onClick={() => addToCart({ ...product, price: displayPrice }, qty)}
-              className="pdp-btn-primary">
-              <Zap size={20} fill="#fff" /> اشتري الآن — {displayPrice} ج.م
-            </Link>
+            {isOutOfStock ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: '#f3f4f6', border: '2px solid #e5e7eb', borderRadius: '16px', padding: '18px', color: '#9ca3af', fontWeight: '800', fontSize: '1.05rem', cursor: 'not-allowed' }}>
+                <Zap size={20} color="#d1d5db" /> المنتج غير متاح للشراء حالياً
+              </div>
+            ) : (
+              <Link href={`/checkout?buyNow=true&productId=${productId}&price=${displayPrice}`}
+                onClick={() => addToCart({ ...product, price: displayPrice }, qty)}
+                className="pdp-btn-primary">
+                <Zap size={20} fill="#fff" /> اشتري الآن — {displayPrice} ج.م
+              </Link>
+            )}
 
             {/* Share */}
             <div style={{ display: 'flex', justifyContent: 'flex-start' }}>

@@ -1676,7 +1676,7 @@ setBrandsOptions(brandsOpts);
                       const price = product.sale_price || product.regular_price;
                       const origin = (product.country_origin || product.country_of_origin || '').trim();
                       const isOriginal = ['اصلي', 'أصلي', 'original', 'اصلى'].includes(origin.toLowerCase());
-                      const isOutOfStock = product.is_active === false;
+                      const isOutOfStock = product.is_active === false || (product.stock_quantity != null && Number(product.stock_quantity) === 0);
                       return (
                         <motion.div
                           key={product.id}
@@ -1857,7 +1857,7 @@ setBrandsOptions(brandsOpts);
                   <div className="products-list">
                     {paginatedProducts.map((product) => {
                       const price = product.sale_price || product.regular_price;
-                      const isOutOfStock = product.is_active === false;
+                      const isOutOfStock = product.is_active === false || (product.stock_quantity != null && Number(product.stock_quantity) === 0);
                       const hasSale = product.sale_price > 0 && product.regular_price > product.sale_price;
                       const discPct = hasSale ? Math.round(((product.regular_price - product.sale_price) / product.regular_price) * 100) : 0;
                       const univ = ['universal','عام','all','الكل',''];
