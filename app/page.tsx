@@ -1156,7 +1156,7 @@ export default function HomePage() {
                             اكسب مع كل بيعة!
                           </p>
                           <p className="home-banner-subtitle" style={{ fontSize: 'clamp(0.78rem,1.5vw,1rem)', marginBottom: '16px', color: 'rgba(255,255,255,0.85)' }}>
-                            Commission تبدأ من 5% على كل طلب بكودك
+                            Commission تصل إلى 20% على كل طلب بكودك
                           </p>
                           <span className="home-banner-cta bn-cta-green">سجل كـ Promoter الآن ←</span>
                         </div>
