@@ -598,6 +598,8 @@ function StoreContent() {
   const [brandsOptions, setBrandsOptions] = useState<any[]>([]);
   const [subcategoryImages, setSubcategoryImages] = useState<Record<string, string>>({});
 
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+
   const [selectedMake, setSelectedMake] = useState<any>(null);
   const [selectedModel, setSelectedModel] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
@@ -1391,6 +1393,22 @@ setBrandsOptions(brandsOpts);
             font-weight: 900;
             z-index: 10;
           }
+
+          /* ── List view ── */
+          .products-list { display: flex; flex-direction: column; gap: 12px; }
+          .list-card { display: flex; background: #fff; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 2px 10px rgba(0,0,0,0.04); overflow: hidden; transition: box-shadow 0.2s, transform 0.2s; position: relative; }
+          .list-card:hover { box-shadow: 0 8px 28px rgba(34,197,94,0.12); transform: translateY(-2px); }
+          .list-card-img { width: 130px; min-width: 130px; height: 130px; object-fit: cover; background: #f8fafc; flex-shrink: 0; }
+          .list-card-img img { width: 100%; height: 100%; object-fit: cover; }
+          .list-card-body { flex: 1; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+          .list-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; flex-wrap: wrap; }
+          .view-toggle { display: flex; gap: 4px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 3px; }
+          .view-btn { width: 32px; height: 32px; border: none; border-radius: 7px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; background: transparent; color: #94a3b8; }
+          .view-btn.active { background: #fff; color: #22c55e; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+          @media (max-width: 480px) {
+            .list-card-img { width: 100px; min-width: 100px; height: 100px; }
+            .list-card-body { padding: 10px 12px; }
+          }
         `,
         }}
       />
@@ -1611,6 +1629,20 @@ setBrandsOptions(brandsOpts);
                 )}
               </AnimatePresence>
 
+              {/* ── View toggle ── */}
+              {!showEmptyState && !showNoResults && paginatedProducts.length > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
+                  <div className="view-toggle">
+                    <button className={`view-btn${viewMode === 'list' ? ' active' : ''}`} onClick={() => setViewMode('list')} title="عرض قائمة">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                    </button>
+                    <button className={`view-btn${viewMode === 'grid' ? ' active' : ''}`} onClick={() => setViewMode('grid')} title="عرض شبكة">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {showEmptyState ? (
                 <div style={{ textAlign: 'center', padding: '100px 20px', backgroundColor: '#fff', borderRadius: '20px' }}>
                   <Filter size={80} color="#22c55e" style={{ margin: '0 auto 20px', opacity: 0.5 }} />
@@ -1629,6 +1661,8 @@ setBrandsOptions(brandsOpts);
                 </div>
               ) : paginatedProducts.length > 0 ? (
                 <>
+                  {/* ── Grid view ── */}
+                  {viewMode === 'grid' && (
                   <div className="products-grid">
                     {paginatedProducts.map((product) => {
                       const price = product.sale_price || product.regular_price;
@@ -1808,6 +1842,93 @@ setBrandsOptions(brandsOpts);
                       );
                     })}
                   </div>
+                  )} {/* end grid view */}
+
+                  {/* ── List view ── */}
+                  {viewMode === 'list' && (
+                  <div className="products-list">
+                    {paginatedProducts.map((product) => {
+                      const price = product.sale_price || product.regular_price;
+                      const isOutOfStock = product.is_active === false;
+                      const hasSale = product.sale_price > 0 && product.regular_price > product.sale_price;
+                      const discPct = hasSale ? Math.round(((product.regular_price - product.sale_price) / product.regular_price) * 100) : 0;
+                      const univ = ['universal','عام','all','الكل',''];
+                      const make = (product.car_make || '').trim();
+                      const model = (product.car_model || '').trim();
+                      const compatText = univ.includes(make.toLowerCase()) ? 'جميع السيارات' : `${make}${univ.includes(model.toLowerCase()) ? '' : ' ' + model}`;
+                      const imgSrc = product.image_url || (product.category && subcategoryImages[product.category.trim().toUpperCase()]) || '/api/placeholder/200/200';
+                      const inCartQty = cartItems.find((i: any) => i.id === product.id)?.quantity ?? 0;
+                      return (
+                        <motion.div key={product.id} className="list-card"
+                          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+                          {/* Image */}
+                          <Link href={`/products/${product.slug || product.id}`} className="list-card-img" style={{ display: 'block', textDecoration: 'none', position: 'relative' }}>
+                            <img src={imgSrc} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                            {hasSale && (
+                              <div style={{ position: 'absolute', top: '6px', right: '6px', background: '#ef4444', color: '#fff', fontSize: '0.62rem', fontWeight: '900', padding: '2px 6px', borderRadius: '6px' }}>-{discPct}%</div>
+                            )}
+                            {inCartQty > 0 && (
+                              <div style={{ position: 'absolute', bottom: '6px', right: '6px', background: '#22c55e', color: '#fff', fontSize: '0.6rem', fontWeight: '900', padding: '2px 7px', borderRadius: '8px' }}>✓ {inCartQty}</div>
+                            )}
+                          </Link>
+
+                          {/* Body */}
+                          <div className="list-card-body" dir="rtl">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' as const }}>
+                              <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.72rem', textTransform: 'uppercase' as const, letterSpacing: '0.4px' }}>{product.brand}</span>
+                              {product.category && <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: '600' }}>{product.category}</span>}
+                            </div>
+
+                            <Link href={`/products/${product.slug || product.id}`} style={{ textDecoration: 'none' }}>
+                              <h3 style={{ fontSize: '0.9rem', fontWeight: '900', color: '#0f172a', lineHeight: '1.4', margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden' }}>
+                                {product.name}
+                              </h3>
+                            </Link>
+
+                            {/* Compat */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#15803d', fontWeight: '700', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '2px 8px', alignSelf: 'flex-start' as const }}>
+                              <Car size={10} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{compatText}</span>
+                            </div>
+
+                            {/* Price + action */}
+                            <div className="list-card-footer">
+                              <div>
+                                {hasSale ? (
+                                  <>
+                                    <span style={{ fontSize: '1.2rem', fontWeight: '900', color: '#0f172a' }}>{product.sale_price}</span>
+                                    <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#0f172a', marginRight: '3px' }}>ج.م</span>
+                                    <span style={{ fontSize: '0.75rem', color: '#aaa', textDecoration: 'line-through', marginRight: '6px' }}>{product.regular_price} ج.م</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span style={{ fontSize: '1.2rem', fontWeight: '900', color: '#0f172a' }}>{price}</span>
+                                    <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#0f172a', marginRight: '3px' }}>ج.م</span>
+                                  </>
+                                )}
+                              </div>
+
+                              {isOutOfStock ? (
+                                <button disabled style={{ padding: '8px 16px', background: '#9ca3af', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '0.8rem', cursor: 'not-allowed' }}>نفذت الكمية</button>
+                              ) : inCartQty > 0 ? (
+                                <div style={{ display: 'flex', alignItems: 'center', background: '#f0fdf4', border: '1.5px solid #22c55e', borderRadius: '10px', overflow: 'hidden' }}>
+                                  <button onClick={(e) => { e.preventDefault(); addToCart({ ...product, price }, 1); }} style={{ width: '34px', height: '34px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '1.1rem', fontWeight: '900', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                                  <span style={{ width: '28px', textAlign: 'center', fontWeight: '900', fontSize: '0.9rem', color: '#16a34a' }}>{inCartQty}</span>
+                                  <button onClick={(e) => { e.preventDefault(); addToCart({ ...product, price }, -1); }} style={{ width: '34px', height: '34px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '1.1rem', fontWeight: '900', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={(e) => { e.preventDefault(); addToCart({ ...product, price }, 1); toast.success('تمت الإضافة'); }}
+                                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 18px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.82rem', cursor: 'pointer' }}>
+                                  <ShoppingCart size={14} /> أضف للسلة
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                  )} {/* end list view */}
 
                   <Pagination
                     currentPage={currentPage}
