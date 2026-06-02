@@ -37,10 +37,10 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     setCart((prev) => {
       const exists = prev.find((i) => i.id === product.id);
       if (exists) {
-        // تحديث الكمية للمنتج الموجود فعلياً
-        return prev.map((i) =>
+        const updated = prev.map((i) =>
           i.id === product.id ? { ...i, quantity: i.quantity + quantity } : i
         );
+        return updated.filter((i) => i.quantity > 0);
       }
       // إضافة المنتج لأول مرة مع كافة بياناته (ماركة، منشأ، سعر، صورة، سيارة)
       return [...prev, { ...product, quantity }];
