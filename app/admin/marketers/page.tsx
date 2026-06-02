@@ -155,12 +155,63 @@ export default function AdminMarketers() {
 
   return (
     <div style={container}>
-      <div style={header}>
+      <style>{`
+        /* ── Mobile responsive for Promoters admin ── */
+        @media (max-width: 900px) {
+          .pm-hide-md { display: none !important; }
+        }
+        @media (max-width: 640px) {
+          .pm-header { flex-direction: column !important; align-items: stretch !important; }
+          .pm-header-actions { flex-direction: column !important; }
+          .pm-search { max-width: 100% !important; }
+          .pm-fix-btn { width: 100% !important; justify-content: center; }
+
+          /* Card-based table rows on mobile */
+          .pm-table thead { display: none !important; }
+          .pm-table tr {
+            display: block !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 16px !important;
+            margin-bottom: 12px !important;
+            padding: 12px !important;
+            background: #fff !important;
+          }
+          .pm-table td {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            padding: 7px 4px !important;
+            border-bottom: 1px solid #f8fafc !important;
+            font-size: 0.82rem !important;
+            gap: 8px;
+          }
+          .pm-table td:last-child { border-bottom: none !important; }
+          .pm-table td[data-label]::before {
+            content: attr(data-label);
+            font-weight: 700;
+            color: #94a3b8;
+            font-size: 0.72rem;
+            flex-shrink: 0;
+            min-width: 90px;
+          }
+          .pm-hide-mobile { display: none !important; }
+          .pm-actions-td { justify-content: flex-end !important; }
+        }
+
+        /* Commission modal responsive */
+        .pm-comm-modal { width: 96vw !important; padding: 16px !important; }
+        .pm-comm-table th, .pm-comm-table td { padding: 8px 6px !important; font-size: 0.78rem !important; }
+        @media (max-width: 600px) {
+          .pm-comm-table .pm-hide-sm { display: none !important; }
+          .pm-detail-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+      <div style={header} className="pm-header">
         <h1 style={title}>
           <Users size={32} color="#27ae60" /> Promoters Network
           <span style={countBadge}>{marketers.length}</span>
         </h1>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' as const }}>
+        <div className="pm-header-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' as const }}>
           <div style={searchBox}>
             <Search size={18} color="#94a3b8" />
             <input
@@ -202,17 +253,17 @@ export default function AdminMarketers() {
         </div>
       ) : (
         <div style={tableCard}>
-          <table style={table}>
+          <table style={table} className="pm-table">
             <thead>
               <tr style={thRow}>
                 <th style={th}>Promoter</th>
                 <th style={th}>المستوى</th>
                 <th style={th}>الأكواد</th>
-                <th style={th}>الأداء</th>
-                <th style={th}>Total Earnings</th>
-                <th style={th}>Available Balance</th>
+                <th style={th} className="pm-hide-md">الأداء</th>
+                <th style={th} className="pm-hide-md">Total Earnings</th>
+                <th style={th} className="pm-hide-md">Available Balance</th>
                 <th style={th}>Pending Balance</th>
-                <th style={th}>Payment Info</th>
+                <th style={th} className="pm-hide-md">Payment Info</th>
                 <th style={th}>الإجراء</th>
               </tr>
             </thead>
@@ -221,7 +272,7 @@ export default function AdminMarketers() {
                 const tierInfo = getTierInfo(m.current_tier || 'bronze');
                 return (
                   <tr key={m.id} style={tr}>
-                    <td style={td}>
+                    <td style={td} data-label="Promoter">
                       <div style={{ fontWeight: '900', color: '#1e293b', marginBottom: '4px' }}>
                         {m.full_name}
                       </div>
@@ -234,8 +285,8 @@ export default function AdminMarketers() {
                         </div>
                       )}
                     </td>
-                    
-                    <td style={td}>
+
+                    <td style={td} data-label="Level">
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -266,7 +317,7 @@ export default function AdminMarketers() {
                       </div>
                     </td>
                     
-                    <td style={td}>
+                    <td style={td} data-label="Codes">
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <div style={codeBox}>
                           <LinkIcon size={11} color="#64748b" />
@@ -293,7 +344,7 @@ export default function AdminMarketers() {
                       </div>
                     </td>
                     
-                    <td style={td}>
+                    <td style={td} data-label="Performance" className="pm-hide-md">
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         <div style={statItem}>
                           <TrendingUp size={12} color="#3b82f6" />
@@ -310,30 +361,30 @@ export default function AdminMarketers() {
                       </div>
                     </td>
                     
-                    <td style={td}>
+                    <td style={td} data-label="Total Earned" className="pm-hide-md">
                       <span style={{ color: '#64748b', fontWeight: '900', fontSize: '1rem' }}>
                         {(m.total_earnings || 0).toFixed(2)} ج.م
                       </span>
                     </td>
-                    
-                    <td style={td}>
+
+                    <td style={td} data-label="Available" className="pm-hide-md">
                       <span style={{ color: '#27ae60', fontWeight: '900', fontSize: '1.1rem' }}>
                         {(m.balance || 0).toFixed(2)} ج.م
                       </span>
                     </td>
-                    
-                    <td style={td}>
+
+                    <td style={td} data-label="Pending">
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <span style={{ color: '#f59e0b', fontWeight: '900', fontSize: '0.95rem' }}>
                           {(m.pending_balance || 0).toFixed(2)} ج.م
                         </span>
                         <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '2px' }}>
-                          (14 يوم)
+                          (14d)
                         </span>
                       </div>
                     </td>
 
-                    <td style={td}>
+                    <td style={td} data-label="Payment" className="pm-hide-md">
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.78rem' }}>
                         {(m.instapay_phone || m.withdrawal_phone) && (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#f0fdf4', borderRadius: '8px', padding: '3px 8px', color: '#15803d', fontWeight: '700', direction: 'ltr' }}>
@@ -351,8 +402,8 @@ export default function AdminMarketers() {
                       </div>
                     </td>
 
-                    <td style={td}>
-                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                    <td style={td} data-label=" " className="pm-actions-td">
+                      <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', flexWrap: 'wrap' as const }}>
                         <button 
                           disabled={!m.balance || m.balance <= 0} 
                           onClick={() => handlePayout(m.id, m.balance)}
@@ -394,7 +445,7 @@ export default function AdminMarketers() {
               </button>
             </div>
             
-            <div style={detailsGrid}>
+            <div style={detailsGrid} className="pm-detail-grid">
               <div style={detailItem}>
                 <strong>البريد الإلكتروني:</strong>
                 <span>{selectedMarketer.email}</span>
@@ -502,7 +553,7 @@ export default function AdminMarketers() {
       {commMarketer && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 3000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}
           onClick={() => setCommMarketer(null)}>
-          <div style={{ background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '860px', padding: '28px', direction: 'rtl', marginTop: '20px' }}
+          <div className="pm-comm-modal" style={{ background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '860px', padding: '28px', direction: 'rtl', marginTop: '20px' }}
             onClick={e => e.stopPropagation()}>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
@@ -539,11 +590,20 @@ export default function AdminMarketers() {
               <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8', fontWeight: '700' }}>No Commissions yet</div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                <table className="pm-comm-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                   <thead>
                     <tr style={{ background: '#f8fafc' }}>
-                      {['رقم الطلب','تاريخ الطلب','قيمة الطلب','Commission','تاريخ التسليم','تاريخ الإفراج','الحالة','إجراء'].map(h=>(
-                        <th key={h} style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '800', color: '#475569', borderBottom: '1.5px solid #f1f5f9', whiteSpace: 'nowrap' as const }}>{h}</th>
+                      {[
+                        {h:'رقم الطلب',cls:''},
+                        {h:'تاريخ الطلب',cls:'pm-hide-sm'},
+                        {h:'قيمة الطلب',cls:'pm-hide-sm'},
+                        {h:'Commission',cls:''},
+                        {h:'تاريخ التسليم',cls:'pm-hide-sm'},
+                        {h:'تاريخ الإفراج',cls:''},
+                        {h:'الحالة',cls:''},
+                        {h:'إجراء',cls:''},
+                      ].map(({h,cls})=>(
+                        <th key={h} className={cls} style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '800', color: '#475569', borderBottom: '1.5px solid #f1f5f9', whiteSpace: 'nowrap' as const }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -563,10 +623,10 @@ export default function AdminMarketers() {
                       return (
                         <tr key={c.id} style={{ borderBottom: '1px solid #f8fafc' }}>
                           <td style={{ padding: '10px 12px', fontWeight: '700', color: '#0f172a' }}>#{c.order_id?.slice(0,8)}</td>
-                          <td style={{ padding: '10px 12px', color: '#64748b' }}>{new Date(c.created_at).toLocaleDateString('ar-EG')}</td>
-                          <td style={{ padding: '10px 12px', fontWeight: '700' }}>{parseFloat(c.order_total).toFixed(2)} ج.م</td>
+                          <td className="pm-hide-sm" style={{ padding: '10px 12px', color: '#64748b' }}>{new Date(c.created_at).toLocaleDateString('ar-EG')}</td>
+                          <td className="pm-hide-sm" style={{ padding: '10px 12px', fontWeight: '700' }}>{parseFloat(c.order_total).toFixed(2)} ج.م</td>
                           <td style={{ padding: '10px 12px', color: '#15803d', fontWeight: '900' }}>+{parseFloat(c.commission_amount).toFixed(2)} ج.م</td>
-                          <td style={{ padding: '10px 12px', color: '#64748b' }}>{c.delivery_date ? new Date(c.delivery_date).toLocaleDateString('ar-EG') : '—'}</td>
+                          <td className="pm-hide-sm" style={{ padding: '10px 12px', color: '#64748b' }}>{c.delivery_date ? new Date(c.delivery_date).toLocaleDateString('ar-EG') : '—'}</td>
                           <td style={{ padding: '10px 12px' }}>
                             {releaseDate ? (
                               <span style={{ color: daysLeft && daysLeft > 0 ? '#f59e0b' : '#15803d', fontWeight: '700', fontSize: '0.8rem' }}>
