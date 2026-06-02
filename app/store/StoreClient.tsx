@@ -1196,7 +1196,12 @@ setBrandsOptions(brandsOpts);
 
   function handlePageChange(page: number) {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const anchor = document.getElementById('store-products-top');
+    if (anchor) {
+      anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   const customSelectStyles = {
@@ -1536,6 +1541,9 @@ setBrandsOptions(brandsOpts);
               </div>
             </motion.section>
           )}
+
+          {/* Scroll anchor — pagination scrolls here */}
+          <div id="store-products-top" style={{ scrollMarginTop: '90px' }} />
 
           {/* Mobile filter toggle */}
           <div className="mobile-filter-btn" style={{ display: 'none', maxWidth: '1400px', margin: '0 auto 20px', padding: '0 20px' }}>
