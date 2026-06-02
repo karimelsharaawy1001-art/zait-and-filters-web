@@ -878,8 +878,13 @@ export default function HomePage() {
           }
 
           .home-banner-section { max-width: 1200px; margin: 0 auto; padding: 16px 20px; }
+          .dual-banner-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
           .home-banner-inner { position: relative; width: 100%; height: 260px; border-radius: 20px; overflow: hidden; cursor: pointer; box-shadow: 0 8px 30px rgba(0,0,0,0.15); transition: transform 0.3s ease, box-shadow 0.3s ease; }
           .home-banner-inner:hover { transform: translateY(-3px); box-shadow: 0 16px 44px rgba(0,0,0,0.22); }
+          @media (max-width: 640px) {
+            .dual-banner-grid { grid-template-columns: 1fr; gap: 12px; }
+            .home-banner-inner { height: 200px; border-radius: 16px; }
+          }
           .home-banner-bg  { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
           .home-banner-overlay { position: absolute; inset: 0; background: linear-gradient(to left, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.82) 60%, rgba(0,0,0,0.88) 100%); }
           .home-banner-content { position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-start; padding: 0 48px; direction: rtl; }
@@ -1020,40 +1025,72 @@ export default function HomePage() {
             </ScrollReveal>
             {/* ════════════════════════════════════════════════════════════════ */}
 
-            {/* HOME BANNER */}
-            {homeBanner && (
-              <ScrollReveal direction="up" delay={0.07}>
-                <div className="home-banner-section">
-                  {homeBanner.link_url ? (
-                    <Link href={homeBanner.link_url} style={{ textDecoration: 'none' }}>
+            {/* HOME BANNERS — maintenance bundle + promoters program side by side */}
+            <ScrollReveal direction="up" delay={0.07}>
+              <div className="home-banner-section">
+                <div className="dual-banner-grid">
+
+                  {/* ── Maintenance Bundle Banner (from DB) ── */}
+                  {homeBanner && (
+                    homeBanner.link_url ? (
+                      <Link href={homeBanner.link_url} style={{ textDecoration: 'none', display: 'block' }}>
+                        <div className="home-banner-inner">
+                          {homeBanner.image_url && <img src={homeBanner.image_url} alt={homeBanner.title || 'banner'} className="home-banner-bg" loading="eager" fetchPriority="high" width="600" height="260" />}
+                          <div className="home-banner-overlay" />
+                          <div className="home-banner-content">
+                            <div className="home-banner-text-block">
+                              {homeBanner.title && <p className="home-banner-title">{homeBanner.title}</p>}
+                              {homeBanner.subtitle && <p className="home-banner-subtitle">{homeBanner.subtitle}</p>}
+                              <span className="home-banner-cta">{homeBanner.cta_text || 'اكتشف الآن'} ←</span>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    ) : (
                       <div className="home-banner-inner">
-                        {homeBanner.image_url && <img src={homeBanner.image_url} alt={homeBanner.title || 'banner'} className="home-banner-bg" loading="eager" fetchPriority="high" width="1200" height="260" />}
+                        {homeBanner.image_url && <img src={homeBanner.image_url} alt={homeBanner.title || 'banner'} className="home-banner-bg" loading="eager" fetchPriority="high" width="600" height="260" />}
                         <div className="home-banner-overlay" />
                         <div className="home-banner-content">
                           <div className="home-banner-text-block">
                             {homeBanner.title && <p className="home-banner-title">{homeBanner.title}</p>}
                             {homeBanner.subtitle && <p className="home-banner-subtitle">{homeBanner.subtitle}</p>}
-                            <span className="home-banner-cta">{homeBanner.cta_text || 'اكتشف الآن'} ←</span>
+                            {homeBanner.cta_text && <span className="home-banner-cta">{homeBanner.cta_text} ←</span>}
                           </div>
                         </div>
                       </div>
-                    </Link>
-                  ) : (
-                    <div className="home-banner-inner">
-                      {homeBanner.image_url && <img src={homeBanner.image_url} alt={homeBanner.title || 'banner'} className="home-banner-bg" loading="eager" fetchPriority="high" width="1200" height="260" />}
-                      <div className="home-banner-overlay" />
-                      <div className="home-banner-content">
-                        <div className="home-banner-text-block">
-                          {homeBanner.title && <p className="home-banner-title">{homeBanner.title}</p>}
-                          {homeBanner.subtitle && <p className="home-banner-subtitle">{homeBanner.subtitle}</p>}
-                          {homeBanner.cta_text && <span className="home-banner-cta">{homeBanner.cta_text} ←</span>}
+                    )
+                  )}
+
+                  {/* ── Promoters Program Banner (static) ── */}
+                  <Link href="/affiliate" style={{ textDecoration: 'none', display: 'block' }}>
+                    <div className="home-banner-inner promoter-banner">
+                      {/* Decorative background blobs */}
+                      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 40%, #0f3460 100%)' }} />
+                      <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '220px', height: '220px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(34,197,94,0.25) 0%, transparent 70%)', pointerEvents: 'none' }} />
+                      <div style={{ position: 'absolute', bottom: '-30px', left: '10%', width: '180px', height: '180px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%)', pointerEvents: 'none' }} />
+                      {/* Content */}
+                      <div className="home-banner-content" style={{ direction: 'rtl', padding: '0 36px' }}>
+                        <div style={{ width: '100%' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.35)', borderRadius: '20px', padding: '5px 14px', marginBottom: '14px' }}>
+                            <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#4ade80', letterSpacing: '0.5px' }}>💸 Promoters Program</span>
+                          </div>
+                          <p className="home-banner-title" style={{ fontSize: 'clamp(1.3rem,3vw,2.2rem)', marginBottom: '10px' }}>
+                            اكسب مع كل بيعة!
+                          </p>
+                          <p className="home-banner-subtitle" style={{ fontSize: 'clamp(0.82rem,1.5vw,1.1rem)', marginBottom: '20px', opacity: 0.9 }}>
+                            Commission تبدأ من 5% على كل طلب يجيلك منه
+                          </p>
+                          <span className="home-banner-cta" style={{ background: 'linear-gradient(135deg,#22c55e,#16a34a)', fontSize: 'clamp(0.82rem,1.5vw,1rem)' }}>
+                            سجل كـ Promoter الآن ←
+                          </span>
                         </div>
                       </div>
                     </div>
-                  )}
+                  </Link>
+
                 </div>
-              </ScrollReveal>
-            )}
+              </div>
+            </ScrollReveal>
 
             {/* Offers Section */}
             {saleProducts.length > 0 && (
