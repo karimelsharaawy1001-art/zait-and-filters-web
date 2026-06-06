@@ -298,8 +298,8 @@ export default async function CarMakePage({ params }: { params: Promise<{ make: 
 
   const supabase = getSupabase();
 
-  // Fetch product count + top categories for this make
-  const [{ count }, { data: catData }] = await Promise.all([
+  // Fetch product count, model data, and featured products in parallel
+  const [{ count }, { data: modelData }, { data: featuredProducts }] = await Promise.all([
     supabase
       .from('products')
       .select('*', { count: 'exact', head: true })
@@ -307,35 +307,49 @@ export default async function CarMakePage({ params }: { params: Promise<{ make: 
       .eq('is_active', true),
     supabase
       .from('products')
-      .select('category, subcategory, image_url')
+      .select('car_model, image_url')
       .eq('car_make', makeKey)
       .eq('is_active', true)
+      .not('car_model', 'is', null)
       .limit(500),
+    supabase
+      .from('products')
+      .select('id, slug, name, brand, category, subcategory, regular_price, sale_price, image_url')
+      .eq('car_make', makeKey)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(8),
   ]);
 
-  // Deduplicate categories
-  const categoryMap = new Map<string, { name: string; img: string; count: number }>();
-  (catData || []).forEach((p: any) => {
-    if (!p.category) return;
-    const existing = categoryMap.get(p.category);
+  // Deduplicate models, pick first product image per model
+  const modelMap = new Map<string, { name: string; img: string; count: number }>();
+  (modelData || []).forEach((p: any) => {
+    const model = (p.car_model || '').trim();
+    if (!model) return;
+    const existing = modelMap.get(model);
     if (existing) {
       existing.count++;
+      if (!existing.img && p.image_url) existing.img = p.image_url;
     } else {
-      categoryMap.set(p.category, { name: p.category, img: p.image_url || '', count: 1 });
+      modelMap.set(model, { name: model, img: p.image_url || '', count: 1 });
     }
   });
-  const categories = Array.from(categoryMap.values())
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 8);
 
-  // Fetch featured products
-  const { data: featuredProducts } = await supabase
-    .from('products')
-    .select('id, slug, name, brand, category, subcategory, regular_price, sale_price, image_url')
-    .eq('car_make', makeKey)
-    .eq('is_active', true)
-    .order('created_at', { ascending: false })
-    .limit(8);
+  // Also build popularModels order from CAR_MAKES definition — show known models first
+  const knownOrder = info.popularModels;
+  const allModels = Array.from(modelMap.values()).sort((a, b) => {
+    const ai = knownOrder.indexOf(a.name);
+    const bi = knownOrder.indexOf(b.name);
+    if (ai !== -1 && bi !== -1) return ai - bi;
+    if (ai !== -1) return -1;
+    if (bi !== -1) return 1;
+    return b.count - a.count;
+  });
+
+  // Fall back to static popularModels if DB has no car_model data
+  const models = allModels.length > 0
+    ? allModels.slice(0, 12)
+    : info.popularModels.map(name => ({ name, img: '', count: 0 }));
 
   // JSON-LD structured data
   const schema = {
@@ -366,7 +380,7 @@ export default async function CarMakePage({ params }: { params: Promise<{ make: 
         makeKey={makeKey}
         info={info}
         productCount={count ?? 0}
-        categories={categories}
+        models={models}
         featuredProducts={featuredProducts ?? []}
       />
     </>

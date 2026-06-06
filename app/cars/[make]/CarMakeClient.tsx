@@ -9,22 +9,114 @@ interface Props {
   makeKey: string;
   info: CarInfo;
   productCount: number;
-  categories: { name: string; img: string; count: number }[];
+  models: { name: string; img: string; count: number }[];
   featuredProducts: any[];
 }
 
-const CATEGORY_ICONS: Record<string, string> = {
-  'فلاتر': '🔵', 'زيوت موتور': '🛢️', 'الفرامل': '🔴', 'عفشة': '⚙️',
-  'سيور و بلي': '🔗', 'دورة تبريد و تكييف': '❄️', 'دورة البنزين': '⛽',
-  'بوجيهات و سلوك بوجيهات و موبينة': '⚡', 'حساسات و قطع كهربائية': '📡',
-  'جوانات و أويل سيل': '🔩', 'مستلزمات عمرة موتور': '🔧',
-  'قطع الموتور و ملحقاته': '🏎️', 'دبرياج و قطع فتيس': '🔄',
-  'إطارات': '🚗', 'مساحات': '🪟',
-};
-
-export default function CarMakeClient({ makeKey, info, productCount, categories, featuredProducts }: Props) {
+export default function CarMakeClient({ makeKey, info, productCount, models, featuredProducts }: Props) {
   return (
     <div dir="rtl" style={{ fontFamily: 'inherit', background: '#f8fafc', minHeight: '100vh' }}>
+
+      <style>{`
+        .model-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 14px;
+        }
+        @media (max-width: 768px) {
+          .model-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+          }
+        }
+        .model-card {
+          position: relative;
+          border-radius: 16px;
+          overflow: hidden;
+          aspect-ratio: 3/4;
+          cursor: pointer;
+          text-decoration: none;
+          display: block;
+          box-shadow: 0 4px 18px rgba(0,0,0,0.13);
+          transition: transform 0.22s cubic-bezier(.34,1.28,.64,1), box-shadow 0.22s ease;
+          background: #1a1a2e;
+        }
+        .model-card:hover {
+          transform: translateY(-5px) scale(1.025);
+          box-shadow: 0 12px 36px rgba(0,0,0,0.22);
+        }
+        .model-card img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.35s ease;
+        }
+        .model-card:hover img {
+          transform: scale(1.07);
+        }
+        .model-card-fallback {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #1a1a2e, #16213e);
+          transition: transform 0.35s ease;
+        }
+        .model-card:hover .model-card-fallback {
+          transform: scale(1.07);
+        }
+        .model-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            to top,
+            rgba(0,0,0,0.88) 0%,
+            rgba(0,0,0,0.45) 45%,
+            rgba(0,0,0,0.18) 100%
+          );
+        }
+        .model-label {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          padding: 14px 10px;
+          text-align: center;
+          color: #fff;
+          font-size: 1.2rem;
+          font-weight: 900;
+          text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+        }
+        .model-label-count {
+          font-size: 0.7rem;
+          color: #86efac;
+          font-weight: 700;
+          opacity: 0.85;
+        }
+        .model-arrow {
+          display: block;
+          font-size: 0.8rem;
+          font-weight: 700;
+          color: #22c55e;
+          opacity: 0;
+          transform: translateY(4px);
+          transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .model-card:hover .model-arrow {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        @media (max-width: 768px) {
+          .model-label { font-size: 1rem; padding: 10px 6px; }
+          .model-arrow { display: none; }
+          .model-card { border-radius: 12px; }
+        }
+      `}</style>
 
       {/* ── Breadcrumb ── */}
       <div style={{ background: '#fff', borderBottom: '1px solid #f1f5f9', padding: '12px 20px' }}>
@@ -51,18 +143,6 @@ export default function CarMakeClient({ makeKey, info, productCount, categories,
           <p style={{ color: '#94a3b8', fontSize: '1rem', maxWidth: '600px', margin: '0 auto 28px', lineHeight: 1.7 }}>
             تسوق قطع غيار {info.arName} الأصلية بأفضل الأسعار في مصر. شحن سريع لباب البيت مع ضمان الجودة.
           </p>
-          {/* Popular models chips */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', marginBottom: '32px' }}>
-            {info.popularModels.map((model) => (
-              <Link
-                key={model}
-                href={`/store?make=${makeKey}&model=${encodeURIComponent(model)}`}
-                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '20px', padding: '6px 14px', color: '#e2e8f0', fontSize: '0.82rem', fontWeight: '600', textDecoration: 'none', transition: 'background 0.2s' }}
-              >
-                {model}
-              </Link>
-            ))}
-          </div>
           <Link
             href={`/store?make=${makeKey}`}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#22c55e', color: '#fff', padding: '14px 32px', borderRadius: '14px', fontWeight: '900', fontSize: '1rem', textDecoration: 'none', boxShadow: '0 4px 20px rgba(34,197,94,0.35)' }}
@@ -88,22 +168,45 @@ export default function CarMakeClient({ makeKey, info, productCount, categories,
           ))}
         </div>
 
-        {/* ── Categories ── */}
-        {categories.length > 0 && (
-          <section style={{ marginBottom: '40px' }}>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: '900', color: '#0f172a', margin: '0 0 20px' }}>
-              تسوق حسب القسم — قطع غيار {info.arName}
-            </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px' }}>
-              {categories.map((cat) => (
+        {/* ── Car models grid ── */}
+        {models.length > 0 && (
+          <section style={{ marginBottom: '48px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+              <div>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: '900', color: '#0f172a', margin: '0 0 4px' }}>
+                  تسوق حسب موديل {info.arName}
+                </h2>
+                <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0, fontWeight: '600' }}>
+                  اختر موديل سيارتك وتصفح جميع القطع المتوافقة
+                </p>
+              </div>
+              <Link href={`/store?make=${makeKey}`} style={{ fontSize: '0.85rem', fontWeight: '800', color: '#22c55e', textDecoration: 'none', whiteSpace: 'nowrap' as const }}>
+                عرض جميع القطع ←
+              </Link>
+            </div>
+            <div className="model-grid">
+              {models.map((model) => (
                 <Link
-                  key={cat.name}
-                  href={`/store?make=${makeKey}&category=${encodeURIComponent(cat.name)}`}
-                  style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '18px 14px', textDecoration: 'none', textAlign: 'center', transition: 'box-shadow 0.2s', display: 'block' }}
+                  key={model.name}
+                  href={`/store?make=${makeKey}&model=${encodeURIComponent(model.name)}`}
+                  className="model-card"
                 >
-                  <div style={{ fontSize: '1.8rem', marginBottom: '8px' }}>{CATEGORY_ICONS[cat.name] || '⚙️'}</div>
-                  <div style={{ fontSize: '0.82rem', fontWeight: '800', color: '#0f172a', lineHeight: 1.3 }}>{cat.name}</div>
-                  <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '4px', fontWeight: '600' }}>{cat.count} منتج</div>
+                  {model.img
+                    ? <img src={model.img} alt={`قطع غيار ${info.arName} ${model.name}`} loading="lazy" />
+                    : (
+                      <div className="model-card-fallback">
+                        <Package size={40} color="rgba(255,255,255,0.15)" />
+                      </div>
+                    )
+                  }
+                  <div className="model-overlay" />
+                  <div className="model-label">
+                    {model.name}
+                    {model.count > 0 && (
+                      <span className="model-label-count">{model.count} منتج</span>
+                    )}
+                    <span className="model-arrow">تصفح القطع ←</span>
+                  </div>
                 </Link>
               ))}
             </div>
@@ -165,7 +268,7 @@ export default function CarMakeClient({ makeKey, info, productCount, categories,
           <p style={{ color: '#475569', fontSize: '0.9rem', lineHeight: 1.8, margin: 0 }}>
             {info.description}
             {' '}
-            نوفر جميع قطع غيار {info.arName} من أشهر الماركات العالمية كـ BOSCH و MANN و JAPANPARTS و MO OSMAN وغيرها.
+            نوفر جميع قطع غيار {info.arName} من أشهر الماركات العالمية كـ BOSCH و MANN و JAPANPARTS وغيرها.
             {' '}
             يمكنك الدفع بالتقسيط عبر فاليو، سهولة، لاكي، كليفر، أمان، تقسيط البنك الأهلي وحالا.
             {' '}
@@ -179,14 +282,18 @@ export default function CarMakeClient({ makeKey, info, productCount, categories,
             قطع غيار سيارات أخرى
           </h2>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {['HYUNDAI', 'KIA', 'TOYOTA', 'CHEVROLET', 'NISSAN', 'MITSUBISHI', 'RENAULT', 'PEUGEOT', 'VOLKSWAGEN']
+            {(['HYUNDAI', 'KIA', 'TOYOTA', 'CHEVROLET', 'NISSAN', 'MITSUBISHI', 'RENAULT', 'PEUGEOT', 'VOLKSWAGEN'] as const)
               .filter(m => m !== makeKey)
               .map(m => {
-                const ar = { HYUNDAI: 'هيونداي', KIA: 'كيا', TOYOTA: 'تويوتا', CHEVROLET: 'شيفروليه', NISSAN: 'نيسان', MITSUBISHI: 'ميتسوبيشي', RENAULT: 'رينو', PEUGEOT: 'بيجو', VOLKSWAGEN: 'فولكس فاجن' }[m] || m;
+                const AR: Record<string, string> = {
+                  HYUNDAI: 'هيونداي', KIA: 'كيا', TOYOTA: 'تويوتا', CHEVROLET: 'شيفروليه',
+                  NISSAN: 'نيسان', MITSUBISHI: 'ميتسوبيشي', RENAULT: 'رينو',
+                  PEUGEOT: 'بيجو', VOLKSWAGEN: 'فولكس فاجن',
+                };
                 return (
                   <Link key={m} href={`/cars/${m.toLowerCase()}`}
                     style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '8px 16px', fontSize: '0.82rem', fontWeight: '700', color: '#334155', textDecoration: 'none' }}>
-                    قطع غيار {ar}
+                    قطع غيار {AR[m] || m}
                   </Link>
                 );
               })}

@@ -1411,68 +1411,155 @@ export default function HomePage() {
 
             {/* ══ SHOP BY CAR MAKE ══════════════════════════════════════════════ */}
             <ScrollReveal direction="up" delay={0.1}>
-              <section style={{ padding: '40px 0 52px', background: '#0f172a' }}>
-                <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
-                  {/* Header */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
-                    <div style={{ textAlign: 'right' }}>
-                      <h2 style={{ fontSize: 'clamp(1.5rem,4vw,2.2rem)', fontWeight: '900', color: '#fff', margin: '0 0 6px' }}>
-                        تسوق حسب سيارتك
-                      </h2>
-                      <p style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: '600', margin: 0 }}>
+              <section style={{ padding: '20px 0 40px' }}>
+                <style>{`
+                  .make-grid {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 14px;
+                    padding: 0 20px;
+                  }
+                  @media (max-width: 768px) {
+                    .make-grid {
+                      grid-template-columns: repeat(3, 1fr);
+                      gap: 10px;
+                      padding: 0 12px;
+                    }
+                  }
+                  .make-card {
+                    position: relative;
+                    border-radius: 16px;
+                    overflow: hidden;
+                    aspect-ratio: 3/4;
+                    cursor: pointer;
+                    text-decoration: none;
+                    display: block;
+                    box-shadow: 0 4px 18px rgba(0,0,0,0.13);
+                    transition: transform 0.22s cubic-bezier(.34,1.28,.64,1), box-shadow 0.22s ease;
+                    background: #111827;
+                  }
+                  .make-card:hover {
+                    transform: translateY(-5px) scale(1.025);
+                    box-shadow: 0 12px 36px rgba(0,0,0,0.22);
+                  }
+                  .make-card-bg {
+                    position: absolute;
+                    inset: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: transform 0.35s ease;
+                  }
+                  .make-card:hover .make-card-bg {
+                    transform: scale(1.07);
+                  }
+                  .make-card-logo {
+                    width: 55%;
+                    height: 55%;
+                    object-fit: contain;
+                    filter: drop-shadow(0 4px 16px rgba(0,0,0,0.5));
+                    transition: transform 0.35s ease;
+                  }
+                  .make-card-overlay {
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(
+                      to top,
+                      rgba(0,0,0,0.88) 0%,
+                      rgba(0,0,0,0.45) 45%,
+                      rgba(0,0,0,0.18) 100%
+                    );
+                    transition: background 0.22s ease;
+                  }
+                  .make-card:hover .make-card-overlay {
+                    background: linear-gradient(
+                      to top,
+                      rgba(0,0,0,0.92) 0%,
+                      rgba(0,0,0,0.52) 45%,
+                      rgba(0,0,0,0.25) 100%
+                    );
+                  }
+                  .make-card-label {
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    padding: 14px 10px;
+                    text-align: center;
+                    color: #fff;
+                    font-size: 1.3rem;
+                    font-weight: 900;
+                    line-height: 1.3;
+                    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 4px;
+                  }
+                  .make-card-arrow {
+                    display: block;
+                    font-size: 0.8rem;
+                    font-weight: 700;
+                    color: #22c55e;
+                    opacity: 0;
+                    transform: translateY(4px);
+                    transition: opacity 0.2s ease, transform 0.2s ease;
+                  }
+                  .make-card:hover .make-card-arrow {
+                    opacity: 1;
+                    transform: translateY(0);
+                  }
+                  @media (max-width: 768px) {
+                    .make-card-label { font-size: 1.1rem; padding: 10px 6px; }
+                    .make-card-arrow { display: none; }
+                    .make-card { border-radius: 12px; }
+                  }
+                `}</style>
+
+                <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                  {/* Header — matches categories section */}
+                  <div style={{ textAlign: 'right', marginBottom: '18px', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap' as const, gap: '10px' }}>
+                    <div>
+                      <h2 style={{ fontSize: '2.2rem', fontWeight: '900', margin: 0 }}>تسوق حسب سيارتك</h2>
+                      <p style={{ fontSize: '0.9rem', color: '#888', fontWeight: '700', margin: '6px 0 0' }}>
                         اختر ماركة سيارتك واستعرض جميع القطع المتوافقة
                       </p>
                     </div>
-                    <Link href="/cars" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '10px', padding: '8px 18px', color: '#86efac', fontWeight: '800', fontSize: '0.85rem', textDecoration: 'none', whiteSpace: 'nowrap' as const }}>
+                    <Link href="/cars" style={{ fontSize: '0.85rem', fontWeight: '800', color: '#22c55e', textDecoration: 'none', whiteSpace: 'nowrap' as const }}>
                       عرض جميع السيارات ←
                     </Link>
                   </div>
 
-                  {/* Car make grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '12px' }}>
-                    {[
-                      { make: 'HYUNDAI', ar: 'هيونداي' },
-                      { make: 'KIA',     ar: 'كيا' },
-                      { make: 'TOYOTA',  ar: 'تويوتا' },
-                      { make: 'CHEVROLET', ar: 'شيفروليه' },
-                      { make: 'NISSAN',  ar: 'نيسان' },
-                      { make: 'MITSUBISHI', ar: 'ميتسوبيشي' },
-                      { make: 'RENAULT', ar: 'رينو' },
-                      { make: 'PEUGEOT', ar: 'بيجو' },
-                      { make: 'VOLKSWAGEN', ar: 'فولكس فاجن' },
-                      { make: 'SKODA',   ar: 'سكودا' },
-                      { make: 'MG',      ar: 'إم جي' },
-                      { make: 'OPEL',    ar: 'أوبل' },
-                    ].map(({ make, ar }) => {
+                  <div className="make-grid">
+                    {([
+                      { make: 'HYUNDAI',    ar: 'هيونداي',     bg: 'linear-gradient(135deg,#002c5f,#0a3d7a)' },
+                      { make: 'KIA',        ar: 'كيا',          bg: 'linear-gradient(135deg,#05141f,#0d2137)' },
+                      { make: 'TOYOTA',     ar: 'تويوتا',       bg: 'linear-gradient(135deg,#eb0a1e,#8b0000)' },
+                      { make: 'CHEVROLET',  ar: 'شيفروليه',     bg: 'linear-gradient(135deg,#d4af37,#8b6914)' },
+                      { make: 'NISSAN',     ar: 'نيسان',        bg: 'linear-gradient(135deg,#c3002f,#7a001e)' },
+                      { make: 'MITSUBISHI', ar: 'ميتسوبيشي',    bg: 'linear-gradient(135deg,#e60012,#8a000b)' },
+                      { make: 'RENAULT',    ar: 'رينو',         bg: 'linear-gradient(135deg,#f5c518,#c49b00)' },
+                      { make: 'PEUGEOT',    ar: 'بيجو',         bg: 'linear-gradient(135deg,#0b2d78,#071a4a)' },
+                      { make: 'VOLKSWAGEN', ar: 'فولكس فاجن',   bg: 'linear-gradient(135deg,#001e50,#001236)' },
+                      { make: 'SKODA',      ar: 'سكودا',        bg: 'linear-gradient(135deg,#4ba82e,#2d6e1b)' },
+                      { make: 'MG',         ar: 'إم جي',        bg: 'linear-gradient(135deg,#cc0000,#7a0000)' },
+                      { make: 'OPEL',       ar: 'أوبل',         bg: 'linear-gradient(135deg,#1a1a1a,#333)' },
+                    ] as { make: string; ar: string; bg: string }[]).map(({ make, ar, bg }) => {
                       const logoUrl = makesOptions.find((m: any) => m.value?.toUpperCase() === make)?.logo || null;
                       return (
-                        <Link
-                          key={make}
-                          href={`/cars/${make.toLowerCase()}`}
-                          style={{
-                            background: 'rgba(255,255,255,0.05)',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            borderRadius: '16px',
-                            padding: '18px 10px 14px',
-                            textDecoration: 'none',
-                            display: 'flex',
-                            flexDirection: 'column' as const,
-                            alignItems: 'center',
-                            gap: '10px',
-                            transition: 'background 0.2s, border-color 0.2s',
-                          }}
-                        >
-                          {/* Logo or fallback icon */}
-                          <div style={{ width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px', background: logoUrl ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.08)', overflow: 'hidden', flexShrink: 0 }}>
+                        <Link key={make} href={`/cars/${make.toLowerCase()}`} className="make-card">
+                          {/* Brand-colored background */}
+                          <div className="make-card-bg" style={{ background: bg }}>
                             {logoUrl
-                              ? <img src={logoUrl} alt={ar} style={{ width: '80%', height: '80%', objectFit: 'contain' }} loading="lazy" />
-                              : <Car size={22} color="#94a3b8" />
+                              ? <img src={logoUrl} alt={ar} className="make-card-logo" loading="lazy" />
+                              : <Car size={48} color="rgba(255,255,255,0.25)" />
                             }
                           </div>
-                          {/* Arabic name */}
-                          <div style={{ fontSize: '0.82rem', fontWeight: '900', color: '#f1f5f9', textAlign: 'center' as const, lineHeight: 1.2 }}>{ar}</div>
-                          {/* CTA hint */}
-                          <div style={{ fontSize: '0.68rem', color: '#22c55e', fontWeight: '700' }}>تصفح القطع ←</div>
+                          <div className="make-card-overlay" />
+                          <div className="make-card-label">
+                            {ar}
+                            <span className="make-card-arrow">تصفح القطع ←</span>
+                          </div>
                         </Link>
                       );
                     })}
