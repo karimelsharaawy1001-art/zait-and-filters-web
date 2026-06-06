@@ -23,11 +23,11 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
           grid-template-columns: repeat(4, 1fr);
           gap: 14px;
         }
-        @media (max-width: 768px) {
-          .model-grid {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-          }
+        @media (max-width: 900px) {
+          .model-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 580px) {
+          .model-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
         }
         .model-card {
           position: relative;
@@ -49,6 +49,7 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
           width: 100%;
           height: 100%;
           object-fit: cover;
+          object-position: center;
           transition: transform 0.35s ease;
         }
         .model-card:hover img {

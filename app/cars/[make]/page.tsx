@@ -298,8 +298,8 @@ export default async function CarMakePage({ params }: { params: Promise<{ make: 
 
   const supabase = getSupabase();
 
-  // Fetch product count, model data, and featured products in parallel
-  const [{ count }, { data: modelData }, { data: featuredProducts }] = await Promise.all([
+  // Fetch product count, product model counts, car images, and featured products in parallel
+  const [{ count }, { data: modelData }, { data: carImages }, { data: featuredProducts }] = await Promise.all([
     supabase
       .from('products')
       .select('*', { count: 'exact', head: true })
@@ -307,11 +307,15 @@ export default async function CarMakePage({ params }: { params: Promise<{ make: 
       .eq('is_active', true),
     supabase
       .from('products')
-      .select('car_model, image_url')
+      .select('car_model')
       .eq('car_make', makeKey)
       .eq('is_active', true)
       .not('car_model', 'is', null)
-      .limit(500),
+      .limit(1000),
+    supabase
+      .from('car_images')
+      .select('car_model, image_url')
+      .ilike('car_make', makeKey),
     supabase
       .from('products')
       .select('id, slug, name, brand, category, subcategory, regular_price, sale_price, image_url')
@@ -321,35 +325,44 @@ export default async function CarMakePage({ params }: { params: Promise<{ make: 
       .limit(8),
   ]);
 
-  // Deduplicate models, pick first product image per model
-  const modelMap = new Map<string, { name: string; img: string; count: number }>();
+  // Count products per model
+  const modelCountMap = new Map<string, number>();
   (modelData || []).forEach((p: any) => {
-    const model = (p.car_model || '').trim();
+    const model = (p.car_model || '').trim().toUpperCase();
     if (!model) return;
-    const existing = modelMap.get(model);
-    if (existing) {
-      existing.count++;
-      if (!existing.img && p.image_url) existing.img = p.image_url;
-    } else {
-      modelMap.set(model, { name: model, img: p.image_url || '', count: 1 });
+    modelCountMap.set(model, (modelCountMap.get(model) || 0) + 1);
+  });
+
+  // Build car image lookup (model → car photo URL)
+  const carImageMap = new Map<string, string>();
+  (carImages || []).forEach((ci: any) => {
+    const model = (ci.car_model || '').trim().toUpperCase();
+    if (model && ci.image_url && !carImageMap.has(model)) {
+      carImageMap.set(model, ci.image_url);
     }
   });
 
-  // Also build popularModels order from CAR_MAKES definition — show known models first
-  const knownOrder = info.popularModels;
-  const allModels = Array.from(modelMap.values()).sort((a, b) => {
-    const ai = knownOrder.indexOf(a.name);
-    const bi = knownOrder.indexOf(b.name);
-    if (ai !== -1 && bi !== -1) return ai - bi;
-    if (ai !== -1) return -1;
-    if (bi !== -1) return 1;
-    return b.count - a.count;
-  });
+  // Merge: every model that has products
+  const knownOrder = info.popularModels.map(m => m.toUpperCase());
+  const allModels = Array.from(modelCountMap.entries())
+    .map(([modelKey, count]) => ({
+      name: modelKey,                              // stored as-is (may be uppercase)
+      img: carImageMap.get(modelKey) || '',
+      count,
+    }))
+    .sort((a, b) => {
+      const ai = knownOrder.indexOf(a.name);
+      const bi = knownOrder.indexOf(b.name);
+      if (ai !== -1 && bi !== -1) return ai - bi;
+      if (ai !== -1) return -1;
+      if (bi !== -1) return 1;
+      return b.count - a.count;
+    });
 
   // Fall back to static popularModels if DB has no car_model data
   const models = allModels.length > 0
-    ? allModels.slice(0, 12)
-    : info.popularModels.map(name => ({ name, img: '', count: 0 }));
+    ? allModels
+    : info.popularModels.map(name => ({ name: name.toUpperCase(), img: '', count: 0 }));
 
   // JSON-LD structured data
   const schema = {
