@@ -20,6 +20,12 @@ const STATIC_PAGES: MetadataRoute.Sitemap = [
   { url: `${baseUrl}/privacy`, lastModified: new Date('2025-01-01'), changeFrequency: 'monthly', priority: 0.3 },
 ];
 
+const CAR_MAKES = [
+  'hyundai', 'kia', 'toyota', 'chevrolet', 'nissan', 'mitsubishi',
+  'renault', 'peugeot', 'volkswagen', 'skoda', 'opel', 'mg',
+  'honda', 'suzuki', 'mazda', 'seat', 'bmw', 'mercedes', 'ford', 'jeep',
+];
+
 const CATEGORIES = [
   'فلاتر', 'زيوت موتور', 'زيوت فتيس و دبرياج و باور', 'الفرامل', 'عفشة',
   'سيور و بلي', 'دورة تبريد و تكييف', 'دورة البنزين',
@@ -93,6 +99,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }));
 
+  const carMakeEntries: MetadataRoute.Sitemap = [
+    { url: `${baseUrl}/cars`, lastModified: CATEGORY_LAST_MODIFIED, changeFrequency: 'weekly' as const, priority: 0.9 },
+    ...CAR_MAKES.map((make) => ({
+      url: `${baseUrl}/cars/${make}`,
+      lastModified: CATEGORY_LAST_MODIFIED,
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+    })),
+  ];
+
   const productEntries: MetadataRoute.Sitemap = allProducts.map((p) => ({
 url: `${baseUrl}/products/${encodeURIComponent(p.slug ?? p.id)}`,
 lastModified: p.updated_at ? new Date(p.updated_at) : new Date(p.created_at),
@@ -100,5 +116,5 @@ changeFrequency: 'weekly' as const,
 priority: highTraffic.includes(p.category) ? 0.85 : 0.7,
   }));
 
-  return [...STATIC_PAGES, ...categoryEntries, ...blogEntries, ...productEntries];
+  return [...STATIC_PAGES, ...categoryEntries, ...carMakeEntries, ...blogEntries, ...productEntries];
 }

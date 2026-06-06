@@ -322,7 +322,30 @@ function getSensorLabel(product: any): { ar: string; arAlt: string } {
   return { ar: `حساس ${product.subcategory || ''}`.trim(), arAlt: 'حساس كهربائي' };
 }
 
+// Appended to every product meta description — hidden from UI, visible to search engines
+const INSTALLMENT_SUFFIX = ' متاح الدفع بالتقسيط عبر فاليو، سهولة، لاكي، كليفر، أمان، تقسيط البنك الأهلي وحالا.';
+
+// All installment-related keywords injected into every product page
+const INSTALLMENT_KEYWORDS = [
+  'تقسيط قطع غيار', 'قطع غيار بالتقسيط', 'قطع غيار تقسيط',
+  'قطع غيار فاليو', 'تقسيط فاليو قطع غيار', 'فاليو قطع غيار سيارات',
+  'قطع غيار سهولة', 'تقسيط سهولة قطع غيار', 'سهولة قطع غيار',
+  'قطع غيار لاكي', 'تقسيط لاكي قطع غيار', 'لاكي قطع غيار',
+  'قطع غيار كليفر', 'تقسيط كليفر قطع غيار',
+  'قطع غيار أمان', 'تقسيط أمان قطع غيار',
+  'تقسيط البنك الأهلي قطع غيار', 'قطع غيار البنك الأهلي تقسيط',
+  'قطع غيار حالا', 'تقسيط حالا قطع غيار', 'حالا قطع غيار سيارات',
+  'شراء قطع غيار بالتقسيط', 'دفع بالتقسيط قطع غيار',
+  'قطع غيار أونلاين تقسيط مصر', 'اشتري قطع غيار بالتقسيط',
+  'زيت موتور بالتقسيط', 'فلاتر بالتقسيط', 'قطع غيار اقساط',
+  'car parts installment egypt', 'auto parts valU egypt', 'spare parts taksit',
+];
+
 function buildDescription(product: any): string {
+  return _buildDescriptionCore(product) + INSTALLMENT_SUFFIX;
+}
+
+function _buildDescriptionCore(product: any): string {
   const brand = product.brand || '';
   const carAr = CAR_MAKE_AR[product.car_make] || product.car_make || '';
   const modelRaw = product.car_model && product.car_model !== 'UNIVERSAL' ? product.car_model : '';
@@ -981,6 +1004,7 @@ function buildKeywords(product: any): string[] {
     ...clutchMasterUpperKeywords, ...clutchMasterLowerKeywords,
     ...fuelPumpSubKeywords, ...fuelPumpInsertKeywords, ...fuelSenderKeywords,
     ...acBeltKeywords, ...timingIdlerKeywords, ...timingKitKeywords,
+    ...INSTALLMENT_KEYWORDS,
   ].filter(Boolean) as string[];
 }
 

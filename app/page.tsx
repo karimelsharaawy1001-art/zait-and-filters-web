@@ -969,6 +969,11 @@ export default function HomePage() {
             .card-btn-buy { padding: 11px !important; font-size: 0.82rem !important; }
             .card-btn-cart { padding: 9px !important; font-size: 0.78rem !important; }
           }
+          /* Car make cards hover */
+          a[href^="/cars/"]:hover {
+            background: rgba(34,197,94,0.1) !important;
+            border-color: rgba(34,197,94,0.35) !important;
+          }
         `}} />
 
 
@@ -1403,6 +1408,78 @@ export default function HomePage() {
                 </section>
               </ScrollReveal>
             )}
+
+            {/* ══ SHOP BY CAR MAKE ══════════════════════════════════════════════ */}
+            <ScrollReveal direction="up" delay={0.1}>
+              <section style={{ padding: '40px 0 52px', background: '#0f172a' }}>
+                <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+                  {/* Header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
+                    <div style={{ textAlign: 'right' }}>
+                      <h2 style={{ fontSize: 'clamp(1.5rem,4vw,2.2rem)', fontWeight: '900', color: '#fff', margin: '0 0 6px' }}>
+                        تسوق حسب سيارتك
+                      </h2>
+                      <p style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: '600', margin: 0 }}>
+                        اختر ماركة سيارتك واستعرض جميع القطع المتوافقة
+                      </p>
+                    </div>
+                    <Link href="/cars" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '10px', padding: '8px 18px', color: '#86efac', fontWeight: '800', fontSize: '0.85rem', textDecoration: 'none', whiteSpace: 'nowrap' as const }}>
+                      عرض جميع السيارات ←
+                    </Link>
+                  </div>
+
+                  {/* Car make grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '12px' }}>
+                    {[
+                      { make: 'HYUNDAI', ar: 'هيونداي' },
+                      { make: 'KIA',     ar: 'كيا' },
+                      { make: 'TOYOTA',  ar: 'تويوتا' },
+                      { make: 'CHEVROLET', ar: 'شيفروليه' },
+                      { make: 'NISSAN',  ar: 'نيسان' },
+                      { make: 'MITSUBISHI', ar: 'ميتسوبيشي' },
+                      { make: 'RENAULT', ar: 'رينو' },
+                      { make: 'PEUGEOT', ar: 'بيجو' },
+                      { make: 'VOLKSWAGEN', ar: 'فولكس فاجن' },
+                      { make: 'SKODA',   ar: 'سكودا' },
+                      { make: 'MG',      ar: 'إم جي' },
+                      { make: 'OPEL',    ar: 'أوبل' },
+                    ].map(({ make, ar }) => {
+                      const logoUrl = makesOptions.find((m: any) => m.value?.toUpperCase() === make)?.logo || null;
+                      return (
+                        <Link
+                          key={make}
+                          href={`/cars/${make.toLowerCase()}`}
+                          style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            borderRadius: '16px',
+                            padding: '18px 10px 14px',
+                            textDecoration: 'none',
+                            display: 'flex',
+                            flexDirection: 'column' as const,
+                            alignItems: 'center',
+                            gap: '10px',
+                            transition: 'background 0.2s, border-color 0.2s',
+                          }}
+                        >
+                          {/* Logo or fallback icon */}
+                          <div style={{ width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px', background: logoUrl ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.08)', overflow: 'hidden', flexShrink: 0 }}>
+                            {logoUrl
+                              ? <img src={logoUrl} alt={ar} style={{ width: '80%', height: '80%', objectFit: 'contain' }} loading="lazy" />
+                              : <Car size={22} color="#94a3b8" />
+                            }
+                          </div>
+                          {/* Arabic name */}
+                          <div style={{ fontSize: '0.82rem', fontWeight: '900', color: '#f1f5f9', textAlign: 'center' as const, lineHeight: 1.2 }}>{ar}</div>
+                          {/* CTA hint */}
+                          <div style={{ fontSize: '0.68rem', color: '#22c55e', fontWeight: '700' }}>تصفح القطع ←</div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              </section>
+            </ScrollReveal>
 
           </div>
         )}
