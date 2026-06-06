@@ -196,7 +196,7 @@ export default function ProfessionalNavbar() {
                   <Store size={20}/> المتجر
                 </Link>
                 <Link href="/cars" onClick={() => setIsSidebarOpen(false)} style={sidebarLink}>
-                  <Car size={20}/> قطع غيار حسب السيارة
+                  <Car size={20}/> ماركة عربيتك
                 </Link>
 
                 {/* Blog link in sidebar */}
@@ -322,7 +322,7 @@ export default function ProfessionalNavbar() {
 
           <div style={navLinks} className="desktop-links">
             <Link href="/store" style={linkItem}>المتجر</Link>
-            <Link href="/cars" style={linkItem}>قطع غيار حسب السيارة</Link>
+            <Link href="/cars" style={linkItem}>ماركة عربيتك</Link>
 
             {/* Blog link in desktop nav */}
             <Link href="/blog" style={linkItem}>المدونة</Link>

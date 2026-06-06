@@ -13,7 +13,31 @@ interface Props {
   featuredProducts: any[];
 }
 
+const MAKE_GRADIENTS: Record<string, string> = {
+  HYUNDAI:    'linear-gradient(145deg,#002c5f,#0a4a8a)',
+  KIA:        'linear-gradient(145deg,#05141f,#0d2a40)',
+  TOYOTA:     'linear-gradient(145deg,#bb0000,#7a0000)',
+  CHEVROLET:  'linear-gradient(145deg,#1a1a1a,#3a3a3a)',
+  NISSAN:     'linear-gradient(145deg,#c3002f,#6e001a)',
+  MITSUBISHI: 'linear-gradient(145deg,#cc0000,#880000)',
+  RENAULT:    'linear-gradient(145deg,#efdf00,#b8a800)',
+  PEUGEOT:    'linear-gradient(145deg,#0b2d78,#06194a)',
+  VOLKSWAGEN: 'linear-gradient(145deg,#001e50,#00102e)',
+  SKODA:      'linear-gradient(145deg,#4ba82e,#2c6819)',
+  MG:         'linear-gradient(145deg,#ae0000,#6b0000)',
+  OPEL:       'linear-gradient(145deg,#e8b800,#b08c00)',
+  HONDA:      'linear-gradient(145deg,#cc0000,#880000)',
+  SUZUKI:     'linear-gradient(145deg,#1a3a6a,#0d2040)',
+  MAZDA:      'linear-gradient(145deg,#910000,#5a0000)',
+  SEAT:       'linear-gradient(145deg,#222,#444)',
+  BMW:        'linear-gradient(145deg,#1c69d4,#0d3f8f)',
+  MERCEDES:   'linear-gradient(145deg,#333,#555)',
+  FORD:       'linear-gradient(145deg,#003178,#001e50)',
+  JEEP:       'linear-gradient(145deg,#2d5016,#1a2e0a)',
+};
+
 export default function CarMakeClient({ makeKey, info, productCount, models, featuredProducts }: Props) {
+  const cardBg = MAKE_GRADIENTS[makeKey] || 'linear-gradient(145deg,#1a1a2e,#0d1117)';
   return (
     <div dir="rtl" style={{ fontFamily: 'inherit', background: '#f8fafc', minHeight: '100vh' }}>
 
@@ -30,96 +54,86 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
           .model-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
         }
         .model-card {
-          position: relative;
           border-radius: 16px;
-          overflow: hidden;
-          aspect-ratio: 3/4;
-          cursor: pointer;
+          padding: 24px 14px 18px;
           text-decoration: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 4px 18px rgba(0,0,0,0.13);
-          transition: transform 0.22s cubic-bezier(.34,1.28,.64,1), box-shadow 0.22s ease;
-          background: linear-gradient(160deg, #1a1a2e 0%, #0d1117 100%);
-        }
-        .model-card:hover {
-          transform: translateY(-5px) scale(1.025);
-          box-shadow: 0 12px 36px rgba(0,0,0,0.22);
-        }
-        .model-card img {
-          width: 90%;
-          height: 80%;
-          object-fit: contain;
-          object-position: center;
-          margin: auto;
-          transition: transform 0.35s ease;
-          filter: drop-shadow(0 8px 20px rgba(0,0,0,0.5));
-        }
-        .model-card:hover img {
-          transform: scale(1.07);
-        }
-        .model-card-fallback {
-          width: 100%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, #1a1a2e, #16213e);
-          transition: transform 0.35s ease;
-        }
-        .model-card:hover .model-card-fallback {
-          transform: scale(1.07);
-        }
-        .model-overlay {
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(
-            to top,
-            rgba(0,0,0,0.92) 0%,
-            rgba(0,0,0,0.5) 30%,
-            rgba(0,0,0,0) 55%
-          );
-        }
-        .model-label {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          padding: 14px 10px;
-          text-align: center;
-          color: #fff;
-          font-size: 1.2rem;
-          font-weight: 900;
-          text-shadow: 0 2px 10px rgba(0,0,0,0.8);
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 4px;
+          justify-content: center;
+          gap: 14px;
+          aspect-ratio: 3/4;
+          transition: transform 0.22s cubic-bezier(.34,1.28,.64,1), box-shadow 0.22s ease;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+          cursor: pointer;
+          position: relative;
+          overflow: hidden;
         }
-        .model-label-count {
-          font-size: 0.7rem;
+        .model-card::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: rgba(255,255,255,0);
+          transition: background 0.2s;
+        }
+        .model-card:hover {
+          transform: translateY(-6px) scale(1.035);
+          box-shadow: 0 18px 42px rgba(0,0,0,0.32);
+        }
+        .model-card:hover::after {
+          background: rgba(255,255,255,0.07);
+        }
+        .model-img-wrap {
+          width: 85%;
+          aspect-ratio: 16/10;
+          background: rgba(255,255,255,0.93);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 8px;
+          position: relative;
+          z-index: 1;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+          overflow: hidden;
+          transition: transform 0.35s ease;
+        }
+        .model-card:hover .model-img-wrap {
+          transform: scale(1.04);
+        }
+        .model-img-wrap img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          object-position: center;
+        }
+        .model-name {
+          font-size: 1rem;
+          font-weight: 900;
+          color: #fff;
+          text-align: center;
+          text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+          position: relative;
+          z-index: 1;
+          line-height: 1.2;
+        }
+        .model-count {
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: rgba(255,255,255,0.6);
+          position: relative;
+          z-index: 1;
+          transition: color 0.18s;
+          margin-top: -6px;
+        }
+        .model-card:hover .model-count {
           color: #86efac;
-          font-weight: 700;
-          opacity: 0.85;
-        }
-        .model-arrow {
-          display: block;
-          font-size: 0.8rem;
-          font-weight: 700;
-          color: #22c55e;
-          opacity: 0;
-          transform: translateY(4px);
-          transition: opacity 0.2s ease, transform 0.2s ease;
-        }
-        .model-card:hover .model-arrow {
-          opacity: 1;
-          transform: translateY(0);
         }
         @media (max-width: 768px) {
-          .model-label { font-size: 1rem; padding: 10px 6px; }
-          .model-arrow { display: none; }
-          .model-card { border-radius: 12px; }
+          .model-card { padding: 18px 10px 14px; gap: 10px; border-radius: 12px; }
+          .model-img-wrap { width: 80%; }
+          .model-name { font-size: 0.88rem; }
+          .model-count { display: none; }
         }
       `}</style>
 
@@ -195,23 +209,18 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
                   key={model.name}
                   href={`/store?make=${makeKey}&model=${encodeURIComponent(model.name)}`}
                   className="model-card"
+                  style={{ background: cardBg }}
                 >
-                  {model.img
-                    ? <img src={model.img} alt={`قطع غيار ${info.arName} ${model.name}`} loading="lazy" />
-                    : (
-                      <div className="model-card-fallback">
-                        <Package size={40} color="rgba(255,255,255,0.15)" />
-                      </div>
-                    )
-                  }
-                  <div className="model-overlay" />
-                  <div className="model-label">
-                    {model.name}
-                    {model.count > 0 && (
-                      <span className="model-label-count">{model.count} منتج</span>
-                    )}
-                    <span className="model-arrow">تصفح القطع ←</span>
+                  <div className="model-img-wrap">
+                    {model.img
+                      ? <img src={model.img} alt={`${info.arName} ${model.name}`} loading="lazy" />
+                      : <Package size={36} color="#94a3b8" />
+                    }
                   </div>
+                  <div className="model-name">{model.name}</div>
+                  {model.count > 0 && (
+                    <div className="model-count">{model.count} منتج</div>
+                  )}
                 </Link>
               ))}
             </div>
