@@ -1426,30 +1426,45 @@ export default function HomePage() {
                     .make-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 12px; }
                   }
                   .make-card {
-                    background: #fff;
-                    border: 1.5px solid #f1f5f9;
                     border-radius: 14px;
-                    padding: 14px 10px 11px;
+                    padding: 16px 10px 13px;
                     text-decoration: none;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    gap: 9px;
-                    transition: transform 0.2s cubic-bezier(.34,1.28,.64,1), box-shadow 0.2s ease, border-color 0.2s ease;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                    gap: 10px;
+                    transition: transform 0.2s cubic-bezier(.34,1.28,.64,1), box-shadow 0.2s ease;
+                    box-shadow: 0 3px 12px rgba(0,0,0,0.2);
                     cursor: pointer;
+                    position: relative;
+                    overflow: hidden;
+                  }
+                  .make-card::after {
+                    content: '';
+                    position: absolute;
+                    inset: 0;
+                    background: rgba(255,255,255,0);
+                    transition: background 0.2s;
                   }
                   .make-card:hover {
-                    transform: translateY(-4px);
-                    box-shadow: 0 10px 28px rgba(0,0,0,0.1);
-                    border-color: #22c55e;
+                    transform: translateY(-5px) scale(1.04);
+                    box-shadow: 0 16px 36px rgba(0,0,0,0.3);
+                  }
+                  .make-card:hover::after {
+                    background: rgba(255,255,255,0.07);
                   }
                   .make-card-logo-wrap {
-                    width: 64px;
-                    height: 52px;
+                    width: 68px;
+                    height: 50px;
+                    background: rgba(255,255,255,0.93);
+                    border-radius: 10px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    padding: 6px;
+                    position: relative;
+                    z-index: 1;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
                   }
                   .make-card-logo-wrap img {
                     width: 100%;
@@ -1459,22 +1474,27 @@ export default function HomePage() {
                   .make-card-name {
                     font-size: 0.82rem;
                     font-weight: 900;
-                    color: #0f172a;
+                    color: #fff;
                     text-align: center;
                     line-height: 1.2;
+                    text-shadow: 0 1px 6px rgba(0,0,0,0.35);
+                    position: relative;
+                    z-index: 1;
                   }
                   .make-card-cta {
-                    font-size: 0.68rem;
+                    font-size: 0.65rem;
                     font-weight: 700;
-                    color: #94a3b8;
+                    color: rgba(255,255,255,0.6);
                     transition: color 0.18s;
+                    position: relative;
+                    z-index: 1;
                   }
                   .make-card:hover .make-card-cta {
-                    color: #22c55e;
+                    color: #86efac;
                   }
                   @media (max-width: 580px) {
-                    .make-card { padding: 11px 6px 9px; gap: 6px; border-radius: 11px; }
-                    .make-card-logo-wrap { width: 50px; height: 40px; }
+                    .make-card { padding: 12px 6px 10px; gap: 7px; border-radius: 11px; }
+                    .make-card-logo-wrap { width: 52px; height: 40px; }
                     .make-card-name { font-size: 0.72rem; }
                     .make-card-cta { display: none; }
                   }
@@ -1495,34 +1515,34 @@ export default function HomePage() {
 
                   <div className="make-grid">
                     {([
-                      { make: 'HYUNDAI',    ar: 'هيونداي' },
-                      { make: 'KIA',        ar: 'كيا' },
-                      { make: 'TOYOTA',     ar: 'تويوتا' },
-                      { make: 'CHEVROLET',  ar: 'شيفروليه' },
-                      { make: 'NISSAN',     ar: 'نيسان' },
-                      { make: 'MITSUBISHI', ar: 'ميتسوبيشي' },
-                      { make: 'RENAULT',    ar: 'رينو' },
-                      { make: 'PEUGEOT',    ar: 'بيجو' },
-                      { make: 'VOLKSWAGEN', ar: 'فولكس فاجن' },
-                      { make: 'SKODA',      ar: 'سكودا' },
-                      { make: 'MG',         ar: 'إم جي' },
-                      { make: 'OPEL',       ar: 'أوبل' },
-                      { make: 'HONDA',      ar: 'هوندا' },
-                      { make: 'SUZUKI',     ar: 'سوزوكي' },
-                      { make: 'MAZDA',      ar: 'مازدا' },
-                      { make: 'SEAT',       ar: 'سيات' },
-                      { make: 'BMW',        ar: 'بي إم دبليو' },
-                      { make: 'MERCEDES',   ar: 'مرسيدس' },
-                      { make: 'FORD',       ar: 'فورد' },
-                      { make: 'JEEP',       ar: 'جيب' },
-                    ] as { make: string; ar: string }[]).map(({ make, ar }) => {
+                      { make: 'HYUNDAI',    ar: 'هيونداي',   bg: 'linear-gradient(145deg,#002c5f,#0a4a8a)' },
+                      { make: 'KIA',        ar: 'كيا',        bg: 'linear-gradient(145deg,#05141f,#0d2a40)' },
+                      { make: 'TOYOTA',     ar: 'تويوتا',     bg: 'linear-gradient(145deg,#bb0000,#7a0000)' },
+                      { make: 'CHEVROLET',  ar: 'شيفروليه',   bg: 'linear-gradient(145deg,#1a1a1a,#3a3a3a)' },
+                      { make: 'NISSAN',     ar: 'نيسان',      bg: 'linear-gradient(145deg,#c3002f,#6e001a)' },
+                      { make: 'MITSUBISHI', ar: 'ميتسوبيشي', bg: 'linear-gradient(145deg,#cc0000,#880000)' },
+                      { make: 'RENAULT',    ar: 'رينو',       bg: 'linear-gradient(145deg,#efdf00,#b8a800)' },
+                      { make: 'PEUGEOT',    ar: 'بيجو',       bg: 'linear-gradient(145deg,#0b2d78,#06194a)' },
+                      { make: 'VOLKSWAGEN', ar: 'فولكس فاجن', bg: 'linear-gradient(145deg,#001e50,#00102e)' },
+                      { make: 'SKODA',      ar: 'سكودا',      bg: 'linear-gradient(145deg,#4ba82e,#2c6819)' },
+                      { make: 'MG',         ar: 'إم جي',      bg: 'linear-gradient(145deg,#ae0000,#6b0000)' },
+                      { make: 'OPEL',       ar: 'أوبل',       bg: 'linear-gradient(145deg,#e8b800,#b08c00)' },
+                      { make: 'HONDA',      ar: 'هوندا',      bg: 'linear-gradient(145deg,#cc0000,#880000)' },
+                      { make: 'SUZUKI',     ar: 'سوزوكي',     bg: 'linear-gradient(145deg,#1a3a6a,#0d2040)' },
+                      { make: 'MAZDA',      ar: 'مازدا',      bg: 'linear-gradient(145deg,#910000,#5a0000)' },
+                      { make: 'SEAT',       ar: 'سيات',       bg: 'linear-gradient(145deg,#222,#444)' },
+                      { make: 'BMW',        ar: 'بي إم دبليو', bg: 'linear-gradient(145deg,#1c69d4,#0d3f8f)' },
+                      { make: 'MERCEDES',   ar: 'مرسيدس',     bg: 'linear-gradient(145deg,#333,#555)' },
+                      { make: 'FORD',       ar: 'فورد',       bg: 'linear-gradient(145deg,#003178,#001e50)' },
+                      { make: 'JEEP',       ar: 'جيب',        bg: 'linear-gradient(145deg,#2d5016,#1a2e0a)' },
+                    ] as { make: string; ar: string; bg: string }[]).map(({ make, ar, bg }) => {
                       const logoUrl = makesOptions.find((m: any) => m.value?.toUpperCase() === make)?.logo || null;
                       return (
-                        <Link key={make} href={`/cars/${make.toLowerCase()}`} className="make-card">
+                        <Link key={make} href={`/cars/${make.toLowerCase()}`} className="make-card" style={{ background: bg }}>
                           <div className="make-card-logo-wrap">
                             {logoUrl
                               ? <img src={logoUrl} alt={ar} loading="lazy" />
-                              : <Car size={32} color="#94a3b8" />
+                              : <Car size={32} color="#64748b" />
                             }
                           </div>
                           <div className="make-card-name">{ar}</div>
