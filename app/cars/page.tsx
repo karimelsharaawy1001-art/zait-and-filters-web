@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { createClient } from '@supabase/supabase-js';
 import { CAR_MAKES } from './[make]/page';
 
 export const metadata: Metadata = {
@@ -28,7 +29,44 @@ const MAKE_ORDER = [
   'HONDA', 'SUZUKI', 'MAZDA', 'SEAT', 'BMW', 'MERCEDES', 'FORD', 'JEEP',
 ];
 
-export default function CarsHubPage() {
+const MAKE_GRADIENTS: Record<string, string> = {
+  HYUNDAI:    'linear-gradient(145deg,#002c5f,#0a4a8a)',
+  KIA:        'linear-gradient(145deg,#05141f,#0d2a40)',
+  TOYOTA:     'linear-gradient(145deg,#bb0000,#7a0000)',
+  CHEVROLET:  'linear-gradient(145deg,#1a1a1a,#3a3a3a)',
+  NISSAN:     'linear-gradient(145deg,#c3002f,#6e001a)',
+  MITSUBISHI: 'linear-gradient(145deg,#cc0000,#880000)',
+  RENAULT:    'linear-gradient(145deg,#efdf00,#b8a800)',
+  PEUGEOT:    'linear-gradient(145deg,#0b2d78,#06194a)',
+  VOLKSWAGEN: 'linear-gradient(145deg,#001e50,#00102e)',
+  SKODA:      'linear-gradient(145deg,#4ba82e,#2c6819)',
+  MG:         'linear-gradient(145deg,#ae0000,#6b0000)',
+  OPEL:       'linear-gradient(145deg,#e8b800,#b08c00)',
+  HONDA:      'linear-gradient(145deg,#cc0000,#880000)',
+  SUZUKI:     'linear-gradient(145deg,#1a3a6a,#0d2040)',
+  MAZDA:      'linear-gradient(145deg,#910000,#5a0000)',
+  SEAT:       'linear-gradient(145deg,#222,#444)',
+  BMW:        'linear-gradient(145deg,#1c69d4,#0d3f8f)',
+  MERCEDES:   'linear-gradient(145deg,#333,#555)',
+  FORD:       'linear-gradient(145deg,#003178,#001e50)',
+  JEEP:       'linear-gradient(145deg,#2d5016,#1a2e0a)',
+};
+
+export default async function CarsHubPage() {
+  // Fetch brand logos from Supabase
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+  const { data: brandsData } = await supabase
+    .from('car_brands')
+    .select('name, logo_url');
+
+  const logoMap: Record<string, string> = {};
+  (brandsData || []).forEach((b: any) => {
+    if (b.name && b.logo_url) logoMap[b.name.toUpperCase()] = b.logo_url;
+  });
+
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
@@ -41,6 +79,95 @@ export default function CarsHubPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
+      <style>{`
+        .cars-hub-grid {
+          display: grid;
+          grid-template-columns: repeat(5, 1fr);
+          gap: 12px;
+          padding: 0 20px;
+        }
+        @media (max-width: 900px) {
+          .cars-hub-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (max-width: 580px) {
+          .cars-hub-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 12px; }
+        }
+        .hub-card {
+          border-radius: 16px;
+          padding: 28px 12px 20px;
+          text-decoration: none;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 14px;
+          aspect-ratio: 3/4;
+          transition: transform 0.22s cubic-bezier(.34,1.28,.64,1), box-shadow 0.22s ease;
+          box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+          cursor: pointer;
+          position: relative;
+          overflow: hidden;
+        }
+        .hub-card::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: rgba(255,255,255,0);
+          transition: background 0.2s;
+        }
+        .hub-card:hover {
+          transform: translateY(-6px) scale(1.035);
+          box-shadow: 0 18px 40px rgba(0,0,0,0.32);
+        }
+        .hub-card:hover::after {
+          background: rgba(255,255,255,0.07);
+        }
+        .hub-logo-wrap {
+          width: 80%;
+          aspect-ratio: 3/2;
+          background: rgba(255,255,255,0.93);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 10px;
+          position: relative;
+          z-index: 1;
+          box-shadow: 0 3px 12px rgba(0,0,0,0.18);
+        }
+        .hub-logo-wrap img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+        }
+        .hub-name {
+          font-size: 0.9rem;
+          font-weight: 900;
+          color: #fff;
+          text-align: center;
+          text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+          position: relative;
+          z-index: 1;
+        }
+        .hub-cta {
+          font-size: 0.68rem;
+          font-weight: 700;
+          color: rgba(255,255,255,0.55);
+          transition: color 0.18s;
+          position: relative;
+          z-index: 1;
+        }
+        .hub-card:hover .hub-cta {
+          color: #86efac;
+        }
+        @media (max-width: 580px) {
+          .hub-card { padding: 18px 8px 14px; gap: 10px; border-radius: 12px; }
+          .hub-logo-wrap { width: 75%; }
+          .hub-name { font-size: 0.78rem; }
+          .hub-cta { display: none; }
+        }
+      `}</style>
+
       <div dir="rtl" style={{ background: '#f8fafc', minHeight: '100vh', fontFamily: 'inherit' }}>
 
         {/* Hero */}
@@ -53,29 +180,30 @@ export default function CarsHubPage() {
           </p>
         </div>
 
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 0' }}>
+          <div className="cars-hub-grid">
             {MAKE_ORDER.map((makeKey) => {
               const info = CAR_MAKES[makeKey];
               if (!info) return null;
+              const logoUrl = logoMap[makeKey] || null;
+              const bg = MAKE_GRADIENTS[makeKey] || 'linear-gradient(145deg,#1a1a2e,#0d1117)';
               return (
-                <Link
-                  key={makeKey}
-                  href={`/cars/${makeKey.toLowerCase()}`}
-                  style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '18px', padding: '24px 16px', textDecoration: 'none', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '10px', transition: 'box-shadow 0.2s' }}
-                >
-                  <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#0f172a' }}>{info.arName}</div>
-                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '600', letterSpacing: '0.5px' }}>{makeKey}</div>
-                  <div style={{ fontSize: '0.78rem', color: '#22c55e', fontWeight: '800' }}>
-                    تسوق قطع غيار {info.arName}
+                <Link key={makeKey} href={`/cars/${makeKey.toLowerCase()}`} className="hub-card" style={{ background: bg }}>
+                  <div className="hub-logo-wrap">
+                    {logoUrl
+                      ? <img src={logoUrl} alt={info.arName} loading="lazy" />
+                      : <span style={{ fontSize: '0.7rem', fontWeight: '900', color: '#64748b' }}>{makeKey}</span>
+                    }
                   </div>
+                  <div className="hub-name">{info.arName}</div>
+                  <div className="hub-cta">تصفح القطع ←</div>
                 </Link>
               );
             })}
           </div>
 
           {/* SEO text */}
-          <div style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '20px', padding: '28px', marginTop: '40px' }}>
+          <div style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '20px', padding: '28px', margin: '40px 20px 0' }}>
             <h2 style={{ fontSize: '1.05rem', fontWeight: '900', color: '#0f172a', margin: '0 0 12px' }}>
               قطع غيار السيارات الأصلية في مصر — زيت أند فلترز
             </h2>

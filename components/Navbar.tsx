@@ -426,6 +426,7 @@ const linkItem: any = {
   color: '#444',
   fontSize: '0.95rem',
   fontWeight: 'bold',
+  whiteSpace: 'nowrap',
 };
 const iconGroup: any = {
   display: 'flex',
