@@ -36,21 +36,25 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
           aspect-ratio: 3/4;
           cursor: pointer;
           text-decoration: none;
-          display: block;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           box-shadow: 0 4px 18px rgba(0,0,0,0.13);
           transition: transform 0.22s cubic-bezier(.34,1.28,.64,1), box-shadow 0.22s ease;
-          background: #1a1a2e;
+          background: linear-gradient(160deg, #1a1a2e 0%, #0d1117 100%);
         }
         .model-card:hover {
           transform: translateY(-5px) scale(1.025);
           box-shadow: 0 12px 36px rgba(0,0,0,0.22);
         }
         .model-card img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
+          width: 90%;
+          height: 80%;
+          object-fit: contain;
           object-position: center;
+          margin: auto;
           transition: transform 0.35s ease;
+          filter: drop-shadow(0 8px 20px rgba(0,0,0,0.5));
         }
         .model-card:hover img {
           transform: scale(1.07);
@@ -72,9 +76,9 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
           inset: 0;
           background: linear-gradient(
             to top,
-            rgba(0,0,0,0.88) 0%,
-            rgba(0,0,0,0.45) 45%,
-            rgba(0,0,0,0.18) 100%
+            rgba(0,0,0,0.92) 0%,
+            rgba(0,0,0,0.5) 30%,
+            rgba(0,0,0,0) 55%
           );
         }
         .model-label {
