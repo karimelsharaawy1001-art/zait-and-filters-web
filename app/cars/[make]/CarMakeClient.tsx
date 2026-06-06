@@ -55,84 +55,77 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
         }
         .model-card {
           border-radius: 16px;
-          padding: 24px 14px 18px;
           text-decoration: none;
           display: flex;
           flex-direction: column;
           align-items: center;
-          justify-content: center;
-          gap: 14px;
-          aspect-ratio: 3/4;
+          justify-content: flex-end;
+          aspect-ratio: 4/3;
           transition: transform 0.22s cubic-bezier(.34,1.28,.64,1), box-shadow 0.22s ease;
           box-shadow: 0 4px 16px rgba(0,0,0,0.25);
           cursor: pointer;
           position: relative;
           overflow: hidden;
         }
-        .model-card::after {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: rgba(255,255,255,0);
-          transition: background 0.2s;
-        }
         .model-card:hover {
           transform: translateY(-6px) scale(1.035);
           box-shadow: 0 18px 42px rgba(0,0,0,0.32);
         }
-        .model-card:hover::after {
-          background: rgba(255,255,255,0.07);
+        .model-card-img {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 80%;
+          top: 50%;
+          transform: translateY(-58%);
+          object-fit: contain;
+          object-position: center;
+          filter: drop-shadow(0 6px 18px rgba(0,0,0,0.55));
+          transition: transform 0.35s ease;
+          z-index: 1;
         }
-        .model-img-wrap {
-          width: 85%;
-          aspect-ratio: 16/10;
-          background: rgba(255,255,255,0.93);
-          border-radius: 12px;
+        .model-card:hover .model-card-img {
+          transform: translateY(-62%) scale(1.06);
+        }
+        .model-card-fallback {
+          position: absolute;
+          inset: 0;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 8px;
-          position: relative;
           z-index: 1;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-          overflow: hidden;
-          transition: transform 0.35s ease;
         }
-        .model-card:hover .model-img-wrap {
-          transform: scale(1.04);
-        }
-        .model-img-wrap img {
+        .model-card-bottom {
+          position: relative;
+          z-index: 2;
           width: 100%;
-          height: 100%;
-          object-fit: contain;
-          object-position: center;
+          padding: 10px 10px 14px;
+          background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 100%);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
         }
         .model-name {
-          font-size: 1rem;
+          font-size: 0.95rem;
           font-weight: 900;
           color: #fff;
           text-align: center;
-          text-shadow: 0 1px 8px rgba(0,0,0,0.4);
-          position: relative;
-          z-index: 1;
+          text-shadow: 0 1px 6px rgba(0,0,0,0.6);
           line-height: 1.2;
         }
         .model-count {
-          font-size: 0.72rem;
+          font-size: 0.68rem;
           font-weight: 700;
           color: rgba(255,255,255,0.6);
-          position: relative;
-          z-index: 1;
           transition: color 0.18s;
-          margin-top: -6px;
         }
         .model-card:hover .model-count {
           color: #86efac;
         }
         @media (max-width: 768px) {
-          .model-card { padding: 18px 10px 14px; gap: 10px; border-radius: 12px; }
-          .model-img-wrap { width: 80%; }
-          .model-name { font-size: 0.88rem; }
+          .model-card { border-radius: 12px; }
+          .model-name { font-size: 0.82rem; }
           .model-count { display: none; }
         }
       `}</style>
@@ -211,16 +204,14 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
                   className="model-card"
                   style={{ background: cardBg }}
                 >
-                  <div className="model-img-wrap">
-                    {model.img
-                      ? <img src={model.img} alt={`${info.arName} ${model.name}`} loading="lazy" />
-                      : <Package size={36} color="#94a3b8" />
-                    }
+                  {model.img
+                    ? <img src={model.img} alt={`${info.arName} ${model.name}`} className="model-card-img" loading="lazy" />
+                    : <div className="model-card-fallback"><Package size={36} color="rgba(255,255,255,0.2)" /></div>
+                  }
+                  <div className="model-card-bottom">
+                    <div className="model-name">{model.name}</div>
+                    {model.count > 0 && <div className="model-count">{model.count} منتج</div>}
                   </div>
-                  <div className="model-name">{model.name}</div>
-                  {model.count > 0 && (
-                    <div className="model-count">{model.count} منتج</div>
-                  )}
                 </Link>
               ))}
             </div>
