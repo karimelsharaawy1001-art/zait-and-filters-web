@@ -1426,15 +1426,17 @@ export default function HomePage() {
                     .make-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 12px; }
                   }
                   .make-card {
-                    border-radius: 14px;
-                    padding: 16px 10px 13px;
+                    border-radius: 16px;
+                    padding: 28px 12px 20px;
                     text-decoration: none;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    gap: 10px;
-                    transition: transform 0.2s cubic-bezier(.34,1.28,.64,1), box-shadow 0.2s ease;
-                    box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+                    justify-content: center;
+                    gap: 14px;
+                    aspect-ratio: 3/4;
+                    transition: transform 0.22s cubic-bezier(.34,1.28,.64,1), box-shadow 0.22s ease;
+                    box-shadow: 0 4px 14px rgba(0,0,0,0.22);
                     cursor: pointer;
                     position: relative;
                     overflow: hidden;
@@ -1447,24 +1449,24 @@ export default function HomePage() {
                     transition: background 0.2s;
                   }
                   .make-card:hover {
-                    transform: translateY(-5px) scale(1.04);
-                    box-shadow: 0 16px 36px rgba(0,0,0,0.3);
+                    transform: translateY(-6px) scale(1.035);
+                    box-shadow: 0 18px 40px rgba(0,0,0,0.32);
                   }
                   .make-card:hover::after {
                     background: rgba(255,255,255,0.07);
                   }
                   .make-card-logo-wrap {
-                    width: 68px;
-                    height: 50px;
+                    width: 80%;
+                    aspect-ratio: 3/2;
                     background: rgba(255,255,255,0.93);
-                    border-radius: 10px;
+                    border-radius: 12px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    padding: 6px;
+                    padding: 10px;
                     position: relative;
                     z-index: 1;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                    box-shadow: 0 3px 12px rgba(0,0,0,0.18);
                   }
                   .make-card-logo-wrap img {
                     width: 100%;
@@ -1472,19 +1474,19 @@ export default function HomePage() {
                     object-fit: contain;
                   }
                   .make-card-name {
-                    font-size: 0.82rem;
+                    font-size: 0.9rem;
                     font-weight: 900;
                     color: #fff;
                     text-align: center;
                     line-height: 1.2;
-                    text-shadow: 0 1px 6px rgba(0,0,0,0.35);
+                    text-shadow: 0 1px 8px rgba(0,0,0,0.4);
                     position: relative;
                     z-index: 1;
                   }
                   .make-card-cta {
-                    font-size: 0.65rem;
+                    font-size: 0.68rem;
                     font-weight: 700;
-                    color: rgba(255,255,255,0.6);
+                    color: rgba(255,255,255,0.55);
                     transition: color 0.18s;
                     position: relative;
                     z-index: 1;
@@ -1493,9 +1495,9 @@ export default function HomePage() {
                     color: #86efac;
                   }
                   @media (max-width: 580px) {
-                    .make-card { padding: 12px 6px 10px; gap: 7px; border-radius: 11px; }
-                    .make-card-logo-wrap { width: 52px; height: 40px; }
-                    .make-card-name { font-size: 0.72rem; }
+                    .make-card { padding: 18px 8px 14px; gap: 10px; border-radius: 12px; }
+                    .make-card-logo-wrap { width: 75%; }
+                    .make-card-name { font-size: 0.78rem; }
                     .make-card-cta { display: none; }
                   }
                 `}</style>
