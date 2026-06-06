@@ -244,6 +244,9 @@ export const CAR_MAKES: Record<string, {
   },
 };
 
+// Always fetch fresh — admin can update car images any time
+export const revalidate = 0;
+
 // Supabase server client (anon key is fine — products are public)
 function getSupabase() {
   return createClient(

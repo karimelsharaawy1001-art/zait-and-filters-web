@@ -143,21 +143,34 @@ export default function CarImagesAdmin() {
 
     if (editingId) {
       const { error } = await supabase.from('car_images').update(payload).eq('id', editingId);
-      if (error) toast.error('حدث خطأ: ' + error.message);
-      else { toast.success('تم التحديث بنجاح ✅'); fetchData(); resetForm(); }
+      if (error) { toast.error('حدث خطأ: ' + error.message); }
+      else {
+        toast.success('تم التحديث بنجاح ✅');
+        fetch('/api/revalidate-car', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ make: finalMake }) });
+        fetchData(); resetForm();
+      }
     } else {
       const { error } = await supabase.from('car_images').insert(payload);
-      if (error) toast.error('حدث خطأ: ' + error.message);
-      else { toast.success(`تمت إضافة ${finalMake} ${finalModel} بنجاح ✅`); fetchData(); resetForm(); }
+      if (error) { toast.error('حدث خطأ: ' + error.message); }
+      else {
+        toast.success(`تمت إضافة ${finalMake} ${finalModel} بنجاح ✅`);
+        fetch('/api/revalidate-car', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ make: finalMake }) });
+        fetchData(); resetForm();
+      }
     }
 
     setUploading(false);
   }
 
   async function handleDelete(id: string) {
+    const entry = allCars.find(c => c.id === id);
     const { error } = await supabase.from('car_images').delete().eq('id', id);
-    if (error) toast.error('حدث خطأ');
-    else { toast.success('تم الحذف'); setDeleteConfirm(null); fetchData(); }
+    if (error) { toast.error('حدث خطأ'); }
+    else {
+      toast.success('تم الحذف');
+      if (entry?.make) fetch('/api/revalidate-car', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ make: entry.make }) });
+      setDeleteConfirm(null); fetchData();
+    }
   }
 
   function resetForm() {
