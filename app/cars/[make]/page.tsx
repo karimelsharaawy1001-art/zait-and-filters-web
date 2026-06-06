@@ -314,8 +314,9 @@ export default async function CarMakePage({ params }: { params: Promise<{ make: 
       .limit(1000),
     supabase
       .from('car_images')
-      .select('car_model, image_url')
-      .ilike('car_make', makeKey),
+      .select('car_model, image_url, year_from, year_to')
+      .ilike('car_make', makeKey)
+      .order('year_from', { ascending: true }),
     supabase
       .from('products')
       .select('id, slug, name, brand, category, subcategory, regular_price, sale_price, image_url')
@@ -333,21 +334,25 @@ export default async function CarMakePage({ params }: { params: Promise<{ make: 
     modelCountMap.set(model, (modelCountMap.get(model) || 0) + 1);
   });
 
-  // Build car image lookup (model → car photo URL)
-  const carImageMap = new Map<string, string>();
+  // Build car image lookup (model → all photos with year labels)
+  const carImageMap = new Map<string, { url: string; label: string }[]>();
   (carImages || []).forEach((ci: any) => {
     const model = (ci.car_model || '').trim().toUpperCase();
-    if (model && ci.image_url && !carImageMap.has(model)) {
-      carImageMap.set(model, ci.image_url);
-    }
+    if (!model || !ci.image_url) return;
+    if (!carImageMap.has(model)) carImageMap.set(model, []);
+    const label = ci.year_from && ci.year_to
+      ? `${ci.year_from} – ${ci.year_to}`
+      : ci.year_from ? `${ci.year_from}+` : '';
+    carImageMap.get(model)!.push({ url: ci.image_url, label });
   });
 
   // Merge: every model that has products
   const knownOrder = info.popularModels.map(m => m.toUpperCase());
   const allModels = Array.from(modelCountMap.entries())
     .map(([modelKey, count]) => ({
-      name: modelKey,                              // stored as-is (may be uppercase)
-      img: carImageMap.get(modelKey) || '',
+      name: modelKey,
+      img: carImageMap.get(modelKey)?.[0]?.url || '',
+      images: carImageMap.get(modelKey) || [],
       count,
     }))
     .sort((a, b) => {
@@ -362,7 +367,7 @@ export default async function CarMakePage({ params }: { params: Promise<{ make: 
   // Fall back to static popularModels if DB has no car_model data
   const models = allModels.length > 0
     ? allModels
-    : info.popularModels.map(name => ({ name: name.toUpperCase(), img: '', count: 0 }));
+    : info.popularModels.map(name => ({ name: name.toUpperCase(), img: '', images: [], count: 0 }));
 
   // JSON-LD structured data
   const schema = {

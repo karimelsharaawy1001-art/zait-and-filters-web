@@ -1,16 +1,94 @@
 'use client';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { ShoppingBag, ChevronLeft, Star, Package, Truck, Shield } from 'lucide-react';
 import type { CAR_MAKES } from './page';
 
 type CarInfo = typeof CAR_MAKES[string];
 
+interface ModelEntry {
+  name: string;
+  img: string;
+  images: { url: string; label: string }[];
+  count: number;
+}
+
 interface Props {
   makeKey: string;
   info: CarInfo;
   productCount: number;
-  models: { name: string; img: string; count: number }[];
+  models: ModelEntry[];
   featuredProducts: any[];
+}
+
+function ModelCard({ model, makeKey, cardBg }: { model: ModelEntry; makeKey: string; cardBg: string }) {
+  const imgs = model.images.length > 0 ? model.images : (model.img ? [{ url: model.img, label: '' }] : []);
+  const [active, setActive] = useState(0);
+  const [prev, setPrev] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (imgs.length <= 1) return;
+    const id = setInterval(() => {
+      setActive(cur => {
+        setPrev(cur);
+        return (cur + 1) % imgs.length;
+      });
+    }, 3000);
+    return () => clearInterval(id);
+  }, [imgs.length]);
+
+  // Clear prev after fade completes
+  useEffect(() => {
+    if (prev === null) return;
+    const t = setTimeout(() => setPrev(null), 700);
+    return () => clearTimeout(t);
+  }, [prev]);
+
+  return (
+    <Link
+      href={`/store?make=${makeKey}&model=${encodeURIComponent(model.name)}`}
+      className="model-card"
+      style={{ background: cardBg }}
+    >
+      {imgs.length === 0
+        ? <div className="model-card-fallback"><Package size={36} color="rgba(255,255,255,0.2)" /></div>
+        : imgs.map((img, i) => (
+            <img
+              key={img.url}
+              src={img.url}
+              alt={model.name}
+              className="model-card-img"
+              loading="lazy"
+              style={{
+                opacity: i === active ? 1 : i === prev ? 0 : 0,
+                transition: i === active ? 'opacity 0.7s ease' : i === prev ? 'opacity 0.7s ease' : 'none',
+                zIndex: i === active ? 2 : i === prev ? 1 : 0,
+              }}
+            />
+          ))
+      }
+      <div className="model-card-bottom">
+        <div className="model-name">{model.name}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+          {model.count > 0 && <div className="model-count">{model.count} منتج</div>}
+          {imgs.length > 1 && (
+            <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+              {imgs.map((_, i) => (
+                <span key={i} style={{
+                  width: i === active ? '14px' : '5px',
+                  height: '5px',
+                  borderRadius: '3px',
+                  background: i === active ? '#22c55e' : 'rgba(255,255,255,0.35)',
+                  transition: 'width 0.4s ease, background 0.4s ease',
+                  display: 'inline-block',
+                }} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
 }
 
 const MAKE_GRADIENTS: Record<string, string> = {
@@ -81,11 +159,10 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
           object-fit: contain;
           object-position: center;
           filter: drop-shadow(0 6px 18px rgba(0,0,0,0.55));
-          transition: transform 0.35s ease;
-          z-index: 1;
+          transition: opacity 0.7s ease, transform 0.35s ease;
         }
         .model-card:hover .model-card-img {
-          transform: translateY(-62%) scale(1.06);
+          transform: translateY(-62%) scale(1.05);
         }
         .model-card-fallback {
           position: absolute;
@@ -198,21 +275,7 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
             </div>
             <div className="model-grid">
               {models.map((model) => (
-                <Link
-                  key={model.name}
-                  href={`/store?make=${makeKey}&model=${encodeURIComponent(model.name)}`}
-                  className="model-card"
-                  style={{ background: cardBg }}
-                >
-                  {model.img
-                    ? <img src={model.img} alt={`${info.arName} ${model.name}`} className="model-card-img" loading="lazy" />
-                    : <div className="model-card-fallback"><Package size={36} color="rgba(255,255,255,0.2)" /></div>
-                  }
-                  <div className="model-card-bottom">
-                    <div className="model-name">{model.name}</div>
-                    {model.count > 0 && <div className="model-count">{model.count} منتج</div>}
-                  </div>
-                </Link>
+                <ModelCard key={model.name} model={model} makeKey={makeKey} cardBg={cardBg} />
               ))}
             </div>
           </section>
