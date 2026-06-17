@@ -1,21 +1,31 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import { X, Send, MessageCircle, ChevronDown } from 'lucide-react';
+import { X, Send, MessageCircle, ChevronDown, Headphones } from 'lucide-react';
+import { supabase } from '@/app/lib/supabase';
+import { openTawkTo } from './TawkToProvider';
+
+interface FAQ {
+  id: number;
+  question: string;
+  answer: string;
+  is_active: boolean;
+  sort_order: number;
+}
+
+interface Msg { from: 'bot' | 'user'; text: string; }
 
 const WA_LINK = 'https://wa.me/201206777292?text=مرحبًا%20،%20أود%20الحصول%20على%20مزيد%20من%20المعلومات%20حول%20خدماتكم.';
 
-const FAQS = [
-  { q: 'مكانكوا فين؟', a: 'المقر الإداري والمخازن في التجمع الخامس بالقاهرة.' },
-  { q: 'ضمان قطع الغيار؟', a: 'ضمان استبدال على جميع قطع الغيار. مدة الضمان مكتوبة في تفاصيل كل قطعة.' },
-  { q: 'التوصيل بياخد قد إيه؟', a: 'التوصيل خلال 2-5 أيام عمل. وفي توصيل إكسبريس داخل القاهرة والجيزة خلال 48 ساعة.' },
-  { q: 'في قطع غير أصلية؟', a: 'كل قطع الغيار على الموقع أصلية من الوكيل الرسمي. مفيش أي قطع كوبي أو هاي كوبي.' },
-  { q: 'أقدر أجي أستلم الأوردر؟', a: 'غير متاح الاستلام الشخصي. الطلب من الموقع أو الأبلكيشن والأوردر بيتشحن لباب بيتك.' },
-  { q: 'أتابع أوردري إزاي؟', a: 'من حسابك هتلاقي رقم التتبع داخل الأوردر. لو مش موجود تواصل مع خدمة العملاء.' },
-  { q: 'أقدر أرجع القطعة؟', a: 'متاح الاستبدال أو الاسترجاع خلال 14 يوم من تاريخ الاستلام، بشرط إن القطعة في حالتها الأصلية مع تغليفها وملحقاتها.' },
-  { q: 'الدفع عند الاستلام متاح؟', a: 'للأسف متوقف حاليًا. بس تقدر تدفع عن طريق انستاباي أو الفيزا أو المحافظ الإلكترونية أو شركات التقسيط.' },
+const FALLBACK_FAQS: FAQ[] = [
+  { id: 1, question: 'مكانكوا فين؟', answer: 'المقر الإداري والمخازن في التجمع الخامس بالقاهرة.', is_active: true, sort_order: 1 },
+  { id: 2, question: 'ضمان قطع الغيار؟', answer: 'ضمان استبدال على جميع قطع الغيار. مدة الضمان مكتوبة في تفاصيل كل قطعة.', is_active: true, sort_order: 2 },
+  { id: 3, question: 'التوصيل بياخد قد إيه؟', answer: 'التوصيل خلال 2-5 أيام عمل. وفي توصيل إكسبريس داخل القاهرة والجيزة خلال 48 ساعة.', is_active: true, sort_order: 3 },
+  { id: 4, question: 'في قطع غير أصلية؟', answer: 'كل قطع الغيار على الموقع أصلية من الوكيل الرسمي. مفيش أي قطع كوبي أو هاي كوبي.', is_active: true, sort_order: 4 },
+  { id: 5, question: 'أقدر أجي أستلم الأوردر؟', answer: 'غير متاح الاستلام الشخصي. الطلب من الموقع أو الأبلكيشن والأوردر بيتشحن لباب بيتك.', is_active: true, sort_order: 5 },
+  { id: 6, question: 'أتابع أوردري إزاي؟', answer: 'من حسابك هتلاقي رقم التتبع داخل الأوردر. لو مش موجود تواصل مع خدمة العملاء.', is_active: true, sort_order: 6 },
+  { id: 7, question: 'أقدر أرجع القطعة؟', answer: 'متاح الاستبدال أو الاسترجاع خلال 14 يوم من تاريخ الاستلام، بشرط إن القطعة في حالتها الأصلية مع تغليفها وملحقاتها.', is_active: true, sort_order: 7 },
+  { id: 8, question: 'الدفع عند الاستلام متاح؟', answer: 'للأسف متوقف حاليًا. بس تقدر تدفع عن طريق انستاباي أو الفيزا أو المحافظ الإلكترونية أو شركات التقسيط.', is_active: true, sort_order: 8 },
 ];
-
-interface Msg { from: 'bot' | 'user'; text: string; }
 
 function BotAvatar() {
   return (
@@ -27,6 +37,7 @@ function BotAvatar() {
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
+  const [faqs, setFaqs] = useState<FAQ[]>(FALLBACK_FAQS);
   const [msgs, setMsgs] = useState<Msg[]>([
     { from: 'bot', text: 'أهلاً بيك! أنا شوكت 🤖، مساعدك الذكي في زيت أند فلترز.\nاختار سؤالك من القائمة أو اكتب سؤالك وهحاول أساعدك!' },
   ]);
@@ -44,17 +55,52 @@ export default function ChatWidget() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [msgs, typing]);
 
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from('faqs')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true })
+        .order('id', { ascending: true });
+      if (data && data.length > 0) setFaqs(data);
+    })();
+  }, []);
+
   function findAnswer(q: string): string | null {
     const n = q.trim().toLowerCase();
-    if (/مكان|عنوان|فين|تجمع/.test(n))             return FAQS[0].a;
-    if (/ضمان|guarantee|warranty/.test(n))          return FAQS[1].a;
-    if (/توصيل|شحن|بياخد|delivery|يوم|ساعة/.test(n)) return FAQS[2].a;
-    if (/أصلي|كوبي|original|جودة/.test(n))          return FAQS[3].a;
-    if (/استلم|أجي|pickup|فرع|منفذ/.test(n))         return FAQS[4].a;
-    if (/تتبع|أتابع|tracking|اوردر|رقم/.test(n))     return FAQS[5].a;
-    if (/رجع|استرجاع|استبدال|return|refund/.test(n)) return FAQS[6].a;
-    if (/دفع عند الاستلام|كاش عند|استلام.*دفع|دفع.*استلام|cod|كاش/.test(n)) return FAQS[7].a;
+    if (/مكان|عنوان|فين|تجمع/.test(n)) return getFaqAnswer(0);
+    if (/ضمان|guarantee|warranty/.test(n)) return getFaqAnswer(1);
+    if (/توصيل|شحن|بياخد|delivery|يوم|ساعة/.test(n)) return getFaqAnswer(2);
+    if (/أصلي|كوبي|original|جودة/.test(n)) return getFaqAnswer(3);
+    if (/استلم|أجي|pickup|فرع|منفذ/.test(n)) return getFaqAnswer(4);
+    if (/تتبع|أتابع|tracking|اوردر|رقم/.test(n)) return getFaqAnswer(5);
+    if (/رجع|استرجاع|استبدال|return|refund/.test(n)) return getFaqAnswer(6);
+    if (/دفع عند الاستلام|كاش عند|استلام.*دفع|دفع.*استلام|cod|كاش/.test(n)) return getFaqAnswer(7);
     return null;
+  }
+
+  function getFaqAnswer(index: number): string | null {
+    if (faqs[index]) return faqs[index].answer;
+    if (FALLBACK_FAQS[index]) return FALLBACK_FAQS[index].answer;
+    return null;
+  }
+
+  async function askAI(text: string): Promise<string | null> {
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          history: msgs.slice(-6).map(m => ({ from: m.from, text: m.text })),
+        }),
+      });
+      const data = await res.json();
+      return data.reply || null;
+    } catch {
+      return null;
+    }
   }
 
   function sendMsg(text: string) {
@@ -62,22 +108,30 @@ export default function ChatWidget() {
     setMsgs(m => [...m, { from: 'user', text }]);
     setInput('');
     setTyping(true);
-    setTimeout(() => {
-      setTyping(false);
-      const answer = findAnswer(text);
-      setMsgs(m => [...m, {
-        from: 'bot',
-        text: answer ?? 'مش لاقي إجابة على سؤالك 😅\nتواصل معانا على واتساب وهنرد عليك في أقرب وقت!',
-      }]);
-    }, 700);
+
+    const answer = findAnswer(text);
+    if (answer) {
+      setTimeout(() => {
+        setTyping(false);
+        setMsgs(m => [...m, { from: 'bot', text: answer }]);
+      }, 700);
+    } else {
+      askAI(text).then(reply => {
+        setTyping(false);
+        setMsgs(m => [...m, {
+          from: 'bot',
+          text: reply ?? 'مش لاقي إجابة على سؤالك 😅\nتقدر تتكلم مع خدمة العملاء مباشرة!',
+        }]);
+      });
+    }
   }
 
-  function selectFaq(faq: typeof FAQS[0]) {
-    setMsgs(m => [...m, { from: 'user', text: faq.q }]);
+  function selectFaq(faq: FAQ) {
+    setMsgs(m => [...m, { from: 'user', text: faq.question }]);
     setTyping(true);
     setTimeout(() => {
       setTyping(false);
-      setMsgs(m => [...m, { from: 'bot', text: faq.a }]);
+      setMsgs(m => [...m, { from: 'bot', text: faq.answer }]);
     }, 600);
   }
 
@@ -109,7 +163,8 @@ export default function ChatWidget() {
         .shawkat-typing span:nth-child(2){animation-delay:0.2s} .shawkat-typing span:nth-child(3){animation-delay:0.4s}
         .shawkat-faq-btn { background:#fff; border:1.5px solid #e2e8f0; border-radius:20px; padding:7px 14px; font-size:0.8rem; font-weight:700; color:#0f172a; cursor:pointer; text-align:right; transition:all 0.15s; white-space:nowrap; font-family:inherit; flex-shrink:0; }
         .shawkat-faq-btn:hover { border-color:#22c55e; color:#15803d; background:#f0fdf4; }
-        .shawkat-wa-pill { display:inline-flex; align-items:center; gap:5px; background:#25D366; color:#fff; border-radius:20px; padding:7px 14px; font-size:0.8rem; font-weight:800; text-decoration:none; flex-shrink:0; white-space:nowrap; }
+        .shawkat-live-btn { display:inline-flex; align-items:center; gap:6px; background:#3054b0; color:#fff; border-radius:12px; padding:7px 14px; font-size:0.78rem; font-weight:800; border:none; cursor:pointer; transition:all 0.15s; font-family:inherit; flex-shrink:0; white-space:nowrap; }
+        .shawkat-live-btn:hover { background:#1e3a7a; }
       `}</style>
 
       <div className="shawkat-fab">
@@ -134,11 +189,21 @@ export default function ChatWidget() {
                   {m.from === 'bot' && <BotAvatar />}
                   <div className={m.from === 'bot' ? 'shawkat-bubble-bot' : 'shawkat-bubble-user'}>
                     {m.text}
-                    {m.from === 'bot' && (m.text.includes('واتساب') || m.text.includes('خدمة العملاء')) && (
-                      <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '8px', background: '#25D366', color: '#fff', padding: '7px 14px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: '800', textDecoration: 'none' }}>
-                        {WA_SVG} تواصل عبر واتساب
-                      </a>
+                    {m.from === 'bot' && (m.text.includes('خدمة العملاء') || m.text.includes('واتساب') || m.text.includes('مباشرة')) && (
+                      <>
+                        <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
+                          <button
+                            onClick={() => openTawkTo()}
+                            className="shawkat-live-btn"
+                          >
+                            <Headphones size={14} /> تكلم مع خدمة العملاء
+                          </button>
+                          <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#25D366', color: '#fff', padding: '7px 14px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: '800', textDecoration: 'none' }}>
+                            {WA_SVG} واتساب
+                          </a>
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
@@ -156,13 +221,15 @@ export default function ChatWidget() {
             <div style={{ padding: '0 12px 8px', flexShrink: 0 }}>
               <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '700', marginBottom: '6px' }}>أسئلة شائعة</div>
               <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
-                {FAQS.map((faq, i) => (
-                  <button key={i} className="shawkat-faq-btn" onClick={() => selectFaq(faq)}>{faq.q}</button>
+                {faqs.map(faq => (
+                  <button key={faq.id} className="shawkat-faq-btn" onClick={() => selectFaq(faq)}>{faq.question}</button>
                 ))}
-                <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="shawkat-wa-pill">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                  تواصل مع خدمة العملاء
-                </a>
+                <button
+                  onClick={() => openTawkTo()}
+                  className="shawkat-live-btn"
+                >
+                  <Headphones size={13} /> خدمة العملاء
+                </button>
               </div>
             </div>
 

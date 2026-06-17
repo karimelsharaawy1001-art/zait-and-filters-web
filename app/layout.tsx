@@ -17,6 +17,7 @@ import { Suspense } from 'react'
 import SplashScreen from '@/components/SplashScreen'
 import ExitConfirmDialog from '@/components/ExitConfirmDialog'
 import ChatWidget from '@/components/ChatWidget'
+import TawkToProvider from '@/components/TawkToProvider'
 import StorefrontShell from '@/components/StorefrontShell'
 
 const almarai = Almarai({
@@ -189,6 +190,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         `}} />
 
         <Suspense fallback={null}><GAProvider /></Suspense>
+
+        <TawkToProvider />
 
         <Toaster
           position="bottom-right"
