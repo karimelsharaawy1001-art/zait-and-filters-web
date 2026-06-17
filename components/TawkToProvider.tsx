@@ -19,8 +19,8 @@ declare global {
   }
 }
 
-const TAWKTO_PROPERTY_ID = process.env.NEXT_PUBLIC_TAWKTO_PROPERTY_ID;
-const TAWKTO_WIDGET_ID = process.env.NEXT_PUBLIC_TAWKTO_WIDGET_ID;
+const TAWKTO_PROPERTY_ID = process.env.NEXT_PUBLIC_TAWKTO_PROPERTY_ID || '6a31c917b319cc1d4d432159';
+const TAWKTO_WIDGET_ID = process.env.NEXT_PUBLIC_TAWKTO_WIDGET_ID || '1jr97j0sm';
 
 export function openTawkTo() {
   if (typeof window !== 'undefined' && window.Tawk_API) {
