@@ -1,6 +1,6 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import { X, Send, MessageCircle, ChevronDown, Headphones } from 'lucide-react';
+import { X, Send, MessageCircle, ChevronDown, Headphones, MessageSquare } from 'lucide-react';
 import { supabase } from '@/app/lib/supabase';
 import { openTawkTo } from './TawkToProvider';
 
@@ -27,19 +27,11 @@ const FALLBACK_FAQS: FAQ[] = [
   { id: 8, question: 'الدفع عند الاستلام متاح؟', answer: 'للأسف متوقف حاليًا. بس تقدر تدفع عن طريق انستاباي أو الفيزا أو المحافظ الإلكترونية أو شركات التقسيط.', is_active: true, sort_order: 8 },
 ];
 
-function BotAvatar() {
-  return (
-    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg,#22c55e,#16a34a)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '16px' }}>
-      🤖
-    </div>
-  );
-}
-
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [faqs, setFaqs] = useState<FAQ[]>(FALLBACK_FAQS);
   const [msgs, setMsgs] = useState<Msg[]>([
-    { from: 'bot', text: 'أهلاً بيك! أنا شوكت 🤖، مساعدك الذكي في زيت أند فلترز.\nاختار سؤالك من القائمة أو اكتب سؤالك وهحاول أساعدك!' },
+    { from: 'bot', text: 'مرحباً بك في زيت أند فلترز 👋\nاختر سؤالك من الأسئلة الشائعة أو اكتب ما تبحث عنه.' },
   ]);
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
@@ -120,7 +112,7 @@ export default function ChatWidget() {
         setTyping(false);
         setMsgs(m => [...m, {
           from: 'bot',
-          text: reply ?? 'مش لاقي إجابة على سؤالك 😅\nتقدر تتكلم مع خدمة العملاء مباشرة!',
+          text: reply ?? 'عذراً، لم أتمكن من إيجاد إجابة لسؤالك 😅\nيمكنك التحدث مع خدمة العملاء للمساعدة.',
         }]);
       });
     }
@@ -136,7 +128,7 @@ export default function ChatWidget() {
   }
 
   const WA_SVG = (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
     </svg>
   );
@@ -144,120 +136,235 @@ export default function ChatWidget() {
   return (
     <>
       <style>{`
-        @keyframes shawkat-pop { 0%{transform:scale(0.8);opacity:0} 100%{transform:scale(1);opacity:1} }
-        @keyframes shawkat-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
-        @keyframes shawkat-blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
-        .shawkat-fab { position:fixed; bottom:calc(env(safe-area-inset-bottom,0px) + 20px); right:20px; z-index:9998; }
-        @media(min-width:640px){ .shawkat-fab { bottom:24px; right:24px; } }
-        .shawkat-open-btn { width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg,#22c55e,#16a34a); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 24px rgba(34,197,94,0.45); animation:shawkat-bounce 3s ease-in-out infinite; transition:transform 0.2s,box-shadow 0.2s; position:relative; }
-        .shawkat-open-btn:hover { transform:scale(1.08); box-shadow:0 8px 32px rgba(34,197,94,0.6); animation:none; }
-        .shawkat-badge { position:absolute; top:-4px; right:-4px; background:#ef4444; color:#fff; width:20px; height:20px; border-radius:50%; font-size:0.72rem; font-weight:900; display:flex; align-items:center; justify-content:center; border:2px solid #fff; }
-        .shawkat-window { position:fixed; bottom:calc(env(safe-area-inset-bottom,0px) + 88px); right:20px; width:360px; max-width:calc(100vw - 24px); height:520px; max-height:calc(100dvh - 120px); background:#fff; border-radius:24px; box-shadow:0 12px 48px rgba(0,0,0,0.18); display:flex; flex-direction:column; overflow:hidden; z-index:9998; animation:shawkat-pop 0.2s cubic-bezier(0.34,1.56,0.64,1); }
-        @media(min-width:640px){ .shawkat-window { right:24px; bottom:96px; } }
-        .shawkat-msgs { flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px; }
-        .shawkat-msgs::-webkit-scrollbar { width:4px; }
-        .shawkat-msgs::-webkit-scrollbar-thumb { background:#e2e8f0; border-radius:4px; }
-        .shawkat-bubble-bot { background:#f1f5f9; color:#0f172a; border-radius:18px 18px 18px 4px; padding:10px 14px; font-size:0.88rem; line-height:1.6; max-width:85%; white-space:pre-line; word-break:break-word; }
-        .shawkat-bubble-user { background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff; border-radius:18px 18px 4px 18px; padding:10px 14px; font-size:0.88rem; line-height:1.6; max-width:85%; word-break:break-word; align-self:flex-end; }
-        .shawkat-typing span { display:inline-block; width:7px; height:7px; border-radius:50%; background:#94a3b8; margin:0 2px; animation:shawkat-blink 1.4s infinite; }
-        .shawkat-typing span:nth-child(2){animation-delay:0.2s} .shawkat-typing span:nth-child(3){animation-delay:0.4s}
-        .shawkat-faq-btn { background:#fff; border:1.5px solid #e2e8f0; border-radius:20px; padding:7px 14px; font-size:0.8rem; font-weight:700; color:#0f172a; cursor:pointer; text-align:right; transition:all 0.15s; white-space:nowrap; font-family:inherit; flex-shrink:0; }
-        .shawkat-faq-btn:hover { border-color:#22c55e; color:#15803d; background:#f0fdf4; }
-        .shawkat-live-btn { display:inline-flex; align-items:center; gap:6px; background:#3054b0; color:#fff; border-radius:12px; padding:7px 14px; font-size:0.78rem; font-weight:800; border:none; cursor:pointer; transition:all 0.15s; font-family:inherit; flex-shrink:0; white-space:nowrap; }
-        .shawkat-live-btn:hover { background:#1e3a7a; }
+        @keyframes z-pop { 0%{transform:scale(0.85);opacity:0} 100%{transform:scale(1);opacity:1} }
+        @keyframes z-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+        @keyframes z-blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
+        @keyframes z-fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes z-slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+        .z-fab { position:fixed; bottom:calc(env(safe-area-inset-bottom,0px) + 20px); right:20px; z-index:9998; }
+        @media(min-width:640px){ .z-fab { bottom:24px; right:24px; } }
+
+        .z-open-btn {
+          width:56px; height:56px; border-radius:50%;
+          background:linear-gradient(135deg,#22c55e,#16a34a);
+          border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
+          box-shadow:0 4px 20px rgba(34,197,94,0.4);
+          transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s;
+          position:relative;
+        }
+        .z-open-btn:hover { transform:scale(1.06); box-shadow:0 6px 28px rgba(34,197,94,0.55); }
+        .z-open-btn:active { transform:scale(0.95); }
+
+        .z-badge {
+          position:absolute; top:-3px; right:-3px;
+          background:#ef4444; color:#fff; width:18px; height:18px;
+          border-radius:50%; font-size:0.65rem; font-weight:900;
+          display:flex; align-items:center; justify-content:center;
+          border:2px solid #fff;
+        }
+
+        .z-window {
+          position:fixed; bottom:calc(env(safe-area-inset-bottom,0px) + 84px); right:20px;
+          width:364px; max-width:calc(100vw - 24px); height:530px; max-height:calc(100dvh - 120px);
+          background:#fff; border-radius:20px;
+          box-shadow:0 16px 56px rgba(0,0,0,0.16),0 2px 12px rgba(0,0,0,0.06);
+          display:flex; flex-direction:column; overflow:hidden;
+          z-index:9998; animation:z-pop 0.25s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @media(min-width:640px){ .z-window { right:24px; bottom:92px; } }
+
+        .z-header {
+          background:linear-gradient(135deg,#1a1a2e,#16213e);
+          padding:16px 18px; display:flex; align-items:center; gap:12px; flex-shrink:0;
+        }
+
+        .z-msgs {
+          flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px;
+          background:#fafafa;
+        }
+        .z-msgs::-webkit-scrollbar { width:4px; }
+        .z-msgs::-webkit-scrollbar-thumb { background:#d4d4d8; border-radius:4px; }
+
+        .z-bubble-bot {
+          background:#fff; color:#18181b;
+          border-radius:4px 18px 18px 18px;
+          padding:10px 14px; font-size:0.88rem; line-height:1.7;
+          max-width:88%; white-space:pre-line; word-break:break-word;
+          box-shadow:0 1px 4px rgba(0,0,0,0.06);
+          animation:z-fadeIn 0.3s ease;
+        }
+        .z-bubble-user {
+          background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff;
+          border-radius:18px 4px 18px 18px;
+          padding:10px 14px; font-size:0.88rem; line-height:1.6;
+          max-width:88%; word-break:break-word; align-self:flex-end;
+          box-shadow:0 1px 4px rgba(34,197,94,0.2);
+          animation:z-fadeIn 0.3s ease;
+        }
+
+        .z-typing span {
+          display:inline-block; width:7px; height:7px;
+          border-radius:50%; background:#a1a1aa; margin:0 2px;
+          animation:z-blink 1.4s infinite;
+        }
+        .z-typing span:nth-child(2){animation-delay:0.2s}
+        .z-typing span:nth-child(3){animation-delay:0.4s}
+
+        .z-faq-grid {
+          display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;
+          animation:z-slideUp 0.35s ease;
+        }
+        .z-faq-tile {
+          background:#fff; border:1px solid #e4e4e7; border-radius:12px;
+          padding:8px 14px; font-size:0.8rem; font-weight:600; color:#18181b;
+          cursor:pointer; text-align:right; transition:all 0.15s;
+          font-family:inherit; box-shadow:0 1px 3px rgba(0,0,0,0.04);
+        }
+        .z-faq-tile:hover {
+          border-color:#22c55e; color:#15803d; background:#f0fdf4;
+          box-shadow:0 2px 8px rgba(34,197,94,0.12); transform:translateY(-1px);
+        }
+
+        .z-action-btn {
+          display:inline-flex; align-items:center; gap:5px;
+          padding:7px 13px; border-radius:10px; font-size:0.78rem;
+          font-weight:700; border:none; cursor:pointer;
+          transition:all 0.15s; font-family:inherit;
+          white-space:nowrap;
+        }
       `}</style>
 
-      <div className="shawkat-fab">
+      <div className="z-fab">
         {open && (
-          <div className="shawkat-window" dir="rtl">
+          <div className="z-window" dir="rtl">
             {/* Header */}
-            <div style={{ background: 'linear-gradient(135deg,#22c55e,#16a34a)', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-              <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>🤖</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: '900', fontSize: '0.95rem', color: '#fff' }}>شوكت</div>
-                <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.85)', fontWeight: '600' }}>مساعدك الذكي • متاح دايمًا</div>
+            <div className="z-header">
+              <div style={{
+                width:'36px', height:'36px', borderRadius:'10px',
+                background:'rgba(255,255,255,0.1)', backdropFilter:'blur(4px)',
+                display:'flex', alignItems:'center', justifyContent:'center',
+                flexShrink:0,
+              }}>
+                <MessageSquare size={18} color="#22c55e" />
               </div>
-              <button onClick={() => setOpen(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                <ChevronDown size={16} />
+              <div style={{ flex:1 }}>
+                <div style={{ fontWeight:'800', fontSize:'0.92rem', color:'#fff', letterSpacing:'0.01em' }}>
+                  زيت أند فلترز
+                </div>
+                <div style={{ fontSize:'0.7rem', color:'rgba(255,255,255,0.6)', fontWeight:'500', marginTop:'1px' }}>
+                  المساعد الذكي • متاح 24/7
+                </div>
+              </div>
+              <button onClick={() => setOpen(false)}
+                style={{
+                  background:'rgba(255,255,255,0.08)', border:'none', borderRadius:'8px',
+                  width:'28px', height:'28px', cursor:'pointer', display:'flex',
+                  alignItems:'center', justifyContent:'center', color:'rgba(255,255,255,0.5)',
+                  transition:'background 0.15s',
+                }}
+                onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+                onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+              >
+                <ChevronDown size={15} />
               </button>
             </div>
 
             {/* Messages */}
-            <div className="shawkat-msgs">
+            <div className="z-msgs">
               {msgs.map((m, i) => (
-                <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', flexDirection: m.from === 'user' ? 'row-reverse' : 'row' }}>
-                  {m.from === 'bot' && <BotAvatar />}
-                  <div className={m.from === 'bot' ? 'shawkat-bubble-bot' : 'shawkat-bubble-user'}>
-                    {m.text}
-                    {m.from === 'bot' && (m.text.includes('خدمة العملاء') || m.text.includes('واتساب') || m.text.includes('مباشرة')) && (
-                      <>
-                        <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
-                          <button
-                            onClick={() => openTawkTo()}
-                            className="shawkat-live-btn"
-                          >
-                            <Headphones size={14} /> تكلم مع خدمة العملاء
+                <div key={i}>
+                  <div style={{ display:'flex', gap:'8px', alignItems:'flex-end', flexDirection:m.from === 'user' ? 'row-reverse' : 'row' }}>
+                    <div className={m.from === 'bot' ? 'z-bubble-bot' : 'z-bubble-user'}>
+                      {m.text}
+                      {m.from === 'bot' && (m.text.includes('خدمة العملاء') || m.text.includes('واتساب')) && (
+                        <div style={{ display:'flex', gap:'6px', marginTop:'10px', flexWrap:'wrap' }}>
+                          <button onClick={() => openTawkTo()} className="z-action-btn"
+                            style={{ background:'#1e3a5f', color:'#fff' }}>
+                            <Headphones size={13} /> خدمة العملاء
                           </button>
                           <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#25D366', color: '#fff', padding: '7px 14px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: '800', textDecoration: 'none' }}>
+                            className="z-action-btn"
+                            style={{ background:'#25D366', color:'#fff', textDecoration:'none' }}>
                             {WA_SVG} واتساب
                           </a>
                         </div>
-                      </>
-                    )}
+                      )}
+                    </div>
                   </div>
+                  {/* Show FAQ tiles after the last bot message if no user message after it */}
+                  {m.from === 'bot' && i === msgs.length - 1 && (
+                    <div className="z-faq-grid">
+                      {faqs.map(faq => (
+                        <button key={faq.id} className="z-faq-tile" onClick={() => selectFaq(faq)}>
+                          {faq.question}
+                        </button>
+                      ))}
+                      <button onClick={() => openTawkTo()} className="z-faq-tile"
+                        style={{ borderColor:'#1e3a5f', color:'#1e3a5f', background:'#f8faff' }}>
+                        <Headphones size={12} style={{ marginLeft:'4px' }} /> خدمة العملاء
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
               {typing && (
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
-                  <BotAvatar />
-                  <div className="shawkat-bubble-bot shawkat-typing"><span /><span /><span /></div>
+                <div style={{ display:'flex', gap:'8px', alignItems:'flex-end' }}>
+                  <div className="z-bubble-bot z-typing"><span /><span /><span /></div>
                 </div>
               )}
               <div ref={bottomRef} />
             </div>
 
-            {/* FAQ strip */}
-            <div style={{ padding: '0 12px 8px', flexShrink: 0 }}>
-              <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '700', marginBottom: '6px' }}>أسئلة شائعة</div>
-              <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
-                {faqs.map(faq => (
-                  <button key={faq.id} className="shawkat-faq-btn" onClick={() => selectFaq(faq)}>{faq.question}</button>
-                ))}
-                <button
-                  onClick={() => openTawkTo()}
-                  className="shawkat-live-btn"
-                >
-                  <Headphones size={13} /> خدمة العملاء
-                </button>
-              </div>
-            </div>
-
             {/* Input */}
-            <div style={{ padding: '10px 12px 12px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '8px', flexShrink: 0 }}>
+            <div style={{
+              padding:'10px 12px 14px', borderTop:'1px solid #f1f1f1',
+              display:'flex', gap:'8px', flexShrink:0, background:'#fff',
+            }}>
               <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
-                style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#25D366', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, textDecoration: 'none', color: '#fff', boxShadow: '0 2px 8px rgba(37,211,102,0.4)' }}>
+                style={{
+                  width:'40px', height:'40px', borderRadius:'12px',
+                  background:'#25D366', display:'flex', alignItems:'center',
+                  justifyContent:'center', flexShrink:0, textDecoration:'none',
+                  color:'#fff', transition:'transform 0.15s',
+                }}
+                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.06)'}
+                onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+              >
                 {WA_SVG}
               </a>
-              <form onSubmit={e => { e.preventDefault(); sendMsg(input); }} style={{ flex: 1, display: 'flex', gap: '6px' }}>
+              <form onSubmit={e => { e.preventDefault(); sendMsg(input); }} style={{ flex:1, display:'flex', gap:'6px' }}>
                 <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
                   placeholder="اكتب سؤالك هنا..." dir="rtl"
-                  style={{ flex: 1, border: '1.5px solid #e2e8f0', borderRadius: '12px', padding: '0 12px', fontSize: '0.85rem', outline: 'none', fontFamily: 'inherit', background: '#f8fafc', color: '#0f172a', height: '40px' }}
-                  onFocus={e => { e.target.style.borderColor = '#22c55e'; }}
-                  onBlur={e => { e.target.style.borderColor = '#e2e8f0'; }}
+                  style={{
+                    flex:1, border:'1.5px solid #e4e4e7', borderRadius:'12px',
+                    padding:'0 12px', fontSize:'0.85rem', outline:'none',
+                    fontFamily:'inherit', background:'#fafafa', color:'#18181b',
+                    height:'40px', transition:'border-color 0.15s',
+                  }}
+                  onFocus={e => { e.target.style.borderColor = '#22c55e'; e.target.style.background = '#fff'; }}
+                  onBlur={e => { e.target.style.borderColor = '#e4e4e7'; e.target.style.background = '#fafafa'; }}
                 />
                 <button type="submit" disabled={!input.trim()}
-                  style={{ width: '40px', height: '40px', borderRadius: '50%', background: input.trim() ? 'linear-gradient(135deg,#22c55e,#16a34a)' : '#e2e8f0', border: 'none', cursor: input.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', color: input.trim() ? '#fff' : '#94a3b8', flexShrink: 0 }}>
-                  <Send size={16} />
+                  style={{
+                    width:'40px', height:'40px', borderRadius:'12px',
+                    background: input.trim() ? 'linear-gradient(135deg,#22c55e,#16a34a)' : '#e4e4e7',
+                    border:'none', cursor: input.trim() ? 'pointer' : 'default',
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                    color: input.trim() ? '#fff' : '#a1a1aa', flexShrink:0,
+                    transition:'all 0.15s',
+                  }}
+                >
+                  <Send size={15} />
                 </button>
               </form>
             </div>
           </div>
         )}
 
-        <button className="shawkat-open-btn" onClick={() => setOpen(o => !o)} aria-label="شوكت مساعدك الذكي">
-          {open ? <X size={24} color="#fff" /> : <MessageCircle size={26} color="#fff" fill="#fff" />}
-          {!open && unread > 0 && <span className="shawkat-badge">{unread}</span>}
+        <button className="z-open-btn" onClick={() => setOpen(o => !o)} aria-label="فتح المساعد">
+          {open ? <X size={22} color="#fff" /> : <MessageCircle size={24} color="#fff" />}
+          {!open && unread > 0 && <span className="z-badge">{unread}</span>}
         </button>
       </div>
     </>
