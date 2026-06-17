@@ -7,7 +7,8 @@ import {
   User, Phone, Mail, Package, LogOut, 
   Loader2, Save, Clock, CheckCircle, MapPin, Trash2, Plus,
   ChevronDown, ChevronUp, ShoppingBag, Gauge, CreditCard, Car, Settings,
-  CarFront, Wallet, Truck, ExternalLink, LinkIcon, Copy, Check
+  CarFront, Wallet, Truck, ExternalLink, LinkIcon, Copy, Check,
+  Undo2, RotateCcw, X, AlertCircle, CheckSquare, Square
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -166,6 +167,8 @@ export default function ProfilePage() {
   const [showCarForm, setShowCarForm] = useState(false);
   const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'settings'>('orders');
   const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [returnModalOrder, setReturnModalOrder] = useState<any>(null);
+  const [returnRequests, setReturnRequests] = useState<any[]>([]);
 
   const router = useRouter();
 
@@ -219,6 +222,19 @@ export default function ProfilePage() {
       }
 
       setOrders(ordersData);
+
+      // Fetch existing return requests
+      let returnsQuery = supabase
+        .from('return_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (phone) {
+        returnsQuery = returnsQuery.or(`user_id.eq.${user.id},customer_phone.eq.${phone}`);
+      } else {
+        returnsQuery = returnsQuery.eq('user_id', user.id);
+      }
+      const { data: returnsData } = await returnsQuery;
+      setReturnRequests(returnsData || []);
 
       const [addrRes, garageRes, productsRes, walletRes] = await Promise.all([
         supabase.from('addresses').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
@@ -300,6 +316,222 @@ export default function ProfilePage() {
     if (!confirm('هل تريد إزالة هذه السيارة من جراجك؟')) return;
     try { await supabase.from('user_garage').delete().eq('id', id); toast.success('تمت الإزالة'); fetchProfileData(); }
     catch { toast.error('فشل الإزالة'); }
+  }
+
+  // ── Return Request Modal (inner component) ──
+  function ReturnRequestModal({ order, onClose, onSubmitted }: { order: any; onClose: () => void; onSubmitted: () => void }) {
+    const [selectedItems, setSelectedItems] = useState<any[]>(() =>
+      (order.items || []).map((item: any) => ({
+        ...item,
+        selected: false,
+        returnQuantity: Math.min(1, item.quantity || 1),
+      }))
+    );
+    const [reason, setReason] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+
+    const hasSelection = selectedItems.some((i: any) => i.selected);
+    const totalReturnItems = selectedItems
+      .filter((i: any) => i.selected)
+      .reduce((sum: number, i: any) => sum + i.returnQuantity, 0);
+
+    function toggleItem(index: number) {
+      setSelectedItems((prev: any[]) =>
+        prev.map((item, i) =>
+          i === index ? { ...item, selected: !item.selected, returnQuantity: item.selected ? item.returnQuantity : 1 } : item
+        )
+      );
+    }
+
+    function setQty(index: number, qty: number) {
+      const item = selectedItems[index];
+      const maxQty = item.quantity || 1;
+      setSelectedItems((prev: any[]) =>
+        prev.map((item, i) =>
+          i === index ? { ...item, returnQuantity: Math.max(1, Math.min(qty, maxQty)) } : item
+        )
+      );
+    }
+
+    async function handleSubmit() {
+      if (!hasSelection) { toast.error('اختر منتجاً على الأقل لاسترجاعه'); return; }
+      if (!reason.trim()) { toast.error('اكتب سبب الاسترجاع'); return; }
+      setSubmitting(true);
+      try {
+        const returnData = {
+          order_id: order.id,
+          user_id: user?.id || null,
+          customer_name: order.customer_name || profile.full_name,
+          customer_phone: order.customer_phone || profile.phone_number,
+          items: selectedItems
+            .filter((i: any) => i.selected)
+            .map((i: any) => ({
+              product_id: i.id,
+              name: i.name,
+              price: i.price,
+              quantity: i.returnQuantity,
+              image: i.image || i.image_url,
+            })),
+          reason: reason.trim(),
+          status: 'pending',
+        };
+        const { error } = await supabase.from('return_requests').insert(returnData);
+        if (error) throw error;
+        toast.success('تم إرسال طلب الاسترجاع بنجاح ✅ سنتواصل معك قريباً');
+        onSubmitted();
+        onClose();
+      } catch (err: any) {
+        toast.error('فشل إرسال الطلب: ' + err.message);
+      } finally { setSubmitting(false); }
+    }
+
+    return (
+      <div style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 2000,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '12px', backdropFilter: 'blur(4px)',
+      }} onClick={onClose}>
+        <div onClick={e => e.stopPropagation()} style={{
+          background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '560px',
+          maxHeight: '90vh', overflowY: 'auto', padding: '24px',
+          boxShadow: '0 25px 60px rgba(0,0,0,0.25)', direction: 'rtl',
+        }}>
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '900', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <RotateCcw size={20} color="#22c55e" /> طلب استرجاع
+            </h3>
+            <button onClick={onClose} style={{
+              background: '#f5f5f5', border: 'none', borderRadius: '50%',
+              width: '34px', height: '34px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <X size={18} color="#666" />
+            </button>
+          </div>
+
+          {/* Order Info */}
+          <div style={{
+            background: '#f9fafb', borderRadius: '14px', padding: '14px 16px',
+            marginBottom: '16px', border: '1px solid #f0f0f0',
+          }}>
+            <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#888', marginBottom: '4px' }}>
+              طلب رقم #{order.id?.slice(0, 8).toUpperCase()}
+            </div>
+            <div style={{ fontSize: '0.85rem', color: '#555' }}>
+              {new Date(order.created_at).toLocaleDateString('ar-EG')} — {order.total_price} ج.م
+            </div>
+          </div>
+
+          {/* Items Selection */}
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ fontSize: '0.82rem', fontWeight: '800', color: '#1a1a1a', marginBottom: '10px' }}>
+              اختر المنتجات المراد استرجاعها:
+            </div>
+            {selectedItems.map((item: any, i: number) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: '10px',
+                padding: '10px 12px', marginBottom: '8px',
+                borderRadius: '12px', border: item.selected ? '1.5px solid #22c55e' : '1px solid #f0f0f0',
+                background: item.selected ? '#f0fdf4' : '#fff',
+                cursor: 'pointer', transition: 'all 0.15s',
+              }} onClick={() => toggleItem(i)}>
+                <div style={{ flexShrink: 0 }}>
+                  {item.selected ? <CheckSquare size={22} color="#22c55e" /> : <Square size={22} color="#d1d5db" />}
+                </div>
+                <img
+                  src={item.image || item.image_url || '/placeholder.png'}
+                  alt=""
+                  style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'contain', background: '#f5f5f5', flexShrink: 0 }}
+                />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {item.name}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#22c55e', fontWeight: '700' }}>
+                    {parseFloat(item.price).toLocaleString()} ج.م × {item.quantity}
+                  </div>
+                </div>
+                {item.selected && (
+                  <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                    <button
+                      onClick={() => setQty(i, item.returnQuantity - 1)}
+                      disabled={item.returnQuantity <= 1}
+                      style={{
+                        width: '28px', height: '28px', borderRadius: '7px', border: '1px solid #d1d5db',
+                        background: '#fff', fontWeight: '900', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '0.9rem', opacity: item.returnQuantity <= 1 ? 0.4 : 1,
+                      }}
+                    >−</button>
+                    <span style={{ fontWeight: '900', fontSize: '0.9rem', minWidth: '24px', textAlign: 'center' }}>
+                      {item.returnQuantity}
+                    </span>
+                    <button
+                      onClick={() => setQty(i, item.returnQuantity + 1)}
+                      disabled={item.returnQuantity >= item.quantity}
+                      style={{
+                        width: '28px', height: '28px', borderRadius: '7px', border: '1px solid #22c55e',
+                        background: '#22c55e', color: '#fff', fontWeight: '900', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '0.9rem', opacity: item.returnQuantity >= item.quantity ? 0.4 : 1,
+                      }}
+                    >+</button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Reason */}
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '800', color: '#1a1a1a', marginBottom: '8px' }}>
+              سبب الاسترجاع <span style={{ color: '#ef4444' }}>*</span>
+            </label>
+            <textarea
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              placeholder="اكتب سبب طلب الاسترجاع..."
+              rows={3}
+              style={{
+                width: '100%', padding: '12px 14px', borderRadius: '12px',
+                border: '1px solid #e5e5e5', fontSize: '0.9rem',
+                outline: 'none', resize: 'vertical', boxSizing: 'border-box',
+                fontFamily: 'inherit',
+              }}
+            />
+          </div>
+
+          {/* Submit */}
+          <button
+            onClick={handleSubmit}
+            disabled={submitting || !hasSelection || !reason.trim()}
+            style={{
+              width: '100%', padding: '14px', border: 'none', borderRadius: '14px',
+              background: (submitting || !hasSelection || !reason.trim()) ? '#ccc' : 'linear-gradient(135deg, #22c55e, #16a34a)',
+              color: '#fff', fontWeight: '900', fontSize: '0.95rem',
+              cursor: (submitting || !hasSelection || !reason.trim()) ? 'not-allowed' : 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              transition: 'all 0.2s',
+            }}>
+            {submitting ? (
+              <><Loader2 size={18} className="animate-spin" /> جاري الإرسال...</>
+            ) : (
+              <><RotateCcw size={18} /> إرسال طلب الاسترجاع</>
+            )}
+          </button>
+
+          {totalReturnItems > 0 && (
+            <div style={{
+              marginTop: '12px', textAlign: 'center', fontSize: '0.78rem',
+              color: '#888', fontWeight: '700',
+            }}>
+              سيتم استرجاع <strong style={{ color: '#22c55e' }}>{totalReturnItems}</strong> قطعة
+            </div>
+          )}
+        </div>
+      </div>
+    );
   }
 
   const customSelectStyles = {
@@ -471,6 +703,27 @@ export default function ProfilePage() {
                               </div>
                             ))}
 
+                            {/* ── Return Request Button (only for delivered orders) ── */}
+                            {order.status === 'delivered' && (
+                              <div style={{ marginTop: '12px' }}>
+                                <button
+                                  onClick={() => setReturnModalOrder(order)}
+                                  style={{
+                                    display: 'flex', alignItems: 'center', gap: '7px',
+                                    background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                                    color: '#fff', border: 'none', borderRadius: '10px',
+                                    padding: '9px 16px', fontWeight: '800', fontSize: '0.8rem',
+                                    cursor: 'pointer', width: '100%', justifyContent: 'center',
+                                    boxShadow: '0 4px 12px rgba(245,158,11,0.3)',
+                                    transition: 'all 0.2s',
+                                  }}
+                                >
+                                  <Undo2 size={15} />
+                                  طلب استرجاع
+                                </button>
+                              </div>
+                            )}
+
                             {/* ── Tracking Banner ── */}
                             <CustomerTrackingBanner order={order} />
                           </div>
@@ -539,6 +792,57 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* ── Return Request Modal ── */}
+      {returnModalOrder && (
+        <ReturnRequestModal
+          order={returnModalOrder}
+          onClose={() => setReturnModalOrder(null)}
+          onSubmitted={() => { fetchProfileData(); }}
+        />
+      )}
+
+      {/* ── Return Requests Status Cards ── */}
+      {returnRequests.length > 0 && activeTab === 'orders' && (
+        <div style={{ marginTop: '16px' }}>
+          <h3 style={compactSectionTitle}><RotateCcw size={16} color="#f59e0b" /> طلبات الاسترجاع</h3>
+          {returnRequests.map((req: any) => {
+            const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
+              pending:  { label: 'قيد المراجعة', color: '#c2410c', bg: '#fff7ed' },
+              approved: { label: 'تمت الموافقة', color: '#15803d', bg: '#f0fdf4' },
+              rejected: { label: 'مرفوض', color: '#dc2626', bg: '#fef2f2' },
+              refunded: { label: 'تم الاسترجاع', color: '#6d28d9', bg: '#f5f3ff' },
+            };
+            const sc = statusConfig[req.status] || statusConfig.pending;
+            return (
+              <div key={req.id} style={{
+                background: '#fff', borderRadius: '14px', padding: '14px 16px',
+                marginBottom: '8px', border: '1px solid #f0f0f0',
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#1a1a1a' }}>
+                    طلب رقم #{req.id?.slice(0, 8).toUpperCase()}
+                  </span>
+                  <span style={{ fontSize: '0.7rem', fontWeight: '900', padding: '4px 10px', borderRadius: '8px', background: sc.bg, color: sc.color }}>
+                    {sc.label}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '4px' }}>
+                  السبب: {req.reason}
+                </div>
+                <div style={{ fontSize: '0.72rem', color: '#aaa' }}>
+                  {new Date(req.created_at).toLocaleDateString('ar-EG')} — {req.items?.length || 0} منتج
+                </div>
+                {req.admin_notes && (
+                  <div style={{ marginTop: '8px', padding: '8px 10px', background: '#f0fdf4', borderRadius: '8px', fontSize: '0.75rem', color: '#15803d', border: '1px solid #bbf7d0' }}>
+                    📝 ملاحظة الإدارة: {req.admin_notes}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Logout */}
       <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))} style={elegantLogout}>

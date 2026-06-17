@@ -5,17 +5,17 @@ import { usePathname } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
 
 type Props = { children: React.ReactNode };
-interface Badges { messages: number; orders: number; abandonedCarts: number; pendingReviews: number; }
+interface Badges { messages: number; orders: number; abandonedCarts: number; pendingReviews: number; pendingReturns: number; }
 
 export default function AdminLayoutClient({ children }: Props) {
   const pathname = usePathname();
-  const [badges, setBadges] = useState<Badges>({ messages: 0, orders: 0, abandonedCarts: 0, pendingReviews: 0 });
+  const [badges, setBadges] = useState<Badges>({ messages: 0, orders: 0, abandonedCarts: 0, pendingReviews: 0, pendingReturns: 0 });
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   async function fetchBadges() {
     try {
-      const [messagesRes, ordersRes, cartsRes, reviewsRes] = await Promise.all([
+      const [messagesRes, ordersRes, cartsRes, reviewsRes, returnsRes] = await Promise.all([
         supabase.from('messages').select('id', { count: 'exact', head: true }).eq('is_read', false),
         supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('abandoned_carts').select('id', { count: 'exact', head: true })
@@ -23,12 +23,14 @@ export default function AdminLayoutClient({ children }: Props) {
           .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
         supabase.from('product_reviews').select('id', { count: 'exact', head: true })
           .eq('is_approved', false),
+        supabase.from('return_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       ]);
       setBadges({
         messages: messagesRes.count ?? 0,
         orders: ordersRes.count ?? 0,
         abandonedCarts: cartsRes.count ?? 0,
         pendingReviews: reviewsRes.count ?? 0,
+        pendingReturns: returnsRes.count ?? 0,
       });
     } catch (err) { console.error('Badge fetch error:', err); }
   }
@@ -39,6 +41,7 @@ export default function AdminLayoutClient({ children }: Props) {
       supabase.channel('sb-messages').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, fetchBadges).subscribe(),
       supabase.channel('sb-orders').on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, fetchBadges).subscribe(),
       supabase.channel('sb-carts').on('postgres_changes', { event: '*', schema: 'public', table: 'abandoned_carts' }, fetchBadges).subscribe(),
+      supabase.channel('sb-returns').on('postgres_changes', { event: '*', schema: 'public', table: 'return_requests' }, fetchBadges).subscribe(),
     ];
     const interval = setInterval(fetchBadges, 60_000);
     return () => { subs.forEach(s => supabase.removeChannel(s)); clearInterval(interval); };
@@ -87,6 +90,7 @@ export default function AdminLayoutClient({ children }: Props) {
         { name: 'رسائل العملاء',   href: '/admin/messages',        icon: '💬', badge: badges.messages },
         { name: 'التقييمات',       href: '/admin/reviews',         icon: '⭐', badge: badges.pendingReviews ?? 0 },
         { name: 'المحافظ والكاش باك', href: '/admin/wallets',      icon: '💰', badge: 0 },
+        { name: 'طلبات الاسترجاع',    href: '/admin/returns',       icon: '🔄', badge: badges.pendingReturns },
       ]
     },
   ];
