@@ -279,7 +279,7 @@ export default function ChatWidget() {
                       {m.text}
                       {m.from === 'bot' && (m.text.includes('خدمة العملاء') || m.text.includes('واتساب')) && (
                         <div style={{ display:'flex', gap:'6px', marginTop:'10px', flexWrap:'wrap' }}>
-                          <button onClick={() => openTawkTo()} className="z-action-btn"
+                          <button onClick={() => { setOpen(false); openTawkTo(); }} className="z-action-btn"
                             style={{ background:'#1e3a5f', color:'#fff' }}>
                             <Headphones size={13} /> خدمة العملاء
                           </button>
@@ -300,7 +300,7 @@ export default function ChatWidget() {
                           {faq.question}
                         </button>
                       ))}
-                      <button onClick={() => openTawkTo()} className="z-faq-tile"
+                      <button onClick={() => { setOpen(false); openTawkTo(); }} className="z-faq-tile"
                         style={{ borderColor:'#1e3a5f', color:'#1e3a5f', background:'#f8faff' }}>
                         <Headphones size={12} style={{ marginLeft:'4px' }} /> خدمة العملاء
                       </button>
