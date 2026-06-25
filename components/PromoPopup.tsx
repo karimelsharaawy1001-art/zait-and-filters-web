@@ -27,6 +27,7 @@ export default function PromoPopup() {
   }, []);
 
   useEffect(() => {
+    console.log('[PromoPopup] mounted');
     supabase
       .from('promo_popups')
       .select('*')
@@ -35,15 +36,18 @@ export default function PromoPopup() {
       .limit(1)
       .maybeSingle()
       .then(({ data, error }) => {
+        console.log('[PromoPopup] query result:', { data, error });
         if (error) {
           console.error('[PromoPopup] query error:', error);
           return;
         }
         if (data?.id) {
           const dismissedId = localStorage.getItem('promo_popup_dismissed');
+          console.log('[PromoPopup] dismissedId:', dismissedId, 'current id:', data.id);
           if (dismissedId === data.id) return;
           setPopup(data);
           setVisible(true);
+          console.log('[PromoPopup] showing popup');
         }
       });
   }, []);
