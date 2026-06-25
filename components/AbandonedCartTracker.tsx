@@ -23,7 +23,7 @@ export function AbandonedCartTracker() {
         const customerEmail = localStorage.getItem('checkout_email') || user?.email || '';
         const cartSubtotal = cart.reduce((sum: number, item: any) => sum + (parseFloat(item.price) * item.quantity), 0);
 
-        const detailedCartItems = cart.map((item) => ({
+        const detailedCartItems = cart.map((item: any) => ({
           id: item.id,
           name: item.name,
           price: parseFloat(item.price),
