@@ -218,7 +218,7 @@ export default function AdminPromoPopup() {
       <div style={{ marginBottom: '24px' }}>
         <div style={labelStyle}>الصورة الأفقية (للديسكتوب)</div>
         <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: '8px' }}>
-          يفضل أبعاد 1200×600 بكسل أو بنسبة 2:1
+          المقاس الأمثل: 1200×600 بكسل (نسبة 2:1) — لا يقل عن 800×400
         </div>
         <input
           ref={desktopInputRef}
@@ -276,7 +276,7 @@ export default function AdminPromoPopup() {
       <div style={{ marginBottom: '24px' }}>
         <div style={labelStyle}>الصورة الرأسية (للموبايل)</div>
         <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: '8px' }}>
-          يفضل أبعاد 600×800 بكسل أو بنسبة 3:4
+          المقاس الأمثل: 600×800 بكسل (نسبة 3:4) — لا يقل عن 400×533
         </div>
         <input
           ref={mobileInputRef}
