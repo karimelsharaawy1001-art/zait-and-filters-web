@@ -36,38 +36,38 @@ export default function AdminDashboard() {
         { count: productCount },
         { count: activeCount },
         { count: messageCount },
-        { count: orderCount },
+        { count: deliveredCount },
         { count: pendingCount },
         { count: cartCount },
         { count: userCount },
-        { data: ordersData },
-        { data: todayOrdersData },
+        { data: deliveredData },
+        { data: todayDeliveredData },
         { data: recentOrdersData },
       ] = await Promise.all([
         supabase.from('products').select('*', { count: 'exact', head: true }),
         supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true),
         supabase.from('messages').select('*', { count: 'exact', head: true }),
-        supabase.from('orders').select('*', { count: 'exact', head: true }),
+        supabase.from('orders').select('total_price', { count: 'exact', head: false }).eq('status', 'delivered'),
         supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('abandoned_carts').select('*', { count: 'exact', head: true }).eq('contacted', false),
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('orders').select('total_price'),
-        supabase.from('orders').select('total_price').gte('created_at', today.toISOString()),
+        supabase.from('orders').select('total_price').eq('status', 'delivered'),
+        supabase.from('orders').select('total_price').eq('status', 'delivered').gte('created_at', today.toISOString()),
         supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(5),
       ]);
 
-      const totalRevenue = (ordersData || []).reduce((sum: number, o: any) => sum + (o.total_price || 0), 0);
-      const todayRevenue = (todayOrdersData || []).reduce((sum: number, o: any) => sum + (o.total_price || 0), 0);
+      const totalRevenue = (deliveredData || []).reduce((sum: number, o: any) => sum + (Number(o.total_price) || 0), 0);
+      const todayRevenue = (todayDeliveredData || []).reduce((sum: number, o: any) => sum + (Number(o.total_price) || 0), 0);
 
       setStats({
         products: productCount || 0,
         activeProducts: activeCount || 0,
         messages: messageCount || 0,
-        orders: orderCount || 0,
+        orders: deliveredCount || 0,
         ordersRevenue: totalRevenue,
         pendingOrders: pendingCount || 0,
         abandonedCarts: cartCount || 0,
-        todayOrders: (todayOrdersData || []).length,
+        todayOrders: (todayDeliveredData || []).length,
         todayRevenue,
         users: userCount || 0,
       });
@@ -272,14 +272,14 @@ export default function AdminDashboard() {
         <div className="stat-card" style={{ animationDelay: '0ms', borderTop: '3px solid #16a34a' }}>
           <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#94a3b8', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>إجمالي الإيرادات</div>
           <div style={{ fontSize: 'clamp(1.1rem, 4vw, 1.6rem)', fontWeight: '900', color: '#0f172a', lineHeight: 1 }}>{formatCurrency(stats.ordersRevenue)}</div>
-          <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>من {stats.orders} طلب</div>
+          <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>{stats.orders} طلب مكتمل</div>
         </div>
 
         {/* Today Revenue */}
         <div className="stat-card" style={{ animationDelay: '60ms', borderTop: '3px solid #0ea5e9' }}>
           <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#94a3b8', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>إيرادات اليوم</div>
           <div style={{ fontSize: 'clamp(1.1rem, 4vw, 1.6rem)', fontWeight: '900', color: '#0f172a', lineHeight: 1 }}>{formatCurrency(stats.todayRevenue)}</div>
-          <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>{stats.todayOrders} طلب اليوم</div>
+          <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>{stats.todayOrders} طلب مكتمل اليوم</div>
         </div>
 
         {/* Pending Orders */}
