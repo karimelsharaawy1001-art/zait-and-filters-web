@@ -38,7 +38,7 @@ export default function AdminDashboard() {
         { count: messageCount },
         { count: deliveredCount },
         { count: pendingCount },
-        { data: cartCountData },
+        { data: cartRows },
         { count: userCount },
         { data: deliveredData },
         { data: todayDeliveredData },
@@ -49,7 +49,7 @@ export default function AdminDashboard() {
         supabase.from('contact_messages').select('*', { count: 'exact', head: true }),
         supabase.from('orders').select('total_price', { count: 'exact', head: false }).eq('status', 'delivered'),
         supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.rpc('count_distinct_abandoned_carts'),
+        supabase.from('abandoned_carts').select('id, customer_phone, customer_email'),
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
         supabase.from('orders').select('total_price').eq('status', 'delivered'),
         supabase.from('orders').select('total_price').eq('status', 'delivered').gte('created_at', today.toISOString()),
@@ -66,7 +66,11 @@ export default function AdminDashboard() {
         orders: deliveredCount || 0,
         ordersRevenue: totalRevenue,
         pendingOrders: pendingCount || 0,
-        abandonedCarts: cartCountData || 0,
+        abandonedCarts: (cartRows || []).reduce((set: Set<string>, c: any) => {
+          const key = c.customer_phone?.trim() || c.customer_email?.trim() || c.id;
+          set.add(key);
+          return set;
+        }, new Set<string>()).size,
         todayOrders: (todayDeliveredData || []).length,
         todayRevenue,
         users: userCount || 0,
