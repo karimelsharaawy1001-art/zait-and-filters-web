@@ -16,7 +16,7 @@ export default function AdminLayoutClient({ children }: Props) {
   async function fetchBadges() {
     try {
       const [messagesRes, ordersRes, cartsRes, reviewsRes, returnsRes] = await Promise.all([
-        supabase.from('messages').select('id', { count: 'exact', head: true }).eq('is_read', false),
+        supabase.from('contact_messages').select('id', { count: 'exact', head: true }).eq('status', 'new'),
         supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('abandoned_carts').select('id', { count: 'exact', head: true })
           .eq('contacted', false)

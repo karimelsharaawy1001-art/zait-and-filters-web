@@ -49,7 +49,7 @@ export default function AdminDashboard() {
         supabase.from('messages').select('*', { count: 'exact', head: true }),
         supabase.from('orders').select('total_price', { count: 'exact', head: false }).eq('status', 'delivered'),
         supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('abandoned_carts').select('*', { count: 'exact', head: true }).eq('contacted', false),
+        supabase.from('abandoned_carts').select('*', { count: 'exact', head: true }),
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
         supabase.from('orders').select('total_price').eq('status', 'delivered'),
         supabase.from('orders').select('total_price').eq('status', 'delivered').gte('created_at', today.toISOString()),

@@ -132,20 +132,28 @@ export default function AdminMessages() {
                   <td style={tdStyle}>
                     <div style={{ fontSize: '0.9rem', color: '#444', maxWidth: '350px' }}>{msg.message}</div>
                   </td>
-                  <td style={tdStyle}>
-                    <select value={msg.status || 'new'} onChange={(e) => updateStatus(msg.id, e.target.value)}
-                      style={{ backgroundColor: '#f9f9f9', color: msg.status === 'new' || !msg.status ? '#27ae60' : '#888', border: '1px solid #ddd', borderRadius: '8px', padding: '6px 10px', fontSize: '0.85rem', cursor: 'pointer' }}>
-                      <option value="new">جديدة</option>
-                      <option value="read">تمت القراءة</option>
-                      <option value="replied">تم الرد</option>
-                    </select>
-                  </td>
-                  <td style={tdStyle}>
-                    <button onClick={() => deleteMessage(msg.id)}
-                      style={{ color: '#ef4444', background: 'none', border: '1px solid #fee2e2', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem' }}>
-                      حذف
-                    </button>
-                  </td>
+                    <td style={tdStyle}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                        {(msg.status === 'new' || !msg.status) && (
+                          <button onClick={() => updateStatus(msg.id, 'read')}
+                            style={{ background: '#27ae60', color: '#fff', border: 'none', borderRadius: '8px', padding: '6px 10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.75rem' }}>
+                            ✓ قراءة
+                          </button>
+                        )}
+                        <select value={msg.status || 'new'} onChange={(e) => updateStatus(msg.id, e.target.value)}
+                          style={{ backgroundColor: '#f9f9f9', color: msg.status === 'new' || !msg.status ? '#27ae60' : '#888', border: '1px solid #ddd', borderRadius: '8px', padding: '6px 10px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                          <option value="new">جديدة</option>
+                          <option value="read">تمت القراءة</option>
+                          <option value="replied">تم الرد</option>
+                        </select>
+                      </div>
+                    </td>
+                    <td style={tdStyle}>
+                      <button onClick={() => deleteMessage(msg.id)}
+                        style={{ color: '#ef4444', background: 'none', border: '1px solid #fee2e2', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem' }}>
+                        حذف
+                      </button>
+                    </td>
                 </tr>
               ))}
             </tbody>
@@ -178,6 +186,12 @@ export default function AdminMessages() {
             </div>
             {/* Actions */}
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              {(msg.status === 'new' || !msg.status) && (
+                <button onClick={() => updateStatus(msg.id, 'read')}
+                  style={{ background: '#27ae60', color: '#fff', border: 'none', borderRadius: '8px', padding: '7px 12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.8rem' }}>
+                  ✓ تحديد كمقروءة
+                </button>
+              )}
               <button onClick={() => openWhatsApp(msg.phone, msg.full_name, msg.message)} style={{ ...whatsappBtnStyle, fontSize: '0.8rem', padding: '7px 14px' }}>
                 واتساب ✅
               </button>
