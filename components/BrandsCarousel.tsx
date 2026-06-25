@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { optimizeImageUrl } from '@/lib/images';
 
 const BRANDS = [
   { name: 'Shell', logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/e/e8/Shell_logo.svg/1200px-Shell_logo.svg.png' },
@@ -21,7 +22,7 @@ export default function BrandsCarousel() {
           {doubleBrands.map((brand, index) => (
             <div key={index} style={slideItem}>
               <img 
-                src={brand.logo} 
+                src={optimizeImageUrl(brand.logo)} 
                 alt={brand.name} 
                 style={brandLogo} 
                 className="brand-img"

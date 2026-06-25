@@ -5,6 +5,7 @@ import { supabase } from '@/app/lib/supabase';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { useAbandonedCart } from '@/hooks/useAbandonedCart';
+import { optimizeImageUrl } from '@/lib/images';
 import { useExitWarning } from '@/app/hooks/useExitWarning';
 import Link from 'next/link';
 import { 
@@ -285,6 +286,7 @@ export default function CheckoutPage() {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', UPLOAD_PRESET);
+    formData.append('format', 'webp');
     const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
     const data = await res.json();
     return data.secure_url;
@@ -915,7 +917,7 @@ export default function CheckoutPage() {
                return (
                 <div key={item.id} style={cartItem}>
                   <div style={{ display: 'flex', gap: '15px' }}>
-                    <div style={imageBox}><img src={item.image_url || item.image} alt="" style={imgFluid} /></div>
+                    <div style={imageBox}><img src={optimizeImageUrl(item.image_url || item.image)} alt="" style={imgFluid} /></div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
                         <span style={{ fontWeight: '900', fontSize: '0.92rem', wordBreak: 'break-word' }}>{item.name}</span>

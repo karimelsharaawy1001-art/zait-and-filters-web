@@ -2,6 +2,7 @@
 import { useCart } from '@/context/CartContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShoppingBag, Trash2, Plus, Minus, ArrowRight, Car } from 'lucide-react';
+import { optimizeImageUrl } from '@/lib/images';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -88,7 +89,7 @@ export default function CartDrawer() {
                         style={{ display: 'flex', gap: '12px', padding: '14px 0', borderBottom: '1px solid #f8fafc' }}>
                         {/* Image */}
                         <div style={{ width: '72px', height: '72px', borderRadius: '14px', overflow: 'hidden', background: '#f8fafc', border: '1px solid #f1f5f9', flexShrink: 0 }}>
-                          {img ? <img src={img} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (
+                          {img ? <img src={optimizeImageUrl(img)} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (
                             <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ShoppingBag size={22} color="#cbd5e1" /></div>
                           )}
                         </div>

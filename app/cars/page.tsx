@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import { CAR_MAKES } from './[make]/page';
+import { optimizeImageUrl } from '@/lib/images';
 
 export const metadata: Metadata = {
   title: 'قطع غيار السيارات حسب الموديل | زيت أند فلترز مصر',
@@ -191,7 +192,7 @@ export default async function CarsHubPage() {
                 <Link key={makeKey} href={`/cars/${makeKey.toLowerCase()}`} className="hub-card" style={{ background: bg }}>
                   <div className="hub-logo-wrap">
                     {logoUrl
-                      ? <img src={logoUrl} alt={info.arName} loading="lazy" />
+                      ? <img src={optimizeImageUrl(logoUrl)} alt={info.arName} loading="lazy" />
                       : <span style={{ fontSize: '0.7rem', fontWeight: '900', color: '#64748b' }}>{makeKey}</span>
                     }
                   </div>

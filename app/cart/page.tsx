@@ -4,6 +4,7 @@ import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Car, Tag, Loader2, Shield
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { optimizeImageUrl } from '@/lib/images';
 
 export default function CartPage() {
   const { cart, addToCart, removeFromCart, getCartTotal, isInitialized, updateCartItemPrice } = useCart();
@@ -126,7 +127,7 @@ export default function CartPage() {
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 40 }}
                     transition={{ duration: 0.25 }}>
                     <div className="cart-item-img">
-                      {img ? <img src={img} alt={item.name} /> : (
+                      {img ? <img src={optimizeImageUrl(img)} alt={item.name} /> : (
                         <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <ShoppingBag size={28} color="#cbd5e1" />
                         </div>

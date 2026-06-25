@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, X, Loader2, Sparkles, Tag, ArrowLeft } from 'lucide-react';
+import { optimizeImageUrl } from '@/lib/images';
 
 interface Suggestion {
   type: 'product' | 'category' | 'smart';
@@ -188,7 +189,7 @@ export default function SmartSearchBar({ placeholder = 'ابحث عن قطعة �
               {/* Icon / image */}
               {s.type === 'product' && s.image ? (
                 <img
-                  src={s.image} alt=""
+                  src={optimizeImageUrl(s.image)} alt=""
                   style={{ width: '38px', height: '38px', objectFit: 'contain', borderRadius: '8px', background: '#f8fafc', border: '1px solid #f0f0f0', flexShrink: 0 }}
                 />
               ) : s.type === 'smart' ? (

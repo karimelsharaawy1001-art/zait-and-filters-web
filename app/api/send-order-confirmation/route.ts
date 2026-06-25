@@ -122,7 +122,7 @@ function buildOrderConfirmationHtml(order: any): string {
           <tr>
             ${item.image_url ? `
             <td style="width:48px; padding-left: 12px; vertical-align: top;">
-              <img src="${item.image_url}" width="48" height="48"
+              <img src="${item.image_url?.replace('/image/upload/', '/image/upload/f_auto,q_auto/') || ''}" width="48" height="48"
                 style="border-radius:8px; object-fit:contain; background:#f8fafc; border:1px solid #e2e8f0;" />
             </td>` : ''}
             <td style="vertical-align: middle;">

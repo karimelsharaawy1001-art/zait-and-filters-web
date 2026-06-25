@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import Link from 'next/link';
 import { Clock, Tag, ArrowLeft } from 'lucide-react';
+import { optimizeImageUrl } from '@/lib/images';
 
 export default function BlogPage() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -43,7 +44,7 @@ export default function BlogPage() {
               <div style={cardStyle}>
                 {post.cover_image && (
                   <div style={{ height: '200px', overflow: 'hidden', borderRadius: '16px 16px 0 0' }}>
-                    <img src={post.cover_image} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={optimizeImageUrl(post.cover_image)} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                 )}
                 <div style={{ padding: '22px' }}>

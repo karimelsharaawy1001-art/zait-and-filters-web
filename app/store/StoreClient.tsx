@@ -29,6 +29,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/context/CartContext';
 import toast from 'react-hot-toast';
+import { optimizeImageUrl } from '@/lib/images';
 
 const PRODUCTS_PER_PAGE = 12;
 
@@ -1529,12 +1530,12 @@ setBrandsOptions(brandsOpts);
                   </div>
                   {carHeroImage && isDesktop && (
                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.6 }} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                      <img src={carHeroImage} alt={`${heroMakeLabel} ${heroModelLabel}`} style={{ width: '100%', maxHeight: '280px', objectFit: 'contain', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))' }} />
+                      <img src={optimizeImageUrl(carHeroImage)} alt={`${heroMakeLabel} ${heroModelLabel}`} style={{ width: '100%', maxHeight: '280px', objectFit: 'contain', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))' }} />
                     </motion.div>
                   )}
                   {carHeroImage && !isDesktop && (
                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.6 }} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                      <img src={carHeroImage} alt={`${heroMakeLabel} ${heroModelLabel}`} style={{ width: '80%', maxHeight: '180px', objectFit: 'contain', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.12))' }} />
+                      <img src={optimizeImageUrl(carHeroImage)} alt={`${heroMakeLabel} ${heroModelLabel}`} style={{ width: '80%', maxHeight: '180px', objectFit: 'contain', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.12))' }} />
                     </motion.div>
                   )}
                 </div>
@@ -1727,7 +1728,7 @@ setBrandsOptions(brandsOpts);
                             className="product-img-link"
                           >
                             <img
-                              src={product.image_url || (product.category && subcategoryImages[product.category.trim().toUpperCase()]) || '/api/placeholder/400/320'}
+                              src={optimizeImageUrl(product.image_url || (product.category && subcategoryImages[product.category.trim().toUpperCase()]) || '/api/placeholder/400/320')}
                               alt={product.name}
                               className="product-card-img"
                               loading="lazy"
@@ -1871,7 +1872,7 @@ setBrandsOptions(brandsOpts);
                           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
                           {/* Image */}
                           <Link href={`/products/${product.slug || product.id}`} className="list-card-img" style={{ display: 'block', textDecoration: 'none', position: 'relative' }}>
-                            <img src={imgSrc} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                            <img src={optimizeImageUrl(imgSrc)} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
                             {hasSale && (
                               <div style={{ position: 'absolute', top: '6px', right: '6px', background: '#ef4444', color: '#fff', fontSize: '0.62rem', fontWeight: '900', padding: '2px 6px', borderRadius: '6px' }}>-{discPct}%</div>
                             )}

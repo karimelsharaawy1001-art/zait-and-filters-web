@@ -10,8 +10,8 @@ import {
   Zap, Star, Send, User, LayoutGrid, Tag
 } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { optimizeImageUrl } from '@/lib/images';
 import { Navigation, Autoplay, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
@@ -267,7 +267,7 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
       style={{ background: '#fff', borderRadius: '20px', border: '1px solid #f1f5f9', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
       <Link href={`/products/${p.slug || p.id}`} style={{ textDecoration: 'none', display: 'block', position: 'relative', height: '160px', background: '#f8fafc', overflow: 'hidden' }}>
         {displayImage ? (
-          <Image src={displayImage} alt={p.name} fill sizes="(max-width:768px) 50vw, 25vw" style={{ objectFit: 'cover' }} />
+          <img src={optimizeImageUrl(displayImage)} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}><Package size={36} color="#e2e8f0" /></div>
         )}
@@ -486,8 +486,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                     {slides.map((slide, i) => (
                       <SwiperSlide key={i}>
                         {slide.type === 'image' ? (
-                          <Image src={slide.src} alt={product.name} fill priority={i === 0} sizes="(max-width:900px) 100vw, 50vw"
-                            style={{ objectFit: 'contain', padding: '16px' }} onError={() => setImgError(true)} />
+                          <img src={optimizeImageUrl(slide.src)} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '16px' }} onError={() => setImgError(true)} />
                         ) : (
                           <iframe src={`https://www.youtube.com/embed/${slide.src}?rel=0&modestbranding=1`} title="فيديو" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ width: '100%', height: '100%', border: 'none', display: 'block' }} />
                         )}

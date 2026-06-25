@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ShoppingBag, ChevronLeft, Star, Package, Truck, Shield } from 'lucide-react';
+import { optimizeImageUrl } from '@/lib/images';
 import type { CAR_MAKES } from './page';
 
 type CarInfo = typeof CAR_MAKES[string];
@@ -55,7 +56,7 @@ function ModelCard({ model, makeKey, cardBg }: { model: ModelEntry; makeKey: str
         : imgs.map((img, i) => (
             <img
               key={img.url}
-              src={img.url}
+              src={optimizeImageUrl(img.url)}
               alt={model.name}
               className="model-card-img"
               loading="lazy"
@@ -309,7 +310,7 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
                         </div>
                       )}
                       {p.image_url
-                        ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '8px' }} loading="lazy" />
+                        ? <img src={optimizeImageUrl(p.image_url)} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '8px' }} loading="lazy" />
                         : <Package size={40} color="#cbd5e1" />
                       }
                     </div>

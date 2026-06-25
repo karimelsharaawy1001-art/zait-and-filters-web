@@ -12,6 +12,7 @@ import {
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/context/CartContext'; 
 import toast from 'react-hot-toast'; 
+import { optimizeImageUrl } from '@/lib/images'; 
 
 
 const Select = dynamic(() => import('react-select'), { 
@@ -316,7 +317,7 @@ function SearchCard({
               isRtl={true} isSearchable={false} value={selectedMake} onChange={(opt: any) => setSelectedMake(opt)}
               formatOptionLabel={(brand: any) => (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  {brand.logo ? <img src={brand.logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} /> : <Car size={20} color="#ccc" />}
+                  {brand.logo ? <img src={optimizeImageUrl(brand.logo)} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} /> : <Car size={20} color="#ccc" />}
                   <span>{brand.label}</span>
                 </div>
               )}
@@ -461,7 +462,7 @@ function CategoriesGrid({ categories }: { categories: any[] }) {
             href={`/categories/${encodeURIComponent(cat.name)}`}
             className="cat-card"
           >
-            <img src={cat.image} alt={cat.name} loading="lazy" width="200" height="267" decoding="async" />
+            <img src={optimizeImageUrl(cat.image)} alt={cat.name} loading="lazy" width="200" height="267" decoding="async" />
             <div className="cat-overlay" />
             <div className="cat-label">
               {cat.name}
@@ -992,7 +993,7 @@ export default function HomePage() {
                     {index === 0 && slide.bg_image_url ? (
                       <>
                         <img
-                          src={slide.bg_image_url}
+                          src={optimizeImageUrl(slide.bg_image_url)}
                           alt=""
                           fetchPriority="high"
                           loading="eager"
@@ -1033,7 +1034,7 @@ export default function HomePage() {
                       {[...brandLogos, ...brandLogos].map((brand, index) => (
                         <div key={index} className="brand-logo-wrap">
                           <Link href={`/store?brand=${brand.name}`}>
-                            <img src={brand.logo_url} alt={brand.name} className="logo-img-v3" loading="lazy"/>
+                            <img src={optimizeImageUrl(brand.logo_url)} alt={brand.name} className="logo-img-v3" loading="lazy"/>
                           </Link>
                         </div>
                       ))}
@@ -1206,7 +1207,7 @@ export default function HomePage() {
                           </div>
                           {isAsli && <div className="badge-asli">✦ أصلي</div>}
                           <Link href={`/products/${p.id}`} className="img-container">
-                            <img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" width="300" height="200" decoding="async" />
+                            <img src={optimizeImageUrl(p.image_url)} alt={p.name} className="img-fill-100" loading="lazy" width="300" height="200" decoding="async" />
                           </Link>
                           <div style={{ padding:'16px', flex:1, display:'flex', flexDirection:'column' }}>
                             <div className="card-brand-row">
@@ -1291,7 +1292,7 @@ export default function HomePage() {
                           </div>
                           {isAsli && <div className="badge-asli">✦ أصلي</div>}
                           <Link href={`/products/${p.id}`} className="img-container">
-                            <img src={p.image_url} alt={p.name} className="img-fill-100" loading="lazy" width="300" height="200" decoding="async" />
+                            <img src={optimizeImageUrl(p.image_url)} alt={p.name} className="img-fill-100" loading="lazy" width="300" height="200" decoding="async" />
                           </Link>
                           <div style={{ padding:'16px', flex:1, display:'flex', flexDirection:'column' }}>
                             <div className="card-brand-row">
@@ -1543,7 +1544,7 @@ export default function HomePage() {
                         <Link key={make} href={`/cars/${make.toLowerCase()}`} className="make-card" style={{ background: bg }}>
                           <div className="make-card-logo-wrap">
                             {logoUrl
-                              ? <img src={logoUrl} alt={ar} loading="lazy" />
+                              ? <img src={optimizeImageUrl(logoUrl)} alt={ar} loading="lazy" />
                               : <Car size={32} color="#64748b" />
                             }
                           </div>

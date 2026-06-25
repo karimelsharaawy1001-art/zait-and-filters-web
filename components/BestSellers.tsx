@@ -4,6 +4,7 @@ import { supabase } from '@/app/lib/supabase';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { Loader2, ShoppingCart, Flame, Car } from 'lucide-react';
+import { optimizeImageUrl } from '@/lib/images';
 import { motion } from 'framer-motion';
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -100,7 +101,7 @@ export default function BestSellers() {
               <div className="zf-bs-image-area" style={{ position: 'relative' }}>
                 <div style={bestLabel}>الأكثر طلباً</div>
                 {p.image_url ? (
-                  <img src={p.image_url} alt={p.name} width="153" height="153" loading="lazy" decoding="async" style={imgStyle} />
+                  <img src={optimizeImageUrl(p.image_url)} alt={p.name} width="153" height="153" loading="lazy" decoding="async" style={imgStyle} />
                 ) : (
                   <Car size={40} color="#eee" />
                 )}

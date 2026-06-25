@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { X, Copy, Check } from 'lucide-react';
+import { optimizeImageUrl } from '@/lib/images';
 
 interface PopupData {
   id: string;
@@ -102,7 +103,7 @@ export default function PromoPopup() {
 
         {/* Image */}
         <img
-          src={imageUrl}
+          src={optimizeImageUrl(imageUrl)}
           alt="Promo"
           style={{
             width: '100%',

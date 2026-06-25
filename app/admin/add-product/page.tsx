@@ -129,6 +129,7 @@ export default function AddProduct() {
       const data = new FormData();
       data.append('file', file);
       data.append('upload_preset', 'zaitandfiltersnew');
+      data.append('format', 'webp');
       const res = await fetch('https://api.cloudinary.com/v1_1/dxtncdxfh/image/upload', { method: 'POST', body: data });
       const fileData = await res.json();
       if (fileData.secure_url) setFormData(prev => ({ ...prev, image_url: fileData.secure_url }));

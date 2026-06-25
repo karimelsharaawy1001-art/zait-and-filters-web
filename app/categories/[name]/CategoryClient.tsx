@@ -4,6 +4,7 @@ import { supabase } from '@/app/lib/supabase';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronRight, LayoutGrid, Loader2 } from 'lucide-react';
+import { optimizeImageUrl } from '@/lib/images';
 
 export default function SubCategoriesPage() {
   const { name } = useParams();
@@ -88,7 +89,7 @@ export default function SubCategoriesPage() {
                 overflow: 'hidden', backgroundColor: '#000', transition: '0.3s ease',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
               }}>
-                <img src={sub.image} alt={sub.name}
+                <img src={optimizeImageUrl(sub.image)} alt={sub.name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.65, filter: 'brightness(0.75)' }}
                 />
                 <div style={{

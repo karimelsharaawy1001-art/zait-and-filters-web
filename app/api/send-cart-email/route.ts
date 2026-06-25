@@ -33,7 +33,7 @@ function buildEmailHtml(params: {
           <tr>
             ${item.image_url ? `
             <td style="width:56px; padding-left: 14px; vertical-align: top;">
-              <img src="${item.image_url}" width="56" height="56"
+              <img src="${item.image_url?.replace('/image/upload/', '/image/upload/f_auto,q_auto/') || ''}" width="56" height="56"
                 style="border-radius:10px; object-fit:contain; background:#f8fafc; border:1px solid #e2e8f0;" />
             </td>` : ''}
             <td style="vertical-align: middle;">

@@ -11,6 +11,7 @@ import {
   Undo2, RotateCcw, X, AlertCircle, CheckSquare, Square
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { optimizeImageUrl } from '@/lib/images';
 
 
 const Select = dynamic(() => import('react-select'), {
@@ -440,7 +441,7 @@ export default function ProfilePage() {
                   {item.selected ? <CheckSquare size={22} color="#22c55e" /> : <Square size={22} color="#d1d5db" />}
                 </div>
                 <img
-                  src={item.image || item.image_url || '/placeholder.png'}
+                  src={optimizeImageUrl(item.image || item.image_url || '/placeholder.png')}
                   alt=""
                   style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'contain', background: '#f5f5f5', flexShrink: 0 }}
                 />
@@ -695,7 +696,7 @@ export default function ProfilePage() {
                             {/* Product items */}
                             {order.items?.map((item: any, i: number) => (
                               <div key={i} style={miniItemRow}>
-                                <img src={item.image || item.image_url || '/api/placeholder/40/40'} alt="" style={miniItemImg} />
+                                <img src={optimizeImageUrl(item.image || item.image_url || '/api/placeholder/40/40')} alt="" style={miniItemImg} />
                                 <div style={{ flex: 1 }}>
                                   <div style={miniItemName}>{item.name} <span style={{ color: '#22c55e' }}>×{item.quantity}</span></div>
                                 </div>

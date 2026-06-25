@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { optimizeImageUrl } from '@/lib/images';
 
 export default function Home() {
   const [products, setProducts] = useState<any[]>([]);
@@ -64,7 +65,7 @@ export default function Home() {
                 <div style={{ backgroundColor: '#fff', height: '200px', borderRadius: '10px', marginBottom: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                   {currentImageUrl ? (
                     <img 
-                      src={currentImageUrl.trim()} 
+                      src={optimizeImageUrl(currentImageUrl.trim())} 
                       alt={item.name} 
                       style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                       onError={(e) => {

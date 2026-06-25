@@ -4,6 +4,7 @@ import { supabase } from '@/app/lib/supabase';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight, Clock, Tag } from 'lucide-react';
+import { optimizeImageUrl } from '@/lib/images';
 
 export default function BlogPostPage() {
   const { slug } = useParams();
@@ -36,7 +37,7 @@ export default function BlogPostPage() {
         </Link>
         {post.cover_image && (
           <div style={{ borderRadius: '24px', overflow: 'hidden', marginBottom: '35px', maxHeight: '400px' }}>
-            <img src={post.cover_image} alt={post.title} style={{ width: '100%', objectFit: 'cover' }} />
+            <img src={optimizeImageUrl(post.cover_image)} alt={post.title} style={{ width: '100%', objectFit: 'cover' }} />
           </div>
         )}
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '20px' }}>
