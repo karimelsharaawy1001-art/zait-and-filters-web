@@ -30,7 +30,7 @@ function buildOrderConfirmationHtml(order: any): string {
 
   const shippingLabels: Record<string, string> = {
     express: 'شحن سريع (48 ساعة)',
-    standard: 'شحن عادي (2-5 أيام)',
+    standard: 'شحن عادي (2-5 أيام عمل)',
   };
 
   const itemsHtml = (order.items || []).map((item: any) => `
@@ -129,7 +129,7 @@ function buildOrderConfirmationHtml(order: any): string {
                       </tr>
                       <tr>
                         <td style="font-size:0.8rem; color:#64748b;">طريقة الشحن</td>
-                        <td style="text-align:left; font-size:0.9rem; font-weight:700; color:#0f172a;">${shippingLabels[order.shipping_type] || 'شحن عادي (2-5 أيام)'}</td>
+                        <td style="text-align:left; font-size:0.9rem; font-weight:700; color:#0f172a;">${shippingLabels[order.shipping_type] || 'شحن عادي (2-5 أيام عمل)'}</td>
                       </tr>
                     </table>
                   </td>
