@@ -33,8 +33,6 @@ export default function PromoPopup() {
   }, []);
 
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | null = null;
-
     fetch(`/api/promo-popup?t=${Date.now()}`)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -46,16 +44,10 @@ export default function PromoPopup() {
           const dismissedId = localStorage.getItem('promo_popup_dismissed');
           if (dismissedId === data.id) return;
           setPopup(data);
-          timer = setTimeout(() => {
-            if (mountedRef.current) setVisible(true);
-          }, 800);
+          setVisible(true);
         }
       })
       .catch((err) => console.error('[PromoPopup] fetch error:', err));
-
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
   }, []);
 
   function dismiss() {
