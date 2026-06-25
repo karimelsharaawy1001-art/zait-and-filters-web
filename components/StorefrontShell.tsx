@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { CartProvider } from '@/context/CartContext';
 import PageTransition from '@/components/PageTransition';
+import PromoPopup from '@/components/PromoPopup';
 
 interface Props {
   children: React.ReactNode;
@@ -36,6 +37,7 @@ export default function StorefrontShell({
     <CartProvider>
       {scrollProgress}
       {abandonedCartTracker}
+      <PromoPopup />
       {navbar}
       {cartDrawer}
       <PageTransition>

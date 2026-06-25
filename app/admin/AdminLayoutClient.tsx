@@ -82,6 +82,7 @@ export default function AdminLayoutClient({ children }: Props) {
         { name: 'Promoters',     href: '/admin/marketers',     icon: '👥', badge: 0 },
         { name: 'ترتيب منتجات العروض',href: '/admin/sale-order',    icon: '🔥', badge: 0 },
         { name: 'الأسئلة الشائعة',    href: '/admin/faqs',          icon: '❓', badge: 0 },
+        { name: 'الإعلان المنبثق',   href: '/admin/promo-popup',   icon: '🪟', badge: 0 },
       ]
     },
     {
