@@ -31,19 +31,46 @@ export default function AdminMessages() {
 
 
   const updateStatus = async (id: string, newStatus: string) => {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('contact_messages')
       .update({ status: newStatus })
-      .eq('id', id);
+      .eq('id', id)
+      .select();
 
     if (error) {
       alert('فشل تحديث الحالة: ' + error.message);
+      return;
+    }
+    if (!data || data.length === 0) {
+      alert('لم يتم تحديث الحالة — تحقق من صلاحيات RLS في Supabase (قد تحتاج إلى إضافة سياسة UPDATE لجدول contact_messages)');
       return;
     }
     setMessages(prev => prev.map(m => m.id === id ? { ...m, status: newStatus } : m));
   };
 
 
+
+  const markAllAsRead = async () => {
+    const unread = messages.filter(m => m.status === 'new' || !m.status);
+    if (unread.length === 0) return;
+
+    const ids = unread.map(m => m.id);
+    const { data, error } = await supabase
+      .from('contact_messages')
+      .update({ status: 'read' })
+      .in('id', ids)
+      .select();
+
+    if (error) {
+      alert('فشل تحديث الحالة: ' + error.message);
+      return;
+    }
+    if (!data || data.length === 0) {
+      alert('لم يتم تحديث أي رسالة — تحقق من صلاحيات RLS في Supabase');
+      return;
+    }
+    setMessages(prev => prev.map(m => m.status === 'new' || !m.status ? { ...m, status: 'read' } : m));
+  };
 
   // ✅ FIXED: now checks count to confirm actual DB deletion
   const deleteMessage = async (id: string) => {
@@ -68,21 +95,6 @@ export default function AdminMessages() {
   };
 
 
-
-  const markAllAsRead = async () => {
-    const unread = messages.filter(m => m.status === 'new' || !m.status);
-    if (unread.length === 0) { alert('لا توجد رسائل جديدة'); return; }
-    if (!confirm(`تحديد ${unread.length} رسالة كمقروءة؟`)) return;
-
-    const ids = unread.map(m => m.id);
-    const { error } = await supabase
-      .from('contact_messages')
-      .update({ status: 'read' })
-      .in('id', ids);
-
-    if (error) { alert('فشل التحديث: ' + error.message); return; }
-    setMessages(prev => prev.map(m => m.status === 'new' || !m.status ? { ...m, status: 'read' } : m));
-  };
 
   const openWhatsApp = (phone: string, name: string, message: string) => {
     const cleanPhone = phone.replace(/\D/g, '');
