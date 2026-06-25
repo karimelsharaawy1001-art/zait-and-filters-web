@@ -597,6 +597,24 @@ export default function CheckoutPage() {
           </p>
         </div>
 
+        {['instapay', 'wallets'].includes(paymentMethod) && (
+          <div style={{
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: '14px',
+            padding: '16px 20px',
+            marginBottom: '20px',
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#991b1b', marginBottom: '6px' }}>
+              ⏳ قيد المراجعة
+            </div>
+            <div style={{ fontSize: '0.82rem', color: '#7f1d1d', lineHeight: '1.7' }}>
+              سيتم مراجعة عملية الدفع خلال <strong>24 ساعة</strong>. بعد تأكيد الدفع، سيتم تحديث حالة الطلب وإعلامك عبر واتساب.
+            </div>
+          </div>
+        )}
+
         {/* ── Action Buttons — stack on mobile ── */}
         <div className="success-action-btns" style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
           <button

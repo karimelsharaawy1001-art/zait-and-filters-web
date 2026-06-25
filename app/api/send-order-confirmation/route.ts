@@ -16,6 +16,86 @@ function getResendClient() {
   return resendClient;
 }
 
+function buildAdminNotificationHtml(order: any): string {
+  const orderNum = order.id.slice(0, 8).toUpperCase();
+  const orderDate = new Date(order.created_at).toLocaleDateString('ar-EG', {
+    year: 'numeric', month: 'long', day: 'numeric',
+  });
+
+  const paymentLabels: Record<string, string> = {
+    instapay: 'InstaPay',
+    card_installments: 'بطاقة / تقسيط',
+    wallets: 'محفظة إلكترونية',
+  };
+
+  const shippingLabels: Record<string, string> = {
+    express: 'شحن سريع (48 ساعة)',
+    standard: 'شحن عادي (2-5 أيام عمل)',
+  };
+
+  const itemsList = (order.items || []).map((item: any) =>
+    `• ${item.name} x${item.quantity || 1} - ${(item.price * (item.quantity || 1)).toFixed(0)} ج.م`
+  ).join('<br>');
+
+  const addressParts = [
+    order.address, order.city, order.area,
+    order.street, order.building_number, order.apartment_number,
+  ].filter(Boolean);
+
+  return `
+<body style="margin:0; padding:0; background:#f5f5f5; font-family:system-ui,-apple-system,sans-serif;">
+  <table cellpadding="0" cellspacing="0" width="100%">
+    <tr><td style="padding:20px;">
+      <table cellpadding="0" cellspacing="0" width="600" style="margin:0 auto; background:#fff; border-radius:16px;">
+        <tr>
+          <td style="background:linear-gradient(135deg,#0f172a,#14532d); border-radius:16px 16px 0 0; padding:24px 32px; text-align:center;">
+            <div style="font-size:1.3rem; font-weight:900; color:#fff; margin-bottom:4px;">
+              🔔 طلب جديد #${orderNum}
+            </div>
+            <div style="font-size:0.82rem; color:rgba(255,255,255,0.6);">${orderDate}</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:24px 32px;">
+            <div style="display:grid; gap:16px;">
+              <div style="background:#f8fafc; border-radius:10px; padding:14px 16px;">
+                <div style="font-size:0.75rem; font-weight:700; color:#64748b; margin-bottom:4px;">العميل</div>
+                <div style="font-size:0.9rem; font-weight:800; color:#1a1a1a;">${order.customer_name || 'غير معروف'}</div>
+                <div style="font-size:0.82rem; color:#15803d;">${order.customer_email || '—'}</div>
+                <div style="font-size:0.82rem; color:#64748b;">${order.phone || order.customer_phone || order.mobile || '—'}</div>
+              </div>
+              <div style="background:#f8fafc; border-radius:10px; padding:14px 16px;">
+                <div style="font-size:0.75rem; font-weight:700; color:#64748b; margin-bottom:4px;">طريقة الدفع</div>
+                <div style="font-size:0.9rem; font-weight:800; color:#1a1a1a;">${paymentLabels[order.payment_method] || order.payment_method}</div>
+                <div style="font-size:0.75rem; color:#64748b; margin-top:4px;">الحالة: ${order.payment_status || 'pending'}</div>
+              </div>
+              <div style="background:#f8fafc; border-radius:10px; padding:14px 16px;">
+                <div style="font-size:0.75rem; font-weight:700; color:#64748b; margin-bottom:4px;">الشحن</div>
+                <div style="font-size:0.9rem; font-weight:800; color:#1a1a1a;">${shippingLabels[order.shipping_type] || 'شحن عادي (2-5 أيام عمل)'}</div>
+                <div style="font-size:0.82rem; color:#64748b;">${addressParts.join('، ')}</div>
+              </div>
+              <div style="background:#f8fafc; border-radius:10px; padding:14px 16px;">
+                <div style="font-size:0.75rem; font-weight:700; color:#64748b; margin-bottom:4px;">المنتجات</div>
+                <div style="font-size:0.82rem; color:#1a1a1a; line-height:1.7;">${itemsList}</div>
+                <div style="font-size:0.85rem; font-weight:900; color:#15803d; margin-top:8px;">
+                  الإجمالي: ${(order.total || 0).toFixed(0)} ج.م
+                </div>
+              </div>
+            </div>
+            <div style="text-align:center; margin-top:20px;">
+              <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://zaitandfilters.com'}/admin/orders/${order.id}"
+                 style="display:inline-block; padding:12px 24px; background:#15803d; color:#fff; border-radius:10px; text-decoration:none; font-weight:800; font-size:0.85rem;">
+                عرض الطلب في لوحة التحكم
+              </a>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>`;
+}
+
 function buildOrderConfirmationHtml(order: any): string {
   const orderNum = order.id.slice(0, 8).toUpperCase();
   const orderDate = new Date(order.created_at).toLocaleDateString('ar-EG', {
@@ -27,6 +107,8 @@ function buildOrderConfirmationHtml(order: any): string {
     card_installments: 'بطاقة / تقسيط',
     wallets: 'محفظة إلكترونية',
   };
+
+  const isManualReview = ['instapay', 'wallets'].includes(order.payment_method);
 
   const shippingLabels: Record<string, string> = {
     express: 'شحن سريع (48 ساعة)',
@@ -214,10 +296,20 @@ function buildOrderConfirmationHtml(order: any): string {
                 </tr>
               </table>
 
+              ${isManualReview ? `<!-- Payment Review Notice -->
+              <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:14px; padding:20px 24px; margin-bottom:24px;">
+                <div style="font-size:0.85rem; font-weight:800; color:#991b1b; margin-bottom:8px;">
+                  ⏳ قيد المراجعة
+                </div>
+                <div style="font-size:0.82rem; color:#7f1d1d; line-height:1.8;">
+                  سيتم مراجعة عملية الدفع خلال <strong>24 ساعة</strong>. بعد تأكيد الدفع، سيتم تحديث حالة الطلب وإعلامك عبر واتساب.
+                </div>
+              </div>` : ''}
+
               <!-- Next Steps -->
               <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:14px; padding:20px 24px; margin-bottom:24px;">
                 <div style="font-size:0.85rem; font-weight:800; color:#92400e; margin-bottom:10px;">
-                  📋 الخطوات التالية
+                  📋 ${isManualReview ? 'بعد تأكيد الدفع' : 'الخطوات التالية'}
                 </div>
                 <div style="font-size:0.82rem; color:#78350f; line-height:1.8;">
                   <div>1. سيتم تجهيز طلبك خلال <strong>24 ساعة</strong></div>
@@ -330,6 +422,21 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('✅ Order confirmation email sent:', data?.id);
+
+    // ── Admin notification ───────────────────────────────────────────────
+    try {
+      const adminHtml = buildAdminNotificationHtml(order);
+      await resend.emails.send({
+        from: 'Zait and Filters <orders@zaitandfilters.com>',
+        to: 'zaitandfilter@gmail.com',
+        subject: `🔔 طلب جديد #${order.id.slice(0, 8).toUpperCase()} - ${order.customer_name || 'غير معروف'}`,
+        html: adminHtml,
+      });
+      console.log('✅ Admin notification sent for order:', order.id);
+    } catch (adminErr) {
+      // Don't fail the request if admin notification fails
+      console.error('❌ Admin notification failed:', adminErr);
+    }
 
     return NextResponse.json({
       success: true,
