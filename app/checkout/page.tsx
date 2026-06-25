@@ -459,6 +459,29 @@ export default function CheckoutPage() {
         created_at: new Date().toISOString()
       };
 
+      // ── Once-per-customer check ──
+      if (appliedPromo && customerInfo.email) {
+        const { data: couponData } = await supabase
+          .from('coupons')
+          .select('once_per_customer')
+          .eq('code', appliedPromo)
+          .maybeSingle();
+
+        if (couponData?.once_per_customer) {
+          const { count } = await supabase
+            .from('orders')
+            .select('id', { count: 'exact', head: true })
+            .eq('customer_email', customerInfo.email)
+            .eq('promo_code', appliedPromo);
+
+          if (count && count > 0) {
+            toast.error('عذراً، لقد استخدمت هذا الكود من قبل. لا يمكن استخدامه مرة أخرى');
+            setLoading(false);
+            return;
+          }
+        }
+      }
+
       if (paymentMethod === 'card_installments') {
         const { data: newOrder, error } = await supabase.from('orders').insert([orderData]).select().single();
         if (error) throw error;

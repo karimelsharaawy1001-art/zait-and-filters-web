@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import { 
   Ticket, Plus, Trash2, Power, PowerOff, 
-  Loader2, Calendar, Tag, Percent, Banknote, Truck 
+  Loader2, Calendar, Tag, Percent, Banknote, Truck, Pin, PinOff, RefreshCw,
+  UserCheck
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -19,7 +20,8 @@ export default function PromoCodesAdmin() {
     discount_type: 'percentage',
     discount_value: '',
     expiry_date: '',
-    is_active: true
+    is_active: true,
+    once_per_customer: false,
   });
 
 
@@ -36,6 +38,7 @@ export default function PromoCodesAdmin() {
       const { data, error } = await supabase
         .from('coupons')
         .select('*')
+        .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false });
       if (error) throw error;
       setCoupons(data || []);
@@ -63,13 +66,14 @@ export default function PromoCodesAdmin() {
         discount_type: newCoupon.discount_type,
         discount_value: isFreeShipping ? 0 : parseFloat(newCoupon.discount_value),
         expiry_date: newCoupon.expiry_date || null,
-        is_active: newCoupon.is_active
+        is_active: newCoupon.is_active,
+        once_per_customer: newCoupon.once_per_customer,
       }]);
 
       if (error) throw error;
 
       toast.success('تم إضافة الكود بنجاح! 🎫');
-      setNewCoupon({ code: '', discount_type: 'percentage', discount_value: '', expiry_date: '', is_active: true });
+      setNewCoupon({ code: '', discount_type: 'percentage', discount_value: '', expiry_date: '', is_active: true, once_per_customer: false });
       fetchCoupons();
     } catch (err: any) {
       toast.error('خطأ: ' + err.message);
@@ -86,6 +90,32 @@ export default function PromoCodesAdmin() {
       if (error) throw error;
       setCoupons(coupons.map(c => c.id === id ? { ...c, is_active: !currentStatus } : c));
       toast.success('تم تحديث الحالة');
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  }
+
+
+
+  async function togglePin(id: string, currentPinned: boolean) {
+    try {
+      const { error } = await supabase.from('coupons').update({ is_pinned: !currentPinned }).eq('id', id);
+      if (error) throw error;
+      setCoupons(coupons.map(c => c.id === id ? { ...c, is_pinned: !currentPinned } : c));
+      toast.success(currentPinned ? 'تم إلغاء التثبيت' : 'تم تثبيت الكود في الأعلى');
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  }
+
+
+
+  async function toggleOncePerCustomer(id: string, currentValue: boolean) {
+    try {
+      const { error } = await supabase.from('coupons').update({ once_per_customer: !currentValue }).eq('id', id);
+      if (error) throw error;
+      setCoupons(coupons.map(c => c.id === id ? { ...c, once_per_customer: !currentValue } : c));
+      toast.success(currentValue ? 'تم تعطيل الاستخدام مرة واحدة لكل عميل' : 'تم تفعيل الاستخدام مرة واحدة لكل عميل');
     } catch (err: any) {
       toast.error(err.message);
     }
@@ -167,6 +197,22 @@ export default function PromoCodesAdmin() {
               />
             </div>
 
+            <div style={inputGroup}>
+              <label style={{ ...label, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="checkbox"
+                  checked={newCoupon.once_per_customer}
+                  onChange={e => setNewCoupon({...newCoupon, once_per_customer: e.target.checked})}
+                  style={{ width: '18px', height: '18px', accentColor: '#15803d' }}
+                />
+                <UserCheck size={16} />
+                استخدام مرة واحدة لكل عميل
+              </label>
+              <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginRight: '26px' }}>
+                كل عميل يستخدم هذا الكود مرة واحدة فقط
+              </div>
+            </div>
+
             <button disabled={btnLoading} style={submitBtn}>
               {btnLoading ? <Loader2 className="animate-spin" /> : 'إنشاء الكود الآن'}
             </button>
@@ -175,7 +221,7 @@ export default function PromoCodesAdmin() {
 
         {/* قائمة الأكواد الحالية */}
         <div style={{ ...card, flex: 2 }}>
-          <h3 style={cardTitle}>الأكواد النشطة ({coupons.length})</h3>
+          <h3 style={cardTitle}>الأكواد ({coupons.length})</h3>
           {loading ? (
             <div style={loaderWrap}><Loader2 className="animate-spin" /> جاري التحميل...</div>
           ) : (
@@ -183,8 +229,10 @@ export default function PromoCodesAdmin() {
               <table style={table}>
                 <thead>
                   <tr style={theadRow}>
+                    <th style={th}>تثبيت</th>
                     <th style={th}>الكود</th>
                     <th style={th}>الخصم</th>
+                    <th style={th}>مرة واحدة</th>
                     <th style={th}>الحالة</th>
                     <th style={th}>تنتهي في</th>
                     <th style={th}>إجراءات</th>
@@ -192,7 +240,16 @@ export default function PromoCodesAdmin() {
                 </thead>
                 <tbody>
                   {coupons.map(coupon => (
-                    <tr key={coupon.id} style={tr}>
+                    <tr key={coupon.id} style={{ ...tr, background: coupon.is_pinned ? '#fffbeb' : undefined }}>
+                      <td style={td}>
+                        <button 
+                          onClick={() => togglePin(coupon.id, coupon.is_pinned)}
+                          style={iconBtn}
+                          title={coupon.is_pinned ? 'إلغاء التثبيت' : 'تثبيت في الأعلى'}
+                        >
+                          {coupon.is_pinned ? <Pin size={16} color="#d97706" /> : <PinOff size={16} color="#94a3b8" />}
+                        </button>
+                      </td>
                       <td style={{ ...td, fontWeight: '900', color: '#1a1a1a' }}>{coupon.code}</td>
                       <td style={td}>
                         {coupon.discount_type === 'percentage' ? (
@@ -202,6 +259,15 @@ export default function PromoCodesAdmin() {
                         ) : (
                           <span style={badgeFree}><Truck size={12} /> شحن مجاني</span>
                         )}
+                      </td>
+                      <td style={td}>
+                        <button
+                          onClick={() => toggleOncePerCustomer(coupon.id, coupon.once_per_customer)}
+                          style={coupon.once_per_customer ? badgeOnceActive : badgeOnceInactive}
+                          title={coupon.once_per_customer ? 'كل عميل يستخدمه مرة واحدة' : 'غير مقيد'}
+                        >
+                          <UserCheck size={14} />
+                        </button>
                       </td>
                       <td style={td}>
                         <button 
@@ -256,8 +322,11 @@ const td: any = { padding: '15px 10px', fontSize: '0.9rem' };
 const badgePercent: any = { background: '#f0fdf4', color: '#15803d', padding: '5px 10px', borderRadius: '8px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '5px', width: 'fit-content' };
 const badgeFixed: any = { background: '#eff6ff', color: '#1d4ed8', padding: '5px 10px', borderRadius: '8px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '5px', width: 'fit-content' };
 const badgeFree: any = { background: '#fff7ed', color: '#c2410c', padding: '5px 10px', borderRadius: '8px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '5px', width: 'fit-content', border: '1px solid #ffedd5' };
+const badgeOnceActive: any = { background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '700', fontSize: '0.82rem' };
+const badgeOnceInactive: any = { background: '#f8fafc', color: '#94a3b8', border: '1px solid #e2e8f0', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '700', fontSize: '0.82rem' };
 const statusActive: any = { background: '#dcfce7', color: '#15803d', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '700' };
 const statusInactive: any = { background: '#fee2e2', color: '#b91c1c', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '700' };
+const iconBtn: any = { background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' };
 const deleteBtn: any = { background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', transition: '0.3s' };
 const loaderWrap: any = { padding: '50px', textAlign: 'center', color: '#15803d', fontWeight: 'bold' };
 const emptyText: any = { textAlign: 'center', padding: '40px', color: '#94a3b8' };
