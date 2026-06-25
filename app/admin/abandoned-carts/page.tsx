@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import toast from 'react-hot-toast';
 import {
@@ -533,6 +533,8 @@ export default function AbandonedCartsAdmin() {
     setFilteredCarts(deduped);
   };
 
+  const dedupedCarts = useMemo(() => deduplicateCarts(carts), [carts]);
+
   const deleteCart = async (cartId: string) => {
     if (!confirm('هل أنت متأكد من حذف هذه السلة؟')) return;
     setDeletingCart(cartId);
@@ -651,10 +653,10 @@ export default function AbandonedCartsAdmin() {
   const eligibleEmail = carts.filter(c => !c.recovered && c.customer_email && !c.customer_phone);
   const stats = {
     total: filteredCarts.length,
-    pending: carts.filter(c => !c.recovered).length,
-    recovered: carts.filter(c => c.recovered).length,
-    totalValue: carts.reduce((s, c) => s + (c.cart_total || 0), 0),
-    recoveryRate: carts.length ? Math.round((carts.filter(c => c.recovered).length / carts.length) * 100) : 0,
+    pending: dedupedCarts.filter(c => !c.recovered).length,
+    recovered: dedupedCarts.filter(c => c.recovered).length,
+    totalValue: dedupedCarts.reduce((s, c) => s + (c.cart_total || 0), 0),
+    recoveryRate: dedupedCarts.length ? Math.round((dedupedCarts.filter(c => c.recovered).length / dedupedCarts.length) * 100) : 0,
   };
   const totalPages = Math.ceil(filteredCarts.length / ITEMS_PER_PAGE);
   const paginated = filteredCarts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);

@@ -69,6 +69,21 @@ export default function AdminMessages() {
 
 
 
+  const markAllAsRead = async () => {
+    const unread = messages.filter(m => m.status === 'new' || !m.status);
+    if (unread.length === 0) { alert('لا توجد رسائل جديدة'); return; }
+    if (!confirm(`تحديد ${unread.length} رسالة كمقروءة؟`)) return;
+
+    const ids = unread.map(m => m.id);
+    const { error } = await supabase
+      .from('contact_messages')
+      .update({ status: 'read' })
+      .in('id', ids);
+
+    if (error) { alert('فشل التحديث: ' + error.message); return; }
+    setMessages(prev => prev.map(m => m.status === 'new' || !m.status ? { ...m, status: 'read' } : m));
+  };
+
   const openWhatsApp = (phone: string, name: string, message: string) => {
     const cleanPhone = phone.replace(/\D/g, '');
     const text = encodeURIComponent(
@@ -91,12 +106,20 @@ export default function AdminMessages() {
         }
       `}</style>
 
-      <h1 style={{ color: '#27ae60', fontWeight: '900', marginBottom: '20px', fontSize: 'clamp(1.1rem, 5vw, 1.5rem)' }}>
-        رسائل العملاء
-        <span style={{ fontSize: '0.85rem', color: '#999', marginRight: '10px', fontWeight: '400' }}>
-          ({messages.length} رسالة)
-        </span>
-      </h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+        <h1 style={{ color: '#27ae60', fontWeight: '900', fontSize: 'clamp(1.1rem, 5vw, 1.5rem)', margin: 0 }}>
+          رسائل العملاء
+          <span style={{ fontSize: '0.85rem', color: '#999', marginRight: '10px', fontWeight: '400' }}>
+            ({messages.length} رسالة)
+          </span>
+        </h1>
+        {messages.filter(m => m.status === 'new' || !m.status).length > 0 && (
+          <button onClick={markAllAsRead}
+            style={{ background: '#27ae60', color: '#fff', border: 'none', borderRadius: '9px', padding: '8px 16px', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            ✓ تحديد الكل كمقروء
+          </button>
+        )}
+      </div>
 
       {/* ── Desktop Table ── */}
       <div className="msg-desktop-table" style={{ backgroundColor: '#fff', borderRadius: '15px', border: '1px solid #eee', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
