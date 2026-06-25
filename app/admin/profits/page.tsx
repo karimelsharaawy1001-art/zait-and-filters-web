@@ -86,8 +86,10 @@ export default function AdminProfits() {
       const cost = costPrices[order.id]?.[idx] ?? parseFloat(item.cost_price || 0);
       return sum + (price - cost) * qty;
     }, 0);
+    const shippingCost = parseFloat(order.shipping_cost || 0);
+    const discount = parseFloat(order.discount_applied || order.discount_amount || 0);
     const extras = extraCosts[order.id] || 0;
-    return grossProfit - extras;
+    return grossProfit - shippingCost - discount - extras;
   }
 
   function totalRevenue(): number {
@@ -210,8 +212,10 @@ export default function AdminProfits() {
                     const cost = costPrices[order.id]?.[idx] ?? parseFloat(item.cost_price || 0);
                     return sum + (price - cost) * qty;
                   }, 0);
+                  const shippingCost = parseFloat(order.shipping_cost || 0);
+                  const discount = parseFloat(order.discount_applied || order.discount_amount || 0);
                   const extras = extraCosts[order.id] || 0;
-                  const netProfit = grossProfit - extras;
+                  const netProfit = grossProfit - shippingCost - discount - extras;
 
                   return (
                     <>
@@ -303,6 +307,8 @@ export default function AdminProfits() {
                                   <div style={{ display: 'flex', gap: '20px', marginTop: '6px', flexWrap: 'wrap' }}>
                                     <span style={{ color: '#22c55e', fontSize: '0.82rem', fontWeight: '700' }}>إجمالي المنتجات: {parseFloat(order.total_price || 0).toLocaleString()} ج.م</span>
                                     <span style={{ color: '#fbbf24', fontSize: '0.82rem', fontWeight: '700' }}>ربح المنتجات: {grossProfit.toLocaleString()} ج.م</span>
+                                    {shippingCost > 0 && <span style={{ color: '#60a5fa', fontSize: '0.82rem', fontWeight: '700' }}>شحن: -{shippingCost.toLocaleString()} ج.م</span>}
+                                    {discount > 0 && <span style={{ color: '#f87171', fontSize: '0.82rem', fontWeight: '700' }}>خصم: -{discount.toLocaleString()} ج.م</span>}
                                     <span style={{ color: extraCosts[order.id] > 0 ? '#f87171' : '#22c55e', fontSize: '0.82rem', fontWeight: '700' }}>تكاليف إضافية: {(extraCosts[order.id] || 0).toLocaleString()} ج.م</span>
                                   </div>
                                 </div>
@@ -335,8 +341,10 @@ export default function AdminProfits() {
                 const cost = costPrices[order.id]?.[idx] ?? parseFloat(item.cost_price || 0);
                 return sum + (price - cost) * qty;
               }, 0);
+              const shippingCost = parseFloat(order.shipping_cost || 0);
+              const discount = parseFloat(order.discount_applied || order.discount_amount || 0);
               const extras = extraCosts[order.id] || 0;
-              const netProfit = grossProfit - extras;
+              const netProfit = grossProfit - shippingCost - discount - extras;
 
               return (
                 <div key={order.id} style={{ background: '#fff', borderRadius: '16px', border: isExpanded ? '2px solid #22c55e' : '1px solid #eee', overflow: 'hidden' }}>
@@ -391,7 +399,19 @@ export default function AdminProfits() {
                           );
                         })}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', padding: '10px 0', borderTop: '1px solid #e0f2e9' }}>
+                      {shippingCost > 0 && (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', padding: '10px 0', borderTop: '1px solid #e0f2e9' }}>
+                          <span style={{ fontSize: '0.82rem', color: '#555', fontWeight: '700' }}>تكلفة الشحن</span>
+                          <span style={{ fontSize: '0.88rem', fontWeight: '800', color: '#60a5fa' }}>- {shippingCost.toLocaleString()} ج.م</span>
+                        </div>
+                      )}
+                      {discount > 0 && (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderTop: '1px solid #e0f2e9' }}>
+                          <span style={{ fontSize: '0.82rem', color: '#555', fontWeight: '700' }}>خصم (برومو كود)</span>
+                          <span style={{ fontSize: '0.88rem', fontWeight: '800', color: '#f87171' }}>- {discount.toLocaleString()} ج.م</span>
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderTop: '1px solid #e0f2e9' }}>
                         <span style={{ fontSize: '0.82rem', color: '#555', fontWeight: '700' }}>تكاليف إضافية</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <input type="number" min={0} step="0.01"
@@ -402,7 +422,7 @@ export default function AdminProfits() {
                           <span style={{ fontSize: '0.72rem', color: '#888' }}>ج.م</span>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', padding: '12px 14px', background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: '10px' }}>
                         <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem', fontWeight: '700' }}>صافي الربح</span>
                         <span style={{ fontSize: '1.2rem', fontWeight: '900', color: netProfit >= 0 ? '#22c55e' : '#f87171' }}>{netProfit.toLocaleString()} ج.م</span>
                       </div>
