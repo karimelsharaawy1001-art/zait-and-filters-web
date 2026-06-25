@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { X, Copy, Check } from 'lucide-react';
 import { optimizeImageUrl } from '@/lib/images';
 
@@ -17,27 +17,45 @@ export default function PromoPopup() {
   const [visible, setVisible] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    mountedRef.current = true;
+    const checkMobile = () => {
+      if (mountedRef.current) setIsMobile(window.innerWidth < 768);
+    };
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    return () => {
+      mountedRef.current = false;
+      window.removeEventListener('resize', checkMobile);
+    };
   }, []);
 
   useEffect(() => {
-    fetch('/api/promo-popup')
-      .then((r) => r.json())
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    fetch(`/api/promo-popup?t=${Date.now()}`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((data) => {
+        if (!mountedRef.current) return;
         if (data?.id && data.is_active) {
           const dismissedId = localStorage.getItem('promo_popup_dismissed');
           if (dismissedId === data.id) return;
           setPopup(data);
-          const timer = setTimeout(() => setVisible(true), 800);
-          return () => clearTimeout(timer);
+          timer = setTimeout(() => {
+            if (mountedRef.current) setVisible(true);
+          }, 800);
         }
       })
-      .catch(() => {});
+      .catch((err) => console.error('[PromoPopup] fetch error:', err));
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
   function dismiss() {
@@ -66,12 +84,9 @@ export default function PromoPopup() {
         position: 'fixed', inset: 0, zIndex: 99999,
         background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(3px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '20px', animation: 'promoFadeIn 0.3s ease',
+        padding: '20px',
       }}
     >
-      <style>{`
-        @keyframes promoFadeIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
-      `}</style>
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
@@ -81,10 +96,8 @@ export default function PromoPopup() {
           background: 'transparent',
           borderRadius: '16px',
           overflow: 'hidden',
-          animation: 'promoFadeIn 0.35s ease',
         }}
       >
-        {/* Close button */}
         <button
           onClick={dismiss}
           style={{
@@ -93,7 +106,6 @@ export default function PromoPopup() {
             background: 'rgba(0,0,0,0.4)', border: 'none',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', color: '#fff',
-            transition: 'background 0.15s',
           }}
           onPointerEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.6)'}
           onPointerLeave={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.4)'}
@@ -101,7 +113,6 @@ export default function PromoPopup() {
           <X size={18} />
         </button>
 
-        {/* Image */}
         <img
           src={optimizeImageUrl(imageUrl)}
           alt="Promo"
@@ -113,7 +124,6 @@ export default function PromoPopup() {
           }}
         />
 
-        {/* Promo code bar */}
         {popup.promo_code && (
           <div
             style={{
@@ -138,7 +148,6 @@ export default function PromoPopup() {
                 color: '#22c55e', fontWeight: '900', fontSize: '0.88rem',
                 cursor: 'pointer', direction: 'ltr',
                 fontFamily: 'monospace',
-                transition: 'background 0.15s',
               }}
               onPointerEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
               onPointerLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
