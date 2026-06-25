@@ -20,6 +20,7 @@ export default function AdminProfits() {
   type CostMap = Record<string, Record<number, number>>;
   const [costPrices, setCostPrices] = useState<CostMap>({});
   const [extraCosts, setExtraCosts] = useState<Record<string, number>>({});
+  const [shippingCostPaid, setShippingCostPaid] = useState<Record<string, number>>({});
 
   useEffect(() => {
     fetchOrders();
@@ -36,8 +37,10 @@ export default function AdminProfits() {
       setOrders(data || []);
       const costs: CostMap = {};
       const extras: Record<string, number> = {};
+      const shipCosts: Record<string, number> = {};
       (data || []).forEach((order: any) => {
         extras[order.id] = parseFloat(order.extra_costs || 0);
+        shipCosts[order.id] = parseFloat(order.shipping_cost_paid || 0);
         const items = order.items || [];
         const orderCosts: Record<number, number> = {};
         items.forEach((item: any, idx: number) => {
@@ -47,6 +50,7 @@ export default function AdminProfits() {
       });
       setCostPrices(costs);
       setExtraCosts(extras);
+      setShippingCostPaid(shipCosts);
     } catch (err: any) {
       toast.error('خطأ في جلب الطلبات: ' + err.message);
     } finally {
@@ -71,6 +75,13 @@ export default function AdminProfits() {
     toast.success('تم حفظ التكاليف الإضافية');
   }
 
+  async function saveShippingCostPaid(orderId: string) {
+    const val = shippingCostPaid[orderId] || 0;
+    const { error } = await supabase.from('orders').update({ shipping_cost_paid: val }).eq('id', orderId);
+    if (error) { toast.error('فشل حفظ تكلفة الشحن: ' + error.message); return; }
+    toast.success('تم حفظ تكلفة الشحن');
+  }
+
   function calcItemProfit(item: any): number {
     const price = parseFloat(item.price || 0);
     const qty = parseInt(item.quantity || 1);
@@ -86,7 +97,7 @@ export default function AdminProfits() {
       const cost = costPrices[order.id]?.[idx] ?? parseFloat(item.cost_price || 0);
       return sum + (price - cost) * qty;
     }, 0);
-    const shippingCost = parseFloat(order.shipping_cost || 0);
+    const shippingCost = shippingCostPaid[order.id] ?? parseFloat(order.shipping_cost_paid || 0);
     const discount = parseFloat(order.discount_applied || order.discount_amount || 0);
     const extras = extraCosts[order.id] || 0;
     return grossProfit - shippingCost - discount - extras;
@@ -102,6 +113,10 @@ export default function AdminProfits() {
 
   function totalExtraCosts(): number {
     return Object.values(extraCosts).reduce((s, v) => s + (v || 0), 0);
+  }
+
+  function totalShippingCostPaid(): number {
+    return Object.values(shippingCostPaid).reduce((s, v) => s + (v || 0), 0);
   }
 
   const filteredOrders = orders;
@@ -169,6 +184,7 @@ export default function AdminProfits() {
           { label: 'صافي الربح', value: totalNetProfit().toLocaleString(), color: totalNetProfit() >= 0 ? '#15803d' : '#dc2626', icon: <DollarSign size={20} />, bg: totalNetProfit() >= 0 ? '#f0fdf4' : '#fef2f2' },
           { label: 'عدد الطلبات', value: filteredOrders.length.toLocaleString(), color: '#1e40af', icon: <Package size={20} />, bg: '#eff6ff' },
           { label: 'إجمالي التكاليف الإضافية', value: totalExtraCosts().toLocaleString(), color: '#d97706', icon: <TrendingDown size={20} />, bg: '#fffbeb' },
+          { label: 'إجمالي تكلفة الشحن', value: totalShippingCostPaid().toLocaleString(), color: '#3b82f6', icon: <TrendingDown size={20} />, bg: '#eff6ff' },
         ].map((card, i) => (
           <div key={i} style={{ background: card.bg, borderRadius: '14px', padding: '18px 20px', border: `1px solid ${card.color}22` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
@@ -212,10 +228,11 @@ export default function AdminProfits() {
                     const cost = costPrices[order.id]?.[idx] ?? parseFloat(item.cost_price || 0);
                     return sum + (price - cost) * qty;
                   }, 0);
-                  const shippingCost = parseFloat(order.shipping_cost || 0);
+                  const customerShipping = parseFloat(order.shipping_cost || 0);
+                  const paidShipping = shippingCostPaid[order.id] ?? parseFloat(order.shipping_cost_paid || 0);
                   const discount = parseFloat(order.discount_applied || order.discount_amount || 0);
                   const extras = extraCosts[order.id] || 0;
-                  const netProfit = grossProfit - shippingCost - discount - extras;
+                  const netProfit = grossProfit - paidShipping - discount - extras;
 
                   return (
                     <>
@@ -301,19 +318,50 @@ export default function AdminProfits() {
                                   );
                                 })}
                               </div>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', padding: '14px 18px', background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: '12px' }}>
-                                <div>
-                                  <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.82rem', fontWeight: '700' }}>ملخص الطلب</span>
-                                  <div style={{ display: 'flex', gap: '20px', marginTop: '6px', flexWrap: 'wrap' }}>
-                                    <span style={{ color: '#22c55e', fontSize: '0.82rem', fontWeight: '700' }}>إجمالي المنتجات: {parseFloat(order.total_price || 0).toLocaleString()} ج.م</span>
-                                    <span style={{ color: '#fbbf24', fontSize: '0.82rem', fontWeight: '700' }}>ربح المنتجات: {grossProfit.toLocaleString()} ج.م</span>
-                                    {shippingCost > 0 && <span style={{ color: '#60a5fa', fontSize: '0.82rem', fontWeight: '700' }}>شحن: -{shippingCost.toLocaleString()} ج.م</span>}
-                                    {discount > 0 && <span style={{ color: '#f87171', fontSize: '0.82rem', fontWeight: '700' }}>خصم: -{discount.toLocaleString()} ج.م</span>}
-                                    <span style={{ color: extraCosts[order.id] > 0 ? '#f87171' : '#22c55e', fontSize: '0.82rem', fontWeight: '700' }}>تكاليف إضافية: {(extraCosts[order.id] || 0).toLocaleString()} ج.م</span>
+                              <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                                <div style={{ flex: 1, background: '#fff', borderRadius: '12px', padding: '14px 16px', border: '1px solid #e8f5e9' }}>
+                                  <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#888', marginBottom: '8px' }}>ملخص التكاليف</div>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.82rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                      <span style={{ color: '#22c55e', fontWeight: '700' }}>ربح المنتجات</span>
+                                      <span style={{ fontWeight: '800', color: '#22c55e' }}>{grossProfit.toLocaleString()} ج.م</span>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                      <span style={{ color: '#555', fontWeight: '700' }}>الشحن المدفوع من العميل</span>
+                                      <span style={{ fontWeight: '800', color: '#60a5fa' }}>{customerShipping.toLocaleString()} ج.م</span>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                      <span style={{ color: '#555', fontWeight: '700' }}>تكلفة الشحن الفعلية</span>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }} onClick={e => e.stopPropagation()}>
+                                        <input type="number" min={0} step="0.01"
+                                          value={paidShipping || ''}
+                                          onChange={e => setShippingCostPaid(p => ({ ...p, [order.id]: parseFloat(e.target.value) || 0 }))}
+                                          onBlur={() => saveShippingCostPaid(order.id)}
+                                          style={{ width: '80px', height: '30px', border: '1px solid #e5e5e5', borderRadius: '6px', textAlign: 'center', fontSize: '0.82rem', fontWeight: '700', background: '#fff' }} />
+                                        <span style={{ fontSize: '0.72rem', color: '#888' }}>ج.م</span>
+                                      </div>
+                                    </div>
+                                    {discount > 0 && (
+                                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <span style={{ color: '#555', fontWeight: '700' }}>خصم (برومو كود)</span>
+                                        <span style={{ fontWeight: '800', color: '#f87171' }}>- {discount.toLocaleString()} ج.م</span>
+                                      </div>
+                                    )}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                      <span style={{ color: '#555', fontWeight: '700' }}>تكاليف إضافية</span>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }} onClick={e => e.stopPropagation()}>
+                                        <input type="number" min={0} step="0.01"
+                                          value={extras || ''}
+                                          onChange={e => setExtraCosts(p => ({ ...p, [order.id]: parseFloat(e.target.value) || 0 }))}
+                                          onBlur={() => saveExtraCosts(order.id)}
+                                          style={{ width: '80px', height: '30px', border: '1px solid #e5e5e5', borderRadius: '6px', textAlign: 'center', fontSize: '0.82rem', fontWeight: '700', background: '#fff' }} />
+                                        <span style={{ fontSize: '0.72rem', color: '#888' }}>ج.م</span>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
-                                <div style={{ textAlign: 'left' }}>
-                                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.72rem', fontWeight: '700' }}>صافي الربح</div>
+                                <div style={{ flex: '0 0 auto', background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: '12px', padding: '14px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minWidth: '140px' }}>
+                                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.72rem', fontWeight: '700', marginBottom: '4px' }}>صافي الربح</div>
                                   <div style={{ fontSize: '1.4rem', fontWeight: '900', color: netProfit >= 0 ? '#22c55e' : '#f87171' }}>
                                     {netProfit.toLocaleString()} ج.م
                                   </div>
@@ -341,10 +389,11 @@ export default function AdminProfits() {
                 const cost = costPrices[order.id]?.[idx] ?? parseFloat(item.cost_price || 0);
                 return sum + (price - cost) * qty;
               }, 0);
-              const shippingCost = parseFloat(order.shipping_cost || 0);
+              const customerShipping = parseFloat(order.shipping_cost || 0);
+              const paidShipping = shippingCostPaid[order.id] ?? parseFloat(order.shipping_cost_paid || 0);
               const discount = parseFloat(order.discount_applied || order.discount_amount || 0);
               const extras = extraCosts[order.id] || 0;
-              const netProfit = grossProfit - shippingCost - discount - extras;
+              const netProfit = grossProfit - paidShipping - discount - extras;
 
               return (
                 <div key={order.id} style={{ background: '#fff', borderRadius: '16px', border: isExpanded ? '2px solid #22c55e' : '1px solid #eee', overflow: 'hidden' }}>
@@ -399,30 +448,48 @@ export default function AdminProfits() {
                           );
                         })}
                       </div>
-                      {shippingCost > 0 && (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', padding: '10px 0', borderTop: '1px solid #e0f2e9' }}>
-                          <span style={{ fontSize: '0.82rem', color: '#555', fontWeight: '700' }}>تكلفة الشحن</span>
-                          <span style={{ fontSize: '0.88rem', fontWeight: '800', color: '#60a5fa' }}>- {shippingCost.toLocaleString()} ج.م</span>
-                        </div>
-                      )}
-                      {discount > 0 && (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderTop: '1px solid #e0f2e9' }}>
-                          <span style={{ fontSize: '0.82rem', color: '#555', fontWeight: '700' }}>خصم (برومو كود)</span>
-                          <span style={{ fontSize: '0.88rem', fontWeight: '800', color: '#f87171' }}>- {discount.toLocaleString()} ج.م</span>
-                        </div>
-                      )}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderTop: '1px solid #e0f2e9' }}>
-                        <span style={{ fontSize: '0.82rem', color: '#555', fontWeight: '700' }}>تكاليف إضافية</span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <input type="number" min={0} step="0.01"
-                            value={extraCosts[order.id] ?? 0}
-                            onChange={e => setExtraCosts(p => ({ ...p, [order.id]: parseFloat(e.target.value) || 0 }))}
-                            onBlur={() => saveExtraCosts(order.id)}
-                            style={{ width: '90px', height: '34px', border: '1px solid #e5e5e5', borderRadius: '8px', textAlign: 'center', fontSize: '0.85rem', fontWeight: '700' }} />
-                          <span style={{ fontSize: '0.72rem', color: '#888' }}>ج.م</span>
+                      <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #e0f2e9' }}>
+                        <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#888', marginBottom: '8px' }}>ملخص التكاليف</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.82rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: '#22c55e', fontWeight: '700' }}>ربح المنتجات</span>
+                            <span style={{ fontWeight: '800', color: '#22c55e' }}>{grossProfit.toLocaleString()} ج.م</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: '#555', fontWeight: '700' }}>الشحن المدفوع من العميل</span>
+                            <span style={{ fontWeight: '800', color: '#60a5fa' }}>{customerShipping.toLocaleString()} ج.م</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: '#555', fontWeight: '700' }}>تكلفة الشحن الفعلية</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <input type="number" min={0} step="0.01"
+                                value={paidShipping || ''}
+                                onChange={e => setShippingCostPaid(p => ({ ...p, [order.id]: parseFloat(e.target.value) || 0 }))}
+                                onBlur={() => saveShippingCostPaid(order.id)}
+                                style={{ width: '80px', height: '32px', border: '1px solid #e5e5e5', borderRadius: '6px', textAlign: 'center', fontSize: '0.82rem', fontWeight: '700' }} />
+                              <span style={{ fontSize: '0.72rem', color: '#888' }}>ج.م</span>
+                            </div>
+                          </div>
+                          {discount > 0 && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span style={{ color: '#555', fontWeight: '700' }}>خصم (برومو كود)</span>
+                              <span style={{ fontWeight: '800', color: '#f87171' }}>- {discount.toLocaleString()} ج.م</span>
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: '#555', fontWeight: '700' }}>تكاليف إضافية</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <input type="number" min={0} step="0.01"
+                                value={extras || ''}
+                                onChange={e => setExtraCosts(p => ({ ...p, [order.id]: parseFloat(e.target.value) || 0 }))}
+                                onBlur={() => saveExtraCosts(order.id)}
+                                style={{ width: '80px', height: '32px', border: '1px solid #e5e5e5', borderRadius: '6px', textAlign: 'center', fontSize: '0.82rem', fontWeight: '700' }} />
+                              <span style={{ fontSize: '0.72rem', color: '#888' }}>ج.م</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', padding: '12px 14px', background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: '10px' }}>
                         <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem', fontWeight: '700' }}>صافي الربح</span>
                         <span style={{ fontSize: '1.2rem', fontWeight: '900', color: netProfit >= 0 ? '#22c55e' : '#f87171' }}>{netProfit.toLocaleString()} ج.م</span>
                       </div>
