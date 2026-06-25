@@ -54,11 +54,16 @@ export default function OrderSuccessClient() {
       const { data } = await query.maybeSingle();
       if (data) {
         if (intervalRef.current) clearInterval(intervalRef.current);
-        setOrder(data);
-        setPhase('found');
-        localStorage.removeItem('cart');
-        localStorage.removeItem('zf_marketer_ref');
-        localStorage.removeItem('zf_pending_order');
+        // Only show success if payment was actually completed
+        if (data.payment_status === 'paid' || data.status === 'pending') {
+          setOrder(data);
+          setPhase('found');
+          localStorage.removeItem('cart');
+          localStorage.removeItem('zf_marketer_ref');
+          localStorage.removeItem('zf_pending_order');
+        } else {
+          setPhase('payment_failed');
+        }
       }
     } catch (err) {
       console.error('[OrderSuccess] Poll error:', err);

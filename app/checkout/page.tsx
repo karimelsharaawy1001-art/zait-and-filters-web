@@ -499,6 +499,44 @@ export default function CheckoutPage() {
         setCompletedSubtotal(subtotal);
         setCompletedFinalTotal(finalTotal);
         setCompletedOrderId(newOrder.id);
+
+        // Send order confirmation email
+        if (customerInfo.email) {
+          try {
+            const emailRes = await fetch('/api/send-order-confirmation', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderId: newOrder.id,
+                orderData: {
+                  id: newOrder.id,
+                  created_at: newOrder.created_at,
+                  customer_name: customerInfo.name,
+                  customer_email: customerInfo.email,
+                  customer_phone: customerInfo.phone,
+                  customer_address: customerInfo.address,
+                  city: selectedCity?.city_name,
+                  shipping_cost: expressShipping ? EXPRESS_COST : selectedCity?.price,
+                  shipping_type: expressShipping ? 'express' : 'standard',
+                  discount_applied: appliedPromoType === 'free_shipping' ? (expressShipping ? EXPRESS_COST : selectedCity?.price) : discountAmount,
+                  wallet_discount: walletDiscount || 0,
+                  total_price: finalTotal,
+                  payment_method: paymentMethod,
+                  items: cart,
+                },
+              }),
+            });
+            const emailData = await emailRes.json();
+            if (emailRes.ok) {
+              console.log('✅ Order confirmation email sent:', emailData);
+            } else {
+              console.error('❌ Order confirmation email failed:', emailRes.status, emailData);
+            }
+          } catch (err) {
+            console.error('❌ Order confirmation email error:', err);
+          }
+        }
+
         clearCart();
         toast.success('تم تسجيل طلبك بنجاح! 🎉');
         window.scrollTo({ top: 0, behavior: 'smooth' });

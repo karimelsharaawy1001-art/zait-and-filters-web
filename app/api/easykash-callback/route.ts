@@ -3,11 +3,6 @@
 // EasyKash calls this URL after every payment attempt.
 // Configure in EasyKash Integration Settings:
 //   Callback URL: https://zaitandfilters.com/api/easykash-callback
-//
-// Change from previous version:
-//   - No longer gatekeeps on status === 'PAID'
-//   - ALL statuses create an order, with payment_status reflecting what EasyKash sent
-//   - This prevents orders getting silently swallowed if EasyKash sends a different status string
 
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
@@ -102,20 +97,34 @@ export async function POST(req: NextRequest) {
     const paymentStatus = mapPaymentStatus(status);
     console.log(`[EasyKash Callback] Status: "${status}" → payment_status: "${paymentStatus}"`);
 
-    // ── 5. Create the real order regardless of status ─────────────────────────
+    // ── 5. Only create the order when payment is successful ───────────────────
+    //     Failed/cancelled payments must NOT create an order record so they
+    //     don't appear as successful orders on the website.
+    if (paymentStatus !== 'paid') {
+      console.log(`[EasyKash Callback] ⏭️ Payment not successful (${paymentStatus}), skipping order creation`);
+
+      // Clean up pending order regardless
+      await supabaseAdmin
+        .from('pending_orders')
+        .delete()
+        .eq('reference', String(customerReference));
+
+      return NextResponse.json({ received: true, action: 'skipped', paymentStatus });
+    }
+
     const orderData = pending.order_data;
 
     const { data: newOrder, error: insertError } = await supabaseAdmin
       .from('orders')
       .insert({
         ...orderData,
-        status: paymentStatus === 'paid' ? 'pending' : 'cancelled',
-        payment_status: paymentStatus,
+        status: 'pending',
+        payment_status: 'paid',
         payment_method: 'card_installments',
         easykash_ref: easykashRef || null,
         easykash_payment_method: PaymentMethod || null,
         easykash_amount: Amount || null,
-        easykash_status_raw: status,           // store the raw status for debugging
+        easykash_status_raw: status,
         created_at: new Date().toISOString(),
       })
       .select()
@@ -126,10 +135,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: insertError.message }, { status: 500 });
     }
 
-    console.log('[EasyKash Callback] ✅ Order created:', newOrder.id, '| payment_status:', paymentStatus);
+    console.log('[EasyKash Callback] ✅ Order created:', newOrder.id);
 
-    // ── 6. Affiliate commission (only for paid orders) ───────────────────────
-    if (paymentStatus === 'paid' && orderData.marketer_id) {
+    // ── 6. Affiliate commission ──────────────────────────────────────────────
+    if (orderData.marketer_id) {
       try {
         const { data: marketer } = await supabaseAdmin
           .from('marketers')
@@ -164,7 +173,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ── 7. Clean up pending order ─────────────────────────────────────────────
+    // ── 7. Send order confirmation email ─────────────────────────────────────
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://zaitandfilters.com';
+    fetch(`${baseUrl}/api/send-order-confirmation`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId: newOrder.id }),
+    }).catch((err) => console.error('[EasyKash Callback] Email send error:', err));
+
+    // ── 8. Clean up pending order ─────────────────────────────────────────────
     await supabaseAdmin
       .from('pending_orders')
       .delete()

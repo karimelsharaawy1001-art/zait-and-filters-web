@@ -113,6 +113,15 @@ export async function POST(req: NextRequest) {
     }
 
     console.log('[EasyKash Webhook] ✅ Order updated:', matchedOrder.id, '→ pending / paid');
+
+    // Fire-and-forget: send order confirmation email
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://zaitandfilters.com';
+    fetch(`${baseUrl}/api/send-order-confirmation`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId: matchedOrder.id }),
+    }).catch((err) => console.error('[EasyKash Webhook] Email send error:', err));
+
     return NextResponse.json({ received: true, action: 'updated', orderId: matchedOrder.id });
 
   } catch (err: any) {
