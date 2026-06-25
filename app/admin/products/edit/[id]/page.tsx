@@ -158,7 +158,6 @@ export default function EditProduct() {
       formDataUpload.append('file', file);
       formDataUpload.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
       formDataUpload.append('folder', 'products');
-      formDataUpload.append('format', 'webp');
 
       const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
 

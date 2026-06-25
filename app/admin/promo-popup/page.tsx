@@ -58,7 +58,6 @@ export default function AdminPromoPopup() {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-    formData.append('format', 'webp');
 
     const setter = target === 'desktop' ? setUploadingDesktop : setUploadingMobile;
 
