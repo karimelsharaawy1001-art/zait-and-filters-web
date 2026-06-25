@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { X, Copy, Check } from 'lucide-react';
 import { optimizeImageUrl } from '@/lib/images';
+import { supabase } from '@/app/lib/supabase';
 
 interface PopupData {
   id: string;
@@ -17,37 +18,34 @@ export default function PromoPopup() {
   const [visible, setVisible] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const mountedRef = useRef(true);
 
   useEffect(() => {
-    mountedRef.current = true;
-    const checkMobile = () => {
-      if (mountedRef.current) setIsMobile(window.innerWidth < 768);
-    };
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    return () => {
-      mountedRef.current = false;
-      window.removeEventListener('resize', checkMobile);
-    };
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   useEffect(() => {
-    fetch(`/api/promo-popup?t=${Date.now()}`)
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((data) => {
-        if (!mountedRef.current) return;
-        if (data?.id && data.is_active) {
+    supabase
+      .from('promo_popups')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('[PromoPopup] query error:', error);
+          return;
+        }
+        if (data?.id) {
           const dismissedId = localStorage.getItem('promo_popup_dismissed');
           if (dismissedId === data.id) return;
           setPopup(data);
           setVisible(true);
         }
-      })
-      .catch((err) => console.error('[PromoPopup] fetch error:', err));
+      });
   }, []);
 
   function dismiss() {
@@ -99,8 +97,6 @@ export default function PromoPopup() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', color: '#fff',
           }}
-          onPointerEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.6)'}
-          onPointerLeave={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.4)'}
         >
           <X size={18} />
         </button>
@@ -141,8 +137,6 @@ export default function PromoPopup() {
                 cursor: 'pointer', direction: 'ltr',
                 fontFamily: 'monospace',
               }}
-              onPointerEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
-              onPointerLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
             >
               {popup.promo_code}
               {copied ? <Check size={14} /> : <Copy size={14} />}
