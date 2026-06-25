@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import { Image as ImageIcon, Save, Eye, EyeOff, Copy, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { optimizeImageUrl } from '@/lib/images';
 
 const CLOUDINARY_CLOUD_NAME = 'dxtncdxfh';
 const CLOUDINARY_UPLOAD_PRESET = 'zaitandfiltersnew';
@@ -230,7 +231,7 @@ export default function AdminPromoPopup() {
         />
         {popup.desktop_image_url ? (
           <div style={{ position: 'relative' }}>
-            <img src={popup.desktop_image_url} alt="Desktop" style={previewStyle} />
+            <img src={optimizeImageUrl(popup.desktop_image_url)} alt="Desktop" style={previewStyle} />
             <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
               <button
                 onClick={() => desktopInputRef.current?.click()}
@@ -288,7 +289,7 @@ export default function AdminPromoPopup() {
         />
         {popup.mobile_image_url ? (
           <div style={{ position: 'relative' }}>
-            <img src={popup.mobile_image_url} alt="Mobile" style={previewStyle} />
+            <img src={optimizeImageUrl(popup.mobile_image_url)} alt="Mobile" style={previewStyle} />
             <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
               <button
                 onClick={() => mobileInputRef.current?.click()}
@@ -401,7 +402,7 @@ export default function AdminPromoPopup() {
               <span style={{ color: '#fff', fontSize: '1.2rem', cursor: 'pointer', opacity: 0.6 }}>✕</span>
             </div>
             <img
-              src={popup.desktop_image_url}
+              src={optimizeImageUrl(popup.desktop_image_url)}
               alt="Preview"
               style={{ width: '100%', borderRadius: '8px', display: 'block' }}
             />
