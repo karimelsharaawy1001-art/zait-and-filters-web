@@ -103,20 +103,22 @@ export default function AdminProfits() {
     return grossProfit - shippingCost - discount - extras;
   }
 
+  const completedOrders = orders.filter(o => o.status === 'delivered');
+
   function totalRevenue(): number {
-    return orders.reduce((s, o) => s + parseFloat(o.total_price || 0), 0);
+    return completedOrders.reduce((s, o) => s + parseFloat(o.total_price || 0), 0);
   }
 
   function totalNetProfit(): number {
-    return orders.reduce((s, o) => s + calcOrderNetProfit(o), 0);
+    return completedOrders.reduce((s, o) => s + calcOrderNetProfit(o), 0);
   }
 
   function totalExtraCosts(): number {
-    return Object.values(extraCosts).reduce((s, v) => s + (v || 0), 0);
+    return completedOrders.reduce((s, o) => s + (extraCosts[o.id] || 0), 0);
   }
 
   function totalShippingCostPaid(): number {
-    return Object.values(shippingCostPaid).reduce((s, v) => s + (v || 0), 0);
+    return completedOrders.reduce((s, o) => s + (shippingCostPaid[o.id] ?? parseFloat(o.shipping_cost_paid || 0)), 0);
   }
 
   const filteredOrders = orders;
@@ -182,7 +184,7 @@ export default function AdminProfits() {
         {[
           { label: 'إجمالي الإيرادات', value: totalRevenue().toLocaleString(), color: '#15803d', icon: <TrendingUp size={20} />, bg: '#f0fdf4' },
           { label: 'صافي الربح', value: totalNetProfit().toLocaleString(), color: totalNetProfit() >= 0 ? '#15803d' : '#dc2626', icon: <DollarSign size={20} />, bg: totalNetProfit() >= 0 ? '#f0fdf4' : '#fef2f2' },
-          { label: 'عدد الطلبات', value: filteredOrders.length.toLocaleString(), color: '#1e40af', icon: <Package size={20} />, bg: '#eff6ff' },
+          { label: 'الطلبات المكتملة', value: completedOrders.length.toLocaleString(), color: '#1e40af', icon: <Package size={20} />, bg: '#eff6ff' },
           { label: 'إجمالي التكاليف الإضافية', value: totalExtraCosts().toLocaleString(), color: '#d97706', icon: <TrendingDown size={20} />, bg: '#fffbeb' },
           { label: 'إجمالي تكلفة الشحن', value: totalShippingCostPaid().toLocaleString(), color: '#3b82f6', icon: <TrendingDown size={20} />, bg: '#eff6ff' },
         ].map((card, i) => (
