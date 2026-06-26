@@ -19,7 +19,6 @@ export default function PromoPopup() {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    console.log('[PromoPopup] mounted');
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -27,32 +26,20 @@ export default function PromoPopup() {
   }, []);
 
   useEffect(() => {
-    const supabaseUrl = 'https://dcaecjzsmitzuagjlyll.supabase.co';
-    const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjYWVjanpzbWl0enVhZ2pseWxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4OTg2MzUsImV4cCI6MjA4NjQ3NDYzNX0.UhXXRtxAaUcqSADw2ZQZGYMi0y-vBgXFRQCuxMBKMmk';
-
-    fetch(`${supabaseUrl}/rest/v1/promo_popups?select=*&is_active=eq.true&order=created_at.desc&limit=1`, {
-      headers: {
-        'apikey': anonKey,
-        'Authorization': `Bearer ${anonKey}`,
-      },
-    })
+    fetch(`/api/promo-popup?t=${Date.now()}`)
       .then((r) => {
-        console.log('[PromoPopup] fetch status:', r.status);
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((arr) => {
-        console.log('[PromoPopup] data:', arr);
-        const data = arr?.[0];
-        if (data?.id) {
+      .then((data) => {
+        if (data?.id && data.is_active) {
           const dismissedId = localStorage.getItem('promo_popup_dismissed');
           if (dismissedId === data.id) return;
           setPopup(data);
           setVisible(true);
-          console.log('[PromoPopup] showing');
         }
       })
-      .catch((err) => console.error('[PromoPopup] error:', err));
+      .catch((err) => console.error('[PromoPopup] fetch error:', err));
   }, []);
 
   function dismiss() {
