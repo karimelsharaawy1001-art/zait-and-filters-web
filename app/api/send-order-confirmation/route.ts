@@ -302,7 +302,7 @@ function buildOrderConfirmationHtml(order: any): string {
                   ⏳ قيد المراجعة
                 </div>
                 <div style="font-size:0.82rem; color:#7f1d1d; line-height:1.8;">
-                  سيتم مراجعة عملية الدفع خلال <strong>24 ساعة</strong>. بعد تأكيد الدفع، سيتم تحديث حالة الطلب وإعلامك عبر واتساب.
+                  سيتم مراجعة عملية الدفع خلال <strong>24 ساعة</strong>. بعد تأكيد الدفع، سيتم تحديث حالة الطلب وإعلامك.
                 </div>
               </div>` : ''}
 
@@ -314,7 +314,7 @@ function buildOrderConfirmationHtml(order: any): string {
                 <div style="font-size:0.82rem; color:#78350f; line-height:1.8;">
                   <div>1. سيتم تجهيز طلبك خلال <strong>24 ساعة</strong></div>
                   <div>2. سيتم شحنه خلال <strong>2-5 أيام عمل</strong></div>
-                  <div>3. سيتم إعلامك عند الشحن عبر واتساب</div>
+                  <div>3. سيتم إعلامك عند الشحن</div>
                   <div>4. يمكنك متابعة حالة الطلب من حسابك</div>
                 </div>
               </div>

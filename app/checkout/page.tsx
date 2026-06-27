@@ -634,7 +634,7 @@ export default function CheckoutPage() {
               ⏳ قيد المراجعة
             </div>
             <div style={{ fontSize: '0.82rem', color: '#7f1d1d', lineHeight: '1.7' }}>
-              سيتم مراجعة عملية الدفع خلال <strong>24 ساعة</strong>. بعد تأكيد الدفع، سيتم تحديث حالة الطلب وإعلامك عبر واتساب.
+              سيتم مراجعة عملية الدفع خلال <strong>24 ساعة</strong>. بعد تأكيد الدفع، سيتم تحديث حالة الطلب وإعلامك.
             </div>
           </div>
         )}

@@ -96,16 +96,6 @@ export default function AdminMessages() {
 
 
 
-  const openWhatsApp = (phone: string, name: string, message: string) => {
-    const cleanPhone = phone.replace(/\D/g, '');
-    const text = encodeURIComponent(
-      `أهلاً يا أستاذ ${name}، بخصوص استفسارك على موقع زيت أند فلترز:\n\n"${message}"\n\n`
-    );
-    window.open(`https://wa.me/2${cleanPhone}?text=${text}`, '_blank');
-  };
-
-
-
   return (
     <div style={{ direction: 'rtl', color: '#1a1a1a', fontFamily: 'sans-serif', padding: 'clamp(12px, 3vw, 20px)', backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
       <style>{`
@@ -160,9 +150,6 @@ export default function AdminMessages() {
                     <div style={{ fontWeight: 'bold', color: '#1a1a1a' }}>{msg.full_name}</div>
                     <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '4px' }}>{msg.phone}</div>
                     {msg.email && <div style={{ fontSize: '0.75rem', color: '#aaa', marginBottom: '8px' }}>{msg.email}</div>}
-                    <button onClick={() => openWhatsApp(msg.phone, msg.full_name, msg.message)} style={whatsappBtnStyle}>
-                      تواصل واتساب ✅
-                    </button>
                   </td>
                   <td style={tdStyle}>
                     <div style={{ fontSize: '0.9rem', color: '#444', maxWidth: '350px' }}>{msg.message}</div>
@@ -227,9 +214,6 @@ export default function AdminMessages() {
                   ✓ تحديد كمقروءة
                 </button>
               )}
-              <button onClick={() => openWhatsApp(msg.phone, msg.full_name, msg.message)} style={{ ...whatsappBtnStyle, fontSize: '0.8rem', padding: '7px 14px' }}>
-                واتساب ✅
-              </button>
               <select value={msg.status || 'new'} onChange={(e) => updateStatus(msg.id, e.target.value)}
                 style={{ flex: 1, minWidth: '110px', backgroundColor: '#f9f9f9', color: msg.status === 'new' || !msg.status ? '#27ae60' : '#888', border: '1px solid #ddd', borderRadius: '8px', padding: '7px 10px', fontSize: '0.82rem', cursor: 'pointer' }}>
                 <option value="new">جديدة</option>
@@ -252,13 +236,3 @@ export default function AdminMessages() {
 
 const thStyle: any = { padding: '14px 16px', fontSize: '0.88rem', fontWeight: '700' };
 const tdStyle: any = { padding: '12px 16px', verticalAlign: 'top' };
-const whatsappBtnStyle: any = {
-  backgroundColor: '#25D366',
-  color: '#fff',
-  border: 'none',
-  borderRadius: '8px',
-  padding: '5px 12px',
-  fontSize: '0.75rem',
-  fontWeight: 'bold',
-  cursor: 'pointer',
-};

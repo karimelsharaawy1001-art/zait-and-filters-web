@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { X, Send, MessageCircle, ChevronDown, Headphones, MessageSquare } from 'lucide-react';
 import { supabase } from '@/app/lib/supabase';
 import { openTawkTo } from './TawkToProvider';
@@ -13,8 +14,6 @@ interface FAQ {
 }
 
 interface Msg { from: 'bot' | 'user'; text: string; }
-
-const WA_LINK = 'https://wa.me/201206777292?text=مرحبًا%20،%20أود%20الحصول%20على%20مزيد%20من%20المعلومات%20حول%20خدماتكم.';
 
 const FALLBACK_FAQS: FAQ[] = [
   { id: 1, question: 'مكانكوا فين؟', answer: 'المقر الإداري والمخازن في التجمع الخامس بالقاهرة.', is_active: true, sort_order: 1 },
@@ -126,12 +125,6 @@ export default function ChatWidget() {
       setMsgs(m => [...m, { from: 'bot', text: faq.answer }]);
     }, 600);
   }
-
-  const WA_SVG = (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-    </svg>
-  );
 
   return (
     <>
@@ -277,17 +270,16 @@ export default function ChatWidget() {
                   <div style={{ display:'flex', gap:'8px', alignItems:'flex-end', flexDirection:m.from === 'user' ? 'row-reverse' : 'row' }}>
                     <div className={m.from === 'bot' ? 'z-bubble-bot' : 'z-bubble-user'}>
                       {m.text}
-                      {m.from === 'bot' && (m.text.includes('خدمة العملاء') || m.text.includes('واتساب')) && (
+                      {m.from === 'bot' && m.text.includes('خدمة العملاء') && (
                         <div style={{ display:'flex', gap:'6px', marginTop:'10px', flexWrap:'wrap' }}>
                           <button onClick={() => { setOpen(false); openTawkTo(); }} className="z-action-btn"
                             style={{ background:'#1e3a5f', color:'#fff' }}>
                             <Headphones size={13} /> خدمة العملاء
                           </button>
-                          <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
-                            className="z-action-btn"
-                            style={{ background:'#25D366', color:'#fff', textDecoration:'none' }}>
-                            {WA_SVG} واتساب
-                          </a>
+                          <Link href="/contact" className="z-action-btn"
+                            style={{ background:'#1e3a5f', color:'#fff', textDecoration:'none' }}>
+                            <MessageSquare size={13} /> تواصل معنا
+                          </Link>
                         </div>
                       )}
                     </div>
@@ -321,18 +313,18 @@ export default function ChatWidget() {
               padding:'10px 12px 14px', borderTop:'1px solid #f1f1f1',
               display:'flex', gap:'8px', flexShrink:0, background:'#fff',
             }}>
-              <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
+              <Link href="/contact"
                 style={{
                   width:'40px', height:'40px', borderRadius:'12px',
-                  background:'#25D366', display:'flex', alignItems:'center',
+                  background:'#0f172a', display:'flex', alignItems:'center',
                   justifyContent:'center', flexShrink:0, textDecoration:'none',
                   color:'#fff', transition:'transform 0.15s',
                 }}
                 onMouseOver={e => e.currentTarget.style.transform = 'scale(1.06)'}
                 onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
               >
-                {WA_SVG}
-              </a>
+                <MessageSquare size={18} />
+              </Link>
               <form onSubmit={e => { e.preventDefault(); sendMsg(input); }} style={{ flex:1, display:'flex', gap:'6px' }}>
                 <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
                   placeholder="اكتب سؤالك هنا..." dir="rtl"
