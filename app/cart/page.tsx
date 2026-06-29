@@ -3,7 +3,7 @@ import { useCart } from '@/context/CartContext';
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Car, Tag, Loader2, ShieldCheck, Truck, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { optimizeImageUrl } from '@/lib/images';
 
 export default function CartPage() {
@@ -123,7 +123,7 @@ export default function CartPage() {
                 const isUniversal = !mk || univ.includes(mk.toLowerCase());
 
                 return (
-                  <motion.div key={item.id} className="cart-item"
+                  <m.div key={item.id} className="cart-item"
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 40 }}
                     transition={{ duration: 0.25 }}>
                     <div className="cart-item-img">
@@ -159,7 +159,7 @@ export default function CartPage() {
                         </div>
                       </div>
                     </div>
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </AnimatePresence>

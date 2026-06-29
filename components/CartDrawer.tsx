@@ -1,6 +1,6 @@
 'use client';
 import { useCart } from '@/context/CartContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { X, ShoppingBag, Trash2, Plus, Minus, ArrowRight, Car } from 'lucide-react';
 import { optimizeImageUrl } from '@/lib/images';
 import Link from 'next/link';
@@ -26,14 +26,14 @@ export default function CartDrawer() {
       {open && (
         <>
           {/* Backdrop */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setOpen(false)}
             style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(4px)', zIndex: 2000 }}
           />
 
           {/* Drawer */}
-          <motion.div
+          <m.div
             initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 260 }}
             style={{
@@ -84,7 +84,7 @@ export default function CartDrawer() {
                     const compatText = isUniversal ? '' : `${mk}${univ.includes(mo.toLowerCase()) ? '' : ' ' + mo}`;
 
                     return (
-                      <motion.div key={item.id}
+                      <m.div key={item.id}
                         initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 40 }}
                         style={{ display: 'flex', gap: '12px', padding: '14px 0', borderBottom: '1px solid #f8fafc' }}>
                         {/* Image */}
@@ -125,7 +125,7 @@ export default function CartDrawer() {
                             </div>
                           </div>
                         </div>
-                      </motion.div>
+                      </m.div>
                     );
                   })}
                 </AnimatePresence>
@@ -157,7 +157,7 @@ export default function CartDrawer() {
                 </div>
               </div>
             )}
-          </motion.div>
+          </m.div>
         </>
       )}
     </AnimatePresence>

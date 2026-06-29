@@ -6,7 +6,7 @@ import {
   Zap, Users, Percent, Ticket, ArrowRight, Star,
   LogIn, UserPlus
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 
 
 export default function AffiliateLanding() {
@@ -40,16 +40,16 @@ export default function AffiliateLanding() {
 
       {/* --- القسم الأول: الهيرو (Hero Section) --- */}
       <section style={heroSection} className="hero-gradient">
-        <motion.div 
+        <m.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="float-anim" 
           style={badge}
         >
           <Star size={14} fill="#27ae60" /> برنامج النخبة for Promoters 2026
-        </motion.div>
+        </m.div>
         
-        <motion.h1 
+        <m.h1 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
@@ -57,10 +57,10 @@ export default function AffiliateLanding() {
         >
           حول شبكة علاقاتك إلى <br />
           <span style={highlightText}>أرباح تصل إلى 20%</span>
-        </motion.h1>
+        </m.h1>
 
 
-        <motion.p 
+        <m.p 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
@@ -68,9 +68,9 @@ export default function AffiliateLanding() {
         >
           انضم إلى "زيت أند فلترز" وسوّق لأجود أنواع قطع الغيار الأصلية. 
           نحن لا نعطيك عمولة فقط، نحن نعطيك نظاماً ذكياً لإدارة دخلك الشهري بالكامل.
-        </motion.p>
+        </m.p>
         
-        <motion.div 
+        <m.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
@@ -82,7 +82,7 @@ export default function AffiliateLanding() {
           <Link href="/affiliate/login" style={secondaryBtn}>
             تسجيل دخول المسوقين
           </Link>
-        </motion.div>
+        </m.div>
 
 
         <div style={statsBanner} className="glass-panel">
@@ -134,7 +134,7 @@ export default function AffiliateLanding() {
         <h2 style={sectionTitle}>لماذا يختارنا المحترفون؟</h2>
         <div style={featuresGrid}>
           {features.map((f, i) => (
-            <motion.div 
+            <m.div 
               whileHover={{ y: -5 }}
               key={i} 
               style={featureCard} 
@@ -143,7 +143,7 @@ export default function AffiliateLanding() {
               <div style={iconCircle}>{f.icon}</div>
               <h4 style={cardHeader}>{f.title}</h4>
               <p style={cardText}>{f.desc}</p>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </section>
@@ -151,7 +151,7 @@ export default function AffiliateLanding() {
 
       {/* --- القسم الرابع: الخاتمة (CTA) --- */}
       <section style={ctaSection}>
-        <motion.div 
+        <m.div 
           whileInView={{ scale: [0.9, 1], opacity: [0, 1] }}
           viewport={{ once: true }}
           style={ctaBox}
@@ -164,7 +164,7 @@ export default function AffiliateLanding() {
           <Link href="/affiliate/signup" style={ctaBtn} className="btn-glow">
             أنشئ حسابك المجاني الآن
           </Link>
-        </motion.div>
+        </m.div>
       </section>
     </div>
   );

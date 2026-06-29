@@ -1,5 +1,5 @@
 'use client';
-import { motion, useInView } from 'framer-motion';
+import { m, useInView } from 'framer-motion';
 import { useRef, ReactNode } from 'react';
 
 interface ScrollRevealProps {
@@ -24,7 +24,7 @@ export default function ScrollReveal({
   };
 
   return (
-    <motion.div
+    <m.div
       ref={ref}
       initial={{ opacity: 0, ...directions[direction] }}
       animate={isInView ? { opacity: 1, y: 0, x: 0 } : {}}
@@ -35,6 +35,6 @@ export default function ScrollReveal({
       }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }

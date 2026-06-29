@@ -8,7 +8,7 @@ import {
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { supabase } from '@/app/lib/supabase';
-import { motion, useAnimation, AnimatePresence } from 'framer-motion';
+import { m, useAnimation, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import SmartSearchBar from '@/components/SmartSearchBar';
@@ -160,12 +160,12 @@ export default function ProfessionalNavbar() {
       <AnimatePresence>
         {isSidebarOpen && (
           <>
-            <motion.div 
+            <m.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setIsSidebarOpen(false)}
               style={overlayStyle}
             />
-            <motion.div 
+            <m.div 
               initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               style={sidebarStyle}
@@ -245,7 +245,7 @@ export default function ProfessionalNavbar() {
               <div style={sidebarFooter}>
                 <p>زيت أند فلترز - v1.1.0</p>
               </div>
-            </motion.div>
+            </m.div>
           </>
         )}
       </AnimatePresence>
@@ -254,12 +254,12 @@ export default function ProfessionalNavbar() {
       <AnimatePresence>
         {mobileSearchOpen && (
           <>
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setMobileSearchOpen(false)}
               style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 3000, backdropFilter: 'blur(3px)' }}
             />
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
               transition={{ type: 'spring', damping: 28, stiffness: 300 }}
               style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 3001, background: '#fff', padding: '14px 16px', borderRadius: '0 0 20px 20px', boxShadow: '0 8px 30px rgba(0,0,0,0.15)', direction: 'rtl' }}
@@ -274,7 +274,7 @@ export default function ProfessionalNavbar() {
               <p style={{ marginTop: '10px', fontSize: '0.72rem', color: '#9ca3af', textAlign: 'center' }}>
                 يفهم أسماء السيارات وأنواع القطع — جرّب: مساعدين النترا
               </p>
-            </motion.div>
+            </m.div>
           </>
         )}
       </AnimatePresence>
@@ -316,7 +316,7 @@ export default function ProfessionalNavbar() {
             style={{ ...iconBtn, display: 'none', position: 'relative', textDecoration: 'none' }}
             aria-label="السلة"
           >
-            <motion.div animate={controls}><ShoppingCart size={22} /></motion.div>
+            <m.div animate={controls}><ShoppingCart size={22} /></m.div>
             {cartItems.length > 0 && <span style={cartBadge}>{cartItems.reduce((sum: number, i: any) => sum + (parseInt(i.quantity) || 1), 0)}</span>}
           </Link>
 
@@ -369,7 +369,7 @@ export default function ProfessionalNavbar() {
                 href="/cart"
                 style={{ ...iconBtn, position: 'relative', textDecoration: 'none', marginRight: '10px' }}
               >
-                <motion.div animate={controls}><ShoppingCart size={22} /></motion.div>
+                <m.div animate={controls}><ShoppingCart size={22} /></m.div>
                 {cartItems.length > 0 && <span style={cartBadge}>{cartItems.reduce((sum: number, i: any) => sum + (parseInt(i.quantity) || 1), 0)}</span>}
               </Link>
             </div>

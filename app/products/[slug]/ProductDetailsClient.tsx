@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/app/lib/supabase';
 import { useCart } from '@/context/CartContext';
 import {
@@ -97,7 +97,7 @@ function ReviewsSection({ productId }: { productId: string }) {
   const avgRating = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
 
   return (
-    <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.1 }} variants={fadeUp}
+    <m.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.1 }} variants={fadeUp}
       className="pdp-section"
       style={{ background: '#fff', borderRadius: '24px', padding: '24px', marginBottom: '20px', border: '1px solid #f1f5f9', direction: 'rtl' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
@@ -125,7 +125,7 @@ function ReviewsSection({ productId }: { productId: string }) {
 
       <AnimatePresence>
         {showForm && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+          <m.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
             style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '22px', marginBottom: '24px', overflow: 'hidden' }}>
             <h3 style={{ fontSize: '1rem', fontWeight: '800', margin: '0 0 16px', color: '#0f172a' }}>أضف تقييمك</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
@@ -155,7 +155,7 @@ function ReviewsSection({ productId }: { productId: string }) {
               {submitting ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={15} />}
               {submitting ? 'جاري الإرسال...' : 'إرسال التقييم'}
             </button>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
@@ -169,9 +169,9 @@ function ReviewsSection({ productId }: { productId: string }) {
           <p style={{ fontWeight: '700', fontSize: '0.95rem' }}>لا توجد تقييمات بعد — كن أول من يقيّم!</p>
         </div>
       ) : (
-        <motion.div initial="hidden" animate="show" variants={stagger} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <m.div initial="hidden" animate="show" variants={stagger} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {reviews.map(r => (
-            <motion.div key={r.id} variants={fadeUp} style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '16px 18px' }}>
+            <m.div key={r.id} variants={fadeUp} style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '16px 18px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'linear-gradient(135deg,#22c55e,#16a34a)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -187,12 +187,12 @@ function ReviewsSection({ productId }: { productId: string }) {
                 </span>
               </div>
               <p style={{ fontSize: '0.9rem', color: '#334155', lineHeight: '1.65', margin: 0 }}>{r.comment}</p>
-            </motion.div>
+            </m.div>
           ))}
-        </motion.div>
+        </m.div>
       )}
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -227,7 +227,7 @@ function ShareButtons({ productName, productBrand, price, carMake, carModel, pro
         {open && (
           <>
             <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 999 }} />
-            <motion.div initial={{ opacity: 0, scale: 0.92, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92, y: 8 }}
+            <m.div initial={{ opacity: 0, scale: 0.92, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92, y: 8 }}
               style={{ position: 'absolute', bottom: 'calc(100% + 10px)', right: 0, backgroundColor: '#fff', borderRadius: '18px', boxShadow: '0 12px 40px rgba(0,0,0,0.14)', border: '1px solid #f1f5f9', padding: '12px', zIndex: 1000, minWidth: '200px', display: 'flex', flexDirection: 'column', gap: '6px', direction: 'rtl' }}>
               <p style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '700', margin: '0 4px 4px' }}>شارك عبر</p>
               <a href={facebookUrl} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} style={btnStyle('#1877F2')}><Facebook size={17} fill="white" color="white" /> فيسبوك</a>
@@ -236,7 +236,7 @@ function ShareButtons({ productName, productBrand, price, carMake, carModel, pro
               <button onClick={() => { copyLink(); setOpen(false); }} style={{ ...btnStyle('#475569'), border: 'none', cursor: 'pointer', width: '100%', fontFamily: 'inherit' }}>
                 {copied ? <Check size={17} /> : <Copy size={17} />}{copied ? 'تم النسخ!' : 'نسخ الرابط'}
               </button>
-            </motion.div>
+            </m.div>
           </>
         )}
       </AnimatePresence>
@@ -257,7 +257,7 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
   const price = p.sale_price && Number(p.sale_price) > 0 ? p.sale_price : p.regular_price;
   const hasSale = p.sale_price && Number(p.sale_price) > 0;
   return (
-    <motion.div whileHover={{ y: -6, boxShadow: '0 20px 50px rgba(34,197,94,0.14)' }} transition={{ duration: 0.25 }}
+    <m.div whileHover={{ y: -6, boxShadow: '0 20px 50px rgba(34,197,94,0.14)' }} transition={{ duration: 0.25 }}
       style={{ background: '#fff', borderRadius: '20px', border: '1px solid #f1f5f9', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
       <Link href={`/products/${p.slug || p.id}`} style={{ textDecoration: 'none', display: 'block', position: 'relative', height: '160px', background: '#f8fafc', overflow: 'hidden' }}>
         {displayImage ? (
@@ -314,20 +314,20 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
           </div>
         </div>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
 // ─── Spec Item ────────────────────────────────────────────────────────────────
 function SpecItem({ label, value, icon }: { label: string; value: string; icon?: React.ReactNode }) {
   return (
-    <motion.div variants={fadeUp} style={{ background: '#f8fafc', borderRadius: '14px', padding: '12px 14px', border: '1px solid #f1f5f9' }}>
+    <m.div variants={fadeUp} style={{ background: '#f8fafc', borderRadius: '14px', padding: '12px 14px', border: '1px solid #f1f5f9' }}>
       <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '700', marginBottom: '4px', textTransform: 'uppercase' as const, letterSpacing: '0.4px' }}>{label}</div>
       <div style={{ fontSize: '0.88rem', fontWeight: '800', color: '#0f172a', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
         {icon && <span style={{ flexShrink: 0, marginTop: '1px' }}>{icon}</span>}
         <span style={{ wordBreak: 'break-word' as const, minWidth: 0, flex: 1 }}>{value}</span>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -454,7 +454,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
       <div className="pdp-wrapper">
 
         {/* Breadcrumb */}
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
+        <m.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
           style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.85rem', color: '#94a3b8', flexWrap: 'wrap' as const }}>
           <Link href="/store" style={{ display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#475569', fontWeight: '700' }}>
             <ArrowRight size={16} /> المتجر
@@ -462,13 +462,13 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           <ChevronLeft size={14} color="#cbd5e1" />
           {product.category && <><span style={{ color: '#94a3b8' }}>{product.category}</span><ChevronLeft size={14} color="#cbd5e1" /></>}
           <span style={{ color: '#22c55e', fontWeight: '700', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{product.name}</span>
-        </motion.div>
+        </m.div>
 
         <div className="pdp-grid">
 
           {/* ── Media ── */}
           <div className="pdp-media">
-            <motion.div variants={slideLeft} initial="hidden" animate="show">
+            <m.div variants={slideLeft} initial="hidden" animate="show">
               {slides.length === 0 ? (
                 <div className="pdp-slider" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <div style={{ textAlign: 'center', color: '#cbd5e1' }}><Package size={64} /><p style={{ fontWeight: '700', marginTop: '12px' }}>لا توجد صورة</p></div>
@@ -495,11 +495,11 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                   )}
                 </div>
               )}
-            </motion.div>
+            </m.div>
           </div>
 
           {/* ── Info ── */}
-          <motion.div className="pdp-info" variants={slideRight} initial="hidden" animate="show">
+          <m.div className="pdp-info" variants={slideRight} initial="hidden" animate="show">
 
             {/* Brand + Stock */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -565,12 +565,12 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             </div>
 
             {/* Specs grid */}
-            <motion.div initial="hidden" animate="show" variants={stagger}
+            <m.div initial="hidden" animate="show" variants={stagger}
               style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               {product.country_of_origin && <SpecItem label="المنشأ" value={product.country_of_origin} icon={<Globe size={14} color="#22c55e" />} />}
               <SpecItem label="الضمان" value={product.warranty || product.warranty_duration || 'ضمان استبدال'} icon={<Timer size={14} color="#22c55e" />} />
               {product.sku && <SpecItem label="كود المنتج" value={product.sku} icon={<Info size={14} color="#22c55e" />} />}
-            </motion.div>
+            </m.div>
 
             {/* Qty + Cart */}
             {isOutOfStock ? (
@@ -639,7 +639,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                 </div>
               ))}
             </div>
-          </motion.div>
+          </m.div>
         </div>
 
         {/* Description */}

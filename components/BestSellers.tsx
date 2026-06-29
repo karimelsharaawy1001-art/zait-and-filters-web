@@ -5,7 +5,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { Loader2, ShoppingCart, Flame, Car } from 'lucide-react';
 import { optimizeImageUrl } from '@/lib/images';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
@@ -97,7 +97,7 @@ export default function BestSellers() {
       >
         {bestSellers.map((p) => (
           <SwiperSlide key={p.id}>
-            <motion.div whileHover={{ y: -5 }} style={productCard}>
+            <m.div whileHover={{ y: -5 }} style={productCard}>
               <div className="zf-bs-image-area" style={{ position: 'relative' }}>
                 <div style={bestLabel}>الأكثر طلباً</div>
                 {p.image_url ? (
@@ -114,7 +114,7 @@ export default function BestSellers() {
                    <button style={cartBtn}><ShoppingCart size={16} /></button>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           </SwiperSlide>
         ))}
       </Swiper>

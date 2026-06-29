@@ -1,10 +1,10 @@
 'use client';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { ReactNode } from 'react';
 
 export default function FloatingElement({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
   return (
-    <motion.div
+    <m.div
       animate={{
         y: [0, -10, 0],
       }}
@@ -16,6 +16,6 @@ export default function FloatingElement({ children, delay = 0 }: { children: Rea
       }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }

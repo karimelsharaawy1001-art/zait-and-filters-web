@@ -9,7 +9,7 @@ import {
   Globe, Settings2, Calendar, Flame, 
   LayoutGrid, Tags, Sparkles, Shield, TrendingUp
 } from 'lucide-react';
-import { motion, useInView, AnimatePresence } from 'framer-motion';
+import { m, useInView, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/context/CartContext'; 
 import toast from 'react-hot-toast'; 
 import { optimizeImageUrl } from '@/lib/images'; 
@@ -154,7 +154,7 @@ function GooglePlayBanner() {
   if (!visible || isInApp) return null;
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: -16 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -16 }}
@@ -247,7 +247,7 @@ function GooglePlayBanner() {
         >✕</button>
 
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -258,10 +258,10 @@ function ScrollReveal({ children, delay = 0, direction = 'up' }: { children: Rea
   const isInView = useInView(ref, { once: true, margin: '-50px' });
   const directions = { up: { y: 40, x: 0 }, down: { y: -40, x: 0 }, left: { x: 40, y: 0 }, right: { x: -40, y: 0 } };
   return (
-    <motion.div ref={ref} initial={{ opacity: 0, ...directions[direction] }} animate={isInView ? { opacity: 1, y: 0, x: 0 } : {}}
+    <m.div ref={ref} initial={{ opacity: 0, ...directions[direction] }} animate={isInView ? { opacity: 1, y: 0, x: 0 } : {}}
       transition={{ duration: 0.5, delay, ease: [0.25, 0.46, 0.45, 0.94] }}>
       {children}
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -716,30 +716,30 @@ export default function HomePage() {
       <div style={{ direction: 'rtl', backgroundColor: '#fdfdfd', color: '#1a1a1a', minHeight: '100vh', fontSize: '13px' }}>
 
         {loading && (
-          <motion.div initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }} style={fullPageLoaderStyle}>
+          <m.div initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }} style={fullPageLoaderStyle}>
             <div style={{ textAlign: 'center', maxWidth: '480px', width: '100%', padding: '0 24px', boxSizing: 'border-box' }}>
-              <motion.h1 initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.6, ease: 'easeOut' }} style={brandNameText}>
+              <m.h1 initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.6, ease: 'easeOut' }} style={brandNameText}>
                 <span style={{ color: '#fff' }}>ZAIT</span>
                 <span style={{ color: '#22c55e' }}>&nbsp;&amp; FILTERS</span>
-              </motion.h1>
-              <motion.h2 initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.6 }} style={mainHeadline}>قطع الغيار بضغطة زرار</motion.h2>
-              <motion.p initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35, duration: 0.6 }} style={tagline}>وجهتك الأولى لقطع غيار السيارات الأصلية في مصر</motion.p>
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} style={loadingBarContainer}>
-                <motion.div initial={{ width: '0%' }} animate={{ width: '100%' }} transition={{ duration: 1.5, ease: 'easeInOut' }} style={loadingBar} />
-              </motion.div>
-              <motion.div key={loadingMessage} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.4 }} style={messageContainer}>
+              </m.h1>
+              <m.h2 initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.6 }} style={mainHeadline}>قطع الغيار بضغطة زرار</m.h2>
+              <m.p initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35, duration: 0.6 }} style={tagline}>وجهتك الأولى لقطع غيار السيارات الأصلية في مصر</m.p>
+              <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} style={loadingBarContainer}>
+                <m.div initial={{ width: '0%' }} animate={{ width: '100%' }} transition={{ duration: 1.5, ease: 'easeInOut' }} style={loadingBar} />
+              </m.div>
+              <m.div key={loadingMessage} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.4 }} style={messageContainer}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
                   {loadingMessages[loadingMessage].icon}
                   <span style={messageText}>{loadingMessages[loadingMessage].text}</span>
                 </div>
-              </motion.div>
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} style={featurePills}>
+              </m.div>
+              <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} style={featurePills}>
                 <div style={pill}><Shield size={16} color="#22c55e" /><span>ضمان الجودة</span></div>
                 <div style={pill}><Sparkles size={16} color="#22c55e" /><span>أسعار تنافسية</span></div>
                 <div style={pill}><TrendingUp size={16} color="#22c55e" /><span>شحن مجاني</span></div>
-              </motion.div>
+              </m.div>
             </div>
-          </motion.div>
+          </m.div>
         )}
 
         <style dangerouslySetInnerHTML={{ __html: `
@@ -1564,7 +1564,7 @@ export default function HomePage() {
         {/* STICKY GARAGE NOTIFICATION */}
         <AnimatePresence>
           {garageMode && userCar && (
-            <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }} style={stickyNotificationStyle}>
+            <m.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }} style={stickyNotificationStyle}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={garageIconWrapMini}><Car size={18} color="#fff" /></div>
                 <div style={{ textAlign: 'right' }}>
@@ -1572,7 +1572,7 @@ export default function HomePage() {
                   <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.8)', fontWeight: '700' }}>نعرض المنتجات المتوافقة والعامة فقط</div>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
       </div>

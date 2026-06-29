@@ -26,7 +26,7 @@ import {
   AlertTriangle,
   Zap,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/context/CartContext';
 import toast from 'react-hot-toast';
 import { optimizeImageUrl } from '@/lib/images';
@@ -1421,7 +1421,7 @@ setBrandsOptions(brandsOpts);
 
       <AnimatePresence>
         {(loading || initializing) && (
-          <motion.div
+          <m.div
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
@@ -1439,14 +1439,14 @@ setBrandsOptions(brandsOpts);
               <Loader2 size={60} color="#22c55e" style={{ animation: 'spin 1s linear infinite', marginBottom: '20px' }} />
               <h3 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#1a1a1a' }}>جاري تحميل المنتجات...</h3>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
       {!initializing && (
         <>
           {saleMode && !loading && (
-            <motion.section
+            <m.section
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
@@ -1477,11 +1477,11 @@ setBrandsOptions(brandsOpts);
                   </div>
                 </div>
               </div>
-            </motion.section>
+            </m.section>
           )}
 
           {showHero && !loading && !showGarageConflictBanner && !saleMode && (
-            <motion.section
+            <m.section
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
@@ -1529,18 +1529,18 @@ setBrandsOptions(brandsOpts);
                     </div>
                   </div>
                   {carHeroImage && isDesktop && (
-                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.6 }} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <m.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.6 }} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                       <img src={optimizeImageUrl(carHeroImage)} alt={`${heroMakeLabel} ${heroModelLabel}`} style={{ width: '100%', maxHeight: '280px', objectFit: 'contain', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))' }} />
-                    </motion.div>
+                    </m.div>
                   )}
                   {carHeroImage && !isDesktop && (
-                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.6 }} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <m.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.6 }} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                       <img src={optimizeImageUrl(carHeroImage)} alt={`${heroMakeLabel} ${heroModelLabel}`} style={{ width: '80%', maxHeight: '180px', objectFit: 'contain', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.12))' }} />
-                    </motion.div>
+                    </m.div>
                   )}
                 </div>
               </div>
-            </motion.section>
+            </m.section>
           )}
 
           {/* Scroll anchor — pagination scrolls here */}
@@ -1562,11 +1562,11 @@ setBrandsOptions(brandsOpts);
             </button>
             <AnimatePresence>
               {filtersOpen && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }} style={{ overflow: 'hidden' }}>
+                <m.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }} style={{ overflow: 'hidden' }}>
                   <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '12px', marginTop: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                     <FilterSection {...filterProps} />
                   </div>
-                </motion.div>
+                </m.div>
               )}
             </AnimatePresence>
           </div>
@@ -1591,7 +1591,7 @@ setBrandsOptions(brandsOpts);
             <div style={{ flex: 1 }}>
               <AnimatePresence>
                 {effectiveGarageConflict && !loading && (
-                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}
+                  <m.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}
                     style={{ backgroundColor: '#fff7ed', border: '2px solid #f97316', borderRadius: '16px', padding: '28px 24px', textAlign: 'center', marginBottom: '20px' }}
                   >
                     <AlertTriangle size={48} color="#f97316" style={{ margin: '0 auto 16px' }} />
@@ -1634,7 +1634,7 @@ setBrandsOptions(brandsOpts);
                         مسح التصنيفات والبقاء في وضع الجراج
                       </button>
                     </div>
-                  </motion.div>
+                  </m.div>
                 )}
               </AnimatePresence>
 
@@ -1679,7 +1679,7 @@ setBrandsOptions(brandsOpts);
                       const isOriginal = ['اصلي', 'أصلي', 'original', 'اصلى'].includes(origin.toLowerCase());
                       const isOutOfStock = product.is_active === false || (product.stock_quantity != null && Number(product.stock_quantity) === 0);
                       return (
-                        <motion.div
+                        <m.div
                           key={product.id}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -1847,7 +1847,7 @@ setBrandsOptions(brandsOpts);
                               })()}
                             </div>
                           </div>
-                        </motion.div>
+                        </m.div>
                       );
                     })}
                   </div>
@@ -1868,7 +1868,7 @@ setBrandsOptions(brandsOpts);
                       const imgSrc = product.image_url || (product.category && subcategoryImages[product.category.trim().toUpperCase()]) || '/api/placeholder/200/200';
                       const inCartQty = cartItems.find((i: any) => i.id === product.id)?.quantity ?? 0;
                       return (
-                        <motion.div key={product.id} className="list-card"
+                        <m.div key={product.id} className="list-card"
                           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
                           {/* Image */}
                           <Link href={`/products/${product.slug || product.id}`} className="list-card-img" style={{ display: 'block', textDecoration: 'none', position: 'relative' }}>
@@ -1933,7 +1933,7 @@ setBrandsOptions(brandsOpts);
                               )}
                             </div>
                           </div>
-                        </motion.div>
+                        </m.div>
                       );
                     })}
                   </div>
@@ -1955,7 +1955,7 @@ setBrandsOptions(brandsOpts);
       {/* STICKY GARAGE NOTIFICATION */}
       <AnimatePresence>
         {garageMode && userCar && (
-          <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }} style={stickyNotificationStyle}>
+          <m.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }} style={stickyNotificationStyle}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={garageIconWrapMini}>
                 <Car size={18} color="#fff" />
@@ -1969,7 +1969,7 @@ setBrandsOptions(brandsOpts);
                 </div>
               </div>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>

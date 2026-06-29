@@ -1,6 +1,6 @@
 'use client';
 import { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { m, useScroll, useTransform } from 'framer-motion';
 
 export default function ParallaxImage({ 
   src, 
@@ -21,7 +21,7 @@ export default function ParallaxImage({
 
   return (
     <div ref={ref} style={{ overflow: 'hidden', position: 'relative', height: '100%' }}>
-      <motion.img
+      <m.img
         src={src}
         alt={alt}
         style={{ y, width: '100%', height: '120%', objectFit: 'cover' }}

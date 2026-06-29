@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import { useCart } from '@/context/CartContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import toast from 'react-hot-toast';
 import {
@@ -546,7 +546,7 @@ export default function MaintenanceBundlePage() {
         {/* BUNDLE SLOTS */}
         <AnimatePresence>
           {carSelected && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+            <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
                 <h2 className="section-title" style={{ fontWeight: '900', fontSize: '1.1rem' }}>🛠️ محتويات الباقة</h2>
@@ -559,7 +559,7 @@ export default function MaintenanceBundlePage() {
                 {bundleSlots.map((slot, slotIdx) => {
                   const cs = CATEGORY_STYLES[slot.category] ?? DEFAULT_STYLE;
                   return (
-                    <motion.div
+                    <m.div
                       key={slot.category}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -786,14 +786,14 @@ export default function MaintenanceBundlePage() {
                           )}
                         </div>
                       )}
-                    </motion.div>
+                    </m.div>
                   );
                 })}
               </div>
 
               {/* STICKY SUMMARY BAR */}
               {allSelectedProducts.length >= 1 && (
-                <motion.div
+                <m.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="summary-bar"
@@ -850,9 +850,9 @@ export default function MaintenanceBundlePage() {
                       </button>
                     </div>
                   </div>
-                </motion.div>
+                </m.div>
               )}
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
 

@@ -1,6 +1,7 @@
 // components/StorefrontShell.tsx
 'use client';
 import { usePathname } from 'next/navigation';
+import { LazyMotion, domAnimation } from 'framer-motion';
 import { CartProvider } from '@/context/CartContext';
 import PageTransition from '@/components/PageTransition';
 import PromoPopup from '@/components/PromoPopup';
@@ -34,18 +35,20 @@ export default function StorefrontShell({
   }
 
   return (
-    <CartProvider>
-      {scrollProgress}
-      {abandonedCartTracker}
-      <PromoPopup />
-      {navbar}
-      {cartDrawer}
-      <PageTransition>
-        <main className="storefront-main">{children}</main>
-      </PageTransition>
-      {footer}
-      {exitConfirm}
-      {chatWidget}
-    </CartProvider>
+    <LazyMotion features={domAnimation}>
+      <CartProvider>
+        {scrollProgress}
+        {abandonedCartTracker}
+        <PromoPopup />
+        {navbar}
+        {cartDrawer}
+        <PageTransition>
+          <main className="storefront-main">{children}</main>
+        </PageTransition>
+        {footer}
+        {exitConfirm}
+        {chatWidget}
+      </CartProvider>
+    </LazyMotion>
   );
 }
