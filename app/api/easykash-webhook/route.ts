@@ -116,10 +116,12 @@ export async function POST(req: NextRequest) {
 
     // Fire-and-forget: send order confirmation email
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://zaitandfilters.com';
+    // Admin was already notified when the order was created at checkout, so
+    // only send the customer confirmation here (skipAdmin) to avoid duplicates.
     fetch(`${baseUrl}/api/send-order-confirmation`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderId: matchedOrder.id }),
+      body: JSON.stringify({ orderId: matchedOrder.id, skipAdmin: true }),
     }).catch((err) => console.error('[EasyKash Webhook] Email send error:', err));
 
     return NextResponse.json({ received: true, action: 'updated', orderId: matchedOrder.id });

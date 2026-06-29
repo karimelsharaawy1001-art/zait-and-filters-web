@@ -397,7 +397,7 @@ function buildOrderConfirmationHtml(order: any): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const { orderId, orderData } = await request.json();
+    const { orderId, orderData, adminOnly, skipAdmin } = await request.json();
 
     if (!orderId) {
       return NextResponse.json({ error: 'orderId is required' }, { status: 400 });
@@ -422,7 +422,8 @@ export async function POST(request: NextRequest) {
       order = data;
     }
 
-    if (!order.customer_email) {
+    // Customer email is only required when we're actually sending the customer copy
+    if (!adminOnly && !order.customer_email) {
       console.warn('[OrderConfirmation] No email on order:', orderId);
       return NextResponse.json({ error: 'No customer email' }, { status: 400 });
     }
@@ -433,41 +434,46 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email service not configured: RESEND_API_KEY not set' }, { status: 500 });
     }
 
-    const html = buildOrderConfirmationHtml(order);
+    // ── Customer confirmation (skipped when adminOnly) ────────────────────
+    let customerEmailId: string | undefined;
+    if (!adminOnly) {
+      const html = buildOrderConfirmationHtml(order);
+      const { data, error: emailError } = await resend.emails.send({
+        from: 'Zait and Filters <orders@zaitandfilters.com>',
+        to: order.customer_email,
+        subject: `✅ تم تأكيد طلبك #${order.id.slice(0, 8).toUpperCase()} - زيت أند فلترز`,
+        html,
+      });
 
-    const { data, error: emailError } = await resend.emails.send({
-      from: 'Zait and Filters <orders@zaitandfilters.com>',
-      to: order.customer_email,
-      subject: `✅ تم تأكيد طلبك #${order.id.slice(0, 8).toUpperCase()} - زيت أند فلترز`,
-      html,
-    });
-
-    if (emailError) {
-      console.error('Resend error:', emailError);
-      throw emailError;
+      if (emailError) {
+        console.error('Resend error:', emailError);
+        throw emailError;
+      }
+      customerEmailId = data?.id;
+      console.log('✅ Order confirmation email sent:', data?.id);
     }
 
-    console.log('✅ Order confirmation email sent:', data?.id);
-
-    // ── Admin notification ───────────────────────────────────────────────
-    try {
-      const adminHtml = buildAdminNotificationHtml(order);
-      await resend.emails.send({
-        from: 'Zait and Filters <orders@zaitandfilters.com>',
-        to: 'zaitandfilter@gmail.com',
-        subject: `🔔 طلب جديد #${order.id.slice(0, 8).toUpperCase()} - ${order.customer_name || 'غير معروف'}`,
-        html: adminHtml,
-      });
-      console.log('✅ Admin notification sent for order:', order.id);
-    } catch (adminErr) {
-      // Don't fail the request if admin notification fails
-      console.error('❌ Admin notification failed:', adminErr);
+    // ── Admin notification (skipped when skipAdmin) ───────────────────────
+    if (!skipAdmin) {
+      try {
+        const adminHtml = buildAdminNotificationHtml(order);
+        await resend.emails.send({
+          from: 'Zait and Filters <orders@zaitandfilters.com>',
+          to: 'zaitandfilter@gmail.com',
+          subject: `🔔 طلب جديد #${order.id.slice(0, 8).toUpperCase()} - ${order.customer_name || 'غير معروف'}`,
+          html: adminHtml,
+        });
+        console.log('✅ Admin notification sent for order:', order.id);
+      } catch (adminErr) {
+        // Don't fail the request if admin notification fails
+        console.error('❌ Admin notification failed:', adminErr);
+      }
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Order confirmation email sent',
-      emailId: data?.id,
+      message: 'Order email(s) sent',
+      emailId: customerEmailId,
     });
 
   } catch (error: any) {
