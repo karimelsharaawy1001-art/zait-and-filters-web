@@ -93,6 +93,7 @@ export default function AdminLayoutClient({ children }: Props) {
         { name: 'التقييمات',       href: '/admin/reviews',         icon: '⭐', badge: badges.pendingReviews ?? 0 },
         { name: 'المحافظ والكاش باك', href: '/admin/wallets',      icon: '💰', badge: 0 },
         { name: 'طلبات الاسترجاع',    href: '/admin/returns',       icon: '🔄', badge: badges.pendingReturns },
+        { name: 'إدارة المشرفين',     href: '/admin/users',         icon: '🛡️', badge: 0 },
       ]
     },
   ];
