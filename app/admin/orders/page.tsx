@@ -1293,7 +1293,7 @@ export default function AdminOrders() {
                           </td>
                           <td style={td} onClick={e => e.stopPropagation()}>
                             <div style={payTypeStyle}>
-                              {order.payment_method === 'instapay' ? <Banknote size={16} color="#9b59b6" /> : order.payment_method === 'wallets' ? <Smartphone size={16} color="#e74c3c" /> : <CreditCard size={16} color="#3498db" />}
+                              {order.payment_method === 'instapay' ? <Banknote size={16} color="#9b59b6" /> : order.payment_method === 'wallets' ? <Smartphone size={16} color="#e74c3c" /> : order.payment_method === 'cash' ? <Truck size={16} color="#16a34a" /> : <CreditCard size={16} color="#3498db" />}
                               <span>{paymentLabels[order.payment_method] || order.payment_method}</span>
                               {order.payment_screenshot_url && <ImageIcon size={14} color="#27ae60" />}
                             </div>

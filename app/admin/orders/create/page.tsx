@@ -528,7 +528,7 @@ export default function AdminCreateOrder() {
                   <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} style={{ ...inputStyle, appearance: 'none' }}>
                     <option value="cash">كاش عند الاستلام</option>
                     <option value="vodafone_cash">فودافون كاش</option>
-                    value="instapay"<option value="instapay">انستاباي</option>
+                    <option value="instapay">انستاباي</option>
                     <option value="bank_transfer">تحويل بنكي</option>
                     <option value="credit_card">بطاقة ائتمان</option>
                   </select>

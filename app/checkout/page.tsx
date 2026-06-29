@@ -412,7 +412,7 @@ export default function CheckoutPage() {
     e.preventDefault();
     if (subtotal <= 0) return toast.error('السلة فارغة');
 
-    if (paymentMethod !== 'card_installments' && !screenshot) {
+    if (!['card_installments', 'cash'].includes(paymentMethod) && !screenshot) {
       return toast.error('يرجى رفع سكرين شوت التحويل');
     }
 
@@ -770,7 +770,7 @@ export default function CheckoutPage() {
                 <div style={{ fontSize: '0.78rem', color: '#22c55e', fontWeight: '700' }}>{selectedCity?.city_name}</div>
                 <div style={{ fontSize: '0.72rem', color: '#888', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e5e5e5' }}>
                   طريقة الدفع: <span style={{ fontWeight: '800', color: '#1a1a1a' }}>
-                    {paymentMethod === 'card_installments' ? 'بطاقة / تقسيط' : paymentMethod === 'instapay' ? 'InstaPay' : 'محفظة إلكترونية'}
+                    {paymentMethod === 'card_installments' ? 'بطاقة / تقسيط' : paymentMethod === 'instapay' ? 'InstaPay' : paymentMethod === 'cash' ? 'الدفع عند الاستلام' : 'محفظة إلكترونية'}
                     {expressShipping && <span style={{ marginRight: '6px', color: '#f59e0b', fontSize: '0.68rem' }}>⚡ شحن سريع 48 ساعة</span>}
                   </span>
                 </div>
@@ -1137,22 +1137,6 @@ export default function CheckoutPage() {
           <div style={{ marginTop: '20px', marginBottom: '20px' }}>
             <h3 style={sectionTitle}><Banknote size={18} /> وسيلة الدفع</h3>
 
-            {/* ── Sorry note: no COD ── */}
-            <div style={{
-              display: 'flex', alignItems: 'flex-start', gap: '12px',
-              background: '#fff8f0',
-              border: '1.5px solid #f59e0b',
-              borderRight: '4px solid #f59e0b',
-              borderRadius: '12px',
-              padding: '14px 16px',
-              marginBottom: '16px',
-            }}>
-              <span style={{ fontSize: '1.1rem', flexShrink: 0, marginTop: '1px' }}>🙏</span>
-              <p style={{ fontSize: '0.82rem', color: '#92400e', fontWeight: '700', lineHeight: '1.6', margin: 0 }}>
-                نأسف لعملائنا الكرام — الدفع عند الاستلام غير متاح على موقعنا بسبب مشاكل لوجيستية. يرجى اختيار أحد خيارات الدفع المتاحة أدناه.
-              </p>
-            </div>
-
             <div style={paymentContainer}>
 
               {/* ── 1st: InstaPay ── */}
@@ -1227,6 +1211,29 @@ export default function CheckoutPage() {
                       </div>
                       <label htmlFor="u-cash" className="upload-hover" style={uploadArea}><Upload size={14}/> {screenshot ? '✅ تم اختيار الإثبات' : 'رفع إثبات التحويل'}</label>
                       <input id="u-cash" type="file" accept="image/*" onChange={handleFileUpload} style={{display:'none'}}/>
+                    </div>
+                  )}
+                </div>
+              </label>
+
+              {/* ── 4th: Cash on Delivery ── */}
+              <label className="pay-card-label" style={paymentCard(paymentMethod === 'cash')}>
+                <input type="radio" value="cash" checked={paymentMethod === 'cash'} onChange={(e) => setPaymentMethod(e.target.value)} style={hideRadio}/>
+                <div style={payCardInner}>
+                  <div style={payHeader}>
+                    <div style={paymentMethod === 'cash' ? payIconWrapperActive : payIconWrapper}>
+                      <Truck size={18} color={paymentMethod === 'cash' ? '#15803d' : '#888'} />
+                    </div>
+                    <div style={{ ...payTextContent, flex: 1 }}>
+                      <span style={payTitle}>الدفع عند الاستلام</span>
+                      <span style={paySubTitle}>ادفع نقداً عند استلام طلبك</span>
+                    </div>
+                  </div>
+                  {paymentMethod === 'cash' && (
+                    <div style={payDetailsBox}>
+                      <div style={{ padding: '10px 14px', background: '#f0fdf4', borderRadius: '10px', border: '1px solid #bbf7d0' }}>
+                        <span style={{ fontSize: '0.8rem', color: '#15803d', fontWeight: '700', lineHeight: '1.6' }}>سيتم تحصيل قيمة الطلب نقداً عند استلامه. لا حاجة لرفع أي إثبات دفع.</span>
+                      </div>
                     </div>
                   )}
                 </div>

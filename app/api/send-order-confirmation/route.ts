@@ -26,6 +26,7 @@ function buildAdminNotificationHtml(order: any): string {
     instapay: 'InstaPay',
     card_installments: 'بطاقة / تقسيط',
     wallets: 'محفظة إلكترونية',
+    cash: 'الدفع عند الاستلام',
   };
 
   const shippingLabels: Record<string, string> = {
@@ -106,6 +107,7 @@ function buildOrderConfirmationHtml(order: any): string {
     instapay: 'InstaPay',
     card_installments: 'بطاقة / تقسيط',
     wallets: 'محفظة إلكترونية',
+    cash: 'الدفع عند الاستلام',
   };
 
   const isManualReview = ['instapay', 'wallets'].includes(order.payment_method);
