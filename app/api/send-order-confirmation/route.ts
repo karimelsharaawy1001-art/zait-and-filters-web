@@ -34,14 +34,38 @@ function buildAdminNotificationHtml(order: any): string {
     standard: 'شحن عادي (2-5 أيام عمل)',
   };
 
-  const itemsList = (order.items || []).map((item: any) =>
-    `• ${item.name} x${item.quantity || 1} - ${(item.price * (item.quantity || 1)).toFixed(0)} ج.م`
-  ).join('<br>');
+  const itemsList = (order.items || []).map((item: any) => {
+    const qty = item.quantity || 1;
+    const lineTotal = (parseFloat(item.price || 0) * qty).toFixed(0);
+
+    // Build the car compatibility line: make · model · year
+    const carParts = [item.car_make, item.car_model, item.car_model_year]
+      .map((v) => (v && String(v).trim() && v !== 'UNIVERSAL' ? String(v).trim() : ''))
+      .filter(Boolean);
+    const carLine = carParts.length ? carParts.join(' · ') : '';
+
+    const detailRow = (label: string, value: string) => value
+      ? `<div style="font-size:0.78rem; color:#475569; margin-top:2px;"><span style="color:#94a3b8;">${label}:</span> <strong style="color:#1a1a1a;">${value}</strong></div>`
+      : '';
+
+    return `
+      <div style="padding:12px 0; border-bottom:1px solid #e2e8f0;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+          <div style="font-size:0.88rem; font-weight:800; color:#0f172a;">${item.name || 'منتج'}</div>
+          <div style="font-size:0.85rem; font-weight:900; color:#15803d; white-space:nowrap;">${lineTotal} ج.م</div>
+        </div>
+        ${detailRow('الكمية', String(qty))}
+        ${detailRow('الماركة', item.brand || '')}
+        ${detailRow('السيارة', carLine)}
+      </div>`;
+  }).join('');
 
   const addressParts = [
-    order.address, order.city, order.area,
+    order.customer_address, order.address, order.city, order.area,
     order.street, order.building_number, order.apartment_number,
   ].filter(Boolean);
+
+  const orderTotal = parseFloat(order.total_price ?? order.total ?? 0);
 
   return `
 <body style="margin:0; padding:0; background:#f5f5f5; font-family:system-ui,-apple-system,sans-serif;">
@@ -79,7 +103,7 @@ function buildAdminNotificationHtml(order: any): string {
                 <div style="font-size:0.75rem; font-weight:700; color:#64748b; margin-bottom:4px;">المنتجات</div>
                 <div style="font-size:0.82rem; color:#1a1a1a; line-height:1.7;">${itemsList}</div>
                 <div style="font-size:0.85rem; font-weight:900; color:#15803d; margin-top:8px;">
-                  الإجمالي: ${(order.total || 0).toFixed(0)} ج.م
+                  الإجمالي: ${orderTotal.toFixed(0)} ج.م
                 </div>
               </div>
             </div>
