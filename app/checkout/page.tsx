@@ -1037,11 +1037,17 @@ export default function CheckoutPage() {
             )}
             <div style={finalRow}><span>الإجمالي النهائي:</span><span>{finalTotal.toFixed(2)} ج.م</span></div>
 
-            {/* Cashback notice — hidden when a promo code is active */}
+            {/* Cashback notice — hidden when a promo code is active or paying cash on delivery */}
             {appliedPromo ? (
               <div style={{ marginTop: '10px', padding: '8px 12px', background: '#fef2f2', borderRadius: '10px', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '0.76rem', color: '#dc2626', fontWeight: '700' }}>
                   ❌ لن تحصل على كاش باك لأنك استخدمت كود خصم
+                </span>
+              </div>
+            ) : paymentMethod === 'cash' ? (
+              <div style={{ marginTop: '10px', padding: '8px 12px', background: '#fef2f2', borderRadius: '10px', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.76rem', color: '#dc2626', fontWeight: '700' }}>
+                  ❌ لن تحصل على كاش باك مع الدفع عند الاستلام
                 </span>
               </div>
             ) : (

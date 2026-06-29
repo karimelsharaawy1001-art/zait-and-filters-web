@@ -68,7 +68,7 @@ async function awardCashbackOnDelivery(orderId: string, forceOverride = false): 
   try {
     const { data: order, error: orderErr } = await db
       .from('orders')
-      .select('user_id, total_price, shipping_cost, discount_applied, wallet_discount, promo_code')
+      .select('user_id, total_price, shipping_cost, discount_applied, wallet_discount, promo_code, payment_method')
       .eq('id', orderId)
       .single();
 
@@ -77,13 +77,19 @@ async function awardCashbackOnDelivery(orderId: string, forceOverride = false): 
       return 0;
     }
 
-    const { user_id, total_price, shipping_cost, discount_applied, wallet_discount, promo_code } = order as {
+    const { user_id, total_price, shipping_cost, discount_applied, wallet_discount, promo_code, payment_method } = order as {
       user_id: string | null; total_price: number;
       shipping_cost: number | null; discount_applied: number | null;
       wallet_discount: number | null; promo_code: string | null;
+      payment_method: string | null;
     };
 
     if (!user_id) return 0;
+    // No cashback on cash-on-delivery orders
+    if (payment_method === 'cash') {
+      console.log('[cashback] Skipped — cash on delivery');
+      return 0;
+    }
     // Skip promo-code orders automatically, but allow admin to force-override
     if (promo_code && !forceOverride) {
       console.log(`[cashback] Auto-skipped — promo "${promo_code}"`);
