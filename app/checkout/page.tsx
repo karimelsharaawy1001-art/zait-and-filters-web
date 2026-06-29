@@ -495,19 +495,8 @@ export default function CheckoutPage() {
         await markAsRecovered(newOrder.id);
         localStorage.removeItem('zf_marketer_ref');
 
-        // Notify the store owner immediately of the new card order.
-        // (Customer confirmation is sent by the EasyKash webhook once payment succeeds.)
-        // Awaited so it completes before we navigate away to the payment gateway.
-        try {
-          await fetch('/api/send-order-confirmation', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderId: newOrder.id, adminOnly: true }),
-          });
-        } catch (err) {
-          console.error('Admin notification (card order) failed:', err);
-        }
-
+        // Admin + customer notifications for card orders are sent by the
+        // EasyKash webhook once the payment is approved.
         const customerReference = Date.now() % 100000000;
         await initiateEasyKashPayment(newOrder.id, customerReference);
 
