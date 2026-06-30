@@ -2,7 +2,17 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/app/lib/supabase';
 
-
+// Build a WhatsApp chat link, normalizing Egyptian numbers to international format.
+function waLink(phone: string, name?: string): string | null {
+  if (!phone) return null;
+  let digits = String(phone).replace(/\D/g, '');
+  if (!digits) return null;
+  if (digits.startsWith('00')) digits = digits.slice(2);     // 0020... → 20...
+  if (digits.startsWith('0')) digits = '20' + digits.slice(1); // local 01x... → 201x...
+  else if (!digits.startsWith('20')) digits = '20' + digits;   // bare 1x... → 201x...
+  const greeting = `مرحباً ${name || ''}، بخصوص رسالتك لمتجر زيت أند فلترز`.trim();
+  return `https://wa.me/${digits}?text=${encodeURIComponent(greeting)}`;
+}
 
 export default function AdminMessages() {
   const [messages, setMessages] = useState<any[]>([]);
@@ -156,6 +166,12 @@ export default function AdminMessages() {
                   </td>
                     <td style={tdStyle}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                        {waLink(msg.phone, msg.full_name) && (
+                          <a href={waLink(msg.phone, msg.full_name)!} target="_blank" rel="noopener noreferrer"
+                            style={{ background: '#25D366', color: '#fff', border: 'none', borderRadius: '8px', padding: '6px 10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.75rem', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                            💬 واتساب
+                          </a>
+                        )}
                         {(msg.status === 'new' || !msg.status) && (
                           <button onClick={() => updateStatus(msg.id, 'read')}
                             style={{ background: '#27ae60', color: '#fff', border: 'none', borderRadius: '8px', padding: '6px 10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.75rem' }}>
@@ -208,6 +224,12 @@ export default function AdminMessages() {
             </div>
             {/* Actions */}
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              {waLink(msg.phone, msg.full_name) && (
+                <a href={waLink(msg.phone, msg.full_name)!} target="_blank" rel="noopener noreferrer"
+                  style={{ background: '#25D366', color: '#fff', border: 'none', borderRadius: '8px', padding: '7px 12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.8rem', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                  💬 رد واتساب
+                </a>
+              )}
               {(msg.status === 'new' || !msg.status) && (
                 <button onClick={() => updateStatus(msg.id, 'read')}
                   style={{ background: '#27ae60', color: '#fff', border: 'none', borderRadius: '8px', padding: '7px 12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.8rem' }}>
