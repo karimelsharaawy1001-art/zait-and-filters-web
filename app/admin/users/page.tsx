@@ -13,9 +13,15 @@ async function getServerSupabase() {
       cookies: {
         getAll() { return cookieStore.getAll(); },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
+          // Ignore cookie writes during Server Component render (Next.js
+          // disallows them); session refresh still works in Server Actions.
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            /* called from a Server Component render — safe to ignore */
+          }
         },
       },
     }
@@ -61,8 +67,12 @@ export default async function AdminUsersPage({
   const admin = makeAdmin();
   const admins = await Promise.all(
     (adminRoles ?? []).map(async (r) => {
-      const { data } = await admin.auth.admin.getUserById(r.user_id);
-      return { id: r.user_id, email: data.user?.email ?? '—' };
+      try {
+        const { data } = await admin.auth.admin.getUserById(r.user_id);
+        return { id: r.user_id, email: data.user?.email ?? '—' };
+      } catch {
+        return { id: r.user_id, email: '—' };
+      }
     })
   );
   admins.sort((a, b) => a.email.localeCompare(b.email));

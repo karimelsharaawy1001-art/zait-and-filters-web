@@ -17,9 +17,16 @@ async function getServerSupabase() {
           return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
+          // Wrapped in try/catch: writing cookies from a Server Component
+          // render is disallowed by Next.js and throws. Ignoring it is safe
+          // here — session refresh still works inside Server Actions.
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            /* called from a Server Component render — safe to ignore */
+          }
         },
       },
     }

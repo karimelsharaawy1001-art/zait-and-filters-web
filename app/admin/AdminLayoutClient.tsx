@@ -19,7 +19,7 @@ export default function AdminLayoutClient({ children }: Props) {
         supabase.from('contact_messages').select('id', { count: 'exact', head: true }).eq('status', 'new'),
         supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('abandoned_carts').select('id', { count: 'exact', head: true })
-          .eq('status', 'pending')
+          .eq('recovered', false)
           .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
         supabase.from('product_reviews').select('id', { count: 'exact', head: true })
           .eq('is_approved', false),
