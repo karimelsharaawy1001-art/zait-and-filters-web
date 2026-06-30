@@ -1286,7 +1286,7 @@ export default function AdminOrders() {
                               }
                             </div>
                           </td>
-                          <td style={td} onClick={e => e.stopPropagation()}>
+                          <td style={td}>
                             <div style={{ fontWeight: '800', color: '#1a1a1a' }}>{order.customer_name}</div>
                             <div style={{ fontSize: '0.8rem', color: '#777', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={12} /> {order.customer_phone}</div>
                             <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#22c55e', fontFamily: 'monospace', marginTop: '3px', letterSpacing: '0.5px' }}>#{order.id.slice(0, 8).toUpperCase()}</div>
@@ -1296,33 +1296,33 @@ export default function AdminOrders() {
                               </div>
                             )}
                           </td>
-                          <td style={td} onClick={e => e.stopPropagation()}>
+                          <td style={td}>
                             <div style={cityBadge}><MapPin size={14} color="#15803d" /> {order.city || 'غير محدد'}</div>
                             {order.shipping_type === 'express' && (
                               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '5px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '3px 8px', width: 'fit-content', fontSize: '0.72rem', fontWeight: '800', color: '#92400e' }}>⚡ شحن سريع 48 ساعة</div>
                             )}
                           </td>
-                          <td style={td} onClick={e => e.stopPropagation()}>
+                          <td style={td}>
                             <div style={payTypeStyle}>
                               {order.payment_method === 'instapay' ? <Banknote size={16} color="#9b59b6" /> : order.payment_method === 'wallets' ? <Smartphone size={16} color="#e74c3c" /> : order.payment_method === 'cash' ? <Truck size={16} color="#16a34a" /> : <CreditCard size={16} color="#3498db" />}
                               <span>{paymentLabels[order.payment_method] || order.payment_method}</span>
                               {order.payment_screenshot_url && <ImageIcon size={14} color="#27ae60" />}
                             </div>
                           </td>
-                          <td style={td} onClick={e => e.stopPropagation()}>
+                          <td style={td}>
                             {/* ── CHANGED: added pending_payment option ── */}
                             <select value={order.status} onChange={(e) => { e.stopPropagation(); updateOrderStatus(order.id, e.target.value); }} style={miniSelectStyle(order.status)}>
                               <option value="pending_payment">انتظار الدفع</option><option value="pending">جديد</option><option value="processing">تجهيز</option><option value="shipped">شحن</option><option value="delivered">توصيل</option><option value="cancelled">ملغي</option><option value="refunded">مسترجع</option>
                             </select>
                           </td>
-                          <td style={td} onClick={e => e.stopPropagation()}>
+                          <td style={td}>
                             {(() => {
                               const ps = order.payment_status || 'pending';
                               const c = paymentStatusColors[ps] || paymentStatusColors.pending;
                               return <span style={{ fontSize: '0.75rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: c.bg, color: c.color, border: `1px solid ${c.border}`, whiteSpace: 'nowrap' }}>{paymentStatusLabels[ps]}</span>;
                             })()}
                           </td>
-                          <td style={td} onClick={e => e.stopPropagation()}>
+                          <td style={td}>
                             {isEditingTracking ? (
                               <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
                                 <input
@@ -1338,11 +1338,11 @@ export default function AdminOrders() {
                                   placeholder="أدخل رقم التتبع"
                                   style={{ width: '130px', height: '32px', padding: '0 8px', border: '1.5px solid #22c55e', borderRadius: '8px', fontSize: '0.78rem', fontFamily: 'monospace', color: '#1a1a1a', background: '#fff', transition: 'all 0.2s' }}
                                 />
-                                <button onClick={() => saveTrackingNumber(order.id, quickTrackingValue)} disabled={savingTracking}
+                                <button onClick={(e) => { e.stopPropagation(); saveTrackingNumber(order.id, quickTrackingValue); }} disabled={savingTracking}
                                   style={{ width: '28px', height: '28px', background: '#22c55e', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                   {savingTracking ? <Loader2 size={12} color="#fff" style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={13} color="#fff" />}
                                 </button>
-                                <button onClick={() => { setQuickTrackingOrderId(null); setQuickTrackingValue(''); }}
+                                <button onClick={(e) => { e.stopPropagation(); setQuickTrackingOrderId(null); setQuickTrackingValue(''); }}
                                   style={{ width: '28px', height: '28px', background: '#fee2e2', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                   <X size={12} color="#dc2626" />
                                 </button>
@@ -1351,7 +1351,7 @@ export default function AdminOrders() {
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                   <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#1a1a1a', fontFamily: 'monospace', background: '#f0fdf4', padding: '2px 7px', borderRadius: '6px', border: '1px solid #bbf7d0' }}>{order.tracking_number}</span>
-                                  <button onClick={() => { setQuickTrackingOrderId(order.id); setQuickTrackingValue(order.tracking_number); }}
+                                  <button onClick={(e) => { e.stopPropagation(); setQuickTrackingOrderId(order.id); setQuickTrackingValue(order.tracking_number); }}
                                     style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: '#888', flexShrink: 0 }}
                                     title="تعديل رقم التتبع">
                                     <Edit2 size={12} />
@@ -1363,7 +1363,7 @@ export default function AdminOrders() {
                                 </a>
                               </div>
                             ) : (
-                              <button onClick={() => { setQuickTrackingOrderId(order.id); setQuickTrackingValue(''); }}
+                              <button onClick={(e) => { e.stopPropagation(); setQuickTrackingOrderId(order.id); setQuickTrackingValue(''); }}
                                 style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#f8faff', color: '#94a3b8', border: '1.5px dashed #cbd5e1', borderRadius: '8px', padding: '5px 10px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '700', whiteSpace: 'nowrap', transition: 'all 0.2s' }}
                                 onMouseEnter={e => { const b = e.currentTarget; b.style.borderColor = '#22c55e'; b.style.color = '#22c55e'; b.style.background = '#f0fdf4'; }}
                                 onMouseLeave={e => { const b = e.currentTarget; b.style.borderColor = '#cbd5e1'; b.style.color = '#94a3b8'; b.style.background = '#f8faff'; }}>
@@ -1371,11 +1371,11 @@ export default function AdminOrders() {
                               </button>
                             )}
                           </td>
-                          <td style={td} onClick={e => e.stopPropagation()}>
+                          <td style={td}>
                             <div style={{ fontSize: '0.85rem', color: '#444', fontWeight: '700' }}>{datePart}</div>
                             <div style={{ fontSize: '0.78rem', color: '#22c55e', fontWeight: '700', marginTop: '2px' }}>{timePart}</div>
                           </td>
-                          <td style={td} onClick={e => e.stopPropagation()}>
+                          <td style={td}>
                             <span style={{ color: '#15803d', fontWeight: '900', fontSize: '1rem' }}>{order.total_price} <small>ج.م</small></span>
                           </td>
                           <td style={td} onClick={e => e.stopPropagation()}>
