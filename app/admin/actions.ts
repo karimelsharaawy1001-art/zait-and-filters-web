@@ -57,7 +57,7 @@ async function findUserIdByEmail(email: string): Promise<string | null> {
   const target = email.trim().toLowerCase();
   for (let page = 1; page <= 50; page++) {
     const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
-    if (error) throw new Error('Failed to look up users');
+    if (error) throw new Error('تعذّر البحث في المستخدمين: ' + error.message);
     const match = data.users.find((u) => u.email?.toLowerCase() === target);
     if (match) return match.id;
     if (data.users.length < 1000) break; // last page reached
@@ -66,62 +66,67 @@ async function findUserIdByEmail(email: string): Promise<string | null> {
 }
 
 export async function addAdminByEmail(email: string) {
-  await assertCallerIsAdmin();
+  try {
+    await assertCallerIsAdmin();
 
-  const clean = (email || '').trim();
-  if (!clean) return { ok: false, error: 'يرجى إدخال البريد الإلكتروني' };
+    const clean = (email || '').trim();
+    if (!clean) return { ok: false, error: 'يرجى إدخال البريد الإلكتروني' };
 
-  const userId = await findUserIdByEmail(clean);
-  if (!userId) {
-    return { ok: false, error: 'لا يوجد مستخدم مسجّل بهذا البريد الإلكتروني' };
+    const userId = await findUserIdByEmail(clean);
+    if (!userId) {
+      return { ok: false, error: 'لا يوجد مستخدم مسجّل بهذا البريد الإلكتروني' };
+    }
+
+    await setUserRole(userId, 'admin');
+    revalidatePath('/admin/users');
+    return { ok: true };
+  } catch (e: any) {
+    console.error('[addAdminByEmail] error:', e);
+    return { ok: false, error: e?.message || 'حدث خطأ غير متوقع أثناء إضافة المشرف' };
   }
-
-  await setUserRole(userId, 'admin');
-  revalidatePath('/admin/users');
-  return { ok: true };
 }
 
 export async function removeAdmin(userId: string) {
-  const caller = await assertCallerIsAdmin();
-  if (caller.id === userId) {
-    return { ok: false, error: 'لا يمكنك إزالة صلاحية الأدمن عن نفسك' };
+  try {
+    const caller = await assertCallerIsAdmin();
+    if (caller.id === userId) {
+      return { ok: false, error: 'لا يمكنك إزالة صلاحية الأدمن عن نفسك' };
+    }
+    await setUserRole(userId, 'user');
+    revalidatePath('/admin/users');
+    return { ok: true };
+  } catch (e: any) {
+    console.error('[removeAdmin] error:', e);
+    return { ok: false, error: e?.message || 'حدث خطأ غير متوقع أثناء إزالة المشرف' };
   }
-  await setUserRole(userId, 'user');
-  revalidatePath('/admin/users');
-  return { ok: true };
 }
 
 export async function setUserRole(userId: string, role: 'user' | 'admin') {
-  const supabase = await getServerSupabase();
+  await assertCallerIsAdmin();
 
-  // 1) check caller is logged in
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error('Not authenticated');
-  }
-
-  // 2) check caller is admin
-  const { data: callerRole } = await supabase
-    .from('user_roles')
-    .select('role')
-    .eq('user_id', user.id)
-    .maybeSingle();
-
-  if (callerRole?.role !== 'admin') {
-    throw new Error('Not authorized');
-  }
-
-  // 3) upsert target user role using service-role client (bypasses RLS)
+  // Upsert via the service-role client (bypasses RLS). We do a manual
+  // select-then-update/insert instead of .upsert({ onConflict: 'user_id' })
+  // because that requires a UNIQUE constraint on user_id which the table
+  // may not have — without it the onConflict upsert errors out.
   const admin = makeAdmin();
-  const { error } = await admin
-    .from('user_roles')
-    .upsert({ user_id: userId, role }, { onConflict: 'user_id' });
 
-  if (error) {
-    console.error('setUserRole error', error);
-    throw new Error('Failed to update role');
+  const { data: existing, error: selErr } = await admin
+    .from('user_roles')
+    .select('id')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (selErr) {
+    console.error('setUserRole select error:', selErr);
+    throw new Error('تعذّر قراءة صلاحيات المستخدم: ' + selErr.message);
+  }
+
+  const { error: writeErr } = existing
+    ? await admin.from('user_roles').update({ role }).eq('user_id', userId)
+    : await admin.from('user_roles').insert({ user_id: userId, role });
+
+  if (writeErr) {
+    console.error('setUserRole write error:', writeErr);
+    throw new Error('تعذّر تحديث الصلاحية: ' + writeErr.message);
   }
 
   return { ok: true };
