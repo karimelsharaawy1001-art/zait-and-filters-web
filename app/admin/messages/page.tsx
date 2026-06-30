@@ -1,19 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/app/lib/supabase';
-
-// Build a WhatsApp chat link, normalizing Egyptian numbers to international format.
-function waLink(phone: string, name?: string, message?: string): string | null {
-  if (!phone) return null;
-  let digits = String(phone).replace(/\D/g, '');
-  if (!digits) return null;
-  if (digits.startsWith('00')) digits = digits.slice(2);     // 0020... → 20...
-  if (digits.startsWith('0')) digits = '20' + digits.slice(1); // local 01x... → 201x...
-  else if (!digits.startsWith('20')) digits = '20' + digits;   // bare 1x... → 201x...
-  let text = `ازيك ${name || ''}، بخصوص رسالتك لمتجر زيت أند فلترز`.trim();
-  if (message) text += `:\n«${message}»`;
-  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
-}
+import { waLink } from '@/app/lib/whatsapp';
 
 export default function AdminMessages() {
   const [messages, setMessages] = useState<any[]>([]);

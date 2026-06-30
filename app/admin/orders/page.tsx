@@ -8,9 +8,10 @@ import {
   CarFront, Factory, Smartphone, Plus, Edit2, Save, Tag,
   Truck, AlertCircle, RefreshCw, Search, FileText, Download, Printer,
   ChevronDown, Package, CheckCircle, Loader2, CheckSquare, Square, Minus,
-  AlertTriangle, Link as LinkIcon
+  AlertTriangle, Link as LinkIcon, MessageCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { waLink, orderConfirmationMessage } from '@/app/lib/whatsapp';
 
 // ─── Dropdown (used by NewOrderModal) ────────────────────────────────────────
 function Dropdown({ label, options, value, onChange, disabled }: {
@@ -490,6 +491,16 @@ function ExpandedOrderRow({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>
           <button onClick={() => onViewDetail(order)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#eff6ff', color: '#1e40af', border: '1px solid #dbeafe', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap' }}><Eye size={14} /> تفاصيل كاملة</button>
           <button onClick={() => onViewInvoice(order)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#0f172a', color: '#22c55e', border: 'none', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap' }}><FileText size={14} /> ORDER</button>
+          {(() => {
+            const link = waLink(order.customer_phone, order.customer_name, orderConfirmationMessage(order));
+            if (!link) return null;
+            return (
+              <a href={link} target="_blank" rel="noopener noreferrer"
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap', textDecoration: 'none' }}>
+                <MessageCircle size={14} /> واتساب
+              </a>
+            );
+          })()}
           <button onClick={() => onDelete(order.id)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#fff5f5', color: '#e74c3c', border: '1px solid #ffebeb', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap' }}><Trash2 size={14} /> حذف</button>
         </div>
       </div>
@@ -1528,6 +1539,16 @@ export default function AdminOrders() {
                     <FileText size={16} color="#22c55e" /> ORDER
                   </button>
                 )}
+                {!editMode && (() => {
+                  const link = waLink(selectedOrder.customer_phone, selectedOrder.customer_name, orderConfirmationMessage(selectedOrder));
+                  if (!link) return null;
+                  return (
+                    <a href={link} target="_blank" rel="noopener noreferrer"
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '9px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem', whiteSpace: 'nowrap', textDecoration: 'none' }}>
+                      <MessageCircle size={16} /> واتساب
+                    </a>
+                  );
+                })()}
                 {!editMode ? (
                   <button onClick={() => openEditMode(selectedOrder)} style={editBtnStyle}><Edit2 size={16} /> تعديل</button>
                 ) : (
