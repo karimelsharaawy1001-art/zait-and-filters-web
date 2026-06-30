@@ -24,10 +24,10 @@ export function orderWhatsAppLink(order: any): string | null {
   return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
 }
 
-function fmt(n: any): string {
+function fmt(n: any): number {
   const v = parseFloat(n);
-  if (isNaN(v)) return '0';
-  return v % 1 === 0 ? v.toFixed(0) : v.toFixed(2);
+  if (isNaN(v)) return 0;
+  return v;
 }
 
 export function orderConfirmationMessage(order: any): string {
