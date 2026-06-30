@@ -1,13 +1,33 @@
-export function waLink(phone: string, name?: string, message?: string): string | null {
+function normalizePhone(phone: string): string | null {
   if (!phone) return null;
-  let digits = String(phone).replace(/\D/g, '');
+  let d = String(phone).replace(/\D/g, '');
+  if (!d) return null;
+  if (d.startsWith('00')) d = d.slice(2);
+  if (d.startsWith('0')) d = '20' + d.slice(1);
+  else if (!d.startsWith('20')) d = '20' + d;
+  return d;
+}
+
+export function waLink(phone: string, name?: string, message?: string): string | null {
+  const digits = normalizePhone(phone);
   if (!digits) return null;
-  if (digits.startsWith('00')) digits = digits.slice(2);
-  if (digits.startsWith('0')) digits = '20' + digits.slice(1);
-  else if (!digits.startsWith('20')) digits = '20' + digits;
   let text = `ازيك ${name || ''}، بخصوص رسالتك لمتجر زيت أند فلترز`.trim();
   if (message) text += `:\n«${message}»`;
   return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}
+
+export function orderWhatsAppLink(order: any): string | null {
+  const digits = normalizePhone(order.customer_phone);
+  if (!digits) return null;
+  let text = orderConfirmationMessage(order);
+  if (text.length > 1500) text = text.slice(0, 1500) + '...';
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}
+
+function fmt(n: any): string {
+  const v = parseFloat(n);
+  if (isNaN(v)) return '0';
+  return v % 1 === 0 ? v.toFixed(0) : v.toFixed(2);
 }
 
 export function orderConfirmationMessage(order: any): string {
@@ -26,7 +46,7 @@ export function orderConfirmationMessage(order: any): string {
   };
 
   const itemsList = items
-    .map(i => `• ${i.quantity}x ${i.name} — ${(parseFloat(i.price) * i.quantity).toLocaleString()} ج.م`)
+    .map(i => `• ${i.quantity || 1}x ${i.name || 'منتج'} — ${(fmt(i.price) * (i.quantity || 1)).toFixed(0)} ج.م`)
     .join('\n');
 
   const shipping = parseFloat(order.shipping_cost || order.shipping_fee || 0);
@@ -34,24 +54,24 @@ export function orderConfirmationMessage(order: any): string {
   const total = parseFloat(order.total_price || 0);
 
   const lines = [
-    `ازيك ${order.customer_name || 'حبيبنا'}، 🙏`,
+    `ازيك ${order.customer_name || 'حبيبنا'}،`,
     '',
-    'تشرفنا بطلبك من **زيت أند فلترز** 🎉',
+    'تشرفنا بطلبك من زيت أند فلترز',
     '',
-    '📋 تفاصيل الطلب:',
-    `🆔 رقم الطلب: #${shortId}`,
-    date ? `📅 التاريخ: ${date}` : '',
-    `📍 العنوان: ${order.city || ''}${order.city && order.customer_address ? ' — ' : ''}${order.customer_address || ''}`,
+    'تفاصيل الطلب:',
+    `رقم الطلب: #${shortId}`,
+    date ? `التاريخ: ${date}` : '',
+    `العنوان: ${order.city || ''}${order.city && order.customer_address ? ' - ' : ''}${order.customer_address || ''}`,
     '',
-    '🛍️ المنتجات:',
+    'المنتجات:',
     itemsList || '(بدون منتجات)',
     '',
-    `💰 الإجمالي: ${total.toLocaleString()} ج.م`,
-    `💳 الدفع: ${paymentLabels[order.payment_method] || order.payment_method || 'غير محدد'}`,
-    `🚚 الشحن: ${shipping === 0 ? 'مجاني' : `${shipping.toLocaleString()} ج.م`}`,
-    discount > 0 ? `🏷️ الخصم: -${discount.toLocaleString()} ج.م` : '',
+    `الاجمالي: ${fmt(total)} ج.م`,
+    `الدفع: ${paymentLabels[order.payment_method] || order.payment_method || 'غير محدد'}`,
+    `الشحن: ${shipping === 0 ? 'مجاني' : `${fmt(shipping)} ج.م`}`,
+    discount > 0 ? `الخصم: -${fmt(discount)} ج.م` : '',
     '',
-    'ممكن تأكيد الطلب عشان نبدأ تجهيزه؟ 🙏',
+    'ممكن تاكيد الطلب عشان نبدا التجهيز؟',
   ];
 
   return lines.filter(Boolean).join('\n');

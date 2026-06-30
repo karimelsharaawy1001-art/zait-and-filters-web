@@ -11,7 +11,7 @@ import {
   AlertTriangle, Link as LinkIcon, MessageCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { waLink, orderConfirmationMessage } from '@/app/lib/whatsapp';
+import { orderWhatsAppLink } from '@/app/lib/whatsapp';
 
 // ─── Dropdown (used by NewOrderModal) ────────────────────────────────────────
 function Dropdown({ label, options, value, onChange, disabled }: {
@@ -492,7 +492,7 @@ function ExpandedOrderRow({
           <button onClick={() => onViewDetail(order)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#eff6ff', color: '#1e40af', border: '1px solid #dbeafe', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap' }}><Eye size={14} /> تفاصيل كاملة</button>
           <button onClick={() => onViewInvoice(order)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#0f172a', color: '#22c55e', border: 'none', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap' }}><FileText size={14} /> ORDER</button>
           {(() => {
-            const link = waLink(order.customer_phone, order.customer_name, orderConfirmationMessage(order));
+            const link = orderWhatsAppLink(order);
             if (!link) return null;
             return (
               <a href={link} target="_blank" rel="noopener noreferrer"
@@ -1540,7 +1540,7 @@ export default function AdminOrders() {
                   </button>
                 )}
                 {!editMode && (() => {
-                  const link = waLink(selectedOrder.customer_phone, selectedOrder.customer_name, orderConfirmationMessage(selectedOrder));
+                  const link = orderWhatsAppLink(selectedOrder);
                   if (!link) return null;
                   return (
                     <a href={link} target="_blank" rel="noopener noreferrer"
