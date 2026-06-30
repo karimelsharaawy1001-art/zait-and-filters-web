@@ -14,9 +14,15 @@ async function getServerSupabase() {
       cookies: {
         getAll() { return cookieStore.getAll(); },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
+          // Ignore cookie writes during Server Component render (Next.js
+          // disallows them); session refresh still works in middleware/actions.
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            /* called from a Server Component render — safe to ignore */
+          }
         },
       },
     }
