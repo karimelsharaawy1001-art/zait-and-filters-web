@@ -22,12 +22,22 @@ export function ActiveUserTracker() {
         let cartItemsCount = 0;
         let cartTotal = 0;
         let cartItemNames: string[] = [];
+        let cartItems: any[] = [];
         if (cartRaw) {
           try {
             const items = JSON.parse(cartRaw);
             cartItemsCount = items.reduce((s: number, i: any) => s + (parseInt(i.quantity) || 0), 0);
             cartTotal = items.reduce((s: number, i: any) => s + (parseFloat(i.price) * (parseInt(i.quantity) || 0)), 0);
             cartItemNames = items.map((i: any) => i.name || '');
+            cartItems = items.map((i: any) => ({
+              name: i.name || '',
+              quantity: parseInt(i.quantity) || 1,
+              price: parseFloat(i.price) || 0,
+              brand: i.brand || '',
+              car_make: i.car_make || '',
+              car_model: i.car_model || '',
+              car_model_year: i.car_model_year || i.car_year || '',
+            }));
           } catch {}
         }
 
@@ -54,6 +64,7 @@ export function ActiveUserTracker() {
             cart_items_count: cartItemsCount,
             cart_total: cartTotal,
             cart_item_names: cartItemNames,
+            cart_items: cartItems,
             user_name: userName,
             user_email: userEmail,
             user_phone: userPhone,

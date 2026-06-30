@@ -7,6 +7,16 @@ import {
   Search, X, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 
+interface CartItem {
+  name: string;
+  quantity: number;
+  price: number;
+  brand: string;
+  car_make: string;
+  car_model: string;
+  car_model_year: string;
+}
+
 interface UserSession {
   id: string;
   session_id: string;
@@ -19,6 +29,7 @@ interface UserSession {
   cart_items_count: number;
   cart_total: number;
   cart_item_names: string[];
+  cart_items: CartItem[];
   user_name: string;
   user_email: string;
   user_phone: string;
@@ -327,24 +338,46 @@ export default function OnlineUsersPage() {
                     marginTop: 10, borderRadius: 8, padding: '8px 10px',
                     background: hasCart ? '#fefce8' : '#f8fafc',
                     border: hasCart ? '1.5px solid #f59e0b' : '1px solid #e2e8f0',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     transition: 'all 0.15s',
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <ShoppingCart size={14} color={hasCart ? '#d97706' : '#cbd5e1'} />
-                      <span style={{
-                        fontSize: 12, fontWeight: hasCart ? 700 : 500,
-                        color: hasCart ? '#92400e' : '#94a3b8',
-                      }}>
-                        {hasCart
-                          ? `${s.cart_items_count} ${s.cart_items_count > 10 ? 'قطعة' : s.cart_items_count > 1 ? 'قطع' : 'قطعة'}`
-                          : 'السلة فارغة'}
-                      </span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <ShoppingCart size={14} color={hasCart ? '#d97706' : '#cbd5e1'} />
+                        <span style={{
+                          fontSize: 12, fontWeight: hasCart ? 700 : 500,
+                          color: hasCart ? '#92400e' : '#94a3b8',
+                        }}>
+                          {hasCart
+                            ? `${s.cart_items_count} ${s.cart_items_count > 10 ? 'قطعة' : s.cart_items_count > 1 ? 'قطع' : 'قطعة'}`
+                            : 'السلة فارغة'}
+                        </span>
+                      </div>
+                      {hasCart && (
+                        <span style={{ fontSize: 13, fontWeight: 800, color: '#d97706' }}>
+                          {Number(s.cart_total).toFixed(2)} ج.م
+                        </span>
+                      )}
                     </div>
-                    {hasCart && (
-                      <span style={{ fontSize: 13, fontWeight: 800, color: '#d97706' }}>
-                        {Number(s.cart_total).toFixed(2)} ج.م
-                      </span>
+                    {hasCart && Array.isArray(s.cart_items) && s.cart_items.length > 0 && (
+                      <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                        {s.cart_items.map((item: CartItem, i: number) => (
+                          <div key={i} style={{
+                            fontSize: 11, color: '#92400e', display: 'flex',
+                            alignItems: 'flex-start', gap: 4, lineHeight: 1.4,
+                          }}>
+                            <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#d97706', flexShrink: 0, marginTop: 5 }} />
+                            <div>
+                              <span style={{ fontWeight: 700 }}>{item.name}</span>
+                              {item.brand && <span style={{ color: '#a16207' }}> — {item.brand}</span>}
+                              <div style={{ fontSize: 10, color: '#a16207' }}>
+                                {[item.car_make, item.car_model, item.car_model_year].filter(Boolean).join(' / ')}
+                                {item.quantity > 0 && ` | ${item.quantity}x`}
+                                {item.price > 0 && ` | ${item.price.toFixed(0)} ج.م`}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
 
@@ -486,15 +519,40 @@ export default function OnlineUsersPage() {
                   <div style={{ fontSize: 18, fontWeight: 900, color: '#d97706' }}>
                     {Number(selectedSession.cart_total).toFixed(2)} ج.م
                   </div>
-                  {selectedSession.cart_item_names.length > 0 && (
-                    <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      {selectedSession.cart_item_names.map((name, i) => (
-                        <div key={i} style={{ fontSize: 12, color: '#92400e', display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#d97706', flexShrink: 0 }} />
-                          {name}
+                  {Array.isArray(selectedSession.cart_items) && selectedSession.cart_items.length > 0 ? (
+                    <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {selectedSession.cart_items.map((item: CartItem, i: number) => (
+                        <div key={i} style={{
+                          padding: 8, background: '#fff', borderRadius: 8,
+                          border: '1px solid #fde68a',
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                            <span style={{ fontSize: 13, fontWeight: 800, color: '#92400e' }}>{item.name}</span>
+                            <span style={{ fontSize: 12, fontWeight: 800, color: '#d97706' }}>{item.quantity}x</span>
+                          </div>
+                          {item.brand && (
+                            <div style={{ fontSize: 11, fontWeight: 700, color: '#a16207', marginBottom: 2 }}>{item.brand}</div>
+                          )}
+                          <div style={{ fontSize: 11, color: '#a16207' }}>
+                            {[item.car_make, item.car_model, item.car_model_year].filter(Boolean).join(' / ') || '—'}
+                          </div>
+                          <div style={{ fontSize: 14, fontWeight: 900, color: '#92400e', marginTop: 4 }}>
+                            {(item.price * item.quantity).toFixed(0)} ج.م
+                          </div>
                         </div>
                       ))}
                     </div>
+                  ) : (
+                    selectedSession.cart_item_names.length > 0 && (
+                      <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {selectedSession.cart_item_names.map((name, i) => (
+                          <div key={i} style={{ fontSize: 12, color: '#92400e', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#d97706', flexShrink: 0 }} />
+                            {name}
+                          </div>
+                        ))}
+                      </div>
+                    )
                   )}
                 </div>
               )}
