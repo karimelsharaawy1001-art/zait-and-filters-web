@@ -51,13 +51,14 @@ export default async function AdminUsersPage() {
     return <div style={{ padding: 24 }} dir="rtl">غير مسموح لك بالدخول إلى هذه الصفحة</div>;
   }
 
-  // Current admins (resolve emails via service role)
-  const { data: adminRoles } = await supabase
+  // Current admins — query with the service-role client so RLS doesn't hide
+  // other admins' rows (the anon policy only exposes the caller's own row).
+  const admin = makeAdmin();
+  const { data: adminRoles } = await admin
     .from('user_roles')
     .select('user_id, role')
     .eq('role', 'admin');
 
-  const admin = makeAdmin();
   const admins = await Promise.all(
     (adminRoles ?? []).map(async (r) => {
       try {
