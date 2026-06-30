@@ -86,11 +86,12 @@ export default function OnlineUsersPage() {
   const fiveMinAgo = new Date(now - 5 * 60 * 1000).toISOString();
 
   const fetchSessions = useCallback(async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('user_sessions')
       .select('*')
       .gt('last_active_at', fiveMinAgo)
       .order('last_active_at', { ascending: false });
+    if (error) console.error('fetchSessions error:', error);
     if (data) setSessions(data);
     setLoading(false);
   }, []);
