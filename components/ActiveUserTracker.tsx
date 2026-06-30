@@ -62,6 +62,18 @@ export function ActiveUserTracker() {
           }),
         });
 
+        if (prevPathRef.current !== currentPage) {
+          fetch('/api/page-view', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              session_id: sessionId,
+              page_title: document.title,
+              current_page: currentPage,
+            }),
+          });
+        }
+
         prevPathRef.current = currentPage;
       } catch (err) {
         console.error('Tracking failed:', err);
