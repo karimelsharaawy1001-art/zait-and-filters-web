@@ -112,7 +112,7 @@ export async function setUserRole(userId: string, role: 'user' | 'admin') {
 
   const { data: existing, error: selErr } = await admin
     .from('user_roles')
-    .select('id')
+    .select('user_id')
     .eq('user_id', userId)
     .maybeSingle();
   if (selErr) {
