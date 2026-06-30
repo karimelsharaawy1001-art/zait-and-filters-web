@@ -106,8 +106,9 @@ export async function setUserRole(userId: string, role: 'user' | 'admin') {
     throw new Error('Not authorized');
   }
 
-  // 3) upsert target user role
-  const { error } = await supabase
+  // 3) upsert target user role using service-role client (bypasses RLS)
+  const admin = makeAdmin();
+  const { error } = await admin
     .from('user_roles')
     .upsert({ user_id: userId, role }, { onConflict: 'user_id' });
 
