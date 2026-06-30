@@ -37,12 +37,12 @@ export function ActiveUserTracker() {
         const userPhone = localStorage.getItem('checkout_phone') || user?.phone || '';
 
         const deviceType = /Mobile|Android|iPhone|iPad|iPod/.test(navigator.userAgent) ? 'mobile' : 'desktop';
-
         const currentPage = window.location.pathname + window.location.search;
 
-        const { error } = await supabase
-          .from('user_sessions')
-          .upsert({
+        await fetch('/api/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
             session_id: sessionId,
             user_id: user?.id || null,
             current_page: currentPage,
@@ -58,9 +58,8 @@ export function ActiveUserTracker() {
             user_phone: userPhone,
             is_online: true,
             last_active_at: new Date().toISOString(),
-          }, { onConflict: 'session_id' });
-
-        if (error) console.error('Track error:', error);
+          }),
+        });
 
         prevPathRef.current = currentPage;
       } catch (err) {
@@ -72,7 +71,15 @@ export function ActiveUserTracker() {
     const interval = setInterval(track, 30000);
     return () => {
       clearInterval(interval);
-      supabase.from('user_sessions').update({ is_online: false }).eq('session_id', sessionIdRef.current).then(() => {}, () => {});
+      fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionIdRef.current,
+          is_online: false,
+          last_active_at: new Date().toISOString(),
+        }),
+      }).then(() => {}, () => {});
     };
   }, [pathname]);
 
