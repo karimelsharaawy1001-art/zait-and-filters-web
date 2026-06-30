@@ -49,20 +49,26 @@ function sessionDuration(start: string): string {
   return m > 0 ? `${h}س ${m}د` : `${h}س`;
 }
 
-function pageLabel(path: string): string {
-  if (path === '/' || path === '') return 'الرئيسية';
-  if (path.startsWith('/store')) return 'المتجر';
-  if (path.startsWith('/products/')) return 'صفحة منتج';
-  if (path.startsWith('/categories/')) return 'تصنيف';
-  if (path.startsWith('/cart')) return 'سلة التسوق';
-  if (path.startsWith('/checkout')) return 'إتمام الشراء';
-  if (path.startsWith('/orders/')) return 'الطلبات';
-  if (path.startsWith('/profile')) return 'الملف الشخصي';
-  if (path.startsWith('/login')) return 'تسجيل الدخول';
-  if (path.startsWith('/blog')) return 'المدونة';
-  if (path.startsWith('/about')) return 'عن المتجر';
-  if (path.startsWith('/contact')) return 'اتصل بنا';
-  return path.split('?')[0];
+function pageLabel(path: string): { label: string; detail?: string } {
+  if (path === '/' || path === '') return { label: 'الرئيسية' };
+  if (path.startsWith('/store')) return { label: 'المتجر' };
+  if (path.startsWith('/products/')) {
+    const slug = path.replace('/products/', '').split('/')[0].split('?')[0];
+    return { label: 'صفحة منتج', detail: decodeURIComponent(slug).replace(/-/g, ' ') };
+  }
+  if (path.startsWith('/categories/')) {
+    const name = path.replace('/categories/', '').split('/')[0].split('?')[0];
+    return { label: 'تصنيف', detail: decodeURIComponent(name) };
+  }
+  if (path.startsWith('/cart')) return { label: 'سلة التسوق' };
+  if (path.startsWith('/checkout')) return { label: 'إتمام الشراء' };
+  if (path.startsWith('/orders/')) return { label: 'الطلبات' };
+  if (path.startsWith('/profile')) return { label: 'الملف الشخصي' };
+  if (path.startsWith('/login')) return { label: 'تسجيل الدخول' };
+  if (path.startsWith('/blog')) return { label: 'المدونة' };
+  if (path.startsWith('/about')) return { label: 'عن المتجر' };
+  if (path.startsWith('/contact')) return { label: 'اتصل بنا' };
+  return { label: path.split('?')[0] };
 }
 
 function formatPagePath(path: string): string {
@@ -282,16 +288,25 @@ export default function OnlineUsersPage() {
                   <div style={{ marginTop: 10 }}>
                     <div style={{
                       background: '#f0f9ff', borderRadius: 8, padding: '8px 10px',
-                      border: '1px solid #bae6fd', minHeight: 36,
-                      display: 'flex', alignItems: 'center', gap: 6,
+                      border: '1px solid #bae6fd',
+                      display: 'flex', alignItems: 'flex-start', gap: 6,
                     }}>
-                      <Globe size={13} color="#0369a1" style={{ flexShrink: 0 }} />
-                      <span style={{
-                        fontSize: 13, fontWeight: 700, color: '#0369a1',
-                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                      }}>
-                        {s.page_title || pageLabel(s.current_page)}
-                      </span>
+                      <Globe size={13} color="#0369a1" style={{ flexShrink: 0, marginTop: 2 }} />
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{
+                          fontSize: 12, fontWeight: 700, color: '#0369a1',
+                        }}>
+                          {(() => { const p = pageLabel(s.current_page); return p.label; })()}
+                        </div>
+                        {(s.page_title || (() => { const p = pageLabel(s.current_page); return p.detail; })()) && (
+                          <div style={{
+                            fontSize: 11, color: '#0284c7', marginTop: 2,
+                            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                          }}>
+                            {s.page_title || (() => { const p = pageLabel(s.current_page); return p.detail; })()}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -438,9 +453,14 @@ export default function OnlineUsersPage() {
 
               <div style={{ padding: 12, background: '#f0f9ff', borderRadius: 10, border: '1px solid #bae6fd' }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#0284c7', marginBottom: 4 }}>الصفحة الحالية</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#0369a1', marginBottom: 6 }}>
-                  {selectedSession.page_title || pageLabel(selectedSession.current_page)}
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#0369a1', marginBottom: 2 }}>
+                  {(() => { const p = pageLabel(selectedSession.current_page); return p.label; })()}
                 </div>
+                {(selectedSession.page_title || (() => { const p = pageLabel(selectedSession.current_page); return p.detail; })()) && (
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#0284c7', marginBottom: 6 }}>
+                    {selectedSession.page_title || (() => { const p = pageLabel(selectedSession.current_page); return p.detail; })()}
+                  </div>
+                )}
                 <div style={{ fontSize: 11, color: '#64748b', direction: 'ltr', textAlign: 'left', wordBreak: 'break-all' }}>
                   {formatPagePath(selectedSession.current_page)}
                 </div>
