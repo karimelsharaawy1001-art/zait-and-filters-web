@@ -14,6 +14,7 @@ interface Props {
   chatWidget: React.ReactNode;
   scrollProgress: React.ReactNode;
   abandonedCartTracker: React.ReactNode;
+  activeUserTracker: React.ReactNode;
   exitConfirm: React.ReactNode;
 }
 
@@ -25,6 +26,7 @@ export default function StorefrontShell({
   chatWidget,
   scrollProgress,
   abandonedCartTracker,
+  activeUserTracker,
   exitConfirm,
 }: Props) {
   const pathname = usePathname();
@@ -39,6 +41,7 @@ export default function StorefrontShell({
       <CartProvider>
         {scrollProgress}
         {abandonedCartTracker}
+        {activeUserTracker}
         <PromoPopup />
         {navbar}
         {cartDrawer}

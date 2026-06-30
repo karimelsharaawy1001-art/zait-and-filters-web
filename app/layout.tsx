@@ -7,6 +7,7 @@ import { CartProvider } from '@/context/CartContext'
 import CartDrawer from '@/components/CartDrawer'
 import { Toaster } from 'react-hot-toast'
 import { AbandonedCartTracker } from '@/components/AbandonedCartTracker'
+import { ActiveUserTracker } from '@/components/ActiveUserTracker'
 import PageTransition from '@/components/PageTransition'
 import ScrollProgress from '@/components/ScrollProgress'
 import type { Metadata } from 'next'
@@ -207,6 +208,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           chatWidget={<ChatWidget />}
           scrollProgress={<ScrollProgress />}
           abandonedCartTracker={<AbandonedCartTracker />}
+          activeUserTracker={<ActiveUserTracker />}
           exitConfirm={<ExitConfirmDialog />}
         >
           {children}
