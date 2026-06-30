@@ -19,7 +19,7 @@ export default function AdminLayoutClient({ children }: Props) {
         supabase.from('contact_messages').select('id', { count: 'exact', head: true }).eq('status', 'new'),
         supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('abandoned_carts').select('id', { count: 'exact', head: true })
-          .eq('contacted', false)
+          .eq('status', 'pending')
           .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
         supabase.from('product_reviews').select('id', { count: 'exact', head: true })
           .eq('is_approved', false),
@@ -38,7 +38,7 @@ export default function AdminLayoutClient({ children }: Props) {
   useEffect(() => {
     fetchBadges();
     const subs = [
-      supabase.channel('sb-messages').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, fetchBadges).subscribe(),
+      supabase.channel('sb-messages').on('postgres_changes', { event: '*', schema: 'public', table: 'contact_messages' }, fetchBadges).subscribe(),
       supabase.channel('sb-orders').on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, fetchBadges).subscribe(),
       supabase.channel('sb-carts').on('postgres_changes', { event: '*', schema: 'public', table: 'abandoned_carts' }, fetchBadges).subscribe(),
       supabase.channel('sb-returns').on('postgres_changes', { event: '*', schema: 'public', table: 'return_requests' }, fetchBadges).subscribe(),
@@ -68,8 +68,7 @@ export default function AdminLayoutClient({ children }: Props) {
       items: [
         { name: 'إضافة منتج',            href: '/admin/add-product',    icon: '➕', badge: 0 },
         { name: 'إدارة المنتجات',        href: '/admin/products',       icon: '📦', badge: 0 },
-        { name: 'إدارة الفئات',          href: '/admin/categories',     icon: '🗂️', badge: 0 },
-        { name: 'إدارة الأقسام الفرعية', href: '/admin/subcategories',  icon: '📂', badge: 0 },
+        { name: 'إدارة الفئات والأقسام', href: '/admin/categories',     icon: '🗂️', badge: 0 },
         { name: 'إدارة الماركات',        href: '/admin/brands',         icon: '🏎️', badge: 0 },
         { name: 'صور السيارات',          href: '/admin/car-images',     icon: '🚗', badge: 0 },
       ]
