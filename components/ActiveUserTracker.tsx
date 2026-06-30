@@ -71,7 +71,7 @@ export function ActiveUserTracker() {
               page_title: document.title,
               current_page: currentPage,
             }),
-          });
+          }).catch(() => {}).then(() => {}, () => {});
         }
 
         prevPathRef.current = currentPage;
