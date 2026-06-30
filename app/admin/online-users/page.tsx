@@ -11,6 +11,7 @@ interface UserSession {
   id: string;
   session_id: string;
   user_id: string | null;
+  page_title: string;
   current_page: string;
   previous_page: string | null;
   referrer: string | null;
@@ -277,56 +278,75 @@ export default function OnlineUsersPage() {
                     </div>
                   </div>
 
-                  {/* Page info */}
-                  <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Globe size={12} color="#94a3b8" style={{ flexShrink: 0 }} />
-                    <span style={{ fontSize: 12, color: '#475569', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {pageLabel(s.current_page)}
-                    </span>
-                    <span style={{ fontSize: 10, color: '#94a3b8', direction: 'ltr', textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, minWidth: 0 }}>
-                      {formatPagePath(s.current_page)}
-                    </span>
-                  </div>
-
-                  {/* Duration */}
-                  <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Clock size={12} color="#94a3b8" style={{ flexShrink: 0 }} />
-                    <span style={{ fontSize: 11, color: '#94a3b8' }}>مدة الجلسة: {sessionDuration(s.started_at)}</span>
-                  </div>
-
-                  {/* Cart info */}
-                  {hasCart && (
+                  {/* Page title */}
+                  <div style={{ marginTop: 10 }}>
                     <div style={{
-                      marginTop: 10, background: '#fefce8', borderRadius: 8,
-                      padding: '8px 10px', border: '1px solid #fde68a',
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      background: '#f0f9ff', borderRadius: 8, padding: '8px 10px',
+                      border: '1px solid #bae6fd', minHeight: 36,
+                      display: 'flex', alignItems: 'center', gap: 6,
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <ShoppingCart size={13} color="#d97706" />
-                        <span style={{ fontSize: 12, fontWeight: 700, color: '#92400e' }}>
-                          {s.cart_items_count} {s.cart_items_count > 10 ? 'قطعة' : s.cart_items_count > 1 ? 'قطع' : 'قطعة'}
-                        </span>
-                      </div>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: '#d97706' }}>
-                        {Number(s.cart_total).toFixed(2)} ج.م
+                      <Globe size={13} color="#0369a1" style={{ flexShrink: 0 }} />
+                      <span style={{
+                        fontSize: 13, fontWeight: 700, color: '#0369a1',
+                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                      }}>
+                        {s.page_title || pageLabel(s.current_page)}
                       </span>
                     </div>
-                  )}
+                  </div>
+
+                  {/* Duration + last active */}
+                  <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <Clock size={12} color="#94a3b8" />
+                      <span style={{ fontSize: 11, color: '#94a3b8' }}>{sessionDuration(s.started_at)}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: isActive ? '#22c55e' : '#cbd5e1' }} />
+                      <span style={{ fontSize: 11, color: '#94a3b8' }}>{timeAgo(s.last_active_at)}</span>
+                    </div>
+                  </div>
+
+                  {/* Cart info — always shown, highlighted only when has items */}
+                  <div style={{
+                    marginTop: 10, borderRadius: 8, padding: '8px 10px',
+                    background: hasCart ? '#fefce8' : '#f8fafc',
+                    border: hasCart ? '1.5px solid #f59e0b' : '1px solid #e2e8f0',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    transition: 'all 0.15s',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <ShoppingCart size={14} color={hasCart ? '#d97706' : '#cbd5e1'} />
+                      <span style={{
+                        fontSize: 12, fontWeight: hasCart ? 700 : 500,
+                        color: hasCart ? '#92400e' : '#94a3b8',
+                      }}>
+                        {hasCart
+                          ? `${s.cart_items_count} ${s.cart_items_count > 10 ? 'قطعة' : s.cart_items_count > 1 ? 'قطع' : 'قطعة'}`
+                          : 'السلة فارغة'}
+                      </span>
+                    </div>
+                    {hasCart && (
+                      <span style={{ fontSize: 13, fontWeight: 800, color: '#d97706' }}>
+                        {Number(s.cart_total).toFixed(2)} ج.م
+                      </span>
+                    )}
+                  </div>
 
                   {/* Contact info */}
-                  {hasUser && (
-                    <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {(s.user_name || s.user_email || s.user_phone) && (
+                    <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {s.user_email && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#64748b' }}>
-                          <Mail size={11} />
-                          <span style={{ direction: 'ltr' }}>{s.user_email}</span>
-                        </div>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 10, color: '#64748b', background: '#f1f5f9', padding: '2px 8px', borderRadius: 10 }}>
+                          <Mail size={10} />
+                          {s.user_email}
+                        </span>
                       )}
                       {s.user_phone && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#64748b' }}>
-                          <Phone size={11} />
-                          <span>{s.user_phone}</span>
-                        </div>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 10, color: '#64748b', background: '#f1f5f9', padding: '2px 8px', borderRadius: 10 }}>
+                          <Phone size={10} />
+                          {s.user_phone}
+                        </span>
                       )}
                     </div>
                   )}
@@ -416,9 +436,12 @@ export default function OnlineUsersPage() {
                 <InfoBox label="آخر نشاط" value={timeAgo(selectedSession.last_active_at)} />
               </div>
 
-              <div style={{ padding: 12, background: '#f8fafc', borderRadius: 10 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', marginBottom: 4 }}>الصفحة الحالية</div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#1e293b', direction: 'ltr', textAlign: 'left', wordBreak: 'break-all' }}>
+              <div style={{ padding: 12, background: '#f0f9ff', borderRadius: 10, border: '1px solid #bae6fd' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#0284c7', marginBottom: 4 }}>الصفحة الحالية</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#0369a1', marginBottom: 6 }}>
+                  {selectedSession.page_title || pageLabel(selectedSession.current_page)}
+                </div>
+                <div style={{ fontSize: 11, color: '#64748b', direction: 'ltr', textAlign: 'left', wordBreak: 'break-all' }}>
                   {formatPagePath(selectedSession.current_page)}
                 </div>
               </div>

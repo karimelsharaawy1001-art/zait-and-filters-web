@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS user_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   session_id TEXT UNIQUE NOT NULL,
   user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  page_title TEXT DEFAULT '',
   current_page TEXT NOT NULL DEFAULT '',
   previous_page TEXT DEFAULT '',
   referrer TEXT DEFAULT '',
@@ -24,6 +25,9 @@ CREATE TABLE IF NOT EXISTS user_sessions (
   started_at TIMESTAMPTZ DEFAULT now(),
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Add page_title column if upgrading an existing table
+ALTER TABLE user_sessions ADD COLUMN IF NOT EXISTS page_title TEXT DEFAULT '';
 
 CREATE INDEX IF NOT EXISTS idx_user_sessions_session_id ON user_sessions(session_id);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_last_active ON user_sessions(last_active_at);

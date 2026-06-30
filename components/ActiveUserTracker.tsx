@@ -45,6 +45,7 @@ export function ActiveUserTracker() {
           body: JSON.stringify({
             session_id: sessionId,
             user_id: user?.id || null,
+            page_title: document.title,
             current_page: currentPage,
             previous_page: prevPathRef.current,
             referrer: document.referrer || '',
