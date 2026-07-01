@@ -390,12 +390,25 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
   const discPct = hasSale ? Math.round((savingsAmt / product.regular_price) * 100) : 0;
   const productSlug = product.slug || productId;
 
-  const slides: { type: 'image' | 'video'; src: string }[] = [];
+  const slides: { type: 'image' | 'video' | 'youtube'; src: string }[] = [];
   if (product.video_url) {
-    const m = product.video_url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/|v\/))([A-Za-z0-9_-]{11})/);
-    if (m) slides.push({ type: 'video', src: m[1] });
+    // YouTube (any URL variant: watch?…v=, youtu.be, shorts, embed, live, v/)
+    const yt = product.video_url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/|v\/))([A-Za-z0-9_-]{11})/);
+    if (yt) {
+      slides.push({ type: 'youtube', src: yt[1] });
+    } else if (/\.(mp4|webm|ogg|mov|m4v)(\?|$)/i.test(product.video_url) || /res\.cloudinary\.com\/.+\/video\//.test(product.video_url)) {
+      // Direct video file (incl. Cloudinary video)
+      slides.push({ type: 'video', src: product.video_url });
+    }
   }
-  if (imageUrl) slides.push({ type: 'image', src: imageUrl });
+  // Product image, or fall back to the category/subcategory image so the
+  // card never ends up completely blank (e.g. video-only products).
+  const fallbackImg =
+    subcategoryImages[(product.category || '').trim().toUpperCase()] ||
+    subcategoryImages[(product.subcategory || '').trim().toUpperCase()] ||
+    null;
+  const effectiveImage = imageUrl || fallbackImg;
+  if (effectiveImage) slides.push({ type: 'image', src: effectiveImage });
 
   const univ = ['universal', 'عام', 'all', 'الكل', ''];
   const make = (product.car_make || '').trim();
@@ -481,8 +494,10 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                       <SwiperSlide key={i}>
                         {slide.type === 'image' ? (
                           <img src={optimizeImageUrl(slide.src)} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '16px' }} onError={() => setImgError(true)} />
-                        ) : (
+                        ) : slide.type === 'youtube' ? (
                           <iframe src={`https://www.youtube.com/embed/${slide.src}?rel=0&modestbranding=1`} title="فيديو" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ width: '100%', height: '100%', border: 'none', display: 'block' }} />
+                        ) : (
+                          <video src={slide.src} controls playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000', display: 'block' }} />
                         )}
                       </SwiperSlide>
                     ))}
