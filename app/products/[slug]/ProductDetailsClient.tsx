@@ -12,6 +12,7 @@ import {
 import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { optimizeImageUrl } from '@/lib/images';
+import ImageLightbox from '@/components/ImageLightbox';
 import { Navigation, Autoplay, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
@@ -338,6 +339,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
   const [subcategoryImages, setSubcategoryImages] = useState<Record<string, string>>({});
   const [qty, setQty] = useState(1);
   const [imgError, setImgError] = useState(false);
+  const [zoomSrc, setZoomSrc] = useState<string | null>(null);
   const swiperRef = useRef<any>(null);
   const { addToCart, cartItems } = useCart();
 
@@ -493,7 +495,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                     {slides.map((slide, i) => (
                       <SwiperSlide key={i}>
                         {slide.type === 'image' ? (
-                          <img src={optimizeImageUrl(slide.src)} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '16px' }} onError={() => setImgError(true)} />
+                          <img src={optimizeImageUrl(slide.src)} alt={product.name} onClick={() => setZoomSrc(optimizeImageUrl(slide.src))} style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'zoom-in' }} onError={() => setImgError(true)} />
                         ) : slide.type === 'youtube' ? (
                           <iframe src={`https://www.youtube.com/embed/${slide.src}?rel=0&modestbranding=1`} title="فيديو" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ width: '100%', height: '100%', border: 'none', display: 'block' }} />
                         ) : (
@@ -512,6 +514,8 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
               )}
             </m.div>
           </div>
+
+          {zoomSrc && <ImageLightbox src={zoomSrc} alt={product.name} onClose={() => setZoomSrc(null)} />}
 
           {/* ── Info ── */}
           <m.div className="pdp-info" variants={slideRight} initial="hidden" animate="show">
