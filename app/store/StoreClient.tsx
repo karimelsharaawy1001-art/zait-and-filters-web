@@ -1865,6 +1865,8 @@ setBrandsOptions(brandsOpts);
                       const make = (product.car_make || '').trim();
                       const model = (product.car_model || '').trim();
                       const compatText = univ.includes(make.toLowerCase()) ? 'جميع السيارات' : `${make}${univ.includes(model.toLowerCase()) ? '' : ' ' + model}`;
+                      const year = (product.car_model_year || '').trim();
+                      const origin = (product.country_origin || product.country_of_origin || '').trim();
                       const imgSrc = product.image_url || (product.category && subcategoryImages[product.category.trim().toUpperCase()]) || '/api/placeholder/200/200';
                       const inCartQty = cartItems.find((i: any) => i.id === product.id)?.quantity ?? 0;
                       return (
@@ -1886,6 +1888,11 @@ setBrandsOptions(brandsOpts);
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' as const }}>
                               <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.72rem', textTransform: 'uppercase' as const, letterSpacing: '0.4px' }}>{product.brand}</span>
                               {product.category && <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: '600' }}>{product.category}</span>}
+                              {origin && (
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.68rem', color: '#666', fontWeight: '700' }}>
+                                  <Globe size={11} color="#22c55e" /> {origin}
+                                </span>
+                              )}
                             </div>
 
                             <Link href={`/products/${product.slug || product.id}`} style={{ textDecoration: 'none' }}>
@@ -1894,9 +1901,14 @@ setBrandsOptions(brandsOpts);
                               </h3>
                             </Link>
 
-                            {/* Compat */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#15803d', fontWeight: '700', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '2px 8px', alignSelf: 'flex-start' as const }}>
-                              <Car size={10} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{compatText}</span>
+                            {/* Compat + year */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' as const }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#15803d', fontWeight: '700', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '2px 8px' }}>
+                                <Car size={10} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{compatText}</span>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#666', fontWeight: '700', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '2px 8px' }}>
+                                <Calendar size={10} color="#22c55e" /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{year || 'الكل'}</span>
+                              </div>
                             </div>
 
                             {/* Price + action */}
