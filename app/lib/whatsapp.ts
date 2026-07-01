@@ -24,6 +24,33 @@ export function orderWhatsAppLink(order: any): string | null {
   return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
 }
 
+// WhatsApp link notifying the customer that some product prices changed,
+// asking them to proceed or cancel the affected products.
+export function priceChangeWhatsAppLink(
+  order: any,
+  changes: { name: string; oldPrice: number; newPrice: number }[],
+): string | null {
+  const digits = normalizePhone(order.customer_phone);
+  if (!digits || changes.length === 0) return null;
+  const shortId = order.id ? order.id.slice(0, 8).toUpperCase() : '';
+  const lines = [
+    `ازيك ${order.customer_name || 'حبيبنا'}،`,
+    '',
+    `للأسف حصل تغيير في أسعار بعض المنتجات في طلبك${shortId ? ` رقم #${shortId}` : ''}:`,
+    '',
+    ...changes.map(
+      c => `• ${c.name}: السعر اتغير من ${c.oldPrice.toFixed(0)} لـ ${c.newPrice.toFixed(0)} ج.م`,
+    ),
+    '',
+    'تحب تكمل الطلب بالأسعار الجديدة، ولا تحب نلغي المنتجات دي من طلبك؟',
+    '',
+    'في انتظار ردك 🌹',
+  ];
+  let text = lines.join('\n');
+  if (text.length > 1500) text = text.slice(0, 1500) + '...';
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}
+
 function fmt(n: any): number {
   const v = parseFloat(n);
   if (isNaN(v)) return 0;

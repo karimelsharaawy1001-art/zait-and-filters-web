@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { orderWhatsAppLink } from '@/app/lib/whatsapp';
+import OrderPriceManager from './OrderPriceManager';
 
 // ─── Dropdown (used by NewOrderModal) ────────────────────────────────────────
 function Dropdown({ label, options, value, onChange, disabled }: {
@@ -1886,6 +1887,7 @@ export default function AdminOrders() {
                   )}
                 </div>
               </div>
+              <OrderPriceManager order={selectedOrder} />
               <div style={modalCard}>
                 <h3 style={cardTitle}><CreditCard size={18} /> إثبات وتفاصيل الدفع</h3>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '8px' }}>
