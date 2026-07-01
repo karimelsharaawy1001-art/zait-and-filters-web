@@ -83,6 +83,42 @@ interface FilterSectionProps {
   clearFilters: () => void;
 }
 
+// Map a country-of-origin label (Arabic or English) to a flag emoji.
+function originFlag(origin: string): string {
+  const s = (origin || '').trim().toLowerCase()
+    .replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي');
+  const map: [string[], string][] = [
+    [['صين', 'chin'], '🇨🇳'],
+    [['كور', 'korea'], '🇰🇷'],
+    [['يابان', 'japan'], '🇯🇵'],
+    [['الما', 'german'], '🇩🇪'],
+    [['مصر', 'egypt'], '🇪🇬'],
+    [['ترك', 'turk'], '🇹🇷'],
+    [['امريك', 'usa', 'america', 'united states'], '🇺🇸'],
+    [['ايطال', 'italy', 'ital'], '🇮🇹'],
+    [['فرنس', 'france', 'french'], '🇫🇷'],
+    [['تايوان', 'taiwan'], '🇹🇼'],
+    [['هند', 'india'], '🇮🇳'],
+    [['اسبان', 'spain'], '🇪🇸'],
+    [['بريطان', 'انجل', 'uk', 'britain', 'england'], '🇬🇧'],
+    [['تشيك', 'czech'], '🇨🇿'],
+    [['بولند', 'poland'], '🇵🇱'],
+    [['برازيل', 'brazil'], '🇧🇷'],
+    [['تايلان', 'thai'], '🇹🇭'],
+    [['اندونيس', 'indonesia'], '🇮🇩'],
+    [['روس', 'russia'], '🇷🇺'],
+    [['امارات', 'uae', 'emirat'], '🇦🇪'],
+    [['سعود', 'saudi'], '🇸🇦'],
+    [['ايران', 'iran'], '🇮🇷'],
+    [['فيتنام', 'vietnam'], '🇻🇳'],
+    [['ماليز', 'malays'], '🇲🇾'],
+  ];
+  for (const [keys, flag] of map) {
+    if (keys.some(k => s.includes(k))) return flag;
+  }
+  return '';
+}
+
 function FilterSection({
   selectLoaded,
   garageMode,
@@ -1888,11 +1924,11 @@ setBrandsOptions(brandsOpts);
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' as const }}>
                               <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.72rem', textTransform: 'uppercase' as const, letterSpacing: '0.4px' }}>{product.brand}</span>
                               {product.category && <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: '600' }}>{product.category}</span>}
-                              {origin && (
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.68rem', color: '#fff', fontWeight: '800', background: 'linear-gradient(135deg, #f59e0b, #d97706)', borderRadius: '8px', padding: '2px 8px', boxShadow: '0 2px 6px rgba(245,158,11,0.35)' }}>
-                                  <Globe size={11} color="#fff" /> {origin}
+                              {origin && (() => { const flag = originFlag(origin); return (
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', color: '#fff', fontWeight: '800', background: 'linear-gradient(135deg, #f59e0b, #d97706)', borderRadius: '8px', padding: '2px 8px', boxShadow: '0 2px 6px rgba(245,158,11,0.35)' }}>
+                                  {flag ? <span style={{ fontSize: '0.85rem', lineHeight: 1 }}>{flag}</span> : <Globe size={11} color="#fff" />} {origin}
                                 </span>
-                              )}
+                              ); })()}
                             </div>
 
                             <Link href={`/products/${product.slug || product.id}`} style={{ textDecoration: 'none' }}>
