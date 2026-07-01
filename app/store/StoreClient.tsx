@@ -1889,8 +1889,8 @@ setBrandsOptions(brandsOpts);
                               <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.72rem', textTransform: 'uppercase' as const, letterSpacing: '0.4px' }}>{product.brand}</span>
                               {product.category && <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: '600' }}>{product.category}</span>}
                               {origin && (
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.68rem', color: '#666', fontWeight: '700' }}>
-                                  <Globe size={11} color="#22c55e" /> {origin}
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.68rem', color: '#fff', fontWeight: '800', background: 'linear-gradient(135deg, #f59e0b, #d97706)', borderRadius: '8px', padding: '2px 8px', boxShadow: '0 2px 6px rgba(245,158,11,0.35)' }}>
+                                  <Globe size={11} color="#fff" /> {origin}
                                 </span>
                               )}
                             </div>
