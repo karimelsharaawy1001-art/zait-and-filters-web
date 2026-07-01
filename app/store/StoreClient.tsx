@@ -1925,8 +1925,8 @@ setBrandsOptions(brandsOpts);
                               <span style={{ color: '#22c55e', fontWeight: '800', fontSize: '0.72rem', textTransform: 'uppercase' as const, letterSpacing: '0.4px' }}>{product.brand}</span>
                               {product.category && <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: '600' }}>{product.category}</span>}
                               {origin && (() => { const flag = originFlag(origin); return (
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', color: '#fff', fontWeight: '800', background: 'linear-gradient(135deg, #b45309, #78350f)', borderRadius: '9px', padding: '3px 10px', boxShadow: '0 2px 6px rgba(120,53,15,0.4)' }}>
-                                  {flag ? <span style={{ fontSize: '0.95rem', lineHeight: 1 }}>{flag}</span> : <Globe size={13} color="#fff" />} {origin}
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', color: '#166534', fontWeight: '800', background: '#dcfce7', border: '1px solid #86efac', borderRadius: '9px', padding: '3px 10px' }}>
+                                  {flag ? <span style={{ fontSize: '0.95rem', lineHeight: 1 }}>{flag}</span> : <Globe size={13} color="#16a34a" />} {origin}
                                 </span>
                               ); })()}
                             </div>
