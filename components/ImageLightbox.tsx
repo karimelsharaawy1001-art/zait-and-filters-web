@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Plus, Minus, RotateCcw } from 'lucide-react';
 
 const MIN = 1;
@@ -116,9 +117,11 @@ export default function ImageLightbox({ src, alt, onClose }: { src: string; alt?
     backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', transition: 'background 0.15s',
   };
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <div
-      style={{ position: 'fixed', inset: 0, zIndex: 100000, background: 'rgba(9,14,26,0.94)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', overscrollBehavior: 'contain', animation: 'lb-fade 0.2s ease-out' }}
+      style={{ position: 'fixed', inset: 0, width: '100vw', height: '100dvh', zIndex: 100000, background: 'rgba(9,14,26,0.94)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', overscrollBehavior: 'contain', animation: 'lb-fade 0.2s ease-out' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <style>{`
@@ -162,6 +165,7 @@ export default function ImageLightbox({ src, alt, onClose }: { src: string; alt?
         <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.18)', margin: '0 2px' }} />
         <button className="lb-glass" style={{ ...glassBtn, width: 40, height: 40, background: 'transparent', border: 'none' }} onClick={reset} aria-label="إعادة"><RotateCcw size={16} /></button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
