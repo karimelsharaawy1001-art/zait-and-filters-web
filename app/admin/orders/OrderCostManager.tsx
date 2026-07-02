@@ -6,18 +6,21 @@ import { supabase } from '@/app/lib/supabase';
 
 // Enter the purchase cost per product on the order. Saves item.cost_price on
 // the order's items JSON, which the Profits page reads to compute profit.
-export default function OrderCostManager({ order, onSaved }: { order: any; onSaved?: (items: any[]) => void }) {
+export default function OrderCostManager({ order, onSaved }: { order: any; onSaved?: (update: { items: any[]; shipping_cost_paid: number }) => void }) {
   const items: any[] = order?.items || [];
+  const num = (v: any) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
   const [costs, setCosts] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
     items.forEach((it, idx) => { const c = parseFloat(it.cost_price); if (!isNaN(c) && c > 0) init[String(idx)] = String(c); });
     return init;
   });
+  const [shipCost, setShipCost] = useState<string>(() => {
+    const s = parseFloat(order?.shipping_cost_paid);
+    return !isNaN(s) && s > 0 ? String(s) : '';
+  });
   const [saving, setSaving] = useState(false);
 
   if (items.length === 0) return null;
-
-  const num = (v: any) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
 
   const totalProfit = items.reduce((s, it, idx) => {
     const price = num(it.price);
@@ -25,15 +28,17 @@ export default function OrderCostManager({ order, onSaved }: { order: any; onSav
     const cost = num(costs[String(idx)] ?? it.cost_price);
     return s + (price - cost) * qty;
   }, 0);
+  const netProfit = totalProfit - num(shipCost);
 
   async function save() {
     setSaving(true);
     try {
       const newItems = items.map((it, idx) => ({ ...it, cost_price: num(costs[String(idx)] ?? it.cost_price) }));
-      const { error } = await supabase.from('orders').update({ items: newItems }).eq('id', order.id);
+      const shipping_cost_paid = num(shipCost);
+      const { error } = await supabase.from('orders').update({ items: newItems, shipping_cost_paid }).eq('id', order.id);
       if (error) { toast.error('تعذّر حفظ التكلفة: ' + error.message); return; }
       toast.success('تم حفظ التكلفة — ستظهر في صفحة الأرباح');
-      onSaved?.(newItems);
+      onSaved?.({ items: newItems, shipping_cost_paid });
     } finally {
       setSaving(false);
     }
@@ -79,9 +84,35 @@ export default function OrderCostManager({ order, onSaved }: { order: any; onSav
         })}
       </div>
 
+      {/* Shipping cost paid to the courier */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', background: '#f9fafb', border: '1px solid #f0f0f0', borderRadius: '10px', padding: '8px 12px', marginBottom: '14px' }}>
+        <div style={{ flex: 1, minWidth: '140px' }}>
+          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1a1a1a' }}>تكلفة الشحن المدفوعة</div>
+          <div style={{ fontSize: '0.72rem', color: '#888' }}>
+            الشحن المحصّل من العميل: <strong style={{ color: '#15803d' }}>{num(order.shipping_cost).toFixed(0)} ج.م</strong>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <label style={{ fontSize: '0.75rem', color: '#666' }}>التكلفة:</label>
+          <input
+            type="number" min={0} step="0.01"
+            placeholder="0"
+            value={shipCost}
+            onChange={e => setShipCost(e.target.value)}
+            style={{ width: '90px', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '0.85rem', fontFamily: 'inherit', outline: 'none' }}
+          />
+          <span style={{ fontSize: '0.75rem', color: '#888' }}>ج.م</span>
+        </div>
+      </div>
+
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
-        <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1a1a1a' }}>
-          إجمالي ربح المنتجات: <span style={{ color: totalProfit >= 0 ? '#15803d' : '#dc2626' }}>{totalProfit.toFixed(0)} ج.م</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#555' }}>
+            ربح المنتجات: <span style={{ color: totalProfit >= 0 ? '#15803d' : '#dc2626' }}>{totalProfit.toFixed(0)} ج.م</span>
+          </div>
+          <div style={{ fontSize: '0.9rem', fontWeight: 900, color: '#1a1a1a' }}>
+            صافي الربح بعد الشحن: <span style={{ color: netProfit >= 0 ? '#15803d' : '#dc2626' }}>{netProfit.toFixed(0)} ج.م</span>
+          </div>
         </div>
         <button
           onClick={save}

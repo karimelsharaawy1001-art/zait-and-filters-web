@@ -1889,7 +1889,7 @@ export default function AdminOrders() {
                 </div>
               </div>
               <OrderPriceManager order={selectedOrder} />
-              <OrderCostManager order={selectedOrder} onSaved={(items) => setSelectedOrder((prev: any) => prev ? { ...prev, items } : prev)} />
+              <OrderCostManager order={selectedOrder} onSaved={(update) => setSelectedOrder((prev: any) => prev ? { ...prev, ...update } : prev)} />
               <div style={modalCard}>
                 <h3 style={cardTitle}><CreditCard size={18} /> إثبات وتفاصيل الدفع</h3>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '8px' }}>
