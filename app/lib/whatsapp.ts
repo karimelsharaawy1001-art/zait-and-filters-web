@@ -1,3 +1,10 @@
+// Convert Arabic-Indic (٠-٩) and Persian (۰-۹) digits to Western 0-9.
+function toWesternDigits(s: string): string {
+  return String(s)
+    .replace(/[٠-٩]/g, d => String(d.charCodeAt(0) - 0x0660))
+    .replace(/[۰-۹]/g, d => String(d.charCodeAt(0) - 0x06F0));
+}
+
 // Extract the first valid Egyptian mobile (01[0125]xxxxxxxx) from a digit
 // string, tolerating a country code / leading zero prefix.
 function firstEgMobile(digits: string): string | null {
@@ -12,9 +19,11 @@ function firstEgMobile(digits: string): string | null {
 
 function normalizePhone(phone: string): string | null {
   if (!phone) return null;
+  // Normalize Arabic/Persian digits first — JS \d only matches ASCII 0-9.
+  const western = toWesternDigits(phone);
   // Split into digit groups first so a field with two numbers
   // (e.g. "01003270353 / 0114268793") doesn't get glued into one.
-  const groups = String(phone).match(/\d+/g) || [];
+  const groups = western.match(/\d+/g) || [];
   if (groups.length === 0) return null;
 
   // Prefer a valid Egyptian mobile from any single group…
