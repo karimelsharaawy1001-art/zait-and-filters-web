@@ -1,6 +1,33 @@
+// Extract the first valid Egyptian mobile (01[0125]xxxxxxxx) from a digit
+// string, tolerating a country code / leading zero prefix.
+function firstEgMobile(digits: string): string | null {
+  let d = digits;
+  if (d.startsWith('0020')) d = d.slice(4);
+  else if (d.startsWith('20')) d = d.slice(2);
+  else if (d.startsWith('00')) d = d.slice(2);
+  if (d.startsWith('0')) d = d.slice(1);
+  const m = d.match(/1[0125]\d{8}/);
+  return m ? '20' + m[0] : null;
+}
+
 function normalizePhone(phone: string): string | null {
   if (!phone) return null;
-  let d = String(phone).replace(/\D/g, '');
+  // Split into digit groups first so a field with two numbers
+  // (e.g. "01003270353 / 0114268793") doesn't get glued into one.
+  const groups = String(phone).match(/\d+/g) || [];
+  if (groups.length === 0) return null;
+
+  // Prefer a valid Egyptian mobile from any single group…
+  for (const g of groups) {
+    const r = firstEgMobile(g);
+    if (r) return r;
+  }
+  // …then try across the joined digits (handles no-separator concatenation)…
+  const joined = firstEgMobile(groups.join(''));
+  if (joined) return joined;
+
+  // …otherwise best-effort for a non-Egyptian number (use the first group).
+  let d = groups[0] || '';
   if (!d) return null;
   if (d.startsWith('00')) d = d.slice(2);
   if (d.startsWith('0')) d = '20' + d.slice(1);
