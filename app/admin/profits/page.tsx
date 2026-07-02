@@ -121,7 +121,8 @@ export default function AdminProfits() {
     return completedOrders.reduce((s, o) => s + (shippingCostPaid[o.id] ?? parseFloat(o.shipping_cost_paid || 0)), 0);
   }
 
-  const filteredOrders = orders;
+  // Profits only count finished orders (delivered).
+  const filteredOrders = completedOrders;
 
   if (loading) {
     return (
