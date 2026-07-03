@@ -11,7 +11,7 @@ import {
   AlertTriangle, Link as LinkIcon, MessageCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { orderWhatsAppLink } from '@/app/lib/whatsapp';
+import { orderWhatsAppLink, outOfStockWhatsAppLink } from '@/app/lib/whatsapp';
 import OrderPriceManager from './OrderPriceManager';
 import OrderCostManager from './OrderCostManager';
 
@@ -500,6 +500,16 @@ function ExpandedOrderRow({
               <a href={link} target="_blank" rel="noopener noreferrer"
                 style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap', textDecoration: 'none' }}>
                 <MessageCircle size={14} /> واتساب
+              </a>
+            );
+          })()}
+          {(() => {
+            const link = outOfStockWhatsAppLink(order);
+            if (!link) return null;
+            return (
+              <a href={link} target="_blank" rel="noopener noreferrer"
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#fff7ed', color: '#c2410c', border: '1px solid #fed7aa', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap', textDecoration: 'none' }}>
+                <AlertTriangle size={14} /> غير متوفر
               </a>
             );
           })()}

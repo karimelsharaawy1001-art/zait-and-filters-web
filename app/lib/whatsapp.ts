@@ -60,6 +60,28 @@ export function orderWhatsAppLink(order: any): string | null {
   return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
 }
 
+// WhatsApp link telling the customer their ordered item is out of stock and
+// that we'll message them again once it's back.
+export function outOfStockWhatsAppLink(order: any): string | null {
+  const digits = normalizePhone(order.customer_phone);
+  if (!digits) return null;
+  const items: any[] = order.items || [];
+  const names = items.map(i => `• ${i.name || 'منتج'}`).join('\n');
+  const shortId = order.id ? order.id.slice(0, 8).toUpperCase() : '';
+  const lines = [
+    `ازيك ${order.customer_name || 'حبيبنا'}،`,
+    '',
+    `للأسف المنتج اللي طلبته${shortId ? ` في طلب #${shortId}` : ''} غير متوفر حالياً في المخزون:`,
+    names,
+    '',
+    'وهنبعتلك رسالة تاني أول ما يتوفر مرة أخرى.',
+    'نعتذر عن الإزعاج ونشكر تفهمك 🌹',
+  ].filter(Boolean);
+  let text = lines.join('\n');
+  if (text.length > 1500) text = text.slice(0, 1500) + '...';
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}
+
 // WhatsApp link notifying the customer that some product prices changed,
 // asking them to proceed or cancel the affected products.
 export function priceChangeWhatsAppLink(
