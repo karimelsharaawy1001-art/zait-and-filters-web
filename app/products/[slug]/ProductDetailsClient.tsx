@@ -341,6 +341,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
   const [imgError, setImgError] = useState(false);
   const [zoomSrc, setZoomSrc] = useState<string | null>(null);
   const [playYoutube, setPlayYoutube] = useState(false);
+  const [activeSlide, setActiveSlide] = useState(0);
   const swiperRef = useRef<any>(null);
   const { addToCart, cartItems } = useCart();
 
@@ -490,41 +491,48 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                   <div style={{ textAlign: 'center', color: '#cbd5e1' }}><Package size={64} /><p style={{ fontWeight: '700', marginTop: '12px' }}>لا توجد صورة</p></div>
                 </div>
               ) : (
-                <div className="pdp-slider">
-                  <Swiper modules={[Pagination]} onSwiper={s => { swiperRef.current = s; }}
-                    pagination={slides.length > 1 ? { clickable: true } : false} slidesPerView={1} style={{ height: '100%' }}>
-                    {slides.map((slide, i) => (
-                      <SwiperSlide key={i}>
-                        {slide.type === 'image' ? (
-                          <img src={optimizeImageUrl(slide.src)} alt={product.name} onClick={() => setZoomSrc(optimizeImageUrl(slide.src))} style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'zoom-in' }} onError={() => setImgError(true)} />
-                        ) : slide.type === 'youtube' ? (
-                          playYoutube ? (
-                            <iframe src={`https://www.youtube-nocookie.com/embed/${slide.src}?autoplay=1&rel=0&modestbranding=1&playsinline=1`} title="فيديو" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ width: '100%', height: '100%', border: 'none', display: 'block' }} />
-                          ) : (
-                            // Click-to-play thumbnail — avoids mounting the YouTube iframe on load.
-                            <button type="button" onClick={() => setPlayYoutube(true)} aria-label="تشغيل الفيديو"
-                              style={{ position: 'relative', width: '100%', height: '100%', border: 'none', padding: 0, cursor: 'pointer', background: '#000', display: 'block' }}>
-                              <img src={`https://img.youtube.com/vi/${slide.src}/hqdefault.jpg`} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }} />
-                              <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <span style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(255,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 20px rgba(0,0,0,0.4)' }}>
-                                  <Play size={30} color="#fff" fill="#fff" style={{ marginRight: -3 }} />
-                                </span>
-                              </span>
-                            </button>
-                          )
+                <>
+                  {/* Swiper-free, SSR-safe gallery */}
+                  <div className="pdp-slider">
+                    {(() => {
+                      const slide = slides[Math.min(activeSlide, slides.length - 1)];
+                      if (slide.type === 'image') {
+                        return <img src={optimizeImageUrl(slide.src)} alt={product.name} onClick={() => setZoomSrc(optimizeImageUrl(slide.src))} style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'zoom-in' }} onError={() => setImgError(true)} />;
+                      }
+                      if (slide.type === 'youtube') {
+                        return playYoutube ? (
+                          <iframe src={`https://www.youtube-nocookie.com/embed/${slide.src}?autoplay=1&rel=0&modestbranding=1&playsinline=1`} title="فيديو" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ width: '100%', height: '100%', border: 'none', display: 'block' }} />
                         ) : (
-                          <video src={slide.src} controls playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000', display: 'block' }} />
-                        )}
-                      </SwiperSlide>
-                    ))}
-                  </Swiper>
+                          <button type="button" onClick={() => setPlayYoutube(true)} aria-label="تشغيل الفيديو"
+                            style={{ position: 'relative', width: '100%', height: '100%', border: 'none', padding: 0, cursor: 'pointer', background: '#000', display: 'block' }}>
+                            <img src={`https://img.youtube.com/vi/${slide.src}/hqdefault.jpg`} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }} />
+                            <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <span style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(255,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 20px rgba(0,0,0,0.4)' }}>
+                                <Play size={30} color="#fff" fill="#fff" style={{ marginRight: -3 }} />
+                              </span>
+                            </span>
+                          </button>
+                        );
+                      }
+                      return <video src={slide.src} controls playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000', display: 'block' }} />;
+                    })()}
+                  </div>
                   {slides.length > 1 && (
-                    <>
-                      <button onClick={() => swiperRef.current?.slidePrev()} style={{ position: 'absolute', top: '50%', right: '14px', transform: 'translateY(-50%)', zIndex: 20, width: '40px', height: '40px', borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.95)', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronRight size={20} /></button>
-                      <button onClick={() => swiperRef.current?.slideNext()} style={{ position: 'absolute', top: '50%', left: '14px', transform: 'translateY(-50%)', zIndex: 20, width: '40px', height: '40px', borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.95)', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronLeft size={20} /></button>
-                    </>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '10px', justifyContent: 'center', flexWrap: 'wrap' as const }}>
+                      {slides.map((s, i) => (
+                        <button key={i} type="button" onClick={() => { setActiveSlide(i); setPlayYoutube(false); }}
+                          style={{ width: '56px', height: '56px', borderRadius: '10px', overflow: 'hidden', border: activeSlide === i ? '2px solid #16a34a' : '2px solid #e2e8f0', padding: 0, cursor: 'pointer', background: '#f8fafc', position: 'relative', flexShrink: 0 }}>
+                          <img src={s.type === 'youtube' ? `https://img.youtube.com/vi/${s.src}/default.jpg` : optimizeImageUrl(s.src)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          {s.type !== 'image' && (
+                            <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.25)' }}>
+                              <Play size={16} color="#fff" fill="#fff" />
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   )}
-                </div>
+                </>
               )}
             </div>
           </div>
