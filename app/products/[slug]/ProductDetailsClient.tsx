@@ -7,7 +7,7 @@ import {
   ShoppingCart, Car, Calendar, ShieldCheck,
   ArrowRight, Globe, Plus, Minus, CheckCircle2, Layers, Info, Package, Loader2,
   ChevronRight, ChevronLeft, Timer, Share2, Check, Copy, Facebook, Twitter,
-  Zap, Star, Send, User, LayoutGrid, Tag
+  Zap, Star, Send, User, LayoutGrid, Tag, Play
 } from 'lucide-react';
 import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -340,6 +340,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
   const [qty, setQty] = useState(1);
   const [imgError, setImgError] = useState(false);
   const [zoomSrc, setZoomSrc] = useState<string | null>(null);
+  const [playYoutube, setPlayYoutube] = useState(false);
   const swiperRef = useRef<any>(null);
   const { addToCart, cartItems } = useCart();
 
@@ -469,7 +470,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
       <div className="pdp-wrapper">
 
         {/* Breadcrumb */}
-        <m.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
+        <m.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
           style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.85rem', color: '#94a3b8', flexWrap: 'wrap' as const }}>
           <Link href="/store" style={{ display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#475569', fontWeight: '700' }}>
             <ArrowRight size={16} /> المتجر
@@ -483,7 +484,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
 
           {/* ── Media ── */}
           <div className="pdp-media">
-            <m.div variants={slideLeft} initial="hidden" animate="show">
+            <m.div variants={slideLeft} initial={false} animate="show">
               {slides.length === 0 ? (
                 <div className="pdp-slider" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <div style={{ textAlign: 'center', color: '#cbd5e1' }}><Package size={64} /><p style={{ fontWeight: '700', marginTop: '12px' }}>لا توجد صورة</p></div>
@@ -497,7 +498,20 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                         {slide.type === 'image' ? (
                           <img src={optimizeImageUrl(slide.src)} alt={product.name} onClick={() => setZoomSrc(optimizeImageUrl(slide.src))} style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'zoom-in' }} onError={() => setImgError(true)} />
                         ) : slide.type === 'youtube' ? (
-                          <iframe src={`https://www.youtube-nocookie.com/embed/${slide.src}?rel=0&modestbranding=1&playsinline=1`} title="فيديو" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ width: '100%', height: '100%', border: 'none', display: 'block' }} />
+                          playYoutube ? (
+                            <iframe src={`https://www.youtube-nocookie.com/embed/${slide.src}?autoplay=1&rel=0&modestbranding=1&playsinline=1`} title="فيديو" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ width: '100%', height: '100%', border: 'none', display: 'block' }} />
+                          ) : (
+                            // Click-to-play thumbnail — avoids mounting the YouTube iframe on load.
+                            <button type="button" onClick={() => setPlayYoutube(true)} aria-label="تشغيل الفيديو"
+                              style={{ position: 'relative', width: '100%', height: '100%', border: 'none', padding: 0, cursor: 'pointer', background: '#000', display: 'block' }}>
+                              <img src={`https://img.youtube.com/vi/${slide.src}/hqdefault.jpg`} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }} />
+                              <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <span style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(255,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 20px rgba(0,0,0,0.4)' }}>
+                                  <Play size={30} color="#fff" fill="#fff" style={{ marginRight: -3 }} />
+                                </span>
+                              </span>
+                            </button>
+                          )
                         ) : (
                           <video src={slide.src} controls playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000', display: 'block' }} />
                         )}
@@ -518,7 +532,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           {zoomSrc && <ImageLightbox src={zoomSrc} alt={product.name} onClose={() => setZoomSrc(null)} />}
 
           {/* ── Info ── */}
-          <m.div className="pdp-info" variants={slideRight} initial="hidden" animate="show">
+          <m.div className="pdp-info" variants={slideRight} initial={false} animate="show">
 
             {/* Brand + Stock */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -584,7 +598,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             </div>
 
             {/* Specs grid */}
-            <m.div initial="hidden" animate="show" variants={stagger}
+            <m.div initial={false} animate="show" variants={stagger}
               style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               {product.country_of_origin && <SpecItem label="المنشأ" value={product.country_of_origin} icon={<Globe size={14} color="#22c55e" />} />}
               <SpecItem label="الضمان" value={product.warranty || product.warranty_duration || 'ضمان استبدال'} icon={<Timer size={14} color="#22c55e" />} />
