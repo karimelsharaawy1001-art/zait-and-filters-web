@@ -33,9 +33,18 @@ function pending(q: any) {
   return q.ilike('image_url', 'http%').not('image_url', 'ilike', '%cloudinary.com%');
 }
 
+// Some image_url values contain two URLs glued together (e.g.
+// "...jpg%20https://..."). Keep only the first URL.
+function cleanUrl(raw: string): string {
+  let u = String(raw).trim();
+  const i = u.search(/(%20|\s)https?:\/\//i);
+  if (i !== -1) u = u.slice(0, i);
+  return u.replace(/(%20|\s)+$/i, '');
+}
+
 async function uploadByUrl(imageUrl: string): Promise<string> {
   const body = new URLSearchParams();
-  body.append('file', imageUrl);
+  body.append('file', cleanUrl(imageUrl));
   body.append('upload_preset', PRESET);
   const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`, { method: 'POST', body });
   const data: any = await res.json();
@@ -52,16 +61,19 @@ export async function GET() {
   return NextResponse.json({ ok: true, remaining: count ?? 0 });
 }
 
-// POST → migrate one batch. Body: { limit?: number }
+// POST → migrate one batch. Body: { limit?: number, afterId?: string }
+// Uses a keyset cursor (id > afterId) so rows that fail to migrate are not
+// re-selected on the next batch (avoids looping on the same failures).
 export async function POST(req: NextRequest) {
   try {
     if (!(await isAdmin())) return NextResponse.json({ ok: false, error: 'غير مصرّح' }, { status: 200 });
-    const { limit = 10 } = await req.json().catch(() => ({}));
+    const { limit = 10, afterId = '' } = await req.json().catch(() => ({}));
+    const batch = Math.min(Math.max(1, limit), 25);
     const admin = makeAdmin();
 
-    const { data: rows, error } = await pending(
-      admin.from('products').select('id, name, image_url').order('id', { ascending: true })
-    ).limit(Math.min(Math.max(1, limit), 25));
+    let q = pending(admin.from('products').select('id, name, image_url')).order('id', { ascending: true });
+    if (afterId) q = q.gt('id', afterId);
+    const { data: rows, error } = await q.limit(batch);
     if (error) return NextResponse.json({ ok: false, error: error.message });
 
     const results = await Promise.all((rows ?? []).map(async (p: any) => {
@@ -76,14 +88,15 @@ export async function POST(req: NextRequest) {
       }
     }));
 
-    const { count: remaining } = await pending(admin.from('products').select('id', { count: 'exact', head: true }));
+    const lastId = rows && rows.length ? rows[rows.length - 1].id : afterId;
     return NextResponse.json({
       ok: true,
       processed: results.length,
       migrated: results.filter(r => r.ok).length,
       failed: results.filter(r => !r.ok).length,
       results,
-      remaining: remaining ?? 0,
+      lastId,
+      hasMore: (rows?.length ?? 0) === batch,
     });
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e?.message || 'خطأ غير متوقع' });

@@ -27,17 +27,19 @@ export default function MigrateImagesPage() {
 
   async function run() {
     setRunning(true); stopRef.current = false; setMsg(null);
-    // Capture the starting total for the progress bar.
-    let startRemaining = remaining ?? 0;
-    setTotal(t => (t === 0 ? startRemaining : t));
-    let localMigrated = migrated, localFailed = failed;
+    // Fresh run: reset counters and cursor. Already-migrated rows are skipped
+    // by the server filter; previously-failed rows are retried.
+    setTotal(remaining ?? 0);
+    setMigrated(0); setFailed(0); setLog([]);
+    let cursor = '';
+    let localMigrated = 0, localFailed = 0;
 
     while (!stopRef.current) {
       let d: any;
       try {
         const r = await fetch('/api/admin/migrate-images', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ limit: 10 }),
+          body: JSON.stringify({ limit: 10, afterId: cursor }),
         });
         d = await r.json();
       } catch { setMsg('انقطع الاتصال — أعد المحاولة'); break; }
@@ -47,10 +49,9 @@ export default function MigrateImagesPage() {
       localMigrated += d.migrated; localFailed += d.failed;
       setMigrated(localMigrated); setFailed(localFailed);
       setLog(prev => [...d.results, ...prev].slice(0, 500));
-      setRemaining(d.remaining);
-      if (total === 0) { setTotal(startRemaining); }
+      cursor = d.lastId || cursor;
 
-      if (d.processed === 0 || d.remaining === 0) break;
+      if (d.processed === 0 || !d.hasMore) break;
     }
     setRunning(false);
     await refreshCount();
