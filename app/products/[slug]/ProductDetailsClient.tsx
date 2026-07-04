@@ -393,24 +393,24 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
   const productSlug = product.slug || productId;
 
   const slides: { type: 'image' | 'video' | 'youtube'; src: string }[] = [];
-  if (product.video_url) {
-    // YouTube (any URL variant: watch?…v=, youtu.be, shorts, embed, live, v/)
-    const yt = product.video_url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/|v\/))([A-Za-z0-9_-]{11})/);
-    if (yt) {
-      slides.push({ type: 'youtube', src: yt[1] });
-    } else if (/\.(mp4|webm|ogg|mov|m4v)(\?|$)/i.test(product.video_url) || /res\.cloudinary\.com\/.+\/video\//.test(product.video_url)) {
-      // Direct video file (incl. Cloudinary video)
-      slides.push({ type: 'video', src: product.video_url });
-    }
-  }
-  // Product image, or fall back to the category/subcategory image so the
-  // card never ends up completely blank (e.g. video-only products).
+  // Product image FIRST so the photo is always the primary/visible slide,
+  // falling back to the category/subcategory image for video-only products.
   const fallbackImg =
     subcategoryImages[(product.category || '').trim().toUpperCase()] ||
     subcategoryImages[(product.subcategory || '').trim().toUpperCase()] ||
     null;
   const effectiveImage = imageUrl || fallbackImg;
   if (effectiveImage) slides.push({ type: 'image', src: effectiveImage });
+  // Then the video (YouTube any variant, or a direct/Cloudinary video file).
+  const videoUrl = product.video_url ? String(product.video_url) : '';
+  if (videoUrl) {
+    const yt = videoUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/|v\/))([A-Za-z0-9_-]{11})/);
+    if (yt) {
+      slides.push({ type: 'youtube', src: yt[1] });
+    } else if (/\.(mp4|webm|ogg|mov|m4v)(\?|$)/i.test(videoUrl) || /res\.cloudinary\.com\/.+\/video\//.test(videoUrl)) {
+      slides.push({ type: 'video', src: videoUrl });
+    }
+  }
 
   const univ = ['universal', 'عام', 'all', 'الكل', ''];
   const make = (product.car_make || '').trim();
@@ -497,7 +497,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                         {slide.type === 'image' ? (
                           <img src={optimizeImageUrl(slide.src)} alt={product.name} onClick={() => setZoomSrc(optimizeImageUrl(slide.src))} style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'zoom-in' }} onError={() => setImgError(true)} />
                         ) : slide.type === 'youtube' ? (
-                          <iframe src={`https://www.youtube.com/embed/${slide.src}?rel=0&modestbranding=1`} title="فيديو" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ width: '100%', height: '100%', border: 'none', display: 'block' }} />
+                          <iframe src={`https://www.youtube-nocookie.com/embed/${slide.src}?rel=0&modestbranding=1&playsinline=1`} title="فيديو" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ width: '100%', height: '100%', border: 'none', display: 'block' }} />
                         ) : (
                           <video src={slide.src} controls playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000', display: 'block' }} />
                         )}
