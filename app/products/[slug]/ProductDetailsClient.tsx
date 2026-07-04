@@ -484,7 +484,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
 
           {/* ── Media ── */}
           <div className="pdp-media">
-            <m.div variants={slideLeft} initial={false} animate="show">
+            <m.div initial={false} animate={{ opacity: 1, x: 0 }}>
               {slides.length === 0 ? (
                 <div className="pdp-slider" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <div style={{ textAlign: 'center', color: '#cbd5e1' }}><Package size={64} /><p style={{ fontWeight: '700', marginTop: '12px' }}>لا توجد صورة</p></div>
@@ -532,7 +532,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
           {zoomSrc && <ImageLightbox src={zoomSrc} alt={product.name} onClose={() => setZoomSrc(null)} />}
 
           {/* ── Info ── */}
-          <m.div className="pdp-info" variants={slideRight} initial={false} animate="show">
+          <m.div className="pdp-info" initial={false} animate={{ opacity: 1, x: 0 }}>
 
             {/* Brand + Stock */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -598,7 +598,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             </div>
 
             {/* Specs grid */}
-            <m.div initial={false} animate="show" variants={stagger}
+            <m.div initial={false} animate={{ opacity: 1 }}
               style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               {product.country_of_origin && <SpecItem label="المنشأ" value={product.country_of_origin} icon={<Globe size={14} color="#22c55e" />} />}
               <SpecItem label="الضمان" value={product.warranty || product.warranty_duration || 'ضمان استبدال'} icon={<Timer size={14} color="#22c55e" />} />
