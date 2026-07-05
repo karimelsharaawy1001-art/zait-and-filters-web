@@ -43,14 +43,35 @@ const CAR_MODEL_AR: Record<string, string> = {
   PASSAT: 'باسات', GOLF: 'جولف', JETTA: 'جيتا',
 };
 
+// Reverse maps (Arabic → English) so store links that use Arabic make/model
+// slugs (e.g. make=نيسان&model=صني-n17) resolve to the English keys the DB uses.
+const MAKE_EN_BY_AR: Record<string, string> = {};
+for (const [en, ar] of Object.entries(CAR_MAKE_AR)) if (ar) MAKE_EN_BY_AR[ar.trim().toUpperCase()] = en;
+const MODEL_EN_BY_AR: Record<string, string> = {};
+for (const [en, ar] of Object.entries(CAR_MODEL_AR)) if (ar) MODEL_EN_BY_AR[ar.trim().toUpperCase()] = en;
+
+function toEnglishMake(raw: string): string {
+  const up = raw.trim().toUpperCase();
+  if (CAR_MAKE_AR[up] !== undefined) return up;                 // already an English key
+  const unslug = raw.trim().replace(/-/g, ' ').toUpperCase();   // "صني-n17" → "صني N17"
+  return MAKE_EN_BY_AR[up] || MAKE_EN_BY_AR[unslug] || up;
+}
+function toEnglishModel(raw: string): string {
+  const up = raw.trim().toUpperCase();
+  if (CAR_MODEL_AR[up] !== undefined) return up;
+  const unslug = raw.trim().replace(/-/g, ' ').toUpperCase();
+  if (CAR_MODEL_AR[unslug] !== undefined) return unslug;
+  return MODEL_EN_BY_AR[up] || MODEL_EN_BY_AR[unslug] || unslug;
+}
+
 export async function generateMetadata({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
 }): Promise<Metadata> {
   const sp = await searchParams;
-  const make     = (sp.make     || '').toUpperCase();
-  const model    = (sp.model    || '').toUpperCase();
+  const make     = sp.make  ? toEnglishMake(sp.make)   : '';
+  const model    = sp.model ? toEnglishModel(sp.model) : '';
   const category = sp.category || '';
   const brand    = sp.brand    || '';
   const query    = sp.q        || '';
