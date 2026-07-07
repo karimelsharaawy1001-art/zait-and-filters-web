@@ -424,6 +424,48 @@ function buildTrackingUrl(trackingNumber: string): string {
 }
 
 // ─── Inline Expanded Order Row ────────────────────────────────────────────────
+// Inline "remaining amount" cell shown in every order row. Highlights amber
+// when there's an outstanding amount so it's easy to notice at a glance.
+function RemainingAmountCell({ order }: { order: any }) {
+  const [val, setVal] = useState<string>(order.remaining_amount != null ? String(order.remaining_amount) : '');
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    const v = val.trim() === '' ? null : (parseFloat(val) || 0);
+    if ((order.remaining_amount ?? null) === v) return;
+    setSaving(true);
+    const { error } = await supabase.from('orders').update({ remaining_amount: v }).eq('id', order.id);
+    setSaving(false);
+    if (error) { toast.error('تعذّر حفظ المبلغ المتبقي: ' + error.message); return; }
+    order.remaining_amount = v;
+    toast.success('تم حفظ المبلغ المتبقي');
+  }
+
+  const hasRemaining = (order.remaining_amount ?? 0) > 0;
+  return (
+    <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+      <input
+        type="number" min={0} step="0.01"
+        value={val}
+        onChange={e => setVal(e.target.value)}
+        onBlur={save}
+        onKeyDown={e => { if (e.key === 'Enter') (e.currentTarget as HTMLInputElement).blur(); }}
+        placeholder="0"
+        title="مبلغ متبقٍّ"
+        style={{
+          width: '84px', height: '34px', padding: '0 8px', borderRadius: '8px', textAlign: 'center',
+          border: hasRemaining ? '1.5px solid #f59e0b' : '1.5px solid #e5e7eb',
+          background: hasRemaining ? '#fff7ed' : '#fff',
+          color: hasRemaining ? '#c2410c' : '#1a1a1a',
+          fontSize: '0.85rem', fontWeight: 800, outline: 'none',
+        }}
+      />
+      <small style={{ color: '#94a3b8', fontSize: '0.68rem' }}>ج.م</small>
+      {saving && <Loader2 size={12} color="#94a3b8" style={{ animation: 'spin 1s linear infinite' }} />}
+    </div>
+  );
+}
+
 function ExpandedOrderRow({
   order, paymentLabels, onUpdateStatus, onUpdatePaymentStatus,
   onViewDetail, onViewInvoice, onDelete, updatingPayment, enrichedItems,
@@ -436,19 +478,6 @@ function ExpandedOrderRow({
 }) {
   const items: any[] = enrichedItems.length > 0 ? enrichedItems : (order.items || []);
   const [preparedItems, setPreparedItems] = useState<boolean[]>(() => items.map(() => false));
-  const [remaining, setRemaining] = useState<string>(order.remaining_amount != null ? String(order.remaining_amount) : '');
-  const [savingRemaining, setSavingRemaining] = useState(false);
-
-  async function saveRemaining() {
-    const val = remaining.trim() === '' ? null : (parseFloat(remaining) || 0);
-    if ((order.remaining_amount ?? null) === val) return;
-    setSavingRemaining(true);
-    const { error } = await supabase.from('orders').update({ remaining_amount: val }).eq('id', order.id);
-    setSavingRemaining(false);
-    if (error) { toast.error('تعذّر حفظ المبلغ المتبقي: ' + error.message); return; }
-    order.remaining_amount = val;
-    toast.success('تم حفظ المبلغ المتبقي');
-  }
   const allPrepared = preparedItems.length > 0 && preparedItems.every(Boolean);
   const someCount = preparedItems.filter(Boolean).length;
   function toggleItem(i: number) { setPreparedItems(prev => prev.map((v, idx) => idx === i ? !v : v)); }
@@ -473,22 +502,6 @@ function ExpandedOrderRow({
           <div style={{ fontSize: '0.82rem', color: '#555', marginBottom: '4px' }}>الشحن: <strong style={{ color: shipping === 0 ? '#22c55e' : '#1a1a1a' }}>{shipping === 0 ? 'مجاني' : `${shipping} ج.م`}</strong>{order.shipping_type === 'express' && <span style={{ marginRight: '6px', fontSize: '0.7rem', color: '#f59e0b', fontWeight: '800' }}>⚡ سريع</span>}</div>
           {discountVal > 0 && <div style={{ fontSize: '0.82rem', color: '#ef4444', marginBottom: '4px' }}>خصم: -{discountVal} ج.م</div>}
           <div style={{ fontSize: '1rem', fontWeight: '900', color: '#15803d', marginTop: '6px' }}>{total.toLocaleString()} ج.م</div>
-          <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed #e0f2e9' }}>
-            <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#888', letterSpacing: '1px', marginBottom: '5px', textTransform: 'uppercase' }}>مبلغ متبقٍّ</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <input type="number" min={0} step="0.01" value={remaining}
-                onChange={e => setRemaining(e.target.value)} onBlur={saveRemaining}
-                placeholder="0"
-                style={{ width: '110px', padding: '6px 10px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '0.85rem', fontWeight: '700', outline: 'none', background: '#fff', color: '#1a1a1a' }} />
-              <span style={{ fontSize: '0.75rem', color: '#888' }}>ج.م</span>
-              {savingRemaining && <span style={{ fontSize: '0.7rem', color: '#888' }}>...جارٍ</span>}
-              {!savingRemaining && (order.remaining_amount ?? 0) > 0 && (
-                <span style={{ fontSize: '0.72rem', fontWeight: '800', color: '#c2410c', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '6px', padding: '2px 8px' }}>
-                  متبقٍّ {Number(order.remaining_amount).toLocaleString()} ج.م
-                </span>
-              )}
-            </div>
-          </div>
           {order.tracking_number && (
             <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed #e0f2e9' }}>
               <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#888', letterSpacing: '1px', marginBottom: '5px', textTransform: 'uppercase' }}>تتبع الشحنة</div>
@@ -1296,6 +1309,7 @@ export default function AdminOrders() {
                     <th style={th}>رقم التتبع</th>
                     <th style={th}>التاريخ والوقت</th>
                     <th style={th}>الإجمالي</th>
+                    <th style={th}>مبلغ متبقٍّ</th>
                     <th style={th}>إجراءات</th>
                   </tr>
                 </thead>
@@ -1420,6 +1434,9 @@ export default function AdminOrders() {
                             <span style={{ color: '#15803d', fontWeight: '900', fontSize: '1rem' }}>{order.total_price} <small>ج.م</small></span>
                           </td>
                           <td style={td} onClick={e => e.stopPropagation()}>
+                            <RemainingAmountCell order={order} />
+                          </td>
+                          <td style={td} onClick={e => e.stopPropagation()}>
                             <div style={{ display: 'flex', gap: '6px' }}>
                               <button onClick={() => openDetailModal(order)} style={iconBtn} title="عرض الطلب"><Eye size={16} /></button>
                               <button onClick={() => openInvoiceModal(order)} style={invoiceRowBtn} title="عرض ORDER"><FileText size={15} /></button>
@@ -1429,7 +1446,7 @@ export default function AdminOrders() {
                         </tr>
                         {isExpanded && (
                           <tr key={`${order.id}-expanded`}>
-                            <td colSpan={11} style={{ padding: 0, border: 'none' }}>
+                            <td colSpan={12} style={{ padding: 0, border: 'none' }}>
                               <ExpandedOrderRow order={order} paymentLabels={paymentLabels} onUpdateStatus={updateOrderStatus} onUpdatePaymentStatus={updatePaymentStatus} onViewDetail={openDetailModal} onViewInvoice={openInvoiceModal} onDelete={(id) => setDeleteConfirmId(id)} updatingPayment={updatingPayment} enrichedItems={expandedEnrichedItems} />
                             </td>
                           </tr>
@@ -1484,6 +1501,10 @@ export default function AdminOrders() {
                             const statusLabels: any = { pending_payment: 'انتظار الدفع', pending: 'جديد', processing: 'تجهيز', shipped: 'شحن', delivered: 'توصيل', cancelled: 'ملغي', refunded: 'مسترجع' };
                             return <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: sc.background, color: sc.color, border: sc.border }}>{statusLabels[order.status] || order.status}</span>;
                           })()}
+                          <span onClick={e => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <small style={{ color: '#94a3b8', fontSize: '0.68rem' }}>متبقٍّ</small>
+                            <RemainingAmountCell order={order} />
+                          </span>
                           {order.tracking_number && (
                             <a href={buildTrackingUrl(order.tracking_number)} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}
                               style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.68rem', fontWeight: '800', color: '#1e40af', textDecoration: 'none', background: '#eff6ff', padding: '4px 8px', borderRadius: '6px', border: '1px solid #dbeafe' }}>
