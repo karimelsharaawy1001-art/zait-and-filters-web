@@ -47,7 +47,7 @@ function normalizePhone(phone: string): string | null {
 export function waLink(phone: string, name?: string, message?: string): string | null {
   const digits = normalizePhone(phone);
   if (!digits) return null;
-  let text = `ازيك ${name || ''}، بخصوص رسالتك لمتجر زيت أند فلترز`.trim();
+  let text = `ازيك يا أ. ${name || ''}، بخصوص رسالتك لمتجر زيت أند فلترز`.trim();
   if (message) text += `:\n«${message}»`;
   return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
 }
@@ -69,7 +69,7 @@ export function outOfStockWhatsAppLink(order: any): string | null {
   const names = items.map(i => `• ${i.name || 'منتج'}`).join('\n');
   const shortId = order.id ? order.id.slice(0, 8).toUpperCase() : '';
   const lines = [
-    `ازيك ${order.customer_name || 'حبيبنا'}،`,
+    `ازيك يا أ. ${order.customer_name || 'حبيبنا'}،`,
     '',
     `للأسف المنتج اللي طلبته${shortId ? ` في طلب #${shortId}` : ''} غير متوفر حالياً في المخزون:`,
     names,
@@ -92,7 +92,7 @@ export function priceChangeWhatsAppLink(
   if (!digits || changes.length === 0) return null;
   const shortId = order.id ? order.id.slice(0, 8).toUpperCase() : '';
   const lines = [
-    `ازيك ${order.customer_name || 'حبيبنا'}،`,
+    `ازيك يا أ. ${order.customer_name || 'حبيبنا'}،`,
     '',
     `للأسف حصل تغيير في أسعار بعض المنتجات في طلبك${shortId ? ` رقم #${shortId}` : ''}:`,
     '',
@@ -139,7 +139,7 @@ export function orderConfirmationMessage(order: any): string {
   const total = parseFloat(order.total_price || 0);
 
   const lines = [
-    `ازيك ${order.customer_name || 'حبيبنا'}،`,
+    `ازيك يا أ. ${order.customer_name || 'حبيبنا'}،`,
     '',
     'تشرفنا بطلبك من زيت أند فلترز',
     '',
