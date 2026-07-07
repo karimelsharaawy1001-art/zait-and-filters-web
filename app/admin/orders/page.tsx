@@ -677,21 +677,21 @@ export default function AdminOrders() {
   async function fetchCarYears(make: string, model: string) {
     setCarYears([]);
     if (!make || !model) return;
-    const { data } = await supabase.from('products').select('car_year').eq('car_make', make).eq('car_model', model).not('car_year', 'is', null).neq('car_year', '');
-    if (data) { const unique = [...new Set(data.map((d: any) => d.car_year).filter(Boolean))].sort(); setCarYears(unique); }
+    const { data } = await supabase.from('products').select('car_model_year').eq('car_make', make).eq('car_model', model).not('car_model_year', 'is', null).neq('car_model_year', '');
+    if (data) { const unique = [...new Set(data.map((d: any) => d.car_model_year).filter(Boolean))].sort(); setCarYears(unique); }
   }
 
   async function fetchFilteredProducts() {
     setLoadingProducts(true); setFilteredProducts([]);
     try {
       let query = supabase.from('products').select('*');
-      if (productSearchQuery.trim()) { query = query.ilike('name', `%${productSearchQuery.trim()}%`); }
-      else {
-        if (addItemFilter.brand) query = query.eq('brand', addItemFilter.brand);
-        if (addItemFilter.car_make) query = query.eq('car_make', addItemFilter.car_make);
-        if (addItemFilter.car_model) query = query.eq('car_model', addItemFilter.car_model);
-        if (addItemFilter.car_year) query = query.eq('car_year', addItemFilter.car_year);
-      }
+      // Combine the name search WITH the filters (previously the filters were
+      // ignored whenever a name was typed).
+      if (productSearchQuery.trim()) query = query.ilike('name', `%${productSearchQuery.trim()}%`);
+      if (addItemFilter.brand) query = query.eq('brand', addItemFilter.brand);
+      if (addItemFilter.car_make) query = query.eq('car_make', addItemFilter.car_make);
+      if (addItemFilter.car_model) query = query.eq('car_model', addItemFilter.car_model);
+      if (addItemFilter.car_year) query = query.eq('car_model_year', addItemFilter.car_year);
       const { data, error } = await query.limit(50);
       if (error) { toast.error('فشل البحث: ' + error.message); return; }
       setFilteredProducts(data || []);
