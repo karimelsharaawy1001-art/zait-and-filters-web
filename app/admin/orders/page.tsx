@@ -436,6 +436,19 @@ function ExpandedOrderRow({
 }) {
   const items: any[] = enrichedItems.length > 0 ? enrichedItems : (order.items || []);
   const [preparedItems, setPreparedItems] = useState<boolean[]>(() => items.map(() => false));
+  const [remaining, setRemaining] = useState<string>(order.remaining_amount != null ? String(order.remaining_amount) : '');
+  const [savingRemaining, setSavingRemaining] = useState(false);
+
+  async function saveRemaining() {
+    const val = remaining.trim() === '' ? null : (parseFloat(remaining) || 0);
+    if ((order.remaining_amount ?? null) === val) return;
+    setSavingRemaining(true);
+    const { error } = await supabase.from('orders').update({ remaining_amount: val }).eq('id', order.id);
+    setSavingRemaining(false);
+    if (error) { toast.error('تعذّر حفظ المبلغ المتبقي: ' + error.message); return; }
+    order.remaining_amount = val;
+    toast.success('تم حفظ المبلغ المتبقي');
+  }
   const allPrepared = preparedItems.length > 0 && preparedItems.every(Boolean);
   const someCount = preparedItems.filter(Boolean).length;
   function toggleItem(i: number) { setPreparedItems(prev => prev.map((v, idx) => idx === i ? !v : v)); }
@@ -460,6 +473,22 @@ function ExpandedOrderRow({
           <div style={{ fontSize: '0.82rem', color: '#555', marginBottom: '4px' }}>الشحن: <strong style={{ color: shipping === 0 ? '#22c55e' : '#1a1a1a' }}>{shipping === 0 ? 'مجاني' : `${shipping} ج.م`}</strong>{order.shipping_type === 'express' && <span style={{ marginRight: '6px', fontSize: '0.7rem', color: '#f59e0b', fontWeight: '800' }}>⚡ سريع</span>}</div>
           {discountVal > 0 && <div style={{ fontSize: '0.82rem', color: '#ef4444', marginBottom: '4px' }}>خصم: -{discountVal} ج.م</div>}
           <div style={{ fontSize: '1rem', fontWeight: '900', color: '#15803d', marginTop: '6px' }}>{total.toLocaleString()} ج.م</div>
+          <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed #e0f2e9' }}>
+            <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#888', letterSpacing: '1px', marginBottom: '5px', textTransform: 'uppercase' }}>مبلغ متبقٍّ</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <input type="number" min={0} step="0.01" value={remaining}
+                onChange={e => setRemaining(e.target.value)} onBlur={saveRemaining}
+                placeholder="0"
+                style={{ width: '110px', padding: '6px 10px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '0.85rem', fontWeight: '700', outline: 'none', background: '#fff', color: '#1a1a1a' }} />
+              <span style={{ fontSize: '0.75rem', color: '#888' }}>ج.م</span>
+              {savingRemaining && <span style={{ fontSize: '0.7rem', color: '#888' }}>...جارٍ</span>}
+              {!savingRemaining && (order.remaining_amount ?? 0) > 0 && (
+                <span style={{ fontSize: '0.72rem', fontWeight: '800', color: '#c2410c', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '6px', padding: '2px 8px' }}>
+                  متبقٍّ {Number(order.remaining_amount).toLocaleString()} ج.م
+                </span>
+              )}
+            </div>
+          </div>
           {order.tracking_number && (
             <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed #e0f2e9' }}>
               <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#888', letterSpacing: '1px', marginBottom: '5px', textTransform: 'uppercase' }}>تتبع الشحنة</div>
