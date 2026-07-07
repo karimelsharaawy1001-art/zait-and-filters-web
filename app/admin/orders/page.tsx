@@ -427,7 +427,11 @@ function buildTrackingUrl(trackingNumber: string): string {
 // Inline "remaining amount" cell shown in every order row. Highlights amber
 // when there's an outstanding amount so it's easy to notice at a glance.
 function RemainingAmountCell({ order }: { order: any }) {
-  const [val, setVal] = useState<string>(order.remaining_amount != null ? String(order.remaining_amount) : '');
+  // Cash-on-delivery orders default to the full total (nothing paid yet).
+  const codDefault = order.payment_method === 'cash'
+    ? String(parseFloat(order.total_price) || '')
+    : '';
+  const [val, setVal] = useState<string>(order.remaining_amount != null ? String(order.remaining_amount) : codDefault);
   const [saving, setSaving] = useState(false);
 
   async function save() {
@@ -441,7 +445,7 @@ function RemainingAmountCell({ order }: { order: any }) {
     toast.success('تم حفظ المبلغ المتبقي');
   }
 
-  const hasRemaining = (order.remaining_amount ?? 0) > 0;
+  const hasRemaining = (parseFloat(val) || 0) > 0;
   return (
     <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
       <input
