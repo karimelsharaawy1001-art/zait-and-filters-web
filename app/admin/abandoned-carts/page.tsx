@@ -257,8 +257,8 @@ export default function AbandonedCartsAdmin() {
   useEffect(() => { fetchAbandonedCarts(); }, []);
   useEffect(() => { applyFilters(); setCurrentPage(1); }, [carts, filter, searchTerm]);
 
-  const fetchAbandonedCarts = async () => {
-    setLoading(true);
+  const fetchAbandonedCarts = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const { data: cartsData, error } = await supabase
         .from('abandoned_carts')
@@ -443,7 +443,7 @@ export default function AbandonedCartsAdmin() {
         .eq('id', cart.id);
 
       toast.success(`✅ تم تحويل السلة إلى طلب رقم #${orderData.id.slice(0, 8)}`);
-      fetchAbandonedCarts();
+      fetchAbandonedCarts(true);
 
     } catch (err: any) {
       console.error('Transfer error:', err);
@@ -460,7 +460,7 @@ export default function AbandonedCartsAdmin() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'فشل الإرسال');
       toast.success('تم إرسال الإيميل ✓');
-      fetchAbandonedCarts();
+      fetchAbandonedCarts(true);
     } catch (err: any) { toast.error('خطأ: ' + err.message); }
     finally { setSendingEmail(null); }
   };
@@ -534,7 +534,7 @@ export default function AbandonedCartsAdmin() {
             <Mail size={15} /> إيميل تذكير
             {eligibleEmail.length > 0 && <span style={{ background: 'rgba(255,255,255,0.25)', borderRadius: '8px', padding: '1px 8px', fontSize: '0.8rem', fontWeight: '900' }}>{eligibleEmail.length}</span>}
           </button>
-          <button onClick={fetchAbandonedCarts} className="ac-btn" style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 16px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '0.93rem', cursor: 'pointer' }}>
+          <button onClick={() => fetchAbandonedCarts()} className="ac-btn" style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 16px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '0.93rem', cursor: 'pointer' }}>
             <RefreshCw size={14} /> تحديث
           </button>
         </div>
