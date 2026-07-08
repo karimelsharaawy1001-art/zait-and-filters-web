@@ -1170,7 +1170,7 @@ export default function AdminOrders() {
   const liveTotal = editMode ? calcTotal(editedItems, discount, extraFee, removeShipping, editedShipping) : 0;
 
   return (
-    <div style={{ padding: 'clamp(12px, 3vw, 30px)', direction: 'rtl', maxWidth: '1400px', margin: '0 auto', background: '#f8f9fa', minHeight: '100vh' }}>
+    <div style={{ padding: 'clamp(12px, 3vw, 30px)', direction: 'rtl', maxWidth: '1400px', margin: '0 auto', background: '#f8f9fa', minHeight: '100vh', scrollbarGutter: 'stable' }}>
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
