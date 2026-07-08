@@ -536,16 +536,16 @@ function ExpandedOrderRow({
             </select>
           </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>
-          <button onClick={() => onViewDetail(order)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#eff6ff', color: '#1e40af', border: '1px solid #dbeafe', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap' }}><Eye size={14} /> تفاصيل كاملة</button>
-          <button onClick={() => onViewInvoice(order)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#0f172a', color: '#22c55e', border: 'none', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap' }}><FileText size={14} /> ORDER</button>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'flex-start' }}>
+          <button onClick={() => onViewDetail(order)} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#eff6ff', color: '#1e40af', border: '1px solid #dbeafe', borderRadius: '10px', padding: '7px 12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.8rem', whiteSpace: 'nowrap' }}><Eye size={13} /> تفاصيل</button>
+          <button onClick={() => onViewInvoice(order)} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#0f172a', color: '#22c55e', border: 'none', borderRadius: '10px', padding: '7px 12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.8rem', whiteSpace: 'nowrap' }}><FileText size={13} /> ORDER</button>
           {(() => {
             const link = orderWhatsAppLink(order);
             if (!link) return null;
             return (
               <a href={link} target="_blank" rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap', textDecoration: 'none' }}>
-                <MessageCircle size={14} /> واتساب
+                style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '7px 12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.8rem', whiteSpace: 'nowrap', textDecoration: 'none' }}>
+                <MessageCircle size={13} /> واتساب
               </a>
             );
           })()}
@@ -554,12 +554,12 @@ function ExpandedOrderRow({
             if (!link) return null;
             return (
               <a href={link} target="_blank" rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#fff7ed', color: '#c2410c', border: '1px solid #fed7aa', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap', textDecoration: 'none' }}>
-                <AlertTriangle size={14} /> غير متوفر
+                style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#fff7ed', color: '#c2410c', border: '1px solid #fed7aa', borderRadius: '10px', padding: '7px 12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.8rem', whiteSpace: 'nowrap', textDecoration: 'none' }}>
+                <AlertTriangle size={13} /> غير متوفر
               </a>
             );
           })()}
-          <button onClick={() => onDelete(order.id)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#fff5f5', color: '#e74c3c', border: '1px solid #ffebeb', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', whiteSpace: 'nowrap' }}><Trash2 size={14} /> حذف</button>
+          <button onClick={() => onDelete(order.id)} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#fff5f5', color: '#e74c3c', border: '1px solid #ffebeb', borderRadius: '10px', padding: '7px 12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.8rem', whiteSpace: 'nowrap' }}><Trash2 size={13} /> حذف</button>
         </div>
       </div>
       <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e0f2e9', overflow: 'hidden' }}>
@@ -1474,7 +1474,7 @@ export default function AdminOrders() {
                 const ps = order.payment_status || 'pending';
                 const pc = paymentStatusColors[ps] || paymentStatusColors.pending;
                 return (
-                  <div key={order.id} style={{ background: '#fff', borderRadius: '16px', border: isSelected ? '2px solid #ff4d4d' : isExpanded ? '2px solid #22c55e' : '1px solid #eee', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', transition: 'border-color 0.2s' }}>
+                  <div key={order.id} style={{ background: '#fff', borderRadius: '16px', border: isSelected ? '2px solid #ff4d4d' : isExpanded ? '2px solid #22c55e' : '1px solid #eee', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', transition: 'border-color 0.2s' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px 0', background: isSelected ? 'rgba(255,77,77,0.04)' : '#fff' }}>
                       <button onClick={() => toggleSelectOne(order.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, padding: '4px' }}>
                         {isSelected ? <CheckSquare size={20} color="#ff4d4d" /> : <Square size={20} color="#ccc" />}
@@ -1520,7 +1520,7 @@ export default function AdminOrders() {
                         <div style={{ paddingBottom: '12px' }} />
                       </div>
                     </div>
-                    <div style={{ display: 'flex', borderTop: '1px solid #f0f0f0', background: '#fafafa' }} onClick={e => e.stopPropagation()}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', borderTop: '1px solid #f0f0f0', background: '#fafafa' }} onClick={e => e.stopPropagation()}>
                       {/* ── CHANGED: added pending_payment option ── */}
                       <select value={order.status} onChange={(e) => updateOrderStatus(order.id, e.target.value)}
                         style={{ flex: 1, border: 'none', background: 'transparent', padding: '10px 12px', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', outline: 'none', color: '#333', borderLeft: '1px solid #f0f0f0' }}>
