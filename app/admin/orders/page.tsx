@@ -1319,7 +1319,7 @@ export default function AdminOrders() {
                 </thead>
                 <tbody>
                   {paginated.length === 0 ? (
-                    <tr><td colSpan={11} style={{ textAlign: 'center', padding: '60px', color: '#aaa', fontSize: '0.95rem' }}>لا توجد طلبات في هذا القسم</td></tr>
+                    <tr><td colSpan={12} style={{ textAlign: 'center', padding: '60px', color: '#aaa', fontSize: '0.95rem' }}>لا توجد طلبات في هذا القسم</td></tr>
                   ) : paginated.map((order) => {
                     const { datePart, timePart } = formatDateTime(order.created_at);
                     const isExpanded = expandedOrderId === order.id;
@@ -1994,7 +1994,7 @@ export default function AdminOrders() {
 const headerSection: any = { marginBottom: '30px' };
 const mainTitle: any = { color: '#1a1a1a', fontSize: '2.2rem', fontWeight: '900', margin: 0, display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' };
 const badgeCount: any = { background: '#27ae60', color: '#fff', padding: '4px 14px', borderRadius: '12px', fontSize: '1.1rem' };
-const tableWrapper: any = { background: '#fff', borderRadius: '25px', border: '1px solid #eee', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.03)' };
+const tableWrapper: any = { background: '#fff', borderRadius: '25px', border: '1px solid #eee', overflowX: 'auto', overflowY: 'hidden', maxWidth: '100%', boxShadow: '0 10px 30px rgba(0,0,0,0.03)' };
 const table: any = { width: '100%', borderCollapse: 'collapse', textAlign: 'right' };
 const thRow: any = { background: '#fcfcfc', borderBottom: '1px solid #eee' };
 const th: any = { padding: '18px 16px', fontSize: '0.82rem', color: '#888', fontWeight: 'bold', whiteSpace: 'nowrap' };
