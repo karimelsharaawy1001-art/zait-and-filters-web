@@ -5,9 +5,7 @@ import { supabase } from '@/app/lib/supabase';
 import { Image as ImageIcon, Save, Eye, EyeOff, Copy, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { optimizeImageUrl } from '@/lib/images';
-
-const CLOUDINARY_CLOUD_NAME = 'dxtncdxfh';
-const CLOUDINARY_UPLOAD_PRESET = 'zaitandfiltersnew';
+import { uploadFile } from '@/lib/storage';
 
 export default function AdminPromoPopup() {
   const [popup, setPopup] = useState<any>({
@@ -54,28 +52,16 @@ export default function AdminPromoPopup() {
     }
   }
 
-  async function uploadToCloudinary(file: File, target: 'desktop' | 'mobile') {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
+  async function uploadPromoImage(file: File, target: 'desktop' | 'mobile') {
     const setter = target === 'desktop' ? setUploadingDesktop : setUploadingMobile;
 
     try {
       setter(true);
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.secure_url) {
-        setPopup((prev: any) => ({ ...prev, [`${target}_image_url`]: data.secure_url }));
-        toast.success(`تم رفع الصورة ${target === 'desktop' ? 'للأفقي' : 'للرأسي'} ✅`);
-      } else {
-        toast.error('فشل رفع الصورة: ' + (data.error?.message || 'خطأ غير معروف'));
-      }
+      const url = await uploadFile(file, 'promo-images');
+      setPopup((prev: any) => ({ ...prev, [`${target}_image_url`]: url }));
+      toast.success(`تم رفع الصورة ${target === 'desktop' ? 'للأفقي' : 'للرأسي'} ✅`);
     } catch (err: any) {
-      toast.error('فشل رفع الصورة: ' + err.message);
+      toast.error('فشل رفع الصورة: ' + (err.message || 'خطأ غير معروف'));
     } finally {
       setter(false);
     }
@@ -88,7 +74,7 @@ export default function AdminPromoPopup() {
       toast.error('حجم الصورة يجب أن لا يتجاوز 10MB');
       return;
     }
-    uploadToCloudinary(file, target);
+    uploadPromoImage(file, target);
   }
 
   async function savePopup() {

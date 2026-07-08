@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import { useRouter } from 'next/navigation';
+import { uploadFile } from '@/lib/storage';
 import { Plus, Trash2, Car, RotateCcw, UploadCloud } from 'lucide-react';
 
 interface CarEntry {
@@ -123,18 +124,16 @@ export default function AddProduct() {
     setNewSubcategoryInput(''); setShowNewSubcategory(false);
   }
 
-  const uploadToCloudinary = async (file: File) => {
+  const uploadProductImage = async (file: File) => {
     try {
       setUploading(true);
-      const data = new FormData();
-      data.append('file', file);
-      data.append('upload_preset', 'zaitandfiltersnew');
-      const res = await fetch('https://api.cloudinary.com/v1_1/dxtncdxfh/image/upload', { method: 'POST', body: data });
-      const fileData = await res.json();
-      if (fileData.secure_url) setFormData(prev => ({ ...prev, image_url: fileData.secure_url }));
-      else alert('فشل رفع الصورة');
-    } catch { alert('خطأ في الرفع'); }
-    finally { setUploading(false); }
+      const url = await uploadFile(file, 'product-images');
+      setFormData(prev => ({ ...prev, image_url: url }));
+    } catch (err: any) {
+      alert('خطأ في الرفع: ' + (err.message || 'فشل رفع الصورة'));
+    } finally {
+      setUploading(false);
+    }
   };
 
   // ── Fixed drag handlers — useCallback prevents stale closures ──
@@ -159,7 +158,7 @@ export default function AddProduct() {
     e.preventDefault(); e.stopPropagation();
     setDragActive(false);
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith('image/')) uploadToCloudinary(file);
+    if (file && file.type.startsWith('image/')) uploadProductImage(file);
     else if (file) alert('يرجى رفع صورة فقط');
   }, []);
 
@@ -261,7 +260,7 @@ export default function AddProduct() {
             >
               <UploadCloud size={40} color={dragActive ? '#2ecc71' : '#555'} style={{ margin: '0 auto 12px', display: 'block', transition: 'color 0.2s' }} />
               {uploading ? (
-                <p style={{ color: '#2ecc71', fontWeight: '700' }}>⏳ جاري الرفع لـ Cloudinary...</p>
+                <p style={{ color: '#2ecc71', fontWeight: '700' }}>⏳ جاري الرفع...</p>
               ) : (
                 <>
                   <p style={{ color: dragActive ? '#2ecc71' : '#888', fontWeight: '700', fontSize: '0.95rem', margin: '0 0 8px' }}>
@@ -272,7 +271,7 @@ export default function AddProduct() {
                 </>
               )}
               <input id="file-input-addproduct" type="file" accept="image/*" style={{ display: 'none' }}
-                onChange={(e) => { if (e.target.files?.[0]) uploadToCloudinary(e.target.files[0]); }} />
+                onChange={(e) => { if (e.target.files?.[0]) uploadProductImage(e.target.files[0]); }} />
             </div>
           )}
         </div>

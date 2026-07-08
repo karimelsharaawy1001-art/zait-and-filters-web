@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { useAbandonedCart } from '@/hooks/useAbandonedCart';
 import { optimizeImageUrl } from '@/lib/images';
+import { uploadFile } from '@/lib/storage';
 import { useExitWarning } from '@/app/hooks/useExitWarning';
 import Link from 'next/link';
 import { 
@@ -59,8 +60,7 @@ export default function CheckoutPage() {
     address: ''
   });
 
-  const CLOUD_NAME = "dxtncdxfh";
-  const UPLOAD_PRESET = "zaitandfiltersnew";
+  const UPLOAD_BUCKET = 'payment-screenshots';
 
   const EXPRESS_COST = 150;
   const EXPRESS_CITIES = ['القاهرة', 'الجيزة'];
@@ -282,13 +282,8 @@ export default function CheckoutPage() {
     setWalletApplied(false);
   };
 
-  const uploadToCloudinary = async (file: File) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', UPLOAD_PRESET);
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
-    const data = await res.json();
-    return data.secure_url;
+  const uploadPaymentScreenshot = async (file: File) => {
+    return uploadFile(file, UPLOAD_BUCKET);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -419,7 +414,7 @@ export default function CheckoutPage() {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      let uploadedImageUrl = screenshot ? await uploadToCloudinary(screenshot) : null;
+      let uploadedImageUrl = screenshot ? await uploadPaymentScreenshot(screenshot) : null;
 
       let finalMarketerId = affiliateMarketerId;
 

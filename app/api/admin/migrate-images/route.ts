@@ -3,9 +3,8 @@ import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Cloudinary account images are migrated INTO (same as the product uploader).
-const CLOUD = 'dht6kx2jx';
-const PRESET = 'zaitandfilters_preset';
+// Images are migrated INTO Supabase Storage (product-images bucket).
+const STORAGE_BUCKET = 'product-images';
 
 function makeAdmin(): SupabaseClient {
   return createClient(
@@ -43,13 +42,37 @@ function cleanUrl(raw: string): string {
 }
 
 async function uploadByUrl(imageUrl: string): Promise<string> {
-  const body = new URLSearchParams();
-  body.append('file', cleanUrl(imageUrl));
-  body.append('upload_preset', PRESET);
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`, { method: 'POST', body });
-  const data: any = await res.json();
-  if (!data.secure_url) throw new Error(data?.error?.message || `HTTP ${res.status}`);
-  return data.secure_url as string;
+  const admin = makeAdmin();
+  const clean = cleanUrl(imageUrl);
+
+  // Fetch the image from the remote URL as a Buffer
+  const imgRes = await fetch(clean);
+  if (!imgRes.ok) throw new Error(`Failed to fetch image: HTTP ${imgRes.status}`);
+  const blob = await imgRes.blob();
+
+  // Generate a unique filename
+  const rawExt = clean.split('.').pop()?.split('?')[0]?.toLowerCase() || 'jpg';
+  // Normalise jpg → jpeg for correct Content-Type
+  const ext = rawExt === 'jpg' ? 'jpeg' : rawExt;
+  const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
+  const contentType = blob.type || `image/${ext}`;
+
+  // Upload to Supabase Storage
+  const { data, error } = await admin.storage
+    .from(STORAGE_BUCKET)
+    .upload(fileName, blob, {
+      contentType,
+      cacheControl: '31536000',
+      upsert: false,
+    });
+
+  if (error) throw new Error(error.message);
+
+  const { data: { publicUrl } } = admin.storage
+    .from(STORAGE_BUCKET)
+    .getPublicUrl(fileName);
+
+  return publicUrl;
 }
 
 // GET → how many products still need migrating.

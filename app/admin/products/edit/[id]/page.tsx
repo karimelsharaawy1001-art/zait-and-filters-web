@@ -2,14 +2,8 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
+import { uploadFile } from '@/lib/storage';
 import { Save, ArrowRight, Loader2, Image as ImageIcon, Car, Tag, Globe, Upload, Plus, X } from 'lucide-react';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 🔧 CLOUDINARY CONFIG — fill these in with your own values
-// ─────────────────────────────────────────────────────────────────────────────
-const CLOUDINARY_CLOUD_NAME = 'dht6kx2jx';
-const CLOUDINARY_UPLOAD_PRESET = 'zaitandfilters_preset';
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface CarRow {
   id?: string;
@@ -34,6 +28,8 @@ export default function EditProduct() {
   const [isDragging, setIsDragging] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const UPLOAD_BUCKET = 'product-images';
 
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -133,8 +129,8 @@ export default function EditProduct() {
     setLoading(false);
   }
 
-  // ── Cloudinary Upload ──────────────────────────────────────────────────────
-  const uploadToCloudinary = useCallback(async (file: File) => {
+  // ── Supabase Storage Upload ────────────────────────────────────────────────
+  const uploadProductImage = useCallback(async (file: File) => {
     setUploadError(null);
 
     if (!file.type.startsWith('image/')) {
@@ -145,71 +141,16 @@ export default function EditProduct() {
       setUploadError('حجم الصورة كبير جداً. الحد الأقصى 10 ميغابايت.');
       return;
     }
-    if (!CLOUDINARY_CLOUD_NAME) {
-      setUploadError('لم يتم ضبط إعدادات Cloudinary. يرجى إضافة CLOUD_NAME في الكود.');
-      return;
-    }
 
     try {
       setUploading(true);
       setUploadProgress(0);
 
-      const formDataUpload = new FormData();
-      formDataUpload.append('file', file);
-      formDataUpload.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-      formDataUpload.append('folder', 'products');
-
-      const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
-
-      const result = await new Promise<string>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-
-        xhr.upload.addEventListener('progress', (e) => {
-          if (e.lengthComputable) {
-            setUploadProgress(Math.round((e.loaded / e.total) * 100));
-          }
-        });
-
-        xhr.addEventListener('load', () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-              const data = JSON.parse(xhr.responseText);
-              if (data.secure_url) {
-                resolve(data.secure_url);
-              } else if (data.error) {
-                reject(new Error(data.error.message || 'فشل الرفع'));
-              } else {
-                reject(new Error('استجابة غير متوقعة من Cloudinary'));
-              }
-            } catch {
-              reject(new Error('فشل تحليل استجابة Cloudinary'));
-            }
-          } else {
-            try {
-              const errData = JSON.parse(xhr.responseText);
-              reject(new Error(errData.error?.message || `HTTP ${xhr.status}`));
-            } catch {
-              reject(new Error(`فشل الرفع — HTTP ${xhr.status}`));
-            }
-          }
-        });
-
-        xhr.addEventListener('error', () => {
-          reject(new Error('خطأ في الشبكة — تحقق من اتصالك بالإنترنت'));
-        });
-
-        xhr.addEventListener('abort', () => {
-          reject(new Error('تم إلغاء الرفع'));
-        });
-
-        xhr.open('POST', url);
-        xhr.send(formDataUpload);
-      });
-
-      setFormData(prev => ({ ...prev, image_url: result }));
+      const url = await uploadFile(file, UPLOAD_BUCKET);
+      setFormData(prev => ({ ...prev, image_url: url }));
       setUploadProgress(100);
     } catch (error: any) {
-      console.error('Cloudinary upload error:', error);
+      console.error('Supabase Storage upload error:', error);
       setUploadError('خطأ في الرفع: ' + (error.message || 'حدث خطأ غير معروف'));
     } finally {
       setUploading(false);
@@ -219,7 +160,7 @@ export default function EditProduct() {
   // ── File input handler ─────────────────────────────────────────────────────
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) uploadToCloudinary(file);
+    if (file) uploadProductImage(file);
     e.target.value = '';
   };
 
@@ -252,7 +193,7 @@ export default function EditProduct() {
     const files = Array.from(e.dataTransfer.files);
     const imageFile = files.find(f => f.type.startsWith('image/'));
     if (imageFile) {
-      uploadToCloudinary(imageFile);
+      uploadProductImage(imageFile);
     } else if (files.length > 0) {
       setUploadError('الملف المُسقَط ليس صورة. يرجى سحب ملف صورة فقط.');
     }
@@ -565,7 +506,7 @@ export default function EditProduct() {
                 {uploading && (
                   <div style={{ width: '100%', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '0.8rem', color: '#2ecc71' }}>
-                      <span>جاري الرفع إلى Cloudinary...</span>
+                      <span>جاري الرفع...</span>
                       <span>{uploadProgress}%</span>
                     </div>
                     <div style={{ background: '#111', borderRadius: '99px', height: '6px', overflow: 'hidden' }}>
