@@ -457,7 +457,7 @@ function RemainingAmountCell({ order }: { order: any }) {
         placeholder="0"
         title="مبلغ متبقٍّ"
         style={{
-          width: '84px', height: '34px', padding: '0 8px', borderRadius: '8px', textAlign: 'center',
+          width: '60px', height: '28px', padding: '0 6px', borderRadius: '6px', textAlign: 'center',
           border: hasRemaining ? '1.5px solid #f59e0b' : '1.5px solid #e5e7eb',
           background: hasRemaining ? '#fff7ed' : '#fff',
           color: hasRemaining ? '#c2410c' : '#1a1a1a',
@@ -1347,8 +1347,8 @@ export default function AdminOrders() {
                           </td>
                           <td style={td}>
                             <div style={{ fontWeight: '800', color: '#1a1a1a' }}>{order.customer_name}</div>
-                            <div style={{ fontSize: '0.8rem', color: '#777', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={12} /> {order.customer_phone}</div>
-                            <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#22c55e', fontFamily: 'monospace', marginTop: '3px', letterSpacing: '0.5px' }}>#{order.id.slice(0, 8).toUpperCase()}</div>
+                            <div style={{ fontSize: '0.72rem', color: '#777', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={10} /> {order.customer_phone}</div>
+                            <div style={{ fontSize: '0.65rem', fontWeight: '800', color: '#22c55e', fontFamily: 'monospace', marginTop: '2px', letterSpacing: '0' }}>#{order.id.slice(0, 8).toUpperCase()}</div>
                             {order.promo_code && (
                               <div style={{ marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#fefce8', border: '1px solid #fde047', borderRadius: '6px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: '900', color: '#854d0e', fontFamily: 'monospace', letterSpacing: '0.5px' }}>
                                 🏷️ {order.promo_code}
@@ -1431,11 +1431,11 @@ export default function AdminOrders() {
                             )}
                           </td>
                           <td style={td}>
-                            <div style={{ fontSize: '0.85rem', color: '#444', fontWeight: '700' }}>{datePart}</div>
-                            <div style={{ fontSize: '0.78rem', color: '#22c55e', fontWeight: '700', marginTop: '2px' }}>{timePart}</div>
+                            <div style={{ fontSize: '0.75rem', color: '#444', fontWeight: '700' }}>{datePart}</div>
+                            <div style={{ fontSize: '0.68rem', color: '#22c55e', fontWeight: '700', marginTop: '1px' }}>{timePart}</div>
                           </td>
                           <td style={td}>
-                            <span style={{ color: '#15803d', fontWeight: '900', fontSize: '1rem' }}>{order.total_price} <small>ج.م</small></span>
+                            <span style={{ color: '#15803d', fontWeight: '900', fontSize: '0.85rem' }}>{order.total_price} <small style={{ fontSize: '0.65rem' }}>ج.م</small></span>
                           </td>
                           <td style={td} onClick={e => e.stopPropagation()}>
                             <RemainingAmountCell order={order} />
@@ -1995,13 +1995,13 @@ const headerSection: any = { marginBottom: '30px' };
 const mainTitle: any = { color: '#1a1a1a', fontSize: '2.2rem', fontWeight: '900', margin: 0, display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' };
 const badgeCount: any = { background: '#27ae60', color: '#fff', padding: '4px 14px', borderRadius: '12px', fontSize: '1.1rem' };
 const tableWrapper: any = { background: '#fff', borderRadius: '25px', border: '1px solid #eee', overflow: 'auto', maxWidth: '100%', boxShadow: '0 10px 30px rgba(0,0,0,0.03)' };
-const table: any = { minWidth: '1100px', borderCollapse: 'collapse', textAlign: 'right' };
+const table: any = { width: '100%', borderCollapse: 'collapse', textAlign: 'right' };
 const thRow: any = { background: '#fcfcfc', borderBottom: '1px solid #eee' };
-const th: any = { padding: '18px 16px', fontSize: '0.82rem', color: '#888', fontWeight: 'bold', whiteSpace: 'nowrap' };
+const th: any = { padding: '10px 8px', fontSize: '0.75rem', color: '#888', fontWeight: 'bold', whiteSpace: 'nowrap' };
 const tr: any = { borderBottom: '1px solid #f9f9f9', transition: '0.2s' };
-const td: any = { padding: '16px', fontSize: '0.92rem', color: '#333', verticalAlign: 'middle' };
-const cityBadge: any = { display: 'flex', alignItems: 'center', gap: '6px', background: '#f0fdf4', color: '#15803d', padding: '6px 12px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 'bold', width: 'fit-content' };
-const payTypeStyle: any = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#555' };
+const td: any = { padding: '10px 8px', fontSize: '0.82rem', color: '#333', verticalAlign: 'middle' };
+const cityBadge: any = { display: 'flex', alignItems: 'center', gap: '4px', background: '#f0fdf4', color: '#15803d', padding: '4px 8px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 'bold', width: 'fit-content' };
+const payTypeStyle: any = { display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: '#555' };
 // ── CHANGED: added pending_payment color to miniSelectStyle ──
 const miniSelectStyle = (s: string): any => ({
   background: s === 'pending_payment' ? '#f5f3ff' : s === 'pending' ? '#fff7ed' : s === 'delivered' ? '#f0fdf4' : s === 'shipped' ? '#eff6ff' : s === 'cancelled' ? '#fef2f2' : s === 'refunded' ? '#f5f3ff' : '#fef3c7',
