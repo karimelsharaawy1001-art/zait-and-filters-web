@@ -18,6 +18,9 @@ import {
   Square,
   Minus,
   AlertTriangle,
+  ChevronUp,
+  ChevronDown,
+  ArrowUpDown,
 } from 'lucide-react';
 
 
@@ -131,6 +134,8 @@ const [searchSku, setSearchSku] = useState(() => searchParams.get('sku') || '');
   const [filterSubcategory, setFilterSubcategory] = useState(() => searchParams.get('subcategory') || '');
   const [filterYear, setFilterYear] = useState(() => searchParams.get('year') || '');
   const [filterBrand, setFilterBrand] = useState(() => searchParams.get('brand') || '');
+  const [filterImage, setFilterImage] = useState<'' | 'with' | 'without'>(() => (searchParams.get('image') as '' | 'with' | 'without') || '');
+  const [filterStatus, setFilterStatus] = useState<'' | 'active' | 'inactive'>(() => (searchParams.get('status') as '' | 'active' | 'inactive') || '');
   const [sortBy, setSortBy] = useState(() => searchParams.get('sortBy') || 'created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(() => (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc');
 
@@ -172,6 +177,8 @@ if (searchSku) params.set('sku', searchSku);
     if (filterSubcategory) params.set('subcategory', filterSubcategory);
     if (filterYear) params.set('year', filterYear);
     if (filterBrand) params.set('brand', filterBrand);
+    if (filterImage) params.set('image', filterImage);
+    if (filterStatus) params.set('status', filterStatus);
     if (sortBy !== 'created_at') params.set('sortBy', sortBy);
     if (sortOrder !== 'desc') params.set('sortOrder', sortOrder);
 
@@ -182,7 +189,7 @@ if (searchSku) params.set('sku', searchSku);
 
 
     router.replace(newUrl, { scroll: false });
-  }, [currentPage, searchName, searchId, searchSku, filterMake, filterModel, filterCategory, filterSubcategory, filterYear, filterBrand, sortBy, sortOrder]);
+  }, [currentPage, searchName, searchId, searchSku, filterMake, filterModel, filterCategory, filterSubcategory, filterYear, filterBrand, filterImage, filterStatus, sortBy, sortOrder]);
 
 
   useEffect(() => {
@@ -226,6 +233,8 @@ if (searchSku) params.set('sku', searchSku);
     filterSubcategory,
     filterYear,
     filterBrand,
+    filterImage,
+    filterStatus,
     sortBy,
     sortOrder,
   ]);
@@ -269,6 +278,10 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
     if (filterSubcategory) query = query.eq('subcategory', filterSubcategory);
     if (filterYear) query = query.ilike('car_model_year', `%${filterYear}%`);
     if (filterBrand) query = query.eq('brand', filterBrand);
+    if (filterImage === 'with') query = query.not('image_url', 'is', null).neq('image_url', '');
+    if (filterImage === 'without') query = query.or('image_url.is.null,image_url.eq.');
+    if (filterStatus === 'active') query = query.eq('is_active', true);
+    if (filterStatus === 'inactive') query = query.eq('is_active', false);
     return query;
   };
 
@@ -581,6 +594,25 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
   };
 
 
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(column);
+      setSortOrder('asc');
+    }
+    setCurrentPage(1);
+  };
+
+  const renderSortIcon = (column: string) => {
+    if (sortBy !== column) return <ArrowUpDown size={14} color="#444" style={{ marginRight: '4px', verticalAlign: 'middle' }} />;
+    return sortOrder === 'asc'
+      ? <ChevronUp size={14} color="#2ecc71" style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+      : <ChevronDown size={14} color="#2ecc71" style={{ marginRight: '4px', verticalAlign: 'middle' }} />;
+  };
+
+  const sortableThStyle: any = { ...thStyle, cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' };
+
   // ── Build the edit URL with current filters encoded as ?from=... ──────────
   const buildEditUrl = (productId: string) => {
     const params = new URLSearchParams();
@@ -593,6 +625,8 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
     if (filterSubcategory) params.set('subcategory', filterSubcategory);
     if (filterYear) params.set('year', filterYear);
     if (filterBrand) params.set('brand', filterBrand);
+    if (filterImage) params.set('image', filterImage);
+    if (filterStatus) params.set('status', filterStatus);
     if (sortBy !== 'created_at') params.set('sortBy', sortBy);
     if (sortOrder !== 'desc') params.set('sortOrder', sortOrder);
 
@@ -819,6 +853,36 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
             ))}
           </select>
         </div>
+        <div>
+          <label style={labelStyle}>الصورة</label>
+          <select
+            value={filterImage}
+            onChange={(e) => {
+              setFilterImage(e.target.value as '' | 'with' | 'without');
+              setCurrentPage(1);
+            }}
+            style={filterInputStyle}
+          >
+            <option value="">الكل</option>
+            <option value="with">📷 مع صور</option>
+            <option value="without">📦 بدون صور</option>
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>الحالة</label>
+          <select
+            value={filterStatus}
+            onChange={(e) => {
+              setFilterStatus(e.target.value as '' | 'active' | 'inactive');
+              setCurrentPage(1);
+            }}
+            style={filterInputStyle}
+          >
+            <option value="">الكل</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
       </div>
 
 
@@ -899,13 +963,13 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
               <th style={thStyle}>الحالة</th>
               <th style={thStyle}>الصورة والاسم</th>
               {/* ── NEW: ID column header ── */}
-              <th style={thStyle}>ID</th>
-<th style={thStyle}>SKU</th>
-              <th style={thStyle}>العلامة التجارية</th>
-              <th style={thStyle}>السيارة</th>
-              <th style={thStyle}>الموديل</th>
-              <th style={thStyle}>السنة</th>
-              <th style={thStyle}>السعر</th>
+              <th style={{ ...sortableThStyle }} onClick={() => handleSort('id')}>ID{renderSortIcon('id')}</th>
+<th style={{ ...sortableThStyle }} onClick={() => handleSort('sku')}>SKU{renderSortIcon('sku')}</th>
+              <th style={{ ...sortableThStyle }} onClick={() => handleSort('brand')}>العلامة التجارية{renderSortIcon('brand')}</th>
+              <th style={{ ...sortableThStyle }} onClick={() => handleSort('car_make')}>السيارة{renderSortIcon('car_make')}</th>
+              <th style={{ ...sortableThStyle }} onClick={() => handleSort('car_model')}>الموديل{renderSortIcon('car_model')}</th>
+              <th style={{ ...sortableThStyle }} onClick={() => handleSort('car_model_year')}>السنة{renderSortIcon('car_model_year')}</th>
+              <th style={{ ...sortableThStyle }} onClick={() => handleSort('regular_price')}>السعر{renderSortIcon('regular_price')}</th>
               <th style={thStyle}>إدارة</th>
             </tr>
           </thead>
