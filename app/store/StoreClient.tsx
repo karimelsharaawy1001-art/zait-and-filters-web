@@ -707,6 +707,24 @@ function StoreContent() {
     setCurrentPage(1);
   }, [filteredProducts]);
 
+  useEffect(() => {
+    if (!isMounted || initializing) return;
+    if (urlSearch) {
+      const intent = expandSearchQuery(urlSearch);
+      setSearchQuery(urlSearch);
+      fetchProducts({
+        make: intent.make,
+        model: intent.model,
+        category: intent.category,
+        subcategories: intent.subcategories ?? [],
+        brand: intent.brand,
+        search: intent.textSearch,
+        _garageMode: garageMode,
+        _userCar: userCar,
+      });
+    }
+  }, [urlSearch]);
+
   async function fetchGarageDataAndInit() {
     let resolvedGarageMode = localStorage.getItem('garageMode') === 'true';
     let resolvedUserCar: any = null;
