@@ -69,6 +69,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (!isExpressAvailable && expressShipping) setExpressShipping(false);
     if (expressShipping && paymentMethod === 'card_installments') setPaymentMethod('instapay');
+    if (expressShipping && paymentMethod === 'cash') setPaymentMethod('instapay');
   }, [selectedCity, expressShipping, paymentMethod, isExpressAvailable]);
 
   useExitWarning(cart.length > 0 && !completedOrderId);
@@ -409,6 +410,11 @@ export default function CheckoutPage() {
 
     if (!['card_installments', 'cash'].includes(paymentMethod) && !screenshot) {
       return toast.error('يرجى رفع سكرين شوت التحويل');
+    }
+
+    if (expressShipping && !['instapay', 'wallets'].includes(paymentMethod)) {
+      setPaymentMethod('instapay');
+      return toast.error('الشحن السريع متاح فقط لـ InstaPay والمحافظ الإلكترونية');
     }
 
     setLoading(true);
@@ -1123,7 +1129,7 @@ export default function CheckoutPage() {
                     </div>
                     <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '3px' }}>توصيل سريع خلال 48 ساعة من تأكيد الطلب</div>
                     <div style={{ marginTop: '6px', padding: '7px 10px', background: '#fef3c7', borderRadius: '8px', border: '1px solid #fde68a', fontSize: '0.72rem', color: '#92400e', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
-                      ⚠️ الشحن السريع يقبل فقط: <strong>InstaPay</strong> و <strong>فودافون كاش</strong>
+                      ⚠️ الشحن السريع يقبل فقط: <strong>InstaPay</strong> و <strong>المحافظ الإلكترونية</strong>
                     </div>
                   </div>
                   <div style={{ fontWeight: '900', fontSize: '0.9rem', color: '#f59e0b', flexShrink: 0 }}>{EXPRESS_COST} ج.م</div>
@@ -1219,7 +1225,8 @@ export default function CheckoutPage() {
                 </div>
               </label>
 
-              {/* ── 4th: Cash on Delivery ── */}
+              {/* ── 4th: Cash on Delivery — hidden for express shipping ── */}
+              {!expressShipping && (
               <label className="pay-card-label" style={paymentCard(paymentMethod === 'cash')}>
                 <input type="radio" value="cash" checked={paymentMethod === 'cash'} onChange={(e) => setPaymentMethod(e.target.value)} style={hideRadio}/>
                 <div style={payCardInner}>
@@ -1241,6 +1248,7 @@ export default function CheckoutPage() {
                   )}
                 </div>
               </label>
+              )}
 
             </div>
           </div>
