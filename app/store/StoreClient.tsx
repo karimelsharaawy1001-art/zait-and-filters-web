@@ -1177,9 +1177,9 @@ setBrandsOptions(brandsOpts);
   function handleFilterChange() {
     setSaleMode(false);
 
-    const hasMinimumFilters = (selectedMake && selectedModel) || selectedCategory || (garageMode && userCar);
+    const hasMinimumFilters = (selectedMake && selectedModel) || selectedCategory || (garageMode && userCar) || searchQuery.trim();
     if (!hasMinimumFilters) {
-      toast.error('يرجى اختيار (الماركة والموديل) أو (الفئة) على الأقل');
+      toast.error('يرجى اختيار (الماركة والموديل) أو (الفئة) أو كتابة كلمة البحث على الأقل');
       return;
     }
 
