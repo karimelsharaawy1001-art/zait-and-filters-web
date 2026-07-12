@@ -172,7 +172,7 @@ export default function AboutPage() {
                   <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: f.bg, border: `1px solid ${f.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {f.icon}
                   </div>
-                  <span style={{ fontSize: '2.5rem', fontWeight: '900', color: '#242424', lineHeight: 1 }}>{f.num}</span>
+                  <span style={{ fontSize: '2.5rem', fontWeight: '900', color: '#9ca3af', lineHeight: 1 }}>{f.num}</span>
                 </div>
                 <h3 style={{ margin: '0 0 4px', fontSize: '1.1rem', fontWeight: '900', color: '#f5f5f5' }}>{f.title}</h3>
                 <p style={{ margin: '0 0 12px', fontSize: '0.78rem', fontWeight: '700', color: '#f87171', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{f.subtitle}</p>
