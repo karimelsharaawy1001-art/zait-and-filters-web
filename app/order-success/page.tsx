@@ -8,7 +8,7 @@ export default function OrderSuccessPage() {
     <Suspense fallback={
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        minHeight: '80vh', gap: '12px', color: '#b91c1c',
+        minHeight: '80vh', gap: '12px', color: '#f87171',
         fontWeight: 'bold', fontSize: '1.1rem', direction: 'rtl',
       }}>
         <Loader2 size={36} style={{ animation: 'spin 1s linear infinite' }} />

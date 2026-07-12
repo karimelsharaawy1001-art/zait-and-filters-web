@@ -33,7 +33,7 @@ export default function SplashScreen() {
       <div style={{
         position: 'fixed', inset: 0, zIndex: 99999,
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        background: 'linear-gradient(160deg, #7f1d1d 0%, #dc2626 40%, #e50914 70%, #b91c1c 100%)',
+        background: 'linear-gradient(160deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%)',
         opacity: animateOut ? 0 : 1,
         transition: 'opacity 0.7s ease-in-out',
         pointerEvents: animateOut ? 'none' : 'all',
@@ -111,8 +111,8 @@ export default function SplashScreen() {
             textShadow: '0 2px 20px rgba(0,0,0,0.2)',
           }}>
             ZAIT <span style={{
-              color: '#ffffff',
-              borderBottom: '3px solid rgba(255,255,255,0.5)',
+              color: '#22c55e',
+              borderBottom: '3px solid rgba(34,197,94,0.5)',
               paddingBottom: '2px',
             }}>&amp; FILTERS</span>
           </div>

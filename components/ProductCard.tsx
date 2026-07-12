@@ -49,7 +49,7 @@ export default function ProductCard({ product, index }: { product: Product; inde
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
           <div style={{
             width: '24px', height: '24px', borderRadius: '8px',
-            background: '#1a0d0d', color: '#b91c1c',
+            background: '#1a0d0d', color: '#f87171',
             fontSize: '0.75rem', fontWeight: '900',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
@@ -66,7 +66,7 @@ export default function ProductCard({ product, index }: { product: Product; inde
 
         {/* Price */}
         <div style={{ textAlign: 'left', flexShrink: 0 }}>
-          <div style={{ fontSize: '1.05rem', fontWeight: '900', color: '#b91c1c' }}>
+          <div style={{ fontSize: '1.05rem', fontWeight: '900', color: '#f87171' }}>
             {price.toLocaleString()} ج.م
           </div>
           {hasDiscount && (
@@ -91,7 +91,7 @@ export default function ProductCard({ product, index }: { product: Product; inde
         {product.car_make && (
           <span style={{
             padding: '2px 9px', borderRadius: '6px',
-            background: '#1a0d0d', color: '#b91c1c',
+            background: '#1a0d0d', color: '#f87171',
             fontSize: '0.78rem', fontWeight: '700',
           }}>
             {product.car_make}
@@ -132,7 +132,7 @@ export default function ProductCard({ product, index }: { product: Product; inde
         borderTop: '1px solid #242424',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <span style={{ fontSize: '0.8rem', color: '#b91c1c', fontWeight: '700' }}>
+        <span style={{ fontSize: '0.8rem', color: '#f87171', fontWeight: '700' }}>
           اضغط لعرض المنتج 🛒
         </span>
         <span style={{

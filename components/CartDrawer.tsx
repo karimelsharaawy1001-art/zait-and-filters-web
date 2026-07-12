@@ -50,7 +50,7 @@ export default function CartDrawer() {
                 <ShoppingBag size={20} color="#e50914" />
                 <span style={{ fontWeight: '900', fontSize: '1.05rem', color: '#f5f5f5' }}>سلتك</span>
                 {totalQty > 0 && (
-                  <span style={{ background: '#1a0d0d', color: '#b91c1c', borderRadius: '20px', padding: '2px 10px', fontSize: '0.75rem', fontWeight: '800', border: '1px solid #7f1d1d' }}>
+                  <span style={{ background: '#1a0d0d', color: '#f87171', borderRadius: '20px', padding: '2px 10px', fontSize: '0.75rem', fontWeight: '800', border: '1px solid #7f1d1d' }}>
                     {totalQty} قطعة
                   </span>
                 )}
@@ -111,7 +111,7 @@ export default function CartDrawer() {
                             {item.name}
                           </p>
                           {!isUniversal && compatText && (
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.65rem', color: '#b91c1c', background: '#1a0d0d', border: '1px solid #7f1d1d', borderRadius: '10px', padding: '1px 6px' }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.65rem', color: '#f87171', background: '#1a0d0d', border: '1px solid #7f1d1d', borderRadius: '10px', padding: '1px 6px' }}>
                               <Car size={9} />{compatText}
                             </span>
                           )}

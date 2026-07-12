@@ -633,10 +633,10 @@ export default function CheckoutPage() {
             marginBottom: '20px',
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#991b1b', marginBottom: '6px' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#f87171', marginBottom: '6px' }}>
               ⏳ قيد المراجعة
             </div>
-            <div style={{ fontSize: '0.82rem', color: '#7f1d1d', lineHeight: '1.7' }}>
+            <div style={{ fontSize: '0.82rem', color: '#f87171', lineHeight: '1.7' }}>
               سيتم مراجعة عملية الدفع خلال <strong>24 ساعة</strong>. بعد تأكيد الدفع، سيتم تحديث حالة الطلب وإعلامك.
             </div>
           </div>
@@ -802,7 +802,7 @@ export default function CheckoutPage() {
                     {/* On mobile: show qty + total inline under name */}
                     <div style={{ display: 'none' }} className="invoice-table-qty">
                       <span style={{ backgroundColor: '#1a0d0d', color: '#dc2626', padding: '2px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '800', marginLeft: '8px' }}>×{item.quantity}</span>
-                      <span style={{ fontSize: '0.88rem', fontWeight: '900', color: '#b91c1c' }}>{(parseFloat(item.price) * item.quantity).toLocaleString('ar-EG')} ج.م</span>
+                      <span style={{ fontSize: '0.88rem', fontWeight: '900', color: '#f87171' }}>{(parseFloat(item.price) * item.quantity).toLocaleString('ar-EG')} ج.م</span>
                     </div>
                   </div>
                   <div className="invoice-table-qty" style={{ textAlign: 'center' }}>
@@ -902,7 +902,7 @@ export default function CheckoutPage() {
       <div style={{ textAlign: 'center', marginBottom: '28px' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#1a0d0d', border: '1px solid #7f1d1d', borderRadius: '20px', padding: '6px 16px', marginBottom: '12px' }}>
           <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#e50914', display: 'inline-block', animation: 'pulseDot 2s ease-in-out infinite' }} />
-          <span style={{ fontSize: '0.8rem', fontWeight: '800', color: '#b91c1c' }}>آمن ومشفر 100%</span>
+          <span style={{ fontSize: '0.8rem', fontWeight: '800', color: '#f87171' }}>آمن ومشفر 100%</span>
         </div>
         <h1 style={{ fontSize: 'clamp(1.5rem,5vw,2.2rem)', fontWeight: '900', color: '#f5f5f5', margin: 0, letterSpacing: '-0.5px' }}>إتمام الطلب</h1>
         <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '6px', fontWeight: '600' }}>خطوة واحدة وطلبك في طريقه إليك</p>
@@ -961,7 +961,7 @@ export default function CheckoutPage() {
                 <label style={{ ...lab, marginBottom: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Wallet size={14} color="#b91c1c" /> رصيد محفظتك
                 </label>
-                <span style={{ background: '#1a0d0d', color: '#b91c1c', fontWeight: '900', fontSize: '0.92rem', padding: '4px 12px', borderRadius: '10px', border: '1px solid #2a0f10' }}>
+                <span style={{ background: '#1a0d0d', color: '#f87171', fontWeight: '900', fontSize: '0.92rem', padding: '4px 12px', borderRadius: '10px', border: '1px solid #2a0f10' }}>
                   {walletBalance.toFixed(2)} ج.م
                 </span>
               </div>
@@ -980,7 +980,7 @@ export default function CheckoutPage() {
                 </button>
               ) : (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#1a0d0d', padding: '10px 14px', borderRadius: '12px', border: '1px solid #7f1d1d' }}>
-                  <span style={{ color: '#b91c1c', fontWeight: '800', fontSize: '0.85rem' }}>✅ تم خصم {walletDiscount.toFixed(2)} ج.م من المحفظة</span>
+                  <span style={{ color: '#f87171', fontWeight: '800', fontSize: '0.85rem' }}>✅ تم خصم {walletDiscount.toFixed(2)} ج.م من المحفظة</span>
                   <button type="button" onClick={removeWallet} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '700' }}>إلغاء</button>
                 </div>
               )}
@@ -1033,7 +1033,7 @@ export default function CheckoutPage() {
               </div>
             )}
             {walletDiscount > 0 && (
-              <div style={{ ...rowPrice, color: '#b91c1c', fontWeight: 'bold' }}>
+              <div style={{ ...rowPrice, color: '#f87171', fontWeight: 'bold' }}>
                 <span>💰 خصم المحفظة:</span>
                 <span>-{walletDiscount.toFixed(2)} ج.م</span>
               </div>
@@ -1108,7 +1108,7 @@ export default function CheckoutPage() {
                     <div style={{ fontWeight: '800', fontSize: '0.88rem', color: '#f5f5f5' }}>شحن عادي</div>
                     <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '2px' }}>توصيل خلال 2-5 أيام عمل</div>
                   </div>
-                  <div style={{ fontWeight: '900', fontSize: '0.9rem', color: '#b91c1c' }}>{(selectedCity?.price || 0).toFixed(0)} ج.م</div>
+                  <div style={{ fontWeight: '900', fontSize: '0.9rem', color: '#f87171' }}>{(selectedCity?.price || 0).toFixed(0)} ج.م</div>
                 </label>
 
                 {/* Express shipping */}
@@ -1242,7 +1242,7 @@ export default function CheckoutPage() {
                   {paymentMethod === 'cash' && (
                     <div style={payDetailsBox}>
                       <div style={{ padding: '10px 14px', background: '#1a0d0d', borderRadius: '10px', border: '1px solid #7f1d1d' }}>
-                        <span style={{ fontSize: '0.8rem', color: '#b91c1c', fontWeight: '700', lineHeight: '1.6' }}>سيتم تحصيل قيمة الطلب نقداً عند استلامه. لا حاجة لرفع أي إثبات دفع.</span>
+                        <span style={{ fontSize: '0.8rem', color: '#f87171', fontWeight: '700', lineHeight: '1.6' }}>سيتم تحصيل قيمة الطلب نقداً عند استلامه. لا حاجة لرفع أي إثبات دفع.</span>
                       </div>
                     </div>
                   )}
@@ -1292,7 +1292,7 @@ const totalBox: any = { background: '#161616', padding: '16px', borderRadius: '1
 const rowPrice: any = { display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.88rem', gap: '8px', color: '#64748b' };
 const finalRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: '900', fontSize: 'clamp(1.1rem,4vw,1.3rem)', color: '#f5f5f5', borderTop: '1.5px solid #2a2a2a', paddingTop: '12px', marginTop: '8px' };
 const btnStyle: any = { width: '100%', padding: '18px', background: 'linear-gradient(135deg,#e50914 0%,#dc2626 100%)', color: '#fff', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: 'pointer', fontSize: '1.05rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', transition: 'all 0.2s', boxShadow: '0 8px 24px rgba(34,197,94,0.35)', letterSpacing: '0.3px' };
-const loaderStyle: any = { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh', gap: '10px', color: '#b91c1c', fontWeight: 'bold' };
+const loaderStyle: any = { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh', gap: '10px', color: '#f87171', fontWeight: 'bold' };
 const itemsList: any = { maxHeight: '360px', overflowY: 'auto' };
 const detailsGrid = { display: 'flex', flexDirection: 'column' as const, gap: '2px', marginTop: '6px' };
 const detailItem = { display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#94a3b8' };
@@ -1317,14 +1317,14 @@ const paySubTitle: any = { fontSize: '0.72rem', color: '#94a3b8', fontWeight: '6
 const hideRadio: any = { display: 'none' };
 const payDetailsBox: any = { marginTop: '10px', padding: '12px', background: '#1c1c1c', borderRadius: '12px', border: '1px solid #2a2a2a', display: 'flex', flexDirection: 'column', gap: '10px' };
 const actionBtnLink: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#1c1c1c', color: '#fff', padding: '14px 16px', borderRadius: '12px', textDecoration: 'none', fontSize: '0.92rem', fontWeight: '800', transition: '0.2s', minHeight: '52px' };
-const uploadArea: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '1.5px dashed #e50914', color: '#b91c1c', padding: '14px 16px', borderRadius: '12px', cursor: 'pointer', fontSize: '0.88rem', fontWeight: '800', transition: '0.2s', minHeight: '52px', background: '#161616' };
+const uploadArea: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '1.5px dashed #e50914', color: '#f87171', padding: '14px 16px', borderRadius: '12px', cursor: 'pointer', fontSize: '0.88rem', fontWeight: '800', transition: '0.2s', minHeight: '52px', background: '#161616' };
 const promoWrapper: any = { marginTop: '16px', padding: '16px', background: '#161616', borderRadius: '16px', border: '1px solid #242424', marginBottom: '16px' };
 const promoBtnStyle: any = { padding: '0 18px', height: '52px', background: '#1c1c1c', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '800', transition: '0.2s', fontSize: '0.88rem', color: '#fff', whiteSpace: 'nowrap', fontFamily: 'inherit' };
-const promoSuccessText: any = { fontSize: '0.8rem', color: '#b91c1c', marginTop: '10px', fontWeight: '800' };
+const promoSuccessText: any = { fontSize: '0.8rem', color: '#f87171', marginTop: '10px', fontWeight: '800' };
 const logosGrid: any = { display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px', paddingRight: '54px' };
 const miniLogoImg: any = { height: '28px', width: 'auto', borderRadius: '8px', border: '1px solid #242424', padding: '2px 4px', background: '#1c1c1c' };
 const cardOptionsGrid: any = { display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px', paddingRight: '54px' };
 const cardOptionBadge: any = { display: 'inline-flex', alignItems: 'center', padding: '4px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '700', border: '1px solid #2a2a2a', whiteSpace: 'nowrap', background: '#1c1c1c', color: '#94a3b8' };
-const payBadgeGreen: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 9px', borderRadius: '20px', background: '#2a0f10', color: '#b91c1c', whiteSpace: 'nowrap', border: '1px solid #7f1d1d' };
+const payBadgeGreen: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 9px', borderRadius: '20px', background: '#2a0f10', color: '#f87171', whiteSpace: 'nowrap', border: '1px solid #7f1d1d' };
 const payBadgeAmber: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 9px', borderRadius: '20px', background: '#242424', color: '#fbbf24', whiteSpace: 'nowrap', border: '1px solid #7f1d1d' };
 const payBadgeGray: any = { fontSize: '0.65rem', fontWeight: '700', padding: '3px 9px', borderRadius: '20px', background: '#242424', color: '#64748b', whiteSpace: 'nowrap', border: '1px solid #2a2a2a' };

@@ -118,7 +118,7 @@ function ReviewsSection({ productId }: { productId: string }) {
             <Star size={15} fill={showForm ? 'none' : '#fff'} /> {showForm ? 'إلغاء' : 'اكتب تقييماً'}
           </button>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#1a0d0d', border: '1px solid #7f1d1d', borderRadius: '10px', color: '#b91c1c', fontWeight: '700', fontSize: '0.85rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#1a0d0d', border: '1px solid #7f1d1d', borderRadius: '10px', color: '#f87171', fontWeight: '700', fontSize: '0.85rem' }}>
             <Check size={14} /> شكراً! تقييمك قيد المراجعة
           </div>
         )}
@@ -285,7 +285,7 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
           const cleanMo = univ.includes(mo.toLowerCase()) ? '' : mo;
           return (
             <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '4px' }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', color: '#b91c1c', fontWeight: '700', background: '#1a0d0d', border: '1px solid #7f1d1d', borderRadius: '12px', padding: '3px 8px', alignSelf: 'flex-start' as const, maxWidth: '100%', overflow: 'hidden' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', color: '#f87171', fontWeight: '700', background: '#1a0d0d', border: '1px solid #7f1d1d', borderRadius: '12px', padding: '3px 8px', alignSelf: 'flex-start' as const, maxWidth: '100%', overflow: 'hidden' }}>
                 <Car size={10} style={{ flexShrink: 0 }} />
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{mk}{cleanMo ? ' ' + cleanMo : ''}</span>
               </span>
@@ -437,7 +437,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         .pdp-btn-secondary:hover { background: #3a3a3a; transform: translateY(-1px); }
         .pdp-stepper { display: flex; align-items: center; gap: 0; background: #161616; border: 1.5px solid #2a2a2a; border-radius: 14px; overflow: hidden; }
         .pdp-step-btn { width: 44px; height: 48px; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #64748b; transition: background 0.15s; }
-        .pdp-step-btn:hover { background: #242424; color: #1c1c1c; }
+        .pdp-step-btn:hover { background: #242424; color: #f5f5f5; }
         .pdp-qty { font-size: 1.1rem; font-weight: 900; color: '#f5f5f5'; min-width: 36px; text-align: center; }
         .pdp-trust-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #161616; border: 1px solid #242424; border-radius: 12px; font-size: 0.85rem; color: #94a3b8; font-weight: '700'; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -585,7 +585,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
 
             {/* Compatibility + Category pills */}
             <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '8px' }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#1a0d0d', border: '1px solid #7f1d1d', borderRadius: '20px', padding: '6px 14px', fontSize: '0.82rem', fontWeight: '800', color: '#b91c1c' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#1a0d0d', border: '1px solid #7f1d1d', borderRadius: '20px', padding: '6px 14px', fontSize: '0.82rem', fontWeight: '800', color: '#f87171' }}>
                 <Car size={14} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, maxWidth: '180px' }}>{compatText}</span>
               </span>
               {product.car_model_year && (

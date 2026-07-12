@@ -215,7 +215,7 @@ export default function ChatWidget() {
           font-family:inherit; box-shadow:0 1px 3px rgba(0,0,0,0.04);
         }
         .z-faq-tile:hover {
-          border-color:#e50914; color:#b91c1c; background:#1a0d0d;
+          border-color:#e50914; color:#f87171; background:#1a0d0d;
           box-shadow:0 2px 8px rgba(34,197,94,0.12); transform:translateY(-1px);
         }
 

@@ -90,7 +90,7 @@ export default function ProfessionalNavbar() {
             border: '1px solid #2a0f10',
             maxWidth: '280px',
             fontSize: '0.85rem',
-            color: '#7f1d1d',
+            color: '#f87171',
             display: 'flex',
             flexDirection: 'column',
             gap: '8px',

@@ -17,7 +17,7 @@ import { optimizeImageUrl } from '@/lib/images';
 
 const Select = dynamic(() => import('react-select'), { 
   ssr: false,
-  loading: () => <div style={{ height: '52px', backgroundColor: '#f8f8f8', borderRadius: '12px', display: 'flex', alignItems: 'center', padding: '0 15px', color: '#999' }}>جاري التحميل...</div>
+  loading: () => <div style={{ height: '52px', backgroundColor: '#161616', borderRadius: '12px', display: 'flex', alignItems: 'center', padding: '0 15px', color: '#999' }}>جاري التحميل...</div>
 });
 
 
@@ -338,7 +338,7 @@ function SearchCard({
       <div style={{ marginBottom: '12px' }}>
         <label style={{ fontSize: '0.8rem', fontWeight: '800', color: '#9ca3af', marginBottom: '6px', display: 'block' }}>سنة الصنع</label>
         <input type="text" placeholder="مثلاً: 2024" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          style={{ width: '100%', height: '52px', padding: '0 15px', backgroundColor: '#f8f8f8', border: 'none', borderRadius: '12px', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }} />
+          style={{ width: '100%', height: '52px', padding: '0 15px', backgroundColor: '#161616', border: 'none', borderRadius: '12px', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }} />
       </div>
       <button onClick={handleSearch}
         style={{ width: '100%', marginTop: '15px', backgroundColor: '#1c1c1c', color: '#fff', border: 'none', padding: '16px', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontSize: '1.1rem' }}>
@@ -675,12 +675,14 @@ export default function HomePage() {
   };
 
   const customSelectStyles = {
-    control: (base: any) => ({ ...base, height: '52px', borderRadius: '12px', border: 'none', backgroundColor: '#f8f8f8', fontSize: '1rem', textAlign: 'right', display: 'flex', flexDirection: 'row-reverse', cursor: 'pointer' }),
-    option: (base: any, state: any) => ({ ...base, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', flexDirection: 'row-reverse', gap: '8px', padding: '10px 15px', fontSize: '0.95rem', backgroundColor: state.isFocused ? '#1a0d0d' : '#fff', color: '#f5f5f5', cursor: 'pointer' }),
-    singleValue: (base: any) => ({ ...base, display: 'flex', alignItems: 'center', gap: '8px', flexDirection: 'row-reverse' }),
+    control: (base: any) => ({ ...base, height: '52px', borderRadius: '12px', border: '1px solid #2a2a2a', backgroundColor: '#161616', fontSize: '1rem', textAlign: 'right', display: 'flex', flexDirection: 'row-reverse', cursor: 'pointer' }),
+    option: (base: any, state: any) => ({ ...base, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', flexDirection: 'row-reverse', gap: '8px', padding: '10px 15px', fontSize: '0.95rem', backgroundColor: state.isFocused ? '#2a0f10' : '#161616', color: '#f5f5f5', cursor: 'pointer' }),
+    singleValue: (base: any) => ({ ...base, color: '#f5f5f5', display: 'flex', alignItems: 'center', gap: '8px', flexDirection: 'row-reverse' }),
+    placeholder: (base: any) => ({ ...base, color: '#9ca3af' }),
+    input: (base: any) => ({ ...base, color: '#f5f5f5' }),
     valueContainer: (base: any) => ({ ...base, padding: '0 12px', display: 'flex', flexDirection: 'row-reverse' }),
-    menu: (base: any) => ({ ...base, zIndex: 10000 }),
-    menuList: (base: any) => ({ ...base, maxHeight: '250px' })
+    menu: (base: any) => ({ ...base, zIndex: 10000, backgroundColor: '#161616', border: '1px solid #2a2a2a' }),
+    menuList: (base: any) => ({ ...base, maxHeight: '250px', backgroundColor: '#161616' })
   };
 
   if (!isMounted) return null;
@@ -836,15 +838,15 @@ export default function HomePage() {
           .card-brand { color:#e50914; font-weight:800; font-size:0.75rem; letter-spacing:0.5px; text-transform:uppercase; }
           .card-origin { font-size:0.7rem; color:#888; font-weight:700; display:flex; align-items:center; gap:3px; }
           /* Allow up to 3 lines — no fixed height so long names show fully */
-          .card-name { font-size:0.92rem; font-weight:900; color:#1c1c1c; line-height:1.45; overflow:hidden; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
-          .card-compat { display:inline-flex; align-items:center; gap:5px; background:#1a0d0d; border:1px solid #7f1d1d; border-radius:20px; padding:4px 10px; font-size:0.72rem; font-weight:800; color:#b91c1c; margin-bottom:8px; max-width:100%; overflow:hidden; }
+          .card-name { font-size:0.92rem; font-weight:900; color:#f5f5f5; line-height:1.45; overflow:hidden; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
+          .card-compat { display:inline-flex; align-items:center; gap:5px; background:#1a0d0d; border:1px solid #7f1d1d; border-radius:20px; padding:4px 10px; font-size:0.72rem; font-weight:800; color:#f87171; margin-bottom:8px; max-width:100%; overflow:hidden; }
           .card-compat span, .card-cat span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
           .card-cat { display:inline-flex; align-items:center; gap:4px; background:#161616; border:1px solid #2a2a2a; border-radius:20px; padding:3px 9px; font-size:0.7rem; font-weight:700; color:#94a3b8; max-width:100%; overflow:hidden; }
           /* Price: main amount + ج.م on same line, old price + save badge below */
           .card-price-block { margin:10px 0 4px; }
           .card-price-row { display:flex; align-items:baseline; gap:6px; flex-wrap:nowrap; }
-          .card-price-main { font-size:1.35rem; font-weight:900; color:#1c1c1c; white-space:nowrap; }
-          .card-price-currency { font-size:0.85rem; font-weight:800; color:#1c1c1c; white-space:nowrap; }
+          .card-price-main { font-size:1.35rem; font-weight:900; color:#f5f5f5; white-space:nowrap; }
+          .card-price-currency { font-size:0.85rem; font-weight:800; color:#f5f5f5; white-space:nowrap; }
           .card-price-meta { display:flex; align-items:center; gap:6px; margin-top:4px; flex-wrap:wrap; }
           .card-price-old { font-size:0.78rem; color:#aaa; text-decoration:line-through; font-weight:600; white-space:nowrap; }
           .card-save { font-size:0.68rem; font-weight:800; color:#fff; background:#ef4444; border-radius:6px; padding:2px 7px; white-space:nowrap; }
@@ -863,7 +865,7 @@ export default function HomePage() {
           .feature-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px; justify-content: center; }
           .feature-icon-wrap { width: 52px; height: 52px; border-radius: 14px; background: #1a0d0d; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
           .feature-text { display: flex; flex-direction: column; gap: 2px; }
-          .feature-title { font-size: 0.88rem; font-weight: 900; color: #1c1c1c; line-height: 1.3; }
+          .feature-title { font-size: 0.88rem; font-weight: 900; color: #f5f5f5; line-height: 1.3; }
           .feature-sub   { font-size: 0.75rem; font-weight: 600; color: #888; line-height: 1.3; }
           .feature-divider { width: 1px; height: 48px; background: #242424; flex-shrink: 0; }
 
@@ -920,7 +922,7 @@ export default function HomePage() {
           /* Title animation */
           .bn-title { animation:bn-title-in 0.6s ease-out both; }
           /* CTAs */
-          .bn-cta-gold { background:linear-gradient(135deg,#fbbf24,#f59e0b)!important;color:#1c1c1c!important;font-weight:900!important;transition:all 0.2s!important; }
+          .bn-cta-gold { background:linear-gradient(135deg,#fbbf24,#f59e0b)!important;color:#f5f5f5!important;font-weight:900!important;transition:all 0.2s!important; }
           .bn-cta-gold:hover { background:linear-gradient(135deg,#fcd34d,#fbbf24)!important;transform:translateY(-2px)!important;box-shadow:0 8px 20px rgba(251,191,36,0.4)!important; }
           .bn-cta-green { background:linear-gradient(135deg,#e50914,#dc2626)!important;transition:all 0.2s!important; }
           .bn-cta-green:hover { background:linear-gradient(135deg,#f87171,#e50914)!important;transform:translateY(-2px)!important;box-shadow:0 8px 20px rgba(34,197,94,0.45)!important; }

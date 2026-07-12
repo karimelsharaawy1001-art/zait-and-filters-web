@@ -371,7 +371,7 @@ export default function ProfessionalAffiliateDashboard() {
 
           {/* InstaPay */}
           <div style={{ ...inputGroup, background: '#1a0d0d', border: '1.5px solid #7f1d1d', borderRadius: '14px', padding: '16px', marginBottom: '14px' }}>
-            <label style={{ ...label, display: 'flex', alignItems: 'center', gap: '8px', color: '#b91c1c', marginBottom: '10px' }}>
+            <label style={{ ...label, display: 'flex', alignItems: 'center', gap: '8px', color: '#f87171', marginBottom: '10px' }}>
               <Smartphone size={18} color="#b91c1c" /> رقم انستاباي (InstaPay)
             </label>
             <input
@@ -384,7 +384,7 @@ export default function ProfessionalAffiliateDashboard() {
               dir="ltr"
             />
             {withdrawalSettings.instapay_phone && withdrawalSettings.instapay_phone.length === 11 && (
-              <p style={{ fontSize: '0.75rem', color: '#b91c1c', fontWeight: '700', marginTop: '5px' }}>✓ رقم صحيح</p>
+              <p style={{ fontSize: '0.75rem', color: '#f87171', fontWeight: '700', marginTop: '5px' }}>✓ رقم صحيح</p>
             )}
           </div>
 

@@ -39,7 +39,7 @@ const Select = dynamic(() => import('react-select'), {
     <div
       style={{
         height: '48px',
-        backgroundColor: '#f8f8f8',
+        backgroundColor: '#161616',
         borderRadius: '10px',
         display: 'flex',
         alignItems: 'center',
@@ -1280,24 +1280,28 @@ setBrandsOptions(brandsOpts);
       gap: '8px',
       padding: '10px 15px',
       fontSize: '0.85rem',
-      backgroundColor: state.isFocused ? '#1a0d0d' : '#fff',
+      backgroundColor: state.isFocused ? '#2a0f10' : '#161616',
       color: '#f5f5f5',
       cursor: 'pointer',
     }),
     singleValue: (base: any) => ({
       ...base,
+      color: '#f5f5f5',
       display: 'flex',
       alignItems: 'center',
       gap: '8px',
       flexDirection: 'row-reverse',
     }),
+    placeholder: (base: any) => ({ ...base, color: '#9ca3af' }),
+    input: (base: any) => ({ ...base, color: '#f5f5f5' }),
     valueContainer: (base: any) => ({
       ...base,
       padding: '0 12px',
       display: 'flex',
       flexDirection: 'row-reverse',
     }),
-    menu: (base: any) => ({ ...base, zIndex: 9999 }),
+    menu: (base: any) => ({ ...base, zIndex: 9999, backgroundColor: '#161616', border: '1px solid #2a2a2a' }),
+    menuList: (base: any) => ({ ...base, backgroundColor: '#161616' }),
   };
 
   if (!isMounted) return null;
@@ -1943,7 +1947,7 @@ setBrandsOptions(brandsOpts);
                               <span style={{ color: '#e50914', fontWeight: '800', fontSize: '0.72rem', textTransform: 'uppercase' as const, letterSpacing: '0.4px' }}>{product.brand}</span>
                               {product.category && <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: '600' }}>{product.category}</span>}
                               {origin && (() => { const flag = originFlag(origin); return (
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', color: '#991b1b', fontWeight: '800', background: '#2a0f10', border: '1px solid #ef4444', borderRadius: '9px', padding: '3px 10px' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', color: '#f87171', fontWeight: '800', background: '#2a0f10', border: '1px solid #ef4444', borderRadius: '9px', padding: '3px 10px' }}>
                                   {flag ? <span style={{ fontSize: '0.95rem', lineHeight: 1 }}>{flag}</span> : <Globe size={13} color="#dc2626" />} {origin}
                                 </span>
                               ); })()}
@@ -1957,7 +1961,7 @@ setBrandsOptions(brandsOpts);
 
                             {/* Compat + year */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' as const }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#b91c1c', fontWeight: '700', background: '#1a0d0d', border: '1px solid #7f1d1d', borderRadius: '10px', padding: '2px 8px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#f87171', fontWeight: '700', background: '#1a0d0d', border: '1px solid #7f1d1d', borderRadius: '10px', padding: '2px 8px' }}>
                                 <Car size={10} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{compatText}</span>
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#9ca3af', fontWeight: '700', background: '#161616', border: '1px solid #2a2a2a', borderRadius: '10px', padding: '2px 8px' }}>

@@ -16,7 +16,7 @@ import { optimizeImageUrl } from '@/lib/images';
 
 const Select = dynamic(() => import('react-select'), {
   ssr: false,
-  loading: () => <div style={{ height: '48px', backgroundColor: '#f8f8f8', borderRadius: '10px', padding: '0 15px', display: 'flex', alignItems: 'center', color: '#999' }}>جاري التحميل...</div>
+  loading: () => <div style={{ height: '48px', backgroundColor: '#161616', borderRadius: '10px', padding: '0 15px', display: 'flex', alignItems: 'center', color: '#999' }}>جاري التحميل...</div>
 });
 
 // ── Egypt Post tracking ───────────────────────────────────────────────────────
@@ -28,7 +28,7 @@ function buildTrackingUrl(trackingNumber: string): string {
 // ── Payment status config ─────────────────────────────────────────────────────
 const paymentStatusConfig: Record<string, { label: string; bg: string; color: string }> = {
   pending:  { label: 'في انتظار الدفع', bg: '#1c1c1c', color: '#fb923c' },
-  paid:     { label: 'تم الدفع ✓',      bg: '#1a0d0d', color: '#b91c1c' },
+  paid:     { label: 'تم الدفع ✓',      bg: '#1a0d0d', color: '#f87171' },
   failed:   { label: 'فشل الدفع',       bg: '#2a0f10', color: '#dc2626' },
   refunded: { label: 'تم الاسترجاع',    bg: '#242424', color: '#a78bfa' },
 };
@@ -38,7 +38,7 @@ const shippingStatusConfig: Record<string, { label: string; bg: string; color: s
   pending:    { label: 'قيد المراجعة',   bg: '#1c1c1c', color: '#fb923c' },
   processing: { label: 'جاري التجهيز',  bg: '#242424', color: '#a16207' },
   shipped:    { label: 'تم الشحن 🚚',   bg: '#161616', color: '#60a5fa' },
-  delivered:  { label: 'تم التسليم ✓',  bg: '#1a0d0d', color: '#991b1b' },
+  delivered:  { label: 'تم التسليم ✓',  bg: '#1a0d0d', color: '#f87171' },
   pending_payment: { label: 'في انتظار الدفع', bg: '#161616', color: '#60a5fa' },
 };
 
@@ -78,7 +78,7 @@ function CustomerTrackingBanner({ order }: { order: { tracking_number?: string |
           <Truck size={18} color="#fff" />
         </div>
         <div>
-          <div style={{ fontWeight: '900', fontSize: '0.9rem', color: '#b91c1c' }}>
+          <div style={{ fontWeight: '900', fontSize: '0.9rem', color: '#f87171' }}>
             تم تسليم شحنتك الى شركة وصلها التابعة للبريد المصري
           </div>
           <div style={{ fontSize: '0.72rem', color: '#dc2626', marginTop: '3px' }}>
@@ -810,7 +810,7 @@ export default function ProfilePage() {
           {returnRequests.map((req: any) => {
             const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
               pending:  { label: 'قيد المراجعة', color: '#fb923c', bg: '#1c1c1c' },
-              approved: { label: 'تمت الموافقة', color: '#b91c1c', bg: '#1a0d0d' },
+              approved: { label: 'تمت الموافقة', color: '#f87171', bg: '#1a0d0d' },
               rejected: { label: 'مرفوض', color: '#dc2626', bg: '#2a0f10' },
               refunded: { label: 'تم الاسترجاع', color: '#a78bfa', bg: '#242424' },
             };
@@ -835,7 +835,7 @@ export default function ProfilePage() {
                   {new Date(req.created_at).toLocaleDateString('ar-EG')} — {req.items?.length || 0} منتج
                 </div>
                 {req.admin_notes && (
-                  <div style={{ marginTop: '8px', padding: '8px 10px', background: '#1a0d0d', borderRadius: '8px', fontSize: '0.75rem', color: '#b91c1c', border: '1px solid #7f1d1d' }}>
+                  <div style={{ marginTop: '8px', padding: '8px 10px', background: '#1a0d0d', borderRadius: '8px', fontSize: '0.75rem', color: '#f87171', border: '1px solid #7f1d1d' }}>
                     📝 ملاحظة الإدارة: {req.admin_notes}
                   </div>
                 )}
@@ -894,7 +894,7 @@ const walletCard: any = { background: 'linear-gradient(135deg, #1a0d0d, #2a0f10)
 const walletIconWrap: any = { width: '46px', height: '46px', borderRadius: '14px', background: '#1c1c1c', border: '1px solid #7f1d1d', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(34,197,94,0.12)' };
 const walletInfo: any = { flex: 1, display: 'flex', flexDirection: 'column', gap: '3px' };
 const walletLabel: any = { fontSize: '0.75rem', color: '#dc2626', fontWeight: '700' };
-const walletAmount: any = { fontSize: '1.4rem', fontWeight: '900', color: '#7f1d1d', letterSpacing: '-0.5px' };
+const walletAmount: any = { fontSize: '1.4rem', fontWeight: '900', color: '#f87171', letterSpacing: '-0.5px' };
 const walletBadge: any = { fontSize: '0.65rem', fontWeight: '900', padding: '5px 10px', borderRadius: '10px', background: '#e50914', color: '#fff', whiteSpace: 'nowrap' as const };
 
 const garageSection: any = { background: '#1c1c1c', borderRadius: '24px', padding: '18px', marginBottom: '20px', border: '1px solid #242424', boxShadow: '0 2px 12px rgba(0,0,0,0.03)' };
@@ -930,7 +930,7 @@ const orderMiniCard = (expanded: boolean, hasTracking: boolean): any => ({
 // ── Tracking pill shown in collapsed state ────────────────────────────────────
 const trackingPill: any = {
   display: 'inline-flex', alignItems: 'center', gap: '5px',
-  background: '#1a0d0d', color: '#b91c1c', border: '1px solid #7f1d1d',
+  background: '#1a0d0d', color: '#f87171', border: '1px solid #7f1d1d',
   borderRadius: '8px', padding: '3px 9px', fontSize: '0.65rem', fontWeight: '800',
 };
 

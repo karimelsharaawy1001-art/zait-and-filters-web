@@ -267,5 +267,5 @@ const cardText: any = { color: '#888', lineHeight: '1.7', fontSize: '1.05rem', m
 
 const ctaSection: any = { padding: '100px 20px', textAlign: 'center' };
 const ctaBox: any = { maxWidth: '1000px', margin: '0 auto', background: 'linear-gradient(145deg, #7f1d1d 0%, #e50914 100%)', padding: '80px 40px', borderRadius: '50px', position: 'relative', overflow: 'hidden', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' };
-const ctaBtn: any = { background: '#1c1c1c', color: '#7f1d1d', padding: '22px 60px', borderRadius: '20px', textDecoration: 'none', fontWeight: '950', fontSize: '1.3rem', display: 'inline-block', transition: '0.3s' };
+const ctaBtn: any = { background: '#1c1c1c', color: '#f87171', padding: '22px 60px', borderRadius: '20px', textDecoration: 'none', fontWeight: '950', fontSize: '1.3rem', display: 'inline-block', transition: '0.3s' };
 const bgGlow: any = { position: 'absolute', top: '50%', left: '50%', width: '500px', height: '500px', background: 'rgba(39, 174, 96, 0.1)', filter: 'blur(150px)', borderRadius: '50%', transform: 'translate(-50%, -50%)', pointerEvents: 'none' };
