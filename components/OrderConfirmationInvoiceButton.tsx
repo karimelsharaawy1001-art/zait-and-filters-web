@@ -36,7 +36,7 @@ export default function OrderConfirmationInvoiceButton({ orderId }: Props) {
         transition: 'all 0.2s',
       }}
     >
-      <FileText size={18} color="#e50914" />
+      <FileText size={18} color="#22c55e" />
       عرض وتحميل ORDER
       <ExternalLink size={14} style={{ opacity: 0.6 }} />
     </Link>
