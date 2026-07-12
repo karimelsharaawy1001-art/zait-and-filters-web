@@ -1547,19 +1547,16 @@ setBrandsOptions(brandsOpts);
             >
               <div
                 style={{
-                  background: 'rgba(255,255,255,0.4)',
-                  backdropFilter: 'blur(20px) saturate(180%)',
-                  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                  backgroundColor: 'rgba(255,255,255,0.5)',
-                  border: '1px solid rgba(255,255,255,0.4)',
+                  background: 'linear-gradient(135deg, #161616 0%, #0d0d0d 100%)',
+                  border: '1px solid #242424',
                   borderRadius: '30px',
                   padding: isDesktop ? '40px' : '25px',
                   position: 'relative',
                   overflow: 'hidden',
-                  boxShadow: '0 8px 32px 0 rgba(31,38,135,0.07)',
+                  boxShadow: '0 24px 70px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04)',
                 }}
               >
-                <div style={{ position: 'absolute', top: '-50%', right: '-10%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(34,197,94,0.15) 0%, transparent 70%)', zIndex: 0, pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', top: '-50%', right: '-10%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(229,9,20,0.14) 0%, transparent 70%)', zIndex: 0, pointerEvents: 'none' }} />
                 <div style={{ display: 'grid', gridTemplateColumns: carHeroImage && isDesktop ? '1.5fr 1fr' : '1fr', gap: '40px', alignItems: 'center', position: 'relative', zIndex: 2 }}>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', justifyContent: 'flex-start' }}>

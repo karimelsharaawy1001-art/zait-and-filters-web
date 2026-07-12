@@ -722,7 +722,7 @@ export default function HomePage() {
             <div style={{ textAlign: 'center', maxWidth: '480px', width: '100%', padding: '0 24px', boxSizing: 'border-box' }}>
               <m.h1 initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.6, ease: 'easeOut' }} style={brandNameText}>
                 <span style={{ color: '#fff' }}>ZAIT</span>
-                <span style={{ color: '#e50914' }}>&nbsp;&amp; FILTERS</span>
+                <span style={{ color: '#22c55e' }}>&nbsp;&amp; FILTERS</span>
               </m.h1>
               <m.h2 initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.6 }} style={mainHeadline}>قطع الغيار بضغطة زرار</m.h2>
               <m.p initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35, duration: 0.6 }} style={tagline}>وجهتك الأولى لقطع غيار السيارات الأصلية في مصر</m.p>
@@ -858,8 +858,8 @@ export default function HomePage() {
           @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
           .marquee-inner   { display: flex; width: max-content; animation: marquee 35s linear infinite; }
           .brand-logo-wrap { width: 180px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 10px 25px; }
-          .logo-img-v3     { max-width: 130px; max-height: 60px; filter: grayscale(100%); opacity: 0.5; transition: 0.3s; }
-          .logo-img-v3:hover { filter: grayscale(0%); opacity: 1; transform: scale(1.1); }
+          .logo-img-v3     { max-width: 130px; max-height: 60px; filter: brightness(0) invert(1); opacity: 0.85; transition: 0.3s; }
+          .logo-img-v3:hover { opacity: 1; transform: scale(1.1); }
 
           .features-strip { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr; align-items: center; padding: 20px 0; }
           .feature-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px; justify-content: center; }
@@ -1030,7 +1030,7 @@ export default function HomePage() {
             {/* Brand Logos */}
             {brandLogos.length > 0 && (
               <ScrollReveal direction="up" delay={0.05}>
-                <section style={{ padding: '12px 0', background: '#1c1c1c', borderBottom: '1px solid #1c1c1c' }}>
+                <section style={{ padding: '14px 0', background: 'linear-gradient(90deg, #7f1d1d 0%, #b91c1c 50%, #7f1d1d 100%)', borderTop: '1px solid #8b0000', borderBottom: '1px solid #8b0000', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35)' }}>
                   <div style={{ overflow: 'hidden', direction: 'ltr' }}>
                     <div className="marquee-inner">
                       {[...brandLogos, ...brandLogos].map((brand, index) => (
