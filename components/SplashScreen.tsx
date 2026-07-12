@@ -33,7 +33,7 @@ export default function SplashScreen() {
       <div style={{
         position: 'fixed', inset: 0, zIndex: 99999,
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        background: 'linear-gradient(160deg, #14532d 0%, #16a34a 40%, #22c55e 70%, #15803d 100%)',
+        background: 'linear-gradient(160deg, #7f1d1d 0%, #dc2626 40%, #e50914 70%, #b91c1c 100%)',
         opacity: animateOut ? 0 : 1,
         transition: 'opacity 0.7s ease-in-out',
         pointerEvents: animateOut ? 'none' : 'all',

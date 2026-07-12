@@ -60,7 +60,7 @@ export default function InvoicePage() {
   if (loading) {
     return (
       <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px' }}>
-        <Loader2 size={50} color="#22c55e" style={{ animation: 'spin 1s linear infinite' }} />
+        <Loader2 size={50} color="#e50914" style={{ animation: 'spin 1s linear infinite' }} />
         <p style={{ color: '#666', fontWeight: '700' }}>جاري تحميل الطلب...</p>
         <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       </div>

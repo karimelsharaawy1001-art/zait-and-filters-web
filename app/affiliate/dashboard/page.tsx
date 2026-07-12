@@ -234,7 +234,7 @@ export default function ProfessionalAffiliateDashboard() {
   if (loading) {
     return (
       <div style={loaderContainer}>
-        <Loader2 className="animate-spin" size={50} color="#27ae60" />
+        <Loader2 className="animate-spin" size={50} color="#e50914" />
         <p style={{ color: '#64748b', marginTop: '20px', fontSize: '1.1rem' }}>
           جاري تحميل لوحة التحكم...
         </p>
@@ -250,9 +250,9 @@ export default function ProfessionalAffiliateDashboard() {
         @keyframes shine { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
         .slide-in { animation: slideIn 0.5s ease-out; }
         .stat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
-        .copy-btn:hover { background: #27ae60 !important; color: #fff !important; }
+        .copy-btn:hover { background: #e50914 !important; color: #fff !important; }
         .tier-badge { background: linear-gradient(90deg, ${currentTierConfig.color}, #fff, ${currentTierConfig.color}); background-size: 200% auto; animation: shine 3s linear infinite; }
-        .save-btn:hover { background: #15803d !important; transform: translateY(-2px); }
+        .save-btn:hover { background: #b91c1c !important; transform: translateY(-2px); }
       `}} />
 
       <header style={header} className="slide-in">
@@ -290,8 +290,8 @@ export default function ProfessionalAffiliateDashboard() {
       )}
 
       <div style={statsGrid} className="slide-in">
-        <div style={{ ...statCard, borderTop: '4px solid #27ae60' }} className="stat-card">
-          <div style={statIconContainer}><DollarSign size={28} color="#27ae60" /></div>
+        <div style={{ ...statCard, borderTop: '4px solid #e50914' }} className="stat-card">
+          <div style={statIconContainer}><DollarSign size={28} color="#e50914" /></div>
           <div style={statContent}>
             <p style={statLabel}>إجمالي الأرباح</p>
             <h2 style={statValue}>{data?.total_earnings?.toFixed(2) || '0.00'} ج.م</h2>
@@ -299,7 +299,7 @@ export default function ProfessionalAffiliateDashboard() {
           </div>
         </div>
         <div style={{ ...statCard, borderTop: '4px solid #3b82f6' }} className="stat-card">
-          <div style={{ ...statIconContainer, background: '#eff6ff' }}><Eye size={28} color="#3b82f6" /></div>
+          <div style={{ ...statIconContainer, background: '#161616' }}><Eye size={28} color="#3b82f6" /></div>
           <div style={statContent}>
             <p style={statLabel}>إجمالي النقرات</p>
             <h2 style={statValue}>{stats.total_clicks.toLocaleString()}</h2>
@@ -307,7 +307,7 @@ export default function ProfessionalAffiliateDashboard() {
           </div>
         </div>
         <div style={{ ...statCard, borderTop: '4px solid #f59e0b' }} className="stat-card">
-          <div style={{ ...statIconContainer, background: '#fef3c7' }}><ShoppingBag size={28} color="#f59e0b" /></div>
+          <div style={{ ...statIconContainer, background: '#242424' }}><ShoppingBag size={28} color="#f59e0b" /></div>
           <div style={statContent}>
             <p style={statLabel}>الإحالات الناجحة</p>
             <h2 style={statValue}>{stats.total_conversions}</h2>
@@ -323,7 +323,7 @@ export default function ProfessionalAffiliateDashboard() {
           </div>
         </div>
         <div style={{ ...statCard, borderTop: '4px solid #f59e0b' }} className="stat-card">
-          <div style={{ ...statIconContainer, background: '#fef3c7' }}><DollarSign size={28} color="#f59e0b" /></div>
+          <div style={{ ...statIconContainer, background: '#242424' }}><DollarSign size={28} color="#f59e0b" /></div>
           <div style={statContent}>
             <p style={statLabel}>Pending Commissions</p>
             <h2 style={{ ...statValue, color: '#d97706' }}>{(data?.pending_balance || 0).toFixed(2)} ج.م</h2>
@@ -345,7 +345,7 @@ export default function ProfessionalAffiliateDashboard() {
       <div style={toolsSection} className="slide-in">
         <h3 style={sectionTitle}>🔗 أدواتك التسويقية</h3>
         <div style={toolCard}>
-          <div style={toolHeader}><LinkIcon size={20} color="#27ae60" /><span>رابط الإحالة الخاص بك</span></div>
+          <div style={toolHeader}><LinkIcon size={20} color="#e50914" /><span>رابط الإحالة الخاص بك</span></div>
           <div style={codeBox}>
             <code style={codeText}>{referralLink}</code>
             <button onClick={() => copyToClipboard(referralLink, 'تم نسخ الرابط!')} style={copyBtn} className="copy-btn"><Copy size={16} /></button>
@@ -353,7 +353,7 @@ export default function ProfessionalAffiliateDashboard() {
           <p style={toolHint}>شارك هذا الرابط مع عملائك لتحصل على Commission {currentTierConfig.percentage}% من كل عملية شراء</p>
         </div>
         <div style={toolCard}>
-          <div style={toolHeader}><Ticket size={20} color="#27ae60" /><span>كود الخصم الحصري (خصم 5%)</span></div>
+          <div style={toolHeader}><Ticket size={20} color="#e50914" /><span>كود الخصم الحصري (خصم 5%)</span></div>
           <div style={promoCodeDisplay}>
             <div style={promoCodeBadge}>{data?.promo_code || 'LOADING...'}</div>
             <button onClick={() => copyToClipboard(data?.promo_code, 'تم نسخ الكود!')} style={copyBtn} className="copy-btn"><Copy size={16} /></button>
@@ -370,40 +370,40 @@ export default function ProfessionalAffiliateDashboard() {
           </p>
 
           {/* InstaPay */}
-          <div style={{ ...inputGroup, background: '#f0fdf4', border: '1.5px solid #bbf7d0', borderRadius: '14px', padding: '16px', marginBottom: '14px' }}>
-            <label style={{ ...label, display: 'flex', alignItems: 'center', gap: '8px', color: '#15803d', marginBottom: '10px' }}>
-              <Smartphone size={18} color="#15803d" /> رقم انستاباي (InstaPay)
+          <div style={{ ...inputGroup, background: '#1a0d0d', border: '1.5px solid #7f1d1d', borderRadius: '14px', padding: '16px', marginBottom: '14px' }}>
+            <label style={{ ...label, display: 'flex', alignItems: 'center', gap: '8px', color: '#b91c1c', marginBottom: '10px' }}>
+              <Smartphone size={18} color="#b91c1c" /> رقم انستاباي (InstaPay)
             </label>
             <input
               type="tel"
               placeholder="01xxxxxxxxx"
               value={withdrawalSettings.instapay_phone}
               onChange={(e) => setWithdrawalSettings({ ...withdrawalSettings, instapay_phone: e.target.value })}
-              style={{ ...input, borderColor: withdrawalSettings.instapay_phone ? '#22c55e' : '#e2e8f0' }}
+              style={{ ...input, borderColor: withdrawalSettings.instapay_phone ? '#e50914' : '#2a2a2a' }}
               maxLength={11}
               dir="ltr"
             />
             {withdrawalSettings.instapay_phone && withdrawalSettings.instapay_phone.length === 11 && (
-              <p style={{ fontSize: '0.75rem', color: '#15803d', fontWeight: '700', marginTop: '5px' }}>✓ رقم صحيح</p>
+              <p style={{ fontSize: '0.75rem', color: '#b91c1c', fontWeight: '700', marginTop: '5px' }}>✓ رقم صحيح</p>
             )}
           </div>
 
           {/* E-Wallet */}
-          <div style={{ ...inputGroup, background: '#eff6ff', border: '1.5px solid #bfdbfe', borderRadius: '14px', padding: '16px', marginBottom: '20px' }}>
-            <label style={{ ...label, display: 'flex', alignItems: 'center', gap: '8px', color: '#1d4ed8', marginBottom: '10px' }}>
-              <CreditCardIcon size={18} color="#1d4ed8" /> رقم المحفظة الإلكترونية (فودافون كاش / أورنج / إتصالات)
+          <div style={{ ...inputGroup, background: '#161616', border: '1.5px solid #2a2a2a', borderRadius: '14px', padding: '16px', marginBottom: '20px' }}>
+            <label style={{ ...label, display: 'flex', alignItems: 'center', gap: '8px', color: '#60a5fa', marginBottom: '10px' }}>
+              <CreditCardIcon size={18} color="#60a5fa" /> رقم المحفظة الإلكترونية (فودافون كاش / أورنج / إتصالات)
             </label>
             <input
               type="tel"
               placeholder="01xxxxxxxxx"
               value={withdrawalSettings.wallet_phone}
               onChange={(e) => setWithdrawalSettings({ ...withdrawalSettings, wallet_phone: e.target.value })}
-              style={{ ...input, borderColor: withdrawalSettings.wallet_phone ? '#3b82f6' : '#e2e8f0' }}
+              style={{ ...input, borderColor: withdrawalSettings.wallet_phone ? '#3b82f6' : '#2a2a2a' }}
               maxLength={11}
               dir="ltr"
             />
             {withdrawalSettings.wallet_phone && withdrawalSettings.wallet_phone.length === 11 && (
-              <p style={{ fontSize: '0.75rem', color: '#1d4ed8', fontWeight: '700', marginTop: '5px' }}>✓ رقم صحيح</p>
+              <p style={{ fontSize: '0.75rem', color: '#60a5fa', fontWeight: '700', marginTop: '5px' }}>✓ رقم صحيح</p>
             )}
           </div>
 
@@ -439,9 +439,9 @@ export default function ProfessionalAffiliateDashboard() {
                   const daysLeft = releaseDate ? Math.ceil((releaseDate.getTime() - now.getTime()) / 86400000) : null;
                   const statusConfig: Record<string, { bg: string; color: string; icon: any; label: string }> = {
                     pending:   { bg: '#e0f2fe', color: '#0369a1', icon: <Clock size={13}/>,       label: 'انتظار التسليم' },
-                    in_review: { bg: '#fef3c7', color: '#92400e', icon: <Clock size={13}/>,       label: daysLeft && daysLeft > 0 ? `${daysLeft} يوم متبقي` : 'جاهزة قريباً' },
+                    in_review: { bg: '#242424', color: '#fbbf24', icon: <Clock size={13}/>,       label: daysLeft && daysLeft > 0 ? `${daysLeft} يوم متبقي` : 'جاهزة قريباً' },
                     available: { bg: '#d1fae5', color: '#059669', icon: <CheckCircle size={13}/>, label: 'جاهزة للصرف' },
-                    paid:      { bg: '#f3f4f6', color: '#6b7280', icon: <CheckCircle size={13}/>, label: 'تم الدفع' },
+                    paid:      { bg: '#1c1c1c', color: '#9ca3af', icon: <CheckCircle size={13}/>, label: 'تم الدفع' },
                   };
                   const s = statusConfig[comm.status] || statusConfig['pending'];
                   return (
@@ -449,7 +449,7 @@ export default function ProfessionalAffiliateDashboard() {
                       <td style={td}>{new Date(comm.created_at).toLocaleDateString('ar-EG')}</td>
                       <td style={td}>#{comm.order_id?.slice(0, 8)}</td>
                       <td style={td}>{parseFloat(comm.order_total).toFixed(2)} ج.م</td>
-                      <td style={{...td, color: '#27ae60', fontWeight: 'bold'}}>+{parseFloat(comm.commission_amount).toFixed(2)} ج.م</td>
+                      <td style={{...td, color: '#e50914', fontWeight: 'bold'}}>+{parseFloat(comm.commission_amount).toFixed(2)} ج.م</td>
                       <td style={td}>
                         <div style={{...statusBadgeInTable, background: s.bg, color: s.color}}>
                           {s.icon} {s.label}
@@ -487,43 +487,43 @@ const loaderContainer: any = { minHeight: '100vh', display: 'flex', flexDirectio
 const header: any = { maxWidth: '1400px', margin: '0 auto 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' };
 const mainTitle: any = { fontSize: '2.5rem', fontWeight: '900', color: '#1e293b', margin: 0, letterSpacing: '-0.5px' };
 const subtitle: any = { color: '#64748b', fontSize: '1.05rem', marginTop: '5px' };
-const tierBadge: any = { display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 24px', borderRadius: '50px', border: '2px solid #e2e8f0', fontWeight: 'bold', fontSize: '0.95rem', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' };
-const logoutBtn: any = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', color: '#64748b', fontWeight: 'bold', cursor: 'pointer', transition: '0.3s' };
+const tierBadge: any = { display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 24px', borderRadius: '50px', border: '2px solid #2a2a2a', fontWeight: 'bold', fontSize: '0.95rem', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' };
+const logoutBtn: any = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#fff', border: '1px solid #2a2a2a', borderRadius: '12px', color: '#64748b', fontWeight: 'bold', cursor: 'pointer', transition: '0.3s' };
 const tierProgress: any = { maxWidth: '1400px', margin: '0 auto 30px', background: '#fff', padding: '20px', borderRadius: '16px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' };
 const tierProgressHeader: any = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', fontWeight: 'bold', color: '#1e293b' };
-const progressBar: any = { width: '100%', height: '12px', background: '#f1f5f9', borderRadius: '10px', overflow: 'hidden' };
+const progressBar: any = { width: '100%', height: '12px', background: '#242424', borderRadius: '10px', overflow: 'hidden' };
 const progressFill: any = { height: '100%', background: 'linear-gradient(90deg, #f59e0b, #fbbf24)', transition: '0.5s ease' };
 const statsGrid: any = { maxWidth: '1400px', margin: '0 auto 40px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '25px' };
 const statCard: any = { background: '#fff', borderRadius: '20px', padding: '30px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', transition: '0.4s', display: 'flex', alignItems: 'center', gap: '20px' };
-const statIconContainer: any = { width: '70px', height: '70px', borderRadius: '18px', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
+const statIconContainer: any = { width: '70px', height: '70px', borderRadius: '18px', background: '#1a0d0d', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
 const statContent: any = { flex: 1 };
 const statLabel: any = { color: '#64748b', fontSize: '0.9rem', marginBottom: '8px' };
 const statValue: any = { fontSize: '2rem', fontWeight: '900', color: '#1e293b', margin: 0 };
-const statGrowth: any = { color: '#27ae60', fontSize: '0.85rem', marginTop: '5px', fontWeight: '600' };
-const pendingNotice: any = { maxWidth: '1400px', margin: '0 auto 30px', background: '#fffbeb', padding: '20px', borderRadius: '16px', border: '1px solid #fef3c7', display: 'flex', alignItems: 'center', gap: '15px' };
+const statGrowth: any = { color: '#e50914', fontSize: '0.85rem', marginTop: '5px', fontWeight: '600' };
+const pendingNotice: any = { maxWidth: '1400px', margin: '0 auto 30px', background: '#1c1c1c', padding: '20px', borderRadius: '16px', border: '1px solid #242424', display: 'flex', alignItems: 'center', gap: '15px' };
 const toolsSection: any = { maxWidth: '1400px', margin: '0 auto 40px', background: '#fff', borderRadius: '20px', padding: '35px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' };
 const sectionTitle: any = { fontSize: '1.5rem', fontWeight: '900', color: '#1e293b', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' };
-const toolCard: any = { background: '#f8fafc', padding: '25px', borderRadius: '16px', marginBottom: '20px', border: '1px solid #e2e8f0' };
+const toolCard: any = { background: '#161616', padding: '25px', borderRadius: '16px', marginBottom: '20px', border: '1px solid #2a2a2a' };
 const toolHeader: any = { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '15px', fontWeight: 'bold', color: '#1e293b', fontSize: '1.05rem' };
-const codeBox: any = { display: 'flex', gap: '12px', background: '#fff', padding: '18px', borderRadius: '12px', border: '1px solid #e2e8f0', alignItems: 'center' };
-const codeText: any = { flex: 1, fontSize: '0.9rem', wordBreak: 'break-all', color: '#475569', fontFamily: 'monospace' };
-const copyBtn: any = { padding: '10px 16px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '10px', cursor: 'pointer', transition: '0.3s', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, fontWeight: 'bold', color: '#64748b' };
+const codeBox: any = { display: 'flex', gap: '12px', background: '#fff', padding: '18px', borderRadius: '12px', border: '1px solid #2a2a2a', alignItems: 'center' };
+const codeText: any = { flex: 1, fontSize: '0.9rem', wordBreak: 'break-all', color: '#94a3b8', fontFamily: 'monospace' };
+const copyBtn: any = { padding: '10px 16px', background: '#242424', border: '1px solid #2a2a2a', borderRadius: '10px', cursor: 'pointer', transition: '0.3s', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, fontWeight: 'bold', color: '#64748b' };
 const toolHint: any = { marginTop: '12px', fontSize: '0.85rem', color: '#94a3b8', lineHeight: '1.6' };
 const promoCodeDisplay: any = { display: 'flex', gap: '12px', alignItems: 'center' };
-const promoCodeBadge: any = { flex: 1, background: 'linear-gradient(135deg, #27ae60 0%, #229954 100%)', color: '#fff', padding: '20px 30px', borderRadius: '12px', fontSize: '1.8rem', fontWeight: '900', textAlign: 'center', letterSpacing: '3px', fontFamily: 'monospace', boxShadow: '0 4px 15px rgba(39, 174, 96, 0.3)' };
+const promoCodeBadge: any = { flex: 1, background: 'linear-gradient(135deg, #e50914 0%, #229954 100%)', color: '#fff', padding: '20px 30px', borderRadius: '12px', fontSize: '1.8rem', fontWeight: '900', textAlign: 'center', letterSpacing: '3px', fontFamily: 'monospace', boxShadow: '0 4px 15px rgba(39, 174, 96, 0.3)' };
 const withdrawalSection: any = { maxWidth: '1400px', margin: '0 auto 40px', background: '#fff', borderRadius: '20px', padding: '35px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' };
-const withdrawalCard: any = { background: '#f8fafc', padding: '25px', borderRadius: '16px', border: '1px solid #e2e8f0' };
+const withdrawalCard: any = { background: '#161616', padding: '25px', borderRadius: '16px', border: '1px solid #2a2a2a' };
 const inputGroup: any = { marginBottom: '20px' };
 const label: any = { display: 'block', marginBottom: '10px', fontWeight: 'bold', color: '#1e293b', fontSize: '0.95rem' };
-const input: any = { width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '1rem', outline: 'none', background: '#fff' };
-const saveButton: any = { display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 30px', background: '#27ae60', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', transition: '0.3s', fontSize: '1rem', boxShadow: '0 4px 10px rgba(39, 174, 96, 0.3)' };
+const input: any = { width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #2a2a2a', fontSize: '1rem', outline: 'none', background: '#fff' };
+const saveButton: any = { display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 30px', background: '#e50914', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', transition: '0.3s', fontSize: '1rem', boxShadow: '0 4px 10px rgba(39, 174, 96, 0.3)' };
 const commissionsSection: any = { maxWidth: '1400px', margin: '0 auto', background: '#fff', borderRadius: '20px', padding: '35px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' };
-const refreshBtn: any = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', color: '#64748b', transition: '0.3s' };
-const tableWrapper: any = { overflowX: 'auto', borderRadius: '12px', border: '1px solid #e2e8f0' };
+const refreshBtn: any = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#161616', border: '1px solid #2a2a2a', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', color: '#64748b', transition: '0.3s' };
+const tableWrapper: any = { overflowX: 'auto', borderRadius: '12px', border: '1px solid #2a2a2a' };
 const table: any = { width: '100%', borderCollapse: 'collapse' };
-const tableHeader: any = { background: '#f8fafc' };
-const th: any = { padding: '16px 20px', textAlign: 'right', fontWeight: 'bold', color: '#475569', fontSize: '0.9rem', borderBottom: '2px solid #e2e8f0' };
-const tableRow: any = { borderBottom: '1px solid #f1f5f9', transition: '0.2s' };
+const tableHeader: any = { background: '#161616' };
+const th: any = { padding: '16px 20px', textAlign: 'right', fontWeight: 'bold', color: '#94a3b8', fontSize: '0.9rem', borderBottom: '2px solid #2a2a2a' };
+const tableRow: any = { borderBottom: '1px solid #242424', transition: '0.2s' };
 const td: any = { padding: '18px 20px', color: '#1e293b', fontSize: '0.95rem' };
 const statusBadgeInTable: any = { display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 'bold' };
 const emptyState: any = { textAlign: 'center', padding: '80px 20px' };

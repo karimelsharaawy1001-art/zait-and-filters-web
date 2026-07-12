@@ -57,7 +57,7 @@ export default function ProductCard({ product, index }: { product: Product; inde
             {index + 1}
           </div>
           <span style={{
-            fontSize: '0.95rem', fontWeight: '800', color: '#f5f5f5',
+            fontSize: '0.95rem', fontWeight: '800', color: '#1c1c1c',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>
             {product.name}
@@ -82,7 +82,7 @@ export default function ProductCard({ product, index }: { product: Product; inde
         {product.brand && (
           <span style={{
             padding: '2px 9px', borderRadius: '6px',
-            background: '#eff6ff', color: '#1d4ed8',
+            background: '#161616', color: '#60a5fa',
             fontSize: '0.78rem', fontWeight: '700',
           }}>
             {product.brand}
@@ -100,7 +100,7 @@ export default function ProductCard({ product, index }: { product: Product; inde
         {product.car_model && (
           <span style={{
             padding: '2px 9px', borderRadius: '6px',
-            background: '#faf5ff', color: '#7c3aed',
+            background: '#faf5ff', color: '#a78bfa',
             fontSize: '0.78rem', fontWeight: '700',
           }}>
             {product.car_model}
@@ -109,7 +109,7 @@ export default function ProductCard({ product, index }: { product: Product; inde
         {product.car_model_year && (
           <span style={{
             padding: '2px 9px', borderRadius: '6px',
-            background: '#fff7ed', color: '#c2410c',
+            background: '#1c1c1c', color: '#fb923c',
             fontSize: '0.78rem', fontWeight: '700',
           }}>
             {product.car_model_year}
@@ -118,7 +118,7 @@ export default function ProductCard({ product, index }: { product: Product; inde
         {hasDiscount && (
           <span style={{
             padding: '2px 9px', borderRadius: '6px',
-            background: '#fef2f2', color: '#dc2626',
+            background: '#2a0f10', color: '#dc2626',
             fontSize: '0.78rem', fontWeight: '800',
           }}>
             خصم {Math.round(((product.regular_price - product.sale_price) / product.regular_price) * 100)}%

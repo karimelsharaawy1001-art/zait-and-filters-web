@@ -44,7 +44,7 @@ const REVIEWS_ROW1 = ALL_REVIEWS.slice(0, 8);
 const REVIEWS_ROW2 = ALL_REVIEWS.slice(8);
 
 // Avatar color palette — assigns a consistent color per name
-const AVATAR_COLORS = ['#dc2626','#0284c7','#7c3aed','#db2777','#d97706','#0891b2','#dc2626','#65a30d'];
+const AVATAR_COLORS = ['#dc2626','#0284c7','#a78bfa','#db2777','#d97706','#0891b2','#dc2626','#65a30d'];
 function avatarColor(name: string) {
   const seed = name.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
   return AVATAR_COLORS[seed % AVATAR_COLORS.length];
@@ -93,7 +93,7 @@ function ReviewCard({ r }: { r: typeof ALL_REVIEWS[0] }) {
           {initials(r.name)}
         </div>
         <div>
-          <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#f5f5f5', lineHeight: 1.2 }}>{r.name}</div>
+          <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#1c1c1c', lineHeight: 1.2 }}>{r.name}</div>
           <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '600', marginTop: '1px' }}>عميل موثق ✓</div>
         </div>
       </div>
@@ -676,7 +676,7 @@ export default function HomePage() {
 
   const customSelectStyles = {
     control: (base: any) => ({ ...base, height: '52px', borderRadius: '12px', border: 'none', backgroundColor: '#f8f8f8', fontSize: '1rem', textAlign: 'right', display: 'flex', flexDirection: 'row-reverse', cursor: 'pointer' }),
-    option: (base: any, state: any) => ({ ...base, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', flexDirection: 'row-reverse', gap: '8px', padding: '10px 15px', fontSize: '0.95rem', backgroundColor: state.isFocused ? '#eefcf5' : '#fff', color: '#f5f5f5', cursor: 'pointer' }),
+    option: (base: any, state: any) => ({ ...base, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', flexDirection: 'row-reverse', gap: '8px', padding: '10px 15px', fontSize: '0.95rem', backgroundColor: state.isFocused ? '#1a0d0d' : '#fff', color: '#1c1c1c', cursor: 'pointer' }),
     singleValue: (base: any) => ({ ...base, display: 'flex', alignItems: 'center', gap: '8px', flexDirection: 'row-reverse' }),
     valueContainer: (base: any) => ({ ...base, padding: '0 12px', display: 'flex', flexDirection: 'row-reverse' }),
     menu: (base: any) => ({ ...base, zIndex: 10000 }),
@@ -713,7 +713,7 @@ export default function HomePage() {
     <>
       <StructuredData />
 
-      <div style={{ direction: 'rtl', backgroundColor: '#fdfdfd', color: '#f5f5f5', minHeight: '100vh', fontSize: '13px' }}>
+      <div style={{ direction: 'rtl', backgroundColor: '#fdfdfd', color: '#1c1c1c', minHeight: '100vh', fontSize: '13px' }}>
 
         {loading && (
           <m.div initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }} style={fullPageLoaderStyle}>
@@ -788,7 +788,7 @@ export default function HomePage() {
             .hero-text p { font-size: 1.45rem !important; font-weight: 700 !important; line-height: 1.7 !important; color: #fff !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 16px rgba(0,0,0,0.95) !important; margin: 0 0 36px 0 !important; max-width: 580px !important; display: block !important; width: 100% !important; }
             .hero-cta-btn { display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 12px !important; padding: 20px 56px !important; background-color: #e50914 !important; color: #fff !important; border-radius: 18px !important; text-decoration: none !important; font-weight: 900 !important; font-size: 1.35rem !important; letter-spacing: -0.3px !important; box-shadow: 0 10px 40px rgba(34,197,94,0.55) !important; transition: all 0.25s ease !important; white-space: nowrap !important; align-self: flex-end !important; }
             .hero-cta-btn:hover { background-color: #dc2626 !important; transform: translateY(-3px) !important; box-shadow: 0 16px 50px rgba(34,197,94,0.65) !important; }
-            .hero-card-desktop { width: 400px; flex-shrink: 0; background: #fff; padding: 30px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.35); animation: slideUp 0.6s ease-out 0.25s both; align-self: center; }
+            .hero-card-desktop { width: 400px; flex-shrink: 0; background: #1c1c1c; padding: 30px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.35); animation: slideUp 0.6s ease-out 0.25s both; align-self: center; }
             .hero-card-mobile { display: none; }
           }
 
@@ -802,7 +802,7 @@ export default function HomePage() {
             .hero-text p { font-size: 1rem !important; font-weight: 700 !important; line-height: 1.55 !important; color: #fff !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 14px rgba(0,0,0,0.98) !important; margin: 0 0 16px 0 !important; width: 100% !important; display: block !important; }
             .hero-cta-btn { display: flex !important; align-items: center !important; justify-content: center !important; gap: 10px !important; width: 100% !important; padding: 16px 24px !important; background-color: #e50914 !important; color: #fff !important; border-radius: 16px !important; text-decoration: none !important; font-weight: 900 !important; font-size: 1.1rem !important; box-shadow: 0 8px 28px rgba(34,197,94,0.45) !important; }
             .hero-card-desktop { display: none; }
-            .hero-card-mobile { width: 100%; box-sizing: border-box; background: #fff; padding: 16px 16px 18px; border-radius: 22px; box-shadow: 0 12px 36px rgba(0,0,0,0.3); }
+            .hero-card-mobile { width: 100%; box-sizing: border-box; background: #1c1c1c; padding: 16px 16px 18px; border-radius: 22px; box-shadow: 0 12px 36px rgba(0,0,0,0.3); }
           }
 
           @media (max-width: 380px) {
@@ -819,7 +819,7 @@ export default function HomePage() {
           .product-grid-carousel { display: flex !important; flex-wrap: nowrap !important; gap: 18px; overflow-x: auto !important; scroll-snap-type: x mandatory; padding: 12px 20px 20px; -webkit-overflow-scrolling: touch; }
           .product-card-mdrn {
             flex: 0 0 270px !important; min-width: 270px !important; max-width: 270px !important;
-            background: #fff;
+            background: #1c1c1c;
             border-radius: 22px;
             border: 1px solid rgba(0,0,0,0.07);
             box-shadow: 0 4px 24px rgba(0,0,0,0.07);
@@ -836,15 +836,15 @@ export default function HomePage() {
           .card-brand { color:#e50914; font-weight:800; font-size:0.75rem; letter-spacing:0.5px; text-transform:uppercase; }
           .card-origin { font-size:0.7rem; color:#888; font-weight:700; display:flex; align-items:center; gap:3px; }
           /* Allow up to 3 lines — no fixed height so long names show fully */
-          .card-name { font-size:0.92rem; font-weight:900; color:#0f172a; line-height:1.45; overflow:hidden; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
+          .card-name { font-size:0.92rem; font-weight:900; color:#f5f5f5; line-height:1.45; overflow:hidden; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
           .card-compat { display:inline-flex; align-items:center; gap:5px; background:#1a0d0d; border:1px solid #7f1d1d; border-radius:20px; padding:4px 10px; font-size:0.72rem; font-weight:800; color:#b91c1c; margin-bottom:8px; max-width:100%; overflow:hidden; }
           .card-compat span, .card-cat span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
-          .card-cat { display:inline-flex; align-items:center; gap:4px; background:#161616; border:1px solid #2a2a2a; border-radius:20px; padding:3px 9px; font-size:0.7rem; font-weight:700; color:#475569; max-width:100%; overflow:hidden; }
+          .card-cat { display:inline-flex; align-items:center; gap:4px; background:#161616; border:1px solid #2a2a2a; border-radius:20px; padding:3px 9px; font-size:0.7rem; font-weight:700; color:#94a3b8; max-width:100%; overflow:hidden; }
           /* Price: main amount + ج.م on same line, old price + save badge below */
           .card-price-block { margin:10px 0 4px; }
           .card-price-row { display:flex; align-items:baseline; gap:6px; flex-wrap:nowrap; }
-          .card-price-main { font-size:1.35rem; font-weight:900; color:#0f172a; white-space:nowrap; }
-          .card-price-currency { font-size:0.85rem; font-weight:800; color:#0f172a; white-space:nowrap; }
+          .card-price-main { font-size:1.35rem; font-weight:900; color:#f5f5f5; white-space:nowrap; }
+          .card-price-currency { font-size:0.85rem; font-weight:800; color:#f5f5f5; white-space:nowrap; }
           .card-price-meta { display:flex; align-items:center; gap:6px; margin-top:4px; flex-wrap:wrap; }
           .card-price-old { font-size:0.78rem; color:#aaa; text-decoration:line-through; font-weight:600; white-space:nowrap; }
           .card-save { font-size:0.68rem; font-weight:800; color:#fff; background:#ef4444; border-radius:6px; padding:2px 7px; white-space:nowrap; }
@@ -863,7 +863,7 @@ export default function HomePage() {
           .feature-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px; justify-content: center; }
           .feature-icon-wrap { width: 52px; height: 52px; border-radius: 14px; background: #1a0d0d; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
           .feature-text { display: flex; flex-direction: column; gap: 2px; }
-          .feature-title { font-size: 0.88rem; font-weight: 900; color: #1a1a1a; line-height: 1.3; }
+          .feature-title { font-size: 0.88rem; font-weight: 900; color: #f5f5f5; line-height: 1.3; }
           .feature-sub   { font-size: 0.75rem; font-weight: 600; color: #888; line-height: 1.3; }
           .feature-divider { width: 1px; height: 48px; background: #242424; flex-shrink: 0; }
 
@@ -920,7 +920,7 @@ export default function HomePage() {
           /* Title animation */
           .bn-title { animation:bn-title-in 0.6s ease-out both; }
           /* CTAs */
-          .bn-cta-gold { background:linear-gradient(135deg,#fbbf24,#f59e0b)!important;color:#0f172a!important;font-weight:900!important;transition:all 0.2s!important; }
+          .bn-cta-gold { background:linear-gradient(135deg,#fbbf24,#f59e0b)!important;color:#f5f5f5!important;font-weight:900!important;transition:all 0.2s!important; }
           .bn-cta-gold:hover { background:linear-gradient(135deg,#fcd34d,#fbbf24)!important;transform:translateY(-2px)!important;box-shadow:0 8px 20px rgba(251,191,36,0.4)!important; }
           .bn-cta-green { background:linear-gradient(135deg,#e50914,#dc2626)!important;transition:all 0.2s!important; }
           .bn-cta-green:hover { background:linear-gradient(135deg,#f87171,#e50914)!important;transform:translateY(-2px)!important;box-shadow:0 8px 20px rgba(34,197,94,0.45)!important; }
@@ -1052,7 +1052,7 @@ export default function HomePage() {
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#1a0d0d', border: '1px solid #7f1d1d', borderRadius: '20px', padding: '6px 18px', marginBottom: '14px' }}>
                       <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#dc2626', letterSpacing: '0.05em' }}>⭐ آراء عملاؤنا</span>
                     </div>
-                    <h2 style={{ fontSize: '2.1rem', fontWeight: '900', color: '#f5f5f5', margin: '0 0 8px', letterSpacing: '-0.5px' }}>
+                    <h2 style={{ fontSize: '2.1rem', fontWeight: '900', color: '#1c1c1c', margin: '0 0 8px', letterSpacing: '-0.5px' }}>
                       بيثقوا فينا ليه؟
                     </h2>
                     <p style={{ color: '#64748b', fontSize: '1rem', fontWeight: '600', margin: 0 }}>
@@ -1212,7 +1212,7 @@ export default function HomePage() {
                           <div style={{ padding:'16px', flex:1, display:'flex', flexDirection:'column' }}>
                             <div className="card-brand-row">
                               <span className="card-brand">{p.brand}</span>
-                              {isAsli && <span style={{fontSize:'0.68rem',color:'#b45309',fontWeight:'800',background:'#fef3c7',padding:'2px 7px',borderRadius:'10px'}}>✦ أصلي</span>}
+                              {isAsli && <span style={{fontSize:'0.68rem',color:'#fbbf24',fontWeight:'800',background:'#242424',padding:'2px 7px',borderRadius:'10px'}}>✦ أصلي</span>}
                             </div>
                             <h3 className="card-name">{p.name}</h3>
                             <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'10px'}}>
@@ -1297,7 +1297,7 @@ export default function HomePage() {
                           <div style={{ padding:'16px', flex:1, display:'flex', flexDirection:'column' }}>
                             <div className="card-brand-row">
                               <span className="card-brand">{p.brand}</span>
-                              {isAsli && <span style={{fontSize:'0.68rem',color:'#b45309',fontWeight:'800',background:'#fef3c7',padding:'2px 7px',borderRadius:'10px'}}>✦ أصلي</span>}
+                              {isAsli && <span style={{fontSize:'0.68rem',color:'#fbbf24',fontWeight:'800',background:'#242424',padding:'2px 7px',borderRadius:'10px'}}>✦ أصلي</span>}
                             </div>
                             <h3 className="card-name">{p.name}</h3>
                             <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'10px'}}>
@@ -1459,7 +1459,7 @@ export default function HomePage() {
                   .make-card-logo-wrap {
                     width: 80%;
                     aspect-ratio: 3/2;
-                    background: rgba(255,255,255,0.93);
+                    background: rgba(28,28,28,0.92);
                     border-radius: 12px;
                     display: flex;
                     align-items: center;

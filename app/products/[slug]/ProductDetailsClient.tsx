@@ -103,12 +103,12 @@ function ReviewsSection({ productId }: { productId: string }) {
       style={{ background: '#1c1c1c', borderRadius: '24px', padding: '24px', marginBottom: '20px', border: '1px solid #242424', direction: 'rtl' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: '900', margin: 0, color: '#f5f5f5' }}>تقييمات العملاء</h2>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: '900', margin: 0, color: '#1c1c1c' }}>تقييمات العملاء</h2>
           {reviews.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '20px', padding: '4px 12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#1c1c1c', border: '1px solid #7f1d1d', borderRadius: '20px', padding: '4px 12px' }}>
               <StarDisplay rating={Math.round(avgRating)} />
-              <span style={{ fontSize: '0.88rem', fontWeight: '800', color: '#92400e' }}>{avgRating.toFixed(1)}</span>
-              <span style={{ fontSize: '0.78rem', color: '#b45309' }}>({reviews.length})</span>
+              <span style={{ fontSize: '0.88rem', fontWeight: '800', color: '#fbbf24' }}>{avgRating.toFixed(1)}</span>
+              <span style={{ fontSize: '0.78rem', color: '#fbbf24' }}>({reviews.length})</span>
             </div>
           )}
         </div>
@@ -128,26 +128,26 @@ function ReviewsSection({ productId }: { productId: string }) {
         {showForm && (
           <m.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
             style={{ background: '#161616', border: '1px solid #2a2a2a', borderRadius: '16px', padding: '22px', marginBottom: '24px', overflow: 'hidden' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: '800', margin: '0 0 16px', color: '#f5f5f5' }}>أضف تقييمك</h3>
+            <h3 style={{ fontSize: '1rem', fontWeight: '800', margin: '0 0 16px', color: '#1c1c1c' }}>أضف تقييمك</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#374151', marginBottom: '6px' }}>الاسم *</label>
-                <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="اسمك" style={{ width: '100%', padding: '10px 12px', border: `1.5px solid ${errors.name ? '#fca5a5' : '#2a2a2a'}`, borderRadius: '10px', fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' as const }} />
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#d1d5db', marginBottom: '6px' }}>الاسم *</label>
+                <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="اسمك" style={{ width: '100%', padding: '10px 12px', border: `1.5px solid ${errors.name ? '#ef4444' : '#2a2a2a'}`, borderRadius: '10px', fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' as const }} />
                 {errors.name && <p style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: '600', margin: '4px 0 0' }}>{errors.name}</p>}
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#374151', marginBottom: '6px' }}>الإيميل (اختياري)</label>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#d1d5db', marginBottom: '6px' }}>الإيميل (اختياري)</label>
                 <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="email@example.com" style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #2a2a2a', borderRadius: '10px', fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' as const }} dir="ltr" />
               </div>
             </div>
             <div style={{ marginBottom: '14px' }}>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#374151', marginBottom: '6px' }}>التقييم *</label>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#d1d5db', marginBottom: '6px' }}>التقييم *</label>
               <StarSelector value={form.rating} onChange={r => setForm(f => ({ ...f, rating: r }))} />
               {errors.rating && <p style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: '600', margin: '4px 0 0' }}>{errors.rating}</p>}
             </div>
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#374151', marginBottom: '6px' }}>تعليقك *</label>
-              <textarea value={form.comment} onChange={e => setForm(f => ({ ...f, comment: e.target.value }))} placeholder="شاركنا رأيك في المنتج..." rows={4} style={{ width: '100%', padding: '10px 12px', border: `1.5px solid ${errors.comment ? '#fca5a5' : '#2a2a2a'}`, borderRadius: '10px', fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none', resize: 'vertical' as const, minHeight: '90px', boxSizing: 'border-box' as const }} />
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#d1d5db', marginBottom: '6px' }}>تعليقك *</label>
+              <textarea value={form.comment} onChange={e => setForm(f => ({ ...f, comment: e.target.value }))} placeholder="شاركنا رأيك في المنتج..." rows={4} style={{ width: '100%', padding: '10px 12px', border: `1.5px solid ${errors.comment ? '#ef4444' : '#2a2a2a'}`, borderRadius: '10px', fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none', resize: 'vertical' as const, minHeight: '90px', boxSizing: 'border-box' as const }} />
               {errors.comment && <p style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: '600', margin: '4px 0 0' }}>{errors.comment}</p>}
             </div>
             {errors.submit && <p style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: '600', marginBottom: '12px' }}>{errors.submit}</p>}
@@ -179,7 +179,7 @@ function ReviewsSection({ productId }: { productId: string }) {
                     <User size={18} color="#fff" />
                   </div>
                   <div>
-                    <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#f5f5f5' }}>{r.customer_name}</div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#1c1c1c' }}>{r.customer_name}</div>
                     <StarDisplay rating={r.rating} />
                   </div>
                 </div>
@@ -234,7 +234,7 @@ function ShareButtons({ productName, productBrand, price, carMake, carModel, pro
               <a href={facebookUrl} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} style={btnStyle('#1877F2')}><Facebook size={17} fill="white" color="white" /> فيسبوك</a>
               <a href={twitterUrl} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} style={btnStyle('#000')}><Twitter size={17} fill="white" color="white" /> تويتر</a>
               <div style={{ height: '1px', background: '#242424', margin: '2px 0' }} />
-              <button onClick={() => { copyLink(); setOpen(false); }} style={{ ...btnStyle('#475569'), border: 'none', cursor: 'pointer', width: '100%', fontFamily: 'inherit' }}>
+              <button onClick={() => { copyLink(); setOpen(false); }} style={{ ...btnStyle('#94a3b8'), border: 'none', cursor: 'pointer', width: '100%', fontFamily: 'inherit' }}>
                 {copied ? <Check size={17} /> : <Copy size={17} />}{copied ? 'تم النسخ!' : 'نسخ الرابط'}
               </button>
             </m.div>
@@ -275,7 +275,7 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
       <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <span style={{ color: '#e50914', fontWeight: '800', fontSize: '0.72rem', textTransform: 'uppercase' as const, letterSpacing: '0.4px' }}>{p.brand}</span>
         <Link href={`/products/${p.slug || p.id}`} style={{ textDecoration: 'none' }}>
-          <h3 style={{ fontSize: '0.85rem', fontWeight: '800', color: '#f5f5f5', lineHeight: '1.35', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden', margin: 0 }}>{p.name}</h3>
+          <h3 style={{ fontSize: '0.85rem', fontWeight: '800', color: '#1c1c1c', lineHeight: '1.35', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden', margin: 0 }}>{p.name}</h3>
         </Link>
         {(() => {
           const univ = ['universal','عام','all','الكل',''];
@@ -290,7 +290,7 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{mk}{cleanMo ? ' ' + cleanMo : ''}</span>
               </span>
               {p.car_model_year && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.65rem', color: '#1d4ed8', fontWeight: '700', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '12px', padding: '2px 8px', alignSelf: 'flex-start' as const }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.65rem', color: '#60a5fa', fontWeight: '700', background: '#161616', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '2px 8px', alignSelf: 'flex-start' as const }}>
                   <Calendar size={9} />{p.car_model_year}
                 </span>
               )}
@@ -299,8 +299,8 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
         })()}
         <div style={{ marginTop: 'auto', paddingTop: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '8px' }}>
-            <span style={{ fontSize: '1.1rem', fontWeight: '900', color: '#f5f5f5' }}>{price}</span>
-            <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#f5f5f5' }}>ج.م</span>
+            <span style={{ fontSize: '1.1rem', fontWeight: '900', color: '#1c1c1c' }}>{price}</span>
+            <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#1c1c1c' }}>ج.م</span>
             {hasSale && <span style={{ fontSize: '0.72rem', color: '#aaa', textDecoration: 'line-through' }}>{p.regular_price} ج.م</span>}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -324,7 +324,7 @@ function SpecItem({ label, value, icon }: { label: string; value: string; icon?:
   return (
     <m.div variants={fadeUp} style={{ background: '#161616', borderRadius: '14px', padding: '12px 14px', border: '1px solid #242424' }}>
       <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '700', marginBottom: '4px', textTransform: 'uppercase' as const, letterSpacing: '0.4px' }}>{label}</div>
-      <div style={{ fontSize: '0.88rem', fontWeight: '800', color: '#f5f5f5', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+      <div style={{ fontSize: '0.88rem', fontWeight: '800', color: '#1c1c1c', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
         {icon && <span style={{ flexShrink: 0, marginTop: '1px' }}>{icon}</span>}
         <span style={{ wordBreak: 'break-word' as const, minWidth: 0, flex: 1 }}>{value}</span>
       </div>
@@ -437,9 +437,9 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         .pdp-btn-secondary:hover { background: #1e293b; transform: translateY(-1px); }
         .pdp-stepper { display: flex; align-items: center; gap: 0; background: #161616; border: 1.5px solid #2a2a2a; border-radius: 14px; overflow: hidden; }
         .pdp-step-btn { width: 44px; height: 48px; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #64748b; transition: background 0.15s; }
-        .pdp-step-btn:hover { background: #242424; color: #0f172a; }
-        .pdp-qty { font-size: 1.1rem; font-weight: 900; color: '#f5f5f5'; min-width: 36px; text-align: center; }
-        .pdp-trust-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #161616; border: 1px solid #242424; border-radius: 12px; font-size: 0.85rem; color: #475569; font-weight: '700'; }
+        .pdp-step-btn:hover { background: #242424; color: #f5f5f5; }
+        .pdp-qty { font-size: 1.1rem; font-weight: 900; color: '#1c1c1c'; min-width: 36px; text-align: center; }
+        .pdp-trust-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #161616; border: 1px solid #242424; border-radius: 12px; font-size: 0.85rem; color: #94a3b8; font-weight: '700'; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
         @media (max-width: 900px) {
@@ -473,7 +473,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         {/* Breadcrumb */}
         <m.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
           style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '0.85rem', color: '#94a3b8', flexWrap: 'wrap' as const }}>
-          <Link href="/store" style={{ display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#475569', fontWeight: '700' }}>
+          <Link href="/store" style={{ display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#94a3b8', fontWeight: '700' }}>
             <ArrowRight size={16} /> المتجر
           </Link>
           <ChevronLeft size={14} color="#cbd5e1" />
@@ -546,7 +546,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ background: '#1c1c1c', color: '#fff', padding: '6px 16px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '800', letterSpacing: '0.5px', textTransform: 'uppercase' as const }}>{product.brand}</span>
               {isOutOfStock ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#dc2626', fontSize: '0.85rem', fontWeight: '800', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '20px', padding: '5px 12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#dc2626', fontSize: '0.85rem', fontWeight: '800', background: '#2a0f10', border: '1px solid #7f1d1d', borderRadius: '20px', padding: '5px 12px' }}>
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#dc2626', display: 'inline-block' }} />
                   نفذت الكمية
                 </div>
@@ -559,15 +559,15 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             </div>
 
             {/* Title */}
-            <h1 style={{ fontSize: '1.9rem', fontWeight: '900', color: '#f5f5f5', lineHeight: '1.25', margin: 0, letterSpacing: '-0.5px' }}>{product.name}</h1>
+            <h1 style={{ fontSize: '1.9rem', fontWeight: '900', color: '#1c1c1c', lineHeight: '1.25', margin: 0, letterSpacing: '-0.5px' }}>{product.name}</h1>
 
             {/* Price block */}
             <div style={{ background: '#161616', border: '1px solid #242424', borderRadius: '20px', padding: '18px 20px' }}>
               {hasSale ? (
                 <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '6px' }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-                    <span style={{ fontSize: '2.4rem', fontWeight: '900', color: '#f5f5f5', lineHeight: 1 }}>{product.sale_price}</span>
-                    <span style={{ fontSize: '1rem', fontWeight: '700', color: '#f5f5f5' }}>ج.م</span>
+                    <span style={{ fontSize: '2.4rem', fontWeight: '900', color: '#1c1c1c', lineHeight: 1 }}>{product.sale_price}</span>
+                    <span style={{ fontSize: '1rem', fontWeight: '700', color: '#1c1c1c' }}>ج.م</span>
                     <span style={{ fontSize: '1rem', color: '#aaa', textDecoration: 'line-through', fontWeight: '600' }}>{product.regular_price} ج.م</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -577,8 +577,8 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                 </div>
               ) : (
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                  <span style={{ fontSize: '2.4rem', fontWeight: '900', color: '#f5f5f5', lineHeight: 1 }}>{product.regular_price}</span>
-                  <span style={{ fontSize: '1rem', fontWeight: '700', color: '#f5f5f5' }}>ج.م</span>
+                  <span style={{ fontSize: '2.4rem', fontWeight: '900', color: '#1c1c1c', lineHeight: 1 }}>{product.regular_price}</span>
+                  <span style={{ fontSize: '1rem', fontWeight: '700', color: '#1c1c1c' }}>ج.م</span>
                 </div>
               )}
             </div>
@@ -589,17 +589,17 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                 <Car size={14} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, maxWidth: '180px' }}>{compatText}</span>
               </span>
               {product.car_model_year && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '20px', padding: '6px 14px', fontSize: '0.82rem', fontWeight: '800', color: '#1d4ed8' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#161616', border: '1px solid #2a2a2a', borderRadius: '20px', padding: '6px 14px', fontSize: '0.82rem', fontWeight: '800', color: '#60a5fa' }}>
                   <Calendar size={14} />{product.car_model_year}
                 </span>
               )}
               {product.category && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#161616', border: '1px solid #2a2a2a', borderRadius: '20px', padding: '6px 14px', fontSize: '0.82rem', fontWeight: '700', color: '#475569' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#161616', border: '1px solid #2a2a2a', borderRadius: '20px', padding: '6px 14px', fontSize: '0.82rem', fontWeight: '700', color: '#94a3b8' }}>
                   <LayoutGrid size={13} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, maxWidth: '160px' }}>{product.category}</span>
                 </span>
               )}
               {product.subcategory && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#161616', border: '1px solid #2a2a2a', borderRadius: '20px', padding: '6px 14px', fontSize: '0.82rem', fontWeight: '700', color: '#475569' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#161616', border: '1px solid #2a2a2a', borderRadius: '20px', padding: '6px 14px', fontSize: '0.82rem', fontWeight: '700', color: '#94a3b8' }}>
                   <Tag size={13} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, maxWidth: '160px' }}>{product.subcategory}</span>
                 </span>
               )}
@@ -640,7 +640,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'stretch' }}>
                   <div className="pdp-stepper">
                     <button className="pdp-step-btn" onClick={() => setQty(q => q + 1)}><Plus size={18} /></button>
-                    <span className="pdp-qty" style={{ fontSize: '1.1rem', fontWeight: '900', color: '#f5f5f5', minWidth: '36px', textAlign: 'center' as const }}>{qty}</span>
+                    <span className="pdp-qty" style={{ fontSize: '1.1rem', fontWeight: '900', color: '#1c1c1c', minWidth: '36px', textAlign: 'center' as const }}>{qty}</span>
                     <button className="pdp-step-btn" onClick={() => qty > 1 && setQty(q => q - 1)}><Minus size={18} /></button>
                   </div>
                   <button onClick={() => addToCart({ ...product, price: displayPrice }, qty)} className="pdp-btn-secondary" style={{ flex: 1 }}>
@@ -676,7 +676,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                 { icon: <ShieldCheck size={16} color="#e50914" />, text: 'مطابق لسيارتك' },
               ].map((b, i) => (
                 <div key={i} className="pdp-trust-item">
-                  {b.icon}<span style={{ fontSize: '0.82rem', fontWeight: '700', color: '#475569' }}>{b.text}</span>
+                  {b.icon}<span style={{ fontSize: '0.82rem', fontWeight: '700', color: '#94a3b8' }}>{b.text}</span>
                 </div>
               ))}
             </div>
@@ -686,7 +686,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         {/* Description */}
         <div className="pdp-section"
           style={{ background: '#1c1c1c', borderRadius: '24px', padding: '24px', marginBottom: '14px', border: '1px solid #242424' }}>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: '900', marginBottom: '14px', color: '#f5f5f5', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: '900', marginBottom: '14px', color: '#1c1c1c', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Info size={20} color="#e50914" /> وصف المنتج
           </h2>
           <p style={{ lineHeight: '1.85', color: '#64748b', fontSize: '0.95rem', margin: 0 }}>{generateDesc()}</p>
@@ -701,7 +701,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' as const, gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <Package size={22} color="#e50914" />
-                <h2 style={{ fontSize: '1.25rem', fontWeight: '900', margin: 0, color: '#f5f5f5' }}>منتجات مشابهة</h2>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: '900', margin: 0, color: '#1c1c1c' }}>منتجات مشابهة</h2>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button id="prev-related" style={{ width: '38px', height: '38px', borderRadius: '50%', border: '1px solid #2a2a2a', background: '#1c1c1c', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><ChevronRight size={20} /></button>

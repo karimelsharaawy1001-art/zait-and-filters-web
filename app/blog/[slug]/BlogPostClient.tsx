@@ -32,7 +32,7 @@ export default function BlogPostPage() {
   return (
     <div style={{ direction: 'rtl', background: '#f8f9fa', minHeight: '100vh', padding: '40px 20px' }}>
       <div style={{ maxWidth: '780px', margin: '0 auto' }}>
-        <Link href="/blog" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#15803d', fontWeight: '700', textDecoration: 'none', marginBottom: '30px', fontSize: '0.9rem' }}>
+        <Link href="/blog" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#b91c1c', fontWeight: '700', textDecoration: 'none', marginBottom: '30px', fontSize: '0.9rem' }}>
           <ArrowRight size={16} /> العودة للمدونة
         </Link>
         {post.cover_image && (
@@ -54,11 +54,11 @@ export default function BlogPostPage() {
             {post.content}
           </div>
         </div>
-        <div style={{ marginTop: '30px', background: '#f0fdf4', borderRadius: '16px', padding: '20px 24px', display: 'flex', alignItems: 'center', gap: '14px', border: '1px solid #dcfce7' }}>
-          <div style={{ width: '46px', height: '46px', borderRadius: '50%', background: '#15803d', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '900', fontSize: '1.2rem' }}>ز</div>
+        <div style={{ marginTop: '30px', background: '#1a0d0d', borderRadius: '16px', padding: '20px 24px', display: 'flex', alignItems: 'center', gap: '14px', border: '1px solid #2a0f10' }}>
+          <div style={{ width: '46px', height: '46px', borderRadius: '50%', background: '#b91c1c', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '900', fontSize: '1.2rem' }}>ز</div>
           <div>
             <div style={{ fontWeight: '800', color: '#1a1a1a', fontSize: '0.95rem' }}>{post.author}</div>
-            <div style={{ color: '#15803d', fontSize: '0.8rem', fontWeight: '600' }}>فريق زيت أند فلترز</div>
+            <div style={{ color: '#b91c1c', fontSize: '0.8rem', fontWeight: '600' }}>فريق زيت أند فلترز</div>
           </div>
         </div>
       </div>
@@ -66,5 +66,5 @@ export default function BlogPostPage() {
   );
 }
 
-const loaderStyle: any = { textAlign: 'center', padding: '100px', color: '#15803d', fontWeight: '900', fontSize: '1.3rem', direction: 'rtl' };
-const tagStyle: any = { display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f0fdf4', color: '#15803d', padding: '3px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '700', border: '1px solid #dcfce7' };
+const loaderStyle: any = { textAlign: 'center', padding: '100px', color: '#b91c1c', fontWeight: '900', fontSize: '1.3rem', direction: 'rtl' };
+const tagStyle: any = { display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#1a0d0d', color: '#b91c1c', padding: '3px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '700', border: '1px solid #2a0f10' };

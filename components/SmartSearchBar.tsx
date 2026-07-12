@@ -133,7 +133,7 @@ export default function SmartSearchBar({ placeholder = 'ابحث عن قطعة �
           dir="rtl"
           style={{
             flex: 1, border: 'none', outline: 'none', background: 'transparent',
-            fontSize: compact ? '0.88rem' : '1rem', color: '#f5f5f5', direction: 'rtl',
+            fontSize: compact ? '0.88rem' : '1rem', color: '#1c1c1c', direction: 'rtl',
             fontFamily: 'inherit',
           }}
         />
@@ -197,7 +197,7 @@ export default function SmartSearchBar({ placeholder = 'ابحث عن قطعة �
                   <Sparkles size={16} color="#dc2626" />
                 </div>
               ) : s.type === 'category' ? (
-                <div style={{ width: '38px', height: '38px', borderRadius: '8px', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #bfdbfe' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '8px', background: '#161616', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #2a2a2a' }}>
                   <Tag size={16} color="#3b82f6" />
                 </div>
               ) : (
@@ -216,7 +216,7 @@ export default function SmartSearchBar({ placeholder = 'ابحث عن قطعة �
                   {s.label}
                 </div>
                 {s.sublabel && (
-                  <div style={{ fontSize: '0.72rem', color: '#6b7280', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {s.sublabel}
                   </div>
                 )}
@@ -238,11 +238,11 @@ export default function SmartSearchBar({ placeholder = 'ابحث عن قطعة �
 
           {/* Footer hint */}
           <div style={{ padding: '7px 14px', background: '#161616', borderTop: '1px solid #1c1c1c', fontSize: '0.68rem', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <kbd style={{ background: '#2a2a2a', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', color: '#374151', fontFamily: 'monospace' }}>↑↓</kbd>
+            <kbd style={{ background: '#2a2a2a', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', color: '#d1d5db', fontFamily: 'monospace' }}>↑↓</kbd>
             للتنقل
-            <kbd style={{ background: '#2a2a2a', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', color: '#374151', fontFamily: 'monospace' }}>Enter</kbd>
+            <kbd style={{ background: '#2a2a2a', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', color: '#d1d5db', fontFamily: 'monospace' }}>Enter</kbd>
             للاختيار
-            <kbd style={{ background: '#2a2a2a', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', color: '#374151', fontFamily: 'monospace' }}>Esc</kbd>
+            <kbd style={{ background: '#2a2a2a', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', color: '#d1d5db', fontFamily: 'monospace' }}>Esc</kbd>
             إغلاق
           </div>
         </div>

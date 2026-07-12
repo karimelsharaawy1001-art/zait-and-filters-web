@@ -160,7 +160,7 @@ export default function ChatWidget() {
         .z-window {
           position:fixed; bottom:calc(env(safe-area-inset-bottom,0px) + 84px); right:20px;
           width:364px; max-width:calc(100vw - 24px); height:530px; max-height:calc(100dvh - 120px);
-          background:#fff; border-radius:20px;
+          background:#1c1c1c; border-radius:20px;
           box-shadow:0 16px 56px rgba(0,0,0,0.16),0 2px 12px rgba(0,0,0,0.06);
           display:flex; flex-direction:column; overflow:hidden;
           z-index:9998; animation:z-pop 0.25s cubic-bezier(0.34,1.56,0.64,1);
@@ -180,7 +180,7 @@ export default function ChatWidget() {
         .z-msgs::-webkit-scrollbar-thumb { background:#d4d4d8; border-radius:4px; }
 
         .z-bubble-bot {
-          background:#fff; color:#18181b;
+          background:#1c1c1c; color:#18181b;
           border-radius:4px 18px 18px 18px;
           padding:10px 14px; font-size:0.88rem; line-height:1.7;
           max-width:88%; white-space:pre-line; word-break:break-word;
@@ -209,7 +209,7 @@ export default function ChatWidget() {
           animation:z-slideUp 0.35s ease;
         }
         .z-faq-tile {
-          background:#fff; border:1px solid #e4e4e7; border-radius:12px;
+          background:#1c1c1c; border:1px solid #e4e4e7; border-radius:12px;
           padding:8px 14px; font-size:0.8rem; font-weight:600; color:#18181b;
           cursor:pointer; text-align:right; transition:all 0.15s;
           font-family:inherit; box-shadow:0 1px 3px rgba(0,0,0,0.04);

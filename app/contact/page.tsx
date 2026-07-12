@@ -68,7 +68,7 @@ export default function ContactUs() {
         <button
           type="submit"
           disabled={status === 'loading'}
-          style={{ width: '100%', padding: '15px', backgroundColor: status === 'loading' ? '#991b1b' : '#2ecc71', color: '#f5f5f5', border: 'none', borderRadius: '8px', fontWeight: '900', fontSize: '1.2rem', cursor: status === 'loading' ? 'not-allowed' : 'pointer', transition: '0.2s', opacity: status === 'loading' ? 0.8 : 1 }}
+          style={{ width: '100%', padding: '15px', backgroundColor: status === 'loading' ? '#991b1b' : '#2ecc71', color: '#1c1c1c', border: 'none', borderRadius: '8px', fontWeight: '900', fontSize: '1.2rem', cursor: status === 'loading' ? 'not-allowed' : 'pointer', transition: '0.2s', opacity: status === 'loading' ? 0.8 : 1 }}
         >
           {status === 'loading' ? '⏳ جاري الإرسال...' : 'إرسال الطلب الآن'}
         </button>

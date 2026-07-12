@@ -29,7 +29,7 @@ export default function BlogPage() {
 
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '50px' }}>
-        <p style={{ color: '#15803d', fontWeight: '700', fontSize: '0.85rem', letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 10px' }}>المدونة</p>
+        <p style={{ color: '#b91c1c', fontWeight: '700', fontSize: '0.85rem', letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 10px' }}>المدونة</p>
         <h1 style={{ fontSize: '2.5rem', fontWeight: '900', color: '#1a1a1a', margin: '0 0 12px' }}>نصايح وعلوم عربيتك 🚗</h1>
         <p style={{ color: '#777', fontSize: '1rem', margin: 0 }}>كل حاجة محتاج تعرفها عن صيانة سيارتك</p>
       </div>
@@ -61,7 +61,7 @@ export default function BlogPage() {
                     <span style={{ fontSize: '0.78rem', color: '#aaa', display: 'flex', alignItems: 'center', gap: '5px' }}>
                       <Clock size={13} /> {new Date(post.created_at).toLocaleDateString('ar-EG')}
                     </span>
-                    <span style={{ color: '#15803d', fontWeight: '700', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ color: '#b91c1c', fontWeight: '700', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       اقرأ أكثر <ArrowLeft size={14} />
                     </span>
                   </div>
@@ -75,6 +75,6 @@ export default function BlogPage() {
   );
 }
 
-const loaderStyle: any = { textAlign: 'center', padding: '100px', color: '#15803d', fontWeight: '900', fontSize: '1.3rem', direction: 'rtl' };
+const loaderStyle: any = { textAlign: 'center', padding: '100px', color: '#b91c1c', fontWeight: '900', fontSize: '1.3rem', direction: 'rtl' };
 const cardStyle: any = { background: '#fff', borderRadius: '20px', border: '1px solid #eee', overflow: 'hidden', transition: 'transform 0.2s, box-shadow 0.2s', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' };
-const tagStyle: any = { display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f0fdf4', color: '#15803d', padding: '3px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '700', border: '1px solid #dcfce7' };
+const tagStyle: any = { display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#1a0d0d', color: '#b91c1c', padding: '3px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '700', border: '1px solid #2a0f10' };

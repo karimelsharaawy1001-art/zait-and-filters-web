@@ -1109,15 +1109,15 @@ function ProductPageSkeleton() {
       `}</style>
       <div className="skeleton-grid" aria-hidden="true">
         {/* Image */}
-        <div style={{ aspectRatio: '1/1', background: '#e5e7eb', borderRadius: '24px', animation: 'pulse 1.5s ease-in-out infinite' }} />
+        <div style={{ aspectRatio: '1/1', background: '#2a2a2a', borderRadius: '24px', animation: 'pulse 1.5s ease-in-out infinite' }} />
         {/* Info */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ height: '28px', width: '30%', background: '#e5e7eb', borderRadius: '8px', animation: 'pulse 1.5s ease-in-out infinite' }} />
-          <div style={{ height: '36px', width: '85%', background: '#e5e7eb', borderRadius: '8px', animation: 'pulse 1.5s ease-in-out infinite', animationDelay: '80ms' }} />
-          <div style={{ height: '36px', width: '60%', background: '#e5e7eb', borderRadius: '8px', animation: 'pulse 1.5s ease-in-out infinite', animationDelay: '100ms' }} />
-          <div style={{ height: '20px', width: '40%', background: '#e5e7eb', borderRadius: '8px', animation: 'pulse 1.5s ease-in-out infinite', animationDelay: '120ms' }} />
-          <div style={{ height: '120px', width: '100%', background: '#f3f4f6', borderRadius: '20px', animation: 'pulse 1.5s ease-in-out infinite', animationDelay: '140ms' }} />
-          <div style={{ height: '48px', width: '100%', background: '#e5e7eb', borderRadius: '12px', marginTop: '8px', animation: 'pulse 1.5s ease-in-out infinite', animationDelay: '160ms' }} />
+          <div style={{ height: '28px', width: '30%', background: '#2a2a2a', borderRadius: '8px', animation: 'pulse 1.5s ease-in-out infinite' }} />
+          <div style={{ height: '36px', width: '85%', background: '#2a2a2a', borderRadius: '8px', animation: 'pulse 1.5s ease-in-out infinite', animationDelay: '80ms' }} />
+          <div style={{ height: '36px', width: '60%', background: '#2a2a2a', borderRadius: '8px', animation: 'pulse 1.5s ease-in-out infinite', animationDelay: '100ms' }} />
+          <div style={{ height: '20px', width: '40%', background: '#2a2a2a', borderRadius: '8px', animation: 'pulse 1.5s ease-in-out infinite', animationDelay: '120ms' }} />
+          <div style={{ height: '120px', width: '100%', background: '#1c1c1c', borderRadius: '20px', animation: 'pulse 1.5s ease-in-out infinite', animationDelay: '140ms' }} />
+          <div style={{ height: '48px', width: '100%', background: '#2a2a2a', borderRadius: '12px', marginTop: '8px', animation: 'pulse 1.5s ease-in-out infinite', animationDelay: '160ms' }} />
           <div style={{ height: '48px', width: '100%', background: '#f59e0b22', borderRadius: '12px', animation: 'pulse 1.5s ease-in-out infinite', animationDelay: '180ms' }} />
         </div>
       </div>

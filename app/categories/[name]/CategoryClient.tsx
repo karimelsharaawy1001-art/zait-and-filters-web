@@ -62,19 +62,19 @@ export default function SubCategoriesPage() {
 
       {/* Breadcrumbs */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '30px', color: '#666', fontSize: '0.9rem' }}>
-        <Link href="/" style={{ color: '#22c55e', textDecoration: 'none', fontWeight: 'bold' }}>الرئيسية</Link>
+        <Link href="/" style={{ color: '#e50914', textDecoration: 'none', fontWeight: 'bold' }}>الرئيسية</Link>
         <ChevronRight size={16} />
         <span style={{ fontWeight: '800' }}>{categoryName}</span>
       </div>
 
       <div style={{ marginBottom: '40px' }}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: '900', marginBottom: '10px' }}>{categoryName}</h1>
-        <div style={{ width: '60px', height: '5px', background: '#22c55e', borderRadius: '5px' }}></div>
+        <div style={{ width: '60px', height: '5px', background: '#e50914', borderRadius: '5px' }}></div>
       </div>
 
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '100px' }}>
-          <Loader2 size={40} className="animate-spin" color="#22c55e" />
+          <Loader2 size={40} className="animate-spin" color="#e50914" />
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(175px, 1fr))', gap: '15px' }}>
@@ -114,7 +114,7 @@ export default function SubCategoriesPage() {
           <h3 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '10px' }}>لا توجد فئات فرعية</h3>
           <p style={{ color: '#888', marginBottom: '20px' }}>يمكنك تصفح جميع المنتجات في قسم {categoryName} مباشرة</p>
           <Link href={`/store?category=${encodeURIComponent(categoryName)}`}
-            style={{ backgroundColor: '#22c55e', color: '#fff', padding: '12px 30px', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold' }}>
+            style={{ backgroundColor: '#e50914', color: '#fff', padding: '12px 30px', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold' }}>
             عرض المنتجات
           </Link>
         </div>

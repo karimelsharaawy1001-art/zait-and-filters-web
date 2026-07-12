@@ -20,11 +20,11 @@ export default function AboutPage() {
       num: '01',
     },
     {
-      icon: <Package size={32} color="#1e40af" />,
+      icon: <Package size={32} color="#60a5fa" />,
       title: 'كل حاجة في مكان واحد',
       subtitle: 'التنوع الشامل',
       desc: 'سواء عربيتك كوري، ياباني، ألماني، أو حتى صيني — هتلاقي الزيت المناسب، والفلتر الصح، وقطع الغيار اللي بتدور عليها. بنوفر أشهر الماركات العالمية اللي السوق المصري بيثق فيها.',
-      bg: '#eff6ff',
+      bg: '#161616',
       border: '#93c5fd',
       num: '02',
     },
@@ -42,7 +42,7 @@ export default function AboutPage() {
       title: 'أسعار في المعقول',
       subtitle: 'الشفافية الكاملة',
       desc: 'بنقدم أسعار تنافسية وواضحة من غير أي مصاريف مخفية. هدفنا إن الصيانة الدورية متبقاش عبء عليك، وتقدر تحافظ على عربيتك من غير ما تكسر جيبك.',
-      bg: '#fffbeb',
+      bg: '#1c1c1c',
       border: '#fcd34d',
       num: '04',
     },
@@ -108,7 +108,7 @@ export default function AboutPage() {
               <Heart size={24} color="#b91c1c" />
             </div>
             <div>
-              <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '900', color: '#f5f5f5' }}>إحنا مين</h2>
+              <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '900', color: '#1c1c1c' }}>إحنا مين</h2>
             </div>
           </div>
 
@@ -151,7 +151,7 @@ export default function AboutPage() {
         <div style={{ marginBottom: '40px' }}>
           <div style={{ textAlign: 'center', marginBottom: '35px' }}>
             <p style={{ margin: '0 0 8px', fontSize: '0.78rem', color: '#b91c1c', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}> </p>
-            <h2 style={{ margin: 0, fontSize: '1.9rem', fontWeight: '900', color: '#f5f5f5' }}>إيه اللي بيميزنا؟</h2>
+            <h2 style={{ margin: 0, fontSize: '1.9rem', fontWeight: '900', color: '#1c1c1c' }}>إيه اللي بيميزنا؟</h2>
             <p style={{ margin: '10px 0 0', color: '#888', fontSize: '0.95rem' }}>بنينا خدماتنا على 4 قواعد أساسية عشان نستاهل ثقتك</p>
           </div>
 
@@ -174,7 +174,7 @@ export default function AboutPage() {
                   </div>
                   <span style={{ fontSize: '2.5rem', fontWeight: '900', color: '#242424', lineHeight: 1 }}>{f.num}</span>
                 </div>
-                <h3 style={{ margin: '0 0 4px', fontSize: '1.1rem', fontWeight: '900', color: '#f5f5f5' }}>{f.title}</h3>
+                <h3 style={{ margin: '0 0 4px', fontSize: '1.1rem', fontWeight: '900', color: '#1c1c1c' }}>{f.title}</h3>
                 <p style={{ margin: '0 0 12px', fontSize: '0.78rem', fontWeight: '700', color: '#b91c1c', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{f.subtitle}</p>
                 <p style={{ margin: 0, color: '#9ca3af', lineHeight: 1.8, fontSize: '0.93rem' }}>{f.desc}</p>
               </div>
@@ -191,7 +191,7 @@ export default function AboutPage() {
           <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#1a0d0d', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
             <MessageCircle size={30} color="#b91c1c" />
           </div>
-          <h2 style={{ fontSize: '1.7rem', fontWeight: '900', color: '#f5f5f5', margin: '0 0 16px' }}>كلمة أخيرة ليك 💚</h2>
+          <h2 style={{ fontSize: '1.7rem', fontWeight: '900', color: '#1c1c1c', margin: '0 0 16px' }}>كلمة أخيرة ليك 💚</h2>
           <p style={{ color: '#9ca3af', lineHeight: 1.9, fontSize: '1.02rem', maxWidth: '620px', margin: '0 auto 20px' }}>
             في "زيت أند فلترز"، إحنا مش مجرد تاجر — إحنا <strong style={{ color: '#b91c1c' }}>مستشارك الفني</strong>. لو محتار تختار إيه، فريق الدعم بتاعنا جاهز يساعدك تختار الأنسب لعربيتك.
           </p>

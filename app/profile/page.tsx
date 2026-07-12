@@ -27,19 +27,19 @@ function buildTrackingUrl(trackingNumber: string): string {
 
 // ── Payment status config ─────────────────────────────────────────────────────
 const paymentStatusConfig: Record<string, { label: string; bg: string; color: string }> = {
-  pending:  { label: 'في انتظار الدفع', bg: '#fff7ed', color: '#c2410c' },
+  pending:  { label: 'في انتظار الدفع', bg: '#1c1c1c', color: '#fb923c' },
   paid:     { label: 'تم الدفع ✓',      bg: '#1a0d0d', color: '#b91c1c' },
-  failed:   { label: 'فشل الدفع',       bg: '#fef2f2', color: '#dc2626' },
-  refunded: { label: 'تم الاسترجاع',    bg: '#f5f3ff', color: '#6d28d9' },
+  failed:   { label: 'فشل الدفع',       bg: '#2a0f10', color: '#dc2626' },
+  refunded: { label: 'تم الاسترجاع',    bg: '#242424', color: '#a78bfa' },
 };
 
 // ── Shipping status config ────────────────────────────────────────────────────
 const shippingStatusConfig: Record<string, { label: string; bg: string; color: string }> = {
-  pending:    { label: 'قيد المراجعة',   bg: '#fff7ed', color: '#c2410c' },
-  processing: { label: 'جاري التجهيز',  bg: '#fef9c3', color: '#a16207' },
-  shipped:    { label: 'تم الشحن 🚚',   bg: '#eff6ff', color: '#1d4ed8' },
+  pending:    { label: 'قيد المراجعة',   bg: '#1c1c1c', color: '#fb923c' },
+  processing: { label: 'جاري التجهيز',  bg: '#242424', color: '#a16207' },
+  shipped:    { label: 'تم الشحن 🚚',   bg: '#161616', color: '#60a5fa' },
   delivered:  { label: 'تم التسليم ✓',  bg: '#1a0d0d', color: '#991b1b' },
-  pending_payment: { label: 'في انتظار الدفع', bg: '#eff6ff', color: '#1d4ed8' },
+  pending_payment: { label: 'في انتظار الدفع', bg: '#161616', color: '#60a5fa' },
 };
 
 // ── Customer Tracking Banner ──────────────────────────────────────────────────
@@ -99,7 +99,7 @@ function CustomerTrackingBanner({ order }: { order: { tracking_number?: string |
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{
-              fontWeight: '900', fontSize: '0.95rem', color: '#f5f5f5',
+              fontWeight: '900', fontSize: '0.95rem', color: '#1c1c1c',
               fontFamily: 'monospace', letterSpacing: '1.5px',
             }}>
               {order.tracking_number}
@@ -399,7 +399,7 @@ export default function ProfilePage() {
         }}>
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '900', color: '#f5f5f5', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '900', color: '#1c1c1c', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <RotateCcw size={20} color="#e50914" /> طلب استرجاع
             </h3>
             <button onClick={onClose} style={{
@@ -426,7 +426,7 @@ export default function ProfilePage() {
 
           {/* Items Selection */}
           <div style={{ marginBottom: '16px' }}>
-            <div style={{ fontSize: '0.82rem', fontWeight: '800', color: '#f5f5f5', marginBottom: '10px' }}>
+            <div style={{ fontSize: '0.82rem', fontWeight: '800', color: '#1c1c1c', marginBottom: '10px' }}>
               اختر المنتجات المراد استرجاعها:
             </div>
             {selectedItems.map((item: any, i: number) => (
@@ -446,7 +446,7 @@ export default function ProfilePage() {
                   style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'contain', background: '#1c1c1c', flexShrink: 0 }}
                 />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#f5f5f5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#1c1c1c', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {item.name}
                   </div>
                   <div style={{ fontSize: '0.72rem', color: '#e50914', fontWeight: '700' }}>
@@ -486,7 +486,7 @@ export default function ProfilePage() {
 
           {/* Reason */}
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '800', color: '#f5f5f5', marginBottom: '8px' }}>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '800', color: '#1c1c1c', marginBottom: '8px' }}>
               سبب الاسترجاع <span style={{ color: '#ef4444' }}>*</span>
             </label>
             <textarea
@@ -537,7 +537,7 @@ export default function ProfilePage() {
 
   const customSelectStyles = {
     control: (base: any) => ({ ...base, height: '48px', borderRadius: '12px', border: '1px solid #242424', background: '#fdfdfd', textAlign: 'right', display: 'flex', flexDirection: 'row-reverse' }),
-    option: (base: any, state: any) => ({ ...base, padding: '10px 15px', backgroundColor: state.isFocused ? '#eefcf5' : '#fff', color: '#f5f5f5', cursor: 'pointer', textAlign: 'right' }),
+    option: (base: any, state: any) => ({ ...base, padding: '10px 15px', backgroundColor: state.isFocused ? '#1a0d0d' : '#fff', color: '#1c1c1c', cursor: 'pointer', textAlign: 'right' }),
     valueContainer: (base: any) => ({ ...base, display: 'flex', flexDirection: 'row-reverse' }),
     singleValue: (base: any) => ({ ...base, display: 'flex', flexDirection: 'row-reverse' })
   };
@@ -558,11 +558,11 @@ export default function ProfilePage() {
           </div>
         </div>
         <div style={headerStatsRow}>
-          <div style={headerStatItem}><strong style={{ fontSize: '1.3rem', color: '#f5f5f5' }}>{orders.length}</strong><span style={{ fontSize: '0.7rem', color: '#999' }}>طلبات</span></div>
+          <div style={headerStatItem}><strong style={{ fontSize: '1.3rem', color: '#1c1c1c' }}>{orders.length}</strong><span style={{ fontSize: '0.7rem', color: '#999' }}>طلبات</span></div>
           <div style={headerDivider} />
-          <div style={headerStatItem}><strong style={{ fontSize: '1.3rem', color: '#f5f5f5' }}>{myCars.length}</strong><span style={{ fontSize: '0.7rem', color: '#999' }}>سيارات</span></div>
+          <div style={headerStatItem}><strong style={{ fontSize: '1.3rem', color: '#1c1c1c' }}>{myCars.length}</strong><span style={{ fontSize: '0.7rem', color: '#999' }}>سيارات</span></div>
           <div style={headerDivider} />
-          <div style={headerStatItem}><strong style={{ fontSize: '1.3rem', color: '#f5f5f5' }}>{myAddresses.length}</strong><span style={{ fontSize: '0.7rem', color: '#999' }}>عناوين</span></div>
+          <div style={headerStatItem}><strong style={{ fontSize: '1.3rem', color: '#1c1c1c' }}>{myAddresses.length}</strong><span style={{ fontSize: '0.7rem', color: '#999' }}>عناوين</span></div>
         </div>
       </div>
 
@@ -809,10 +809,10 @@ export default function ProfilePage() {
           <h3 style={compactSectionTitle}><RotateCcw size={16} color="#f59e0b" /> طلبات الاسترجاع</h3>
           {returnRequests.map((req: any) => {
             const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
-              pending:  { label: 'قيد المراجعة', color: '#c2410c', bg: '#fff7ed' },
+              pending:  { label: 'قيد المراجعة', color: '#fb923c', bg: '#1c1c1c' },
               approved: { label: 'تمت الموافقة', color: '#b91c1c', bg: '#1a0d0d' },
-              rejected: { label: 'مرفوض', color: '#dc2626', bg: '#fef2f2' },
-              refunded: { label: 'تم الاسترجاع', color: '#6d28d9', bg: '#f5f3ff' },
+              rejected: { label: 'مرفوض', color: '#dc2626', bg: '#2a0f10' },
+              refunded: { label: 'تم الاسترجاع', color: '#a78bfa', bg: '#242424' },
             };
             const sc = statusConfig[req.status] || statusConfig.pending;
             return (
@@ -821,7 +821,7 @@ export default function ProfilePage() {
                 marginBottom: '8px', border: '1px solid #242424',
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#f5f5f5' }}>
+                  <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#1c1c1c' }}>
                     طلب رقم #{req.id?.slice(0, 8).toUpperCase()}
                   </span>
                   <span style={{ fontSize: '0.7rem', fontWeight: '900', padding: '4px 10px', borderRadius: '8px', background: sc.bg, color: sc.color }}>
@@ -883,7 +883,7 @@ const container: any = { padding: '20px 16px 40px', maxWidth: '1100px', margin: 
 const headerCard: any = { background: 'linear-gradient(135deg, #fff 60%, #1a0d0d)', borderRadius: '24px', padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', border: '1px solid #2a0f10', boxShadow: '0 4px 24px rgba(34,197,94,0.07)' };
 const profileInfoWrap: any = { display: 'flex', alignItems: 'center', gap: '14px' };
 const avatarWrap: any = { width: '60px', height: '60px', borderRadius: '18px', background: '#1a0d0d', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #7f1d1d', flexShrink: 0 };
-const titleName: any = { fontSize: '1.1rem', fontWeight: '900', color: '#f5f5f5', marginBottom: '3px' };
+const titleName: any = { fontSize: '1.1rem', fontWeight: '900', color: '#1c1c1c', marginBottom: '3px' };
 const emailText: any = { fontSize: '0.78rem', color: '#999', wordBreak: 'break-all' };
 const headerStatsRow: any = { display: 'flex', gap: '14px', alignItems: 'center', flexShrink: 0 };
 const headerStatItem: any = { textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '40px' };
@@ -904,12 +904,12 @@ const carIconWrap: any = { width: '38px', height: '38px', borderRadius: '12px', 
 const carDetails: any = { flex: 1, overflow: 'hidden' };
 const carNameText: any = { fontSize: '0.82rem', fontWeight: '800', color: '#d1d5db', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
 const carYearText: any = { fontSize: '0.72rem', color: '#bbb', marginTop: '2px' };
-const carDeleteBtn: any = { position: 'absolute', top: '8px', left: '8px', color: '#fca5a5', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' };
+const carDeleteBtn: any = { position: 'absolute', top: '8px', left: '8px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' };
 const tabBar: any = { display: 'flex', gap: '8px', marginBottom: '16px', background: '#1c1c1c', borderRadius: '16px', padding: '6px', border: '1px solid #242424' };
 const tabBtn = (active: boolean): any => ({ flex: 1, padding: '10px 6px', borderRadius: '12px', border: 'none', background: active ? '#1a0d0d' : 'transparent', color: active ? '#dc2626' : '#999', fontWeight: active ? '900' : '600', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', transition: '0.2s' });
 const gridSplit: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: '20px' };
 const mainCard: any = { background: '#1c1c1c', borderRadius: '24px', padding: '18px', marginBottom: '20px', border: '1px solid #242424', boxShadow: '0 2px 12px rgba(0,0,0,0.02)', width: '100%', boxSizing: 'border-box' as const };
-const compactSectionTitle: any = { fontSize: '0.95rem', fontWeight: '900', color: '#f5f5f5', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' };
+const compactSectionTitle: any = { fontSize: '0.95rem', fontWeight: '900', color: '#1c1c1c', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' };
 const sectionTopRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' };
 const miniOrderHeader: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '13px 15px', cursor: 'pointer' };
 
@@ -938,12 +938,12 @@ const statusBadge = (bg: string, color: string): any => ({ fontSize: '0.65rem', 
 const orderList: any = { display: 'flex', flexDirection: 'column' };
 const orderMeta: any = { display: 'flex', gap: '8px', alignItems: 'center' };
 const dateText: any = { fontSize: '0.72rem', color: '#ccc' };
-const priceText: any = { fontSize: '0.95rem', fontWeight: '900', color: '#f5f5f5' };
+const priceText: any = { fontSize: '0.95rem', fontWeight: '900', color: '#1c1c1c' };
 const orderBody: any = { padding: '12px 15px', background: '#161616', borderTop: '1px solid #1c1c1c' };
 const miniItemRow: any = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' };
 const miniItemImg: any = { width: '38px', height: '38px', borderRadius: '10px', objectFit: 'cover' as const, flexShrink: 0 };
 const miniItemName: any = { fontSize: '0.8rem', fontWeight: '700', color: '#d1d5db' };
-const miniItemPrice: any = { fontSize: '0.8rem', fontWeight: '800', color: '#f5f5f5', whiteSpace: 'nowrap' };
+const miniItemPrice: any = { fontSize: '0.8rem', fontWeight: '800', color: '#1c1c1c', whiteSpace: 'nowrap' };
 const compactForm: any = { display: 'flex', flexDirection: 'column', gap: '10px' };
 const inputLabel: any = { fontSize: '0.78rem', fontWeight: '700', color: '#888', marginBottom: '-4px' };
 const compactInp: any = { width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1px solid #242424', background: '#fdfdfd', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' as const };
@@ -956,10 +956,10 @@ const compactSaveBtn: any = { width: '100%', padding: '11px', background: '#e509
 const addressList: any = { display: 'flex', flexDirection: 'column', gap: '10px' };
 const addressCard: any = { padding: '12px', border: '1px solid #242424', borderRadius: '14px', display: 'flex', alignItems: 'center', gap: '10px', background: '#161616' };
 const addrIconWrap: any = { width: '34px', height: '34px', borderRadius: '10px', background: '#1a0d0d', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
-const addrName: any = { fontSize: '0.85rem', fontWeight: '900', color: '#f5f5f5' };
+const addrName: any = { fontSize: '0.85rem', fontWeight: '900', color: '#1c1c1c' };
 const addrFull: any = { fontSize: '0.73rem', color: '#aaa', marginTop: '2px' };
-const addrDelBtn: any = { color: '#fca5a5', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', flexShrink: 0 };
-const elegantLogout: any = { width: '100%', padding: '14px', background: 'none', border: '1px solid #fee2e2', color: '#ef4444', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: '900', fontSize: '0.9rem', cursor: 'pointer', marginTop: '8px' };
+const addrDelBtn: any = { color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', flexShrink: 0 };
+const elegantLogout: any = { width: '100%', padding: '14px', background: 'none', border: '1px solid #2a0f10', color: '#ef4444', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: '900', fontSize: '0.9rem', cursor: 'pointer', marginTop: '8px' };
 const centerStyle: any = { display: 'flex', justifyContent: 'center', padding: '100px' };
 const emptyText: any = { textAlign: 'center', color: '#3a3a3a', fontSize: '0.85rem', padding: '20px 0' };
 const infoColumn: any = { display: 'flex', flexDirection: 'column', width: '100%', minWidth: 0 };

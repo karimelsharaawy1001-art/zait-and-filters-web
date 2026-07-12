@@ -40,65 +40,65 @@ const CATEGORY_STYLES: Record<string, {
   icon: React.ReactNode;
 }> = {
   'زيوت موتور': {
-    bg: '#fffbeb', bgDisabled: '#fafaf5',
-    border: '#fde68a', borderActive: '#f59e0b',
+    bg: '#1c1c1c', bgDisabled: '#fafaf5',
+    border: '#7f1d1d', borderActive: '#f59e0b',
     iconBg: '#f59e0b', iconColor: '#fff',
-    badge: '#fef3c7', badgeText: '#92400e',
-    itemBg: '#fffdf0', itemBorder: '#fde68a',
-    addBtnBorder: '#f59e0b', addBtnColor: '#b45309', addBtnHover: '#fef3c7',
-    priceBg: '#fef9c3',
+    badge: '#242424', badgeText: '#fbbf24',
+    itemBg: '#fffdf0', itemBorder: '#7f1d1d',
+    addBtnBorder: '#f59e0b', addBtnColor: '#fbbf24', addBtnHover: '#242424',
+    priceBg: '#242424',
     icon: <Droplets size={16} color="#fff" />,
   },
   'زيوت فرامل': {
-    bg: '#fef2f2', bgDisabled: '#fdf5f5',
-    border: '#fecaca', borderActive: '#ef4444',
+    bg: '#2a0f10', bgDisabled: '#fdf5f5',
+    border: '#7f1d1d', borderActive: '#ef4444',
     iconBg: '#ef4444', iconColor: '#fff',
-    badge: '#fee2e2', badgeText: '#991b1b',
-    itemBg: '#fff5f5', itemBorder: '#fecaca',
-    addBtnBorder: '#ef4444', addBtnColor: '#b91c1c', addBtnHover: '#fee2e2',
-    priceBg: '#fee2e2',
+    badge: '#2a0f10', badgeText: '#991b1b',
+    itemBg: '#fff5f5', itemBorder: '#7f1d1d',
+    addBtnBorder: '#ef4444', addBtnColor: '#b91c1c', addBtnHover: '#2a0f10',
+    priceBg: '#2a0f10',
     icon: <Flame size={16} color="#fff" />,
   },
   'زيوت فتيس و دبرياج و باور': {
-    bg: '#f0f9ff', bgDisabled: '#f5fafd',
-    border: '#bae6fd', borderActive: '#0ea5e9',
+    bg: '#161616', bgDisabled: '#f5fafd',
+    border: '#2a2a2a', borderActive: '#0ea5e9',
     iconBg: '#0ea5e9', iconColor: '#fff',
     badge: '#e0f2fe', badgeText: '#0c4a6e',
-    itemBg: '#f0f9ff', itemBorder: '#bae6fd',
+    itemBg: '#161616', itemBorder: '#2a2a2a',
     addBtnBorder: '#0ea5e9', addBtnColor: '#0369a1', addBtnHover: '#e0f2fe',
     priceBg: '#e0f2fe',
     icon: <Settings size={16} color="#fff" />,
   },
   'فلاتر': {
-    bg: '#f0fdf4', bgDisabled: '#f5fdf7',
-    border: '#bbf7d0', borderActive: '#22c55e',
-    iconBg: '#22c55e', iconColor: '#fff',
-    badge: '#dcfce7', badgeText: '#14532d',
-    itemBg: '#f0fdf4', itemBorder: '#bbf7d0',
-    addBtnBorder: '#22c55e', addBtnColor: '#15803d', addBtnHover: '#dcfce7',
-    priceBg: '#dcfce7',
+    bg: '#1a0d0d', bgDisabled: '#f5fdf7',
+    border: '#7f1d1d', borderActive: '#e50914',
+    iconBg: '#e50914', iconColor: '#fff',
+    badge: '#2a0f10', badgeText: '#7f1d1d',
+    itemBg: '#1a0d0d', itemBorder: '#7f1d1d',
+    addBtnBorder: '#e50914', addBtnColor: '#b91c1c', addBtnHover: '#2a0f10',
+    priceBg: '#2a0f10',
     icon: <Filter size={16} color="#fff" />,
   },
   'بوجيهات و سلوك بوجيهات و موبينة': {
     bg: '#faf5ff', bgDisabled: '#fdf8ff',
     border: '#e9d5ff', borderActive: '#8b5cf6',
     iconBg: '#8b5cf6', iconColor: '#fff',
-    badge: '#ede9fe', badgeText: '#4c1d95',
+    badge: '#242424', badgeText: '#4c1d95',
     itemBg: '#faf5ff', itemBorder: '#e9d5ff',
-    addBtnBorder: '#8b5cf6', addBtnColor: '#6d28d9', addBtnHover: '#ede9fe',
-    priceBg: '#ede9fe',
+    addBtnBorder: '#8b5cf6', addBtnColor: '#a78bfa', addBtnHover: '#242424',
+    priceBg: '#242424',
     icon: <Zap size={16} color="#fff" />,
   },
 };
 
 const DEFAULT_STYLE = {
-  bg: '#fff', bgDisabled: '#f5f5f5',
-  border: '#e5e5e5', borderActive: '#22c55e',
+  bg: '#fff', bgDisabled: '#1c1c1c',
+  border: '#2a2a2a', borderActive: '#e50914',
   iconBg: '#aaa', iconColor: '#fff',
-  badge: '#f3f4f6', badgeText: '#374151',
-  itemBg: '#f9f9f9', itemBorder: '#e5e5e5',
-  addBtnBorder: '#22c55e', addBtnColor: '#16a34a', addBtnHover: '#f0fdf4',
-  priceBg: '#f0fdf4',
+  badge: '#1c1c1c', badgeText: '#d1d5db',
+  itemBg: '#161616', itemBorder: '#2a2a2a',
+  addBtnBorder: '#e50914', addBtnColor: '#dc2626', addBtnHover: '#1a0d0d',
+  priceBg: '#1a0d0d',
   icon: <Wrench size={16} color="#fff" />,
 };
 
@@ -371,7 +371,7 @@ export default function MaintenanceBundlePage() {
       ...base,
       minHeight: '44px',
       borderRadius: '10px',
-      border: '1px solid #e5e5e5',
+      border: '1px solid #2a2a2a',
       fontSize: '0.85rem',
       direction: 'rtl',
       background: '#fff',
@@ -380,7 +380,7 @@ export default function MaintenanceBundlePage() {
     menu: (base: any) => ({ ...base, zIndex: 9999, direction: 'rtl' }),
     option: (base: any, state: any) => ({
       ...base,
-      backgroundColor: state.isFocused ? '#f0fdf4' : '#fff',
+      backgroundColor: state.isFocused ? '#1a0d0d' : '#fff',
       color: '#1a1a1a',
       fontSize: '0.85rem',
       cursor: 'pointer',
@@ -462,7 +462,7 @@ export default function MaintenanceBundlePage() {
           className="bundle-header-icon"
           style={{
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            background: '#22c55e', borderRadius: '18px', padding: '14px', marginBottom: '16px',
+            background: '#e50914', borderRadius: '18px', padding: '14px', marginBottom: '16px',
           }}
         >
           <Wrench size={32} color="#fff" />
@@ -486,7 +486,7 @@ export default function MaintenanceBundlePage() {
           }}
         >
           <h2 style={{ fontWeight: '900', fontSize: '1.1rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Car size={20} color="#22c55e" />
+            <Car size={20} color="#e50914" />
             اختر سيارتك
           </h2>
           <div className="car-selector-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
@@ -550,7 +550,7 @@ export default function MaintenanceBundlePage() {
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
                 <h2 className="section-title" style={{ fontWeight: '900', fontSize: '1.1rem' }}>🛠️ محتويات الباقة</h2>
-                <div className="selected-count-badge" style={{ background: '#f0fdf4', color: '#16a34a', padding: '5px 12px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: '800' }}>
+                <div className="selected-count-badge" style={{ background: '#1a0d0d', color: '#dc2626', padding: '5px 12px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: '800' }}>
                   {allSelectedProducts.length} منتج مختار
                 </div>
               </div>
@@ -570,7 +570,7 @@ export default function MaintenanceBundlePage() {
                         borderRadius: '14px',
                         border: slot.isIncluded && slot.items.some((i: any) => i.selectedProduct)
                           ? `2px solid ${cs.borderActive}`
-                          : `1.5px solid ${slot.isIncluded ? cs.border : '#e5e5e5'}`,
+                          : `1.5px solid ${slot.isIncluded ? cs.border : '#2a2a2a'}`,
                         padding: '18px',
                         opacity: slot.isIncluded ? 1 : 0.55,
                         transition: 'all 0.2s',
@@ -599,7 +599,7 @@ export default function MaintenanceBundlePage() {
                           {!slot.loading && (
                             <span style={{
                               flexShrink: 0, fontSize: '0.72rem', fontWeight: '700',
-                              background: slot.availableProducts.length === 0 ? '#fff7ed' : cs.badge,
+                              background: slot.availableProducts.length === 0 ? '#1c1c1c' : cs.badge,
                               color: slot.availableProducts.length === 0 ? '#f97316' : cs.badgeText,
                               padding: '2px 8px', borderRadius: '20px',
                             }}>
@@ -612,8 +612,8 @@ export default function MaintenanceBundlePage() {
                           className="slot-toggle-btn"
                           style={{
                             flexShrink: 0, marginRight: '8px',
-                            background: slot.isIncluded ? '#fee2e2' : '#f0fdf4',
-                            color: slot.isIncluded ? '#dc2626' : '#16a34a',
+                            background: slot.isIncluded ? '#2a0f10' : '#1a0d0d',
+                            color: slot.isIncluded ? '#dc2626' : '#dc2626',
                             border: 'none', borderRadius: '8px',
                             padding: '6px 10px', cursor: 'pointer',
                             fontWeight: '700', fontSize: '0.78rem',
@@ -655,7 +655,7 @@ export default function MaintenanceBundlePage() {
                                     <button
                                       onClick={() => removeItem(slotIdx, itemIdx)}
                                       style={{
-                                        background: '#fee2e2', color: '#dc2626',
+                                        background: '#2a0f10', color: '#dc2626',
                                         border: 'none', borderRadius: '6px',
                                         width: '26px', height: '26px',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -752,7 +752,7 @@ export default function MaintenanceBundlePage() {
                                         (1 - DISCOUNT / 100)
                                       ).toFixed(0)} ج.م
                                     </span>
-                                    <span style={{ background: '#fef9c3', color: '#854d0e', padding: '2px 7px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: '800' }}>
+                                    <span style={{ background: '#242424', color: '#854d0e', padding: '2px 7px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: '800' }}>
                                       خصم {DISCOUNT}%
                                     </span>
                                   </div>
@@ -810,7 +810,7 @@ export default function MaintenanceBundlePage() {
                         إجمالي الباقة ({allSelectedProducts.length} منتج)
                       </p>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span className="summary-price" style={{ fontSize: '1.8rem', fontWeight: '900', color: '#22c55e' }}>
+                        <span className="summary-price" style={{ fontSize: '1.8rem', fontWeight: '900', color: '#e50914' }}>
                           {totalDiscounted.toFixed(0)} ج.م
                         </span>
                         <div>
@@ -836,7 +836,7 @@ export default function MaintenanceBundlePage() {
                         disabled={!canAddToCart}
                         style={{
                           padding: '14px 28px',
-                          background: canAddToCart ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' : '#555',
+                          background: canAddToCart ? 'linear-gradient(135deg, #e50914 0%, #dc2626 100%)' : '#555',
                           color: '#fff', border: 'none', borderRadius: '12px',
                           fontWeight: '900', fontSize: '0.95rem',
                           cursor: canAddToCart ? 'pointer' : 'not-allowed',

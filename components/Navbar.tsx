@@ -87,7 +87,7 @@ export default function ProfessionalNavbar() {
             padding: '14px 16px',
             borderRadius: '12px',
             boxShadow: '0 10px 25px rgba(0,0,0,0.12)',
-            border: '1px solid #fee2e2',
+            border: '1px solid #2a0f10',
             maxWidth: '280px',
             fontSize: '0.85rem',
             color: '#7f1d1d',
@@ -537,7 +537,7 @@ const sidebarDivider: any = {
 const sidebarFooter: any = {
   padding: '20px',
   fontSize: '0.7rem',
-  color: '#4b5563',
+  color: '#9ca3af',
   textAlign: 'center',
 };
 const closeBtn: any = {

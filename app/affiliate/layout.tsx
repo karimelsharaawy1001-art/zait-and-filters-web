@@ -52,7 +52,7 @@ export default function AffiliateLayout({ children }: { children: React.ReactNod
   if (checking && !PUBLIC_ROUTES.includes(pathname)) {
     return (
       <div style={loaderWrapper}>
-        <Loader2 size={36} className="animate-spin" color="#22c55e" />
+        <Loader2 size={36} className="animate-spin" color="#e50914" />
         <span style={loaderText}>جاري التحقق من الهوية...</span>
       </div>
     );

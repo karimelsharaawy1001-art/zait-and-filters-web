@@ -41,7 +41,7 @@ export default function CartPage() {
       <div style={{ width: '96px', height: '96px', borderRadius: '50%', background: '#242424', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <ShoppingBag size={44} color="#cbd5e1" />
       </div>
-      <h2 style={{ fontSize: '1.4rem', fontWeight: '900', color: '#f5f5f5', margin: 0 }}>سلتك فارغة</h2>
+      <h2 style={{ fontSize: '1.4rem', fontWeight: '900', color: '#1c1c1c', margin: 0 }}>سلتك فارغة</h2>
       <p style={{ color: '#64748b', margin: 0, fontSize: '0.95rem' }}>لم تضف أي منتجات بعد — ابدأ التسوق الآن!</p>
       <Link href="/store" style={{ background: 'linear-gradient(135deg,#e50914,#dc2626)', color: '#fff', padding: '14px 32px', borderRadius: '14px', textDecoration: 'none', fontWeight: '800', fontSize: '0.95rem', marginTop: '8px', boxShadow: '0 8px 24px rgba(34,197,94,0.3)' }}>
         تصفح المتجر
@@ -56,31 +56,31 @@ export default function CartPage() {
         .cart-wrap { max-width: 1100px; margin: 0 auto; padding: 20px 16px 48px; direction: rtl; }
         .cart-grid { display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; }
         .cart-summary { position: sticky; top: 90px; }
-        .cart-item { display: flex; background: #fff; border-radius: 20px; border: 1px solid #242424; gap: 16px; padding: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); transition: box-shadow 0.2s; }
+        .cart-item { display: flex; background: #1c1c1c; border-radius: 20px; border: 1px solid #242424; gap: 16px; padding: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); transition: box-shadow 0.2s; }
         .cart-item:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.08); }
         .cart-item-img { width: 100px; height: 100px; border-radius: 16px; overflow: hidden; background: #161616; border: 1px solid #242424; flex-shrink: 0; }
         .cart-item-img img { width: 100%; height: 100%; object-fit: cover; }
         .item-info { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-        .item-name { font-size: 0.95rem; font-weight: 900; color: #0f172a; margin: 0; word-break: break-word; line-height: 1.4; }
+        .item-name { font-size: 0.95rem; font-weight: 900; color: #f5f5f5; margin: 0; word-break: break-word; line-height: 1.4; }
         .item-brand { display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 800; color: #e50914; text-transform: uppercase; letter-spacing: 0.4px; }
         .item-compat { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 700; color: #b91c1c; background: #1a0d0d; border: 1px solid #7f1d1d; border-radius: 12px; padding: 2px 8px; align-self: flex-start; overflow: hidden; max-width: 100%; }
         .item-compat span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .item-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; gap: 8px; flex-wrap: wrap; }
-        .item-price { font-size: 1.1rem; font-weight: 900; color: #0f172a; }
+        .item-price { font-size: 1.1rem; font-weight: 900; color: #f5f5f5; }
         .item-unit-price { font-size: 0.72rem; color: #94a3b8; font-weight: 600; }
         .qty-stepper { display: flex; align-items: center; background: #161616; border: 1.5px solid #2a2a2a; border-radius: 12px; overflow: hidden; }
-        .qty-btn { width: 36px; height: 36px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #475569; transition: background 0.15s; }
-        .qty-btn:hover { background: #242424; color: #0f172a; }
-        .qty-val { width: 36px; text-align: center; font-weight: 900; font-size: 0.95rem; color: #0f172a; }
+        .qty-btn { width: 36px; height: 36px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #94a3b8; transition: background 0.15s; }
+        .qty-btn:hover { background: #242424; color: #f5f5f5; }
+        .qty-val { width: 36px; text-align: center; font-weight: 900; font-size: 0.95rem; color: #f5f5f5; }
         .del-btn { display: flex; align-items: center; gap: 4px; border: none; background: none; cursor: pointer; color: #94a3b8; font-size: 0.75rem; font-weight: 700; padding: 6px 8px; border-radius: 8px; transition: all 0.15s; }
-        .del-btn:hover { color: #ef4444; background: #fef2f2; }
-        .summary-card { background: #fff; border-radius: 24px; border: 1px solid #242424; box-shadow: 0 4px 24px rgba(0,0,0,0.05); padding: 24px; }
+        .del-btn:hover { color: #ef4444; background: #2a0f10; }
+        .summary-card { background: #1c1c1c; border-radius: 24px; border: 1px solid #242424; box-shadow: 0 4px 24px rgba(0,0,0,0.05); padding: 24px; }
         .sum-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; color: #64748b; margin-bottom: 10px; }
         .sum-total-row { display: flex; justify-content: space-between; align-items: center; padding-top: 14px; margin-top: 6px; border-top: 1.5px solid #242424; }
         .checkout-link { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; background: linear-gradient(135deg,#e50914,#dc2626); color: #fff; text-decoration: none; border-radius: 16px; font-weight: 900; font-size: 1rem; margin-top: 16px; box-shadow: 0 8px 24px rgba(34,197,94,0.35); transition: all 0.2s; letter-spacing: 0.3px; }
         .checkout-link:hover { box-shadow: 0 12px 32px rgba(34,197,94,0.5); transform: translateY(-1px); }
-        .continue-link { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 12px; background: #161616; color: #475569; text-decoration: none; border-radius: 14px; font-weight: 700; font-size: 0.88rem; margin-top: 10px; border: 1px solid #2a2a2a; transition: all 0.15s; }
-        .continue-link:hover { background: #242424; color: #0f172a; }
+        .continue-link { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 12px; background: #161616; color: #94a3b8; text-decoration: none; border-radius: 14px; font-weight: 700; font-size: 0.88rem; margin-top: 10px; border: 1px solid #2a2a2a; transition: all 0.15s; }
+        .continue-link:hover { background: #242424; color: #f5f5f5; }
         .trust-row { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #242424; }
         .trust-item { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: #64748b; font-weight: 700; }
         @media(max-width:768px){
@@ -102,7 +102,7 @@ export default function CartPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <ShoppingBag size={22} color="#e50914" />
-            <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '900', color: '#f5f5f5' }}>سلة المشتريات</h1>
+            <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '900', color: '#1c1c1c' }}>سلة المشتريات</h1>
             <span style={{ background: '#1a0d0d', color: '#b91c1c', borderRadius: '20px', padding: '3px 12px', fontSize: '0.8rem', fontWeight: '800', border: '1px solid #7f1d1d' }}>{totalQty} {totalQty === 1 ? 'قطعة' : 'قطع'}</span>
           </div>
           <Link href="/store" style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#64748b', textDecoration: 'none', fontSize: '0.85rem', fontWeight: '700' }}>
@@ -168,11 +168,11 @@ export default function CartPage() {
           {/* Summary */}
           <aside className="cart-summary">
             <div className="summary-card">
-              <h2 style={{ margin: '0 0 16px', fontSize: '1.05rem', fontWeight: '900', color: '#f5f5f5' }}>ملخص الطلب</h2>
+              <h2 style={{ margin: '0 0 16px', fontSize: '1.05rem', fontWeight: '900', color: '#1c1c1c' }}>ملخص الطلب</h2>
 
               <div className="sum-row">
                 <span>المنتجات ({totalQty} قطعة)</span>
-                <span style={{ fontWeight: '800', color: '#f5f5f5' }}>{getCartTotal().toFixed(2)} ج.م</span>
+                <span style={{ fontWeight: '800', color: '#1c1c1c' }}>{getCartTotal().toFixed(2)} ج.م</span>
               </div>
               <div className="sum-row">
                 <span>الشحن</span>
@@ -180,8 +180,8 @@ export default function CartPage() {
               </div>
 
               <div className="sum-total-row">
-                <span style={{ fontWeight: '900', color: '#f5f5f5', fontSize: '0.95rem' }}>الإجمالي</span>
-                <span style={{ fontSize: '1.4rem', fontWeight: '900', color: '#f5f5f5' }}>{getCartTotal().toFixed(2)} <span style={{ fontSize: '0.85rem' }}>ج.م</span></span>
+                <span style={{ fontWeight: '900', color: '#1c1c1c', fontSize: '0.95rem' }}>الإجمالي</span>
+                <span style={{ fontSize: '1.4rem', fontWeight: '900', color: '#1c1c1c' }}>{getCartTotal().toFixed(2)} <span style={{ fontSize: '0.85rem' }}>ج.م</span></span>
               </div>
 
               <Link href="/checkout" className="checkout-link">

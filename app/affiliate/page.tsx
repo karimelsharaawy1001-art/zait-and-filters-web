@@ -17,12 +17,12 @@ export default function AffiliateLanding() {
         .hero-gradient { background: radial-gradient(circle at center, #1a472a 0%, #050505 100%); }
         .btn-glow:hover { box-shadow: 0 0 25px rgba(39, 174, 96, 0.6); transform: translateY(-3px); background: #2ecc71 !important; }
         .feature-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .feature-card:hover { border-color: #27ae60 !important; background: rgba(39, 174, 96, 0.05) !important; transform: scale(1.02); }
-        .step-card:hover { border-color: #27ae60 !important; transform: translateY(-10px); }
+        .feature-card:hover { border-color: #e50914 !important; background: rgba(39, 174, 96, 0.05) !important; transform: scale(1.02); }
+        .step-card:hover { border-color: #e50914 !important; transform: translateY(-10px); }
         @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } }
         .float-anim { animation: float 4s ease-in-out infinite; }
         .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .auth-btn-login:hover { background: rgba(255, 255, 255, 0.15) !important; border-color: #27ae60 !important; }
+        .auth-btn-login:hover { background: rgba(255, 255, 255, 0.15) !important; border-color: #e50914 !important; }
         .auth-btn-signup:hover { background: #2ecc71 !important; box-shadow: 0 0 20px rgba(39, 174, 96, 0.5) !important; }
       `}} />
 
@@ -46,7 +46,7 @@ export default function AffiliateLanding() {
           className="float-anim" 
           style={badge}
         >
-          <Star size={14} fill="#27ae60" /> برنامج النخبة for Promoters 2026
+          <Star size={14} fill="#e50914" /> برنامج النخبة for Promoters 2026
         </m.div>
         
         <m.h1 
@@ -87,11 +87,11 @@ export default function AffiliateLanding() {
 
         <div style={statsBanner} className="glass-panel">
           {/* تم تعديل عدد المسوقين هنا ليكون +500 */}
-          <div style={statItem}><Users size={22} color="#27ae60"/> <span>+500 active Promoter</span></div>
+          <div style={statItem}><Users size={22} color="#e50914"/> <span>+500 active Promoter</span></div>
           <div style={{...dividerV, display: 'block'}} />
-          <div style={statItem}><BarChart3 size={22} color="#27ae60"/> <span>نظام تتبع لحظي</span></div>
+          <div style={statItem}><BarChart3 size={22} color="#e50914"/> <span>نظام تتبع لحظي</span></div>
           <div style={{...dividerV, display: 'block'}} />
-          <div style={statItem}><ShieldCheck size={22} color="#27ae60"/> <span>سحب أرباح أسبوعي</span></div>
+          <div style={statItem}><ShieldCheck size={22} color="#e50914"/> <span>سحب أرباح أسبوعي</span></div>
         </div>
       </section>
 
@@ -106,21 +106,21 @@ export default function AffiliateLanding() {
         <div style={stepsGrid}>
           <div style={stepCard} className="step-card">
             <div style={stepNumber}>01</div>
-            <div style={iconBox}><Users size={32} color="#27ae60" /></div>
+            <div style={iconBox}><Users size={32} color="#e50914" /></div>
             <h3 style={cardHeader}>سجل حسابك</h3>
             <p style={cardText}>عملية تسجيل بسيطة تمنحك وصولاً فورياً للوحة التحكم الخاصة بك وبدء العمل.</p>
           </div>
           
           <div style={stepCard} className="step-card">
             <div style={stepNumber}>02</div>
-            <div style={iconBox}><Share2 size={32} color="#27ae60" /></div>
+            <div style={iconBox}><Share2 size={32} color="#e50914" /></div>
             <h3 style={cardHeader}>انشر الكود</h3>
             <p style={cardText}>شارك رابط الإحالة أو كود الخصم الحصري (باسمك) مع جمهورك وعملائك.</p>
           </div>
           
           <div style={stepCard} className="step-card">
             <div style={stepNumber}>03</div>
-            <div style={iconBox}><Wallet size={32} color="#27ae60" /></div>
+            <div style={iconBox}><Wallet size={32} color="#e50914" /></div>
             <h3 style={cardHeader}>استلم عمولتك</h3>
             <p style={cardText}>عند كل عملية شراء ناجحة، نرسل لك 10% من قيمة الأوردر مباشرة إلى محفظتك.</p>
           </div>
@@ -173,12 +173,12 @@ export default function AffiliateLanding() {
 
 // --- البيانات ---
 const features = [
-  { title: "Escalating Commissions", desc: "ابدأ بـ 5% وتدرج حتى تصل إلى 10% بناءً على نشاطك الشهري مبيعاتك.", icon: <Percent size={24} color="#27ae60" /> },
-  { title: "لوحة تحكم احترافية", desc: "تتبع النقرات، التحويلات، والأرباح بالتفصيل الممل في شاشة واحدة ذكية.", icon: <BarChart3 size={24} color="#27ae60" /> },
-  { title: "أكواد خصم خاصة", desc: "امنح عملاءك خصم 5% بكود يحمل اسمك لزيادة مبيعاتك وبناء براندك الشخصي.", icon: <Ticket size={24} color="#27ae60" /> },
-  { title: "أدوات تسويقية جاهزة", desc: "نوفر لك صوراً وفيديوهات احترافية للمنتجات لتنشرها فوراً على حساباتك.", icon: <Rocket size={24} color="#27ae60" /> },
-  { title: "دفعات سريعة", desc: "نظام دفع مرن يضمن وصول أرباحك إليك في أسرع وقت ممكن وبكل شفافية.", icon: <DollarSign size={24} color="#27ae60" /> },
-  { title: "دعم فني 24/7", desc: "مدير حساب مخصص للرد على استفساراتك ومساعدتك في تطوير خطتك التسويقية.", icon: <CheckCircle2 size={24} color="#27ae60" /> },
+  { title: "Escalating Commissions", desc: "ابدأ بـ 5% وتدرج حتى تصل إلى 10% بناءً على نشاطك الشهري مبيعاتك.", icon: <Percent size={24} color="#e50914" /> },
+  { title: "لوحة تحكم احترافية", desc: "تتبع النقرات، التحويلات، والأرباح بالتفصيل الممل في شاشة واحدة ذكية.", icon: <BarChart3 size={24} color="#e50914" /> },
+  { title: "أكواد خصم خاصة", desc: "امنح عملاءك خصم 5% بكود يحمل اسمك لزيادة مبيعاتك وبناء براندك الشخصي.", icon: <Ticket size={24} color="#e50914" /> },
+  { title: "أدوات تسويقية جاهزة", desc: "نوفر لك صوراً وفيديوهات احترافية للمنتجات لتنشرها فوراً على حساباتك.", icon: <Rocket size={24} color="#e50914" /> },
+  { title: "دفعات سريعة", desc: "نظام دفع مرن يضمن وصول أرباحك إليك في أسرع وقت ممكن وبكل شفافية.", icon: <DollarSign size={24} color="#e50914" /> },
+  { title: "دعم فني 24/7", desc: "مدير حساب مخصص للرد على استفساراتك ومساعدتك في تطوير خطتك التسويقية.", icon: <CheckCircle2 size={24} color="#e50914" /> },
 ];
 
 
@@ -219,7 +219,7 @@ const authSignupButton: any = {
   alignItems: 'center',
   gap: '8px',
   padding: '12px 20px',
-  background: 'linear-gradient(135deg, #27ae60 0%, #229954 100%)',
+  background: 'linear-gradient(135deg, #e50914 0%, #229954 100%)',
   border: 'none',
   borderRadius: '14px',
   color: '#fff',
@@ -233,17 +233,17 @@ const authSignupButton: any = {
 };
 
 const heroSection: any = { padding: '120px 20px', textAlign: 'center', borderBottom: '1px solid #111', position: 'relative' };
-const badge: any = { background: 'rgba(39, 174, 96, 0.1)', color: '#27ae60', padding: '10px 25px', borderRadius: '50px', fontSize: '0.95rem', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '10px', marginBottom: '30px', border: '1px solid rgba(39, 174, 96, 0.3)' };
+const badge: any = { background: 'rgba(39, 174, 96, 0.1)', color: '#e50914', padding: '10px 25px', borderRadius: '50px', fontSize: '0.95rem', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '10px', marginBottom: '30px', border: '1px solid rgba(39, 174, 96, 0.3)' };
 
 
 // تم زيادة الـ lineHeight لـ 1.6 لضمان وجود مسافة كافية بين العنوان الأبيض والأخضر
 const mainTitle: any = { fontSize: 'clamp(2.5rem, 8vw, 4.5rem)', fontWeight: '950', marginBottom: '25px', lineHeight: '1.6', letterSpacing: '-1px' };
 
 
-const highlightText: any = { color: '#27ae60', textShadow: '0 0 40px rgba(39, 174, 96, 0.4)' };
+const highlightText: any = { color: '#e50914', textShadow: '0 0 40px rgba(39, 174, 96, 0.4)' };
 const heroDesc: any = { fontSize: '1.25rem', color: '#999', maxWidth: '850px', margin: '0 auto 50px', lineHeight: '1.8' };
 const actions: any = { display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' };
-const primaryBtn: any = { background: '#27ae60', color: '#fff', padding: '20px 45px', borderRadius: '18px', textDecoration: 'none', fontWeight: '900', fontSize: '1.2rem', transition: '0.3s', display: 'flex', alignItems: 'center', gap: '12px' };
+const primaryBtn: any = { background: '#e50914', color: '#fff', padding: '20px 45px', borderRadius: '18px', textDecoration: 'none', fontWeight: '900', fontSize: '1.2rem', transition: '0.3s', display: 'flex', alignItems: 'center', gap: '12px' };
 const secondaryBtn: any = { background: 'transparent', color: '#fff', padding: '20px 45px', borderRadius: '18px', textDecoration: 'none', fontWeight: '900', fontSize: '1.2rem', border: '1px solid #333', transition: '0.3s' };
 const statsBanner: any = { display: 'inline-flex', justifyContent: 'center', gap: '30px', marginTop: '80px', padding: '20px 40px', borderRadius: '25px', flexWrap: 'wrap' };
 const statItem: any = { display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1rem', fontWeight: '600' };
@@ -266,6 +266,6 @@ const cardText: any = { color: '#888', lineHeight: '1.7', fontSize: '1.05rem', m
 
 
 const ctaSection: any = { padding: '100px 20px', textAlign: 'center' };
-const ctaBox: any = { maxWidth: '1000px', margin: '0 auto', background: 'linear-gradient(145deg, #1a472a 0%, #27ae60 100%)', padding: '80px 40px', borderRadius: '50px', position: 'relative', overflow: 'hidden', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' };
+const ctaBox: any = { maxWidth: '1000px', margin: '0 auto', background: 'linear-gradient(145deg, #1a472a 0%, #e50914 100%)', padding: '80px 40px', borderRadius: '50px', position: 'relative', overflow: 'hidden', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' };
 const ctaBtn: any = { background: '#fff', color: '#1a472a', padding: '22px 60px', borderRadius: '20px', textDecoration: 'none', fontWeight: '950', fontSize: '1.3rem', display: 'inline-block', transition: '0.3s' };
 const bgGlow: any = { position: 'absolute', top: '50%', left: '50%', width: '500px', height: '500px', background: 'rgba(39, 174, 96, 0.1)', filter: 'blur(150px)', borderRadius: '50%', transform: 'translate(-50%, -50%)', pointerEvents: 'none' };

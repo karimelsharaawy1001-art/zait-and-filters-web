@@ -126,7 +126,7 @@ export default async function CarsHubPage() {
         .hub-logo-wrap {
           width: 80%;
           aspect-ratio: 3/2;
-          background: rgba(255,255,255,0.93);
+          background: rgba(28,28,28,0.92);
           border-radius: 12px;
           display: flex;
           align-items: center;
@@ -205,10 +205,10 @@ export default async function CarsHubPage() {
 
           {/* SEO text */}
           <div style={{ background: '#1c1c1c', border: '1px solid #242424', borderRadius: '20px', padding: '28px', margin: '40px 20px 0' }}>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: '900', color: '#f5f5f5', margin: '0 0 12px' }}>
+            <h2 style={{ fontSize: '1.05rem', fontWeight: '900', color: '#1c1c1c', margin: '0 0 12px' }}>
               قطع غيار السيارات الأصلية في مصر — زيت أند فلترز
             </h2>
-            <p style={{ color: '#475569', fontSize: '0.88rem', lineHeight: 1.8, margin: 0 }}>
+            <p style={{ color: '#94a3b8', fontSize: '0.88rem', lineHeight: 1.8, margin: 0 }}>
               زيت أند فلترز هو متجرك الأول لقطع غيار السيارات الأصلية في مصر. نوفر قطع غيار لجميع ماركات السيارات المنتشرة في مصر: هيونداي، كيا، تويوتا، شيفروليه، نيسان، ميتسوبيشي، رينو، بيجو، فولكس فاجن، سكودا، أوبل، إم جي، هوندا، سوزوكي، مازدا، سيات، BMW، مرسيدس، فورد وجيب.
               نشحن لجميع محافظات مصر مع ضمان الجودة. يمكنك الدفع بالتقسيط عبر فاليو، سهولة، لاكي، كليفر، أمان، تقسيط البنك الأهلي وحالا.
             </p>

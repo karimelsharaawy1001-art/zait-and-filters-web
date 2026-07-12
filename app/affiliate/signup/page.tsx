@@ -165,7 +165,7 @@ export default function AffiliateSignup() {
       <div style={card}>
         <div style={header}>
           <h1 style={title}>
-            <UserPlus size={32} color="#27ae60" />
+            <UserPlus size={32} color="#e50914" />
             انضم لشبكة المسوقين
           </h1>
           <p style={subtitle}>سجل الآن واحصل على عمولة من كل عملية بيع!</p>
@@ -232,9 +232,9 @@ const title: any = { fontSize: '2rem', fontWeight: '900', color: '#1e293b', disp
 const subtitle: any = { color: '#64748b', fontSize: '0.95rem', marginTop: '10px' };
 const form: any = { display: 'flex', flexDirection: 'column', gap: '20px' };
 const inputGroup: any = { display: 'flex', flexDirection: 'column', gap: '8px' };
-const labelStyle: any = { fontSize: '0.9rem', fontWeight: 'bold', color: '#475569', display: 'flex', alignItems: 'center', gap: '6px' };
-const input: any = { padding: '14px 18px', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem', outline: 'none', transition: '0.2s', width: '100%', boxSizing: 'border-box' };
+const labelStyle: any = { fontSize: '0.9rem', fontWeight: 'bold', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' };
+const input: any = { padding: '14px 18px', border: '1px solid #2a2a2a', borderRadius: '12px', fontSize: '1rem', outline: 'none', transition: '0.2s', width: '100%', boxSizing: 'border-box' };
 const passwordWrapper: any = { position: 'relative', display: 'flex', alignItems: 'center' };
 const eyeBtn: any = { position: 'absolute', left: '14px', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' };
 const hint: any = { fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' };
-const submitBtn: any = { padding: '16px', background: 'linear-gradient(135deg, #27ae60 0%, #229954 100%)', color: '#fff', border: 'none', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', fontSize: '1.05rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', transition: '0.2s', marginTop: '10px' };
+const submitBtn: any = { padding: '16px', background: 'linear-gradient(135deg, #e50914 0%, #229954 100%)', color: '#fff', border: 'none', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', fontSize: '1.05rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', transition: '0.2s', marginTop: '10px' };

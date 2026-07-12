@@ -162,7 +162,7 @@ function FilterSection({
           {garageMakeConflict && (
             <div
               style={{
-                backgroundColor: '#fff7ed',
+                backgroundColor: '#1c1c1c',
                 border: '1px solid #f97316',
                 padding: '12px',
                 borderRadius: '10px',
@@ -291,7 +291,7 @@ function FilterSection({
                   height: 'auto',
                   minHeight: '48px',
                 }),
-                input: (base: any) => ({ ...base, color: '#f5f5f5' }),
+                input: (base: any) => ({ ...base, color: '#1c1c1c' }),
               }}
               placeholder="اختر قسم فرعي أو أكثر"
               isRtl={true}
@@ -356,7 +356,7 @@ function FilterSection({
 
           <div
             style={{
-              backgroundColor: '#f0f9ff',
+              backgroundColor: '#161616',
               padding: '12px',
               borderRadius: '10px',
               fontSize: '0.75rem',
@@ -459,7 +459,7 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
   return (
     <div style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
       <p style={{ color: '#888', fontSize: '0.85rem', fontWeight: '600' }}>
-        عرض <span style={{ color: '#f5f5f5', fontWeight: '800' }}>{startItem}–{endItem}</span> من{' '}
+        عرض <span style={{ color: '#1c1c1c', fontWeight: '800' }}>{startItem}–{endItem}</span> من{' '}
         <span style={{ color: '#e50914', fontWeight: '800' }}>{totalItems}</span> منتج
       </p>
 
@@ -1280,8 +1280,8 @@ setBrandsOptions(brandsOpts);
       gap: '8px',
       padding: '10px 15px',
       fontSize: '0.85rem',
-      backgroundColor: state.isFocused ? '#eefcf5' : '#fff',
-      color: '#f5f5f5',
+      backgroundColor: state.isFocused ? '#1a0d0d' : '#fff',
+      color: '#1c1c1c',
       cursor: 'pointer',
     }),
     singleValue: (base: any) => ({
@@ -1356,7 +1356,7 @@ setBrandsOptions(brandsOpts);
             100% { background-position: 200% center; }
           }
           .store-product-card {
-            background: #fff;
+            background: #1c1c1c;
             border-radius: 16px;
             border: 1px solid #e0e0e0;
             transition: all 0.3s ease;
@@ -1445,7 +1445,7 @@ setBrandsOptions(brandsOpts);
             position: absolute;
             top: 10px;
             right: 10px;
-            background-color: #6b7280;
+            background-color: #9ca3af;
             color: #fff;
             padding: 4px 10px;
             border-radius: 8px;
@@ -1456,7 +1456,7 @@ setBrandsOptions(brandsOpts);
 
           /* ── List view ── */
           .products-list { display: flex; flex-direction: column; gap: 12px; }
-          .list-card { display: flex; background: #fff; border-radius: 16px; border: 1px solid #242424; box-shadow: 0 2px 10px rgba(0,0,0,0.04); overflow: hidden; transition: box-shadow 0.2s, transform 0.2s; position: relative; }
+          .list-card { display: flex; background: #1c1c1c; border-radius: 16px; border: 1px solid #242424; box-shadow: 0 2px 10px rgba(0,0,0,0.04); overflow: hidden; transition: box-shadow 0.2s, transform 0.2s; position: relative; }
           .list-card:hover { box-shadow: 0 8px 28px rgba(34,197,94,0.12); transform: translateY(-2px); }
           .list-card-img { width: 130px; min-width: 130px; height: 130px; object-fit: cover; background: #161616; flex-shrink: 0; }
           .list-card-img img { width: 100%; height: 100%; object-fit: cover; }
@@ -1464,7 +1464,7 @@ setBrandsOptions(brandsOpts);
           .list-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; flex-wrap: wrap; }
           .view-toggle { display: flex; gap: 4px; background: #161616; border: 1px solid #2a2a2a; border-radius: 10px; padding: 3px; }
           .view-btn { width: 32px; height: 32px; border: none; border-radius: 7px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; background: transparent; color: #94a3b8; }
-          .view-btn.active { background: #fff; color: #e50914; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+          .view-btn.active { background: #1c1c1c; color: #e50914; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
           @media (max-width: 480px) {
             .list-card-img { width: 100px; min-width: 100px; height: 100px; }
             .list-card-body { padding: 10px 12px; }
@@ -1482,7 +1482,7 @@ setBrandsOptions(brandsOpts);
             style={{
               position: 'fixed',
               top: 0, left: 0, right: 0, bottom: 0,
-              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              backgroundColor: 'rgba(28,28,28,0.92)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1491,7 +1491,7 @@ setBrandsOptions(brandsOpts);
           >
             <div style={{ textAlign: 'center' }}>
               <Loader2 size={60} color="#e50914" style={{ animation: 'spin 1s linear infinite', marginBottom: '20px' }} />
-              <h3 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#f5f5f5' }}>جاري تحميل المنتجات...</h3>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#1c1c1c' }}>جاري تحميل المنتجات...</h3>
             </div>
           </m.div>
         )}
@@ -1562,18 +1562,18 @@ setBrandsOptions(brandsOpts);
                       <CheckCircle2 size={20} color="#e50914" />
                       <span style={{ color: '#cbd5e1', fontSize: '0.9rem', fontWeight: '700', letterSpacing: '0.5px' }}>تم تحديد مواصفات السيارة</span>
                     </div>
-                    <h1 style={{ color: '#f5f5f5', fontSize: isDesktop ? '2.8rem' : '1.8rem', fontWeight: '900', marginBottom: '16px', lineHeight: '1.2', letterSpacing: '-1px' }}>
+                    <h1 style={{ color: '#1c1c1c', fontSize: isDesktop ? '2.8rem' : '1.8rem', fontWeight: '900', marginBottom: '16px', lineHeight: '1.2', letterSpacing: '-1px' }}>
                       قطع غيار <span style={{ color: '#e50914' }}>{heroMakeLabel}</span> الأصلية
                     </h1>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '24px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.8)', padding: '10px 20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', border: '1px solid rgba(255,255,255,0.5)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(28,28,28,0.88)', padding: '10px 20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', border: '1px solid rgba(255,255,255,0.5)' }}>
                         <Car size={18} color="#e50914" />
-                        <span style={{ color: '#f5f5f5', fontSize: '1.1rem', fontWeight: '800' }}>{heroMakeLabel} {heroModelLabel}</span>
+                        <span style={{ color: '#1c1c1c', fontSize: '1.1rem', fontWeight: '800' }}>{heroMakeLabel} {heroModelLabel}</span>
                       </div>
                       {heroYear && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.8)', padding: '10px 20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', border: '1px solid rgba(255,255,255,0.5)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(28,28,28,0.88)', padding: '10px 20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', border: '1px solid rgba(255,255,255,0.5)' }}>
                           <Calendar size={18} color="#e50914" />
-                          <span style={{ color: '#f5f5f5', fontSize: '1.1rem', fontWeight: '700' }}>{heroYear}</span>
+                          <span style={{ color: '#1c1c1c', fontSize: '1.1rem', fontWeight: '700' }}>{heroYear}</span>
                         </div>
                       )}
                     </div>
@@ -1604,7 +1604,7 @@ setBrandsOptions(brandsOpts);
           <div className="mobile-filter-btn" style={{ display: 'none', maxWidth: '1400px', margin: '0 auto 20px', padding: '0 20px' }}>
             <button
               onClick={() => setFiltersOpen(!filtersOpen)}
-              style={{ width: '100%', padding: '15px', backgroundColor: '#1c1c1c', color: '#f5f5f5', border: '1px solid #2a2a2a', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}
+              style={{ width: '100%', padding: '15px', backgroundColor: '#1c1c1c', color: '#1c1c1c', border: '1px solid #2a2a2a', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Filter size={20} color="#e50914" />
@@ -1646,11 +1646,11 @@ setBrandsOptions(brandsOpts);
               <AnimatePresence>
                 {effectiveGarageConflict && !loading && (
                   <m.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}
-                    style={{ backgroundColor: '#fff7ed', border: '2px solid #f97316', borderRadius: '16px', padding: '28px 24px', textAlign: 'center', marginBottom: '20px' }}
+                    style={{ backgroundColor: '#1c1c1c', border: '2px solid #f97316', borderRadius: '16px', padding: '28px 24px', textAlign: 'center', marginBottom: '20px' }}
                   >
                     <AlertTriangle size={48} color="#f97316" style={{ margin: '0 auto 16px' }} />
                     <h3 style={{ fontSize: '1.3rem', fontWeight: '900', color: '#9a3412', marginBottom: '10px' }}>وضع الجراج مفعّل</h3>
-                    <p style={{ color: '#c2410c', fontSize: '1rem', fontWeight: '600', marginBottom: '6px' }}>
+                    <p style={{ color: '#fb923c', fontSize: '1rem', fontWeight: '600', marginBottom: '6px' }}>
                       لديك جراج نشط لسيارة <strong>{userCar?.make} {userCar?.model} {userCar?.year}</strong>.
                     </p>
                     <p style={{ color: '#7c2d12', fontSize: '0.9rem', marginBottom: '20px', lineHeight: '1.6' }}>
@@ -1709,9 +1709,9 @@ setBrandsOptions(brandsOpts);
               {showEmptyState ? (
                 <div style={{ textAlign: 'center', padding: '100px 20px', backgroundColor: '#1c1c1c', borderRadius: '20px' }}>
                   <Filter size={80} color="#e50914" style={{ margin: '0 auto 20px', opacity: 0.5 }} />
-                  <h3 style={{ fontSize: '1.8rem', fontWeight: '900', marginBottom: '15px', color: '#f5f5f5' }}>ابدأ بتحديد التصنيفات</h3>
+                  <h3 style={{ fontSize: '1.8rem', fontWeight: '900', marginBottom: '15px', color: '#1c1c1c' }}>ابدأ بتحديد التصنيفات</h3>
                   <p style={{ color: '#9ca3af', fontSize: '1.1rem', marginBottom: '10px' }}>اختر الماركة والموديل أو الفئة للبحث عن المنتجات</p>
-                  <div style={{ backgroundColor: '#f0f9ff', padding: '15px', borderRadius: '12px', maxWidth: '500px', margin: '20px auto', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}>
+                  <div style={{ backgroundColor: '#161616', padding: '15px', borderRadius: '12px', maxWidth: '500px', margin: '20px auto', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}>
                     <AlertCircle size={20} color="#0369a1" />
                     <span style={{ color: '#0369a1', fontSize: '0.9rem', fontWeight: '700' }}>هذا يساعد في تحسين سرعة التصفح</span>
                   </div>
@@ -1804,7 +1804,7 @@ setBrandsOptions(brandsOpts);
                               {product.name}
                             </h3>
                             <div style={{ background: '#1c1c1c', padding: '10px', borderRadius: '10px', marginBottom: '12px' }}>
-                              <div style={{ fontSize: '0.75rem', color: '#f5f5f5', fontWeight: '800', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
+                              <div style={{ fontSize: '0.75rem', color: '#1c1c1c', fontWeight: '800', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
                                 <Settings2 size={12} color="#e50914" style={{ flexShrink: 0 }} />
                                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {(() => {
@@ -1950,7 +1950,7 @@ setBrandsOptions(brandsOpts);
                             </div>
 
                             <Link href={`/products/${product.slug || product.id}`} style={{ textDecoration: 'none' }}>
-                              <h3 style={{ fontSize: '0.9rem', fontWeight: '900', color: '#f5f5f5', lineHeight: '1.4', margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden' }}>
+                              <h3 style={{ fontSize: '0.9rem', fontWeight: '900', color: '#1c1c1c', lineHeight: '1.4', margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden' }}>
                                 {product.name}
                               </h3>
                             </Link>
@@ -1970,14 +1970,14 @@ setBrandsOptions(brandsOpts);
                               <div>
                                 {hasSale ? (
                                   <>
-                                    <span style={{ fontSize: '1.2rem', fontWeight: '900', color: '#f5f5f5' }}>{product.sale_price}</span>
-                                    <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#f5f5f5', marginRight: '3px' }}>ج.م</span>
+                                    <span style={{ fontSize: '1.2rem', fontWeight: '900', color: '#1c1c1c' }}>{product.sale_price}</span>
+                                    <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#1c1c1c', marginRight: '3px' }}>ج.م</span>
                                     <span style={{ fontSize: '0.75rem', color: '#aaa', textDecoration: 'line-through', marginRight: '6px' }}>{product.regular_price} ج.م</span>
                                   </>
                                 ) : (
                                   <>
-                                    <span style={{ fontSize: '1.2rem', fontWeight: '900', color: '#f5f5f5' }}>{price}</span>
-                                    <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#f5f5f5', marginRight: '3px' }}>ج.م</span>
+                                    <span style={{ fontSize: '1.2rem', fontWeight: '900', color: '#1c1c1c' }}>{price}</span>
+                                    <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#1c1c1c', marginRight: '3px' }}>ج.م</span>
                                   </>
                                 )}
                               </div>
