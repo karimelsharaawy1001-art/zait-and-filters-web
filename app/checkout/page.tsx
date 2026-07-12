@@ -63,6 +63,7 @@ export default function CheckoutPage() {
   const UPLOAD_BUCKET = 'payment-screenshots';
 
   const EXPRESS_COST = 150;
+  const COD_FEE = 20; // Cash-on-delivery collection fee (رسوم تحصيل)
   const EXPRESS_CITIES = ['القاهرة', 'الجيزة'];
   const isExpressAvailable = EXPRESS_CITIES.includes(selectedCity?.city_name || '');
 
@@ -161,13 +162,14 @@ export default function CheckoutPage() {
 
   const subtotal = useMemo(() => cart.reduce((sum: number, item: any) => sum + (parseFloat(item.price) * item.quantity), 0), [cart]);
 
+  const codFee = paymentMethod === 'cash' ? COD_FEE : 0;
   const finalTotal = useMemo(() => {
     const shipping = expressShipping ? EXPRESS_COST : (selectedCity?.price || 0);
     let currentDiscount = discountAmount;
     if (appliedPromoType === 'free_shipping') currentDiscount = shipping;
-    const total = (subtotal + shipping) - currentDiscount - walletDiscount;
+    const total = (subtotal + shipping) - currentDiscount - walletDiscount + codFee;
     return total > 0 ? total : 0;
-  }, [subtotal, selectedCity, discountAmount, appliedPromoType, expressShipping, walletDiscount]);
+  }, [subtotal, selectedCity, discountAmount, appliedPromoType, expressShipping, walletDiscount, codFee]);
 
   useEffect(() => { if (isInitialized) setTimeout(() => setIsReady(true), 800); }, [isInitialized]);
 
@@ -1036,6 +1038,12 @@ export default function CheckoutPage() {
               <div style={{ ...rowPrice, color: '#f87171', fontWeight: 'bold' }}>
                 <span>💰 خصم المحفظة:</span>
                 <span>-{walletDiscount.toFixed(2)} ج.م</span>
+              </div>
+            )}
+            {codFee > 0 && (
+              <div style={{ ...rowPrice, color: '#f59e0b', fontWeight: 'bold' }}>
+                <span>رسوم التحصيل (الدفع عند الاستلام):</span>
+                <span>+{codFee.toFixed(2)} ج.م</span>
               </div>
             )}
             <div style={finalRow}><span>الإجمالي النهائي:</span><span>{finalTotal.toFixed(2)} ج.م</span></div>
