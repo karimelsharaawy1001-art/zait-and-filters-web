@@ -131,22 +131,22 @@ function ReviewsSection({ productId }: { productId: string }) {
             <h3 style={{ fontSize: '1rem', fontWeight: '800', margin: '0 0 16px', color: '#1c1c1c' }}>أضف تقييمك</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#d1d5db', marginBottom: '6px' }}>الاسم *</label>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#3a3a3a', marginBottom: '6px' }}>الاسم *</label>
                 <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="اسمك" style={{ width: '100%', padding: '10px 12px', border: `1.5px solid ${errors.name ? '#ef4444' : '#2a2a2a'}`, borderRadius: '10px', fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' as const }} />
                 {errors.name && <p style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: '600', margin: '4px 0 0' }}>{errors.name}</p>}
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#d1d5db', marginBottom: '6px' }}>الإيميل (اختياري)</label>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#3a3a3a', marginBottom: '6px' }}>الإيميل (اختياري)</label>
                 <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="email@example.com" style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #2a2a2a', borderRadius: '10px', fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' as const }} dir="ltr" />
               </div>
             </div>
             <div style={{ marginBottom: '14px' }}>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#d1d5db', marginBottom: '6px' }}>التقييم *</label>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#3a3a3a', marginBottom: '6px' }}>التقييم *</label>
               <StarSelector value={form.rating} onChange={r => setForm(f => ({ ...f, rating: r }))} />
               {errors.rating && <p style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: '600', margin: '4px 0 0' }}>{errors.rating}</p>}
             </div>
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#d1d5db', marginBottom: '6px' }}>تعليقك *</label>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#3a3a3a', marginBottom: '6px' }}>تعليقك *</label>
               <textarea value={form.comment} onChange={e => setForm(f => ({ ...f, comment: e.target.value }))} placeholder="شاركنا رأيك في المنتج..." rows={4} style={{ width: '100%', padding: '10px 12px', border: `1.5px solid ${errors.comment ? '#ef4444' : '#2a2a2a'}`, borderRadius: '10px', fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none', resize: 'vertical' as const, minHeight: '90px', boxSizing: 'border-box' as const }} />
               {errors.comment && <p style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: '600', margin: '4px 0 0' }}>{errors.comment}</p>}
             </div>
@@ -437,7 +437,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         .pdp-btn-secondary:hover { background: #1e293b; transform: translateY(-1px); }
         .pdp-stepper { display: flex; align-items: center; gap: 0; background: #161616; border: 1.5px solid #2a2a2a; border-radius: 14px; overflow: hidden; }
         .pdp-step-btn { width: 44px; height: 48px; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #64748b; transition: background 0.15s; }
-        .pdp-step-btn:hover { background: #242424; color: #f5f5f5; }
+        .pdp-step-btn:hover { background: #242424; color: #1c1c1c; }
         .pdp-qty { font-size: 1.1rem; font-weight: 900; color: '#1c1c1c'; min-width: 36px; text-align: center; }
         .pdp-trust-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #161616; border: 1px solid #242424; border-radius: 12px; font-size: 0.85rem; color: #94a3b8; font-weight: '700'; }
         @keyframes spin { to { transform: rotate(360deg); } }

@@ -48,16 +48,16 @@ export default function BlogPostPage() {
             <span key={i} style={tagStyle}><Tag size={11} /> {tag}</span>
           ))}
         </div>
-        <h1 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: '900', color: '#1a1a1a', lineHeight: 1.4, margin: '0 0 30px' }}>{post.title}</h1>
-        <div style={{ background: '#fff', borderRadius: '24px', padding: '40px', border: '1px solid #eee', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
-          <div style={{ color: '#444', lineHeight: 2, fontSize: '1.05rem', whiteSpace: 'pre-wrap' }}>
+        <h1 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: '900', color: '#f5f5f5', lineHeight: 1.4, margin: '0 0 30px' }}>{post.title}</h1>
+        <div style={{ background: '#1c1c1c', borderRadius: '24px', padding: '40px', border: '1px solid #2a2a2a', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+          <div style={{ color: '#cbd5e1', lineHeight: 2, fontSize: '1.05rem', whiteSpace: 'pre-wrap' }}>
             {post.content}
           </div>
         </div>
         <div style={{ marginTop: '30px', background: '#1a0d0d', borderRadius: '16px', padding: '20px 24px', display: 'flex', alignItems: 'center', gap: '14px', border: '1px solid #2a0f10' }}>
           <div style={{ width: '46px', height: '46px', borderRadius: '50%', background: '#b91c1c', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '900', fontSize: '1.2rem' }}>ز</div>
           <div>
-            <div style={{ fontWeight: '800', color: '#1a1a1a', fontSize: '0.95rem' }}>{post.author}</div>
+            <div style={{ fontWeight: '800', color: '#f5f5f5', fontSize: '0.95rem' }}>{post.author}</div>
             <div style={{ color: '#b91c1c', fontSize: '0.8rem', fontWeight: '600' }}>فريق زيت أند فلترز</div>
           </div>
         </div>

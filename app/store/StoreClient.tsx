@@ -246,8 +246,8 @@ function FilterSection({
               fontSize: '0.85rem',
               fontWeight: '700',
               padding: '10px 0',
-              borderTop: '1px solid #eee',
-              borderBottom: '1px solid #eee',
+              borderTop: '1px solid #2a2a2a',
+              borderBottom: '1px solid #2a2a2a',
               margin: '5px 0',
             }}
           >

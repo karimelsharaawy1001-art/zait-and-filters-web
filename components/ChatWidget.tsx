@@ -311,7 +311,7 @@ export default function ChatWidget() {
             {/* Input */}
             <div style={{
               padding:'10px 12px 14px', borderTop:'1px solid #f1f1f1',
-              display:'flex', gap:'8px', flexShrink:0, background:'#fff',
+              display:'flex', gap:'8px', flexShrink:0, background:'#1c1c1c',
             }}>
               <Link href="/contact"
                 style={{

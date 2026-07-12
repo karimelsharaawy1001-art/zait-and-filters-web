@@ -836,15 +836,15 @@ export default function HomePage() {
           .card-brand { color:#e50914; font-weight:800; font-size:0.75rem; letter-spacing:0.5px; text-transform:uppercase; }
           .card-origin { font-size:0.7rem; color:#888; font-weight:700; display:flex; align-items:center; gap:3px; }
           /* Allow up to 3 lines — no fixed height so long names show fully */
-          .card-name { font-size:0.92rem; font-weight:900; color:#f5f5f5; line-height:1.45; overflow:hidden; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
+          .card-name { font-size:0.92rem; font-weight:900; color:#1c1c1c; line-height:1.45; overflow:hidden; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
           .card-compat { display:inline-flex; align-items:center; gap:5px; background:#1a0d0d; border:1px solid #7f1d1d; border-radius:20px; padding:4px 10px; font-size:0.72rem; font-weight:800; color:#b91c1c; margin-bottom:8px; max-width:100%; overflow:hidden; }
           .card-compat span, .card-cat span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
           .card-cat { display:inline-flex; align-items:center; gap:4px; background:#161616; border:1px solid #2a2a2a; border-radius:20px; padding:3px 9px; font-size:0.7rem; font-weight:700; color:#94a3b8; max-width:100%; overflow:hidden; }
           /* Price: main amount + ج.م on same line, old price + save badge below */
           .card-price-block { margin:10px 0 4px; }
           .card-price-row { display:flex; align-items:baseline; gap:6px; flex-wrap:nowrap; }
-          .card-price-main { font-size:1.35rem; font-weight:900; color:#f5f5f5; white-space:nowrap; }
-          .card-price-currency { font-size:0.85rem; font-weight:800; color:#f5f5f5; white-space:nowrap; }
+          .card-price-main { font-size:1.35rem; font-weight:900; color:#1c1c1c; white-space:nowrap; }
+          .card-price-currency { font-size:0.85rem; font-weight:800; color:#1c1c1c; white-space:nowrap; }
           .card-price-meta { display:flex; align-items:center; gap:6px; margin-top:4px; flex-wrap:wrap; }
           .card-price-old { font-size:0.78rem; color:#aaa; text-decoration:line-through; font-weight:600; white-space:nowrap; }
           .card-save { font-size:0.68rem; font-weight:800; color:#fff; background:#ef4444; border-radius:6px; padding:2px 7px; white-space:nowrap; }
@@ -863,7 +863,7 @@ export default function HomePage() {
           .feature-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px; justify-content: center; }
           .feature-icon-wrap { width: 52px; height: 52px; border-radius: 14px; background: #1a0d0d; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
           .feature-text { display: flex; flex-direction: column; gap: 2px; }
-          .feature-title { font-size: 0.88rem; font-weight: 900; color: #f5f5f5; line-height: 1.3; }
+          .feature-title { font-size: 0.88rem; font-weight: 900; color: #1c1c1c; line-height: 1.3; }
           .feature-sub   { font-size: 0.75rem; font-weight: 600; color: #888; line-height: 1.3; }
           .feature-divider { width: 1px; height: 48px; background: #242424; flex-shrink: 0; }
 
@@ -920,7 +920,7 @@ export default function HomePage() {
           /* Title animation */
           .bn-title { animation:bn-title-in 0.6s ease-out both; }
           /* CTAs */
-          .bn-cta-gold { background:linear-gradient(135deg,#fbbf24,#f59e0b)!important;color:#f5f5f5!important;font-weight:900!important;transition:all 0.2s!important; }
+          .bn-cta-gold { background:linear-gradient(135deg,#fbbf24,#f59e0b)!important;color:#1c1c1c!important;font-weight:900!important;transition:all 0.2s!important; }
           .bn-cta-gold:hover { background:linear-gradient(135deg,#fcd34d,#fbbf24)!important;transform:translateY(-2px)!important;box-shadow:0 8px 20px rgba(251,191,36,0.4)!important; }
           .bn-cta-green { background:linear-gradient(135deg,#e50914,#dc2626)!important;transition:all 0.2s!important; }
           .bn-cta-green:hover { background:linear-gradient(135deg,#f87171,#e50914)!important;transform:translateY(-2px)!important;box-shadow:0 8px 20px rgba(34,197,94,0.45)!important; }
@@ -1591,7 +1591,7 @@ const messageContainer: any = { marginBottom: '28px', minHeight: '35px' };
 const messageText: any = { fontSize: '1.1rem', fontWeight: '700', color: '#fff' };
 const featurePills: any = { display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' };
 const pill: any = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', backgroundColor: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '25px', fontSize: '0.82rem', fontWeight: '700', color: '#e50914', backdropFilter: 'blur(10px)' };
-const arrowBtnSmall = { width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#1c1c1c', border: '1px solid #eee', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' };
+const arrowBtnSmall = { width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#1c1c1c', border: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' };
 const cartBtnStyleSmall: any = { width: '100%', padding: '12px', backgroundColor: '#1c1c1c', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '1rem' }; // legacy — kept for maintenance bundle page
 const stickyNotificationStyle: any = { position: 'fixed', bottom: '85px', left: '50%', transform: 'translateX(-50%)', backgroundColor: 'rgba(39,174,96,0.95)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', color: '#fff', padding: '12px 20px', borderRadius: '20px', zIndex: 1000, boxShadow: '0 10px 30px rgba(0,0,0,0.2)', width: 'max-content', maxWidth: '90%', border: '1px solid rgba(255,255,255,0.2)', direction: 'rtl' };
 const garageIconWrapMini: any = { width: '32px', height: '32px', borderRadius: '10px', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' };

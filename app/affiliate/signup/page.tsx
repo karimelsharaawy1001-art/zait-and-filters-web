@@ -226,9 +226,9 @@ export default function AffiliateSignup() {
 
 // Styles
 const container: any = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', padding: '20px', direction: 'rtl' };
-const card: any = { background: '#fff', padding: '40px', borderRadius: '30px', maxWidth: '500px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' };
+const card: any = { background: '#1c1c1c', padding: '40px', borderRadius: '30px', maxWidth: '500px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' };
 const header: any = { textAlign: 'center', marginBottom: '35px' };
-const title: any = { fontSize: '2rem', fontWeight: '900', color: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', margin: 0 };
+const title: any = { fontSize: '2rem', fontWeight: '900', color: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', margin: 0 };
 const subtitle: any = { color: '#64748b', fontSize: '0.95rem', marginTop: '10px' };
 const form: any = { display: 'flex', flexDirection: 'column', gap: '20px' };
 const inputGroup: any = { display: 'flex', flexDirection: 'column', gap: '8px' };

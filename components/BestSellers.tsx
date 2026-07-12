@@ -103,7 +103,7 @@ export default function BestSellers() {
                 {p.image_url ? (
                   <img src={optimizeImageUrl(p.image_url)} alt={p.name} width="153" height="153" loading="lazy" decoding="async" style={imgStyle} />
                 ) : (
-                  <Car size={40} color="#eee" />
+                  <Car size={40} color="#2a2a2a" />
                 )}
               </div>
               <div style={contentArea}>
@@ -135,7 +135,7 @@ const bestLabel: any = { position: 'absolute', top: '12px', right: '12px', backg
 
 const contentArea: any = { padding: '15px', textAlign: 'right' };
 const brandText: any = { color: '#e50914', fontSize: '0.75rem', fontWeight: 'bold' };
-const prodName: any = { fontSize: '0.95rem', fontWeight: '800', margin: '8px 0', height: '40px', overflow: 'hidden', color: '#d1d5db' };
+const prodName: any = { fontSize: '0.95rem', fontWeight: '800', margin: '8px 0', height: '40px', overflow: 'hidden', color: '#3a3a3a' };
 const priceRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' };
 const priceText: any = { fontSize: '1.1rem', fontWeight: '900', color: '#1c1c1c' };
 const cartBtn: any = { background: '#1c1c1c', color: '#fff', border: 'none', padding: '8px', borderRadius: '10px', cursor: 'pointer' };

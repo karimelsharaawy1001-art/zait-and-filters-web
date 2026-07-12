@@ -263,7 +263,7 @@ export default function ProfessionalAffiliateDashboard() {
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={tierBadge} className="tier-badge">
             <span style={{ fontSize: '1.2rem' }}>{currentTierConfig.icon}</span>
-            <span style={{ fontWeight: 'bold', color: '#1e293b' }}>
+            <span style={{ fontWeight: 'bold', color: '#e5e7eb' }}>
               {currentTierConfig.name} - {currentTierConfig.percentage}%
             </span>
           </div>
@@ -337,7 +337,7 @@ export default function ProfessionalAffiliateDashboard() {
           <AlertCircle size={20} color="#f59e0b" />
           <div>
             <p style={{ fontWeight: 'bold', marginBottom: '5px' }}>لديك {stats.pending_commissions.toFixed(2)} ج.م pending Commissions</p>
-            <p style={{ fontSize: '0.85rem', color: '#666' }}>سيتم إضافتها للرصيد المتاح بعد 14 يوم من تاريخ التوصيل للتأكد من اكتمال البيع</p>
+            <p style={{ fontSize: '0.85rem', color: '#9ca3af' }}>سيتم إضافتها للرصيد المتاح بعد 14 يوم من تاريخ التوصيل للتأكد من اكتمال البيع</p>
           </div>
         </div>
       )}
@@ -440,7 +440,7 @@ export default function ProfessionalAffiliateDashboard() {
                   const statusConfig: Record<string, { bg: string; color: string; icon: any; label: string }> = {
                     pending:   { bg: '#e0f2fe', color: '#0369a1', icon: <Clock size={13}/>,       label: 'انتظار التسليم' },
                     in_review: { bg: '#242424', color: '#fbbf24', icon: <Clock size={13}/>,       label: daysLeft && daysLeft > 0 ? `${daysLeft} يوم متبقي` : 'جاهزة قريباً' },
-                    available: { bg: '#d1fae5', color: '#059669', icon: <CheckCircle size={13}/>, label: 'جاهزة للصرف' },
+                    available: { bg: '#2a0f10', color: '#059669', icon: <CheckCircle size={13}/>, label: 'جاهزة للصرف' },
                     paid:      { bg: '#1c1c1c', color: '#9ca3af', icon: <CheckCircle size={13}/>, label: 'تم الدفع' },
                   };
                   const s = statusConfig[comm.status] || statusConfig['pending'];
@@ -485,46 +485,46 @@ export default function ProfessionalAffiliateDashboard() {
 const container: any = { minHeight: '100vh', background: 'linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%)', padding: '40px 20px', direction: 'rtl' };
 const loaderContainer: any = { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f5f7fa' };
 const header: any = { maxWidth: '1400px', margin: '0 auto 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' };
-const mainTitle: any = { fontSize: '2.5rem', fontWeight: '900', color: '#1e293b', margin: 0, letterSpacing: '-0.5px' };
+const mainTitle: any = { fontSize: '2.5rem', fontWeight: '900', color: '#e5e7eb', margin: 0, letterSpacing: '-0.5px' };
 const subtitle: any = { color: '#64748b', fontSize: '1.05rem', marginTop: '5px' };
 const tierBadge: any = { display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 24px', borderRadius: '50px', border: '2px solid #2a2a2a', fontWeight: 'bold', fontSize: '0.95rem', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' };
-const logoutBtn: any = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#fff', border: '1px solid #2a2a2a', borderRadius: '12px', color: '#64748b', fontWeight: 'bold', cursor: 'pointer', transition: '0.3s' };
-const tierProgress: any = { maxWidth: '1400px', margin: '0 auto 30px', background: '#fff', padding: '20px', borderRadius: '16px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' };
-const tierProgressHeader: any = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', fontWeight: 'bold', color: '#1e293b' };
+const logoutBtn: any = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#1c1c1c', border: '1px solid #2a2a2a', borderRadius: '12px', color: '#64748b', fontWeight: 'bold', cursor: 'pointer', transition: '0.3s' };
+const tierProgress: any = { maxWidth: '1400px', margin: '0 auto 30px', background: '#1c1c1c', padding: '20px', borderRadius: '16px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' };
+const tierProgressHeader: any = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', fontWeight: 'bold', color: '#e5e7eb' };
 const progressBar: any = { width: '100%', height: '12px', background: '#242424', borderRadius: '10px', overflow: 'hidden' };
 const progressFill: any = { height: '100%', background: 'linear-gradient(90deg, #f59e0b, #fbbf24)', transition: '0.5s ease' };
 const statsGrid: any = { maxWidth: '1400px', margin: '0 auto 40px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '25px' };
-const statCard: any = { background: '#fff', borderRadius: '20px', padding: '30px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', transition: '0.4s', display: 'flex', alignItems: 'center', gap: '20px' };
+const statCard: any = { background: '#1c1c1c', borderRadius: '20px', padding: '30px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', transition: '0.4s', display: 'flex', alignItems: 'center', gap: '20px' };
 const statIconContainer: any = { width: '70px', height: '70px', borderRadius: '18px', background: '#1a0d0d', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
 const statContent: any = { flex: 1 };
 const statLabel: any = { color: '#64748b', fontSize: '0.9rem', marginBottom: '8px' };
-const statValue: any = { fontSize: '2rem', fontWeight: '900', color: '#1e293b', margin: 0 };
+const statValue: any = { fontSize: '2rem', fontWeight: '900', color: '#e5e7eb', margin: 0 };
 const statGrowth: any = { color: '#e50914', fontSize: '0.85rem', marginTop: '5px', fontWeight: '600' };
 const pendingNotice: any = { maxWidth: '1400px', margin: '0 auto 30px', background: '#1c1c1c', padding: '20px', borderRadius: '16px', border: '1px solid #242424', display: 'flex', alignItems: 'center', gap: '15px' };
-const toolsSection: any = { maxWidth: '1400px', margin: '0 auto 40px', background: '#fff', borderRadius: '20px', padding: '35px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' };
-const sectionTitle: any = { fontSize: '1.5rem', fontWeight: '900', color: '#1e293b', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' };
+const toolsSection: any = { maxWidth: '1400px', margin: '0 auto 40px', background: '#1c1c1c', borderRadius: '20px', padding: '35px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' };
+const sectionTitle: any = { fontSize: '1.5rem', fontWeight: '900', color: '#e5e7eb', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' };
 const toolCard: any = { background: '#161616', padding: '25px', borderRadius: '16px', marginBottom: '20px', border: '1px solid #2a2a2a' };
-const toolHeader: any = { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '15px', fontWeight: 'bold', color: '#1e293b', fontSize: '1.05rem' };
-const codeBox: any = { display: 'flex', gap: '12px', background: '#fff', padding: '18px', borderRadius: '12px', border: '1px solid #2a2a2a', alignItems: 'center' };
+const toolHeader: any = { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '15px', fontWeight: 'bold', color: '#e5e7eb', fontSize: '1.05rem' };
+const codeBox: any = { display: 'flex', gap: '12px', background: '#1c1c1c', padding: '18px', borderRadius: '12px', border: '1px solid #2a2a2a', alignItems: 'center' };
 const codeText: any = { flex: 1, fontSize: '0.9rem', wordBreak: 'break-all', color: '#94a3b8', fontFamily: 'monospace' };
 const copyBtn: any = { padding: '10px 16px', background: '#242424', border: '1px solid #2a2a2a', borderRadius: '10px', cursor: 'pointer', transition: '0.3s', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, fontWeight: 'bold', color: '#64748b' };
 const toolHint: any = { marginTop: '12px', fontSize: '0.85rem', color: '#94a3b8', lineHeight: '1.6' };
 const promoCodeDisplay: any = { display: 'flex', gap: '12px', alignItems: 'center' };
 const promoCodeBadge: any = { flex: 1, background: 'linear-gradient(135deg, #e50914 0%, #229954 100%)', color: '#fff', padding: '20px 30px', borderRadius: '12px', fontSize: '1.8rem', fontWeight: '900', textAlign: 'center', letterSpacing: '3px', fontFamily: 'monospace', boxShadow: '0 4px 15px rgba(39, 174, 96, 0.3)' };
-const withdrawalSection: any = { maxWidth: '1400px', margin: '0 auto 40px', background: '#fff', borderRadius: '20px', padding: '35px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' };
+const withdrawalSection: any = { maxWidth: '1400px', margin: '0 auto 40px', background: '#1c1c1c', borderRadius: '20px', padding: '35px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' };
 const withdrawalCard: any = { background: '#161616', padding: '25px', borderRadius: '16px', border: '1px solid #2a2a2a' };
 const inputGroup: any = { marginBottom: '20px' };
-const label: any = { display: 'block', marginBottom: '10px', fontWeight: 'bold', color: '#1e293b', fontSize: '0.95rem' };
-const input: any = { width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #2a2a2a', fontSize: '1rem', outline: 'none', background: '#fff' };
+const label: any = { display: 'block', marginBottom: '10px', fontWeight: 'bold', color: '#e5e7eb', fontSize: '0.95rem' };
+const input: any = { width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #2a2a2a', fontSize: '1rem', outline: 'none', background: '#1c1c1c' };
 const saveButton: any = { display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 30px', background: '#e50914', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', transition: '0.3s', fontSize: '1rem', boxShadow: '0 4px 10px rgba(39, 174, 96, 0.3)' };
-const commissionsSection: any = { maxWidth: '1400px', margin: '0 auto', background: '#fff', borderRadius: '20px', padding: '35px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' };
+const commissionsSection: any = { maxWidth: '1400px', margin: '0 auto', background: '#1c1c1c', borderRadius: '20px', padding: '35px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' };
 const refreshBtn: any = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#161616', border: '1px solid #2a2a2a', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', color: '#64748b', transition: '0.3s' };
 const tableWrapper: any = { overflowX: 'auto', borderRadius: '12px', border: '1px solid #2a2a2a' };
 const table: any = { width: '100%', borderCollapse: 'collapse' };
 const tableHeader: any = { background: '#161616' };
 const th: any = { padding: '16px 20px', textAlign: 'right', fontWeight: 'bold', color: '#94a3b8', fontSize: '0.9rem', borderBottom: '2px solid #2a2a2a' };
 const tableRow: any = { borderBottom: '1px solid #242424', transition: '0.2s' };
-const td: any = { padding: '18px 20px', color: '#1e293b', fontSize: '0.95rem' };
+const td: any = { padding: '18px 20px', color: '#e5e7eb', fontSize: '0.95rem' };
 const statusBadgeInTable: any = { display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 'bold' };
 const emptyState: any = { textAlign: 'center', padding: '80px 20px' };
 const emptyText: any = { fontSize: '1.2rem', color: '#64748b', fontWeight: 'bold', marginTop: '20px', marginBottom: '8px' };

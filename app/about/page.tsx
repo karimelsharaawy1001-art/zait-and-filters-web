@@ -85,7 +85,7 @@ export default function AboutPage() {
       </div>
 
       {/* ===== STATS BAR ===== */}
-      <div style={{ background: '#1c1c1c', borderBottom: '1px solid #eee', padding: '0 30px' }}>
+      <div style={{ background: '#1c1c1c', borderBottom: '1px solid #2a2a2a', padding: '0 30px' }}>
         <div style={{ maxWidth: '900px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
           {stats.map((s, i) => (
             <div key={i} style={{
@@ -102,7 +102,7 @@ export default function AboutPage() {
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '60px 30px' }}>
 
         {/* ===== WHO WE ARE ===== */}
-        <div style={{ background: '#1c1c1c', borderRadius: '30px', padding: '45px', marginBottom: '40px', border: '1px solid #eee', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+        <div style={{ background: '#1c1c1c', borderRadius: '30px', padding: '45px', marginBottom: '40px', border: '1px solid #2a2a2a', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '25px' }}>
             <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#1a0d0d', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Heart size={24} color="#b91c1c" />
@@ -162,7 +162,7 @@ export default function AboutPage() {
                 onMouseLeave={() => setHoveredCard(null)}
                 style={{
                   background: hoveredCard === i ? f.bg : '#fff',
-                  border: `2px solid ${hoveredCard === i ? f.border : '#eee'}`,
+                  border: `2px solid ${hoveredCard === i ? f.border : '#2a2a2a'}`,
                   borderRadius: '24px', padding: '30px',
                   transition: 'all 0.25s ease',
                   cursor: 'default',
@@ -185,7 +185,7 @@ export default function AboutPage() {
         {/* ===== CLOSING CTA ===== */}
         <div style={{
           background: '#1c1c1c', borderRadius: '30px', padding: '45px',
-          border: '1px solid #eee', textAlign: 'center',
+          border: '1px solid #2a2a2a', textAlign: 'center',
           boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
         }}>
           <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#1a0d0d', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>

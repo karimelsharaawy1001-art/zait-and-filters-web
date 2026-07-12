@@ -95,7 +95,7 @@ const DEFAULT_STYLE = {
   bg: '#fff', bgDisabled: '#1c1c1c',
   border: '#2a2a2a', borderActive: '#e50914',
   iconBg: '#aaa', iconColor: '#fff',
-  badge: '#1c1c1c', badgeText: '#d1d5db',
+  badge: '#1c1c1c', badgeText: '#3a3a3a',
   itemBg: '#161616', itemBorder: '#2a2a2a',
   addBtnBorder: '#e50914', addBtnColor: '#dc2626', addBtnHover: '#1a0d0d',
   priceBg: '#1a0d0d',
@@ -374,14 +374,14 @@ export default function MaintenanceBundlePage() {
       border: '1px solid #2a2a2a',
       fontSize: '0.85rem',
       direction: 'rtl',
-      background: '#fff',
+      background: '#1c1c1c',
       cursor: 'pointer', // ✅ shows pointer cursor since it's click-only now
     }),
     menu: (base: any) => ({ ...base, zIndex: 9999, direction: 'rtl' }),
     option: (base: any, state: any) => ({
       ...base,
       backgroundColor: state.isFocused ? '#1a0d0d' : '#fff',
-      color: '#1a1a1a',
+      color: '#f5f5f5',
       fontSize: '0.85rem',
       cursor: 'pointer',
     }),
@@ -481,7 +481,7 @@ export default function MaintenanceBundlePage() {
         <div
           className="car-selector-card"
           style={{
-            background: '#fff', borderRadius: '18px', padding: '22px',
+            background: '#1c1c1c', borderRadius: '18px', padding: '22px',
             marginBottom: '22px', boxShadow: '0 4px 20px rgba(0,0,0,0.07)',
           }}
         >
@@ -491,7 +491,7 @@ export default function MaintenanceBundlePage() {
           </h2>
           <div className="car-selector-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
             <div>
-              <label style={{ display: 'block', fontWeight: '700', fontSize: '0.8rem', marginBottom: '5px', color: '#555' }}>الماركة</label>
+              <label style={{ display: 'block', fontWeight: '700', fontSize: '0.8rem', marginBottom: '5px', color: '#9ca3af' }}>الماركة</label>
               <Select
                 instanceId="bundle-make"
                 options={makesOptions}
@@ -505,7 +505,7 @@ export default function MaintenanceBundlePage() {
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontWeight: '700', fontSize: '0.8rem', marginBottom: '5px', color: '#555' }}>الموديل</label>
+              <label style={{ display: 'block', fontWeight: '700', fontSize: '0.8rem', marginBottom: '5px', color: '#9ca3af' }}>الموديل</label>
               <Select
                 instanceId="bundle-model"
                 options={modelsOptions}
@@ -520,7 +520,7 @@ export default function MaintenanceBundlePage() {
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontWeight: '700', fontSize: '0.8rem', marginBottom: '5px', color: '#555' }}>
+              <label style={{ display: 'block', fontWeight: '700', fontSize: '0.8rem', marginBottom: '5px', color: '#9ca3af' }}>
                 سنة الصنع{' '}
                 <span style={{ color: '#aaa', fontWeight: '500', fontSize: '0.75rem' }}>(اختياري)</span>
               </label>
@@ -679,7 +679,7 @@ export default function MaintenanceBundlePage() {
                                 >
                                   {slot.subcategories.length > 0 && (
                                     <div>
-                                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#666', marginBottom: '5px' }}>النوع / اللزوجة</label>
+                                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#9ca3af', marginBottom: '5px' }}>النوع / اللزوجة</label>
                                       <Select
                                         instanceId={`subcat-${slotIdx}-${itemIdx}`}
                                         options={slot.subcategories.map((s: string) => ({ value: s, label: s }))}
@@ -694,7 +694,7 @@ export default function MaintenanceBundlePage() {
                                     </div>
                                   )}
                                   <div>
-                                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#666', marginBottom: '5px' }}>العلامة التجارية</label>
+                                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#9ca3af', marginBottom: '5px' }}>العلامة التجارية</label>
                                     <Select
                                       instanceId={`brand-${slotIdx}-${itemIdx}`}
                                       options={itemBrands}
@@ -710,7 +710,7 @@ export default function MaintenanceBundlePage() {
                                     />
                                   </div>
                                   <div>
-                                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#666', marginBottom: '5px' }}>المنتج</label>
+                                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#9ca3af', marginBottom: '5px' }}>المنتج</label>
                                     <Select
                                       instanceId={`product-${slotIdx}-${itemIdx}`}
                                       options={itemProducts}

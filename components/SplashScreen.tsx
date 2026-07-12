@@ -165,7 +165,7 @@ export default function SplashScreen() {
             background: 'rgba(255,255,255,0.2)', borderRadius: '999px', overflow: 'hidden',
           }}>
             <div style={{
-              height: '100%', background: '#fff',
+              height: '100%', background: '#1c1c1c',
               borderRadius: '999px',
               animation: 'splashLoadBar 2s ease-in-out forwards 0.9s',
               width: '0%',

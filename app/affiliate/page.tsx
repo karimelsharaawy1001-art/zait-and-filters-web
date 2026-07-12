@@ -14,7 +14,7 @@ export default function AffiliateLanding() {
     <div style={container}>
       {/* تأثيرات CSS متقدمة للتفاعل */}
       <style dangerouslySetInnerHTML={{ __html: `
-        .hero-gradient { background: radial-gradient(circle at center, #1a472a 0%, #050505 100%); }
+        .hero-gradient { background: radial-gradient(circle at center, #7f1d1d 0%, #050505 100%); }
         .btn-glow:hover { box-shadow: 0 0 25px rgba(39, 174, 96, 0.6); transform: translateY(-3px); background: #2ecc71 !important; }
         .feature-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .feature-card:hover { border-color: #e50914 !important; background: rgba(39, 174, 96, 0.05) !important; transform: scale(1.02); }
@@ -100,7 +100,7 @@ export default function AffiliateLanding() {
       <section style={sectionPadding}>
         <div style={{textAlign: 'center', marginBottom: '60px'}}>
           <h2 style={sectionTitle}>كيف تبدأ بجني المال؟</h2>
-          <p style={{color: '#666'}}>ثلاث خطوات تفصلك عن first Commission في حسابك</p>
+          <p style={{color: '#9ca3af'}}>ثلاث خطوات تفصلك عن first Commission في حسابك</p>
         </div>
         
         <div style={stepsGrid}>
@@ -266,6 +266,6 @@ const cardText: any = { color: '#888', lineHeight: '1.7', fontSize: '1.05rem', m
 
 
 const ctaSection: any = { padding: '100px 20px', textAlign: 'center' };
-const ctaBox: any = { maxWidth: '1000px', margin: '0 auto', background: 'linear-gradient(145deg, #1a472a 0%, #e50914 100%)', padding: '80px 40px', borderRadius: '50px', position: 'relative', overflow: 'hidden', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' };
-const ctaBtn: any = { background: '#fff', color: '#1a472a', padding: '22px 60px', borderRadius: '20px', textDecoration: 'none', fontWeight: '950', fontSize: '1.3rem', display: 'inline-block', transition: '0.3s' };
+const ctaBox: any = { maxWidth: '1000px', margin: '0 auto', background: 'linear-gradient(145deg, #7f1d1d 0%, #e50914 100%)', padding: '80px 40px', borderRadius: '50px', position: 'relative', overflow: 'hidden', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' };
+const ctaBtn: any = { background: '#1c1c1c', color: '#7f1d1d', padding: '22px 60px', borderRadius: '20px', textDecoration: 'none', fontWeight: '950', fontSize: '1.3rem', display: 'inline-block', transition: '0.3s' };
 const bgGlow: any = { position: 'absolute', top: '50%', left: '50%', width: '500px', height: '500px', background: 'rgba(39, 174, 96, 0.1)', filter: 'blur(150px)', borderRadius: '50%', transform: 'translate(-50%, -50%)', pointerEvents: 'none' };

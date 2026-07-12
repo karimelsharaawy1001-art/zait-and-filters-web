@@ -61,7 +61,7 @@ export default function SubCategoriesPage() {
     <div style={{ direction: 'rtl', padding: '40px 20px', maxWidth: '1200px', margin: '0 auto', minHeight: '80vh', backgroundColor: '#fdfdfd' }}>
 
       {/* Breadcrumbs */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '30px', color: '#666', fontSize: '0.9rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '30px', color: '#9ca3af', fontSize: '0.9rem' }}>
         <Link href="/" style={{ color: '#e50914', textDecoration: 'none', fontWeight: 'bold' }}>الرئيسية</Link>
         <ChevronRight size={16} />
         <span style={{ fontWeight: '800' }}>{categoryName}</span>
@@ -109,8 +109,8 @@ export default function SubCategoriesPage() {
       )}
 
       {!loading && subCategories.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '100px 20px', background: '#fff', borderRadius: '20px', border: '1px solid #eee' }}>
-          <LayoutGrid size={60} color="#eee" style={{ marginBottom: '20px' }} />
+        <div style={{ textAlign: 'center', padding: '100px 20px', background: '#1c1c1c', borderRadius: '20px', border: '1px solid #2a2a2a' }}>
+          <LayoutGrid size={60} color="#2a2a2a" style={{ marginBottom: '20px' }} />
           <h3 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '10px' }}>لا توجد فئات فرعية</h3>
           <p style={{ color: '#888', marginBottom: '20px' }}>يمكنك تصفح جميع المنتجات في قسم {categoryName} مباشرة</p>
           <Link href={`/store?category=${encodeURIComponent(categoryName)}`}

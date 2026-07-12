@@ -81,7 +81,7 @@ export default function OrderInvoice({ order }: Props) {
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
-        backgroundColor: '#ffffff',
+        backgroundColor: '#1c1c1c',
         logging: false,
         // ✅ FIX 1: Ensure cloned document also has fonts ready
         onclone: (_clonedDoc) => document.fonts.ready,
@@ -146,8 +146,8 @@ export default function OrderInvoice({ order }: Props) {
           onClick={handlePrint}
           style={{
             display: 'flex', alignItems: 'center', gap: '8px',
-            padding: '11px 22px', backgroundColor: '#fff',
-            color: '#1a1a1a', border: '1.5px solid #ddd',
+            padding: '11px 22px', backgroundColor: '#1c1c1c',
+            color: '#f5f5f5', border: '1.5px solid #ddd',
             borderRadius: '12px', fontWeight: '700', fontSize: '0.9rem',
             cursor: 'pointer', transition: 'all 0.2s',
             fontFamily: "'Cairo', system-ui, sans-serif",
@@ -185,7 +185,7 @@ export default function OrderInvoice({ order }: Props) {
         style={{
           maxWidth: '800px',
           margin: '0 auto',
-          backgroundColor: '#fff',
+          backgroundColor: '#1c1c1c',
           borderRadius: '20px',
           overflow: 'hidden',
           boxShadow: '0 20px 60px rgba(0,0,0,0.12)',
@@ -270,7 +270,7 @@ export default function OrderInvoice({ order }: Props) {
                 {item.icon}
                 <span style={{ fontSize: '0.72rem', color: '#999', fontWeight: '700', letterSpacing: '0.5px' }}>{item.label}</span>
               </div>
-              <div style={{ fontSize: '0.95rem', fontWeight: '800', color: '#1a1a1a' }}>{item.value}</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: '800', color: '#f5f5f5' }}>{item.value}</div>
             </div>
           ))}
         </div>
@@ -291,17 +291,17 @@ export default function OrderInvoice({ order }: Props) {
                 <div style={{ width: '28px', height: '28px', borderRadius: '8px', backgroundColor: '#e50914', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <User size={14} color="#fff" />
                 </div>
-                <span style={{ fontSize: '0.75rem', fontWeight: '900', color: '#555', letterSpacing: '1px' }}>بيانات العميل</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: '900', color: '#9ca3af', letterSpacing: '1px' }}>بيانات العميل</span>
               </div>
-              <div style={{ fontSize: '1rem', fontWeight: '800', color: '#1a1a1a', marginBottom: '10px' }}>{order.customer_name}</div>
+              <div style={{ fontSize: '1rem', fontWeight: '800', color: '#f5f5f5', marginBottom: '10px' }}>{order.customer_name}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Phone size={13} color="#e50914" />
-                  <span style={{ fontSize: '0.85rem', color: '#555', fontWeight: '600', direction: 'ltr' }}>{order.customer_phone}</span>
+                  <span style={{ fontSize: '0.85rem', color: '#9ca3af', fontWeight: '600', direction: 'ltr' }}>{order.customer_phone}</span>
                 </div>
                 {order.customer_email && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '0.85rem', color: '#555', fontWeight: '600' }}>{order.customer_email}</span>
+                    <span style={{ fontSize: '0.85rem', color: '#9ca3af', fontWeight: '600' }}>{order.customer_email}</span>
                   </div>
                 )}
               </div>
@@ -313,19 +313,19 @@ export default function OrderInvoice({ order }: Props) {
               border: '1px solid #242424',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '8px', backgroundColor: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '8px', backgroundColor: '#1c1c1c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Truck size={14} color="#e50914" />
                 </div>
-                <span style={{ fontSize: '0.75rem', fontWeight: '900', color: '#555', letterSpacing: '1px' }}>عنوان التوصيل</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: '900', color: '#9ca3af', letterSpacing: '1px' }}>عنوان التوصيل</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                 <MapPin size={14} color="#e50914" style={{ marginTop: '3px', flexShrink: 0 }} />
-                <span style={{ fontSize: '0.9rem', color: '#1a1a1a', fontWeight: '700', lineHeight: '1.5' }}>{order.customer_address}</span>
+                <span style={{ fontSize: '0.9rem', color: '#f5f5f5', fontWeight: '700', lineHeight: '1.5' }}>{order.customer_address}</span>
               </div>
               {order.payment_method && (
                 <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #2a2a2a' }}>
                   <span style={{ fontSize: '0.75rem', color: '#999', fontWeight: '700' }}>طريقة الدفع: </span>
-                  <span style={{ fontSize: '0.85rem', color: '#1a1a1a', fontWeight: '800' }}>{order.payment_method}</span>
+                  <span style={{ fontSize: '0.85rem', color: '#f5f5f5', fontWeight: '800' }}>{order.payment_method}</span>
                 </div>
               )}
             </div>
@@ -333,7 +333,7 @@ export default function OrderInvoice({ order }: Props) {
 
           {/* ── ITEMS TABLE ── */}
           <div style={{ marginBottom: '30px' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: '900', color: '#555', letterSpacing: '1px', marginBottom: '14px' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: '900', color: '#9ca3af', letterSpacing: '1px', marginBottom: '14px' }}>
               تفاصيل المنتجات
             </div>
 
@@ -341,7 +341,7 @@ export default function OrderInvoice({ order }: Props) {
             <div style={{
               display: 'grid',
               gridTemplateColumns: '2.5fr 0.8fr 1fr 1fr',
-              backgroundColor: '#0f172a',
+              backgroundColor: '#1c1c1c',
               borderRadius: '10px 10px 0 0',
               padding: '12px 18px',
             }}>
@@ -373,7 +373,7 @@ export default function OrderInvoice({ order }: Props) {
               >
                 {/* ✅ FIX 2: Product name + brand + car make/model + country */}
                 <div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#1a1a1a', marginBottom: '3px' }}>
+                  <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#f5f5f5', marginBottom: '3px' }}>
                     {item.name}
                   </div>
                   {item.brand && (
@@ -412,18 +412,18 @@ export default function OrderInvoice({ order }: Props) {
                   </span>
                 </div>
                 {/* Unit price */}
-                <div style={{ textAlign: 'center', fontSize: '0.9rem', fontWeight: '700', color: '#444' }}>
+                <div style={{ textAlign: 'center', fontSize: '0.9rem', fontWeight: '700', color: '#cbd5e1' }}>
                   {item.price.toLocaleString('ar-EG')} ج.م
                 </div>
                 {/* Line total */}
-                <div style={{ textAlign: 'center', fontSize: '0.95rem', fontWeight: '900', color: '#1a1a1a' }}>
+                <div style={{ textAlign: 'center', fontSize: '0.95rem', fontWeight: '900', color: '#f5f5f5' }}>
                   {(item.price * item.quantity).toLocaleString('ar-EG')} ج.م
                 </div>
               </div>
             ))}
 
             {/* Table bottom border */}
-            <div style={{ height: '4px', backgroundColor: '#0f172a', borderRadius: '0 0 10px 10px' }} />
+            <div style={{ height: '4px', backgroundColor: '#1c1c1c', borderRadius: '0 0 10px 10px' }} />
           </div>
 
           {/* ── TOTALS ── */}
@@ -431,23 +431,23 @@ export default function OrderInvoice({ order }: Props) {
             <div style={{ width: '280px' }}>
               {/* Subtotal */}
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px dashed #2a2a2a' }}>
-                <span style={{ color: '#666', fontSize: '0.88rem', fontWeight: '700' }}>المجموع الجزئي</span>
-                <span style={{ color: '#1a1a1a', fontSize: '0.9rem', fontWeight: '800' }}>{subtotal.toLocaleString('ar-EG')} ج.م</span>
+                <span style={{ color: '#9ca3af', fontSize: '0.88rem', fontWeight: '700' }}>المجموع الجزئي</span>
+                <span style={{ color: '#f5f5f5', fontSize: '0.9rem', fontWeight: '800' }}>{subtotal.toLocaleString('ar-EG')} ج.م</span>
               </div>
 
               {/* Shipping */}
               {shipping > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px dashed #2a2a2a' }}>
-                  <span style={{ color: '#666', fontSize: '0.88rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ color: '#9ca3af', fontSize: '0.88rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Truck size={13} style={{ marginLeft: '4px', verticalAlign: 'middle' }} />
                     الشحن
                   </span>
-                  <span style={{ color: '#1a1a1a', fontSize: '0.9rem', fontWeight: '800' }}>{shipping.toLocaleString('ar-EG')} ج.م</span>
+                  <span style={{ color: '#f5f5f5', fontSize: '0.9rem', fontWeight: '800' }}>{shipping.toLocaleString('ar-EG')} ج.م</span>
                 </div>
               )}
               {shipping === 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px dashed #2a2a2a' }}>
-                  <span style={{ color: '#666', fontSize: '0.88rem', fontWeight: '700' }}>الشحن</span>
+                  <span style={{ color: '#9ca3af', fontSize: '0.88rem', fontWeight: '700' }}>الشحن</span>
                   <span style={{ color: '#e50914', fontSize: '0.88rem', fontWeight: '800' }}>مجاني</span>
                 </div>
               )}
@@ -455,7 +455,7 @@ export default function OrderInvoice({ order }: Props) {
               {/* Discount */}
               {discount > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px dashed #2a2a2a' }}>
-                  <span style={{ color: '#666', fontSize: '0.88rem', fontWeight: '700' }}>الخصم</span>
+                  <span style={{ color: '#9ca3af', fontSize: '0.88rem', fontWeight: '700' }}>الخصم</span>
                   <span style={{ color: '#ef4444', fontSize: '0.9rem', fontWeight: '800' }}>- {discount.toLocaleString('ar-EG')} ج.م</span>
                 </div>
               )}

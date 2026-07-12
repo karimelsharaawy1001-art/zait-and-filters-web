@@ -238,11 +238,11 @@ export default function SmartSearchBar({ placeholder = 'ابحث عن قطعة �
 
           {/* Footer hint */}
           <div style={{ padding: '7px 14px', background: '#161616', borderTop: '1px solid #1c1c1c', fontSize: '0.68rem', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <kbd style={{ background: '#2a2a2a', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', color: '#d1d5db', fontFamily: 'monospace' }}>↑↓</kbd>
+            <kbd style={{ background: '#2a2a2a', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', color: '#3a3a3a', fontFamily: 'monospace' }}>↑↓</kbd>
             للتنقل
-            <kbd style={{ background: '#2a2a2a', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', color: '#d1d5db', fontFamily: 'monospace' }}>Enter</kbd>
+            <kbd style={{ background: '#2a2a2a', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', color: '#3a3a3a', fontFamily: 'monospace' }}>Enter</kbd>
             للاختيار
-            <kbd style={{ background: '#2a2a2a', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', color: '#d1d5db', fontFamily: 'monospace' }}>Esc</kbd>
+            <kbd style={{ background: '#2a2a2a', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', color: '#3a3a3a', fontFamily: 'monospace' }}>Esc</kbd>
             إغلاق
           </div>
         </div>

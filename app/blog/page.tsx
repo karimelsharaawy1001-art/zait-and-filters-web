@@ -30,7 +30,7 @@ export default function BlogPage() {
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '50px' }}>
         <p style={{ color: '#b91c1c', fontWeight: '700', fontSize: '0.85rem', letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 10px' }}>المدونة</p>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: '900', color: '#1a1a1a', margin: '0 0 12px' }}>نصايح وعلوم عربيتك 🚗</h1>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: '900', color: '#f5f5f5', margin: '0 0 12px' }}>نصايح وعلوم عربيتك 🚗</h1>
         <p style={{ color: '#777', fontSize: '1rem', margin: 0 }}>كل حاجة محتاج تعرفها عن صيانة سيارتك</p>
       </div>
 
@@ -55,8 +55,8 @@ export default function BlogPage() {
                       ))}
                     </div>
                   )}
-                  <h2 style={{ fontSize: '1.15rem', fontWeight: '900', color: '#1a1a1a', margin: '0 0 10px', lineHeight: 1.5 }}>{post.title}</h2>
-                  {post.excerpt && <p style={{ color: '#666', fontSize: '0.9rem', lineHeight: 1.7, margin: '0 0 16px' }}>{post.excerpt}</p>}
+                  <h2 style={{ fontSize: '1.15rem', fontWeight: '900', color: '#f5f5f5', margin: '0 0 10px', lineHeight: 1.5 }}>{post.title}</h2>
+                  {post.excerpt && <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: 1.7, margin: '0 0 16px' }}>{post.excerpt}</p>}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: '0.78rem', color: '#aaa', display: 'flex', alignItems: 'center', gap: '5px' }}>
                       <Clock size={13} /> {new Date(post.created_at).toLocaleDateString('ar-EG')}
@@ -76,5 +76,5 @@ export default function BlogPage() {
 }
 
 const loaderStyle: any = { textAlign: 'center', padding: '100px', color: '#b91c1c', fontWeight: '900', fontSize: '1.3rem', direction: 'rtl' };
-const cardStyle: any = { background: '#fff', borderRadius: '20px', border: '1px solid #eee', overflow: 'hidden', transition: 'transform 0.2s, box-shadow 0.2s', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' };
+const cardStyle: any = { background: '#1c1c1c', borderRadius: '20px', border: '1px solid #2a2a2a', overflow: 'hidden', transition: 'transform 0.2s, box-shadow 0.2s', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' };
 const tagStyle: any = { display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#1a0d0d', color: '#b91c1c', padding: '3px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '700', border: '1px solid #2a0f10' };
