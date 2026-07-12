@@ -111,7 +111,7 @@ function CustomerTrackingBanner({ order }: { order: { tracking_number?: string |
               style={{
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 width: '28px', height: '28px',
-                background: copied ? '#1a0d0d' : '#f8faff',
+                background: copied ? '#1a0d0d' : '#161616',
                 border: copied ? '1px solid #ef4444' : '1px solid #2a2a2a',
                 borderRadius: '7px', cursor: 'pointer', flexShrink: 0,
                 transition: 'all 0.2s',

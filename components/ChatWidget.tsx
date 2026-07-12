@@ -293,7 +293,7 @@ export default function ChatWidget() {
                         </button>
                       ))}
                       <button onClick={() => { setOpen(false); openTawkTo(); }} className="z-faq-tile"
-                        style={{ borderColor:'#1e3a5f', color:'#1e3a5f', background:'#f8faff' }}>
+                        style={{ borderColor:'#1e3a5f', color:'#1e3a5f', background:'#161616' }}>
                         <Headphones size={12} style={{ marginLeft:'4px' }} /> خدمة العملاء
                       </button>
                     </div>

@@ -100,7 +100,7 @@ export default function ProductCard({ product, index }: { product: Product; inde
         {product.car_model && (
           <span style={{
             padding: '2px 9px', borderRadius: '6px',
-            background: '#faf5ff', color: '#a78bfa',
+            background: '#242424', color: '#a78bfa',
             fontSize: '0.78rem', fontWeight: '700',
           }}>
             {product.car_model}

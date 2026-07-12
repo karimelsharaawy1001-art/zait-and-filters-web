@@ -80,11 +80,11 @@ const CATEGORY_STYLES: Record<string, {
     icon: <Filter size={16} color="#fff" />,
   },
   'بوجيهات و سلوك بوجيهات و موبينة': {
-    bg: '#faf5ff', bgDisabled: '#fdf8ff',
+    bg: '#242424', bgDisabled: '#fdf8ff',
     border: '#e9d5ff', borderActive: '#8b5cf6',
     iconBg: '#8b5cf6', iconColor: '#fff',
     badge: '#242424', badgeText: '#4c1d95',
-    itemBg: '#faf5ff', itemBorder: '#e9d5ff',
+    itemBg: '#242424', itemBorder: '#e9d5ff',
     addBtnBorder: '#8b5cf6', addBtnColor: '#a78bfa', addBtnHover: '#242424',
     priceBg: '#242424',
     icon: <Zap size={16} color="#fff" />,

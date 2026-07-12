@@ -315,7 +315,7 @@ export default function ProfessionalAffiliateDashboard() {
           </div>
         </div>
         <div style={{ ...statCard, borderTop: '4px solid #8b5cf6' }} className="stat-card">
-          <div style={{ ...statIconContainer, background: '#f3e8ff' }}><Wallet size={28} color="#8b5cf6" /></div>
+          <div style={{ ...statIconContainer, background: '#242424' }}><Wallet size={28} color="#8b5cf6" /></div>
           <div style={statContent}>
             <p style={statLabel}>الرصيد المتاح</p>
             <h2 style={statValue}>{data?.balance?.toFixed(2) || '0.00'} ج.م</h2>
@@ -482,8 +482,8 @@ export default function ProfessionalAffiliateDashboard() {
 
 
 // Styles
-const container: any = { minHeight: '100vh', background: 'linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%)', padding: '40px 20px', direction: 'rtl' };
-const loaderContainer: any = { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f5f7fa' };
+const container: any = { minHeight: '100vh', background: 'linear-gradient(135deg, #161616 0%, #e8edf2 100%)', padding: '40px 20px', direction: 'rtl' };
+const loaderContainer: any = { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#161616' };
 const header: any = { maxWidth: '1400px', margin: '0 auto 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' };
 const mainTitle: any = { fontSize: '2.5rem', fontWeight: '900', color: '#e5e7eb', margin: 0, letterSpacing: '-0.5px' };
 const subtitle: any = { color: '#64748b', fontSize: '1.05rem', marginTop: '5px' };

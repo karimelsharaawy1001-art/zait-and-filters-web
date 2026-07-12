@@ -127,7 +127,7 @@ const sectionWrapper: any = { padding: '40px 20px', maxWidth: '1200px', margin: 
 const headerRow: any = { marginBottom: '25px', textAlign: 'right' };
 const sectionTitle: any = { fontSize: '1.6rem', fontWeight: '900', color: '#f5f5f5', margin: 0 };
 const subTitle: any = { color: '#777', fontSize: '0.9rem', marginTop: '5px' };
-const fireIconBox: any = { background: '#fff1f1', padding: '8px', borderRadius: '12px' };
+const fireIconBox: any = { background: '#2a0f10', padding: '8px', borderRadius: '12px' };
 
 const productCard: any = { background: '#1c1c1c', borderRadius: '20px', border: '1px solid #242424', overflow: 'hidden', height: '100%', boxShadow: '0 5px 15px rgba(0,0,0,0.02)' };
 const imgStyle: any = { maxWidth: '85%', maxHeight: '85%', objectFit: 'contain' };
