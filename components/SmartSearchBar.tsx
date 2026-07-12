@@ -133,7 +133,7 @@ export default function SmartSearchBar({ placeholder = 'ابحث عن قطعة �
           dir="rtl"
           style={{
             flex: 1, border: 'none', outline: 'none', background: 'transparent',
-            fontSize: compact ? '0.88rem' : '1rem', color: '#1c1c1c', direction: 'rtl',
+            fontSize: compact ? '0.88rem' : '1rem', color: '#f5f5f5', direction: 'rtl',
             fontFamily: 'inherit',
           }}
         />

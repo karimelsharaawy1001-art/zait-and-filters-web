@@ -99,7 +99,7 @@ function CustomerTrackingBanner({ order }: { order: { tracking_number?: string |
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{
-              fontWeight: '900', fontSize: '0.95rem', color: '#1c1c1c',
+              fontWeight: '900', fontSize: '0.95rem', color: '#f5f5f5',
               fontFamily: 'monospace', letterSpacing: '1.5px',
             }}>
               {order.tracking_number}
@@ -399,7 +399,7 @@ export default function ProfilePage() {
         }}>
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '900', color: '#1c1c1c', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '900', color: '#f5f5f5', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <RotateCcw size={20} color="#e50914" /> طلب استرجاع
             </h3>
             <button onClick={onClose} style={{
@@ -426,7 +426,7 @@ export default function ProfilePage() {
 
           {/* Items Selection */}
           <div style={{ marginBottom: '16px' }}>
-            <div style={{ fontSize: '0.82rem', fontWeight: '800', color: '#1c1c1c', marginBottom: '10px' }}>
+            <div style={{ fontSize: '0.82rem', fontWeight: '800', color: '#f5f5f5', marginBottom: '10px' }}>
               اختر المنتجات المراد استرجاعها:
             </div>
             {selectedItems.map((item: any, i: number) => (
@@ -446,7 +446,7 @@ export default function ProfilePage() {
                   style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'contain', background: '#1c1c1c', flexShrink: 0 }}
                 />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#1c1c1c', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#f5f5f5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {item.name}
                   </div>
                   <div style={{ fontSize: '0.72rem', color: '#e50914', fontWeight: '700' }}>
@@ -486,7 +486,7 @@ export default function ProfilePage() {
 
           {/* Reason */}
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '800', color: '#1c1c1c', marginBottom: '8px' }}>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '800', color: '#f5f5f5', marginBottom: '8px' }}>
               سبب الاسترجاع <span style={{ color: '#ef4444' }}>*</span>
             </label>
             <textarea
@@ -536,8 +536,8 @@ export default function ProfilePage() {
   }
 
   const customSelectStyles = {
-    control: (base: any) => ({ ...base, height: '48px', borderRadius: '12px', border: '1px solid #242424', background: '#fdfdfd', textAlign: 'right', display: 'flex', flexDirection: 'row-reverse' }),
-    option: (base: any, state: any) => ({ ...base, padding: '10px 15px', backgroundColor: state.isFocused ? '#1a0d0d' : '#fff', color: '#1c1c1c', cursor: 'pointer', textAlign: 'right' }),
+    control: (base: any) => ({ ...base, height: '48px', borderRadius: '12px', border: '1px solid #242424', background: '#161616', textAlign: 'right', display: 'flex', flexDirection: 'row-reverse' }),
+    option: (base: any, state: any) => ({ ...base, padding: '10px 15px', backgroundColor: state.isFocused ? '#1a0d0d' : '#fff', color: '#f5f5f5', cursor: 'pointer', textAlign: 'right' }),
     valueContainer: (base: any) => ({ ...base, display: 'flex', flexDirection: 'row-reverse' }),
     singleValue: (base: any) => ({ ...base, display: 'flex', flexDirection: 'row-reverse' })
   };
@@ -558,11 +558,11 @@ export default function ProfilePage() {
           </div>
         </div>
         <div style={headerStatsRow}>
-          <div style={headerStatItem}><strong style={{ fontSize: '1.3rem', color: '#1c1c1c' }}>{orders.length}</strong><span style={{ fontSize: '0.7rem', color: '#999' }}>طلبات</span></div>
+          <div style={headerStatItem}><strong style={{ fontSize: '1.3rem', color: '#f5f5f5' }}>{orders.length}</strong><span style={{ fontSize: '0.7rem', color: '#999' }}>طلبات</span></div>
           <div style={headerDivider} />
-          <div style={headerStatItem}><strong style={{ fontSize: '1.3rem', color: '#1c1c1c' }}>{myCars.length}</strong><span style={{ fontSize: '0.7rem', color: '#999' }}>سيارات</span></div>
+          <div style={headerStatItem}><strong style={{ fontSize: '1.3rem', color: '#f5f5f5' }}>{myCars.length}</strong><span style={{ fontSize: '0.7rem', color: '#999' }}>سيارات</span></div>
           <div style={headerDivider} />
-          <div style={headerStatItem}><strong style={{ fontSize: '1.3rem', color: '#1c1c1c' }}>{myAddresses.length}</strong><span style={{ fontSize: '0.7rem', color: '#999' }}>عناوين</span></div>
+          <div style={headerStatItem}><strong style={{ fontSize: '1.3rem', color: '#f5f5f5' }}>{myAddresses.length}</strong><span style={{ fontSize: '0.7rem', color: '#999' }}>عناوين</span></div>
         </div>
       </div>
 
@@ -821,7 +821,7 @@ export default function ProfilePage() {
                 marginBottom: '8px', border: '1px solid #242424',
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#1c1c1c' }}>
+                  <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#f5f5f5' }}>
                     طلب رقم #{req.id?.slice(0, 8).toUpperCase()}
                   </span>
                   <span style={{ fontSize: '0.7rem', fontWeight: '900', padding: '4px 10px', borderRadius: '8px', background: sc.bg, color: sc.color }}>
@@ -883,7 +883,7 @@ const container: any = { padding: '20px 16px 40px', maxWidth: '1100px', margin: 
 const headerCard: any = { background: 'linear-gradient(135deg, #fff 60%, #1a0d0d)', borderRadius: '24px', padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', border: '1px solid #2a0f10', boxShadow: '0 4px 24px rgba(34,197,94,0.07)' };
 const profileInfoWrap: any = { display: 'flex', alignItems: 'center', gap: '14px' };
 const avatarWrap: any = { width: '60px', height: '60px', borderRadius: '18px', background: '#1a0d0d', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #7f1d1d', flexShrink: 0 };
-const titleName: any = { fontSize: '1.1rem', fontWeight: '900', color: '#1c1c1c', marginBottom: '3px' };
+const titleName: any = { fontSize: '1.1rem', fontWeight: '900', color: '#f5f5f5', marginBottom: '3px' };
 const emailText: any = { fontSize: '0.78rem', color: '#999', wordBreak: 'break-all' };
 const headerStatsRow: any = { display: 'flex', gap: '14px', alignItems: 'center', flexShrink: 0 };
 const headerStatItem: any = { textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '40px' };
@@ -909,7 +909,7 @@ const tabBar: any = { display: 'flex', gap: '8px', marginBottom: '16px', backgro
 const tabBtn = (active: boolean): any => ({ flex: 1, padding: '10px 6px', borderRadius: '12px', border: 'none', background: active ? '#1a0d0d' : 'transparent', color: active ? '#dc2626' : '#999', fontWeight: active ? '900' : '600', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', transition: '0.2s' });
 const gridSplit: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: '20px' };
 const mainCard: any = { background: '#1c1c1c', borderRadius: '24px', padding: '18px', marginBottom: '20px', border: '1px solid #242424', boxShadow: '0 2px 12px rgba(0,0,0,0.02)', width: '100%', boxSizing: 'border-box' as const };
-const compactSectionTitle: any = { fontSize: '0.95rem', fontWeight: '900', color: '#1c1c1c', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' };
+const compactSectionTitle: any = { fontSize: '0.95rem', fontWeight: '900', color: '#f5f5f5', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' };
 const sectionTopRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' };
 const miniOrderHeader: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '13px 15px', cursor: 'pointer' };
 
@@ -938,15 +938,15 @@ const statusBadge = (bg: string, color: string): any => ({ fontSize: '0.65rem', 
 const orderList: any = { display: 'flex', flexDirection: 'column' };
 const orderMeta: any = { display: 'flex', gap: '8px', alignItems: 'center' };
 const dateText: any = { fontSize: '0.72rem', color: '#ccc' };
-const priceText: any = { fontSize: '0.95rem', fontWeight: '900', color: '#1c1c1c' };
+const priceText: any = { fontSize: '0.95rem', fontWeight: '900', color: '#f5f5f5' };
 const orderBody: any = { padding: '12px 15px', background: '#161616', borderTop: '1px solid #1c1c1c' };
 const miniItemRow: any = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' };
 const miniItemImg: any = { width: '38px', height: '38px', borderRadius: '10px', objectFit: 'cover' as const, flexShrink: 0 };
 const miniItemName: any = { fontSize: '0.8rem', fontWeight: '700', color: '#3a3a3a' };
-const miniItemPrice: any = { fontSize: '0.8rem', fontWeight: '800', color: '#1c1c1c', whiteSpace: 'nowrap' };
+const miniItemPrice: any = { fontSize: '0.8rem', fontWeight: '800', color: '#f5f5f5', whiteSpace: 'nowrap' };
 const compactForm: any = { display: 'flex', flexDirection: 'column', gap: '10px' };
 const inputLabel: any = { fontSize: '0.78rem', fontWeight: '700', color: '#888', marginBottom: '-4px' };
-const compactInp: any = { width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1px solid #242424', background: '#fdfdfd', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' as const };
+const compactInp: any = { width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1px solid #242424', background: '#161616', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' as const };
 const compactArea: any = { ...compactInp, height: '70px', resize: 'none' as const };
 const saveActionBtn: any = { padding: '12px', background: '#1c1c1c', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem', marginTop: '4px', width: '100%' };
 const miniAddBtn: any = { width: '32px', height: '32px', borderRadius: '10px', background: '#1a0d0d', color: '#e50914', border: '1px solid #7f1d1d', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '900' };
@@ -956,7 +956,7 @@ const compactSaveBtn: any = { width: '100%', padding: '11px', background: '#e509
 const addressList: any = { display: 'flex', flexDirection: 'column', gap: '10px' };
 const addressCard: any = { padding: '12px', border: '1px solid #242424', borderRadius: '14px', display: 'flex', alignItems: 'center', gap: '10px', background: '#161616' };
 const addrIconWrap: any = { width: '34px', height: '34px', borderRadius: '10px', background: '#1a0d0d', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
-const addrName: any = { fontSize: '0.85rem', fontWeight: '900', color: '#1c1c1c' };
+const addrName: any = { fontSize: '0.85rem', fontWeight: '900', color: '#f5f5f5' };
 const addrFull: any = { fontSize: '0.73rem', color: '#aaa', marginTop: '2px' };
 const addrDelBtn: any = { color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', flexShrink: 0 };
 const elegantLogout: any = { width: '100%', padding: '14px', background: 'none', border: '1px solid #2a0f10', color: '#ef4444', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: '900', fontSize: '0.9rem', cursor: 'pointer', marginTop: '8px' };

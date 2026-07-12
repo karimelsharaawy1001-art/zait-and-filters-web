@@ -58,7 +58,7 @@ export default function SubCategoriesPage() {
   }, [categoryName]);
 
   return (
-    <div style={{ direction: 'rtl', padding: '40px 20px', maxWidth: '1200px', margin: '0 auto', minHeight: '80vh', backgroundColor: '#fdfdfd' }}>
+    <div style={{ direction: 'rtl', padding: '40px 20px', maxWidth: '1200px', margin: '0 auto', minHeight: '80vh', backgroundColor: '#161616' }}>
 
       {/* Breadcrumbs */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '30px', color: '#9ca3af', fontSize: '0.9rem' }}>

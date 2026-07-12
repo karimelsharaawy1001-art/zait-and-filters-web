@@ -110,7 +110,7 @@ export default function MyOrdersPage() {
 // --- التنسيقات (متوافقة مع تصميم زيت أند فلترز) ---
 const container: any = { padding: '40px 20px', maxWidth: '800px', margin: '0 auto', direction: 'rtl', minHeight: '80vh' };
 const heroSection: any = { textAlign: 'center', marginBottom: '50px' };
-const mainTitle: any = { fontSize: '2.5rem', fontWeight: '900', color: '#1c1c1c', marginBottom: '10px' };
+const mainTitle: any = { fontSize: '2.5rem', fontWeight: '900', color: '#f5f5f5', marginBottom: '10px' };
 const subTitle: any = { color: '#9ca3af', fontSize: '1.1rem' };
 const searchBox: any = { display: 'flex', gap: '10px', maxWidth: '500px', margin: '30px auto 0' };
 const searchInput: any = { flex: 1, padding: '15px 20px', borderRadius: '15px', border: '2px solid #2a2a2a', fontSize: '1.1rem', outline: 'none' };
@@ -127,6 +127,6 @@ const paymentSummary: any = { marginTop: '10px', padding: '15px', background: '#
 const proofLink: any = { color: '#2ecc71', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 'bold' };
 const cardFooter: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #2a2a2a', paddingTop: '20px' };
 const totalLabel: any = { color: '#777', fontWeight: 'bold' };
-const totalAmount: any = { fontSize: '1.5rem', fontWeight: '900', color: '#1c1c1c' };
+const totalAmount: any = { fontSize: '1.5rem', fontWeight: '900', color: '#f5f5f5' };
 const emptyState: any = { textAlign: 'center', padding: '50px', color: '#999' };
 const centerStyle: any = { display: 'flex', justifyContent: 'center', padding: '50px' };

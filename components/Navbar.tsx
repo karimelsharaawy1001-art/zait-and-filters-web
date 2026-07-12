@@ -265,7 +265,7 @@ export default function ProfessionalNavbar() {
               style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 3001, background: '#161616', padding: '14px 16px', borderRadius: '0 0 20px 20px', boxShadow: '0 8px 30px rgba(0,0,0,0.15)', direction: 'rtl' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                <span style={{ fontWeight: '900', fontSize: '0.95rem', color: '#1c1c1c' }}>البحث الذكي</span>
+                <span style={{ fontWeight: '900', fontSize: '0.95rem', color: '#f5f5f5' }}>البحث الذكي</span>
                 <button onClick={() => setMobileSearchOpen(false)} style={{ marginRight: 'auto', background: '#1c1c1c', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <X size={16} color="#9ca3af" />
                 </button>
@@ -291,7 +291,7 @@ export default function ProfessionalNavbar() {
           </button>
 
           <Link href="/" style={logoStyle} className="logo-text">
-            ZAIT <span style={{ color: '#e50914' }}>& FILTERS</span>
+            ZAIT <span style={{ color: '#22c55e' }}>& FILTERS</span>
           </Link>
 
           {/* ── Smart Search bar (desktop) ── */}
@@ -415,7 +415,7 @@ const logoStyle: any = {
   fontWeight: '900',
   fontStyle: 'italic',
   textDecoration: 'none',
-  color: '#1c1c1c',
+  color: '#f5f5f5',
   letterSpacing: '-1.5px',
   flexShrink: 0,
   textTransform: 'uppercase',
@@ -438,7 +438,7 @@ const iconGroup: any = {
 const iconBtn: any = {
   background: 'none',
   border: 'none',
-  color: '#1c1c1c',
+  color: '#f5f5f5',
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
@@ -543,7 +543,7 @@ const sidebarFooter: any = {
 const closeBtn: any = {
   background: 'none',
   border: 'none',
-  color: '#1c1c1c',
+  color: '#f5f5f5',
   cursor: 'pointer',
 };
 const garageToggleBtn: any = {

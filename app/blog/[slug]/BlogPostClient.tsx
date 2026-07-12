@@ -30,7 +30,7 @@ export default function BlogPostPage() {
   if (!post) return <div style={loaderStyle}>المقال مش موجود 😕</div>;
 
   return (
-    <div style={{ direction: 'rtl', background: '#f8f9fa', minHeight: '100vh', padding: '40px 20px' }}>
+    <div style={{ direction: 'rtl', background: '#161616', minHeight: '100vh', padding: '40px 20px' }}>
       <div style={{ maxWidth: '780px', margin: '0 auto' }}>
         <Link href="/blog" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#b91c1c', fontWeight: '700', textDecoration: 'none', marginBottom: '30px', fontSize: '0.9rem' }}>
           <ArrowRight size={16} /> العودة للمدونة

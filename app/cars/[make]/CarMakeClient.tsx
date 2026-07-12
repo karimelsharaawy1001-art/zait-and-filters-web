@@ -361,7 +361,7 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
                 };
                 return (
                   <Link key={m} href={`/cars/${m.toLowerCase()}`}
-                    style={{ background: '#161616', border: '1px solid #2a2a2a', borderRadius: '10px', padding: '8px 16px', fontSize: '0.82rem', fontWeight: '700', color: '#334155', textDecoration: 'none' }}>
+                    style={{ background: '#161616', border: '1px solid #2a2a2a', borderRadius: '10px', padding: '8px 16px', fontSize: '0.82rem', fontWeight: '700', color: '#cbd5e1', textDecoration: 'none' }}>
                     قطع غيار {AR[m] || m}
                   </Link>
                 );

@@ -85,7 +85,7 @@ function ReviewCard({ r }: { r: typeof ALL_REVIEWS[0] }) {
       direction: 'rtl',
     }}>
       <StarRow rating={r.rating} />
-      <p style={{ fontSize: '0.88rem', color: '#334155', lineHeight: '1.6', fontWeight: '600', margin: 0, flex: 1 }}>
+      <p style={{ fontSize: '0.88rem', color: '#cbd5e1', lineHeight: '1.6', fontWeight: '600', margin: 0, flex: 1 }}>
         "{r.text}"
       </p>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -93,7 +93,7 @@ function ReviewCard({ r }: { r: typeof ALL_REVIEWS[0] }) {
           {initials(r.name)}
         </div>
         <div>
-          <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#1c1c1c', lineHeight: 1.2 }}>{r.name}</div>
+          <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#f5f5f5', lineHeight: 1.2 }}>{r.name}</div>
           <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '600', marginTop: '1px' }}>عميل موثق ✓</div>
         </div>
       </div>
@@ -676,7 +676,7 @@ export default function HomePage() {
 
   const customSelectStyles = {
     control: (base: any) => ({ ...base, height: '52px', borderRadius: '12px', border: 'none', backgroundColor: '#f8f8f8', fontSize: '1rem', textAlign: 'right', display: 'flex', flexDirection: 'row-reverse', cursor: 'pointer' }),
-    option: (base: any, state: any) => ({ ...base, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', flexDirection: 'row-reverse', gap: '8px', padding: '10px 15px', fontSize: '0.95rem', backgroundColor: state.isFocused ? '#1a0d0d' : '#fff', color: '#1c1c1c', cursor: 'pointer' }),
+    option: (base: any, state: any) => ({ ...base, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', flexDirection: 'row-reverse', gap: '8px', padding: '10px 15px', fontSize: '0.95rem', backgroundColor: state.isFocused ? '#1a0d0d' : '#fff', color: '#f5f5f5', cursor: 'pointer' }),
     singleValue: (base: any) => ({ ...base, display: 'flex', alignItems: 'center', gap: '8px', flexDirection: 'row-reverse' }),
     valueContainer: (base: any) => ({ ...base, padding: '0 12px', display: 'flex', flexDirection: 'row-reverse' }),
     menu: (base: any) => ({ ...base, zIndex: 10000 }),
@@ -713,7 +713,7 @@ export default function HomePage() {
     <>
       <StructuredData />
 
-      <div style={{ direction: 'rtl', backgroundColor: '#fdfdfd', color: '#1c1c1c', minHeight: '100vh', fontSize: '13px' }}>
+      <div style={{ direction: 'rtl', backgroundColor: '#161616', color: '#f5f5f5', minHeight: '100vh', fontSize: '13px' }}>
 
         {loading && (
           <m.div initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }} style={fullPageLoaderStyle}>
@@ -788,7 +788,7 @@ export default function HomePage() {
             .hero-text p { font-size: 1.45rem !important; font-weight: 700 !important; line-height: 1.7 !important; color: #fff !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 16px rgba(0,0,0,0.95) !important; margin: 0 0 36px 0 !important; max-width: 580px !important; display: block !important; width: 100% !important; }
             .hero-cta-btn { display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 12px !important; padding: 20px 56px !important; background-color: #e50914 !important; color: #fff !important; border-radius: 18px !important; text-decoration: none !important; font-weight: 900 !important; font-size: 1.35rem !important; letter-spacing: -0.3px !important; box-shadow: 0 10px 40px rgba(34,197,94,0.55) !important; transition: all 0.25s ease !important; white-space: nowrap !important; align-self: flex-end !important; }
             .hero-cta-btn:hover { background-color: #dc2626 !important; transform: translateY(-3px) !important; box-shadow: 0 16px 50px rgba(34,197,94,0.65) !important; }
-            .hero-card-desktop { width: 400px; flex-shrink: 0; background: #1c1c1c; padding: 30px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.35); animation: slideUp 0.6s ease-out 0.25s both; align-self: center; }
+            .hero-card-desktop { width: 400px; flex-shrink: 0; background: #1c1c1c; color: #f5f5f5; padding: 30px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.35); animation: slideUp 0.6s ease-out 0.25s both; align-self: center; }
             .hero-card-mobile { display: none; }
           }
 
@@ -802,7 +802,7 @@ export default function HomePage() {
             .hero-text p { font-size: 1rem !important; font-weight: 700 !important; line-height: 1.55 !important; color: #fff !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 14px rgba(0,0,0,0.98) !important; margin: 0 0 16px 0 !important; width: 100% !important; display: block !important; }
             .hero-cta-btn { display: flex !important; align-items: center !important; justify-content: center !important; gap: 10px !important; width: 100% !important; padding: 16px 24px !important; background-color: #e50914 !important; color: #fff !important; border-radius: 16px !important; text-decoration: none !important; font-weight: 900 !important; font-size: 1.1rem !important; box-shadow: 0 8px 28px rgba(34,197,94,0.45) !important; }
             .hero-card-desktop { display: none; }
-            .hero-card-mobile { width: 100%; box-sizing: border-box; background: #1c1c1c; padding: 16px 16px 18px; border-radius: 22px; box-shadow: 0 12px 36px rgba(0,0,0,0.3); }
+            .hero-card-mobile { width: 100%; box-sizing: border-box; background: #1c1c1c; color: #f5f5f5; padding: 16px 16px 18px; border-radius: 22px; box-shadow: 0 12px 36px rgba(0,0,0,0.3); }
           }
 
           @media (max-width: 380px) {
@@ -1046,13 +1046,13 @@ export default function HomePage() {
 
             {/* ══ CUSTOMER REVIEWS ════════════════════════════════════════════ */}
             <ScrollReveal direction="up" delay={0.06}>
-              <section style={{ background: '#fafcff', padding: '52px 0 56px', borderBottom: '1px solid #242424' }}>
+              <section style={{ background: '#0a0a0a', padding: '52px 0 56px', borderBottom: '1px solid #242424' }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
                   <div style={{ textAlign: 'center', marginBottom: '38px' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#1a0d0d', border: '1px solid #7f1d1d', borderRadius: '20px', padding: '6px 18px', marginBottom: '14px' }}>
                       <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#dc2626', letterSpacing: '0.05em' }}>⭐ آراء عملاؤنا</span>
                     </div>
-                    <h2 style={{ fontSize: '2.1rem', fontWeight: '900', color: '#1c1c1c', margin: '0 0 8px', letterSpacing: '-0.5px' }}>
+                    <h2 style={{ fontSize: '2.1rem', fontWeight: '900', color: '#f5f5f5', margin: '0 0 8px', letterSpacing: '-0.5px' }}>
                       بيثقوا فينا ليه؟
                     </h2>
                     <p style={{ color: '#64748b', fontSize: '1rem', fontWeight: '600', margin: 0 }}>

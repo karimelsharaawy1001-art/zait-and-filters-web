@@ -205,7 +205,7 @@ export default async function CarsHubPage() {
 
           {/* SEO text */}
           <div style={{ background: '#1c1c1c', border: '1px solid #242424', borderRadius: '20px', padding: '28px', margin: '40px 20px 0' }}>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: '900', color: '#1c1c1c', margin: '0 0 12px' }}>
+            <h2 style={{ fontSize: '1.05rem', fontWeight: '900', color: '#f5f5f5', margin: '0 0 12px' }}>
               قطع غيار السيارات الأصلية في مصر — زيت أند فلترز
             </h2>
             <p style={{ color: '#94a3b8', fontSize: '0.88rem', lineHeight: 1.8, margin: 0 }}>

@@ -48,7 +48,7 @@ export default function CartDrawer() {
             <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid #242424', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <ShoppingBag size={20} color="#e50914" />
-                <span style={{ fontWeight: '900', fontSize: '1.05rem', color: '#1c1c1c' }}>سلتك</span>
+                <span style={{ fontWeight: '900', fontSize: '1.05rem', color: '#f5f5f5' }}>سلتك</span>
                 {totalQty > 0 && (
                   <span style={{ background: '#1a0d0d', color: '#b91c1c', borderRadius: '20px', padding: '2px 10px', fontSize: '0.75rem', fontWeight: '800', border: '1px solid #7f1d1d' }}>
                     {totalQty} قطعة
@@ -107,7 +107,7 @@ export default function CartDrawer() {
                               <Trash2 size={13} />
                             </button>
                           </div>
-                          <p style={{ margin: '0 0 4px', fontSize: '0.85rem', fontWeight: '800', color: '#1c1c1c', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const }}>
+                          <p style={{ margin: '0 0 4px', fontSize: '0.85rem', fontWeight: '800', color: '#f5f5f5', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const }}>
                             {item.name}
                           </p>
                           {!isUniversal && compatText && (
@@ -116,7 +116,7 @@ export default function CartDrawer() {
                             </span>
                           )}
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px' }}>
-                            <span style={{ fontSize: '0.95rem', fontWeight: '900', color: '#1c1c1c' }}>{(price * item.quantity).toFixed(2)} ج.م</span>
+                            <span style={{ fontSize: '0.95rem', fontWeight: '900', color: '#f5f5f5' }}>{(price * item.quantity).toFixed(2)} ج.م</span>
                             {/* Qty stepper */}
                             <div style={{ display: 'flex', alignItems: 'center', background: '#161616', border: '1px solid #2a2a2a', borderRadius: '10px', overflow: 'hidden' }}>
                               <button onClick={() => addToCart(item, 1)} style={{ width: '28px', height: '28px', border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}><Plus size={12} /></button>
@@ -138,7 +138,7 @@ export default function CartDrawer() {
                 {/* Total */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                   <span style={{ fontWeight: '700', color: '#64748b', fontSize: '0.88rem' }}>الإجمالي</span>
-                  <span style={{ fontSize: '1.3rem', fontWeight: '900', color: '#1c1c1c' }}>{getCartTotal().toFixed(2)} <small style={{ fontSize: '0.75rem' }}>ج.م</small></span>
+                  <span style={{ fontSize: '1.3rem', fontWeight: '900', color: '#f5f5f5' }}>{getCartTotal().toFixed(2)} <small style={{ fontSize: '0.75rem' }}>ج.م</small></span>
                 </div>
                 {/* CTA */}
                 <Link href="/checkout" onClick={() => setOpen(false)}

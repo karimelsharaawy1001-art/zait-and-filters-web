@@ -125,7 +125,7 @@ export default function BestSellers() {
 // --- التنسيقات (نفس روح الكاروسيل بتاع العروض) ---
 const sectionWrapper: any = { padding: '40px 20px', maxWidth: '1200px', margin: '0 auto', direction: 'rtl' };
 const headerRow: any = { marginBottom: '25px', textAlign: 'right' };
-const sectionTitle: any = { fontSize: '1.6rem', fontWeight: '900', color: '#1c1c1c', margin: 0 };
+const sectionTitle: any = { fontSize: '1.6rem', fontWeight: '900', color: '#f5f5f5', margin: 0 };
 const subTitle: any = { color: '#777', fontSize: '0.9rem', marginTop: '5px' };
 const fireIconBox: any = { background: '#fff1f1', padding: '8px', borderRadius: '12px' };
 
@@ -137,5 +137,5 @@ const contentArea: any = { padding: '15px', textAlign: 'right' };
 const brandText: any = { color: '#e50914', fontSize: '0.75rem', fontWeight: 'bold' };
 const prodName: any = { fontSize: '0.95rem', fontWeight: '800', margin: '8px 0', height: '40px', overflow: 'hidden', color: '#3a3a3a' };
 const priceRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' };
-const priceText: any = { fontSize: '1.1rem', fontWeight: '900', color: '#1c1c1c' };
+const priceText: any = { fontSize: '1.1rem', fontWeight: '900', color: '#f5f5f5' };
 const cartBtn: any = { background: '#1c1c1c', color: '#fff', border: 'none', padding: '8px', borderRadius: '10px', cursor: 'pointer' };

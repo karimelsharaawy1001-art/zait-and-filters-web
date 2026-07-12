@@ -25,7 +25,7 @@ export default function BlogPage() {
   if (loading) return <div style={loaderStyle}>جاري التحميل...</div>;
 
   return (
-    <div style={{ direction: 'rtl', maxWidth: '1100px', margin: '0 auto', padding: '50px 20px', background: '#f8f9fa', minHeight: '100vh' }}>
+    <div style={{ direction: 'rtl', maxWidth: '1100px', margin: '0 auto', padding: '50px 20px', background: '#161616', minHeight: '100vh' }}>
 
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '50px' }}>

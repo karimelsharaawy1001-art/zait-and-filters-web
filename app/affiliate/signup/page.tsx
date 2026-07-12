@@ -225,7 +225,7 @@ export default function AffiliateSignup() {
 
 
 // Styles
-const container: any = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', padding: '20px', direction: 'rtl' };
+const container: any = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #161616 0%, #e9ecef 100%)', padding: '20px', direction: 'rtl' };
 const card: any = { background: '#1c1c1c', padding: '40px', borderRadius: '30px', maxWidth: '500px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' };
 const header: any = { textAlign: 'center', marginBottom: '35px' };
 const title: any = { fontSize: '2rem', fontWeight: '900', color: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', margin: 0 };

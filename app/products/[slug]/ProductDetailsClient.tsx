@@ -103,7 +103,7 @@ function ReviewsSection({ productId }: { productId: string }) {
       style={{ background: '#1c1c1c', borderRadius: '24px', padding: '24px', marginBottom: '20px', border: '1px solid #242424', direction: 'rtl' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: '900', margin: 0, color: '#1c1c1c' }}>تقييمات العملاء</h2>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: '900', margin: 0, color: '#f5f5f5' }}>تقييمات العملاء</h2>
           {reviews.length > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#1c1c1c', border: '1px solid #7f1d1d', borderRadius: '20px', padding: '4px 12px' }}>
               <StarDisplay rating={Math.round(avgRating)} />
@@ -128,7 +128,7 @@ function ReviewsSection({ productId }: { productId: string }) {
         {showForm && (
           <m.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
             style={{ background: '#161616', border: '1px solid #2a2a2a', borderRadius: '16px', padding: '22px', marginBottom: '24px', overflow: 'hidden' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: '800', margin: '0 0 16px', color: '#1c1c1c' }}>أضف تقييمك</h3>
+            <h3 style={{ fontSize: '1rem', fontWeight: '800', margin: '0 0 16px', color: '#f5f5f5' }}>أضف تقييمك</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#3a3a3a', marginBottom: '6px' }}>الاسم *</label>
@@ -179,7 +179,7 @@ function ReviewsSection({ productId }: { productId: string }) {
                     <User size={18} color="#fff" />
                   </div>
                   <div>
-                    <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#1c1c1c' }}>{r.customer_name}</div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#f5f5f5' }}>{r.customer_name}</div>
                     <StarDisplay rating={r.rating} />
                   </div>
                 </div>
@@ -187,7 +187,7 @@ function ReviewsSection({ productId }: { productId: string }) {
                   {new Date(r.created_at).toLocaleDateString('ar-EG', { day: '2-digit', month: 'short', year: 'numeric' })}
                 </span>
               </div>
-              <p style={{ fontSize: '0.9rem', color: '#334155', lineHeight: '1.65', margin: 0 }}>{r.comment}</p>
+              <p style={{ fontSize: '0.9rem', color: '#cbd5e1', lineHeight: '1.65', margin: 0 }}>{r.comment}</p>
             </m.div>
           ))}
         </m.div>
@@ -221,7 +221,7 @@ function ShareButtons({ productName, productBrand, price, carMake, carModel, pro
   const btnStyle = (bg: string): React.CSSProperties => ({ display: 'flex', alignItems: 'center', gap: '9px', padding: '9px 12px', backgroundColor: bg, color: '#fff', borderRadius: '10px', textDecoration: 'none', fontWeight: '800', fontSize: '0.88rem', direction: 'rtl' as const });
   return (
     <div style={{ position: 'relative', display: 'inline-block' }}>
-      <button onClick={handleShare} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 18px', backgroundColor: '#161616', border: '1px solid #2a2a2a', borderRadius: '14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.9rem', color: '#334155', fontFamily: 'inherit' }}>
+      <button onClick={handleShare} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 18px', backgroundColor: '#161616', border: '1px solid #2a2a2a', borderRadius: '14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.9rem', color: '#cbd5e1', fontFamily: 'inherit' }}>
         <Share2 size={17} /> مشاركة
       </button>
       <AnimatePresence>
@@ -275,7 +275,7 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
       <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <span style={{ color: '#e50914', fontWeight: '800', fontSize: '0.72rem', textTransform: 'uppercase' as const, letterSpacing: '0.4px' }}>{p.brand}</span>
         <Link href={`/products/${p.slug || p.id}`} style={{ textDecoration: 'none' }}>
-          <h3 style={{ fontSize: '0.85rem', fontWeight: '800', color: '#1c1c1c', lineHeight: '1.35', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden', margin: 0 }}>{p.name}</h3>
+          <h3 style={{ fontSize: '0.85rem', fontWeight: '800', color: '#f5f5f5', lineHeight: '1.35', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden', margin: 0 }}>{p.name}</h3>
         </Link>
         {(() => {
           const univ = ['universal','عام','all','الكل',''];
@@ -299,8 +299,8 @@ function RelatedProductCard({ p, subcategoryImages }: { p: any; subcategoryImage
         })()}
         <div style={{ marginTop: 'auto', paddingTop: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '8px' }}>
-            <span style={{ fontSize: '1.1rem', fontWeight: '900', color: '#1c1c1c' }}>{price}</span>
-            <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#1c1c1c' }}>ج.م</span>
+            <span style={{ fontSize: '1.1rem', fontWeight: '900', color: '#f5f5f5' }}>{price}</span>
+            <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#f5f5f5' }}>ج.م</span>
             {hasSale && <span style={{ fontSize: '0.72rem', color: '#aaa', textDecoration: 'line-through' }}>{p.regular_price} ج.م</span>}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -324,7 +324,7 @@ function SpecItem({ label, value, icon }: { label: string; value: string; icon?:
   return (
     <m.div variants={fadeUp} style={{ background: '#161616', borderRadius: '14px', padding: '12px 14px', border: '1px solid #242424' }}>
       <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '700', marginBottom: '4px', textTransform: 'uppercase' as const, letterSpacing: '0.4px' }}>{label}</div>
-      <div style={{ fontSize: '0.88rem', fontWeight: '800', color: '#1c1c1c', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+      <div style={{ fontSize: '0.88rem', fontWeight: '800', color: '#f5f5f5', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
         {icon && <span style={{ flexShrink: 0, marginTop: '1px' }}>{icon}</span>}
         <span style={{ wordBreak: 'break-word' as const, minWidth: 0, flex: 1 }}>{value}</span>
       </div>
@@ -438,7 +438,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         .pdp-stepper { display: flex; align-items: center; gap: 0; background: #161616; border: 1.5px solid #2a2a2a; border-radius: 14px; overflow: hidden; }
         .pdp-step-btn { width: 44px; height: 48px; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #64748b; transition: background 0.15s; }
         .pdp-step-btn:hover { background: #242424; color: #1c1c1c; }
-        .pdp-qty { font-size: 1.1rem; font-weight: 900; color: '#1c1c1c'; min-width: 36px; text-align: center; }
+        .pdp-qty { font-size: 1.1rem; font-weight: 900; color: '#f5f5f5'; min-width: 36px; text-align: center; }
         .pdp-trust-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #161616; border: 1px solid #242424; border-radius: 12px; font-size: 0.85rem; color: #94a3b8; font-weight: '700'; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
@@ -559,15 +559,15 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             </div>
 
             {/* Title */}
-            <h1 style={{ fontSize: '1.9rem', fontWeight: '900', color: '#1c1c1c', lineHeight: '1.25', margin: 0, letterSpacing: '-0.5px' }}>{product.name}</h1>
+            <h1 style={{ fontSize: '1.9rem', fontWeight: '900', color: '#f5f5f5', lineHeight: '1.25', margin: 0, letterSpacing: '-0.5px' }}>{product.name}</h1>
 
             {/* Price block */}
             <div style={{ background: '#161616', border: '1px solid #242424', borderRadius: '20px', padding: '18px 20px' }}>
               {hasSale ? (
                 <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '6px' }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-                    <span style={{ fontSize: '2.4rem', fontWeight: '900', color: '#1c1c1c', lineHeight: 1 }}>{product.sale_price}</span>
-                    <span style={{ fontSize: '1rem', fontWeight: '700', color: '#1c1c1c' }}>ج.م</span>
+                    <span style={{ fontSize: '2.4rem', fontWeight: '900', color: '#f5f5f5', lineHeight: 1 }}>{product.sale_price}</span>
+                    <span style={{ fontSize: '1rem', fontWeight: '700', color: '#f5f5f5' }}>ج.م</span>
                     <span style={{ fontSize: '1rem', color: '#aaa', textDecoration: 'line-through', fontWeight: '600' }}>{product.regular_price} ج.م</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -577,8 +577,8 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                 </div>
               ) : (
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                  <span style={{ fontSize: '2.4rem', fontWeight: '900', color: '#1c1c1c', lineHeight: 1 }}>{product.regular_price}</span>
-                  <span style={{ fontSize: '1rem', fontWeight: '700', color: '#1c1c1c' }}>ج.م</span>
+                  <span style={{ fontSize: '2.4rem', fontWeight: '900', color: '#f5f5f5', lineHeight: 1 }}>{product.regular_price}</span>
+                  <span style={{ fontSize: '1rem', fontWeight: '700', color: '#f5f5f5' }}>ج.م</span>
                 </div>
               )}
             </div>
@@ -640,7 +640,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'stretch' }}>
                   <div className="pdp-stepper">
                     <button className="pdp-step-btn" onClick={() => setQty(q => q + 1)}><Plus size={18} /></button>
-                    <span className="pdp-qty" style={{ fontSize: '1.1rem', fontWeight: '900', color: '#1c1c1c', minWidth: '36px', textAlign: 'center' as const }}>{qty}</span>
+                    <span className="pdp-qty" style={{ fontSize: '1.1rem', fontWeight: '900', color: '#f5f5f5', minWidth: '36px', textAlign: 'center' as const }}>{qty}</span>
                     <button className="pdp-step-btn" onClick={() => qty > 1 && setQty(q => q - 1)}><Minus size={18} /></button>
                   </div>
                   <button onClick={() => addToCart({ ...product, price: displayPrice }, qty)} className="pdp-btn-secondary" style={{ flex: 1 }}>
@@ -686,7 +686,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         {/* Description */}
         <div className="pdp-section"
           style={{ background: '#1c1c1c', borderRadius: '24px', padding: '24px', marginBottom: '14px', border: '1px solid #242424' }}>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: '900', marginBottom: '14px', color: '#1c1c1c', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: '900', marginBottom: '14px', color: '#f5f5f5', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Info size={20} color="#e50914" /> وصف المنتج
           </h2>
           <p style={{ lineHeight: '1.85', color: '#64748b', fontSize: '0.95rem', margin: 0 }}>{generateDesc()}</p>
@@ -701,7 +701,7 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' as const, gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <Package size={22} color="#e50914" />
-                <h2 style={{ fontSize: '1.25rem', fontWeight: '900', margin: 0, color: '#1c1c1c' }}>منتجات مشابهة</h2>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: '900', margin: 0, color: '#f5f5f5' }}>منتجات مشابهة</h2>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button id="prev-related" style={{ width: '38px', height: '38px', borderRadius: '50%', border: '1px solid #2a2a2a', background: '#1c1c1c', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><ChevronRight size={20} /></button>

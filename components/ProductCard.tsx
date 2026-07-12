@@ -57,7 +57,7 @@ export default function ProductCard({ product, index }: { product: Product; inde
             {index + 1}
           </div>
           <span style={{
-            fontSize: '0.95rem', fontWeight: '800', color: '#1c1c1c',
+            fontSize: '0.95rem', fontWeight: '800', color: '#f5f5f5',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>
             {product.name}

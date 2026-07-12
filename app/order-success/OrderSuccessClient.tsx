@@ -99,7 +99,7 @@ export default function OrderSuccessClient() {
     <div style={centerStyle}>
       <div style={card}>
         <Loader2 size={52} color="#e50914" style={{ animation: 'spin 1s linear infinite', marginBottom: '20px' }} />
-        <h2 style={{ fontWeight: '900', fontSize: '1.4rem', marginBottom: '8px', color: '#1c1c1c' }}>جاري التحقق من الدفع...</h2>
+        <h2 style={{ fontWeight: '900', fontSize: '1.4rem', marginBottom: '8px', color: '#f5f5f5' }}>جاري التحقق من الدفع...</h2>
         <p style={{ color: '#888', fontSize: '0.9rem', marginBottom: '4px' }}>تم استلام طلبك، نتحقق من تأكيد الدفع من EasyKash</p>
         <p style={{ color: '#bbb', fontSize: '0.78rem' }}>({tries}/{POLL_MAX_TRIES} محاولة)</p>
       </div>
@@ -127,7 +127,7 @@ export default function OrderSuccessClient() {
     <div style={centerStyle}>
       <div style={{ ...card, borderColor: '#242424' }}>
         <div style={{ fontSize: '3rem', marginBottom: '16px' }}>⏳</div>
-        <h2 style={{ fontWeight: '900', fontSize: '1.3rem', marginBottom: '8px', color: '#1c1c1c' }}>تأخر ظهور تأكيد الطلب</h2>
+        <h2 style={{ fontWeight: '900', fontSize: '1.3rem', marginBottom: '8px', color: '#f5f5f5' }}>تأخر ظهور تأكيد الطلب</h2>
         <p style={{ color: '#888', fontSize: '0.88rem', lineHeight: '1.6', marginBottom: '24px' }}>
           لو تم خصم المبلغ، الطلب هيظهر في حسابك خلال دقيقة.<br />تواصل معنا إذا استمرت المشكلة.
         </p>
@@ -174,7 +174,7 @@ export default function OrderSuccessClient() {
             {isDownloading ? 'جاري التحميل...' : 'تحميل PDF'}
           </button>
           <button onClick={() => router.push('/')}
-            style={{ flex: 1, minWidth: '140px', padding: '13px 20px', background: '#1c1c1c', color: '#1c1c1c', border: '1.5px solid #2a2a2a', borderRadius: '14px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            style={{ flex: 1, minWidth: '140px', padding: '13px 20px', background: '#1c1c1c', color: '#f5f5f5', border: '1.5px solid #2a2a2a', borderRadius: '14px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
             <Home size={16} /> الرئيسية
           </button>
         </div>
@@ -203,7 +203,7 @@ export default function OrderSuccessClient() {
             {[{ label: 'رقم الطلب', value: `#${orderNum}` }, { label: 'تاريخ الطلب', value: orderDate }, { label: 'عدد المنتجات', value: `${items.length} منتج` }].map((m, i) => (
               <div key={i} style={{ padding: '16px 20px', borderRight: i < 2 ? '1px solid #242424' : 'none' }}>
                 <div style={{ fontSize: '0.66rem', color: '#aaa', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>{m.label}</div>
-                <div style={{ fontSize: '0.88rem', fontWeight: '800', color: '#1c1c1c' }}>{m.value}</div>
+                <div style={{ fontSize: '0.88rem', fontWeight: '800', color: '#f5f5f5' }}>{m.value}</div>
               </div>
             ))}
           </div>
@@ -212,16 +212,16 @@ export default function OrderSuccessClient() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '24px' }}>
               <div style={{ backgroundColor: '#161616', borderRadius: '12px', padding: '18px', border: '1px solid #242424' }}>
                 <div style={{ fontSize: '0.66rem', fontWeight: '900', color: '#888', textTransform: 'uppercase', marginBottom: '10px' }}>بيانات العميل</div>
-                <div style={{ fontWeight: '800', color: '#1c1c1c', marginBottom: '6px' }}>{order.customer_name}</div>
+                <div style={{ fontWeight: '800', color: '#f5f5f5', marginBottom: '6px' }}>{order.customer_name}</div>
                 <div style={{ fontSize: '0.8rem', color: '#9ca3af', direction: 'ltr', marginBottom: '4px' }}>{order.customer_phone}</div>
                 {order.customer_email && <div style={{ fontSize: '0.76rem', color: '#888' }}>{order.customer_email}</div>}
               </div>
               <div style={{ backgroundColor: '#161616', borderRadius: '12px', padding: '18px', border: '1px solid #242424' }}>
                 <div style={{ fontSize: '0.66rem', fontWeight: '900', color: '#888', textTransform: 'uppercase', marginBottom: '10px' }}>عنوان التوصيل</div>
-                <div style={{ fontSize: '0.84rem', fontWeight: '700', color: '#1c1c1c', lineHeight: '1.5', marginBottom: '6px' }}>{order.customer_address}</div>
+                <div style={{ fontSize: '0.84rem', fontWeight: '700', color: '#f5f5f5', lineHeight: '1.5', marginBottom: '6px' }}>{order.customer_address}</div>
                 <div style={{ fontSize: '0.78rem', color: '#e50914', fontWeight: '700' }}>{order.city}</div>
                 <div style={{ fontSize: '0.72rem', color: '#888', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #2a2a2a' }}>
-                  طريقة الدفع: <strong style={{ color: '#1c1c1c' }}>{order.easykash_payment_method || 'بطاقة / تقسيط'}</strong>
+                  طريقة الدفع: <strong style={{ color: '#f5f5f5' }}>{order.easykash_payment_method || 'بطاقة / تقسيط'}</strong>
                 </div>
               </div>
             </div>
@@ -236,12 +236,12 @@ export default function OrderSuccessClient() {
               {items.map((item: any, i: number) => (
                 <div key={i} style={{ display: 'grid', gridTemplateColumns: '2.5fr 0.7fr 1fr 1fr', padding: '11px 14px', backgroundColor: i % 2 === 0 ? '#fff' : '#161616', borderBottom: '1px solid #242424', borderRight: '1px solid #242424', borderLeft: '1px solid #242424', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontSize: '0.86rem', fontWeight: '800', color: '#1c1c1c' }}>{item.name}</div>
+                    <div style={{ fontSize: '0.86rem', fontWeight: '800', color: '#f5f5f5' }}>{item.name}</div>
                     {item.brand && <div style={{ fontSize: '0.68rem', color: '#e50914', fontWeight: '700' }}>{item.brand}</div>}
                   </div>
                   <div style={{ textAlign: 'center' }}><span style={{ backgroundColor: '#1a0d0d', color: '#dc2626', padding: '2px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '800' }}>×{item.quantity}</span></div>
                   <div style={{ textAlign: 'center', fontSize: '0.83rem', fontWeight: '700', color: '#cbd5e1' }}>{parseFloat(item.price).toLocaleString('ar-EG')} ج.م</div>
-                  <div style={{ textAlign: 'center', fontSize: '0.88rem', fontWeight: '900', color: '#1c1c1c' }}>{(parseFloat(item.price) * item.quantity).toLocaleString('ar-EG')} ج.م</div>
+                  <div style={{ textAlign: 'center', fontSize: '0.88rem', fontWeight: '900', color: '#f5f5f5' }}>{(parseFloat(item.price) * item.quantity).toLocaleString('ar-EG')} ج.م</div>
                 </div>
               ))}
               <div style={{ height: '4px', backgroundColor: '#1c1c1c', borderRadius: '0 0 10px 10px' }} />
