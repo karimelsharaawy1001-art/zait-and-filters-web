@@ -49,7 +49,7 @@ export default function Home() {
     <main style={{ backgroundColor: '#0f0f0f', color: '#fff', minHeight: '100vh', padding: '40px', direction: 'rtl', fontFamily: 'sans-serif' }}>
       <header style={{ borderBottom: '1px solid #333', marginBottom: '30px', paddingBottom: '10px' }}>
         <h1 style={{ color: '#3b82f6', fontSize: '2rem' }}>متجر زيت اند فلترز (Zait & Filters)</h1>
-        <p style={{ color: '#666' }}>أهلاً بك في الجيل الجديد من متجرك الإلكتروني</p>
+        <p style={{ color: '#9ca3af' }}>أهلاً بك في الجيل الجديد من متجرك الإلكتروني</p>
       </header>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '25px' }}>
@@ -59,10 +59,10 @@ export default function Home() {
             const currentImageUrl = item.image_url || item._image_url || item.Image_URL;
 
             return (
-              <div key={item.id} style={{ backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '15px', padding: '20px', transition: '0.3s', display: 'flex', flexDirection: 'column' }}>
+              <div key={item.id} style={{ backgroundColor: '#1c1c1c', border: '1px solid #333', borderRadius: '15px', padding: '20px', transition: '0.3s', display: 'flex', flexDirection: 'column' }}>
                 
                 {/* عرض صورة المنتج مع معالجة الأخطاء */}
-                <div style={{ backgroundColor: '#fff', height: '200px', borderRadius: '10px', marginBottom: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                <div style={{ backgroundColor: '#1c1c1c', height: '200px', borderRadius: '10px', marginBottom: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                   {currentImageUrl ? (
                     <img 
                       src={optimizeImageUrl(currentImageUrl.trim())} 
@@ -98,7 +98,7 @@ export default function Home() {
                 <p style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '15px', lineHeight: '1.5', flexGrow: 1 }}>
                   {item.name} ماركة {item.brand || 'أصلي'} صناعة {item.country_of_origin || 'ممتازة'}.
                   <br />
-                  <span style={{ color: '#666' }}>
+                  <span style={{ color: '#9ca3af' }}>
                     متوافق مع {item.car_make || 'جميع السيارات'} {item.car_model} {item.car_model_year}
                   </span>
                 </p>

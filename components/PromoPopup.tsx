@@ -127,7 +127,7 @@ export default function PromoPopup() {
                 background: 'rgba(255,255,255,0.1)',
                 border: '1px solid rgba(255,255,255,0.2)',
                 borderRadius: '8px',
-                color: '#22c55e', fontWeight: '900', fontSize: '0.88rem',
+                color: '#e50914', fontWeight: '900', fontSize: '0.88rem',
                 cursor: 'pointer', direction: 'ltr',
                 fontFamily: 'monospace',
               }}

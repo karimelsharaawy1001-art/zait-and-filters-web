@@ -66,7 +66,7 @@ export default function BestSellers() {
 
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', padding: '50px' }}>
-      <Loader2 className="animate-spin" size={30} color="#22c55e" />
+      <Loader2 className="animate-spin" size={30} color="#e50914" />
     </div>
   );
 
@@ -125,17 +125,17 @@ export default function BestSellers() {
 // --- التنسيقات (نفس روح الكاروسيل بتاع العروض) ---
 const sectionWrapper: any = { padding: '40px 20px', maxWidth: '1200px', margin: '0 auto', direction: 'rtl' };
 const headerRow: any = { marginBottom: '25px', textAlign: 'right' };
-const sectionTitle: any = { fontSize: '1.6rem', fontWeight: '900', color: '#1a1a1a', margin: 0 };
+const sectionTitle: any = { fontSize: '1.6rem', fontWeight: '900', color: '#f5f5f5', margin: 0 };
 const subTitle: any = { color: '#777', fontSize: '0.9rem', marginTop: '5px' };
 const fireIconBox: any = { background: '#fff1f1', padding: '8px', borderRadius: '12px' };
 
-const productCard: any = { background: '#fff', borderRadius: '20px', border: '1px solid #f0f0f0', overflow: 'hidden', height: '100%', boxShadow: '0 5px 15px rgba(0,0,0,0.02)' };
+const productCard: any = { background: '#1c1c1c', borderRadius: '20px', border: '1px solid #242424', overflow: 'hidden', height: '100%', boxShadow: '0 5px 15px rgba(0,0,0,0.02)' };
 const imgStyle: any = { maxWidth: '85%', maxHeight: '85%', objectFit: 'contain' };
 const bestLabel: any = { position: 'absolute', top: '12px', right: '12px', background: '#ff4d4d', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: 'bold', zIndex: 5 };
 
 const contentArea: any = { padding: '15px', textAlign: 'right' };
-const brandText: any = { color: '#22c55e', fontSize: '0.75rem', fontWeight: 'bold' };
-const prodName: any = { fontSize: '0.95rem', fontWeight: '800', margin: '8px 0', height: '40px', overflow: 'hidden', color: '#333' };
+const brandText: any = { color: '#e50914', fontSize: '0.75rem', fontWeight: 'bold' };
+const prodName: any = { fontSize: '0.95rem', fontWeight: '800', margin: '8px 0', height: '40px', overflow: 'hidden', color: '#d1d5db' };
 const priceRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' };
-const priceText: any = { fontSize: '1.1rem', fontWeight: '900', color: '#1a1a1a' };
-const cartBtn: any = { background: '#1a1a1a', color: '#fff', border: 'none', padding: '8px', borderRadius: '10px', cursor: 'pointer' };
+const priceText: any = { fontSize: '1.1rem', fontWeight: '900', color: '#f5f5f5' };
+const cartBtn: any = { background: '#1c1c1c', color: '#fff', border: 'none', padding: '8px', borderRadius: '10px', cursor: 'pointer' };

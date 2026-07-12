@@ -140,7 +140,7 @@ export default function ChatWidget() {
 
         .z-open-btn {
           width:56px; height:56px; border-radius:50%;
-          background:linear-gradient(135deg,#22c55e,#16a34a);
+          background:linear-gradient(135deg,#e50914,#dc2626);
           border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
           box-shadow:0 4px 20px rgba(34,197,94,0.4);
           transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s;
@@ -174,7 +174,7 @@ export default function ChatWidget() {
 
         .z-msgs {
           flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px;
-          background:#fafafa;
+          background:#161616;
         }
         .z-msgs::-webkit-scrollbar { width:4px; }
         .z-msgs::-webkit-scrollbar-thumb { background:#d4d4d8; border-radius:4px; }
@@ -188,7 +188,7 @@ export default function ChatWidget() {
           animation:z-fadeIn 0.3s ease;
         }
         .z-bubble-user {
-          background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff;
+          background:linear-gradient(135deg,#e50914,#dc2626); color:#fff;
           border-radius:18px 4px 18px 18px;
           padding:10px 14px; font-size:0.88rem; line-height:1.6;
           max-width:88%; word-break:break-word; align-self:flex-end;
@@ -215,7 +215,7 @@ export default function ChatWidget() {
           font-family:inherit; box-shadow:0 1px 3px rgba(0,0,0,0.04);
         }
         .z-faq-tile:hover {
-          border-color:#22c55e; color:#15803d; background:#f0fdf4;
+          border-color:#e50914; color:#b91c1c; background:#1a0d0d;
           box-shadow:0 2px 8px rgba(34,197,94,0.12); transform:translateY(-1px);
         }
 
@@ -239,7 +239,7 @@ export default function ChatWidget() {
                 display:'flex', alignItems:'center', justifyContent:'center',
                 flexShrink:0,
               }}>
-                <MessageSquare size={18} color="#22c55e" />
+                <MessageSquare size={18} color="#e50914" />
               </div>
               <div style={{ flex:1 }}>
                 <div style={{ fontWeight:'800', fontSize:'0.92rem', color:'#fff', letterSpacing:'0.01em' }}>
@@ -331,16 +331,16 @@ export default function ChatWidget() {
                   style={{
                     flex:1, border:'1.5px solid #e4e4e7', borderRadius:'12px',
                     padding:'0 12px', fontSize:'0.85rem', outline:'none',
-                    fontFamily:'inherit', background:'#fafafa', color:'#18181b',
+                    fontFamily:'inherit', background:'#161616', color:'#18181b',
                     height:'40px', transition:'border-color 0.15s',
                   }}
-                  onFocus={e => { e.target.style.borderColor = '#22c55e'; e.target.style.background = '#fff'; }}
-                  onBlur={e => { e.target.style.borderColor = '#e4e4e7'; e.target.style.background = '#fafafa'; }}
+                  onFocus={e => { e.target.style.borderColor = '#e50914'; e.target.style.background = '#fff'; }}
+                  onBlur={e => { e.target.style.borderColor = '#e4e4e7'; e.target.style.background = '#161616'; }}
                 />
                 <button type="submit" disabled={!input.trim()}
                   style={{
                     width:'40px', height:'40px', borderRadius:'12px',
-                    background: input.trim() ? 'linear-gradient(135deg,#22c55e,#16a34a)' : '#e4e4e7',
+                    background: input.trim() ? 'linear-gradient(135deg,#e50914,#dc2626)' : '#e4e4e7',
                     border:'none', cursor: input.trim() ? 'pointer' : 'default',
                     display:'flex', alignItems:'center', justifyContent:'center',
                     color: input.trim() ? '#fff' : '#a1a1aa', flexShrink:0,

@@ -23,8 +23,8 @@ export default function ProductCard({ product, index }: { product: Product; inde
       style={{
         display: 'block',
         textDecoration: 'none',
-        background: '#fff',
-        border: '1.5px solid #e2e8f0',
+        background: '#1c1c1c',
+        border: '1.5px solid #2a2a2a',
         borderRadius: '14px',
         padding: '14px 16px',
         marginBottom: '10px',
@@ -33,12 +33,12 @@ export default function ProductCard({ product, index }: { product: Product; inde
         direction: 'rtl',
       }}
       onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.border = '1.5px solid #15803d';
+        (e.currentTarget as HTMLElement).style.border = '1.5px solid #b91c1c';
         (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(21,128,61,0.12)';
         (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)';
       }}
       onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.border = '1.5px solid #e2e8f0';
+        (e.currentTarget as HTMLElement).style.border = '1.5px solid #2a2a2a';
         (e.currentTarget as HTMLElement).style.boxShadow = 'none';
         (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
       }}
@@ -49,7 +49,7 @@ export default function ProductCard({ product, index }: { product: Product; inde
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
           <div style={{
             width: '24px', height: '24px', borderRadius: '8px',
-            background: '#f0fdf4', color: '#15803d',
+            background: '#1a0d0d', color: '#b91c1c',
             fontSize: '0.75rem', fontWeight: '900',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
@@ -57,7 +57,7 @@ export default function ProductCard({ product, index }: { product: Product; inde
             {index + 1}
           </div>
           <span style={{
-            fontSize: '0.95rem', fontWeight: '800', color: '#0f172a',
+            fontSize: '0.95rem', fontWeight: '800', color: '#f5f5f5',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>
             {product.name}
@@ -66,7 +66,7 @@ export default function ProductCard({ product, index }: { product: Product; inde
 
         {/* Price */}
         <div style={{ textAlign: 'left', flexShrink: 0 }}>
-          <div style={{ fontSize: '1.05rem', fontWeight: '900', color: '#15803d' }}>
+          <div style={{ fontSize: '1.05rem', fontWeight: '900', color: '#b91c1c' }}>
             {price.toLocaleString()} ج.م
           </div>
           {hasDiscount && (
@@ -91,7 +91,7 @@ export default function ProductCard({ product, index }: { product: Product; inde
         {product.car_make && (
           <span style={{
             padding: '2px 9px', borderRadius: '6px',
-            background: '#f0fdf4', color: '#15803d',
+            background: '#1a0d0d', color: '#b91c1c',
             fontSize: '0.78rem', fontWeight: '700',
           }}>
             {product.car_make}
@@ -129,10 +129,10 @@ export default function ProductCard({ product, index }: { product: Product; inde
       {/* Link row */}
       <div style={{
         marginTop: '10px', paddingTop: '10px',
-        borderTop: '1px solid #f1f5f9',
+        borderTop: '1px solid #242424',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <span style={{ fontSize: '0.8rem', color: '#15803d', fontWeight: '700' }}>
+        <span style={{ fontSize: '0.8rem', color: '#b91c1c', fontWeight: '700' }}>
           اضغط لعرض المنتج 🛒
         </span>
         <span style={{

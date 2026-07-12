@@ -29,11 +29,11 @@ export default function ContactUs() {
 
         {/* Success Banner */}
         {status === 'success' && (
-          <div style={{ backgroundColor: '#052e16', border: '1px solid #16a34a', borderRadius: '12px', padding: '16px 20px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ backgroundColor: '#052e16', border: '1px solid #dc2626', borderRadius: '12px', padding: '16px 20px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <span style={{ fontSize: '1.4rem' }}>✅</span>
             <div style={{ textAlign: 'right' }}>
-              <p style={{ color: '#4ade80', fontWeight: '900', marginBottom: '4px' }}>تم الإرسال بنجاح!</p>
-              <p style={{ color: '#86efac', fontSize: '0.85rem' }}>فريق زيت أند فلترز هيتواصل معاك قريباً.</p>
+              <p style={{ color: '#f87171', fontWeight: '900', marginBottom: '4px' }}>تم الإرسال بنجاح!</p>
+              <p style={{ color: '#ef4444', fontSize: '0.85rem' }}>فريق زيت أند فلترز هيتواصل معاك قريباً.</p>
             </div>
           </div>
         )}
@@ -56,7 +56,7 @@ export default function ContactUs() {
         </div>
 
         <div style={{ marginBottom: '20px', textAlign: 'right' }}>
-          <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>البريد الإلكتروني <span style={{ color: '#666', fontSize: '0.8rem' }}>(اختياري)</span></label>
+          <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>البريد الإلكتروني <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>(اختياري)</span></label>
           <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} placeholder="example@mail.com" style={{ width: '100%', padding: '12px', backgroundColor: '#111', border: '1px solid #333', color: '#fff', borderRadius: '8px', outline: 'none' }} />
         </div>
 
@@ -68,7 +68,7 @@ export default function ContactUs() {
         <button
           type="submit"
           disabled={status === 'loading'}
-          style={{ width: '100%', padding: '15px', backgroundColor: status === 'loading' ? '#166534' : '#2ecc71', color: '#000', border: 'none', borderRadius: '8px', fontWeight: '900', fontSize: '1.2rem', cursor: status === 'loading' ? 'not-allowed' : 'pointer', transition: '0.2s', opacity: status === 'loading' ? 0.8 : 1 }}
+          style={{ width: '100%', padding: '15px', backgroundColor: status === 'loading' ? '#991b1b' : '#2ecc71', color: '#f5f5f5', border: 'none', borderRadius: '8px', fontWeight: '900', fontSize: '1.2rem', cursor: status === 'loading' ? 'not-allowed' : 'pointer', transition: '0.2s', opacity: status === 'loading' ? 0.8 : 1 }}
         >
           {status === 'loading' ? '⏳ جاري الإرسال...' : 'إرسال الطلب الآن'}
         </button>

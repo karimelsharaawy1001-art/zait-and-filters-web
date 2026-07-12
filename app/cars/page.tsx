@@ -159,7 +159,7 @@ export default async function CarsHubPage() {
           z-index: 1;
         }
         .hub-card:hover .hub-cta {
-          color: #86efac;
+          color: #ef4444;
         }
         @media (max-width: 580px) {
           .hub-card { padding: 18px 8px 14px; gap: 10px; border-radius: 12px; }
@@ -169,7 +169,7 @@ export default async function CarsHubPage() {
         }
       `}</style>
 
-      <div dir="rtl" style={{ background: '#f8fafc', minHeight: '100vh', fontFamily: 'inherit' }}>
+      <div dir="rtl" style={{ background: '#161616', minHeight: '100vh', fontFamily: 'inherit' }}>
 
         {/* Hero */}
         <div style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)', padding: '48px 20px', textAlign: 'center' }}>
@@ -204,8 +204,8 @@ export default async function CarsHubPage() {
           </div>
 
           {/* SEO text */}
-          <div style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: '20px', padding: '28px', margin: '40px 20px 0' }}>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: '900', color: '#0f172a', margin: '0 0 12px' }}>
+          <div style={{ background: '#1c1c1c', border: '1px solid #242424', borderRadius: '20px', padding: '28px', margin: '40px 20px 0' }}>
+            <h2 style={{ fontSize: '1.05rem', fontWeight: '900', color: '#f5f5f5', margin: '0 0 12px' }}>
               قطع غيار السيارات الأصلية في مصر — زيت أند فلترز
             </h2>
             <p style={{ color: '#475569', fontSize: '0.88rem', lineHeight: 1.8, margin: 0 }}>

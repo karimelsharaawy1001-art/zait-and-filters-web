@@ -116,13 +116,13 @@ export default function SmartSearchBar({ placeholder = 'ابحث عن قطعة �
       {/* ── Input row ── */}
       <div style={{
         display: 'flex', alignItems: 'center',
-        background: '#fff', border: `1.5px solid ${open ? '#22c55e' : '#e5e7eb'}`,
+        background: '#1c1c1c', border: `1.5px solid ${open ? '#e50914' : '#2a2a2a'}`,
         borderRadius: compact ? '12px' : '16px',
         padding: compact ? '7px 12px' : '10px 16px',
         gap: '8px', transition: 'border-color 0.15s',
         boxShadow: open ? '0 0 0 3px rgba(34,197,94,0.12)' : 'none',
       }}>
-        <Search size={iconSize} color={open ? '#22c55e' : '#9ca3af'} style={{ flexShrink: 0, transition: 'color 0.15s' }} />
+        <Search size={iconSize} color={open ? '#e50914' : '#9ca3af'} style={{ flexShrink: 0, transition: 'color 0.15s' }} />
         <input
           ref={inputRef}
           value={query}
@@ -133,11 +133,11 @@ export default function SmartSearchBar({ placeholder = 'ابحث عن قطعة �
           dir="rtl"
           style={{
             flex: 1, border: 'none', outline: 'none', background: 'transparent',
-            fontSize: compact ? '0.88rem' : '1rem', color: '#111', direction: 'rtl',
+            fontSize: compact ? '0.88rem' : '1rem', color: '#f5f5f5', direction: 'rtl',
             fontFamily: 'inherit',
           }}
         />
-        {loading && <Loader2 size={14} color="#22c55e" style={{ flexShrink: 0, animation: 'spin 0.8s linear infinite' }} />}
+        {loading && <Loader2 size={14} color="#e50914" style={{ flexShrink: 0, animation: 'spin 0.8s linear infinite' }} />}
         {!loading && query && (
           <button onClick={clearQuery} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', display: 'flex', padding: 0, flexShrink: 0 }}>
             <X size={14} />
@@ -146,7 +146,7 @@ export default function SmartSearchBar({ placeholder = 'ابحث عن قطعة �
         <button
           onClick={submit}
           style={{
-            background: '#22c55e', border: 'none', borderRadius: '8px',
+            background: '#e50914', border: 'none', borderRadius: '8px',
             padding: compact ? '5px 12px' : '7px 16px',
             color: '#fff', fontWeight: '700', fontSize: compact ? '0.8rem' : '0.88rem',
             cursor: 'pointer', flexShrink: 0, fontFamily: 'inherit',
@@ -161,15 +161,15 @@ export default function SmartSearchBar({ placeholder = 'ابحث عن قطعة �
       {open && suggestions.length > 0 && (
         <div style={{
           position: 'absolute', top: 'calc(100% + 6px)', right: 0, left: 0,
-          background: '#fff', borderRadius: '16px', zIndex: 9999,
+          background: '#1c1c1c', borderRadius: '16px', zIndex: 9999,
           boxShadow: '0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.06)',
-          border: '1px solid #e5e7eb', overflow: 'hidden',
+          border: '1px solid #2a2a2a', overflow: 'hidden',
           animation: 'searchDropIn 0.15s ease',
         }}>
           <style dangerouslySetInnerHTML={{ __html: `
             @keyframes searchDropIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
             @keyframes spin { to { transform: rotate(360deg); } }
-            .srch-item:hover { background: #f0fdf4 !important; }
+            .srch-item:hover { background: #1a0d0d !important; }
           `}} />
 
           {suggestions.map((s, i) => (
@@ -181,8 +181,8 @@ export default function SmartSearchBar({ placeholder = 'ابحث عن قطعة �
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
                 padding: '10px 14px', border: 'none', cursor: 'pointer', textAlign: 'right',
-                background: highlighted === i ? '#f0fdf4' : '#fff',
-                borderBottom: i < suggestions.length - 1 ? '1px solid #f3f4f6' : 'none',
+                background: highlighted === i ? '#1a0d0d' : '#fff',
+                borderBottom: i < suggestions.length - 1 ? '1px solid #1c1c1c' : 'none',
                 transition: 'background 0.1s', direction: 'rtl',
               }}
             >
@@ -190,18 +190,18 @@ export default function SmartSearchBar({ placeholder = 'ابحث عن قطعة �
               {s.type === 'product' && s.image ? (
                 <img
                   src={optimizeImageUrl(s.image)} alt=""
-                  style={{ width: '38px', height: '38px', objectFit: 'contain', borderRadius: '8px', background: '#f8fafc', border: '1px solid #f0f0f0', flexShrink: 0 }}
+                  style={{ width: '38px', height: '38px', objectFit: 'contain', borderRadius: '8px', background: '#161616', border: '1px solid #242424', flexShrink: 0 }}
                 />
               ) : s.type === 'smart' ? (
-                <div style={{ width: '38px', height: '38px', borderRadius: '8px', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #bbf7d0' }}>
-                  <Sparkles size={16} color="#16a34a" />
+                <div style={{ width: '38px', height: '38px', borderRadius: '8px', background: '#1a0d0d', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #7f1d1d' }}>
+                  <Sparkles size={16} color="#dc2626" />
                 </div>
               ) : s.type === 'category' ? (
                 <div style={{ width: '38px', height: '38px', borderRadius: '8px', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #bfdbfe' }}>
                   <Tag size={16} color="#3b82f6" />
                 </div>
               ) : (
-                <div style={{ width: '38px', height: '38px', borderRadius: '8px', background: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #e5e7eb' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '8px', background: '#161616', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #2a2a2a' }}>
                   <Search size={16} color="#9ca3af" />
                 </div>
               )}
@@ -210,7 +210,7 @@ export default function SmartSearchBar({ placeholder = 'ابحث عن قطعة �
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                   fontSize: '0.875rem', fontWeight: s.type === 'smart' ? '800' : '700',
-                  color: s.type === 'smart' ? '#15803d' : '#111',
+                  color: s.type === 'smart' ? '#b91c1c' : '#111',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>
                   {s.label}
@@ -224,25 +224,25 @@ export default function SmartSearchBar({ placeholder = 'ابحث عن قطعة �
 
               {/* Price */}
               {s.type === 'product' && s.price && (
-                <div style={{ fontSize: '0.82rem', fontWeight: '800', color: '#16a34a', flexShrink: 0 }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: '800', color: '#dc2626', flexShrink: 0 }}>
                   {Number(s.price).toLocaleString('ar-EG')} ج.م
                 </div>
               )}
 
               {/* Arrow for smart suggestion */}
               {s.type === 'smart' && (
-                <ArrowLeft size={14} color="#16a34a" style={{ flexShrink: 0 }} />
+                <ArrowLeft size={14} color="#dc2626" style={{ flexShrink: 0 }} />
               )}
             </button>
           ))}
 
           {/* Footer hint */}
-          <div style={{ padding: '7px 14px', background: '#f9fafb', borderTop: '1px solid #f3f4f6', fontSize: '0.68rem', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <kbd style={{ background: '#e5e7eb', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', color: '#374151', fontFamily: 'monospace' }}>↑↓</kbd>
+          <div style={{ padding: '7px 14px', background: '#161616', borderTop: '1px solid #1c1c1c', fontSize: '0.68rem', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <kbd style={{ background: '#2a2a2a', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', color: '#374151', fontFamily: 'monospace' }}>↑↓</kbd>
             للتنقل
-            <kbd style={{ background: '#e5e7eb', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', color: '#374151', fontFamily: 'monospace' }}>Enter</kbd>
+            <kbd style={{ background: '#2a2a2a', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', color: '#374151', fontFamily: 'monospace' }}>Enter</kbd>
             للاختيار
-            <kbd style={{ background: '#e5e7eb', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', color: '#374151', fontFamily: 'monospace' }}>Esc</kbd>
+            <kbd style={{ background: '#2a2a2a', borderRadius: '4px', padding: '1px 5px', fontSize: '0.65rem', color: '#374151', fontFamily: 'monospace' }}>Esc</kbd>
             إغلاق
           </div>
         </div>
