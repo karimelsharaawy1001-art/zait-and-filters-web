@@ -111,7 +111,7 @@ export default function PromoPopup() {
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
               padding: '14px 16px',
-              background: 'linear-gradient(135deg, #0f172a, #1e293b)',
+              background: 'linear-gradient(135deg, #2a2a2a, #3a3a3a)',
               borderBottomLeftRadius: '16px',
               borderBottomRightRadius: '16px',
             }}

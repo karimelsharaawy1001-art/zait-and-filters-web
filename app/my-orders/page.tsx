@@ -60,7 +60,7 @@ export default function MyOrdersPage() {
           <div style={centerStyle}><Loader2 className="animate-spin" size={40} color="#2ecc71" /></div>
         ) : hasSearched && orders.length === 0 ? (
           <div style={emptyState}>
-            <AlertCircle size={50} color="#555" />
+            <AlertCircle size={50} color="#9ca3af" />
             <p>لم نجد أي طلبات مرتبطة بهذا الرقم</p>
           </div>
         ) : (

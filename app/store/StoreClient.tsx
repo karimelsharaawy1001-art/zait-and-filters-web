@@ -473,7 +473,7 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
             borderRadius: '12px',
             border: '1.5px solid #2a2a2a',
             backgroundColor: currentPage === 1 ? '#1c1c1c' : '#fff',
-            color: currentPage === 1 ? '#ccc' : '#1a1a1a',
+            color: currentPage === 1 ? '#ccc' : '#f5f5f5',
             cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -506,7 +506,7 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
                   currentPage === page
                     ? 'linear-gradient(135deg, #e50914 0%, #dc2626 100%)'
                     : '#fff',
-                color: currentPage === page ? '#fff' : '#1a1a1a',
+                color: currentPage === page ? '#fff' : '#f5f5f5',
                 fontWeight: '900',
                 fontSize: '0.9rem',
                 cursor: 'pointer',
@@ -532,7 +532,7 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
             borderRadius: '12px',
             border: '1.5px solid #2a2a2a',
             backgroundColor: currentPage === totalPages ? '#1c1c1c' : '#fff',
-            color: currentPage === totalPages ? '#ccc' : '#1a1a1a',
+            color: currentPage === totalPages ? '#ccc' : '#f5f5f5',
             cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
             display: 'flex',
             alignItems: 'center',

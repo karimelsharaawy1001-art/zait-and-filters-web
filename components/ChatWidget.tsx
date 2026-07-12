@@ -180,7 +180,7 @@ export default function ChatWidget() {
         .z-msgs::-webkit-scrollbar-thumb { background:#d4d4d8; border-radius:4px; }
 
         .z-bubble-bot {
-          background:#1c1c1c; color:#18181b;
+          background:#1c1c1c; color:#e5e7eb;
           border-radius:4px 18px 18px 18px;
           padding:10px 14px; font-size:0.88rem; line-height:1.7;
           max-width:88%; white-space:pre-line; word-break:break-word;
@@ -210,7 +210,7 @@ export default function ChatWidget() {
         }
         .z-faq-tile {
           background:#1c1c1c; border:1px solid #e4e4e7; border-radius:12px;
-          padding:8px 14px; font-size:0.8rem; font-weight:600; color:#18181b;
+          padding:8px 14px; font-size:0.8rem; font-weight:600; color:#e5e7eb;
           cursor:pointer; text-align:right; transition:all 0.15s;
           font-family:inherit; box-shadow:0 1px 3px rgba(0,0,0,0.04);
         }
@@ -316,7 +316,7 @@ export default function ChatWidget() {
               <Link href="/contact"
                 style={{
                   width:'40px', height:'40px', borderRadius:'12px',
-                  background:'#0f172a', display:'flex', alignItems:'center',
+                  background:'#2a2a2a', display:'flex', alignItems:'center',
                   justifyContent:'center', flexShrink:0, textDecoration:'none',
                   color:'#fff', transition:'transform 0.15s',
                 }}
@@ -331,7 +331,7 @@ export default function ChatWidget() {
                   style={{
                     flex:1, border:'1.5px solid #e4e4e7', borderRadius:'12px',
                     padding:'0 12px', fontSize:'0.85rem', outline:'none',
-                    fontFamily:'inherit', background:'#161616', color:'#18181b',
+                    fontFamily:'inherit', background:'#161616', color:'#e5e7eb',
                     height:'40px', transition:'border-color 0.15s',
                   }}
                   onFocus={e => { e.target.style.borderColor = '#e50914'; e.target.style.background = '#fff'; }}

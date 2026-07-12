@@ -159,7 +159,7 @@ export default function OrderSuccessClient() {
       <div style={{ direction: 'rtl', padding: '30px 20px', maxWidth: '820px', margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
 
         {/* Success banner */}
-        <div style={{ background: 'linear-gradient(135deg, #0f172a, #7f1d1d)', borderRadius: '20px', padding: '28px 30px', textAlign: 'center', marginBottom: '20px', color: '#fff' }}>
+        <div style={{ background: 'linear-gradient(135deg, #2a2a2a, #7f1d1d)', borderRadius: '20px', padding: '28px 30px', textAlign: 'center', marginBottom: '20px', color: '#fff' }}>
           <div style={{ fontSize: '3rem', marginBottom: '8px' }}>🎉</div>
           <h1 style={{ fontSize: '1.7rem', fontWeight: '900', marginBottom: '6px' }}>تم الدفع وتسجيل طلبك بنجاح!</h1>
           <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>رقم الطلب: <span style={{ color: '#e50914', fontWeight: '900' }}>#{orderNum}</span></p>
@@ -182,7 +182,7 @@ export default function OrderSuccessClient() {
         {/* Invoice */}
         <div id="invoice-preview" style={{ backgroundColor: '#1c1c1c', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.08)', border: '1px solid #242424' }}>
           {/* Header */}
-          <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f4c2a 100%)', padding: '32px 40px' }}>
+          <div style={{ background: 'linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 60%, #0f4c2a 100%)', padding: '32px 40px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div style={{ fontSize: '1.8rem', fontWeight: '900', fontStyle: 'italic', color: '#fff', letterSpacing: '-1px', marginBottom: '4px' }}>ZAIT <span style={{ color: '#e50914' }}>&amp; FILTERS</span></div>
@@ -263,7 +263,7 @@ export default function OrderSuccessClient() {
                     <span style={{ color: '#ef4444', fontWeight: '800' }}>- {discount.toLocaleString('ar-EG')} ج.م</span>
                   </div>
                 )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', padding: '12px 16px', background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', padding: '12px 16px', background: 'linear-gradient(135deg, #2a2a2a, #3a3a3a)', borderRadius: '12px' }}>
                   <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.8rem', fontWeight: '700' }}>الإجمالي الكلي</span>
                   <span style={{ color: '#e50914', fontSize: '1.3rem', fontWeight: '900' }}>{total.toLocaleString('ar-EG')} ج.م</span>
                 </div>
@@ -271,7 +271,7 @@ export default function OrderSuccessClient() {
             </div>
           </div>
           {/* Footer */}
-          <div style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)', padding: '22px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ background: 'linear-gradient(135deg, #2a2a2a, #3a3a3a)', padding: '22px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ fontSize: '0.95rem', fontWeight: '900', fontStyle: 'italic', color: '#fff' }}>ZAIT <span style={{ color: '#e50914' }}>&amp; FILTERS</span></div>
               <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.68rem', marginTop: '3px' }}>zaitandfilters.com</div>

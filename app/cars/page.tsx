@@ -172,7 +172,7 @@ export default async function CarsHubPage() {
       <div dir="rtl" style={{ background: '#161616', minHeight: '100vh', fontFamily: 'inherit' }}>
 
         {/* Hero */}
-        <div style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)', padding: '48px 20px', textAlign: 'center' }}>
+        <div style={{ background: 'linear-gradient(135deg, #2a2a2a, #3a3a3a)', padding: '48px 20px', textAlign: 'center' }}>
           <h1 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', fontWeight: '900', color: '#fff', margin: '0 0 12px' }}>
             قطع غيار السيارات حسب الموديل
           </h1>

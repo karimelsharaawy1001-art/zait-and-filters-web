@@ -850,8 +850,8 @@ export default function HomePage() {
           .card-save { font-size:0.68rem; font-weight:800; color:#fff; background:#ef4444; border-radius:6px; padding:2px 7px; white-space:nowrap; }
           .card-btn-buy { width:100%; padding:13px; background:linear-gradient(135deg,#e50914 0%,#dc2626 100%); color:#fff; border:none; border-radius:12px; font-weight:900; font-size:0.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; text-decoration:none; transition:all 0.2s; box-shadow:0 6px 20px rgba(34,197,94,0.35); letter-spacing:0.2px; }
           .card-btn-buy:hover { background:linear-gradient(135deg,#dc2626 0%,#b91c1c 100%); box-shadow:0 10px 28px rgba(34,197,94,0.5); transform:translateY(-1px); }
-          .card-btn-cart { width:100%; padding:11px; background:#0f172a; color:#fff; border:none; border-radius:12px; font-weight:700; font-size:0.88rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; text-decoration:none; transition:background 0.2s; }
-          .card-btn-cart:hover { background:#1e293b; }
+          .card-btn-cart { width:100%; padding:11px; background:#2a2a2a; color:#fff; border:none; border-radius:12px; font-weight:700; font-size:0.88rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; text-decoration:none; transition:background 0.2s; }
+          .card-btn-cart:hover { background:#3a3a3a; }
 
           @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
           .marquee-inner   { display: flex; width: max-content; animation: marquee 35s linear infinite; }
@@ -896,7 +896,7 @@ export default function HomePage() {
           .bn-maintenance { }
           .bn-bg-maint { position:absolute;inset:0;background:linear-gradient(135deg,#052e16,#7f1d1d,#991b1b,#b91c1c,#0f4c20);background-size:300% 300%;animation:bn-gradient-maint 6s ease infinite; }
           /* Promoter banner */
-          .bn-bg-promo { position:absolute;inset:0;background:linear-gradient(135deg,#0f172a,#1e1b4b,#312e81,#1e3a5f,#0f172a);background-size:300% 300%;animation:bn-gradient-promo 6s ease infinite 1s; }
+          .bn-bg-promo { position:absolute;inset:0;background:linear-gradient(135deg,#2a2a2a,#1e1b4b,#312e81,#1e3a5f,#2a2a2a);background-size:300% 300%;animation:bn-gradient-promo 6s ease infinite 1s; }
           /* Shimmer sweep on both */
           .bn-shimmer { position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:inherit; }
           .bn-shimmer::after { content:'';position:absolute;top:0;left:0;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);animation:bn-shimmer-move 3.5s ease-in-out infinite; }

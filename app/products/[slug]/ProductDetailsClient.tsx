@@ -114,7 +114,7 @@ function ReviewsSection({ productId }: { productId: string }) {
         </div>
         {!submitted ? (
           <button onClick={() => setShowForm(f => !f)}
-            style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 18px', background: showForm ? '#242424' : '#0f172a', color: showForm ? '#64748b' : '#fff', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.88rem', fontFamily: 'inherit', transition: 'all 0.15s' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 18px', background: showForm ? '#242424' : '#2a2a2a', color: showForm ? '#64748b' : '#fff', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.88rem', fontFamily: 'inherit', transition: 'all 0.15s' }}>
             <Star size={15} fill={showForm ? 'none' : '#fff'} /> {showForm ? 'إلغاء' : 'اكتب تقييماً'}
           </button>
         ) : (
@@ -433,8 +433,8 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         .pdp-info { display: flex; flex-direction: column; gap: 22px; }
         .pdp-btn-primary { width: 100%; padding: 16px; background: linear-gradient(135deg,#e50914 0%,#dc2626 100%); color: #fff; border: none; border-radius: 16px; font-weight: 900; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 24px rgba(34,197,94,0.35); font-family: inherit; transition: all 0.2s; letter-spacing: 0.3px; text-decoration: none; }
         .pdp-btn-primary:hover { box-shadow: 0 12px 32px rgba(34,197,94,0.5); transform: translateY(-2px); }
-        .pdp-btn-secondary { width: 100%; padding: 15px; background: #0f172a; color: #fff; border: none; border-radius: 16px; font-weight: 800; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; transition: all 0.2s; }
-        .pdp-btn-secondary:hover { background: #1e293b; transform: translateY(-1px); }
+        .pdp-btn-secondary { width: 100%; padding: 15px; background: #2a2a2a; color: #fff; border: none; border-radius: 16px; font-weight: 800; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; transition: all 0.2s; }
+        .pdp-btn-secondary:hover { background: #3a3a3a; transform: translateY(-1px); }
         .pdp-stepper { display: flex; align-items: center; gap: 0; background: #161616; border: 1.5px solid #2a2a2a; border-radius: 14px; overflow: hidden; }
         .pdp-step-btn { width: 44px; height: 48px; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #64748b; transition: background 0.15s; }
         .pdp-step-btn:hover { background: #242424; color: #1c1c1c; }

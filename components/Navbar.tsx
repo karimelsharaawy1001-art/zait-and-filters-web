@@ -267,7 +267,7 @@ export default function ProfessionalNavbar() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
                 <span style={{ fontWeight: '900', fontSize: '0.95rem', color: '#1c1c1c' }}>البحث الذكي</span>
                 <button onClick={() => setMobileSearchOpen(false)} style={{ marginRight: 'auto', background: '#1c1c1c', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <X size={16} color="#555" />
+                  <X size={16} color="#9ca3af" />
                 </button>
               </div>
               <SmartSearchBar autoFocus onClose={() => setMobileSearchOpen(false)} compact={false} placeholder="مثال: تيل فرامل بوما — فلتر زيت كروز" />
@@ -337,7 +337,7 @@ export default function ProfessionalNavbar() {
                 style={{
                   ...garageToggleBtn,
                   backgroundColor: garageMode ? '#e50914' : 'rgba(0,0,0,0.05)',
-                  color: garageMode ? '#fff' : '#1a1a1a',
+                  color: garageMode ? '#fff' : '#f5f5f5',
                   marginLeft: '10px',
                 }}
                 title={

@@ -73,7 +73,7 @@ export default function ExitConfirmDialog() {
         position: 'fixed',
         bottom: 0, left: 0, right: 0,
         zIndex: 99999,
-        background: 'linear-gradient(135deg, #0f172a, #1e293b)',
+        background: 'linear-gradient(135deg, #2a2a2a, #3a3a3a)',
         borderRadius: '24px 24px 0 0',
         padding: '28px 24px 40px',
         direction: 'rtl',

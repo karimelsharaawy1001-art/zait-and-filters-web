@@ -613,7 +613,7 @@ export default function CheckoutPage() {
         `}} />
 
         <div style={{
-          background: 'linear-gradient(135deg, #0f172a, #7f1d1d)',
+          background: 'linear-gradient(135deg, #2a2a2a, #7f1d1d)',
           borderRadius: '20px', padding: '24px 20px', textAlign: 'center',
           marginBottom: '20px', color: '#fff',
         }}>
@@ -708,7 +708,7 @@ export default function CheckoutPage() {
         >
           {/* ── Invoice Header ── */}
           <div style={{
-            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f4c2a 100%)',
+            background: 'linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 60%, #0f4c2a 100%)',
             padding: '28px 20px', position: 'relative', overflow: 'hidden',
           }}>
             <div style={{ position: 'absolute', top: '-60px', left: '-60px', width: '200px', height: '200px', borderRadius: '50%', backgroundColor: 'rgba(34,197,94,0.07)', pointerEvents: 'none' }} />
@@ -838,7 +838,7 @@ export default function CheckoutPage() {
                 <div style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   marginTop: '12px', padding: '14px 16px',
-                  background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #2a2a2a, #3a3a3a)', borderRadius: '12px',
                 }}>
                   <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.8rem', fontWeight: '700' }}>الإجمالي الكلي</span>
                   <span style={{ color: '#e50914', fontSize: '1.25rem', fontWeight: '900' }}>{completedFinalTotal.toFixed(2)} ج.م</span>
@@ -849,7 +849,7 @@ export default function CheckoutPage() {
 
           {/* ── Invoice Footer — FIXED for mobile ── */}
           <div style={{
-            background: 'linear-gradient(135deg, #0f172a, #1e293b)',
+            background: 'linear-gradient(135deg, #2a2a2a, #3a3a3a)',
             padding: '20px', /* was 24px 44px — caused overflow */
           }}>
             <div className="invoice-footer-inner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
@@ -886,7 +886,7 @@ export default function CheckoutPage() {
         .btn-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(21,128,61,0.45) !important; }
         .action-hover:hover { background: #000 !important; transform: translateY(-1px); }
         .upload-hover:hover { background: #1a0d0d !important; border-color: #b91c1c !important; }
-        .promo-btn:hover:not(:disabled) { background: #0f172a !important; color: #fff !important; }
+        .promo-btn:hover:not(:disabled) { background: #2a2a2a !important; color: #fff !important; }
         .co-input:focus { border-color: #e50914 !important; box-shadow: 0 0 0 3px rgba(34,197,94,0.12) !important; outline: none; }
         .pay-card-label:hover { border-color: #e50914 !important; box-shadow: 0 4px 20px rgba(34,197,94,0.12) !important; }
         .co-section { background:#1c1c1c; border-radius:20px; border:1px solid #242424; padding:24px; margin-bottom:16px; box-shadow:0 2px 12px rgba(0,0,0,0.04); }
