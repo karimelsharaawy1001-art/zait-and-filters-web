@@ -337,7 +337,7 @@ function SearchCard({
       )}
       <div style={{ marginBottom: '12px' }}>
         <label style={{ fontSize: '0.8rem', fontWeight: '800', color: '#555', marginBottom: '6px', display: 'block' }}>سنة الصنع</label>
-        <input type="text" placeholder="مثلاً: 2024" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}
+        <input type="text" placeholder="مثلاً: 2024" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           style={{ width: '100%', height: '52px', padding: '0 15px', backgroundColor: '#f8f8f8', border: 'none', borderRadius: '12px', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }} />
       </div>
       <button onClick={handleSearch}

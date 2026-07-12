@@ -27,9 +27,18 @@ async function isAdmin(): Promise<boolean> {
   return data?.role === 'admin';
 }
 
-// Filter: real http(s) URL that is NOT already on Cloudinary.
+// Filter: real http(s) URL that is NOT already in our Supabase Storage bucket.
+// (Includes Cloudinary + external images so everything ends up on Storage.)
 function pending(q: any) {
-  return q.ilike('image_url', 'http%').not('image_url', 'ilike', '%cloudinary.com%');
+  return q.ilike('image_url', 'http%').not('image_url', 'ilike', `%/storage/v1/object/public/${STORAGE_BUCKET}/%`);
+}
+
+// Make sure the public bucket exists (no-op if it already does).
+async function ensureBucket(admin: SupabaseClient) {
+  const { data } = await admin.storage.getBucket(STORAGE_BUCKET);
+  if (!data) {
+    await admin.storage.createBucket(STORAGE_BUCKET, { public: true }).catch(() => {});
+  }
 }
 
 // Some image_url values contain two URLs glued together (e.g.
@@ -93,6 +102,7 @@ export async function POST(req: NextRequest) {
     const { limit = 10, afterId = '' } = await req.json().catch(() => ({}));
     const batch = Math.min(Math.max(1, limit), 25);
     const admin = makeAdmin();
+    await ensureBucket(admin);
 
     let q = pending(admin.from('products').select('id, name, image_url')).order('id', { ascending: true });
     if (afterId) q = q.gt('id', afterId);
