@@ -20,9 +20,9 @@ export default function ProfessionalFooter() {
   return (
     <footer style={footerContainer}>
       <style dangerouslySetInnerHTML={{ __html: `
-        .footer-cta:hover { background-color: #14532d !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.4) !important; }
-        .footer-link-item:hover { color: #27ae60 !important; padding-right: 5px; }
-        .footer-social-icon:hover { background-color: #27ae60 !important; color: #fff !important; transform: scale(1.1); }
+        .footer-cta:hover { background-color: #7f1d1d !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.4) !important; }
+        .footer-link-item:hover { color: #e50914 !important; padding-right: 5px; }
+        .footer-social-icon:hover { background-color: #e50914 !important; color: #fff !important; transform: scale(1.1); }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .footer-column { animation: fadeInUp 0.6s ease-out; }
         @media (max-width: 768px) {
@@ -36,7 +36,7 @@ export default function ProfessionalFooter() {
         {/* العمود الأول: عن البراند */}
         <div className="footer-column" style={footerColumn}>
           <Link href="/" style={logoStyle}>
-            ZAIT <span style={{ color: '#27ae60' }}>& FILTERS</span>
+            ZAIT <span style={{ color: '#e50914' }}>& FILTERS</span>
           </Link>
           <p style={brandDesc}>
             وجهتك الأولى والموثوقة لجميع أنواع زيوت المحركات وفلاتر السيارات الأصلية. نضمن لك الجودة والأداء العالي لسيارتك.
@@ -63,7 +63,7 @@ export default function ProfessionalFooter() {
             <li><Link href="/store" className="footer-link-item" style={footerLink}><ChevronLeft size={14} /> المتجر</Link></li>
             <li><Link href="/profile" className="footer-link-item" style={footerLink}><ChevronLeft size={14} /> حسابي الشخصي</Link></li>
             {/* --- رابط برنامج المسوقين --- */}
-            <li><Link href="/affiliate" className="footer-link-item" style={{...footerLink, color: '#27ae60', fontWeight: 'bold'}}><Users size={14} /> انضم لبرنامج المسوقين</Link></li>
+            <li><Link href="/affiliate" className="footer-link-item" style={{...footerLink, color: '#e50914', fontWeight: 'bold'}}><Users size={14} /> انضم لبرنامج المسوقين</Link></li>
             {/* --------------------------- */}
             <li><Link href="/about" className="footer-link-item" style={footerLink}><ChevronLeft size={14} /> من نحن</Link></li>
             <hr style={divider} />
@@ -85,14 +85,14 @@ export default function ProfessionalFooter() {
             </Link>
           </div>
           <div style={contactItem}>
-            <MapPin size={18} color="#27ae60" />
+            <MapPin size={18} color="#e50914" />
             <div style={{ textAlign: 'right' }}>
               <span style={contactLabel}>المقر الرئيسي:</span>
               <span style={contactValue}>القاهرة، مصر</span>
             </div>
           </div>
           <div style={contactItem}>
-            <Clock size={18} color="#27ae60" />
+            <Clock size={18} color="#e50914" />
             <div style={{ textAlign: 'right' }}>
               <span style={contactLabel}>مواعيد العمل:</span>
               <span style={contactValue}>يومياً من 10 ص حتى 6 م</span>
@@ -104,7 +104,7 @@ export default function ProfessionalFooter() {
         <div className="footer-column" style={footerColumn}>
           <h4 style={columnTitle}>تسوق بأمان</h4> 
           <div style={trustBadge}>
-            <ShieldCheck size={18} color="#27ae60" />
+            <ShieldCheck size={18} color="#e50914" />
             <span>منتجات أصلية 100%</span>
           </div>
           <p style={paymentText}>نقبل الدفع عبر:</p>
@@ -174,8 +174,8 @@ const divider: any = { border: 'none', borderTop: '1px solid #111', margin: '5px
 const contactItem: any = { display: 'flex', gap: '12px', alignItems: 'center' };
 const contactLabel: any = { display: 'block', fontSize: '0.75rem', color: '#666', marginBottom: '4px' };
 const contactValue: any = { fontSize: '0.9rem', fontWeight: 'bold', color: '#fff', textDecoration: 'none' };
-const contactBtn: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', backgroundColor: '#27ae60', color: '#fff', padding: '12px 20px', borderRadius: '14px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.9rem', marginTop: '5px', transition: '0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 4px 12px rgba(39, 174, 96, 0.2)', width: 'fit-content' };
-const trustBadge: any = { display: 'flex', alignItems: 'center', gap: '8px', background: '#111', color: '#27ae60', padding: '10px 15px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 'bold', border: '1px solid #222' };
+const contactBtn: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', backgroundColor: '#e50914', color: '#fff', padding: '12px 20px', borderRadius: '14px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.9rem', marginTop: '5px', transition: '0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 4px 12px rgba(39, 174, 96, 0.2)', width: 'fit-content' };
+const trustBadge: any = { display: 'flex', alignItems: 'center', gap: '8px', background: '#111', color: '#e50914', padding: '10px 15px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 'bold', border: '1px solid #222' };
 const paymentText: any = { fontSize: '0.9rem', color: '#aaa', margin: '15px 0 10px', fontWeight: '700' };
 const paymentSection: any = { marginBottom: '15px' };
 const paymentCategory: any = { fontSize: '0.75rem', color: '#666', marginBottom: '8px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' };

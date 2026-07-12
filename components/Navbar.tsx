@@ -83,7 +83,7 @@ export default function ProfessionalNavbar() {
         <div
           style={{
             direction: 'rtl',
-            background: '#fff',
+            background: '#161616',
             padding: '14px 16px',
             borderRadius: '12px',
             boxShadow: '0 10px 25px rgba(0,0,0,0.12)',
@@ -108,7 +108,7 @@ export default function ProfessionalNavbar() {
               padding: '8px 10px',
               borderRadius: '10px',
               border: 'none',
-              background: '#15803d',
+              background: '#b91c1c',
               color: '#fff',
               fontWeight: 700,
               cursor: 'pointer',
@@ -181,11 +181,11 @@ export default function ProfessionalNavbar() {
                   onClick={() => { toggleGarage(); }}
                   style={{
                     ...sidebarLink,
-                    backgroundColor: garageMode ? '#eefcf5' : 'transparent',
-                    color: garageMode ? '#27ae60' : '#444',
+                    backgroundColor: garageMode ? '#2a0f10' : 'transparent',
+                    color: garageMode ? '#e50914' : '#444',
                   }}
                 >
-                  <Car size={20} color={garageMode ? '#27ae60' : '#444'}/> 
+                  <Car size={20} color={garageMode ? '#e50914' : '#444'}/> 
                   جراجي {garageMode ? '(مفعل)' : ''}
                 </button>
 
@@ -204,7 +204,7 @@ export default function ProfessionalNavbar() {
                   <BookOpen size={20}/> المدونة
                 </Link>
 
-                <Link href="/affiliate" onClick={() => setIsSidebarOpen(false)} style={{ ...sidebarLink, color: '#27ae60' }}>
+                <Link href="/affiliate" onClick={() => setIsSidebarOpen(false)} style={{ ...sidebarLink, color: '#e50914' }}>
                   <Handshake size={20}/> ابدأ الربح معنا
                 </Link>
 
@@ -229,7 +229,7 @@ export default function ProfessionalNavbar() {
                     </button>
                   </>
                 ) : (
-                  <Link href="/login" onClick={() => setIsSidebarOpen(false)} style={{ ...sidebarLink, color: '#27ae60' }}>
+                  <Link href="/login" onClick={() => setIsSidebarOpen(false)} style={{ ...sidebarLink, color: '#e50914' }}>
                     <LogIn size={20}/> تسجيل الدخول
                   </Link>
                 )}
@@ -262,11 +262,11 @@ export default function ProfessionalNavbar() {
             <m.div
               initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
               transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-              style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 3001, background: '#fff', padding: '14px 16px', borderRadius: '0 0 20px 20px', boxShadow: '0 8px 30px rgba(0,0,0,0.15)', direction: 'rtl' }}
+              style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 3001, background: '#161616', padding: '14px 16px', borderRadius: '0 0 20px 20px', boxShadow: '0 8px 30px rgba(0,0,0,0.15)', direction: 'rtl' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                <span style={{ fontWeight: '900', fontSize: '0.95rem', color: '#1a1a1a' }}>البحث الذكي</span>
-                <button onClick={() => setMobileSearchOpen(false)} style={{ marginRight: 'auto', background: '#f5f5f5', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontWeight: '900', fontSize: '0.95rem', color: '#1c1c1c' }}>البحث الذكي</span>
+                <button onClick={() => setMobileSearchOpen(false)} style={{ marginRight: 'auto', background: '#1c1c1c', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <X size={16} color="#555" />
                 </button>
               </div>
@@ -291,7 +291,7 @@ export default function ProfessionalNavbar() {
           </button>
 
           <Link href="/" style={logoStyle} className="logo-text">
-            ZAIT <span style={{ color: '#27ae60' }}>& FILTERS</span>
+            ZAIT <span style={{ color: '#e50914' }}>& FILTERS</span>
           </Link>
 
           {/* ── Smart Search bar (desktop) ── */}
@@ -327,7 +327,7 @@ export default function ProfessionalNavbar() {
             {/* Blog link in desktop nav */}
             <Link href="/blog" style={linkItem}>المدونة</Link>
 
-            <Link href="/affiliate" style={{ ...linkItem, color: '#27ae60' }}>
+            <Link href="/affiliate" style={{ ...linkItem, color: '#e50914' }}>
               ابدأ الربح معنا
             </Link>
 
@@ -336,7 +336,7 @@ export default function ProfessionalNavbar() {
                 onClick={toggleGarage}
                 style={{
                   ...garageToggleBtn,
-                  backgroundColor: garageMode ? '#27ae60' : 'rgba(0,0,0,0.05)',
+                  backgroundColor: garageMode ? '#e50914' : 'rgba(0,0,0,0.05)',
                   color: garageMode ? '#fff' : '#1a1a1a',
                   marginLeft: '10px',
                 }}
@@ -395,9 +395,9 @@ const navContainer: any = {
   top: 0,
   zIndex: 1000,
   width: '100%',
-  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  backgroundColor: 'rgba(10,10,10,0.85)',
   backdropFilter: 'blur(20px)',
-  borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+  borderBottom: '1px solid rgba(255,255,255,0.08)',
   padding: '15px 0',
   direction: 'rtl',
 };
@@ -415,7 +415,7 @@ const logoStyle: any = {
   fontWeight: '900',
   fontStyle: 'italic',
   textDecoration: 'none',
-  color: '#1a1a1a',
+  color: '#1c1c1c',
   letterSpacing: '-1.5px',
   flexShrink: 0,
   textTransform: 'uppercase',
@@ -423,7 +423,7 @@ const logoStyle: any = {
 const navLinks: any = { display: 'flex', alignItems: 'center', gap: '25px' };
 const linkItem: any = {
   textDecoration: 'none',
-  color: '#444',
+  color: '#cbd5e1',
   fontSize: '0.95rem',
   fontWeight: 'bold',
   whiteSpace: 'nowrap',
@@ -432,13 +432,13 @@ const iconGroup: any = {
   display: 'flex',
   alignItems: 'center',
   gap: '12px',
-  borderRight: '1px solid #eee',
+  borderRight: '1px solid #2a2a2a',
   paddingRight: '15px',
 };
 const iconBtn: any = {
   background: 'none',
   border: 'none',
-  color: '#1a1a1a',
+  color: '#1c1c1c',
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
@@ -447,7 +447,7 @@ const loginLinkBtn: any = {
   display: 'flex',
   alignItems: 'center',
   gap: '5px',
-  background: '#1a1a1a',
+  background: '#e50914',
   color: '#fff',
   padding: '6px 15px',
   borderRadius: '10px',
@@ -460,7 +460,7 @@ const cartBadge: any = {
   position: 'absolute',
   top: '-5px',
   right: '-8px',
-  backgroundColor: '#27ae60',
+  backgroundColor: '#e50914',
   color: '#fff',
   fontSize: '10px',
   fontWeight: 'bold',
@@ -484,7 +484,7 @@ const sidebarStyle: any = {
   right: 0,
   bottom: 0,
   width: '280px',
-  background: '#fff',
+  background: '#161616',
   zIndex: 2001,
   display: 'flex',
   flexDirection: 'column',
@@ -493,7 +493,7 @@ const sidebarStyle: any = {
 };
 const sidebarHeader: any = {
   padding: '20px',
-  borderBottom: '1px solid #eee',
+  borderBottom: '1px solid #2a2a2a',
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
@@ -511,7 +511,7 @@ const sidebarLink: any = {
   gap: '12px',
   padding: '12px',
   textDecoration: 'none',
-  color: '#444',
+  color: '#cbd5e1',
   fontWeight: 'bold',
   borderRadius: '10px',
   border: 'none',
@@ -531,19 +531,19 @@ const sidebarLogoutBtn: any = {
 };
 const sidebarDivider: any = {
   border: 'none',
-  borderTop: '1px solid #f5f5f5',
+  borderTop: '1px solid #1c1c1c',
   margin: '10px 0',
 };
 const sidebarFooter: any = {
   padding: '20px',
   fontSize: '0.7rem',
-  color: '#ccc',
+  color: '#4b5563',
   textAlign: 'center',
 };
 const closeBtn: any = {
   background: 'none',
   border: 'none',
-  color: '#1a1a1a',
+  color: '#1c1c1c',
   cursor: 'pointer',
 };
 const garageToggleBtn: any = {

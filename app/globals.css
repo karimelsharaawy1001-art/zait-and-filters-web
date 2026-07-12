@@ -1,13 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  /* إجبار المتصفح على عرض ألوان الـ Light Mode فقط */
-  color-scheme: light;
+  color-scheme: dark;
 
-  /* ألوان الـ Light Mode الاحترافية */
-  --background: #ffffff;
-  --foreground: #1a1a1a;
-  --primary-green: #27ae60;
+  /* ── Black Friday dark theme palette ─────────────────────────────── */
+  --background: #0a0a0a;   /* page background */
+  --surface:    #161616;   /* subtle raised surfaces */
+  --card:       #1c1c1c;   /* cards / panels */
+  --border:     #2a2a2a;   /* dividers / outlines */
+  --foreground: #f5f5f5;   /* primary text */
+  --text-muted: #9ca3af;   /* secondary text */
+  --accent:     #e50914;   /* red accent (was green) */
+  --accent-2:   #8b0000;   /* deep red for gradients */
+  --accent-soft:#2a0f10;   /* dark red-tinted surface */
+  /* Legacy name kept so existing var() refs recolor automatically */
+  --primary-green: #e50914;
 }
 
 @theme inline {
@@ -123,7 +130,7 @@ body {
 /* ── BestSellers image area: stable height before JS hydration ──────────── */
 .zf-bs-image-area {
   height: 180px;
-  background: #f9f9f9;
+  background: #161616;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -136,11 +143,10 @@ body {
   contain: strict;
 }
 
-/* منع أي عناصر من التحول للون الأسود بناءً على نظام التشغيل */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #ffffff;
-    --foreground: #1a1a1a;
+    --background: #0a0a0a;
+    --foreground: #f5f5f5;
   }
 }
 
@@ -160,14 +166,14 @@ a {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #161616;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--primary-green);
+  background: var(--accent);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #1e8449;
+  background: #8b0000;
 }
 
 /* =============================================
@@ -179,27 +185,28 @@ a {
   padding: 40px;
   direction: rtl;
   line-height: 2;
-  color: #333;
-  background: #fff;
+  color: #d1d5db;
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 15px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.4);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.legal-container h1 { 
-  color: var(--primary-green); 
-  margin-bottom: 40px; 
+.legal-container h1 {
+  color: var(--accent);
+  margin-bottom: 40px;
   text-align: center;
-  border-bottom: 2px solid #f0fdf4;
+  border-bottom: 2px solid var(--border);
   padding-bottom: 15px;
   font-weight: 900;
   font-size: 2.2rem;
 }
 
-.legal-container h3 { 
-  color: #166534; 
-  margin-top: 35px; 
-  border-right: 4px solid var(--primary-green);
+.legal-container h3 {
+  color: #f87171;
+  margin-top: 35px;
+  border-right: 4px solid var(--accent);
   padding-right: 15px;
   font-weight: 700;
   font-size: 1.4rem;
@@ -218,7 +225,7 @@ a {
 }
 
 .legal-container b {
-  color: var(--primary-green);
+  color: #f87171;
 }
 
 /* تحسين التجاوب للهواتف في الصفحات القانونية */
