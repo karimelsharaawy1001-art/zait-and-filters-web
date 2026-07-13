@@ -835,7 +835,7 @@ export default function HomePage() {
           .img-container .img-fill-100 { height: 100% !important; transition: transform 0.38s cubic-bezier(.4,0,.2,1); }
           .img-container:hover .img-fill-100 { transform: scale(1.07); }
           .card-brand-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
-          .card-brand { color:#e50914; font-weight:800; font-size:0.75rem; letter-spacing:0.5px; text-transform:uppercase; }
+          .card-brand { color:#ffffff; font-weight:800; font-size:0.75rem; letter-spacing:0.5px; text-transform:uppercase; }
           .card-origin { font-size:0.7rem; color:#888; font-weight:700; display:flex; align-items:center; gap:3px; }
           /* Allow up to 3 lines — no fixed height so long names show fully */
           .card-name { font-size:0.92rem; font-weight:900; color:#f5f5f5; line-height:1.45; overflow:hidden; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }

@@ -1793,7 +1793,7 @@ setBrandsOptions(brandsOpts);
 
                           <div style={{ padding: '18px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                              <span style={{ color: '#e50914', fontWeight: '800', fontSize: '0.8rem' }}>{product.brand}</span>
+                              <span style={{ color: '#ffffff', fontWeight: '800', fontSize: '0.8rem' }}>{product.brand}</span>
                               {origin && !isOriginal && (
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#9ca3af', fontWeight: '700', fontSize: '0.75rem' }}>
                                   <Globe size={13} color="#e50914" />
@@ -1941,7 +1941,7 @@ setBrandsOptions(brandsOpts);
                           {/* Body */}
                           <div className="list-card-body" dir="rtl">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' as const }}>
-                              <span style={{ color: '#e50914', fontWeight: '800', fontSize: '0.72rem', textTransform: 'uppercase' as const, letterSpacing: '0.4px' }}>{product.brand}</span>
+                              <span style={{ color: '#ffffff', fontWeight: '800', fontSize: '0.72rem', textTransform: 'uppercase' as const, letterSpacing: '0.4px' }}>{product.brand}</span>
                               {product.category && <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: '600' }}>{product.category}</span>}
                               {origin && (() => { const flag = originFlag(origin); return (
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', color: '#f87171', fontWeight: '800', background: '#2a0f10', border: '1px solid #ef4444', borderRadius: '9px', padding: '3px 10px' }}>
