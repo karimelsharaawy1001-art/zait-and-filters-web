@@ -341,7 +341,7 @@ function SearchCard({
           style={{ width: '100%', height: '52px', padding: '0 15px', backgroundColor: '#161616', border: 'none', borderRadius: '12px', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }} />
       </div>
       <button onClick={handleSearch}
-        style={{ width: '100%', marginTop: '15px', backgroundColor: '#1c1c1c', color: '#fff', border: 'none', padding: '16px', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontSize: '1.1rem' }}>
+        style={{ width: '100%', marginTop: '15px', background: 'linear-gradient(135deg, #e50914 0%, #b91c1c 100%)', color: '#fff', border: 'none', padding: '16px', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontSize: '1.1rem', boxShadow: '0 8px 22px rgba(229,9,20,0.35)' }}>
         بحث الآن <ChevronLeft size={22} />
       </button>
     </>
