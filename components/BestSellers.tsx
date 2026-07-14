@@ -129,7 +129,7 @@ const sectionTitle: any = { fontSize: '1.6rem', fontWeight: '900', color: '#f5f5
 const subTitle: any = { color: '#777', fontSize: '0.9rem', marginTop: '5px' };
 const fireIconBox: any = { background: '#2a0f10', padding: '8px', borderRadius: '12px' };
 
-const productCard: any = { background: '#1c1c1c', borderRadius: '20px', border: '1px solid #242424', overflow: 'hidden', height: '100%', boxShadow: '0 5px 15px rgba(0,0,0,0.02)' };
+const productCard: any = { background: '#1a1a1a', borderRadius: '20px', border: '1px solid #2e2e2e', overflow: 'hidden', height: '100%', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' };
 const imgStyle: any = { maxWidth: '85%', maxHeight: '85%', objectFit: 'contain' };
 const bestLabel: any = { position: 'absolute', top: '12px', right: '12px', background: '#ff4d4d', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: 'bold', zIndex: 5 };
 

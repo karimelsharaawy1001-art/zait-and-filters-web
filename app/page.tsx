@@ -821,15 +821,15 @@ export default function HomePage() {
           .product-grid-carousel { display: flex !important; flex-wrap: nowrap !important; gap: 18px; overflow-x: auto !important; scroll-snap-type: x mandatory; padding: 12px 20px 20px; -webkit-overflow-scrolling: touch; }
           .product-card-mdrn {
             flex: 0 0 270px !important; min-width: 270px !important; max-width: 270px !important;
-            background: #1c1c1c;
+            background: #1a1a1a;
             border-radius: 22px;
-            border: 1px solid rgba(0,0,0,0.07);
-            box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+            border: 1px solid #2e2e2e;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
             transition: transform 0.28s cubic-bezier(.4,0,.2,1), box-shadow 0.28s cubic-bezier(.4,0,.2,1), border-color 0.2s;
             position: relative; display: flex; flex-direction: column; overflow: hidden;
             scroll-snap-align: start;
           }
-          .product-card-mdrn:hover { transform: translateY(-8px); box-shadow: 0 24px 60px rgba(34,197,94,0.18); border-color: rgba(34,197,94,0.4); }
+          .product-card-mdrn:hover { transform: translateY(-8px); box-shadow: 0 24px 60px rgba(229,9,20,0.28); border-color: rgba(229,9,20,0.55); }
           .img-container { background: #242424; height: 210px; width: 100%; position: relative; cursor: pointer; overflow: hidden; display: block; }
           /* Override globals.css height so image fills the container with no gap */
           .img-container .img-fill-100 { height: 100% !important; transition: transform 0.38s cubic-bezier(.4,0,.2,1); }

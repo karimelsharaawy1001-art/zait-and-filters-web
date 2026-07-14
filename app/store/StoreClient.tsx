@@ -1362,7 +1362,7 @@ setBrandsOptions(brandsOpts);
           .store-product-card {
             background: #1c1c1c;
             border-radius: 16px;
-            border: 1px solid #e0e0e0;
+            border: 1px solid #2e2e2e;
             transition: all 0.3s ease;
             overflow: hidden;
             display: flex;
@@ -1372,7 +1372,7 @@ setBrandsOptions(brandsOpts);
           .store-product-card:hover {
             transform: translateY(-5px);
             border-color: #e50914;
-            box-shadow: 0 10px 30px rgba(34, 197, 94, 0.15);
+            box-shadow: 0 16px 40px rgba(229,9,20,0.22);
           }
           .products-grid {
             display: grid;
@@ -1460,8 +1460,8 @@ setBrandsOptions(brandsOpts);
 
           /* ── List view ── */
           .products-list { display: flex; flex-direction: column; gap: 12px; }
-          .list-card { display: flex; background: #1c1c1c; border-radius: 16px; border: 1px solid #242424; box-shadow: 0 2px 10px rgba(0,0,0,0.04); overflow: hidden; transition: box-shadow 0.2s, transform 0.2s; position: relative; }
-          .list-card:hover { box-shadow: 0 8px 28px rgba(34,197,94,0.12); transform: translateY(-2px); }
+          .list-card { display: flex; background: #1a1a1a; border-radius: 16px; border: 1px solid #2e2e2e; box-shadow: 0 8px 24px rgba(0,0,0,0.5); overflow: hidden; transition: box-shadow 0.2s, transform 0.2s; position: relative; }
+          .list-card:hover { box-shadow: 0 16px 36px rgba(229,9,20,0.22); transform: translateY(-2px); }
           .list-card-img { width: 130px; min-width: 130px; height: 130px; object-fit: cover; background: #161616; flex-shrink: 0; }
           .list-card-img img { width: 100%; height: 100%; object-fit: cover; }
           .list-card-body { flex: 1; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
