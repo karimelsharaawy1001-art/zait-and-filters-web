@@ -11,6 +11,9 @@ export default function AdminBrands() {
   const [logoUrlInput, setLogoUrlInput] = useState<{ [key: string]: string }>({});
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
+  // Add-new form for the moving ribbon (part_brands)
+  const [newPart, setNewPart] = useState<{ name: string; logo_url: string }>({ name: '', logo_url: '' });
+  const [addingPart, setAddingPart] = useState(false);
 
 
   useEffect(() => {
@@ -84,6 +87,38 @@ export default function AdminBrands() {
     }
   }
 
+  async function uploadNewPartLogo(e: any) {
+    try {
+      setUploading(true);
+      const file = e.target.files[0];
+      if (!file) return;
+      const base = (newPart.name || 'brand').replace(/\s+/g, '-');
+      const filePath = `logos/${base}-${Date.now()}.${file.name.split('.').pop()}`;
+      const { error: upErr } = await supabase.storage.from('brand-assets').upload(filePath, file);
+      if (upErr) throw upErr;
+      const { data: { publicUrl } } = supabase.storage.from('brand-assets').getPublicUrl(filePath);
+      setNewPart(p => ({ ...p, logo_url: publicUrl }));
+      toast.success('تم رفع الصورة — اضغط "إضافة"');
+    } catch { toast.error('خطأ في الرفع'); } finally { setUploading(false); }
+  }
+
+  async function addPartBrand() {
+    const name = newPart.name.trim();
+    const logo = newPart.logo_url.trim();
+    if (!name) return toast.error('اكتب اسم الماركة');
+    if (!logo || !logo.startsWith('http')) return toast.error('ارفع صورة أو ضع رابط لوجو صحيح');
+    setAddingPart(true);
+    try {
+      const { data, error } = await supabase.from('part_brands').insert({ name, logo_url: logo }).select().single();
+      if (error) throw error;
+      setPartBrands(prev => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
+      setNewPart({ name: '', logo_url: '' });
+      toast.success(`تمت إضافة ${name} للشريط`);
+    } catch (e: any) {
+      toast.error('فشل الإضافة: ' + e.message);
+    } finally { setAddingPart(false); }
+  }
+
   function renderBrandGrid(list: any[], table: string, setter: any) {
     return (
       <div style={grid}>
@@ -144,10 +179,32 @@ export default function AdminBrands() {
 
       <h2 style={{ ...sectionTitle, marginTop: '40px' }}>🛠️ ماركات قطع الغيار (شريط الماركات المتحرك)</h2>
       <p style={{ color: '#888', fontSize: '0.85rem', margin: '0 0 16px' }}>
-        هذه هي اللوجوهات التي تظهر في الشريط المتحرك بالصفحة الرئيسية. استبدل أي صورة بها خطأ من هنا.
+        أضف فقط الماركات التي تريد ظهورها في الشريط المتحرك بالصفحة الرئيسية، واحذف غير المرغوب فيها.
       </p>
+
+      {/* Add a brand to the ribbon */}
+      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', background: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '14px', padding: '14px', marginBottom: '20px' }}>
+        {newPart.logo_url
+          ? <img src={newPart.logo_url} alt="" style={{ width: '48px', height: '48px', objectFit: 'contain', background: '#111', borderRadius: '10px', border: '1px solid #222', padding: '4px' }} />
+          : <div style={{ width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111', borderRadius: '10px', border: '1px solid #222' }}><ImageIcon size={20} color="#444" /></div>}
+        <input type="text" placeholder="اسم الماركة (مثال: Bosch)" value={newPart.name}
+          onChange={e => setNewPart(p => ({ ...p, name: e.target.value }))}
+          style={{ ...miniInput, flex: '1 1 160px', padding: '10px' }} />
+        <input type="text" placeholder="رابط اللوجو (اختياري إذا رفعت ملف)" value={newPart.logo_url}
+          onChange={e => setNewPart(p => ({ ...p, logo_url: e.target.value }))}
+          style={{ ...miniInput, flex: '2 1 220px', padding: '10px' }} />
+        <label style={{ ...uploadBtn, flex: '0 0 auto', padding: '10px 14px' }}>
+          <Upload size={14} /> {uploading ? '...' : 'رفع صورة'}
+          <input type="file" hidden onChange={uploadNewPartLogo} />
+        </label>
+        <button onClick={addPartBrand} disabled={addingPart}
+          style={{ background: 'linear-gradient(135deg, #e50914, #b91c1c)', color: '#fff', border: 'none', padding: '10px 22px', borderRadius: '10px', fontWeight: 800, cursor: addingPart ? 'not-allowed' : 'pointer', flex: '0 0 auto' }}>
+          {addingPart ? '...جارٍ' : '➕ إضافة'}
+        </button>
+      </div>
+
       {partBrands.length === 0
-        ? <div style={{ color: '#888', fontSize: '0.85rem' }}>لا توجد ماركات قطع غيار.</div>
+        ? <div style={{ color: '#888', fontSize: '0.85rem' }}>لا توجد ماركات في الشريط بعد — أضف الماركات التي تريدها من الأعلى.</div>
         : renderBrandGrid(partBrands, 'part_brands', setPartBrands)}
     </div>
   );
