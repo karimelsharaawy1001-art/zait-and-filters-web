@@ -37,11 +37,15 @@ body {
   /* Premium ambient background: subtle red glows + soft vignette on near-black,
      fixed so it reads as depth behind the content instead of flat black. */
   background-color: var(--background) !important;
+  /* Layered: red ambient glows + carbon-fiber weave + soft vignette. */
   background-image:
     radial-gradient(1100px 620px at 78% -8%, rgba(229,9,20,0.10), transparent 60%),
     radial-gradient(900px 600px at 0% 8%, rgba(229,9,20,0.05), transparent 55%),
     radial-gradient(1200px 900px at 50% 120%, rgba(139,0,0,0.10), transparent 60%),
+    repeating-linear-gradient(45deg, rgba(255,255,255,0.022) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(-45deg, rgba(0,0,0,0.28) 0 1px, transparent 1px 4px),
     linear-gradient(180deg, #101010 0%, #0a0a0a 45%, #070707 100%) !important;
+  background-size: auto, auto, auto, 5px 5px, 5px 5px, auto !important;
   background-attachment: fixed !important;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
