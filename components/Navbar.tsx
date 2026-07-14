@@ -395,9 +395,13 @@ const navContainer: any = {
   top: 0,
   zIndex: 1000,
   width: '100%',
-  backgroundColor: 'rgba(10,10,10,0.85)',
-  backdropFilter: 'blur(20px)',
-  borderBottom: '1px solid rgba(255,255,255,0.08)',
+  // Premium dark-glass: subtle vertical gradient + blur, a red brand accent
+  // hairline, depth shadow, and a faint top sheen.
+  background: 'linear-gradient(180deg, rgba(28,28,28,0.92) 0%, rgba(10,10,10,0.92) 100%)',
+  backdropFilter: 'blur(22px) saturate(160%)',
+  WebkitBackdropFilter: 'blur(22px) saturate(160%)',
+  borderBottom: '1px solid rgba(229,9,20,0.35)',
+  boxShadow: '0 8px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
   padding: '15px 0',
   direction: 'rtl',
 };

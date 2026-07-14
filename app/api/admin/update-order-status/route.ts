@@ -10,7 +10,7 @@ function makeAdmin() {
 
 export async function POST(req: Request) {
   try {
-    const { orderId, newStatus, forceCashback } = await req.json();
+    const { orderId, newStatus, forceCashback, banCod } = await req.json();
 
     if (!orderId || !newStatus) {
       return NextResponse.json({ error: 'orderId and newStatus are required' }, { status: 400 });
@@ -54,6 +54,34 @@ export async function POST(req: Request) {
         .update({ recovered: false, recovered_at: null })
         .eq('recovery_order_id', orderId)
         .eq('recovered', true);
+
+      // Ban customer from COD if requested
+      if (banCod) {
+        const { data: orderData } = await db
+          .from('orders')
+          .select('user_id, customer_phone, customer_name')
+          .eq('id', orderId)
+          .single();
+
+        if (orderData) {
+          // Check for existing ban to avoid duplicates
+          const { data: existingBan } = await db
+            .from('cod_bans')
+            .select('id')
+            .eq('order_id', orderId)
+            .maybeSingle();
+
+          if (!existingBan) {
+            await db.from('cod_bans').insert({
+              user_id: orderData.user_id || null,
+              customer_phone: orderData.customer_phone,
+              customer_name: orderData.customer_name,
+              order_id: orderId,
+              reason: 'تم الإلغاء من قبل الإدارة',
+            });
+          }
+        }
+      }
     }
 
     return NextResponse.json({ success: true });

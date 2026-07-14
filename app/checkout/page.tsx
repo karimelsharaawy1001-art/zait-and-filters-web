@@ -12,7 +12,8 @@ import Link from 'next/link';
 import { 
   User, MapPin, ShoppingCart, Loader2, CheckCircle, Car, Globe, Mail,
   Settings2, Calendar, Tags, Upload, ExternalLink, Plus, Gauge, 
-  Banknote, CreditCard, Wallet, SmartphoneNfc, Ticket, FileText, Download, Truck
+  Banknote, CreditCard, Wallet, SmartphoneNfc, Ticket, FileText, Download, Truck,
+  AlertCircle
 } from 'lucide-react';
 
 export default function CheckoutPage() {
@@ -51,6 +52,7 @@ export default function CheckoutPage() {
   const [carMileage, setCarMileage] = useState('');
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string>('new');
+  const [codBanned, setCodBanned] = useState(false);
 
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
@@ -74,6 +76,22 @@ export default function CheckoutPage() {
   }, [selectedCity, expressShipping, paymentMethod, isExpressAvailable]);
 
   useExitWarning(cart.length > 0 && !completedOrderId);
+
+  async function checkCodBan(phone: string, userId?: string) {
+    if (!phone && !userId) { setCodBanned(false); return; }
+    try {
+      let query = supabase.from('cod_bans').select('id');
+      if (userId) {
+        query = query.eq('user_id', userId);
+      } else {
+        query = query.eq('customer_phone', phone);
+      }
+      const { data } = await query.maybeSingle();
+      const banned = !!data;
+      setCodBanned(banned);
+      if (banned && paymentMethod === 'cash') setPaymentMethod('instapay');
+    } catch { /* ignore */ }
+  }
 
   useEffect(() => {
     async function initCheckout() {
@@ -120,6 +138,7 @@ export default function CheckoutPage() {
         ]);
         if (walletRes.data) setWalletBalance(walletRes.data.balance ?? 0);
         if (cashbackRes.data?.is_enabled) setCashbackPct(cashbackRes.data.cashback_percentage ?? 5);
+        checkCodBan('', u.id);
       }
 
       const isBuyNow = urlParams.get('buyNow') === 'true';
@@ -417,6 +436,11 @@ export default function CheckoutPage() {
     if (expressShipping && !['instapay', 'wallets'].includes(paymentMethod)) {
       setPaymentMethod('instapay');
       return toast.error('الشحن السريع متاح فقط لـ InstaPay والمحافظ الإلكترونية');
+    }
+
+    if (codBanned && paymentMethod === 'cash') {
+      setPaymentMethod('instapay');
+      return toast.error('الدفع عند الاستلام غير متاح لك. يرجى استخدام طريقة دفع أخرى');
     }
 
     setLoading(true);
@@ -1078,7 +1102,7 @@ export default function CheckoutPage() {
           </div>
           <div style={inputGroup}>
             <label style={lab}>رقم الموبايل</label>
-            <input value={customerInfo.phone} onChange={(e) => { setCustomerInfo({...customerInfo, phone: e.target.value}); localStorage.setItem('checkout_phone', e.target.value); }} onBlur={trackAbandonedCart} required className="co-input" style={inp} />
+            <input value={customerInfo.phone} onChange={(e) => { setCustomerInfo({...customerInfo, phone: e.target.value}); localStorage.setItem('checkout_phone', e.target.value); }} onBlur={(e) => { trackAbandonedCart(); checkCodBan(e.target.value); }} required className="co-input" style={inp} />
           </div>
           <div style={inputGroup}>
             <label style={lab}><Mail size={14} /> البريد الإلكتروني</label>
@@ -1233,8 +1257,8 @@ export default function CheckoutPage() {
                 </div>
               </label>
 
-              {/* ── 4th: Cash on Delivery — hidden for express shipping ── */}
-              {!expressShipping && (
+              {/* ── 4th: Cash on Delivery — hidden for express shipping or COD-banned customers ── */}
+              {!expressShipping && !codBanned && (
               <label className="pay-card-label" style={paymentCard(paymentMethod === 'cash')}>
                 <input type="radio" value="cash" checked={paymentMethod === 'cash'} onChange={(e) => setPaymentMethod(e.target.value)} style={hideRadio}/>
                 <div style={payCardInner}>
@@ -1256,6 +1280,15 @@ export default function CheckoutPage() {
                   )}
                 </div>
               </label>
+              )}
+              {codBanned && (
+                <div style={{ padding: '14px 16px', background: '#1a0d0d', borderRadius: '14px', border: '1.5px solid #7f1d1d', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <AlertCircle size={20} color="#f87171" style={{ flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontSize: '0.88rem', color: '#f87171', fontWeight: '800' }}>الدفع عند الاستلام غير متاح لك</div>
+                    <div style={{ fontSize: '0.76rem', color: '#9ca3b8', fontWeight: '600', marginTop: '2px' }}>يرجى استخدام طريقة دفع أخرى (InstaPay، بطاقة بنكية، أو محافظ إلكترونية)</div>
+                  </div>
+                </div>
               )}
 
             </div>

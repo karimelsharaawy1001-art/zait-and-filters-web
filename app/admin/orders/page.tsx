@@ -475,7 +475,7 @@ function ExpandedOrderRow({
   onViewDetail, onViewInvoice, onDelete, updatingPayment, enrichedItems,
 }: {
   order: any; paymentLabels: any;
-  onUpdateStatus: (id: string, s: string) => void;
+  onUpdateStatus: (id: string, s: string, banCod?: boolean) => void;
   onUpdatePaymentStatus: (id: string, s: string) => void;
   onViewDetail: (o: any) => void; onViewInvoice: (o: any) => void;
   onDelete: (id: string) => void; updatingPayment: boolean; enrichedItems: any[];
@@ -656,6 +656,8 @@ export default function AdminOrders() {
   const [quickTrackingValue, setQuickTrackingValue] = useState('');
 
   const [showAddItem, setShowAddItem] = useState(false);
+  const [cancelConfirmOrderId, setCancelConfirmOrderId] = useState<string | null>(null);
+  const [banCodOnCancel, setBanCodOnCancel] = useState(false);
   const [partBrands, setPartBrands] = useState<any[]>([]);
   const [carMakes, setCarMakes] = useState<string[]>([]);
   const [carModels, setCarModels] = useState<string[]>([]);
@@ -750,11 +752,11 @@ export default function AdminOrders() {
     if (data) setCustomerAddresses(data);
   }
 
-  async function updateOrderStatus(orderId: string, newStatus: string) {
+  async function updateOrderStatus(orderId: string, newStatus: string, banCod = false) {
     try {
       const res = await fetch('/api/admin/update-order-status', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId, newStatus }),
+        body: JSON.stringify({ orderId, newStatus, banCod: banCod || undefined }),
       });
       const result = await res.json();
       if (!res.ok || result.error) { toast.error('فشل التحديث: ' + (result.error || 'خطأ غير معروف')); return; }
@@ -762,6 +764,22 @@ export default function AdminOrders() {
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
       if (selectedOrder?.id === orderId) setSelectedOrder((prev: any) => ({ ...prev, status: newStatus }));
     } catch (err: any) { toast.error('فشل التحديث: ' + err.message); }
+  }
+
+  function handleStatusChange(orderId: string, newStatus: string) {
+    if (newStatus === 'cancelled') {
+      setCancelConfirmOrderId(orderId);
+      setBanCodOnCancel(false);
+    } else {
+      updateOrderStatus(orderId, newStatus);
+    }
+  }
+
+  function confirmCancelOrder() {
+    if (!cancelConfirmOrderId) return;
+    updateOrderStatus(cancelConfirmOrderId, 'cancelled', banCodOnCancel);
+    setCancelConfirmOrderId(null);
+    setBanCodOnCancel(false);
   }
 
   async function updatePaymentStatus(orderId: string, newPaymentStatus: string) {
@@ -1370,7 +1388,7 @@ export default function AdminOrders() {
                           </td>
                           <td style={td}>
                             {/* ── CHANGED: added pending_payment option ── */}
-                            <select value={order.status} onChange={(e) => { e.stopPropagation(); updateOrderStatus(order.id, e.target.value); }} style={miniSelectStyle(order.status)}>
+                            <select value={order.status} onChange={(e) => { e.stopPropagation(); handleStatusChange(order.id, e.target.value); }} style={miniSelectStyle(order.status)}>
                               <option value="pending_payment">انتظار الدفع</option><option value="pending">جديد</option><option value="processing">تجهيز</option><option value="shipped">شحن</option><option value="delivered">توصيل</option><option value="cancelled">ملغي</option><option value="refunded">مسترجع</option>
                             </select>
                           </td>
@@ -1451,7 +1469,7 @@ export default function AdminOrders() {
                         {isExpanded && (
                           <tr key={`${order.id}-expanded`}>
                             <td colSpan={12} style={{ padding: 0, border: 'none' }}>
-                              <ExpandedOrderRow order={order} paymentLabels={paymentLabels} onUpdateStatus={updateOrderStatus} onUpdatePaymentStatus={updatePaymentStatus} onViewDetail={openDetailModal} onViewInvoice={openInvoiceModal} onDelete={(id) => setDeleteConfirmId(id)} updatingPayment={updatingPayment} enrichedItems={expandedEnrichedItems} />
+                              <ExpandedOrderRow order={order} paymentLabels={paymentLabels} onUpdateStatus={handleStatusChange} onUpdatePaymentStatus={updatePaymentStatus} onViewDetail={openDetailModal} onViewInvoice={openInvoiceModal} onDelete={(id) => setDeleteConfirmId(id)} updatingPayment={updatingPayment} enrichedItems={expandedEnrichedItems} />
                             </td>
                           </tr>
                         )}
@@ -1522,7 +1540,7 @@ export default function AdminOrders() {
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', borderTop: '1px solid #f0f0f0', background: '#fafafa' }} onClick={e => e.stopPropagation()}>
                       {/* ── CHANGED: added pending_payment option ── */}
-                      <select value={order.status} onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                      <select value={order.status} onChange={(e) => handleStatusChange(order.id, e.target.value)}
                         style={{ flex: 1, border: 'none', background: 'transparent', padding: '10px 12px', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', outline: 'none', color: '#333', borderLeft: '1px solid #f0f0f0' }}>
                         <option value="pending_payment">انتظار الدفع</option><option value="pending">جديد</option><option value="processing">تجهيز</option><option value="shipped">شحن</option><option value="delivered">توصيل</option><option value="cancelled">ملغي</option><option value="refunded">مسترجع</option>
                       </select>
@@ -1532,7 +1550,7 @@ export default function AdminOrders() {
                     </div>
                     {isExpanded && (
                       <div style={{ borderTop: '2px solid #22c55e22' }}>
-                        <ExpandedOrderRow order={order} paymentLabels={paymentLabels} onUpdateStatus={updateOrderStatus} onUpdatePaymentStatus={updatePaymentStatus} onViewDetail={openDetailModal} onViewInvoice={openInvoiceModal} onDelete={(id) => setDeleteConfirmId(id)} updatingPayment={updatingPayment} enrichedItems={expandedEnrichedItems} />
+                        <ExpandedOrderRow order={order} paymentLabels={paymentLabels} onUpdateStatus={handleStatusChange} onUpdatePaymentStatus={updatePaymentStatus} onViewDetail={openDetailModal} onViewInvoice={openInvoiceModal} onDelete={(id) => setDeleteConfirmId(id)} updatingPayment={updatingPayment} enrichedItems={expandedEnrichedItems} />
                       </div>
                     )}
                   </div>
@@ -1982,6 +2000,33 @@ export default function AdminOrders() {
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
               <button onClick={() => handleDelete(deleteConfirmId)} style={{ padding: '12px 28px', backgroundColor: '#dc2626', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}><Trash2 size={16} /> نعم، احذف</button>
               <button onClick={() => setDeleteConfirmId(null)} style={{ padding: '12px 28px', backgroundColor: '#f5f5f5', color: '#555', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer' }}>إلغاء</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Order Confirm Modal */}
+      {cancelConfirmOrderId && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(4px)', padding: '16px' }}>
+          <div style={{ backgroundColor: '#fff', borderRadius: '20px', padding: 'clamp(24px, 5vw, 40px) clamp(20px, 5vw, 36px)', maxWidth: '440px', width: '100%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
+            <div style={{ fontSize: '3.5rem', marginBottom: '16px' }}>🚫</div>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: '900', marginBottom: '10px', color: '#1a1a1a' }}>تأكيد إلغاء الطلب</h3>
+            <p style={{ color: '#666', fontSize: '0.95rem', marginBottom: '20px', lineHeight: 1.6 }}>هل أنت متأكد من إلغاء هذا الطلب؟</p>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '12px', background: banCodOnCancel ? '#fef2f2' : '#f9fafb', border: banCodOnCancel ? '2px solid #dc2626' : '2px solid #e5e7eb', borderRadius: '14px', padding: '16px', cursor: 'pointer', marginBottom: '24px', transition: 'all 0.15s', textAlign: 'right' }}>
+              <input
+                type="checkbox"
+                checked={banCodOnCancel}
+                onChange={(e) => setBanCodOnCancel(e.target.checked)}
+                style={{ width: '20px', height: '20px', accentColor: '#dc2626', flexShrink: 0, cursor: 'pointer' }}
+              />
+              <div>
+                <div style={{ fontWeight: '800', fontSize: '0.92rem', color: '#1a1a1a', marginBottom: '2px' }}>منع العميل من الدفع عند الاستلام</div>
+                <div style={{ fontSize: '0.78rem', color: '#888', fontWeight: '600' }}>لن يتمكن العميل من استخدام خيار الدفع عند الاستلام في طلباته القادمة</div>
+              </div>
+            </label>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button onClick={confirmCancelOrder} style={{ padding: '12px 28px', backgroundColor: '#dc2626', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}><AlertTriangle size={16} /> نعم، إلغاء الطلب</button>
+              <button onClick={() => { setCancelConfirmOrderId(null); setBanCodOnCancel(false); }} style={{ padding: '12px 28px', backgroundColor: '#f5f5f5', color: '#555', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer' }}>إلغاء</button>
             </div>
           </div>
         </div>
