@@ -472,7 +472,7 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
             height: '42px',
             borderRadius: '12px',
             border: '1.5px solid #2a2a2a',
-            backgroundColor: currentPage === 1 ? '#1c1c1c' : '#fff',
+            backgroundColor: currentPage === 1 ? '#161616' : '#242424',
             color: currentPage === 1 ? '#ccc' : '#f5f5f5',
             cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
             display: 'flex',
@@ -505,7 +505,7 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
                 background:
                   currentPage === page
                     ? 'linear-gradient(135deg, #e50914 0%, #dc2626 100%)'
-                    : '#fff',
+                    : '#242424',
                 color: currentPage === page ? '#fff' : '#f5f5f5',
                 fontWeight: '900',
                 fontSize: '0.9rem',
@@ -513,7 +513,7 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
                 transition: 'all 0.2s',
                 boxShadow:
                   currentPage === page
-                    ? '0 4px 14px rgba(34,197,94,0.4)'
+                    ? '0 4px 14px rgba(229,9,20,0.45)'
                     : '0 2px 8px rgba(0,0,0,0.06)',
                 transform: currentPage === page ? 'scale(1.1)' : 'scale(1)',
               }}
@@ -531,7 +531,7 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
             height: '42px',
             borderRadius: '12px',
             border: '1.5px solid #2a2a2a',
-            backgroundColor: currentPage === totalPages ? '#1c1c1c' : '#fff',
+            backgroundColor: currentPage === totalPages ? '#161616' : '#242424',
             color: currentPage === totalPages ? '#ccc' : '#f5f5f5',
             cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
             display: 'flex',
@@ -1402,7 +1402,7 @@ setBrandsOptions(brandsOpts);
           .buy-now-btn:hover {
             background: #dc2626 !important;
             transform: translateY(-1px);
-            box-shadow: 0 6px 18px rgba(34,197,94,0.4) !important;
+            box-shadow: 0 6px 18px rgba(229,9,20,0.45) !important;
           }
           .original-badge {
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #f59e0b 100%);
@@ -1751,7 +1751,7 @@ setBrandsOptions(brandsOpts);
                           {(() => {
                             const inCartQty = cartItems.find((i: any) => i.id === product.id)?.quantity ?? 0;
                             return inCartQty > 0 ? (
-                              <div style={{ position: 'absolute', top: '10px', left: '10px', background: '#e50914', color: '#fff', borderRadius: '20px', padding: '3px 10px', fontSize: '0.7rem', fontWeight: '900', zIndex: 11, display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 2px 8px rgba(34,197,94,0.4)' }}>
+                              <div style={{ position: 'absolute', top: '10px', left: '10px', background: '#e50914', color: '#fff', borderRadius: '20px', padding: '3px 10px', fontSize: '0.7rem', fontWeight: '900', zIndex: 11, display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 2px 8px rgba(229,9,20,0.45)' }}>
                                 ✓ في السلة ({inCartQty})
                               </div>
                             ) : null;
