@@ -595,12 +595,12 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
               )}
               {product.category && (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#161616', border: '1px solid #2a2a2a', borderRadius: '20px', padding: '6px 14px', fontSize: '0.82rem', fontWeight: '700', color: '#94a3b8' }}>
-                  <LayoutGrid size={13} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, maxWidth: '160px' }}>{product.category}</span>
+                  <LayoutGrid size={13} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, maxWidth: '160px' }}>Category: {product.category}</span>
                 </span>
               )}
               {product.subcategory && (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#161616', border: '1px solid #2a2a2a', borderRadius: '20px', padding: '6px 14px', fontSize: '0.82rem', fontWeight: '700', color: '#94a3b8' }}>
-                  <Tag size={13} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, maxWidth: '160px' }}>{product.subcategory}</span>
+                  <Tag size={13} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, maxWidth: '160px' }}>Subcategory: {product.subcategory}</span>
                 </span>
               )}
             </div>
