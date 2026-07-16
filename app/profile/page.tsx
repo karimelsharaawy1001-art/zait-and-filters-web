@@ -879,8 +879,8 @@ function paymentMethodLabel(method: string) {
 }
 
 // --- Style Objects ---
-const container: any = { padding: '20px 16px 40px', maxWidth: '1100px', margin: '0 auto', direction: 'rtl', minHeight: '100vh', backgroundColor: '#f6f8fa' };
-const headerCard: any = { background: 'linear-gradient(135deg, #fff 60%, #1a0d0d)', borderRadius: '24px', padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', border: '1px solid #2a0f10', boxShadow: '0 4px 24px rgba(34,197,94,0.07)' };
+const container: any = { padding: '20px 16px 40px', maxWidth: '1100px', margin: '0 auto', direction: 'rtl', minHeight: '100vh', backgroundColor: 'transparent' };
+const headerCard: any = { background: 'linear-gradient(135deg, #1e1e1e 0%, #1a1010 55%, #2a0f10 100%)', borderRadius: '24px', padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', border: '1px solid #3a2020', boxShadow: '0 12px 34px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05)' };
 const profileInfoWrap: any = { display: 'flex', alignItems: 'center', gap: '14px' };
 const avatarWrap: any = { width: '60px', height: '60px', borderRadius: '18px', background: '#1a0d0d', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #7f1d1d', flexShrink: 0 };
 const titleName: any = { fontSize: '1.1rem', fontWeight: '900', color: '#f5f5f5', marginBottom: '3px' };
@@ -890,7 +890,7 @@ const headerStatItem: any = { textAlign: 'center', display: 'flex', flexDirectio
 const headerDivider: any = { width: '1px', height: '28px', background: '#2a2a2a' };
 
 // ── Wallet Card styles ──
-const walletCard: any = { background: 'linear-gradient(135deg, #1a0d0d, #2a0f10)', borderRadius: '20px', padding: '16px 18px', marginBottom: '20px', border: '1px solid #ef4444', display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 4px 16px rgba(34,197,94,0.1)' };
+const walletCard: any = { background: 'linear-gradient(135deg, #1a0d0d, #2a0f10)', borderRadius: '20px', padding: '16px 18px', marginBottom: '20px', border: '1px solid #ef4444', display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 4px 16px rgba(229,9,20,0.18)' };
 const walletIconWrap: any = { width: '46px', height: '46px', borderRadius: '14px', background: '#1c1c1c', border: '1px solid #7f1d1d', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(34,197,94,0.12)' };
 const walletInfo: any = { flex: 1, display: 'flex', flexDirection: 'column', gap: '3px' };
 const walletLabel: any = { fontSize: '0.75rem', color: '#dc2626', fontWeight: '700' };
@@ -942,7 +942,7 @@ const priceText: any = { fontSize: '0.95rem', fontWeight: '900', color: '#f5f5f5
 const orderBody: any = { padding: '12px 15px', background: '#161616', borderTop: '1px solid #1c1c1c' };
 const miniItemRow: any = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' };
 const miniItemImg: any = { width: '38px', height: '38px', borderRadius: '10px', objectFit: 'cover' as const, flexShrink: 0 };
-const miniItemName: any = { fontSize: '0.8rem', fontWeight: '700', color: '#3a3a3a' };
+const miniItemName: any = { fontSize: '0.8rem', fontWeight: '700', color: '#e5e7eb' };
 const miniItemPrice: any = { fontSize: '0.8rem', fontWeight: '800', color: '#f5f5f5', whiteSpace: 'nowrap' };
 const compactForm: any = { display: 'flex', flexDirection: 'column', gap: '10px' };
 const inputLabel: any = { fontSize: '0.78rem', fontWeight: '700', color: '#888', marginBottom: '-4px' };
@@ -961,6 +961,6 @@ const addrFull: any = { fontSize: '0.73rem', color: '#aaa', marginTop: '2px' };
 const addrDelBtn: any = { color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', flexShrink: 0 };
 const elegantLogout: any = { width: '100%', padding: '14px', background: 'none', border: '1px solid #2a0f10', color: '#ef4444', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: '900', fontSize: '0.9rem', cursor: 'pointer', marginTop: '8px' };
 const centerStyle: any = { display: 'flex', justifyContent: 'center', padding: '100px' };
-const emptyText: any = { textAlign: 'center', color: '#3a3a3a', fontSize: '0.85rem', padding: '20px 0' };
+const emptyText: any = { textAlign: 'center', color: '#9ca3af', fontSize: '0.85rem', padding: '20px 0' };
 const infoColumn: any = { display: 'flex', flexDirection: 'column', width: '100%', minWidth: 0 };
 const orderColumn: any = { display: 'flex', flexDirection: 'column', width: '100%', minWidth: 0 };
