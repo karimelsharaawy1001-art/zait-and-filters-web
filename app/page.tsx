@@ -1482,8 +1482,12 @@ export default function HomePage() {
                     font-size: 0.68rem;
                     font-weight: 700;
                     color: #fff;
+                    transition: color 0.18s;
                     position: relative;
                     z-index: 1;
+                  }
+                  .make-card:hover .make-card-cta {
+                    color: #000;
                   }
                   @media (max-width: 580px) {
                     .make-card { padding: 18px 8px 14px; gap: 10px; border-radius: 12px; }
