@@ -1448,8 +1448,8 @@ export default function HomePage() {
                   .make-card:hover {
                     transform: translateY(-6px) scale(1.035);
                     box-shadow: 0 18px 40px rgba(34,197,94,0.45);
-                    outline: 2.5px solid #22c55e;
-                    background: linear-gradient(145deg, #22c55e, #16a34a);
+                    outline: 2.5px solid #16a34a;
+                    background: linear-gradient(145deg, #16a34a, #15803d);
                   }
                   .make-card-logo-wrap {
                     width: 80%;
