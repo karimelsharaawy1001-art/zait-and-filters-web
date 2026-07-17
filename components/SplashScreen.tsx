@@ -33,7 +33,7 @@ export default function SplashScreen() {
       <div style={{
         position: 'fixed', inset: 0, zIndex: 99999,
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        background: 'linear-gradient(160deg, #ffffff 0%, #f0fdf4 50%, #ffffff 100%)',
+        background: 'linear-gradient(160deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%)',
         opacity: animateOut ? 0 : 1,
         transition: 'opacity 0.7s ease-in-out',
         pointerEvents: animateOut ? 'none' : 'all',
@@ -107,8 +107,8 @@ export default function SplashScreen() {
         }}>
           <div style={{
             fontSize: '2.1rem', fontWeight: '900', fontStyle: 'italic',
-            color: '#1a1a1a', letterSpacing: '-0.5px', direction: 'ltr',
-            textShadow: '0 2px 20px rgba(34,197,94,0.1)',
+            color: '#ffffff', letterSpacing: '-0.5px', direction: 'ltr',
+            textShadow: '0 2px 20px rgba(0,0,0,0.2)',
           }}>
             ZAIT <span style={{
               color: '#22c55e',
@@ -124,7 +124,7 @@ export default function SplashScreen() {
           opacity: 0, textAlign: 'center', marginBottom: '6px',
         }}>
           <div style={{
-            fontSize: '1.1rem', fontWeight: '800', color: '#374151',
+            fontSize: '1.1rem', fontWeight: '800', color: 'rgba(255,255,255,0.9)',
             letterSpacing: '0.5px',
           }}>
             زيت اند فلترز
@@ -136,7 +136,7 @@ export default function SplashScreen() {
           animation: 'splashDivider 0.8s ease forwards 0.6s',
           opacity: 0, marginBottom: '10px',
           width: '0px', height: '1px',
-          background: 'rgba(34,197,94,0.35)',
+          background: 'rgba(255,255,255,0.35)',
         }} />
 
         {/* ── Tagline ── */}
@@ -145,7 +145,7 @@ export default function SplashScreen() {
           opacity: 0, textAlign: 'center', marginBottom: '70px',
         }}>
           <div style={{
-            fontSize: '0.75rem', color: '#6b7280',
+            fontSize: '0.75rem', color: 'rgba(255,255,255,0.65)',
             fontWeight: '700', letterSpacing: '3px', direction: 'ltr',
             textTransform: 'uppercase',
           }}>
@@ -162,7 +162,7 @@ export default function SplashScreen() {
         }}>
           <div style={{
             width: '100%', height: '3px',
-            background: 'rgba(34,197,94,0.2)', borderRadius: '999px', overflow: 'hidden',
+            background: 'rgba(255,255,255,0.2)', borderRadius: '999px', overflow: 'hidden',
           }}>
             <div style={{
               height: '100%', background: '#22c55e',
@@ -181,7 +181,7 @@ export default function SplashScreen() {
           textAlign: 'center',
         }}>
           <div style={{
-            fontSize: '0.7rem', color: '#9ca3af',
+            fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)',
             fontWeight: '600', letterSpacing: '1.5px', direction: 'ltr',
           }}>
             zaitandfilters.com
