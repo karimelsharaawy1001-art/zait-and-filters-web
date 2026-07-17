@@ -635,7 +635,7 @@ function StoreContent() {
   const [brandsOptions, setBrandsOptions] = useState<any[]>([]);
   const [subcategoryImages, setSubcategoryImages] = useState<Record<string, string>>({});
 
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
 
   const [selectedMake, setSelectedMake] = useState<any>(null);
   const [selectedModel, setSelectedModel] = useState<any>(null);
