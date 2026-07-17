@@ -1449,7 +1449,6 @@ export default function HomePage() {
                     transform: translateY(-6px) scale(1.035);
                     box-shadow: 0 18px 40px rgba(34,197,94,0.45);
                     outline: 2.5px solid #16a34a;
-                    background: linear-gradient(145deg, #16a34a, #15803d);
                   }
                   .make-card-logo-wrap {
                     width: 80%;
@@ -1482,13 +1481,9 @@ export default function HomePage() {
                   .make-card-cta {
                     font-size: 0.68rem;
                     font-weight: 700;
-                    color: rgba(0,0,0,0.2);
-                    transition: color 0.18s;
+                    color: #fff;
                     position: relative;
                     z-index: 1;
-                  }
-                  .make-card:hover .make-card-cta {
-                    color: #fff;
                   }
                   @media (max-width: 580px) {
                     .make-card { padding: 18px 8px 14px; gap: 10px; border-radius: 12px; }
